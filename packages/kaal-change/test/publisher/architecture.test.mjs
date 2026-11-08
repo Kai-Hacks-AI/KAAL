@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'kaal-hosting';
-import { inspect } from 'kaal-hosting/conformance';
+import { readFile } from '@kaihacksai/kaal-hosting';
+import { inspect } from '@kaihacksai/kaal-hosting/conformance';
 import { fileURLToPath } from 'node:url';
 const root = new URL('../../', import.meta.url);
 test('change/T48 [change/N9, change/N10]: permitted/prohibited/undecidable pure-core boundary', async () => {

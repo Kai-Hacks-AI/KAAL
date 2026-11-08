@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkSkill } from "kaal-engineer-skill";
-import { execute, read } from "kaal-hosting";
+import { execute, read } from "@kaihacksai/kaal-hosting";
 import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, readFrontmatter, sha256 } from "kaal-graph";
 import * as form from "kaal-graph/form";
 

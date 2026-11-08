@@ -6,8 +6,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { read } from "kaal-hosting";
-import { EXCLUSIONS, inspect } from "kaal-hosting/conformance";
+import { read } from "@kaihacksai/kaal-hosting";
+import { EXCLUSIONS, inspect } from "@kaihacksai/kaal-hosting/conformance";
 
 /**
  * The host modules Testing's delivered code may import directly: path and URL
@@ -39,7 +39,7 @@ describe("Testing's Hosting boundary", () => {
     assert.ok(Object.keys(files).length >= 1);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
-    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))], ["kaal-hosting"]);
+    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))], ["@kaihacksai/kaal-hosting"]);
     assert.deepEqual(judged(report.validation), VALIDATED.map(({ file, construct }) => ({ file, construct })));
     // A clean result is evidence within the inspection's coverage, not proof of compliance.
     assert.ok(report.exclusions.length > 0 && report.exclusions === EXCLUSIONS);

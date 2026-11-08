@@ -13,7 +13,7 @@ function finish(result, cases = []) {
 }
 let host, sha256;
 try {
-  host = await import('kaal-hosting');
+  host = await import('@kaihacksai/kaal-hosting');
   ({ sha256 } = await import('@kaihacksai/kaal-foundation/sha256'));
   await import('kaal-graph');
 } catch (e) { causes.push('verification provider unavailable: ' + e.code); finish('cannot verify'); }
