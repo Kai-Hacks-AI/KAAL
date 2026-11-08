@@ -17,7 +17,7 @@ test("foundation/T46 [foundation/F25, foundation/N16]: the accepted Foundation N
   });
   assert.equal(m.exports["./capability"], `./dist/${NODE}`, "missing owner-approved public declaration export");
   assert.deepEqual(m.files, ["dist"], "dist/ is the only shipped thing, and it holds the declaration");
-  assert.match(readFileSync(join(root, ".gitattributes"), "utf8"), new RegExp(`^${NODE.replace(/[./]/g, "\\$&")} -text$`, "m"), "the byte-preserving attribute names the delivered declaration path");
+  assert.ok(readFileSync(join(root, ".gitattributes"), "utf8").split(/\r?\n/).includes(`${NODE} -text`), "the byte-preserving attribute names the delivered declaration path");
   assert.equal(m.version, "0.0.2");
   assert.equal(m.scripts?.prepack, "node 04-test/engineering-check/build.mjs", "prepack only builds dist/ from the committed sources (foundation/N15)");
   for (const hook of ["prepare", "preinstall", "install", "postinstall"])
