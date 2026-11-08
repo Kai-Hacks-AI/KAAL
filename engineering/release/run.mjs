@@ -52,12 +52,16 @@ async function consume(name, spec, dir, run) {
   const env = { HOME: home, USERPROFILE: home, npm_config_cache: `${dir}-cache` };
   const i = await run(["install", spec], dir, env);
   if (i.status !== 0) return { result: "failed", cause: `npm install ${spec} failed: ${i.stderr.trim().split("\n").at(-1)}` };
-  // The cases the installed candidate itself declares, read from its own test/verify.json.
+  // The cases the installed candidate itself declares, read from its own verify.json: in the package
+  // layout's `dist/test/package-check/`, else in the older `test/`.
   let declared;
-  try {
-    declared = JSON.parse((await readFile(join(dir, "node_modules", ...name.split("/"), "test", "verify.json"))).toString("utf8")).cases;
-  } catch {
-    declared = undefined;
+  for (const where of [["dist", "test", "package-check"], ["test"]]) {
+    try {
+      declared = JSON.parse((await readFile(join(dir, "node_modules", ...name.split("/"), ...where, "verify.json"))).toString("utf8")).cases;
+      break;
+    } catch {
+      declared = undefined;
+    }
   }
   const t = await run(["explore", name, "--", "npm", "test"], dir, env);
   return verification(t.stdout, name, { status: t.status, declared });

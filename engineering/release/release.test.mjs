@@ -34,12 +34,12 @@ const CASES = ["demo/T1", "demo/T2"];
 const VERIFY = `const r = JSON.parse(process.env.DEMO_RESULT ?? JSON.stringify({ result: "verified", exit: 0, cases: ${JSON.stringify(CASES.map((name) => ({ name, outcome: "pass" })))}, causes: [] }));\nconsole.log("kaal-demo verification: this copy");\nconsole.log("kaal-demo-verification " + JSON.stringify(r));\nprocess.exit(r.exit);\n`;
 
 /** A scratch repository with one workspace, the demo package. */
-function repo(dir, manifest) {
-  mkdirSync(join(dir, "packages", "kaal-demo", "test"), { recursive: true });
+function repo(dir, manifest, at = ["test"]) {
+  mkdirSync(join(dir, "packages", "kaal-demo", ...at), { recursive: true });
   writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "scratch", private: true, workspaces: ["packages/kaal-demo"] }));
   writeFileSync(join(dir, "packages", "kaal-demo", "package.json"), JSON.stringify(manifest));
-  writeFileSync(join(dir, "packages", "kaal-demo", "test", "verify.mjs"), VERIFY);
-  writeFileSync(join(dir, "packages", "kaal-demo", "test", "verify.json"), JSON.stringify({ files: {}, cases: CASES }));
+  writeFileSync(join(dir, "packages", "kaal-demo", ...at, "verify.mjs"), VERIFY);
+  writeFileSync(join(dir, "packages", "kaal-demo", ...at, "verify.json"), JSON.stringify({ files: {}, cases: CASES }));
   const r = spawn(["install", "--offline"], dir);
   assert.equal(r.status, 0, r.stderr);
   return dir;
@@ -182,6 +182,13 @@ describe("engineering/T65 [engineering/F31, F33]: one pack; Publish publishes th
     assert.equal(seen.length, 1);
     const { cwd, env } = seen[0];
     for (const place of [env.HOME, env.USERPROFILE, env.npm_config_cache]) assert.ok(!(place + "/").startsWith(cwd + "/"), `${place} is inside ${cwd}`);
+  });
+  it("a package in the package layout declares its cases in dist/test/package-check/verify.json, and they are read", async () => {
+    const at = ["dist", "test", "package-check"];
+    const root = repo(scratch("t65-layout"), good({ files: ["dist"], scripts: { test: "node dist/test/package-check/verify.mjs" } }), at);
+    const out = join(root, "out");
+    const r = await packStep({ name: NAME, root, out, commit: "c1", run: "65", npm: registry({ known: { [NAME]: ["0.0.0"] } }) });
+    assert.equal(r.result, "verified", readFileSync(join(out, "report", "summary.md"), "utf8"));
   });
   it("an uploaded artifact whose digest differs is cannot judge", () => assert.equal(bind(rec, { id: "9", digest: "0".repeat(64) }).result, "unknown"));
   it("Publish publishes the downloaded tarball's bytes and never runs npm pack", async () => {
