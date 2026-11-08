@@ -14,7 +14,6 @@
 | Which items a Change touches; accepted-defect judgment (FAR's sibling) | Change |
 | The CI lane that runs a Plan and what it gates | Engineering |
 
-- **Worked example.** [hosting-example.md](hosting-example.md) shows the layout for `kaal-hosting`.
 - **Where Cases sit.** In context, next to the item they prove; the folder is the loop. `04-test` holds no Cases: its three suites collect them. Defect Cases sit in `06-defects/D<n>.test.mjs` beside the Defect Node, and there are no more `.red.mjs` files once the DO lands.
 - **Worked example.** [hosting-example.md](hosting-example.md) shows the layout for `kaal-hosting`.
 - **Not decided here.** The Loop Declaration's file form (a Node with `levels` in its frontmatter is the proposal); the accepted-defect ratchet (testing/C54); the migration of each package's items to Nodes, which belongs to the item owners. Hosting D15–D17 keep their `.red.mjs` until the DO.
