@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { read, execute } from 'kaal-hosting';
+import { read, execute } from '@kaihacksai/kaal-hosting';
 import { evaluate, payload, foundation } from 'kaal-core';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 test('change/T52 [change/F46, change/N12]: Core admits the Change Practice Skill and Engineer Skill checks its Agent Skill', async () => {

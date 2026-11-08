@@ -3,7 +3,7 @@
 // check-skill entry point reaches it.
 import { join } from "node:path";
 import { checkSkill } from "kaal-engineer-skill";
-import { initialize, read } from "kaal-hosting";
+import { initialize, read } from "@kaihacksai/kaal-hosting";
 import { CASES } from "./cases.mjs";
 
 /** Write every case under `root` as <root>/<case id>/<skill dir>; returns [{ case, dir }]. */
