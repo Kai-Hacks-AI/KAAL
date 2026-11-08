@@ -45,10 +45,11 @@ async function versions(name, cwd, run) {
   return Array.isArray(v) ? v : [v];
 }
 
-/** A fresh consumer in `dir` (missing or empty), with its own HOME and npm cache; installs `spec` and runs the installed npm test. */
+/** A fresh consumer in `dir` (missing or empty), with its own HOME and npm cache beside it (never inside it, or npm's own debug log would read as a change to the consumer); installs `spec` and runs the installed npm test. */
 async function consume(name, spec, dir, run) {
   await initialize(dir, { "package.json": json({ name: "kaal-release-consumer", version: "0.0.0", private: true }) });
-  const env = { HOME: join(dir, ".home"), USERPROFILE: join(dir, ".home"), npm_config_cache: join(dir, ".cache") };
+  const home = `${dir}-home`;
+  const env = { HOME: home, USERPROFILE: home, npm_config_cache: `${dir}-cache` };
   const i = await run(["install", spec], dir, env);
   if (i.status !== 0) return { result: "failed", cause: `npm install ${spec} failed: ${i.stderr.trim().split("\n").at(-1)}` };
   // The cases the installed candidate itself declares, read from its own test/verify.json.
