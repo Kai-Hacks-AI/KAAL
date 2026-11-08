@@ -43,6 +43,7 @@ Every import, dependency entry, workspace selector and acquisition selector that
 - `packages/kaal-graph/test/ownership.test.mjs`
 - `packages/kaal-review/package.json`
 - `packages/kaal-review/test/review.test.mjs`
+- `packages/kaal-change/test/verify.json` (regenerated: it pins the hash of Change's `package.json`, whose devDependency changed)
 
 ## Left as they are, by classification
 
