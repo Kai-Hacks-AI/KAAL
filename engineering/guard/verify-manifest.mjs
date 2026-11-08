@@ -26,7 +26,8 @@ const OUTER = { "intent.test.mjs": "Intent", "requirements.test.mjs": "Requireme
 const caseFiles = (dir) => files(join(PACKAGE, dir)).filter((f) => f.endsWith(".test.mjs")).map((f) => `${dir}/${f}`);
 const loops = { Intent: [], Requirements: [], Architecture: [], Code: caseFiles("test/unit") };
 for (const file of caseFiles("test/acceptance")) {
-  const loop = OUTER[file.split("/").pop()];
+  // The Requirements loop is split over requirements.test.mjs and requirements-*.test.mjs (guard/C142); the loop is the same.
+  const loop = OUTER[file.split("/").pop().replace(/^requirements-.*\.test\.mjs$/, "requirements.test.mjs")];
   if (!loop) throw new Error(`no loop is named for ${file}`);
   loops[loop].push(file);
 }
