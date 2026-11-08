@@ -43,6 +43,7 @@ worked-use validation is reported separately from test execution.
 | Case | Loop | Contract |
 | --- | --- | --- |
 | change/T55 | Architecture, publisher | The actual package declares all providers needed by shipped verification as exact production dependencies. |
+| change/T58 | Implementation, delivered | An isolation verdict (assessment and findings) is the same for any order of the selected scope; one owner's finding, such as a missing owner source, cannot change another's. |
 | change/T57 | Publisher integration | The existing Release readiness gate names missing required Graph/Hosting versions before packing; controlled registry observations do not claim publication. |
 | change/T56 | Publisher integration, explicit artifact probe | With fresh consumer/cache, request only the Change tarball; npm resolves declared dependencies through checked local-tarball overrides, then the existing Release judge validates all installed Cases and their statuses. |
 

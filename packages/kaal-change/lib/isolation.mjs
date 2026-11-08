@@ -165,10 +165,14 @@ export function isolate(proposal, model) {
     const selectedOwners = new Set(proposal.scope);
     const selected = [...byId.values()].filter(e => selectedOwners.has(e.owner));
     const impact = [...impactIds].map(id => byId.get(id));
+    // Whether the evidence is incomplete is decided before any selected owner is judged, so one owner's
+    // finding (such as a missing owner source) cannot change another's verdict and the order of the scope
+    // cannot change the result.
+    const incomplete = findings.some(f => f.kind === 'unknown');
     for (const owner of selectedOwners) {
       if (!model.owners.includes(owner)) unknown('scope-owner-unavailable', owner, 'Selected capability has no expected owner source.');
       else if (!impact.some(e => e.owner === owner)) {
-        if (findings.some(f => f.kind === 'unknown'))
+        if (incomplete)
           unknown('scope-impact-unresolved', owner, 'Incomplete evidence cannot establish whether the selected owner is impacted.');
         else violated('unsupported-scope', owner, 'No changed-element trace establishes potential impact on this selected owner.');
       }
