@@ -4,8 +4,18 @@ import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";
 import { install } from "kaal-testing/acceptance";
-import { execute, kind, readFile } from "kaal-hosting";
+import { spawnSync } from "node:child_process";
+import { lstat, readFile } from "node:fs/promises";
 import { sha256 } from "../../lib/sha256.mjs";
+
+// Node's own facilities, so this scenario does not depend on how Hosting is named.
+const execute = async (command, args, options) => {
+  const cli = process.env.npm_execpath;
+  if (command === "npm") assert.ok(cli && /\.[cm]?js$/.test(cli), "npm_execpath names npm's CLI script: run these tests through npm");
+  const r = spawnSync(process.execPath, command === "npm" ? [cli, ...args] : [...args], { ...options, encoding: "utf8" });
+  return { status: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "" };
+};
+const kind = async (path) => (await lstat(path).then((s) => (s.isDirectory() ? "directory" : "file"), () => "missing"));
 
 test("foundation/T51 [foundation/F25, foundation/F26, foundation/F27, foundation/N15]: a ledger-recorded clean consumer resolves and verifies the exact Foundation declaration candidate", async () => {
   const host = await install(["@kaihacksai/kaal-foundation"], { offline: true });
