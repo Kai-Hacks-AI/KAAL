@@ -30,4 +30,5 @@ They are plain Markdown with YAML frontmatter (`name`, `kind`, `owner`) and rela
 - Outcomes: [TAKE](outcomes/take.md), [EMBED](outcomes/embed.md) ([into others](outcomes/embed/into-others.md), [into KAAL](outcomes/embed/into-kaal.md)), [CORE](outcomes/core.md)
 - Mechanisms: [npmjs](mechanisms/npmjs.md), [main](mechanisms/main.md)
 - [Roadmap](roadmap/Roadmap.md)
-- Decisions: [2026-11-08 Roadmap model](decisions/2026-11-08-roadmap-model.md), [2026-11-08 Final roadmap](decisions/2026-11-08-final-roadmap.md)
+- Projects: [Graph rename via path bridge](projects/graph-rename-path-bridge.md)
+- Decisions: [2026-11-08 Roadmap model](decisions/2026-11-08-roadmap-model.md), [2026-11-08 Final roadmap](decisions/2026-11-08-final-roadmap.md), [2026-11-08 Graph rename path bridge](decisions/2026-11-08-graph-rename-path-bridge.md)
