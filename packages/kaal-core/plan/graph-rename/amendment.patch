@@ -1,0 +1,47 @@
+diff --git a/packages/kaal-core/test/boundary.test.ts b/packages/kaal-core/test/boundary.test.ts
+index a0c9319..22eb673 100644
+--- a/packages/kaal-core/test/boundary.test.ts
++++ b/packages/kaal-core/test/boundary.test.ts
+@@ -89,6 +89,6 @@ describe("Core's Hosting boundary", () => {
+   it("depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build", () => {
+     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+     assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1", yaml: "2.9.1" });
+-    assert.equal(pkg.devDependencies["kaal-graph"], "0.0.1");
++    assert.equal(pkg.devDependencies["@kaihacksai/kaal-graph"], "0.0.1");
+   });
+ });
+diff --git a/packages/kaal-core/test/core.test.ts b/packages/kaal-core/test/core.test.ts
+index bcc557a..19e558a 100644
+--- a/packages/kaal-core/test/core.test.ts
++++ b/packages/kaal-core/test/core.test.ts
+@@ -22,7 +22,7 @@ import {
+   type Ref,
+ } from "kaal-core";
+ import * as core from "kaal-core";
+-import { Graph, identify, sha256 } from "kaal-graph";
++import { Graph, identify, sha256 } from "@kaihacksai/kaal-graph";
+ 
+ /**
+  * The foundational identities, pinned. Changing a foundational document's
+diff --git a/packages/kaal-core/test/plan/love.test.mjs b/packages/kaal-core/test/plan/love.test.mjs
+index a3e4fb6..3f5bd11 100644
+--- a/packages/kaal-core/test/plan/love.test.mjs
++++ b/packages/kaal-core/test/plan/love.test.mjs
+@@ -4,7 +4,7 @@
+ import assert from "node:assert/strict";
+ import { existsSync, readdirSync, readFileSync } from "node:fs";
+ import { describe, it } from "node:test";
+-import { identify } from "kaal-graph";
++import { identify } from "@kaihacksai/kaal-graph";
+ 
+ const PACKAGE = new URL("../../", import.meta.url);
+ const read = (path) => readFileSync(new URL(path, PACKAGE));
+@@ -28,7 +28,7 @@ const FOUNDATION = {
+ };
+ 
+ /** The KAAL packages Core may depend on (core/N11). */
+-const ALLOWED = ["kaal-graph", "@kaihacksai/kaal-hosting", "@kaihacksai/kaal-foundation"];
++const ALLOWED = ["@kaihacksai/kaal-graph", "@kaihacksai/kaal-hosting", "@kaihacksai/kaal-foundation"];
+ const isKaal = (name) => /^(@kaihacksai\/)?kaal-/.test(name) && name !== "kaal-core";
+ 
+ function files(dir) {
