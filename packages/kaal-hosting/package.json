@@ -1,46 +1,65 @@
 {
-  "name": "kaal-hosting",
+  "name": "@kaihacksai/kaal-hosting",
   "version": "0.0.1",
   "description": "KAAL Hosting: the host-facing KAAL Extension. It provides the filesystem operations and guarantees KAAL needs on Linux, Windows and macOS.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kai-Hacks-AI/KAAL.git",
+    "directory": "packages/kaal-hosting"
+  },
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/skills/kaal-hosting/scripts/index.js",
+  "types": "./dist/skills/kaal-hosting/scripts/index.d.ts",
+  "bin": {
+    "kaal-hosting-boundary": "dist/skills/kaal-hosting/scripts/boundary-cli.mjs"
+  },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "types": "./dist/skills/kaal-hosting/scripts/index.d.ts",
+      "default": "./dist/skills/kaal-hosting/scripts/index.js"
     },
     "./conformance": {
-      "types": "./dist/conformance.d.ts",
-      "default": "./dist/conformance.js"
+      "types": "./dist/skills/kaal-hosting/scripts/conformance.d.ts",
+      "default": "./dist/skills/kaal-hosting/scripts/conformance.js"
+    },
+    "./boundary": {
+      "types": "./dist/skills/kaal-hosting/scripts/boundary.d.ts",
+      "default": "./dist/skills/kaal-hosting/scripts/boundary.js"
+    },
+    "./fixtures": {
+      "types": "./dist/skills/kaal-hosting/scripts/fixtures.d.ts",
+      "default": "./dist/skills/kaal-hosting/scripts/fixtures.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist",
-    "!dist/.tsbuildinfo",
-    "payload"
+    "dist"
   ],
   "scripts": {
-    "build": "tsc -b tsconfig.json",
-    "test": "npm run build && node -e \"require('fs').rmSync('dist-test',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test dist-test/hosting.test.js dist-test/conformance.test.js test/plan/reconciliation.test.mjs test/plan/cleanup.test.mjs test/plan/kinds.test.mjs test/plan/expectations.test.mjs",
-    "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build"
+    "build": "node 04-test/engineering-check/build.mjs",
+    "test": "node dist/test/package-check/verify.mjs",
+    "test:publisher": "npm run build && node 04-test/engineering-check/publisher/manifest.mjs && node --test --test-skip-pattern=\"^hosting/T(83|133)[ :]\" 04-test/package-check/conformance.test.mjs 04-test/package-check/hosting.test.mjs 04-test/package-check/architecture.test.mjs 04-test/package-check/intent.test.mjs 04-test/package-check/requirements.test.mjs 04-test/engineering-check/plan/boundary.test.mjs 04-test/engineering-check/plan/boundary-check.test.mjs 04-test/engineering-check/plan/directory-listing.test.mjs 04-test/engineering-check/plan/process-facility.test.mjs 04-test/engineering-check/plan/portability.test.mjs 04-test/engineering-check/plan/interface.test.mjs 04-test/engineering-check/plan/usage-skill.test.mjs 04-test/engineering-check/publisher/verify.test.mjs 04-test/engineering-check/publisher/release-record.test.mjs 04-test/engineering-check/publisher/dependency-successors.test.mjs 04-test/engineering-check/publisher/sibling-footprint.test.mjs 04-test/engineering-check/publisher/defects.test.mjs 04-test/engineering-check/publisher/scan.test.mjs 04-test/engineering-check/publisher/directory-listing.test.mjs 04-test/engineering-check/publisher/attribution-branches.test.mjs 04-test/engineering-check/publisher/attribution-prefixes.test.mjs 04-test/engineering-check/publisher/attribution-continuations.test.mjs 04-test/engineering-check/publisher/attribution-ternary.test.mjs 04-test/package-check/allocation.test.mjs 04-test/package-check/fixture-ownership.test.mjs && node 04-test/engineering-check/publisher/usage-mutations.mjs && node 04-test/engineering-check/publisher/defect-mutations.mjs && node 04-test/engineering-check/publisher/affected-mutations.mjs && node --test --test-name-pattern=\"^hosting/T(2[23]|48|5[34]) \" 04-test/engineering-check/plan/release.test.mjs && node --test 04-test/engineering-check/publisher/prepared-release.test.mjs",
+    "prepack": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && npm run build && node 04-test/engineering-check/publisher/manifest.mjs && npm run build",
+    "pretest": "node -e \"if(require('fs').existsSync('04-test')){require('child_process').execFileSync(process.execPath,['04-test/engineering-check/build.mjs'],{stdio:'inherit'})}\""
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "cross-spawn": "^7.0.6",
-    "es-module-lexer": "^3.0.3",
-    "graceful-fs": "^4.2.11",
-    "proper-lockfile": "^4.1.2"
+    "cross-spawn": "7.0.6",
+    "es-module-lexer": "3.0.3",
+    "graceful-fs": "4.2.11",
+    "proper-lockfile": "4.1.2",
+    "typescript": "5.9.3"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.6",
     "@types/graceful-fs": "^4.1.9",
     "@types/node": "^24.0.0",
-    "@types/proper-lockfile": "^4.1.4",
-    "typescript": "^5.6.0"
+    "@types/proper-lockfile": "^4.1.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

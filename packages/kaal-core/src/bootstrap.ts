@@ -1,6 +1,6 @@
 import { readFrontmatter } from "#node/form";
 import { Admitted } from "./admitted.js";
-import { HostingError, initialize, kind, read } from "kaal-hosting";
+import { HostingError, initialize, kind, read } from "@kaihacksai/kaal-hosting";
 import { evaluate, type Engine, type EvaluateOptions } from "./engine.js";
 import { KaalError, sha256 } from "./node.js";
 import { foundation, payload, type Files } from "./payload.js";

@@ -23,14 +23,14 @@
     "skills"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-hosting",
+    "pretest": "npm run build -w @kaihacksai/kaal-hosting",
     "test": "node --test test/graph.test.mjs test/ownership.test.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "kaal-hosting": "0.0.1",
+    "@kaihacksai/kaal-hosting": "0.0.1",
     "yaml": "2.9.1"
   },
   "devDependencies": {
