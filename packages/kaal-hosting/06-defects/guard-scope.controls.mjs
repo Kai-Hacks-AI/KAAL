@@ -1,8 +1,8 @@
-// hosting/T249 to hosting/T251: controls of hosting/D13, added with its fix after Codex review.
+// hosting/T249 to hosting/T252: controls of hosting/D13, added with its fix after Codex review.
 //
 // They pass with the fix and must keep passing: a throw that a try block catches skips the registrations to the end of
 // that try block and no further (T249), and a function body with a return-type annotation is the boundary a return
-// leaves (T250), and the finally block of the try a guard sits in still runs (T251).
+// leaves (T250), and the finally block of the try a guard sits in still runs (T251), but a process exit runs no finally block and ends the whole module (T252).
 //
 //   npm run build -w @kaihacksai/kaal-hosting
 //   node --test packages/kaal-hosting/06-defects/guard-scope.controls.mjs
@@ -38,4 +38,9 @@ test("hosting/T250 control: a return in a function body with a return-type annot
 test("hosting/T251 control: a finally block of the try the guard sits in still runs and is not challenged", async () => {
   const r = await challenged('describe("suite", () => {\n  try {\n    if (process.platform === "win32") return;\n  } finally {\n    it("always", () => {});\n  }\n  it("after", () => {});\n});');
   assert.deepEqual(r, ["after"]);
+});
+
+test("hosting/T252 control: a process exit runs no finally block and skips everything registered after it, outside the function too", async () => {
+  const r = await challenged('describe("suite", () => {\n  try {\n    if (process.platform === "win32") process.exit(0);\n  } finally {\n    it("cleanup", () => {});\n  }\n});\nit("later", () => {});');
+  assert.deepEqual([...r].sort(), ["cleanup", "later"]);
 });

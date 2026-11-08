@@ -325,7 +325,7 @@ function affected(code: string, line: number, column: number): string[] {
     // finally block of a try the guard is in, which still runs; a throw that an enclosing try with a catch handler inside
     // that function catches skips only to the end of that try block.
     const kinds = exitKinds(code.slice(close + 1, end));
-    if (kinds.returns || kinds.throws) {
+    if (kinds.returns || kinds.throws || kinds.exits) {
       const scope = scopeEnd(code, open, kinds);
       for (const call of calls) if (end <= call.start && call.start < scope.end && !scope.runs.some(([from, to]) => from <= call.start && call.start < to)) result.add(call.title);
     }

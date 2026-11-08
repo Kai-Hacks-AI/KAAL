@@ -330,16 +330,18 @@ function returnsFromBranch(text: string, unbraced = false): boolean {
 }
 
 /**
- * How a statement leaves the scope it is in (hosting/D12, hosting/D14): by a return or a `process.exit()` (`returns`),
+ * How a statement leaves the scope it is in (hosting/D12, hosting/D14): by a return (`returns`), by a
+ * `process.exit()` (`exits`: it ends the process, so no finally block runs and nothing after it is registered anywhere),
  * or by a throw that no try with a catch handler inside the statement handles (`throws`). Decided on the parsed tree,
  * outside nested functions and classes (a registered callback leaves only itself).
  */
-export function exitKinds(text: string): { returns: boolean; throws: boolean } {
+export function exitKinds(text: string): { returns: boolean; throws: boolean; exits: boolean } {
   const file = ts.createSourceFile("guard.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const kinds = { returns: false, throws: false };
+  const kinds = { returns: false, throws: false, exits: false };
   const visit = (node: ts.Node, caught: boolean): void => {
     if (ts.isFunctionLike(node) || ts.isClassLike(node)) return;
-    if (ts.isReturnStatement(node) || (ts.isCallExpression(node) && /^process\s*\.\s*exit$/.test(node.expression.getText(file)))) kinds.returns = true;
+    if (ts.isReturnStatement(node)) kinds.returns = true;
+    else if (ts.isCallExpression(node) && /^process\s*\.\s*exit$/.test(node.expression.getText(file))) kinds.exits = true;
     else if (ts.isThrowStatement(node) && !caught) kinds.throws = true;
     if (ts.isTryStatement(node)) {
       visit(node.tryBlock, caught || node.catchClause !== undefined);
@@ -356,7 +358,7 @@ export function exitKinds(text: string): { returns: boolean; throws: boolean } {
 /** Whether a statement leaves the scope it is in, by any means (`exitKinds`). */
 export function leavesScope(text: string): boolean {
   const kinds = exitKinds(text);
-  return kinds.returns || kinds.throws;
+  return kinds.returns || kinds.throws || kinds.exits;
 }
 
 /**
@@ -365,7 +367,7 @@ export function leavesScope(text: string): boolean {
  * that function catches leaves only that try block, so it ends there. The finally blocks of the tries the guard sits in
  * still run, so their ranges are returned to be left out. Decided on the parsed tree.
  */
-export function scopeEnd(code: string, position: number, kinds: { returns: boolean; throws: boolean }): { end: number; runs: Array<[number, number]> } {
+export function scopeEnd(code: string, position: number, kinds: { returns: boolean; throws: boolean; exits: boolean }): { end: number; runs: Array<[number, number]> } {
   const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const chain: ts.Node[] = [];
   const descend = (node: ts.Node): void => {
@@ -379,6 +381,8 @@ export function scopeEnd(code: string, position: number, kinds: { returns: boole
     });
   };
   descend(file);
+  // A process exit ends the process: everything after it in the module is skipped and no finally block runs.
+  if (kinds.exits) return { end: code.length, runs: [] };
   let caught: number | undefined;
   const runs: Array<[number, number]> = [];
   for (let i = chain.length - 1; i > 0; i--) {
