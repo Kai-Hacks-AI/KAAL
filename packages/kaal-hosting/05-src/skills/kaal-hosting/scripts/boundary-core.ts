@@ -236,14 +236,14 @@ function affected(code: string, line: number, column: number): string[] {
     if (mask[start] !== "(") continue;
     const callee = mask.slice(start + 1, close);
     const selectsSuite = /(?:\?|:)\s*(?:describe|suite)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee);
-    if (!selectsSuite && !/(?:\?|:)\s*(?:it|test)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee)) continue;
+    const selectsCase = /(?:\?|:)\s*(?:it|test)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee);
+    if (!selectsSuite && !selectsCase) continue;
     const open = space(close + 1);
     const end = pairs.get(open);
     if (mask[open] !== "(" || end === undefined) continue;
-    if (selectsSuite) {
-      suites.push({ start, end, body: bodyOf(open, end) });
-      continue;
-    }
+    // A selector may pick a suite on one branch and a case on the other: it is both.
+    if (selectsSuite) suites.push({ start, end, body: bodyOf(open, end) });
+    if (!selectsCase) continue;
     const title = /^\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/.exec(code.slice(open + 1));
     if (title) calls.push({ start, end, title: title[2] });
   }
