@@ -14,7 +14,7 @@ B1 is proven live on `main`: a promotion carrying its own ledger entry is admitt
 
 ## Check
 
-`node --test engineering/change-isolation/review-unreadable.red.mjs`: 4 of 4 GREEN on `main`. Mutations on a copy: a wait step that tolerates the failed read turns the wait Case and the structure Case RED; `continue-on-error` on the job turns the structure Case RED; the adapter swallowing the unreadable fact turns its Case RED.
+`node --test engineering/change-isolation/review-unreadable.red.mjs`: 4 of 4 GREEN on `main`. Mutations on a copy of the tree (this file copied into it): a wait step that tolerates the failed read turns the wait Case and the structure Case RED; `continue-on-error` on the job turns the structure Case RED; the adapter swallowing the unreadable fact turns its Case RED.
 
 ## Act
 

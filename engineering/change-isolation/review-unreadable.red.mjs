@@ -7,8 +7,8 @@
 // that fails every read: a stub `gh` on PATH for the two shell steps, a failing `fetch` for the attestation adapter. Each must
 // end with exit status 2 (cannot judge) and with no attestation printed. The workflow itself must hold no condition,
 // continue-on-error or unconditional success that could turn such an exit into a pass. The live half of B1-5 is the
-// queue: a failed or missing job blocks the entry. KAAL_ROOT=<dir> points the Cases at another checkout. Do not edit a Case
-// to make it pass.
+// queue: a failed or missing job blocks the entry. The Cases always read the checkout they sit in; to try another tree, copy this
+// file into it. Do not edit a Case to make it pass.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
@@ -17,7 +17,7 @@ import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const ROOT = process.env.KAAL_ROOT ? resolve(process.env.KAAL_ROOT) : resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const WORKFLOW = readFileSync(join(ROOT, ".github", "workflows", "merge-group-review.yml"), "utf8");
 const SHA = "a".repeat(40);
 
