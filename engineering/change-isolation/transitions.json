@@ -5214,6 +5214,33 @@
         "engineering/release/release.test.mjs": "dcbe03558a2f4160df27d9849234d9627ecc12f0",
         "engineering/release/run.mjs": "2afd20a78b2c58a6df255e7f76cc419f9a8829d7"
       }
+    },
+    {
+      "id": "core-graph-bridge-b1-2026-11-08-r2",
+      "paths": [
+        "package-lock.json",
+        "packages/kaal-core/package.json",
+        "packages/kaal-core/scripts/deliver-node.mjs",
+        "packages/kaal-core/test/boundary.test.ts",
+        "packages/kaal-core/test/plan/standalone.test.mjs",
+        "packages/kaal-core/test/verify.json"
+      ],
+      "pre": {
+        "package-lock.json": "d8f99828597e1bd59aef0ed63ee93154c75b1bd8",
+        "packages/kaal-core/package.json": "b2f167c2d35a47304e0028ec56612862139903a2",
+        "packages/kaal-core/scripts/deliver-node.mjs": "161ec6de86c6c1c1fe0943f073262ed4e2fef8d0",
+        "packages/kaal-core/test/boundary.test.ts": "a0c9319e2d19cbea28a57bf093f87187bc1e3da2",
+        "packages/kaal-core/test/plan/standalone.test.mjs": "0e9eb15d4ec2dfcc64b8db1e2db630c27044fd7f",
+        "packages/kaal-core/test/verify.json": "9a876c3fe52e2d161b55a5c7d188f8254ddea821"
+      },
+      "post": {
+        "package-lock.json": "82ac96f74ce4b72a0d03c89e4f15243552378a43",
+        "packages/kaal-core/package.json": "0d8cde55a27c44bf220ca73dba96f7c4b508b8a0",
+        "packages/kaal-core/scripts/deliver-node.mjs": "6b82366554997c506de60ced2caeedcfdcc2ea0d",
+        "packages/kaal-core/test/boundary.test.ts": "aba360c8e14fb5c9a7efdc0afba169e917207dc0",
+        "packages/kaal-core/test/plan/standalone.test.mjs": "570995f1f34e5f8545f43c6a86ee2c81a04b8a58",
+        "packages/kaal-core/test/verify.json": "2b855ba0afbec6d2af2daeb4a4acec96edfaa76f"
+      }
     }
   ]
 }

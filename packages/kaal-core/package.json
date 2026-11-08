@@ -83,7 +83,7 @@
     "@types/graceful-fs": "^4.1.9",
     "@types/node": "^24.0.0",
     "graceful-fs": "^4.2.11",
-    "kaal-graph": "0.0.1",
+    "kaal-graph": "file:../kaal-graph",
     "typescript": "^5.6.0"
   }
 }
