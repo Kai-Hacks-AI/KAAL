@@ -1,0 +1,12 @@
+diff --git a/packages/kaal-core/test/boundary.test.ts b/packages/kaal-core/test/boundary.test.ts
+index a0c9319..aba360c 100644
+--- a/packages/kaal-core/test/boundary.test.ts
++++ b/packages/kaal-core/test/boundary.test.ts
+@@ -89,6 +89,6 @@ describe("Core's Hosting boundary", () => {
+   it("depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build", () => {
+     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+     assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1", yaml: "2.9.1" });
+-    assert.equal(pkg.devDependencies["kaal-graph"], "0.0.1");
++    assert.equal(pkg.devDependencies["kaal-graph"], "file:../kaal-graph");
+   });
+ });
