@@ -215,7 +215,10 @@ function affected(code: string, line: number, column: number): string[] {
     let last = open + 1;
     for (let i = open + 1; i < end;) {
       if (pairs.has(i)) i = pairs.get(i)! + 1;
-      else if (mask[i] === ",") last = ++i;
+      else if (mask[i] === ",") {
+        i++;
+        if (mask.slice(i, end).trim() !== "") last = i; // a trailing comma starts no argument
+      }
       else i++;
     }
     return last;

@@ -1,4 +1,4 @@
-// hosting/T232 and hosting/T233: a selector that picks a suite on one branch and a case on the other keeps both attributions.
+// hosting/T232 to hosting/T234: a selector that picks a suite on one branch and a case on the other keeps both attributions.
 //
 // Controls of hosting/D11. T232 passes before and after the fix of `affected` in `boundary-core.ts`: the
 // case alternative of such a selector is still challenged (the fix must not trade one attribution for the other).
@@ -33,6 +33,19 @@ test("hosting/T233 control: a suite whose option holds a function is still gover
     writeFileSync(join(root, "test", "a.test.mjs"), 'import { describe, it } from "node:test";\ndescribe("suite", { skip: (() => process.platform === "win32")() }, () => {\n  it("child", () => {});\n});\n');
     const r = await portability({ name: "capability", root, builtins: ["node:test"] });
     assert.deepEqual(r.challenged, ["child"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("hosting/T234 control: a trailing comma after a suite's callback does not widen a finding inside the callback", async () => {
+  const root = mkdtempSync(join(tmpdir(), "hosting-d11-"));
+  try {
+    mkdirSync(join(root, "test"));
+    writeFileSync(join(root, "package.json"), JSON.stringify({ name: "capability", version: "1.0.0" }));
+    writeFileSync(join(root, "test", "a.test.mjs"), 'import { describe, it } from "node:test";\ndescribe("suite", () => {\n  it("affected", { skip: process.platform === "win32" }, () => {});\n  it("unrelated", () => {});\n},);\n');
+    const r = await portability({ name: "capability", root, builtins: ["node:test"] });
+    assert.deepEqual(r.challenged, ["affected"]);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
