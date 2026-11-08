@@ -214,7 +214,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
       body = rest(code, k);
       controlled = true;
     }
-    if (REGISTRATION.test(body) || returnsFromBranch(body, controlled)) return "registration";
+    if (REGISTRATION.test(body) || returnsFromBranch(body, controlled) || leavesScope(controlled ? firstStatement(maskLiterals(body)) : body)) return "registration";
     if (/\bassert\b|\bexpect\s*\(/.test(body)) return "dilution";
     return "setup";
   }
@@ -327,6 +327,78 @@ function returnsFromBranch(text: string, unbraced = false): boolean {
     }
   }
   return /(?<![\w$])(?<!\.\s*)return\b(?!\s*:)/.test(chars.join(""));
+}
+
+/**
+ * How a statement leaves the scope it is in (hosting/D12, hosting/D14): by a return (`returns`), by a
+ * `process.exit()` (`exits`: it ends the process, so no finally block runs),
+ * or by a throw that no try with a catch handler inside the statement handles (`throws`). Decided on the parsed tree,
+ * outside nested functions and classes (a registered callback leaves only itself).
+ */
+export function exitKinds(text: string): { returns: boolean; throws: boolean; exits: boolean } {
+  const file = ts.createSourceFile("guard.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const kinds = { returns: false, throws: false, exits: false };
+  const visit = (node: ts.Node, caught: boolean): void => {
+    if (ts.isFunctionLike(node) || ts.isClassLike(node)) return;
+    if (ts.isReturnStatement(node)) kinds.returns = true;
+    else if (ts.isCallExpression(node) && /^process\s*\.\s*exit$/.test(node.expression.getText(file))) kinds.exits = true;
+    else if (ts.isThrowStatement(node) && !caught) kinds.throws = true;
+    if (ts.isTryStatement(node)) {
+      visit(node.tryBlock, caught || node.catchClause !== undefined);
+      if (node.catchClause) visit(node.catchClause.block, caught);
+      if (node.finallyBlock) visit(node.finallyBlock, caught);
+      return;
+    }
+    ts.forEachChild(node, (child) => visit(child, caught));
+  };
+  visit(file, false);
+  return kinds;
+}
+
+/** Whether a statement leaves the scope it is in, by any means (`exitKinds`). */
+export function leavesScope(text: string): boolean {
+  const kinds = exitKinds(text);
+  return kinds.returns || kinds.throws || kinds.exits;
+}
+
+/**
+ * Where the registrations skipped by a leaving guard end (hosting/D13): the end of the function the guard at `position`
+ * is in, however deep in blocks it sits, or of the module. A throw that an enclosing try with a catch handler inside
+ * that function catches leaves only that try block, so it ends there. The finally blocks of the tries the guard sits in
+ * still run (a process exit runs none), and the other branch of an enclosing if is never reached, so their ranges are
+ * returned to be left out. Decided on the parsed tree.
+ */
+export function scopeEnd(code: string, position: number, kinds: { returns: boolean; throws: boolean; exits: boolean }): { end: number; runs: Array<[number, number]> } {
+  const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const chain: ts.Node[] = [];
+  const descend = (node: ts.Node): void => {
+    chain.push(node);
+    ts.forEachChild(node, (child) => {
+      if (child.getStart(file) <= position && position < child.getEnd()) {
+        descend(child);
+        return true;
+      }
+      return undefined;
+    });
+  };
+  descend(file);
+  let caught: number | undefined;
+  const runs: Array<[number, number]> = [];
+  for (let i = chain.length - 1; i > 0; i--) {
+    const node = chain[i];
+    if (ts.isTryStatement(node)) {
+      if (node.catchClause && chain[i + 1] === node.tryBlock && caught === undefined) caught = node.tryBlock.getEnd();
+      if (!kinds.exits && node.finallyBlock && (chain[i + 1] === node.tryBlock || chain[i + 1] === node.catchClause)) runs.push([node.finallyBlock.getStart(file), node.finallyBlock.getEnd()]);
+    }
+    // The other branch of an enclosing if is never reached from the guard.
+    if (ts.isIfStatement(node)) {
+      const sibling = chain[i + 1] === node.thenStatement ? node.elseStatement : chain[i + 1] === node.elseStatement ? node.thenStatement : undefined;
+      if (sibling) runs.push([sibling.getStart(file), sibling.getEnd()]);
+    }
+    const body = ts.isFunctionLike(node) ? (node as ts.FunctionLikeDeclaration).body : undefined;
+    if (body) return { end: kinds.returns || kinds.exits ? body.getEnd() : (caught ?? body.getEnd()), runs };
+  }
+  return { end: kinds.returns || kinds.exits ? code.length : (caught ?? code.length), runs };
 }
 
 interface Raw {
