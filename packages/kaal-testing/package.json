@@ -52,7 +52,7 @@
     "@kaihacksai/kaal-hosting": "0.0.1"
   },
   "devDependencies": {
-    "@kaihacksai/kaal-foundation": "0.0.1",
+    "@kaihacksai/kaal-foundation": "0.0.2",
     "c8": "12.0.0",
     "kaal-core": "0.0.1",
     "kaal-engineer-skill": "0.0.1",
