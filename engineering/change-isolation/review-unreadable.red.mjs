@@ -8,10 +8,11 @@
 // end with exit status 2 (cannot judge) and with no attestation printed. The workflow itself must hold no condition,
 // continue-on-error or unconditional success that could turn such an exit into a pass. The live half of B1-5 is the
 // queue: a failed or missing job blocks the entry. The Cases always read the checkout they sit in; to try another tree, copy this
-// file into it. Do not edit a Case to make it pass.
+// file into it. No path derived from this file's location or from the environment is ever part of a shell command: the two shell
+// scripts are copied into a scratch directory and run there by a constant name. Do not edit a Case to make it pass.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
@@ -42,22 +43,23 @@ const scratch = () => {
   chmodSync(join(bin, "gh"), 0o755);
   return { dir, bin };
 };
-const run = (cmd, args, { cwd, bin, env = {}, input } = {}) =>
-  spawnSync(cmd, args, { cwd, encoding: "utf8", input, env: { PATH: `${bin}:${process.env.PATH}`, HOME: process.env.HOME, ...env } });
+const childEnv = (bin, env) => ({ PATH: `${bin}:${process.env.PATH}`, HOME: process.env.HOME, ...env });
 
 test("engineering/T111 B1-5: with every read failing, the wait step ends in exit 2 and names why", () => {
   const { dir, bin } = scratch();
-  const r = run("bash", ["-e", "-c", script("Wait for the group's other required checks")], {
-    cwd: dir, bin, env: { GH_TOKEN: "x", GITHUB_REPOSITORY: "o/r", BASE_REF: "main", GROUP_HEAD: SHA } });
+  writeFileSync(join(dir, "wait.sh"), script("Wait for the group's other required checks"));
+  const r = spawnSync("bash", ["-e", "./wait.sh"], { cwd: dir, encoding: "utf8",
+    env: childEnv(bin, { GH_TOKEN: "x", GITHUB_REPOSITORY: "o/r", BASE_REF: "main", GROUP_HEAD: SHA }) });
   assert.equal(r.status, 2, `exit 2 (cannot judge), not ${r.status}: ${r.stderr}`);
   assert.match(r.stdout + r.stderr, /::error title=Change Isolation \(review\): cannot judge::the branch's required checks cannot be read/);
 });
 
 test("engineering/T111 B1-5: with every read failing, binding the group to its pull request ends in exit 2", () => {
   const { dir, bin } = scratch();
-  const r = run("bash", [join(ROOT, ".github", "scripts", "bind-group.sh"), "review"], {
-    cwd: dir, bin, env: { GH_TOKEN: "x", GITHUB_REPOSITORY: "o/r", GITHUB_ENV: join(dir, "env"),
-      GROUP_REF: `refs/heads/gh-readonly-queue/main/pr-1162-${SHA.slice(0, 40)}`, GROUP_HEAD: SHA, GROUP_BASE_SHA: "b".repeat(40), GROUP_BASE_REF: "refs/heads/main" } });
+  copyFileSync(join(ROOT, ".github", "scripts", "bind-group.sh"), join(dir, "bind-group.sh"));
+  const r = spawnSync("bash", ["./bind-group.sh", "review"], { cwd: dir, encoding: "utf8",
+    env: childEnv(bin, { GH_TOKEN: "x", GITHUB_REPOSITORY: "o/r", GITHUB_ENV: "env",
+      GROUP_REF: `refs/heads/gh-readonly-queue/main/pr-1162-${SHA}`, GROUP_HEAD: SHA, GROUP_BASE_SHA: "b".repeat(40), GROUP_BASE_REF: "refs/heads/main" }) });
   assert.equal(r.status, 2, `exit 2 (cannot judge), not ${r.status}: ${r.stderr}`);
   assert.match(r.stdout + r.stderr, /Change Isolation \(review\): cannot judge::pull request 1162 cannot be read/);
 });
@@ -65,8 +67,8 @@ test("engineering/T111 B1-5: with every read failing, binding the group to its p
 test("engineering/T111 B1-5: with the reviews unreadable, the attestation adapter ends in exit 2 and prints no attestation", () => {
   const { dir, bin } = scratch();
   writeFileSync(join(dir, "fetch-fails.mjs"), "globalThis.fetch = async () => ({ ok: false, status: 503, json: async () => ({}) });\n");
-  const r = run(process.execPath, [join(ROOT, "engineering", "change-isolation", "attest.mjs"), "--pr", "1162"], {
-    cwd: dir, bin, env: { GH_TOKEN: "x", GITHUB_REPOSITORY: "o/r", NODE_OPTIONS: `--import ${join(dir, "fetch-fails.mjs")}` } });
+  const r = spawnSync(process.execPath, ["engineering/change-isolation/attest.mjs", "--pr", "1162"], { cwd: ROOT, encoding: "utf8",
+    env: childEnv(bin, { GH_TOKEN: "x", GITHUB_REPOSITORY: "o/r", NODE_OPTIONS: `--import ${join(dir, "fetch-fails.mjs")}` }) });
   assert.equal(r.status, 2, `exit 2 (cannot judge), not ${r.status}: ${r.stderr}`);
   assert.doesNotMatch(r.stdout, /attested=/, "no attestation is printed");
   assert.match(r.stderr, /cannot judge: GitHub API \/repos\/o\/r\/pulls\/1162: 503/);
