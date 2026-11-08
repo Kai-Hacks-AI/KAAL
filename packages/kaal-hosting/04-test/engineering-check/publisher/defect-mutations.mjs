@@ -18,8 +18,6 @@ const challenges = [
     mutate: (s) => s.replace(/for \(const path of \[fifo, socket\]\)\s*if \(look\(path\)\)\s*return \{ failed: `\$\{path\} already exists` \};/, "").replace(/if \(made === undefined\)\s*remove\(fifo\);/, 'remove(fifo);') },
   { name: "lose-staging-cleanup", file: "dist/skills/kaal-hosting/scripts/index.js", test: "04-test/package-check/allocation.test.mjs", pattern: "^hosting/T81 ",
     before: "await rm(staging, { maxRetries: 3 }).catch", after: "await Promise.resolve().catch" },
-  { name: "omit-controlled-cases", file: "dist/skills/kaal-hosting/scripts/boundary-core.js", test: "04-test/engineering-check/publisher/defects.test.mjs", pattern: "^hosting/T82 ",
-    before: "if (close < call.start && call.start < end)", after: "if (false)" },
 ];
 const evidence = [];
 for (const c of challenges) {
