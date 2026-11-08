@@ -320,7 +320,16 @@ function affected(code: string, line: number, column: number): string[] {
     if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
     // A guard that returns, throws or exits leaves its scope: every registration after it in the
     // enclosing block (or the module) is skipped too (hosting/D12).
-    if (/\b(?:return|throw)\b|\bprocess\s*\.\s*exit\s*\(/.test(mask.slice(close + 1, end))) {
+    // A return or throw inside a nested function body (a registered callback) leaves only that function.
+    let exits = mask.slice(close + 1, end).split("");
+    for (const [from, to] of pairs) {
+      if (mask[from] !== "{" || from <= close || to >= end) continue;
+      const before = mask.slice(0, from).trimEnd();
+      const arrow = before.endsWith("=>");
+      const method = before.endsWith(")") && /\bfunction\b[^()]*$/.test(before.slice(0, [...pairs].find(([, c]) => c === before.length - 1)?.[0] ?? 0));
+      if (arrow || method) for (let k = from; k <= to; k++) exits[k - close - 1] = " ";
+    }
+    if (/\b(?:return|throw)\b|\bprocess\s*\.\s*exit\s*\(/.test(exits.join(""))) {
       let block = mask.length;
       for (const [from, to] of pairs) if (mask[from] === "{" && from < open && to >= end && to < block) block = to;
       end = block;

@@ -22,5 +22,6 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1171 at 11
 | --- | --- | --- |
 | hosting/T235 to hosting/T237 | RED on 1189f31: early return in a suite callback, as a block, in a nested suite | [guard-before-registrations.red.mjs](guard-before-registrations.red.mjs) |
 | hosting/T238 | control, passes before and after: a case registered before the guard is not challenged | same file |
+| hosting/T239 | control, added with the fix after Codex review: a return inside a guarded case's own callback (arrow or function) leaves only that callback and does not challenge the cases after the guard | guard-before-registrations.controls.mjs |
 
 **Confirming Run (8 Nov, Node 24, Linux, d4feaba, the collector head carrying the D11 fix):** T235, T236 and T237 fail; T238 passes. The fix is a separate Change; the Cases are not edited.
