@@ -5,7 +5,7 @@ import { execute } from "@kaihacksai/kaal-hosting";
 import { install } from "kaal-testing/acceptance";
 
 it("the packed duplicates API retains failed, unknown and independently required observations", async () => {
-  const host = await install(["kaal-testing", "@kaihacksai/kaal-hosting"]);
+  const host = await install(["kaal-testing"]);
   const script = `
     import assert from "node:assert/strict";
     import { duplicates, schedule } from "kaal-testing/duplicates";
