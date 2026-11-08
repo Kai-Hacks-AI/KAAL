@@ -3,7 +3,7 @@
 import { kind, read } from "./index.js";
 import { couplings, inspect, osBoundary } from "./conformance.js";
 import { FACTS } from "./fixtures.js";
-import { leavesScope } from "./couplings.js";
+import { exitKinds, scopeEnd } from "./couplings.js";
 import type { CouplingReport, Finding, FindingKind, Source } from "./couplings.js";
 import type { Outside, Skipped, Validation, Violation } from "./conformance.js";
 
@@ -194,8 +194,6 @@ function structure(code: string): string {
     (text) => (text.startsWith("/") ? " " : "0") + text.slice(1).replace(/[^\n\r]/g, " "));
 }
 
-const CONTROL_WORDS = new Set(["if", "for", "while", "switch", "catch", "with"]);
-
 /** Literal cases containing a finding or registered by its controlling condition. */
 function affected(code: string, line: number, column: number): string[] {
   const mask = structure(code);
@@ -322,22 +320,10 @@ function affected(code: string, line: number, column: number): string[] {
     const otherwise = space(end);
     if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
     // A guard that returns, throws or exits leaves the function it is in (hosting/D12, hosting/D13): every registration
-    // after it in that function (or the module) is skipped too, however deep in blocks the guard sits. A throw that an
-    // enclosing try with a catch handler inside that function handles does not leave it.
-    let block = mask.length;
-    let handled = false;
-    const around = [...pairs].filter(([from, to]) => mask[from] === "{" && from < open && to > open).sort((x, y) => y[0] - x[0]);
-    for (const [from, to] of around) {
-      const before = mask.slice(0, from).trimEnd();
-      if (before.endsWith("=>")) { block = to; break; }
-      if (before.endsWith(")")) {
-        const paren = [...pairs].find(([, c]) => c === before.length - 1)?.[0];
-        const name = paren === undefined ? null : /(?:\bfunction\b[^()]*|([\w$]+))\s*$/.exec(before.slice(0, paren));
-        if (name && !(name[1] && CONTROL_WORDS.has(name[1]))) { block = to; break; }
-      }
-      if (/\btry$/.test(before) && /^\s*catch\b/.test(mask.slice(to + 1))) handled = true;
-    }
-    if (leavesScope(code.slice(close + 1, end), handled)) end = block;
+    // after it in that function (or the module) is skipped too, however deep in blocks the guard sits; a throw that an
+    // enclosing try with a catch handler inside that function catches skips only to the end of that try block.
+    const kinds = exitKinds(code.slice(close + 1, end));
+    if (kinds.returns || kinds.throws) end = Math.max(end, scopeEnd(code, open, kinds));
     for (const call of calls) if (close < call.start && call.start < end) result.add(call.title);
   }
   return [...result];

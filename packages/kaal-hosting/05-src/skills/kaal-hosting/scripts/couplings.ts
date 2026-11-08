@@ -329,25 +329,64 @@ function returnsFromBranch(text: string, unbraced = false): boolean {
   return /(?<![\w$])(?<!\.\s*)return\b(?!\s*:)/.test(chars.join(""));
 }
 
-/** Whether a statement leaves the scope it is in: a return, an uncaught throw or `process.exit()`, outside nested functions (hosting/D12, hosting/D14). `caughtAround`: an enclosing try with a catch handles a throw. */
-export function leavesScope(text: string, caughtAround = false): boolean {
+/**
+ * How a statement leaves the scope it is in (hosting/D12, hosting/D14): by a return or a `process.exit()` (`returns`),
+ * or by a throw that no try with a catch handler inside the statement handles (`throws`). Decided on the parsed tree,
+ * outside nested functions and classes (a registered callback leaves only itself).
+ */
+export function exitKinds(text: string): { returns: boolean; throws: boolean } {
   const file = ts.createSourceFile("guard.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  const visit = (node: ts.Node, caught: boolean): boolean => {
-    if (ts.isFunctionLike(node) || ts.isClassLike(node)) return false;
-    if (ts.isReturnStatement(node)) return true;
-    if (ts.isThrowStatement(node) && !caught) return true;
-    if (ts.isCallExpression(node) && /^process\s*\.\s*exit$/.test(node.expression.getText(file))) return true;
+  const kinds = { returns: false, throws: false };
+  const visit = (node: ts.Node, caught: boolean): void => {
+    if (ts.isFunctionLike(node) || ts.isClassLike(node)) return;
+    if (ts.isReturnStatement(node) || (ts.isCallExpression(node) && /^process\s*\.\s*exit$/.test(node.expression.getText(file)))) kinds.returns = true;
+    else if (ts.isThrowStatement(node) && !caught) kinds.throws = true;
     if (ts.isTryStatement(node)) {
-      const inTry = visit(node.tryBlock, caught || node.catchClause !== undefined);
-      const inCatch = node.catchClause ? visit(node.catchClause.block, caught) : false;
-      const inFinally = node.finallyBlock ? visit(node.finallyBlock, caught) : false;
-      return inTry || inCatch || inFinally;
+      visit(node.tryBlock, caught || node.catchClause !== undefined);
+      if (node.catchClause) visit(node.catchClause.block, caught);
+      if (node.finallyBlock) visit(node.finallyBlock, caught);
+      return;
     }
-    return ts.forEachChild(node, (child) => visit(child, caught) || undefined) ?? false;
+    ts.forEachChild(node, (child) => visit(child, caught));
   };
-  return visit(file, caughtAround);
+  visit(file, false);
+  return kinds;
 }
 
+/** Whether a statement leaves the scope it is in, by any means (`exitKinds`). */
+export function leavesScope(text: string): boolean {
+  const kinds = exitKinds(text);
+  return kinds.returns || kinds.throws;
+}
+
+/**
+ * Where the registrations skipped by a leaving guard end (hosting/D13): the end of the function the guard at `position`
+ * is in, however deep in blocks it sits, or of the module. A throw that an enclosing try with a catch handler inside
+ * that function catches leaves only that try block, so it ends there. Decided on the parsed tree.
+ */
+export function scopeEnd(code: string, position: number, kinds: { returns: boolean; throws: boolean }): number {
+  const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const chain: ts.Node[] = [];
+  const descend = (node: ts.Node): void => {
+    chain.push(node);
+    ts.forEachChild(node, (child) => {
+      if (child.getStart(file) <= position && position < child.getEnd()) {
+        descend(child);
+        return true;
+      }
+      return undefined;
+    });
+  };
+  descend(file);
+  let caught: number | undefined;
+  for (let i = chain.length - 1; i > 0; i--) {
+    const node = chain[i];
+    if (ts.isTryStatement(node) && node.catchClause && chain[i + 1] === node.tryBlock && caught === undefined) caught = node.tryBlock.getEnd();
+    const body = ts.isFunctionLike(node) ? (node as ts.FunctionLikeDeclaration).body : undefined;
+    if (body) return kinds.returns ? body.getEnd() : (caught ?? body.getEnd());
+  }
+  return kinds.returns ? code.length : (caught ?? code.length);
+}
 
 interface Raw {
   index: number;
