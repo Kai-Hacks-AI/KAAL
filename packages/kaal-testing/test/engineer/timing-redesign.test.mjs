@@ -1,11 +1,11 @@
 // Capability acceptance: use the caller-packed bytes in a fresh installation.
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { install } from "kaal-testing/acceptance";
 
 it("the installed timing and redesign exports keep faster timing separate from preserved discrimination", async () => {
-  const host = await install(["kaal-testing", "kaal-hosting"]);
+  const host = await install(["kaal-testing"]);
   const script = `
     import assert from "node:assert/strict";
     import { profile, skew } from "kaal-testing/timing";

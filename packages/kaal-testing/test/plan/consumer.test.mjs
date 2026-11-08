@@ -68,7 +68,7 @@ describe("Consumer verification (testing/C9)", () => {
     const rows = inventory();
     assert.deepEqual(Object.keys(rows).sort(), Object.keys(pkg.exports).sort(), "testing/A8's export inventory declares exactly the package's exports");
     for (const [exported, serves] of Object.entries(rows)) assert.equal(serves, "no", `${exported} is declared to serve consumer verification`);
-    assert.deepEqual(pkg.dependencies, { "kaal-hosting": "0.0.1" });
+    assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-hosting": "0.0.1" });
     assert.deepEqual(pkg.peerDependencies, { c8: "12.0.0" });
   });
 

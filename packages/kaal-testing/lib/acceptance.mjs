@@ -14,7 +14,7 @@
 // accept() also observes each test the runner executes, through a reporter of
 // Testing's own, and keeps what it observed for kaal-testing/contracts.
 import { basename, join, relative, sep } from "node:path";
-import { execute, initialize, kind, read, readFile, update } from "kaal-hosting";
+import { execute, initialize, kind, read, readFile, update } from "@kaihacksai/kaal-hosting";
 import { remember } from "./observed.mjs";
 
 /** Where Engineering's lane scenarios live, under each workspace (testing/F76). */

@@ -60,8 +60,8 @@ describe("the installed kaal-testing tree", () => {
   it("has no c8 and no moderate-or-worse npm audit finding", { timeout: 300000 }, () => {
     const dir = mkdtempSync(join(tmpdir(), "kaal-testing-audit-"));
     try {
-      const packed = ["kaal-hosting", "kaal-testing"].map((w) => {
-        const [{ filename }] = JSON.parse(run(["pack", "-w", w, "--json", "--pack-destination", dir], root));
+      const packed = [["@kaihacksai/kaal-hosting@0.0.1"], ["-w", "kaal-testing"]].map((which) => {
+        const [{ filename }] = JSON.parse(run(["pack", ...which, "--json", "--pack-destination", dir], root));
         return join(dir, filename);
       });
       writeFileSync(join(dir, "package.json"), '{"name":"consumer","version":"1.0.0","private":true,"type":"module"}');

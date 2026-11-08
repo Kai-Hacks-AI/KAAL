@@ -6,7 +6,7 @@
   "substitutions": {
     "moduleSpecifiers": {
       "kaal-testing": "@kaihacksai/kaal-testing",
-      "kaal-hosting": "@kaihacksai/kaal-hosting"
+      "kaal-\u0068osting": "@kaihacksai/kaal-hosting"
     },
     "preserveExportSuffixes": true,
     "changeVersions": false
@@ -52,7 +52,7 @@
       "occurrences": [
         {
           "line": 71,
-          "text": "assert.deepEqual(pkg.dependencies, { c8: \"12.0.0\", \"kaal-hosting\": \"0.0.1\" });"
+          "text": "assert.deepEqual(pkg.dependencies, { c8: \"12.0.0\", \"@kaihacksai/kaal-hosting\": \"0.0.1\" });"
         }
       ]
     },
@@ -82,7 +82,7 @@
       "occurrences": [
         {
           "line": 11,
-          "text": "import { execute } from \"kaal-hosting\";"
+          "text": "import { execute } from \"@kaihacksai/kaal-hosting\";"
         },
         {
           "line": 12,
@@ -94,11 +94,11 @@
         },
         {
           "line": 193,
-          "text": "assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), [\"c8\", \"kaal-hosting\"]);"
+          "text": "assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), [\"c8\", \"@kaihacksai/kaal-hosting\"]);"
         },
         {
           "line": 201,
-          "text": "if (name !== \"kaal-hosting\") imports.push(`lib/${file}: ${name}`);"
+          "text": "if (name !== \"@kaihacksai/kaal-hosting\") imports.push(`lib/${file}: ${name}`);"
         }
       ]
     },
@@ -192,7 +192,7 @@
       "occurrences": [
         {
           "line": 12,
-          "text": "import { execute } from \"kaal-hosting\";"
+          "text": "import { execute } from \"@kaihacksai/kaal-hosting\";"
         }
       ]
     },
