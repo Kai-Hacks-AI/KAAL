@@ -2,10 +2,10 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { install } from "kaal-testing/acceptance";
+import { install, packed } from "kaal-testing/acceptance";
 
 it("the packed duplicates API retains failed, unknown and independently required observations", async () => {
-  const host = await install(["kaal-testing"]);
+  const host = await install(["kaal-testing", ...(await packed(["@kaihacksai/kaal-hosting"]))]);
   const script = `
     import assert from "node:assert/strict";
     import { duplicates, schedule } from "kaal-testing/duplicates";
