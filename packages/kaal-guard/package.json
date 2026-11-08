@@ -27,6 +27,9 @@
   "scripts": {
     "test": "node test/verify.mjs"
   },
+  "dependencies": {
+    "@kaihacksai/kaal-hosting": "0.0.1"
+  },
   "engines": {
     "node": ">=24"
   },
