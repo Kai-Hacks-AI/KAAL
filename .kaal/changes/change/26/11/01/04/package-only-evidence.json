@@ -1,0 +1,119 @@
+{
+  "case": "change/T56",
+  "sourceBase": "772293d9d4cf997ae40aa93a28e03a2d8bcb154d",
+  "probeScriptSha256": "7209c91561e22e82be97732f90ef2af6126669a3877cb81add38cfdc10a54e44",
+  "scope": "controlled local artifact transport; fresh consumer/cache; production install requests only Change",
+  "observations": [
+    {
+      "phase": "red",
+      "processExit": 1,
+      "assertionFailure": true,
+      "observation": {
+        "case": "change/T56",
+        "scope": "controlled-local-artifact-transport",
+        "host": "/tmp/change-package-only-red-final",
+        "requested": [
+          "@kaihacksai/kaal-change"
+        ],
+        "npmArgs": [
+          "install",
+          "--omit=dev",
+          "/tmp/kaal-acceptance-1793561656724-5448/packages/kaihacksai-kaal-change-0.0.1.tgz"
+        ],
+        "initiallyEmptyCache": true,
+        "verification": {
+          "result": "unknown",
+          "cause": "kaal-change reported cannot verify: verification provider unavailable: ERR_MODULE_NOT_FOUND"
+        },
+        "limits": [
+          "Registry publication, registry availability and publisher provenance are not established."
+        ]
+      },
+      "probeLogSha256": "99c87758e8617f5cbe0e3776eaf56fa1fd2564b382da280bf412d822ff687445",
+      "packedManifestSha256": "dd9cd6133a84319e0b2178287836611dfb1f8ead96eb481dbd58cd6af116b359",
+      "artifacts": {
+        "@kaihacksai/kaal-change": {
+          "sha256": "bab9dc67f3b6945d93bad824766872d28a8516a1cc9f47848bfadccdae909855",
+          "integrity": "sha512-pr8YmYnORB70ja1/l+dTYYSNkJA5WvFWZHtpSvBrfP+y8HRm1WYRDhWANuC60ZJ2zNI/BQQ43lQzPhG9BHwBlA=="
+        },
+        "@kaihacksai/kaal-foundation": {
+          "sha256": "36be7a4d6e176a00ccf9d50e127261b481c4feb2661a0da35933fb2b2ed35ed0",
+          "integrity": "sha512-33JVLAAXra5SxXq8w5A5Rg5ZaOSOKfPv2EnSg4MywL7nLpPXQcNrQUuKEsCQSn7s1cI6Hq/QC9+dT81cfrHyMQ=="
+        },
+        "kaal-graph": {
+          "sha256": "56186c6df83bbeb57862aaca883f6194173cf37674e9f83f0f2dcf77f064f7f5",
+          "integrity": "sha512-PslcoAbQJRxDaLu1zGZdmUBXG9JN2VL47jUFhvbyEYcA7jHRmn+gZUM/tOAe7jvEPK6CST4Heh8g4ua+MJPrOQ=="
+        },
+        "kaal-hosting": {
+          "sha256": "d2a5736ff4052841d540d2f1fae995cb986b5a0828267a26be6d9a428479b448",
+          "integrity": "sha512-e/dA78W6f8skhl6SC47AfWm1ngXKBHJlOOnUSwVDUVTm0LQVOvCQqx9ZlFKAwj4zKN1iBD8DUHs31A0Ia2YI7Q=="
+        }
+      }
+    },
+    {
+      "phase": "green",
+      "processExit": 0,
+      "assertionFailure": false,
+      "observation": {
+        "case": "change/T56",
+        "scope": "controlled-local-artifact-transport",
+        "host": "/tmp/change-package-only-final",
+        "requested": [
+          "@kaihacksai/kaal-change"
+        ],
+        "npmArgs": [
+          "install",
+          "--omit=dev",
+          "/tmp/kaal-acceptance-1793563705679-112/packages/kaihacksai-kaal-change-0.0.1.tgz"
+        ],
+        "initiallyEmptyCache": true,
+        "verification": {
+          "result": "verified",
+          "cases": 9
+        },
+        "limits": [
+          "Registry publication, registry availability and publisher provenance are not established."
+        ]
+      },
+      "probeLogSha256": "c1408edcc09f6b5d7216b795ce3ead121d6534fa9c4222f37db3e7ff12187e48",
+      "packedManifestSha256": "953c301d069086492ad8996e2c43cd374aabced12e83a08dfe44a54900894c53",
+      "artifacts": {
+        "@kaihacksai/kaal-change": {
+          "sha256": "c4999bf999c2e7b9840deef7ed823f1c7dc8c3a794a1dece04e6ea724c8c5f87",
+          "integrity": "sha512-siNWKpnYQRf0MwLtQpzUf7xeGAIHV6ObVsXLXYUwhaacISQIsRu8o2IeIM/3BTKaFSnJMvz6S0/VUYWM5gDXvw=="
+        },
+        "@kaihacksai/kaal-foundation": {
+          "sha256": "36be7a4d6e176a00ccf9d50e127261b481c4feb2661a0da35933fb2b2ed35ed0",
+          "integrity": "sha512-33JVLAAXra5SxXq8w5A5Rg5ZaOSOKfPv2EnSg4MywL7nLpPXQcNrQUuKEsCQSn7s1cI6Hq/QC9+dT81cfrHyMQ=="
+        },
+        "kaal-graph": {
+          "sha256": "56186c6df83bbeb57862aaca883f6194173cf37674e9f83f0f2dcf77f064f7f5",
+          "integrity": "sha512-PslcoAbQJRxDaLu1zGZdmUBXG9JN2VL47jUFhvbyEYcA7jHRmn+gZUM/tOAe7jvEPK6CST4Heh8g4ua+MJPrOQ=="
+        },
+        "kaal-hosting": {
+          "sha256": "4b66b40696e2f86cca94c2fcd9dc3f959588d3c7d057eebcea62a0b7d04dc6ef",
+          "integrity": "sha512-qyT2lJuBZp85Zcrx3XyQHwSyGK8snRssDvRP4fof6HFurYtzIb2eJpn5K5GWR/LtkXHb5guAc1+edPTAgkyyog=="
+        }
+      }
+    }
+  ],
+  "registryObservations": {
+    "date": "2026-11-01",
+    "foundation": [
+      "0.0.0-stage",
+      "0.0.1"
+    ],
+    "kaal-graph": "public npm query returned E404",
+    "kaal-hosting": "public npm query returned E404"
+  },
+  "limits": [
+    "No registry publication or publisher provenance is established.",
+    "Artifact/cache paths describe local validation runs and may be transient.",
+    "This explicit publisher probe is outside Testing acceptance install ledgers."
+  ],
+  "environment": {
+    "platform": "linux",
+    "node": "24.22.1",
+    "npm": "11.9.0"
+  }
+}

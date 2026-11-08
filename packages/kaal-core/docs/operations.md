@@ -4,13 +4,13 @@ This document covers installing, using, verifying and removing kaal-core.
 
 ## Supported platforms
 
-kaal-core supports Linux, macOS and Windows, which are the hosts KAAL's Hosting package supports (core/F86). Every host operation goes through `kaal-hosting`, so kaal-core makes no platform decision of its own (core/F88). What host compatibility means, and how a platform difference is tested, are Hosting's.
+kaal-core supports Linux, macOS and Windows, which are the hosts KAAL's Hosting package supports (core/F86). Every host operation goes through `@kaihacksai/kaal-hosting`, so kaal-core makes no platform decision of its own (core/F88). What host compatibility means, and how a platform difference is tested, are Hosting's.
 
 ## Runtime
 
 - Node.js 24 or later. The package declares `"engines": { "node": ">=24" }`.
 - npm, to install it and to run its verification.
-- Runtime dependencies, installed by npm: `@kaihacksai/kaal-foundation`, `kaal-hosting` and `yaml`. KAAL's Graph package is not needed.
+- Runtime dependencies, installed by npm: `@kaihacksai/kaal-foundation`, `@kaihacksai/kaal-hosting` and `yaml`. KAAL's Graph package is not needed.
 
 ## Install
 
