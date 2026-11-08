@@ -168,6 +168,21 @@ describe("engineering/T65 [engineering/F31, F33]: one pack; Publish publishes th
     assert.equal(rec.integrity, sri(b));
     assert.equal(rec.path, "trusted");
   });
+  it("the installed verification keeps its HOME and npm cache outside the consumer, so npm's own logs are never a change to it", async () => {
+    const root = repo(scratch("t65-home"), good());
+    const out = join(root, "out");
+    const inner = registry({ known: { [NAME]: ["0.0.0"] } });
+    const seen = [];
+    const npm = async (args, cwd, env) => {
+      if (args[0] === "install" && cwd.endsWith("consumer")) seen.push({ cwd, env });
+      return inner(args, cwd, env);
+    };
+    const r = await packStep({ name: NAME, root, out, commit: "c1", run: "65", npm });
+    assert.equal(r.result, "verified", readFileSync(join(out, "report", "summary.md"), "utf8"));
+    assert.equal(seen.length, 1);
+    const { cwd, env } = seen[0];
+    for (const place of [env.HOME, env.USERPROFILE, env.npm_config_cache]) assert.ok(!(place + "/").startsWith(cwd + "/"), `${place} is inside ${cwd}`);
+  });
   it("an uploaded artifact whose digest differs is cannot judge", () => assert.equal(bind(rec, { id: "9", digest: "0".repeat(64) }).result, "unknown"));
   it("Publish publishes the downloaded tarball's bytes and never runs npm pack", async () => {
     const downloaded = join(work, "t65-download.tgz");
