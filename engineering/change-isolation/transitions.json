@@ -5199,6 +5199,21 @@
         "engineering/release/release.test.mjs": "cf54979a3db4546e29260f00c3fb5eb3a66cd506",
         "engineering/release/run.mjs": "d02a083ab00c033cbecd9afc6665d8a9b441a7eb"
       }
+    },
+    {
+      "id": "engineering-release-layout-verify-b1-2026-11-08",
+      "paths": [
+        "engineering/release/release.test.mjs",
+        "engineering/release/run.mjs"
+      ],
+      "pre": {
+        "engineering/release/release.test.mjs": "cf54979a3db4546e29260f00c3fb5eb3a66cd506",
+        "engineering/release/run.mjs": "d02a083ab00c033cbecd9afc6665d8a9b441a7eb"
+      },
+      "post": {
+        "engineering/release/release.test.mjs": "dcbe03558a2f4160df27d9849234d9627ecc12f0",
+        "engineering/release/run.mjs": "2afd20a78b2c58a6df255e7f76cc419f9a8829d7"
+      }
     }
   ]
 }
