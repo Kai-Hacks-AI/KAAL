@@ -6,8 +6,9 @@ import { readiness } from '../../../../engineering/release/release.mjs';
 
 test('change/T55 [change/F49]: a production installation declares every provider needed by the shipped verifier', async () => {
   const pkg = JSON.parse(await readFile(fileURLToPath(new URL('../../package.json', import.meta.url))));
-  for (const provider of ['@kaihacksai/kaal-foundation', 'kaal-graph', '@kaihacksai/kaal-hosting']) {
-    assert.equal(pkg.dependencies?.[provider], '0.0.1', provider + ' must be installed as a production dependency');
+  const pins = { '@kaihacksai/kaal-foundation': '0.0.2', 'kaal-graph': '0.0.1', '@kaihacksai/kaal-hosting': '0.0.1' };
+  for (const [provider, pin] of Object.entries(pins)) {
+    assert.equal(pkg.dependencies?.[provider], pin, provider + ' must be installed as a production dependency');
     assert.equal(pkg.peerDependenciesMeta?.[provider]?.optional, undefined, provider + ' cannot be optional for installed verification');
   }
 });
@@ -15,7 +16,7 @@ test('change/T55 [change/F49]: a production installation declares every provider
 test('change/T57 [change/F49, change/N13]: the existing Release gate names an unavailable required verification provider before packing', async () => {
   const pkg = JSON.parse(await readFile(fileURLToPath(new URL('../../package.json', import.meta.url))));
   // Controlled registry observations, not claims of actual publication.
-  const registry = { [pkg.name]: null, '@kaihacksai/kaal-foundation': ['0.0.1'],
+  const registry = { [pkg.name]: null, '@kaihacksai/kaal-foundation': ['0.0.2'],
     'kaal-graph': ['0.0.1'], '@kaihacksai/kaal-hosting': ['0.0.1'] };
   const input = { manifest: pkg, directory: 'packages/kaal-change', registry };
   assert.deepEqual(readiness(input).findings, []);
