@@ -60,7 +60,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
     const m = manifest();
     assert.notEqual(m.private, true, "the package is private, so it cannot be published");
     assert.equal(m.name, NAME);
-    assert.equal(m.version, "0.0.1");
+    assert.equal(m.version, "0.0.2");
     for (const kind of ["dependencies", "peerDependencies", "optionalDependencies", "bundleDependencies", "bundledDependencies"])
       assert.equal(Object.keys(m[kind] ?? {}).length, 0, `the package declares no ${kind}`);
   });

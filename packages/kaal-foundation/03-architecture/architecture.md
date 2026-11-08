@@ -15,3 +15,10 @@
   | `test/run.mjs` | `npm test`. In an installed package it runs only the verification. See [Operations](operations.md). |
 
 - **foundation/A9** **An independent check.** Foundation's own `sha256` wrote the manifest before the package was packed. The verification checks it with the host's SHA-256, never with Foundation's `lib/`, so a broken library cannot hide itself.
+
+- **foundation/A15** `capability/Foundation.md` is the one owner declaration.
+  `./capability` exposes that file as data. It needs no loader or generated copy;
+  its bytes participate in the existing committed manifest and delivered Case.
+- **foundation/A16** Foundation's package owns declaration bytes and distribution.
+  Core owns explicit registration and Engine lifecycle. No Foundation-owned
+  installation record or automatic registration hook exists in this delivery.

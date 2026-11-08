@@ -1,6 +1,6 @@
 {
   "name": "@kaihacksai/kaal-foundation",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "KAAL Foundation: the shared, dependency-free primitives every KAAL Capability may build on.",
   "license": "MIT",
   "repository": {
@@ -10,31 +10,26 @@
   },
   "type": "module",
   "bin": {
-    "kaal-foundation": "bin/kaal-foundation.mjs"
+    "kaal-foundation": "dist/skills/kaal-foundation/scripts/kaal-foundation.mjs"
   },
   "exports": {
     "./sha256": {
-      "types": "./lib/sha256.d.ts",
-      "default": "./lib/sha256.mjs"
+      "types": "./dist/skills/kaal-foundation/scripts/sha256.d.ts",
+      "default": "./dist/skills/kaal-foundation/scripts/sha256.mjs"
     },
+    "./capability": "./dist/kaal/Foundation.md",
     "./package.json": "./package.json"
   },
   "files": [
-    "bin",
-    "lib",
-    "docs",
-    "skills",
-    "test/embed",
-    "test/verify.mjs",
-    "test/verify.json",
-    "test/run.mjs"
+    "dist"
   ],
   "scripts": {
-    "test": "npm run test:all",
-    "test:all": "node test/run.mjs",
-    "test:embedded": "node test/verify.mjs",
-    "test:publisher": "node --test test/publisher/manifest.test.mjs test/publisher/sha256.test.mjs test/publisher/publication.test.mjs test/publisher/verifier.test.mjs test/publisher/capability.test.mjs test/publisher/acquisition.test.mjs test/publisher/release.test.mjs test/publisher/ownership.test.mjs",
-    "manifest": "node test/publisher/manifest.mjs"
+    "build": "node 04-test/engineering-check/build.mjs",
+    "pretest": "node -e \"if(require('fs').existsSync('04-test')){require('child_process').execFileSync(process.execPath,['04-test/engineering-check/build.mjs'],{stdio:'inherit'})}\"",
+    "test": "node dist/test/package-check/verify.mjs",
+    "test:publisher": "npm run build && node --test 04-test/engineering-check/publisher/manifest.test.mjs 04-test/engineering-check/publisher/sha256.test.mjs 04-test/engineering-check/publisher/publication.test.mjs 04-test/engineering-check/publisher/verifier.test.mjs 04-test/engineering-check/publisher/capability.test.mjs 04-test/engineering-check/publisher/acquisition.test.mjs 04-test/engineering-check/publisher/release.test.mjs 04-test/engineering-check/publisher/ownership.test.mjs 04-test/engineering-check/publisher/declaration.test.mjs 04-test/engineering-check/publisher/declaration-consumer.test.mjs",
+    "manifest": "npm run build && node 04-test/engineering-check/publisher/manifest.mjs && npm run build",
+    "prepack": "node 04-test/engineering-check/build.mjs"
   },
   "engines": {
     "node": ">=24"

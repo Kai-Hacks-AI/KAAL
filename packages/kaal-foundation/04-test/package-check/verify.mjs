@@ -1,17 +1,21 @@
-// test:embedded (foundation/F12, foundation/A9): the consumer's verification of the installed copy.
-// It checks every file test/verify.json lists with the host's SHA-256, never Foundation's own lib/, so
+// npm test, run from dist/test/package-check/ (foundation/F12, foundation/A9): the consumer's verification of the installed copy.
+// It checks every file dist/test/package-check/verify.json lists with the host's SHA-256, never Foundation's own library, so
 // a broken library cannot hide itself (foundation/N10, testing/N12). It then runs the delivered cases
-// in test/embed/ and matches them, by name, against the manifest's cases. Its last line is
+// that sit beside their Nodes in dist/ (found by its sibling collect.mjs) and matches them, by name, against the manifest's cases. Its last line is
 // `kaal-foundation-verification {json}` with the result, the exit status, each executed case and the
 // causes (testing/C29). verified (0), failed (1) or cannot verify (2), whose meanings are Testing's.
-// It imports only Node's built-in modules, writes nothing, and makes no platform decision (foundation/N7).
+// It imports only Node's built-in modules and collect.mjs, writes nothing, and makes no platform decision (foundation/N7).
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { collect, DIST_LOOPS } from "./collect.mjs";
 import { run } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+// This file runs from dist/test/package-check/ (foundation/A9): DIST is dist/, ROOT the package folder.
+const HERE = dirname(fileURLToPath(import.meta.url));
+const DIST = join(HERE, "..", "..");
+const ROOT = join(DIST, "..");
 const LINE = "kaal-foundation-verification";
 const EXIT = { verified: 0, failed: 1, "cannot verify": 2 };
 const causes = [];
@@ -34,15 +38,15 @@ console.log(`kaal-foundation verification: ${pkg.name ?? "?"}@${pkg.version ?? "
 // The manifest (foundation/F11). Missing or malformed, nothing can be told apart: cannot verify.
 let manifest;
 try {
-  manifest = JSON.parse(readFileSync(join(ROOT, "test", "verify.json"), "utf8"));
+  manifest = JSON.parse(readFileSync(join(HERE, "verify.json"), "utf8"));
 } catch (e) {
-  causes.push(`test/verify.json cannot be read: ${e?.code ?? e?.message ?? e}`);
+  causes.push(`dist/test/package-check/verify.json cannot be read: ${e?.code ?? e?.message ?? e}`);
   finish("cannot verify");
 }
 const files = manifest?.files;
 const declared = manifest?.cases;
-if (files === null || typeof files !== "object" || Array.isArray(files)) causes.push("test/verify.json lists no files");
-if (!Array.isArray(declared) || declared.length === 0 || !declared.every((c) => typeof c === "string" && c !== "")) causes.push("test/verify.json declares no cases");
+if (files === null || typeof files !== "object" || Array.isArray(files)) causes.push("dist/test/package-check/verify.json lists no files");
+if (!Array.isArray(declared) || declared.length === 0 || !declared.every((c) => typeof c === "string" && c !== "")) causes.push("dist/test/package-check/verify.json declares no cases");
 if (causes.length) finish("cannot verify");
 
 // Every listed file, against the host's SHA-256. A difference is cannot verify, never failed (testing/F43).
@@ -54,7 +58,7 @@ for (const [path, digest] of Object.entries(files)) {
     causes.push(`${path} is missing`);
     continue;
   }
-  if (createHash("sha256").update(bytes).digest("hex") !== digest) causes.push(`${path} differs from test/verify.json`);
+  if (createHash("sha256").update(bytes).digest("hex") !== digest) causes.push(`${path} differs from dist/test/package-check/verify.json`);
 }
 if (causes.length) finish("cannot verify");
 
@@ -76,15 +80,9 @@ if (causes.length) finish("cannot verify");
 
 // The delivered cases. Clear NODE_TEST_CONTEXT, or a run inside node --test reports to the outer
 // runner and runs nothing here.
-const dir = join(ROOT, "test", "embed");
-let caseFiles = [];
-try {
-  caseFiles = readdirSync(dir).filter((f) => f.endsWith(".test.mjs")).sort().map((f) => join(dir, f));
-} catch {
-  // No directory: no case file, said below.
-}
+const caseFiles = collect(DIST, DIST_LOOPS).map((f) => join(DIST, f));
 if (caseFiles.length === 0) {
-  causes.push("test/embed/ holds no case file");
+  causes.push("dist/ holds no case file beside its Nodes");
   finish("cannot verify");
 }
 delete process.env.NODE_TEST_CONTEXT;
@@ -109,7 +107,7 @@ const undeclared = [...seen.keys()].filter((n) => !known.has(n));
 const twice = [...seen].filter(([, n]) => n > 1).map(([name, n]) => `${name} (${n} times)`);
 const unrun = executed.filter((c) => known.has(c.name) && c.outcome !== "pass" && c.outcome !== "fail").map((c) => `${c.name} (${c.outcome})`);
 if (missing.length) causes.push(`declared cases did not run: ${missing.join(", ")}`);
-if (undeclared.length) causes.push(`cases ran that test/verify.json does not declare: ${undeclared.join(", ")}`);
+if (undeclared.length) causes.push(`cases ran that dist/test/package-check/verify.json does not declare: ${undeclared.join(", ")}`);
 if (twice.length) causes.push(`cases ran more than once: ${twice.join(", ")}`);
 if (unrun.length) causes.push(`declared cases did not execute: ${unrun.join(", ")}`);
 if (causes.length) {

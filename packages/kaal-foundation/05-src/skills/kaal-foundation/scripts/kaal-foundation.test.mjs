@@ -9,8 +9,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.resolve("@kaihacksai/kaal-foundation/sha256"))), "..");
-const BIN = join(PACKAGE, "bin", "kaal-foundation.mjs");
+const BIN = join(dirname(fileURLToPath(import.meta.resolve("@kaihacksai/kaal-foundation/sha256"))), "kaal-foundation.mjs");
 const command = (args, { cwd, input } = {}) => spawnSync(process.execPath, [BIN, ...args], { cwd, input, encoding: "utf8" });
 
 test("foundation/T29 [foundation/F14]: kaal-foundation sha256 prints the library's digest for a file and for standard input", () => {

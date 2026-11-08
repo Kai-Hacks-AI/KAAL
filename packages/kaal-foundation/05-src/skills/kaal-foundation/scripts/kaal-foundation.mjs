@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // kaal-foundation (foundation/F14, foundation/A10): Foundation's command. It is thin: digests are
-// lib/sha256.mjs's and verify is test/verify.mjs (foundation/N8). The library loads only for sha256, so verify still
+// sha256.mjs's and verify is test/package-check/verify.mjs (foundation/N8). The library loads only for sha256, so verify still
 // reports cannot verify when the installed library is changed or broken (foundation/C9). It reads files with node:fs only,
 // starts the verification under this Node without a shell, and makes no platform decision (foundation/N7).
 import { spawnSync } from "node:child_process";
@@ -30,11 +30,11 @@ if (command === "sha256") {
       refuse(`cannot read ${name}: ${e?.code ?? e?.message ?? e}`);
     }
   }
-  const { sha256 } = await import("../lib/sha256.mjs");
+  const { sha256 } = await import("./sha256.mjs");
   for (const [name, bytes] of read) console.log(`${sha256(bytes)}  ${name}`);
 } else if (command === "verify") {
   if (args.length) refuse(`verify takes no argument: ${args.join(" ")}`);
-  const verify = join(dirname(fileURLToPath(import.meta.url)), "..", "test", "verify.mjs");
+  const verify = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "test", "package-check", "verify.mjs");
   process.exit(spawnSync(process.execPath, [verify], { stdio: "inherit" }).status ?? 2);
 } else {
   refuse(command === undefined ? "no command" : `unknown command ${command}`);
