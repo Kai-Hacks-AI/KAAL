@@ -55,7 +55,9 @@ const TESTING = REAL ?? STAND_IN;
 let installed;
 function installPackaging() {
   installed ??= (async () => {
-    const hosting = join(REPOSITORY, "packages", "extensions", "kaal-hosting");
+    // Hosting sits under packages/extensions/ on this collector and directly under packages/ on main (its move); either is right until the two meet.
+    const moved = join(REPOSITORY, "packages", "kaal-hosting");
+    const hosting = existsSync(join(moved, "dist", "index.js")) ? moved : join(REPOSITORY, "packages", "extensions", "kaal-hosting");
     assert.ok(existsSync(join(hosting, "dist", "index.js")), "kaal-hosting is built (npm run build -w kaal-hosting)");
     const out = fresh("packed");
     const tarballs = [];
