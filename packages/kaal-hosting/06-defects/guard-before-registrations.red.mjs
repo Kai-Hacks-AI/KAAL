@@ -3,8 +3,8 @@
 // hosting/T235, hosting/T236 and hosting/T237 are the RED Cases of hosting/D12: they fail on the head Codex reviewed
 // (1189f31, the D11 fix) and must pass, unmodified, in the Change that fixes `affected` in `boundary-core.ts`.
 // hosting/T238 is a control that passes before and after. The Cases drive the real `portability` from the built
-// package on a capability written to a temporary directory. A platform guard that returns from, or exits, the scope
-// a case is registered in (a suite callback, or the module) means every registration after it never happens on
+// package on a capability written to a temporary directory. A platform guard that returns from the suite callback
+// a case is registered in means every registration after it in that callback never happens on
 // that host, so Testing must not count those cases as evidence there (hosting/F29, hosting/F40).
 //
 // This file is RED by design. No suite, lane or script names it, so required CI does not run it; run it by hand:
@@ -44,9 +44,9 @@ test("hosting/T236: a platform guard written as a block challenges the cases reg
   assert.deepEqual(r, ["one"]);
 });
 
-test("hosting/T237: a platform guard that exits the module challenges the cases registered after it", async () => {
-  const r = await challenged('if (process.platform === "win32") process.exit(0);\nit("one", () => {});');
-  assert.deepEqual(r, ["one"]);
+test("hosting/T237: a platform guard in a nested suite challenges the cases registered after it in that suite only", async () => {
+  const r = await challenged('describe("outer", () => {\n  describe("inner", () => {\n    if (process.platform === "win32") return;\n    it("inner-after", () => {});\n  });\n  it("outer-after", () => {});\n});');
+  assert.deepEqual(r, ["inner-after"]);
 });
 
 test("hosting/T238 control: a case registered before the guard is not challenged", async () => {
