@@ -7,7 +7,7 @@
 // publisher's tests run it. --root <dir> names another package directory, for fixtures.
 // Commands run through Hosting, and hashing is Foundation's (core/F88).
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute, kind, readFile } from "kaal-hosting";
+import { execute, kind, readFile } from "@kaihacksai/kaal-hosting";
 import { writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";

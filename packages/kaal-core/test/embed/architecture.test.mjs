@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { readFile } from "kaal-hosting";
+import { readFile } from "@kaihacksai/kaal-hosting";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 const json = async (path) => JSON.parse((await readFile(fileURLToPath(new URL(path, import.meta.url)))).toString("utf8"));
