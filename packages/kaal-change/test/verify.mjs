@@ -15,8 +15,13 @@ let host, sha256;
 try {
   host = await import('@kaihacksai/kaal-hosting');
   ({ sha256 } = await import('@kaihacksai/kaal-foundation/sha256'));
-  await import('kaal-graph');
 } catch (e) { causes.push('verification provider unavailable: ' + e.code); finish('cannot verify'); }
+// Graph is an optional peer. Its absence is named as such and is never a verdict or a silent skip.
+try { await import('kaal-graph'); } catch (e) {
+  if (e?.code !== 'ERR_MODULE_NOT_FOUND') { causes.push('verification provider unavailable: ' + e?.code); finish('cannot verify'); }
+  causes.push('optional peer kaal-graph is not installed; the delivered Cases need it, so nothing is verified: install kaal-graph and run again');
+  finish('cannot verify');
+}
 let manifest;
 try {
   const pkg = JSON.parse((await host.readFile(join(root, 'package.json'))).toString('utf8'));
