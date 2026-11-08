@@ -1,7 +1,7 @@
 // Produce/check the delivered inventory from npm's actual pack list and an observed run.
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execute, readFile, kind, reconcile } from 'kaal-hosting';
+import { execute, readFile, kind, reconcile } from '@kaihacksai/kaal-hosting';
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
 import { observe } from '../observe.mjs';
 const root = fileURLToPath(new URL('../../', import.meta.url));

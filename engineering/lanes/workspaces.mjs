@@ -9,11 +9,11 @@
 // is captured under <dir> as they run (see evidence.mjs); the lane passes and
 // fails exactly as without it.
 import { resolve } from "node:path";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { evidenceDir, lane } from "./evidence.mjs";
 import { suites } from "./suites.mjs";
 
-const HOSTING = "kaal-hosting";
+const HOSTING = "@kaihacksai/kaal-hosting";
 
 async function npm(args, { quiet = false } = {}) {
   const r = await execute("npm", args, { cwd: process.cwd() });
