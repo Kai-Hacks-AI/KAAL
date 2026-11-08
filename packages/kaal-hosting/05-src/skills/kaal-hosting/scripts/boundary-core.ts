@@ -1,5 +1,6 @@
 // The platform coupling conformance result (hosting/F33, hosting/A14), with no
 // test harness, so the command runs it without node:test (hosting/A13).
+import ts from "typescript";
 import { kind, read } from "./index.js";
 import { couplings, inspect, osBoundary } from "./conformance.js";
 import { FACTS } from "./fixtures.js";
@@ -193,6 +194,26 @@ function structure(code: string): string {
     (text) => (text.startsWith("/") ? " " : "0") + text.slice(1).replace(/[^\n\r]/g, " "));
 }
 
+/** Whether a statement leaves the scope it is in: a return, an uncaught throw or `process.exit()`, outside nested functions (hosting/D12). */
+function leavesScope(text: string): boolean {
+  const file = ts.createSourceFile("guard.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const visit = (node: ts.Node, caught: boolean): boolean => {
+    if (ts.isFunctionLike(node) || ts.isClassLike(node)) return false;
+    if (ts.isReturnStatement(node)) return true;
+    if (ts.isThrowStatement(node) && !caught) return true;
+    if (ts.isCallExpression(node) && /^process\s*\.\s*exit$/.test(node.expression.getText(file))) return true;
+    if (ts.isTryStatement(node)) {
+      const inTry = visit(node.tryBlock, caught || node.catchClause !== undefined);
+      const inCatch = node.catchClause ? visit(node.catchClause.block, caught) : false;
+      const inFinally = node.finallyBlock ? visit(node.finallyBlock, caught) : false;
+      return inTry || inCatch || inFinally;
+    }
+    return ts.forEachChild(node, (child) => visit(child, caught) || undefined) ?? false;
+  };
+  return visit(file, false);
+}
+
+
 /** Literal cases containing a finding or registered by its controlling condition. */
 function affected(code: string, line: number, column: number): string[] {
   const mask = structure(code);
@@ -320,18 +341,9 @@ function affected(code: string, line: number, column: number): string[] {
     if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
     // A guard that returns, throws or exits leaves its scope: every registration after it in the
     // enclosing block (or the module) is skipped too (hosting/D12).
-    // A return or throw inside a nested function body (a registered callback) leaves only that function.
-    let exits = mask.slice(close + 1, end).split("");
-    for (const [from, to] of pairs) {
-      if (mask[from] !== "{" || from <= close || to >= end) continue;
-      const before = mask.slice(0, from).trimEnd();
-      const arrow = before.endsWith("=>");
-      const method = before.endsWith(")") && /\bfunction\b[^()]*$/.test(before.slice(0, [...pairs].find(([, c]) => c === before.length - 1)?.[0] ?? 0));
-      // A throw inside a try block that has a catch handler stays in the guarded statement.
-      const caught = /\btry$/.test(before) && /^\s*catch\b/.test(mask.slice(to + 1));
-      if (arrow || method || caught) for (let k = from; k <= to; k++) exits[k - close - 1] = " ";
-    }
-    if (/(?<![.\w$])(?:return|throw)\b(?!\s*:)|\bprocess\s*\.\s*exit\s*\(/.test(exits.join(""))) {
+    // The guarded statement leaves its scope when it holds a real return, an uncaught throw or a process exit
+    // outside any nested function (a registered callback leaves only itself): decided on the parsed tree.
+    if (leavesScope(code.slice(close + 1, end))) {
       let block = mask.length;
       for (const [from, to] of pairs) if (mask[from] === "{" && from < open && to >= end && to < block) block = to;
       end = block;
