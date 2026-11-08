@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { readFile } from "kaal-hosting";
+import { readFile } from "@kaihacksai/kaal-hosting";
 import { evaluate, foundation, payload } from "kaal-core";
 import { validate } from "kaal-core/frontmatter";
 import { installationConformance } from "kaal-core/conformance";
