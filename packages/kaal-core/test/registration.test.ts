@@ -7,7 +7,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { bootstrap, verify } from "kaal-core";
 import { assemble, REGISTRATION_SCHEMA, REGISTRATION_TYPE } from "kaal-core/registration";
 

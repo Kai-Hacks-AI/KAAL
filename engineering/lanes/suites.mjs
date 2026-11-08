@@ -13,7 +13,7 @@
 // and an External context with neither suites nor a recorded reason, are
 // unresolved, never passed. Commands run through Hosting.
 import { join } from "node:path";
-import { execute, readFile } from "kaal-hosting";
+import { execute, readFile } from "@kaihacksai/kaal-hosting";
 
 /** Where the KAAL root declares its Test Plan, relative to the root. */
 export const PLAN = "engineering/lanes/plan.json";
