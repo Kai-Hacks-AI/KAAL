@@ -11,7 +11,7 @@
     "capability"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "pretest": "npm run build -w kaal-core",
     "test": "node --test test/product.test.mjs"
   },
   "engines": {
@@ -20,7 +20,7 @@
   "devDependencies": {
     "kaal-core": "0.0.1",
     "kaal-graph": "0.0.1",
-    "kaal-hosting": "0.0.1",
+    "@kaihacksai/kaal-hosting": "0.0.1",
     "kaal-testing": "0.0.1"
   }
 }
