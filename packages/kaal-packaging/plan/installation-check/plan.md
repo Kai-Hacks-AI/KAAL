@@ -61,7 +61,7 @@ Test Case ids T113 to T134 are reserved (T129 to T131 added with the consumer jo
 Fixtures only. No network.
 
 - **T113** A sound fixture package: installation `verified`, self check `verified`, result `verified`.
-- **T114** A changed file, a removed file, an extra unlisted file and a link in an installed copy: each is `failed`, named. The manifest itself and a package-local `node_modules/` are not unlisted files (the two stated exceptions).
+- **T114** A changed file, a removed file, an extra unlisted file and a link in an installed copy: each is `failed`, named. A link is a link to a directory, or a file link that leaves the package; a file link that stays inside is judged by its bytes against the manifest (Kai A, 8 Nov). The manifest itself and a package-local `node_modules/` are not unlisted files (the two stated exceptions).
 - **T115** An unreadable or malformed manifest, and an unlistable folder: `unknown`, never verified.
 - **T116** A manifest path outside `dist/` or with `..`, an absolute path, or a backslash: refused.
 - **T117** Installation `failed`: the self check is not run and is reported `not run: installation failed`; the result is `failed`.
