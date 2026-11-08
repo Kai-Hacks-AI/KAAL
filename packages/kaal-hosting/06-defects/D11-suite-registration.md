@@ -24,6 +24,7 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1030 at 68
 | hosting/T230 | control, passes before and after: a sibling case outside the suite is not challenged | same file |
 | hosting/T231 | control, passes before and after: a suite with no platform condition challenges nothing | same file |
 | hosting/T232 | control, passes before and after: a selector choosing a case on one branch and a suite on the other still challenges the registration | [suite-registration.controls.mjs](suite-registration.controls.mjs) |
+| hosting/T233 | RED on the first fix (a6ad99f), GREEN after: a function inside the suite options does not end attribution early | same file |
 
 **Confirming Run (8 Nov, Node 24, Linux, 68d5b28):** T227, T228 and T229 fail; T230 and T231 pass. The Cases are not edited by the fix.
 

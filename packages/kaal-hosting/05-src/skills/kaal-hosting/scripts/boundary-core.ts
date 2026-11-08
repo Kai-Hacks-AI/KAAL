@@ -210,9 +210,15 @@ function affected(code: string, line: number, column: number): string[] {
   const calls: { start: number; end: number; title: string }[] = [];
   // describe/suite registrations are not cases; each governs the cases it encloses (hosting/D11).
   const suites: { start: number; end: number; body: number }[] = [];
+  // The suite's callback is its last top-level argument; whatever precedes it (selector, title, options) governs.
   const bodyOf = (open: number, end: number): number => {
-    const arrow = mask.slice(open, end).search(/=>|\bfunction\b/);
-    return arrow < 0 ? end : open + arrow;
+    let last = open + 1;
+    for (let i = open + 1; i < end;) {
+      if (pairs.has(i)) i = pairs.get(i)! + 1;
+      else if (mask[i] === ",") last = ++i;
+      else i++;
+    }
+    return last;
   };
   for (const match of mask.matchAll(/\b(?:[A-Za-z_$][\w$]*\s*\.\s*)?(?:describe|suite)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
     const open = match.index! + match[0].lastIndexOf("(");
