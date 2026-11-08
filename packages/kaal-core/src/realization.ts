@@ -4,7 +4,7 @@
 // reconciliation, so a precondition that fails leaves the repository unchanged.
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { kind, read, readFile, reconcile, type Leftover, type Removal, type Write } from "kaal-hosting";
+import { kind, read, readFile, reconcile, type Leftover, type Removal, type Write } from "@kaihacksai/kaal-hosting";
 import { declaration, realize, type Contracted, type Digests, type Plan, type SkillSource } from "./agent.js";
 import { checkContract, checkRecord, register, type InstallationRecord } from "./installation.js";
 import { KaalError } from "./node.js";

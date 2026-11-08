@@ -8,8 +8,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { read, type Files } from "kaal-hosting";
-import { EXCLUSIONS, inspect, type Expectation, type Validation } from "kaal-hosting/conformance";
+import { read, type Files } from "@kaihacksai/kaal-hosting";
+import { EXCLUSIONS, inspect, type Expectation, type Validation } from "@kaihacksai/kaal-hosting/conformance";
 
 /**
  * The host modules Core may import directly: the path and URL handling with
@@ -49,7 +49,7 @@ describe("Core's Hosting boundary", () => {
     assert.ok(Object.keys(files).length >= 7);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
-    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["#node/form", "#node/node", "@kaihacksai/kaal-foundation/sha256", "kaal-hosting"]);
+    assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))].sort(), ["#node/form", "#node/node", "@kaihacksai/kaal-foundation/sha256", "@kaihacksai/kaal-hosting"]);
     assert.deepEqual(judged(report.validation), VALIDATED.map(({ file, construct }) => ({ file, construct })));
     // A clean result is evidence within the inspection's coverage, not proof of compliance.
     assert.ok(report.exclusions.length > 0 && report.exclusions === EXCLUSIONS);
@@ -88,7 +88,7 @@ describe("Core's Hosting boundary", () => {
 
   it("depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build", () => {
     const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-    assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    assert.deepEqual(pkg.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1", yaml: "2.9.1" });
     assert.equal(pkg.devDependencies["kaal-graph"], "0.0.1");
   });
 });

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";
 import { install } from "kaal-testing/acceptance";
-import { execute, kind, readFile } from "kaal-hosting";
+import { execute, kind, readFile } from "@kaihacksai/kaal-hosting";
 import { sha256 } from "../../lib/sha256.mjs";
 
 test("foundation/T51 [foundation/F25, foundation/F26, foundation/F27, foundation/N15]: a ledger-recorded clean consumer resolves and verifies the exact Foundation declaration candidate", async () => {
