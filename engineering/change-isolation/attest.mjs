@@ -32,7 +32,11 @@ export async function attest({ api, show, repo, pr: number }) {
   if (!/^[0-9a-f]{40}$/.test(head ?? "") || !baseRef || !author) throw new CannotJudge("the pull request cannot be read");
   const target = show(`origin/${baseRef}`, LEDGER);
   const candidate = show(head, LEDGER);
-  if (target === null) throw new CannotJudge("the target holds no ledger");
+  // A target that holds no ledger (a collector that predates it, which a synchronization brings up to date) has nothing an
+  // approval could attest against: no attestation is printed and the checker judges the change on its own rules. This never
+  // admits anything; an attestation only ever adds an admission, so its absence is the strict outcome. A target that holds a
+  // ledger but not the pinned attesters or CODEOWNERS is still cannot judge, below.
+  if (target === null) return { attested: null, head };
   if (candidate === null || candidate === target) return { attested: null, head };
   const appended = appendedEntry(target, candidate);
   if (!appended.entry) return { attested: null, head };
