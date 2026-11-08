@@ -10,7 +10,7 @@ a focused bridge established from main, engineering a usable isolation slice and
 promoting it to main without the other Change collector's unfinished work.
 
 The work is
-[the isolation PLAN](../../../../../../../packages/skills/kaal-change/plan/isolation/README.md).
+[the isolation PLAN](../../../../../../../packages/kaal-change/plan/isolation/README.md).
 It records the source/dependency cut, proposed obligations, three-loop Cases and
 delivery route. No package implementation or passing product evidence is claimed.
 
