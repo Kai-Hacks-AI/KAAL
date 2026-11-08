@@ -318,6 +318,13 @@ function affected(code: string, line: number, column: number): string[] {
     let end = statementEnd(close + 1);
     const otherwise = space(end);
     if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
+    // A guard that returns, throws or exits leaves its scope: every registration after it in the
+    // enclosing block (or the module) is skipped too (hosting/D12).
+    if (/\b(?:return|throw)\b|\bprocess\s*\.\s*exit\s*\(/.test(mask.slice(close + 1, end))) {
+      let block = mask.length;
+      for (const [from, to] of pairs) if (mask[from] === "{" && from < open && to >= end && to < block) block = to;
+      end = block;
+    }
     for (const call of calls) if (close < call.start && call.start < end) result.add(call.title);
   }
   return [...result];

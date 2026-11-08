@@ -11,7 +11,7 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1171 at 11
   "expected": "A platform guard that returns from the suite callback a case is registered in challenges every case registered after it in that callback, because none of them is registered on the guarded host (hosting/F29, hosting/F40).",
   "observed": "`describe(\"suite\", () => { if (process.platform === \"win32\") return; it(\"case\", () => {}); })` leaves portability().challenged empty. The same guard inside a case challenges that case.",
   "where": "packages/kaal-hosting/05-src/skills/kaal-hosting/scripts/boundary-core.ts, affected (the if-statement scope)",
-  "status": "open",
+  "status": "answered",
   "tests": ["hosting/T235", "hosting/T236", "hosting/T237"]
 }
 ```
