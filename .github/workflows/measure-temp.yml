@@ -1,0 +1,29 @@
+name: MeasureTemp
+on:
+  pull_request:
+    paths: [".github/workflows/measure-temp.yml"]
+permissions:
+  contents: read
+jobs:
+  guard:
+    name: Guard Windows (${{ matrix.temp }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        temp: [default-C, runner-temp-D]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run build -w @kaihacksai/kaal-hosting
+      - name: Guard tests
+        shell: bash
+        env:
+          WANT: ${{ matrix.temp }}
+        run: |
+          if [ "$WANT" = runner-temp-D ]; then export TEMP="$RUNNER_TEMP" TMP="$RUNNER_TEMP" TMPDIR="$RUNNER_TEMP"; fi
+          node -p "'tmpdir=' + require('os').tmpdir()"
+          node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/external.test.mjs engineering/guard/acceptance/kaal.test.mjs engineering/guard/acceptance/package.test.mjs
