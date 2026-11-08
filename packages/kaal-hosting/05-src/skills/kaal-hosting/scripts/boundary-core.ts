@@ -208,6 +208,28 @@ function affected(code: string, line: number, column: number): string[] {
   };
   const at = code.split("\n").slice(0, line - 1).reduce((n, text) => n + text.length + 1, 0) + column - 1;
   const calls: { start: number; end: number; title: string }[] = [];
+  // describe/suite registrations are not cases; each governs the cases it encloses (hosting/D11).
+  const suites: { start: number; end: number; body: number }[] = [];
+  // The suite's callback is its last top-level argument; whatever precedes it (selector, title, options) governs.
+  const bodyOf = (open: number, end: number): number => {
+    let last = open + 1;
+    for (let i = open + 1; i < end;) {
+      if (pairs.has(i)) i = pairs.get(i)! + 1;
+      else if (mask[i] === ",") {
+        i++;
+        if (mask.slice(i, end).trim() !== "") last = i; // a trailing comma starts no argument
+      }
+      else i++;
+    }
+    return last;
+  };
+  for (const match of mask.matchAll(/\b(?:[A-Za-z_$][\w$]*\s*\.\s*)?(?:describe|suite)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
+    const open = match.index! + match[0].lastIndexOf("(");
+    const end = pairs.get(open);
+    if (end === undefined) continue;
+    const wrapper = [...pairs].find(([start, close]) => start < match.index! && close >= match.index! && close < open && mask.slice(close + 1, open).trim() === "");
+    suites.push({ start: wrapper?.[0] ?? match.index!, end, body: bodyOf(open, end) });
+  }
   for (const match of mask.matchAll(/\b(?:[A-Za-z_$][\w$]*\s*\.\s*)?(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
     const open = match.index! + match[0].lastIndexOf("(");
     const end = pairs.get(open);
@@ -222,10 +244,15 @@ function affected(code: string, line: number, column: number): string[] {
   for (const [start, close] of pairs) {
     if (mask[start] !== "(") continue;
     const callee = mask.slice(start + 1, close);
-    if (!/(?:\?|:)\s*(?:it|test)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee)) continue;
+    const selectsSuite = /(?:\?|:)\s*(?:describe|suite)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee);
+    const selectsCase = /(?:\?|:)\s*(?:it|test)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee);
+    if (!selectsSuite && !selectsCase) continue;
     const open = space(close + 1);
     const end = pairs.get(open);
     if (mask[open] !== "(" || end === undefined) continue;
+    // A selector may pick a suite on one branch and a case on the other: it is both.
+    if (selectsSuite) suites.push({ start, end, body: bodyOf(open, end) });
+    if (!selectsCase) continue;
     const title = /^\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/.exec(code.slice(open + 1));
     if (title) calls.push({ start, end, title: title[2] });
   }
@@ -279,6 +306,11 @@ function affected(code: string, line: number, column: number): string[] {
   const result = new Set<string>();
   const containing = calls.filter((call) => call.start <= at && at <= call.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
   if (containing.length) result.add(containing[0].title);
+  // A finding in a suite's selector or options, before its body, governs every case the suite encloses.
+  for (const suite of suites) {
+    if (at < suite.start || at >= suite.body) continue;
+    for (const call of calls) if (suite.start < call.start && call.start < suite.end) result.add(call.title);
+  }
   for (const match of mask.matchAll(/\bif\s*\(/g)) {
     const open = match.index! + match[0].lastIndexOf("(");
     const close = pairs.get(open);
