@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join, posix, relative, sep } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 const PACKAGE = fileURLToPath(new URL("../..", import.meta.url));
 const REPO = join(PACKAGE, "..", "..", "..");

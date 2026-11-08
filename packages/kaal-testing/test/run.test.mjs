@@ -9,10 +9,10 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const HOSTING = dirname(createRequire(join(PACKAGE, "package.json")).resolve("kaal-hosting/package.json"));
+const HOSTING = dirname(createRequire(join(PACKAGE, "package.json")).resolve("@kaihacksai/kaal-hosting/package.json"));
 const exits = (code) => `node -e "process.exit(${code})"`;
 
 /** Runs a copy of test/run.mjs in a source-like workspace with `scripts`, or with `packageJson` written verbatim. */
@@ -21,8 +21,8 @@ async function runWith({ scripts, packageJson, args = [] }) {
   try {
     mkdirSync(join(root, "test", "plan"), { recursive: true });
     mkdirSync(join(root, "plan"));
-    mkdirSync(join(root, "node_modules"));
-    symlinkSync(HOSTING, join(root, "node_modules", "kaal-hosting"), "junction");
+    mkdirSync(join(root, "node_modules", "@kaihacksai"), { recursive: true });
+    symlinkSync(HOSTING, join(root, "node_modules", "@kaihacksai/kaal-hosting"), "junction");
     cpSync(join(PACKAGE, "test", "run.mjs"), join(root, "test", "run.mjs"));
     mkdirSync(join(root, "lib"), { recursive: true });
     cpSync(join(PACKAGE, "lib", "reentry.mjs"), join(root, "lib", "reentry.mjs"));

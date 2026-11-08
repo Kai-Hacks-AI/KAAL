@@ -35,8 +35,8 @@
   ],
   "scripts": {
     "test": "node test/run.mjs",
-    "test:publisher": "npm run build -w kaal-core -w kaal-hosting && node scripts/manifest.mjs --check && node --test test/run.test.mjs test/manifest.test.mjs test/verify.test.mjs test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/observed.test.mjs test/plan/evidence.test.mjs test/plan/consumer.test.mjs test/plan/boundary.test.mjs test/interpret.test.mjs test/plan/model.test.mjs test/plan/current.test.mjs test/model.test.mjs test/plan/accounting.test.mjs test/plan/traces.test.mjs test/traces.test.mjs test/plan/reentry.test.mjs test/reentry.test.mjs test/plan/defect-record.test.mjs test/defect.test.mjs test/plan/verifiers.test.mjs test/plan/parity.test.mjs test/verifiers.test.mjs test/plan/brittle.test.mjs test/plan/locations.test.mjs test/plan/timing.test.mjs test/plan/redesign.test.mjs test/redesign-inputs.test.mjs test/plan/duplicates.test.mjs test/duplicates-inputs.test.mjs test/plan/host.test.mjs",
-    "test:defects": "npm run build -w kaal-hosting && node --test test/defects/c8-audit.test.mjs",
+    "test:publisher": "npm run build -w kaal-core -w @kaihacksai/kaal-hosting && node scripts/manifest.mjs --check && node --test test/run.test.mjs test/manifest.test.mjs test/verify.test.mjs test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/observed.test.mjs test/plan/evidence.test.mjs test/plan/consumer.test.mjs test/plan/boundary.test.mjs test/interpret.test.mjs test/plan/model.test.mjs test/plan/current.test.mjs test/model.test.mjs test/plan/accounting.test.mjs test/plan/traces.test.mjs test/traces.test.mjs test/plan/reentry.test.mjs test/reentry.test.mjs test/plan/defect-record.test.mjs test/defect.test.mjs test/plan/verifiers.test.mjs test/plan/parity.test.mjs test/verifiers.test.mjs test/plan/brittle.test.mjs test/plan/locations.test.mjs test/plan/timing.test.mjs test/plan/redesign.test.mjs test/redesign-inputs.test.mjs test/plan/duplicates.test.mjs test/duplicates-inputs.test.mjs test/plan/host.test.mjs",
+    "test:defects": "npm run build -w @kaihacksai/kaal-hosting && node --test test/defects/c8-audit.test.mjs",
     "test:consumer": "node test/verify.mjs",
     "manifest": "node scripts/manifest.mjs"
   },
@@ -44,7 +44,7 @@
     "node": ">=24"
   },
   "dependencies": {
-    "kaal-hosting": "0.0.1"
+    "@kaihacksai/kaal-hosting": "0.0.1"
   },
   "devDependencies": {
     "@kaihacksai/kaal-foundation": "0.0.1",

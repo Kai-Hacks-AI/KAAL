@@ -1,0 +1,14 @@
+# The committed verification manifest hashes exact shipped bytes on every host.
+# Preserve these inputs through checkout; do not regenerate host-specific hashes.
+LICENSE -text
+README.md -text
+package.json -text
+installation.kaal.json -text
+docs/** -text
+# Build inputs must also retain their reviewed bytes before deterministic emit.
+src/** -text
+scripts/deliver-node.mjs -text
+test/embed/** -text
+test/run.mjs -text
+test/verify.mjs -text
+test/verify.json -text
