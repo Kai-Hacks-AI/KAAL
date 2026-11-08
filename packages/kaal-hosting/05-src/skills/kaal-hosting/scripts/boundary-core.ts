@@ -327,7 +327,9 @@ function affected(code: string, line: number, column: number): string[] {
       const before = mask.slice(0, from).trimEnd();
       const arrow = before.endsWith("=>");
       const method = before.endsWith(")") && /\bfunction\b[^()]*$/.test(before.slice(0, [...pairs].find(([, c]) => c === before.length - 1)?.[0] ?? 0));
-      if (arrow || method) for (let k = from; k <= to; k++) exits[k - close - 1] = " ";
+      // A throw inside a try block that has a catch handler stays in the guarded statement.
+      const caught = /\btry$/.test(before) && /^\s*catch\b/.test(mask.slice(to + 1));
+      if (arrow || method || caught) for (let k = from; k <= to; k++) exits[k - close - 1] = " ";
     }
     if (/\b(?:return|throw)\b|\bprocess\s*\.\s*exit\s*\(/.test(exits.join(""))) {
       let block = mask.length;
