@@ -12,6 +12,8 @@ The planned outer tests will live in `packages/kaal-testing/test/plan/loops.test
 | testing/T133: `plan` by loop, by Change (with `unknown` impact reported), by `red` and by `promotion` gives the Cases and files expected | testing/F111 | Requirements |
 | testing/T134: an open Defect's Case failing is `red as expected` with the Run's `failed` kept; a pass is `unexpectedly green`; a failure after the answer is a regression; a skip or `todo` is RED | testing/F112 | Requirements |
 | testing/T135: a Plan run by file and name pattern maps each reported test to its Case; an unmapped test and an unreported Case are `unknown` | testing/F113 | Requirements |
+| testing/T138: a Case file named for its item in that item's folder has the folder's loop and the Node as target; a file in no covered folder, with no such item, or targeting another level, is a finding | testing/F106 | Requirements |
+| testing/T139: a suite collected by trace from the graph contains exactly the expected Cases; an incomplete graph gives `unknown`, and a judged addition is reported as judged, apart from the computed part | testing/F115 | Requirements |
 | testing/T136: `promotion` counts open Defects; adding a RED Case raises the count and answering one lowers it | testing/F114 | Requirements |
 | testing/T137: `loops` is pure and deterministic and imports only `kaal-testing/model` and `kaal-testing/traces` | testing/N23, testing/A31 | Architecture |
 

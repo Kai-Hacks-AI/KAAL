@@ -6,14 +6,15 @@
 
 | Concern | Owner |
 | --- | --- |
-| The mechanism: declaration check, loop proof, `answered`, Plan composition, RED role | Testing |
+| The mechanism: declaration check, loop proof, `answered`, Plan composition, RED role; the Skill capability for composing suites (BASS ladder, computed by scripts, judged by Skill or Agent) | Testing |
 | Node and Edge mechanics, `check()` for dangling references, traversal | Graph |
-| The Loop Declaration itself: levels, names, order, kinds, locations. In KAAL the consumer is Engineering, and the declaration sits in the package's `04-test/engineering-check/` | The consumer (Engineering in KAAL) |
+| The Loop Declaration itself: levels, names, order, kinds, locations. In KAAL the consumer is Engineering, and the declaration (with its suite memberships) sits in the package's `04-test/engineering-check/loops.md` | The consumer (Engineering in KAAL) |
 | The items as Nodes (Intent, Requirements, Defects, Architecture) | Their owning package, with Graph's mechanics |
 | The outward relationship types between items (`Serves` and the like) | Their item owners (Requirements, Architecture, ...) |
 | Which items a Change touches; accepted-defect judgment (FAR's sibling) | Change |
 | The CI lane that runs a Plan and what it gates | Engineering |
 
 - **Worked example.** [hosting-example.md](hosting-example.md) shows the layout for `kaal-hosting`.
-- **Where Defect Cases sit.** In a consumer's own case location for its Defect level. For a package using `04-test/package-check`, that is a `defects` file beside `requirements`. `boundary-check` and `engineering-check` carry their own loop files the same way, and all three suites cite the shared 01–03 folders (`engineering-check` cites Engineering's). The Defect Nodes stay in `06-defects/`, next to `02-requirements`; only the `.red.mjs` Cases move. The three `04-test` suites stay `package-check`, `boundary-check` and `engineering-check`.
+- **Where Cases sit.** In context, next to the item they prove; the folder is the loop. `04-test` holds no Cases: its three suites collect them. Defect Cases sit in `06-defects/D<n>.test.mjs` beside the Defect Node, and there are no more `.red.mjs` files once the DO lands.
+- **Worked example.** [hosting-example.md](hosting-example.md) shows the layout for `kaal-hosting`.
 - **Not decided here.** The Loop Declaration's file form (a Node with `levels` in its frontmatter is the proposal); the accepted-defect ratchet (testing/C54); the migration of each package's items to Nodes, which belongs to the item owners. Hosting D15–D17 keep their `.red.mjs` until the DO.
