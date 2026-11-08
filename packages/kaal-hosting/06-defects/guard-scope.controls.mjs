@@ -54,3 +54,18 @@ test("hosting/T254 control: the other branch of an enclosing if is not challenge
   const r = await challenged('describe("suite", () => {\n  if (enabled) {\n    if (process.platform === "win32") return;\n  } else {\n    it("alternative", () => {});\n  }\n  it("after", () => {});\n});');
   assert.deepEqual(r, ["after"]);
 });
+
+test("hosting/T255 control: the catch handler a returning guard bypasses is not challenged", async () => {
+  const r = await challenged('describe("suite", () => {\n  try {\n    mayThrow();\n    if (process.platform === "win32") return;\n  } catch {\n    it("recovery", () => {});\n  }\n  it("after", () => {});\n});');
+  assert.deepEqual(r, ["after"]);
+});
+
+test("hosting/T256 control: the other clauses of an enclosing switch are not challenged", async () => {
+  const r = await challenged('describe("suite", () => {\n  switch (mode) {\n    case 1: {\n      if (process.platform === "win32") return;\n      break;\n    }\n    default: {\n      it("alternative", () => {});\n    }\n  }\n  it("after", () => {});\n});');
+  assert.deepEqual(r, ["after"]);
+});
+
+test("hosting/T257 control: a switch clause that falls through reaches the next clause, so its cases are challenged", async () => {
+  const r = await challenged('describe("suite", () => {\n  switch (mode) {\n    case 1:\n      if (process.platform === "win32") return;\n    default:\n      it("fallthrough", () => {});\n  }\n});');
+  assert.deepEqual(r, ["fallthrough"]);
+});

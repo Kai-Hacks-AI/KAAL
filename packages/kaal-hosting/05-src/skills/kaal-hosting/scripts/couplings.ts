@@ -365,11 +365,10 @@ export function leavesScope(text: string): boolean {
  * Where the registrations skipped by a leaving guard end (hosting/D13): the end of the function the guard at `position`
  * is in, however deep in blocks it sits, or of the module. A throw that an enclosing try with a catch handler inside
  * that function catches leaves only that try block, so it ends there. The finally blocks of the tries the guard sits in
- * still run (a process exit runs none), and the other branch of an enclosing if is never reached, so their ranges are
- * returned to be left out. Decided on the parsed tree.
+ * still run (a process exit runs none); the catch handler a return bypasses, the other branch of an enclosing if and
+ * the other clauses of an enclosing switch are not reached from the guard. Those ranges are returned to be left out. Decided on the parsed tree.
  */
-export function scopeEnd(code: string, position: number, kinds: { returns: boolean; throws: boolean; exits: boolean }): { end: number; runs: Array<[number, number]> } {
-  const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+export function scopeEnd(file: ts.SourceFile, position: number, kinds: { returns: boolean; throws: boolean; exits: boolean }): { end: number; runs: Array<[number, number]> } {
   const chain: ts.Node[] = [];
   const descend = (node: ts.Node): void => {
     chain.push(node);
@@ -389,6 +388,21 @@ export function scopeEnd(code: string, position: number, kinds: { returns: boole
     if (ts.isTryStatement(node)) {
       if (node.catchClause && chain[i + 1] === node.tryBlock && caught === undefined) caught = node.tryBlock.getEnd();
       if (!kinds.exits && node.finallyBlock && (chain[i + 1] === node.tryBlock || chain[i + 1] === node.catchClause)) runs.push([node.finallyBlock.getStart(file), node.finallyBlock.getEnd()]);
+      // A return from the try block does not enter its catch handler (a throw does, and a process exit runs nothing).
+      if (kinds.returns && !kinds.throws && !kinds.exits && node.catchClause && chain[i + 1] === node.tryBlock) runs.push([node.catchClause.getStart(file), node.catchClause.getEnd()]);
+    }
+    // The other clauses of an enclosing switch are reached by matching, not by passing the guard.
+    if ((ts.isCaseClause(node) || ts.isDefaultClause(node)) && ts.isCaseBlock(node.parent)) {
+      // A clause that does not end in break, return, throw or continue falls into the next one, which the guard is then on the way to.
+      const clauses = node.parent.clauses;
+      const reached = new Set<ts.Node>([node]);
+      for (let k = clauses.indexOf(node); k + 1 < clauses.length; k++) {
+        let last: ts.Statement | undefined = clauses[k].statements[clauses[k].statements.length - 1];
+        while (last && ts.isBlock(last)) last = last.statements[last.statements.length - 1];
+        if (last && (ts.isBreakStatement(last) || ts.isReturnStatement(last) || ts.isThrowStatement(last) || ts.isContinueStatement(last))) break;
+        reached.add(clauses[k + 1]);
+      }
+      for (const clause of clauses) if (!reached.has(clause)) runs.push([clause.getStart(file), clause.getEnd()]);
     }
     // The other branch of an enclosing if is never reached from the guard.
     if (ts.isIfStatement(node)) {
@@ -398,7 +412,7 @@ export function scopeEnd(code: string, position: number, kinds: { returns: boole
     const body = ts.isFunctionLike(node) ? (node as ts.FunctionLikeDeclaration).body : undefined;
     if (body) return { end: kinds.returns || kinds.exits ? body.getEnd() : (caught ?? body.getEnd()), runs };
   }
-  return { end: kinds.returns || kinds.exits ? code.length : (caught ?? code.length), runs };
+  return { end: kinds.returns || kinds.exits ? file.getEnd() : (caught ?? file.getEnd()), runs };
 }
 
 interface Raw {

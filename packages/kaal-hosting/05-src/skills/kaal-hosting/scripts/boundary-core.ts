@@ -1,5 +1,6 @@
 // The platform coupling conformance result (hosting/F33, hosting/A14), with no
 // test harness, so the command runs it without node:test (hosting/A13).
+import ts from "typescript";
 import { kind, read } from "./index.js";
 import { couplings, inspect, osBoundary } from "./conformance.js";
 import { FACTS } from "./fixtures.js";
@@ -188,146 +189,91 @@ function titles(code: string): { index: number; title: string }[] {
   return [...code.matchAll(/\b(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/g)].map((m) => ({ index: m.index!, title: m[2] }));
 }
 
-/** Preserve offsets while hiding comments and quoted text from structural scans. */
-function structure(code: string): string {
-  return code.replace(/\/\*[^]*?\*\/|\/\/[^\n]*|"(?:\\[^]|[^"\\])*"|'(?:\\[^]|[^'\\])*'|`(?:\\[^]|[^`\\])*`/g,
-    (text) => (text.startsWith("/") ? " " : "0") + text.slice(1).replace(/[^\n\r]/g, " "));
+/** The registration functions a callee names: `it`/`test` register a case, `describe`/`suite` a suite, whichever branch of a conditional selects them. */
+function registers(callee: ts.Expression): { cases: boolean; suites: boolean } {
+  const kinds = { cases: false, suites: false };
+  const visit = (node: ts.Expression): void => {
+    if (ts.isParenthesizedExpression(node)) return visit(node.expression);
+    if (ts.isConditionalExpression(node)) {
+      visit(node.whenTrue);
+      visit(node.whenFalse);
+      return;
+    }
+    // `it`, `it.only`, `t.test`, `node.test.skip`: the registration name is the first or second name, with at most one modifier after it.
+    const names: string[] = [];
+    let current: ts.Expression = node;
+    while (ts.isPropertyAccessExpression(current)) {
+      names.unshift(current.name.text);
+      current = current.expression;
+    }
+    if (ts.isIdentifier(current)) names.unshift(current.text);
+    else return;
+    for (let i = 0; i < Math.min(names.length, 2); i++) {
+      if (names.length - i > 2) continue;
+      if (names[i] === "it" || names[i] === "test") kinds.cases = true;
+      if (names[i] === "describe" || names[i] === "suite") kinds.suites = true;
+    }
+  };
+  visit(callee);
+  return kinds;
 }
 
-/** Literal cases containing a finding or registered by its controlling condition. */
+/**
+ * Literal cases containing a finding or registered by its controlling condition, decided on the parsed tree
+ * (hosting/D11 to hosting/D14): the case a finding sits in, every case a suite encloses when the finding is in its
+ * selector or options, and the cases a platform condition controls, including those a guard that leaves its
+ * function skips (return, uncaught throw, `process.exit()`).
+ */
 function affected(code: string, line: number, column: number): string[] {
-  const mask = structure(code);
-  const pairs = new Map<number, number>();
-  const stack: number[] = [];
-  for (let i = 0; i < mask.length; i++) {
-    if ("({[".includes(mask[i])) stack.push(i);
-    else if (")}]".includes(mask[i]) && stack.length) pairs.set(stack.pop()!, i);
-  }
-  const space = (from: number): number => {
-    while (/\s/.test(mask[from] ?? "") && from < mask.length) from++;
-    return from;
-  };
+  const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const at = code.split("\n").slice(0, line - 1).reduce((n, text) => n + text.length + 1, 0) + column - 1;
   const calls: { start: number; end: number; title: string }[] = [];
-  // describe/suite registrations are not cases; each governs the cases it encloses (hosting/D11).
   const suites: { start: number; end: number; body: number }[] = [];
-  // The suite's callback is its last top-level argument; whatever precedes it (selector, title, options) governs.
-  const bodyOf = (open: number, end: number): number => {
-    let last = open + 1;
-    for (let i = open + 1; i < end;) {
-      if (pairs.has(i)) i = pairs.get(i)! + 1;
-      else if (mask[i] === ",") {
-        i++;
-        if (mask.slice(i, end).trim() !== "") last = i; // a trailing comma starts no argument
+  const collect = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const kinds = registers(node.expression);
+      const start = node.getStart(file);
+      const end = node.getEnd();
+      if (kinds.suites) {
+        // The suite's callback is its last argument; whatever precedes it (selector, title, options) governs.
+        const last = node.arguments[node.arguments.length - 1];
+        suites.push({ start, end, body: last ? last.getStart(file) : end });
       }
-      else i++;
+      if (kinds.cases) {
+        const title = node.arguments[0];
+        if (title && (ts.isStringLiteral(title) || ts.isNoSubstitutionTemplateLiteral(title))) calls.push({ start, end, title: title.getText(file).slice(1, -1) });
+      }
     }
-    return last;
+    ts.forEachChild(node, collect);
   };
-  for (const match of mask.matchAll(/\b(?:[A-Za-z_$][\w$]*\s*\.\s*)?(?:describe|suite)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
-    const open = match.index! + match[0].lastIndexOf("(");
-    const end = pairs.get(open);
-    if (end === undefined) continue;
-    const wrapper = [...pairs].find(([start, close]) => start < match.index! && close >= match.index! && close < open && mask.slice(close + 1, open).trim() === "");
-    suites.push({ start: wrapper?.[0] ?? match.index!, end, body: bodyOf(open, end) });
-  }
-  for (const match of mask.matchAll(/\b(?:[A-Za-z_$][\w$]*\s*\.\s*)?(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(/g)) {
-    const open = match.index! + match[0].lastIndexOf("(");
-    const end = pairs.get(open);
-    const title = /^\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/.exec(code.slice(open + 1));
-    if (end === undefined || !title) continue;
-    // A conditional selecting it/test is wrapped before its argument list.
-    const wrapper = [...pairs].find(([start, close]) => start < match.index! && close >= match.index! && close < open && mask.slice(close + 1, open).trim() === "");
-    calls.push({ start: wrapper?.[0] ?? match.index!, end, title: title[2] });
-  }
-  // Either alternative may select the registration function. The callee's
-  // enclosing parentheses, not the position of it/test in it, bound the call.
-  for (const [start, close] of pairs) {
-    if (mask[start] !== "(") continue;
-    const callee = mask.slice(start + 1, close);
-    const selectsSuite = /(?:\?|:)\s*(?:describe|suite)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee);
-    const selectsCase = /(?:\?|:)\s*(?:it|test)(?:\s*\.\s*\w+)?\s*(?=:|$)/.test(callee);
-    if (!selectsSuite && !selectsCase) continue;
-    const open = space(close + 1);
-    const end = pairs.get(open);
-    if (mask[open] !== "(" || end === undefined) continue;
-    // A selector may pick a suite on one branch and a case on the other: it is both.
-    if (selectsSuite) suites.push({ start, end, body: bodyOf(open, end) });
-    if (!selectsCase) continue;
-    const title = /^\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/.exec(code.slice(open + 1));
-    if (title) calls.push({ start, end, title: title[2] });
-  }
-  const statementEnd = (from: number): number => {
-    const start = space(from);
-    if (mask[start] === "{") return (pairs.get(start) ?? mask.length - 1) + 1;
-    const branch = /^if\s*\(/.exec(mask.slice(start));
-    if (branch) {
-      const close = pairs.get(start + branch[0].lastIndexOf("("));
-      if (close !== undefined) {
-        let end = statementEnd(close + 1);
-        const otherwise = space(end);
-        if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
-        return end;
-      }
-    }
-    // Delimiters are balanced above; scan only this statement's top level.
-    // Newlines end complete expressions unless the next token continues them.
-    // Literal placeholders in structure() retain terminal-token information.
-    let canEnd = false;
-    let restricted = false;
-    for (let i = start; i < mask.length;) {
-      const next = space(i);
-      if (mask[next] === ";") return next + 1;
-      if (mask[next] === "}") return next;
-      const newline = /[\r\n]/.test(mask.slice(i, next));
-      const continuation = /[.([?:,+\-*/%<>=&|^]/.test(mask[next] ?? "") && !/^(?:\+\+|--)/.test(mask.slice(next)) ||
-        /^(?:in|instanceof|as|satisfies)\b/.test(mask.slice(next)) || code[next] === "`";
-      if (newline && (restricted || (canEnd && !continuation))) return i;
-      if (next === mask.length) return next;
-      restricted = false;
-      if (pairs.has(next)) {
-        i = pairs.get(next)! + 1;
-        canEnd = true;
-      } else {
-        const word = /^[A-Za-z_$][\w$]*|^\d+(?:\.\d+)?/.exec(mask.slice(next));
-        if (word) {
-          i = next + word[0].length;
-          restricted = /^(?:return|break|continue|yield)$/.test(word[0]);
-          canEnd = !/^(?:await|void|typeof|delete|new|return|throw|yield|in|instanceof|as|satisfies)$/.test(word[0]);
-        } else if (/^(?:\+\+|--)/.test(mask.slice(next))) {
-          i = next + 2;
-        } else {
-          i = next + 1;
-          canEnd = false;
-        }
-      }
-    }
-    return mask.length;
-  };
+  collect(file);
+  const inside = (from: number, to: number): { title: string; start: number }[] => calls.filter((call) => from <= call.start && call.start < to);
   const result = new Set<string>();
-  const containing = calls.filter((call) => call.start <= at && at <= call.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
+  const containing = calls.filter((call) => call.start <= at && at < call.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
   if (containing.length) result.add(containing[0].title);
   // A finding in a suite's selector or options, before its body, governs every case the suite encloses.
   for (const suite of suites) {
     if (at < suite.start || at >= suite.body) continue;
-    for (const call of calls) if (suite.start < call.start && call.start < suite.end) result.add(call.title);
+    for (const call of inside(suite.start + 1, suite.end)) result.add(call.title);
   }
-  for (const match of mask.matchAll(/\bif\s*\(/g)) {
-    const open = match.index! + match[0].lastIndexOf("(");
-    const close = pairs.get(open);
-    if (close === undefined || !(open < at && at < close)) continue;
-    let end = statementEnd(close + 1);
-    const otherwise = space(end);
-    if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
-    for (const call of calls) if (close < call.start && call.start < end) result.add(call.title);
+  const conditions: ts.IfStatement[] = [];
+  const find = (node: ts.Node): void => {
+    if (ts.isIfStatement(node) && node.expression.getFullStart() <= at && at < node.expression.getEnd()) conditions.push(node);
+    ts.forEachChild(node, find);
+  };
+  find(file);
+  for (const guard of conditions) {
+    const branches = guard.elseStatement ?? guard.thenStatement;
+    const from = guard.thenStatement.getFullStart();
+    const end = branches.getEnd();
+    for (const call of inside(from, end)) result.add(call.title);
     // A guard that returns, throws or exits leaves the function it is in (hosting/D12, hosting/D13): every registration
     // after it in that function (or the module) is skipped too, however deep in blocks the guard sits, except those in a
-    // finally block of a try the guard is in, which still runs; a throw that an enclosing try with a catch handler inside
-    // that function catches skips only to the end of that try block.
-    const kinds = exitKinds(code.slice(close + 1, end));
+    // branch the guard is not on the way to, which the walk up from the guard reports as `runs`.
+    const kinds = exitKinds(code.slice(from, end));
     if (kinds.returns || kinds.throws || kinds.exits) {
-      const scope = scopeEnd(code, open, kinds);
-      for (const call of calls) if (end <= call.start && call.start < scope.end && !scope.runs.some(([from, to]) => from <= call.start && call.start < to)) result.add(call.title);
+      const scope = scopeEnd(file, guard.getStart(file), kinds);
+      for (const call of inside(end, scope.end)) if (!scope.runs.some(([a, b]) => a <= call.start && call.start < b)) result.add(call.title);
     }
   }
   return [...result];
