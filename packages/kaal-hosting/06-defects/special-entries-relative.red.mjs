@@ -1,9 +1,9 @@
 // hosting/T262 and hosting/T263: the special-entry fixture places a FIFO and a socket in the directory it is given.
 //
-// hosting/T262 is the RED Case of hosting/D17: it fails on 2e45a5e (Hosting 0.0.1 on main, where `mkfifo` runs with its
+// hosting/T262 is a Test Case in its RED role for hosting/D17: it fails on 2e45a5e (Hosting 0.0.1 on main, where `mkfifo` runs with its
 // working directory in the temporary directory, so a relative `dir` is resolved there and the check that follows resolves it
-// against the process's own) and must pass, unmodified, in the Change that fixes it. hosting/T263 is a control that passes
-// before and after. The Cases drive the real `specialEntries` from the built package. On a host that cannot place a
+// against the process's own) and must pass, unmodified, in the Change that fixes it. hosting/T263 is a Test Case that passes
+// before and after, behavior that already works and must keep working. Both are ordinary Test Cases with their own permanent identities; RED is a role until the fix lands. They drive the real `specialEntries` from the built package. On a host that cannot place a
 // FIFO or a socket the fact does not hold and both Cases pass vacuously, as the fixture's own contract says (hosting/F38).
 //
 // This file is RED by design. No suite, lane or script names it, so required CI does not run it; run it by hand:
@@ -46,7 +46,7 @@ test("hosting/T262: a relative directory gets its FIFO and socket where it names
   }
 });
 
-test("hosting/T263 control: an absolute directory gets its FIFO and socket where it names", async () => {
+test("hosting/T263: an absolute directory gets its FIFO and socket where it names", async () => {
   const root = mkdtempSync(join(tmpdir(), "hosting-d17-"));
   try {
     await inside(root, (made) => {

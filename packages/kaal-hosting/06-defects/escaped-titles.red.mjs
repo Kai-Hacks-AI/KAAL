@@ -1,8 +1,8 @@
 // hosting/T258 and hosting/T259: the portability audit names a challenged case by its title as the program sees it.
 //
-// hosting/T258 is the RED Case of hosting/D15: it fails on 2e45a5e (Hosting 0.0.1 on main, where `challenged` holds the
+// hosting/T258 is a Test Case in its RED role for hosting/D15: it fails on 2e45a5e (Hosting 0.0.1 on main, where `challenged` holds the
 // source spelling of an escaped literal title) and must pass, unmodified, in the Change that fixes it. hosting/T259 is
-// a control that passes before and after. The Cases drive the real `portability` from the built package on a capability
+// a Test Case that passes before and after, behavior that already works and must keep working. Both are ordinary Test Cases with their own permanent identities; RED is a role until the fix lands. They drive the real `portability` from the built package on a capability
 // written to a temporary directory.
 //
 // This file is RED by design. No suite, lane or script names it, so required CI does not run it; run it by hand:
@@ -37,7 +37,7 @@ test("hosting/T258: a challenged case whose literal title is escaped is named by
   assert.deepEqual(r, ["can't run"]);
 });
 
-test("hosting/T259 control: a challenged case whose title has no escape is named by that title", async () => {
+test("hosting/T259: a challenged case whose title has no escape is named by that title", async () => {
   const r = await challenged("test('plain title', { skip: process.platform === 'win32' }, () => {});");
   assert.deepEqual(r, ["plain title"]);
 });

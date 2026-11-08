@@ -12,15 +12,15 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1179/#1180
   "observed": "specialEntries called with the relative directory here, in a working directory that holds it, throws a SetupFailure: mkfifo cannot create fifo here/fifo, no such file or directory.",
   "where": "packages/kaal-hosting/05-src/skills/kaal-hosting/scripts/fixtures.ts, `attempt` (the `mkfifo` call)",
   "status": "open",
-  "tests": ["hosting/T262"]
+  "tests": ["hosting/T262", "hosting/T263"]
 }
 ```
 
 ## Cases
 
-| Identity | Role | File |
+| Identity | Role (a role of an ordinary Test Case, not a kind of Case) | File |
 | --- | --- | --- |
-| hosting/T262 | RED on 2e45a5e: a relative directory gets no FIFO | [special-entries-relative.red.mjs](special-entries-relative.red.mjs) |
-| hosting/T263 | control, passes before and after: an absolute directory gets its FIFO and socket | same file |
+| hosting/T262 | RED role on 2e45a5e: a relative directory gets no FIFO | [special-entries-relative.red.mjs](special-entries-relative.red.mjs) |
+| hosting/T263 | passes before and after the fix, behavior that already works and must keep working: an absolute directory gets its FIFO and socket | same file |
 
-**Confirming Run (8 Nov, Node 24, Linux, 2e45a5e):** the RED Case fails and the control passes. The fix is a separate Change; the Cases are not edited.
+**Confirming Run (8 Nov, Node 24, Linux, 2e45a5e):** the Case in its RED role fails and the other passes. The fix is a separate Change; the Cases are not edited.

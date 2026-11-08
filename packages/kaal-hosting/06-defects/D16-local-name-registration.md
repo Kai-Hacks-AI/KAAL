@@ -12,15 +12,15 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1179/#1180
   "observed": "`portability().challenged` is `[]` for the capability above.",
   "where": "packages/kaal-hosting/05-src/skills/kaal-hosting/scripts/boundary-core.ts, `registers(callee)` and the call collection in `affected`",
   "status": "open",
-  "tests": ["hosting/T260"]
+  "tests": ["hosting/T260", "hosting/T261"]
 }
 ```
 
 ## Cases
 
-| Identity | Role | File |
+| Identity | Role (a role of an ordinary Test Case, not a kind of Case) | File |
 | --- | --- | --- |
-| hosting/T260 | RED on 2e45a5e: the case registered through the local name is not challenged | [local-registration.red.mjs](local-registration.red.mjs) |
-| hosting/T261 | control, passes before and after: a local name that does not depend on the platform challenges nothing | same file |
+| hosting/T260 | RED role on 2e45a5e: the case registered through the local name is not challenged | [local-registration.red.mjs](local-registration.red.mjs) |
+| hosting/T261 | passes before and after the fix, behavior that already works and must keep working: a local name that does not depend on the platform challenges nothing | same file |
 
-**Confirming Run (8 Nov, Node 24, Linux, 2e45a5e):** the RED Case fails and the control passes. The fix is a separate Change; the Cases are not edited.
+**Confirming Run (8 Nov, Node 24, Linux, 2e45a5e):** the Case in its RED role fails and the other passes. The fix is a separate Change; the Cases are not edited.

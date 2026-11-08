@@ -1,8 +1,8 @@
 // hosting/T260 and hosting/T261: the portability audit follows a registration function bound to a local name.
 //
-// hosting/T260 is the RED Case of hosting/D16: it fails on 2e45a5e (Hosting 0.0.1 on main, where a registration through a
+// hosting/T260 is a Test Case in its RED role for hosting/D16: it fails on 2e45a5e (Hosting 0.0.1 on main, where a registration through a
 // platform-dependent local name is not attributed) and must pass, unmodified, in the Change that fixes it. hosting/T261 is
-// a control that passes before and after. The Cases drive the real `portability` from the built package on a capability
+// a Test Case that passes before and after, behavior that already works and must keep working. Both are ordinary Test Cases with their own permanent identities; RED is a role until the fix lands. They drive the real `portability` from the built package on a capability
 // written to a temporary directory. `const run = process.platform === "win32" ? it.skip : it` registers `run("…")` as a
 // skipped case on one host and a live one on the other, so Testing must not count it as evidence on every host.
 //
@@ -38,7 +38,7 @@ test("hosting/T260: a case registered through a platform-dependent local name is
   assert.deepEqual(r, ["platform-dependent"]);
 });
 
-test("hosting/T261 control: a case registered through a local name that does not depend on the platform is not challenged", async () => {
+test("hosting/T261: a case registered through a local name that does not depend on the platform is not challenged", async () => {
   const r = await challenged("const run = it;\nrun('always', () => {});");
   assert.deepEqual(r, []);
 });
