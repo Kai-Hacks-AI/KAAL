@@ -31,4 +31,4 @@ They are plain Markdown with YAML frontmatter (`name`, `kind`, `owner`) and rela
 - Mechanisms: [npmjs](mechanisms/npmjs.md), [main](mechanisms/main.md)
 - [Roadmap](roadmap/Roadmap.md)
 - Projects: [Graph rename via path bridge](projects/graph-rename-path-bridge.md)
-- Decisions: [2026-11-08 Roadmap model](decisions/2026-11-08-roadmap-model.md), [2026-11-08 Final roadmap](decisions/2026-11-08-final-roadmap.md), [2026-11-08 Graph rename path bridge](decisions/2026-11-08-graph-rename-path-bridge.md)
+- Decisions: [2026-11-08 Roadmap model](decisions/2026-11-08-roadmap-model.md), [2026-11-08 Final roadmap](decisions/2026-11-08-final-roadmap.md), [2026-11-08 Graph rename path bridge](decisions/2026-11-08-graph-rename-path-bridge.md), [2026-11-08 Project and Product concurrent with Portfolio](decisions/2026-11-08-project-and-product-concurrent-with-portfolio.md)
