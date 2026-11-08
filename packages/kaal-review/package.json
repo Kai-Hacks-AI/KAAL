@@ -12,7 +12,7 @@
     "skills"
   ],
   "scripts": {
-    "pretest": "npm run build -w kaal-core -w kaal-hosting",
+    "pretest": "npm run build -w kaal-core -w @kaihacksai/kaal-hosting",
     "test": "node --test test/review.test.mjs"
   },
   "engines": {
@@ -22,7 +22,7 @@
     "kaal-core": "0.0.1",
     "kaal-engineer-skill": "0.0.1",
     "kaal-graph": "0.0.1",
-    "kaal-hosting": "0.0.1",
+    "@kaihacksai/kaal-hosting": "0.0.1",
     "kaal-testing": "0.0.1"
   }
 }

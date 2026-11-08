@@ -9,8 +9,8 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
-import { inspect } from "kaal-hosting/conformance";
+import { execute } from "@kaihacksai/kaal-hosting";
+import { inspect } from "@kaihacksai/kaal-hosting/conformance";
 
 const CORE = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const KAAL = resolve(CORE, "..", "..");
@@ -364,8 +364,8 @@ describe("kaal-core 0.0.1 release and consumer readiness (core/C28)", () => {
       assert.deepEqual(report.violations.map(({ line, builtin }) => `${line}: ${builtin}`), [], `test/${file} imports no host module beyond ${builtins.join(", ")}`);
       assert.deepEqual(report.validation.map(({ line, construct }) => `${line}: ${construct}`), [], `test/${file} leaves nothing for validation`);
       const outside = [...new Set(report.outside.map((o) => o.specifier))].sort();
-      for (const specifier of outside) assert.ok(["@kaihacksai/kaal-foundation/sha256", "kaal-hosting"].includes(specifier), `test/${file} imports ${specifier}; only kaal-hosting and Foundation's sha256 are allowed`);
-      assert.ok(outside.includes("kaal-hosting"), `test/${file} reaches the host through kaal-hosting`);
+      for (const specifier of outside) assert.ok(["@kaihacksai/kaal-foundation/sha256", "@kaihacksai/kaal-hosting"].includes(specifier), `test/${file} imports ${specifier}; only kaal-hosting and Foundation's sha256 are allowed`);
+      assert.ok(outside.includes("@kaihacksai/kaal-hosting"), `test/${file} reaches the host through kaal-hosting`);
       const text = bytes.toString("utf8");
       assert.doesNotMatch(text, /\bprocess\.platform\b|\b(platform|type)\(\s*\)/, `test/${file} decides nothing by platform`);
       assert.doesNotMatch(text, /\bshell\s*:/, `test/${file} chooses no shell`);

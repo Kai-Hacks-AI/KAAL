@@ -1,7 +1,7 @@
 // Publisher-only behavioural mutation challenges. Run alone, never during packing.
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readFile, reconcile, execute } from 'kaal-hosting';
+import { readFile, reconcile, execute } from '@kaihacksai/kaal-hosting';
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const path = 'lib/isolation.mjs', original = await readFile(join(root, path));

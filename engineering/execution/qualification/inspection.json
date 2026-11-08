@@ -132,7 +132,7 @@
       ],
       "visibleRepeatedLabels": [
         {
-          "label": "permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting; its other imports are Graph's Node support delivered inside kaal-core, for Node mechanics and for reading frontmatter, and Foundation, for SHA-256",
+          "label": "permitted: Core's shipped JavaScript imports no undeclared host module, and reaches the host otherwise only through @kaihacksai/kaal-hosting; its other imports are Graph's Node support delivered inside kaal-core, for Node mechanics and for reading frontmatter, and Foundation, for SHA-256",
           "count": 2,
           "lines": [
             247,
@@ -165,7 +165,7 @@
           ]
         },
         {
-          "label": "depends at runtime on kaal-foundation, kaal-hosting and yaml alone, with Graph only for the build",
+          "label": "depends at runtime on kaal-foundation, @kaihacksai/kaal-hosting and yaml alone, with Graph only for the build",
           "count": 2,
           "lines": [
             251,
@@ -527,7 +527,7 @@
     },
     "existingPackages": [
       {
-        "name": "kaal-hosting",
+        "name": "@kaihacksai/kaal-hosting",
         "version": "0.0.1"
       },
       {
