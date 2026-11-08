@@ -13,10 +13,10 @@ import { dirname, join } from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const SCOPED = "@kaihacksai/kaal-foundation";
-const DOCUMENTED = `node node_modules/${SCOPED}/bin/kaal-foundation.mjs`;
+const DOCUMENTED = `node node_modules/${SCOPED}/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs`;
 
 const run = (args, cwd, input) => {
   const cli = process.env.npm_execpath;
@@ -52,7 +52,8 @@ test("foundation/T32 [foundation/F18]: every documented invocation runs the scop
   assert.equal(`node node_modules/${SCOPED}/${pkg.bin["kaal-foundation"]}`, DOCUMENTED, "the documented path is the package's own bin");
   // What the installed copy and the repository's agent instructions tell a consumer to run.
   const texts = { "AGENTS.md": readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8") };
-  for (const p of ["README.md", "skills/kaal-foundation/SKILL.md", ...readdirSync(join(installed, "docs")).map((f) => `docs/${f}`)]) texts[p] = readFileSync(join(installed, p), "utf8");
+  const shippedTexts = (dir) => readdirSync(join(installed, dir), { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? shippedTexts(`${dir}/${e.name}`) : e.name.endsWith(".md") ? [`${dir}/${e.name}`] : []));
+  for (const p of ["README.md", ...shippedTexts("dist")]) texts[p] = readFileSync(join(installed, p), "utf8");
   const offenders = [];
   for (const [path, text] of Object.entries(texts))
     for (const line of text.split("\n")) {
@@ -61,7 +62,7 @@ test("foundation/T32 [foundation/F18]: every documented invocation runs the scop
       if (throughPath && !warns) offenders.push(`${path}: ${line.trim()}`);
     }
   assert.deepEqual(offenders, [], "no documented invocation runs kaal-foundation through npx or npm exec");
-  for (const p of ["README.md", "docs/operations.md", "skills/kaal-foundation/SKILL.md", "AGENTS.md"]) assert.ok(texts[p].includes(DOCUMENTED), `${p} documents ${DOCUMENTED}`);
+  for (const p of ["README.md", "dist/skills/kaal-foundation/references/operations.md", "dist/skills/kaal-foundation/SKILL.md", "AGENTS.md"]) assert.ok(texts[p].includes(DOCUMENTED), `${p} documents ${DOCUMENTED}`);
 
   const script = DOCUMENTED.split(" ")[1];
   const node = (cwd, ...args) => {

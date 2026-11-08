@@ -33,8 +33,8 @@ The bin `kaal-foundation` has two commands, `kaal-foundation sha256` and `kaal-f
 
 ```sh
 npm install @kaihacksai/kaal-foundation
-node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs sha256 <file>…   # "<digest>  <file>", one per line
-printf %s "$text" | node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs sha256   # standard input; "-" does the same
+node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs sha256 <file>…   # "<digest>  <file>", one per line
+printf %s "$text" | node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs sha256   # standard input; "-" does the same
 ```
 
 Nothing is downloaded and nothing on `PATH` is consulted: without the scoped package installed, the command fails instead of guessing.
@@ -44,7 +44,7 @@ Exit status 0 means every file was hashed. Exit 2 means a file could not be read
 ## Verify an installation
 
 ```sh
-node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs verify
+node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs verify
 ```
 
 This checks the installed files against the shipped manifest, then runs the shipped cases (foundation/F12). Read the last line, `kaal-foundation-verification {json}`:

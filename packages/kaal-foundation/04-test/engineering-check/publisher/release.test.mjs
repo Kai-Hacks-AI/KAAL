@@ -9,7 +9,7 @@ import { dirname, join, relative } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const LINE = "kaal-foundation-verification ";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
@@ -32,7 +32,7 @@ test("foundation/T33 [foundation/F14, foundation/N10]: installed, kaal-foundatio
     writeFileSync(join(consumer, "package.json"), JSON.stringify({ name: "consumer", version: "1.0.0", private: true }));
     const install = npm(["install", tarball], consumer);
     assert.equal(install.status, 0, install.out);
-    const lib = join(consumer, "node_modules", "@kaihacksai", "kaal-foundation", "lib", "sha256.mjs");
+    const lib = join(consumer, "node_modules", "@kaihacksai", "kaal-foundation", "dist", "skills", "kaal-foundation", "scripts", "sha256.mjs");
     const original = readFileSync(lib);
     for (const [why, change] of [
       ["a stray line appended to the library", () => appendFileSync(lib, "\nstray;\n")],
@@ -46,7 +46,7 @@ test("foundation/T33 [foundation/F14, foundation/N10]: installed, kaal-foundatio
       assert.ok(last.startsWith(LINE), `${why}: the last line is the verification line: ${r.out}`);
       const s = JSON.parse(last.slice(LINE.length));
       assert.equal(s.result, "cannot verify", why);
-      assert.ok(s.causes.some((c) => c.includes("lib/sha256.mjs")), `${why}: the cause names lib/sha256.mjs: ${JSON.stringify(s.causes)}`);
+      assert.ok(s.causes.some((c) => c.includes("scripts/sha256.mjs")), `${why}: the cause names scripts/sha256.mjs: ${JSON.stringify(s.causes)}`);
     }
   } finally {
     rmSync(work, { recursive: true, force: true });

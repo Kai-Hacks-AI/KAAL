@@ -8,7 +8,7 @@ import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const reference = (bytes) => createHash("sha256").update(bytes).digest("hex");
 

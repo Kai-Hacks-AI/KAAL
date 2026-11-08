@@ -8,8 +8,10 @@
 
 ## Foundation's own Capability declaration
 
-- **foundation/N15** Normal packing ships committed bytes without repair. There
-  is no build/prepack/install hook, generated declaration or runtime dependency.
+- **foundation/N15** Normal packing ships committed bytes without repair. `dist/` is
+  built reproducibly from committed sources by `prepack` (byte-for-byte copies, so
+  building twice is equal; amended by foundation/C20). There is no prepare or
+  install hook, generated declaration or runtime dependency.
   The publisher explicitly regenerates the manifest for review and checks it
   before release. Git never rewrites the authoritative declaration's bytes.
 - **foundation/N16** The repository ownership claim does not ship and claims only

@@ -8,12 +8,13 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { sha256 } from "../../lib/sha256.mjs";
+import { sha256 } from "../../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const LOCATION = "packages/kaal-foundation/";
-const NODE = "capability/Foundation.md";
+const NODE = "kaal/Foundation.md";
+const PACKED_NODE = `dist/${NODE}`;
 const CLAIM = "ownership.kaal.json";
 /** Core's reference to KAAL Capability, as its own Node carries it. */
 const typeOf = (text) => text.match(/^---\n[\s\S]*?^type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n[\s\S]*?^---\n/m)?.slice(1, 3);
@@ -37,13 +38,13 @@ test("foundation/T36 [foundation/N11, foundation/N12]: the authoritative Node sh
   const r = spawnSync(process.execPath, [cli, "pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: PACKAGE, encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
   assert.equal(r.status, 0, r.stderr);
   const packed = JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0].files.map((f) => f.path);
-  const listed = Object.keys(JSON.parse(readFileSync(join(PACKAGE, "test", "verify.json"), "utf8")).files);
+  const listed = Object.keys(JSON.parse(readFileSync(join(PACKAGE, "dist", "test", "package-check", "verify.json"), "utf8")).files);
   // C15 explicitly amends N11/A11: Node delivery changes; claim exclusion and containment remain.
-  assert.deepEqual(packed.filter((p) => p.startsWith("capability/")), [NODE]);
-  assert.ok(listed.includes(NODE), "the delivered Node is in test/verify.json");
+  assert.deepEqual(packed.filter((p) => p.startsWith("dist/kaal/")), [PACKED_NODE]);
+  assert.ok(listed.includes(PACKED_NODE), "the delivered Node is in dist/test/package-check/verify.json");
   for (const path of [CLAIM]) {
     assert.ok(!packed.some((p) => p === path), `${path} is not packed`);
-    assert.ok(!listed.includes(path), `${path} is not in test/verify.json`);
+    assert.ok(!listed.includes(path), `${path} is not in dist/test/package-check/verify.json`);
   }
   const claim = JSON.parse(readFileSync(join(PACKAGE, CLAIM), "utf8"));
   for (const path of claim.paths) assert.ok(path.startsWith(LOCATION), `${path} lies in ${LOCATION}`);

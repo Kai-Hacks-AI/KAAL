@@ -12,11 +12,22 @@ import { dirname, join, posix } from "node:path";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { collect, DIST_LOOPS } from "../../package-check/collect.mjs";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const NAME = "@kaihacksai/kaal-foundation";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
-const DOCS = ["intent", "requirements", "architecture", "limitations", "operations", "testing"];
+const MANIFEST = "dist/test/package-check/verify.json";
+const LIB = "dist/skills/kaal-foundation/scripts";
+/** The shipped documents, by name, as paths in the package (foundation/F7). */
+const DOCS = {
+  intent: ["dist/docs/intent/intent.md"],
+  requirements: ["dist/docs/requirements/functional/requirements.md", "dist/docs/requirements/non-functional/requirements.md"],
+  architecture: ["dist/docs/architecture/architecture.md"],
+  limitations: ["dist/skills/kaal-foundation/references/limitations.md"],
+  operations: ["dist/skills/kaal-foundation/references/operations.md"],
+  testing: ["dist/test/package-check/testing.md"],
+};
 const ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
 /**
@@ -48,10 +59,10 @@ const listed = (root) => {
   return out.sort();
 };
 
-/** The files a docs/operations.md lists under "Shipped files". */
+/** The files the shipped operations document lists under "Shipped files". */
 const documented = (operations) => {
   const section = /^## Shipped files\s*\n+```text\n([\s\S]*?)\n```/m.exec(operations);
-  assert.ok(section, "docs/operations.md has a Shipped files section with a text block");
+  assert.ok(section, "the operations document has a Shipped files section with a text block");
   return section[1].split("\n").map((l) => l.trim()).filter(Boolean).sort();
 };
 
@@ -66,7 +77,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
   });
 
   it("foundation/T10 [foundation/F5, foundation/F8, foundation/A5, foundation/I4, foundation/I6]: packed and installed into a clean directory, the installed files are exactly the documented ones, the subpath hashes abc, and the installed npm test is verified; a wrong digest, a wrong FIPS answer, an accepted string, a broken module, a failing test, an empty test file and missing tests are never verified", { timeout: 600_000 }, () => {
-    assert.equal(manifest().scripts?.["test:all"], "node test/run.mjs", "blocked before release acceptance: test:all is not the runner");
+    assert.equal(manifest().scripts?.test, "node dist/test/package-check/verify.mjs", "blocked before release acceptance: npm test is not the delivered verification");
     const work = mkdtempSync(join(tmpdir(), "kaal-foundation-release-"));
     try {
       const pack = run("npm", ["pack", "--json", "--pack-destination", work], PACKAGE);
@@ -78,7 +89,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
       const install = run("npm", ["install", tarball], app);
       assert.equal(install.status, 0, install.out);
       const installed = join(app, "node_modules", "@kaihacksai", "kaal-foundation");
-      assert.deepEqual(listed(installed), documented(readFileSync(join(installed, "docs", "operations.md"), "utf8")), "the installed files are exactly the documented ones");
+      assert.deepEqual(listed(installed), documented(readFileSync(join(installed, DOCS.operations[0]), "utf8")), "the installed files are exactly the documented ones");
       const use = run(process.execPath, ["--input-type=module", "-e", `import { sha256 } from "${NAME}/sha256"; console.log(sha256(new TextEncoder().encode("abc")));`], app);
       assert.equal(use.status, 0, use.out);
       assert.equal(use.stdout.trim(), ABC);
@@ -91,18 +102,18 @@ describe("Foundation publication readiness (foundation/C3)", () => {
 
       // Each mutation rewrites the manifest digest of the file it changes, so the verification judges
       // behaviour, not tampering (foundation/C8); tampering is foundation/T17's.
-      const manifestFile = join(installed, "test", "verify.json");
+      const manifestFile = join(installed, MANIFEST);
       const originalManifest = readFileSync(manifestFile);
       const resync = (...paths) => {
         const v = JSON.parse(readFileSync(manifestFile, "utf8"));
         for (const p of paths) v.files[p] = createHash("sha256").update(readFileSync(join(installed, p))).digest("hex");
         writeFileSync(manifestFile, JSON.stringify(v, null, 2) + "\n");
       };
-      const lib = join(installed, "lib", "sha256.mjs");
+      const lib = join(installed, LIB, "sha256.mjs");
       const original = readFileSync(lib);
       const swap = (source, expect, why) => {
         writeFileSync(lib, source);
-        resync("lib/sha256.mjs");
+        resync(`${LIB}/sha256.mjs`);
         const r = verify();
         writeFileSync(lib, original);
         writeFileSync(manifestFile, originalManifest);
@@ -110,34 +121,34 @@ describe("Foundation publication readiness (foundation/C3)", () => {
         assert.doesNotMatch(last(r), /^\W*verified\b/, `${why} is never verified`);
       };
       swap('export function sha256(bytes) { if (!(bytes instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n', 1, "a module with wrong digests fails the known-answer vectors");
-      renameSync(lib, join(installed, "lib", "real.mjs"));
+      renameSync(lib, join(installed, LIB, "real.mjs"));
       try {
         swap('import { sha256 as real } from "./real.mjs";\nexport function sha256(bytes) { return real(typeof bytes === "string" ? new TextEncoder().encode(bytes) : bytes); }\n', 1, "a module that accepts a string fails the refusals");
         swap('import { sha256 as real } from "./real.mjs";\nexport function sha256(bytes) { const d = real(bytes); return bytes.length === 0 || bytes.length === 112 ? "0".repeat(64) : d; }\n', 1, "a module wrong only on the FIPS empty and 896-bit messages fails the known-answer vectors");
       } finally {
-        renameSync(join(installed, "lib", "real.mjs"), lib);
+        renameSync(join(installed, LIB, "real.mjs"), lib);
       }
       writeFileSync(lib, "throw new Error('corrupted');\n");
-      resync("lib/sha256.mjs");
+      resync(`${LIB}/sha256.mjs`);
       const broken = verify();
       writeFileSync(lib, original);
       writeFileSync(manifestFile, originalManifest);
       assert.notEqual(broken.status, 0, `a module that cannot be imported does not pass: ${broken.out}`);
       assert.doesNotMatch(last(broken), /^\W*verified\b/);
 
-      const names = readdirSync(join(installed, "test", "embed")).filter((f) => f.endsWith(".test.mjs")).sort();
+      const names = collect(join(installed, "dist"), DIST_LOOPS);
       assert.ok(names.length > 0, "at least one delivered test file ships");
-      const delivered = names.map((f) => join(installed, "test", "embed", f));
+      const delivered = names.map((f) => join(installed, "dist", f));
       const kept = delivered.map((path) => [path, readFileSync(path)]);
       // A failing delivered case: one expected digest inside a declared case changes (foundation/C8).
       const known = kept.findIndex(([, bytes]) => bytes.toString("utf8").includes(ABC));
       assert.ok(known >= 0, "a delivered case checks the abc digest");
       writeFileSync(delivered[known], kept[known][1].toString("utf8").replace(ABC, "0".repeat(64)));
-      resync(`test/embed/${names[known]}`);
+      resync(`dist/${names[known]}`);
       const failing = verify();
       writeFileSync(manifestFile, originalManifest);
       for (const [path] of kept) writeFileSync(path, 'import "node:test";\n');
-      resync(...names.map((f) => `test/embed/${f}`));
+      resync(...names.map((f) => `dist/${f}`));
       const empty = verify();
       writeFileSync(manifestFile, originalManifest);
       for (const [path, bytes] of kept) writeFileSync(path, bytes);
@@ -145,7 +156,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
       assert.match(last(failing), /\bfailed\b/);
       assert.equal(empty.status, 2, `delivered files that declare no test give cannot verify: ${empty.out}`);
       assert.match(last(empty), /cannot verify/);
-      rmSync(join(installed, "test", "embed"), { recursive: true, force: true });
+      for (const path of delivered) rmSync(path);
       const none = verify();
       assert.equal(none.status, 2, `missing delivered tests give cannot verify: ${none.out}`);
       assert.match(last(none), /cannot verify/);
@@ -157,7 +168,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
   it("foundation/T11 [foundation/F6]: the README gives the install command, links each delivered document, does not call the package private or unpublished, and keeps the provisional ownership statement", () => {
     const readme = readFileSync(join(PACKAGE, "README.md"), "utf8");
     assert.ok(readme.includes(`npm install ${NAME}`), "the README gives the install command");
-    for (const d of DOCS) assert.ok(readme.includes(`docs/${d}.md`), `the README links docs/${d}.md`);
+    for (const [d, [path]] of Object.entries(DOCS)) assert.ok(readme.includes(path), `the README links the ${d} document, ${path}`);
     assert.doesNotMatch(readme, /\bnot published\b|\bis private\b|\bunpublished\b/i, "the README does not call the package private or unpublished");
     assert.match(readme, /provisional/i, "the README keeps the provisional ownership statement (foundation/N4)");
   });
@@ -166,81 +177,32 @@ describe("Foundation publication readiness (foundation/C3)", () => {
     const r = run("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], PACKAGE);
     assert.equal(r.status, 0, r.out);
     const shipped = JSON.parse(r.stdout.slice(r.stdout.indexOf("[")))[0].files.map((f) => f.path);
-    for (const d of DOCS) assert.ok(shipped.includes(`docs/${d}.md`), `docs/${d}.md ships`);
-    for (const d of DOCS) {
-      const text = readFileSync(join(PACKAGE, "docs", `${d}.md`), "utf8");
-      assert.doesNotMatch(text, /(?<!test\/)\bplan\//, `docs/${d}.md names no repository plan path`);
-      for (const [, target] of text.matchAll(/\]\(([^)#\s]+)(?:#[^)]*)?\)/g)) {
-        if (/^[a-z]+:/i.test(target)) continue;
-        assert.ok(shipped.includes(posix.normalize(posix.join("docs", target))), `docs/${d}.md links ${target}, which does not ship`);
+    for (const [d, paths] of Object.entries(DOCS)) for (const path of paths) assert.ok(shipped.includes(path), `the ${d} document ${path} ships`);
+    for (const [d, paths] of Object.entries(DOCS)) {
+      for (const path of paths) {
+        const text = readFileSync(join(PACKAGE, path), "utf8");
+        assert.doesNotMatch(text, /(?<!test\/)\bplan\//, `${path} names no repository plan path`);
+        for (const [, target] of text.matchAll(/\]\(([^)#\s]+)(?:#[^)]*)?\)/g)) {
+          if (/^[a-z]+:/i.test(target)) continue;
+          assert.ok(shipped.includes(posix.normalize(posix.join(posix.dirname(path), target))), `${path} links ${target}, which does not ship`);
+        }
       }
     }
-    const limitations = readFileSync(join(PACKAGE, "docs", "limitations.md"), "utf8");
+    const limitations = readFileSync(join(PACKAGE, DOCS.limitations[0]), "utf8");
     for (const [what, pattern] of [["text must be encoded as UTF-8 first", /UTF-8/], ["only SHA-256 is held", /SHA-256/], ["it is slower than the native hash", /slower|native/i], ["ownership is provisional", /provisional/i]])
-      assert.match(limitations, pattern, `docs/limitations.md says ${what}`);
-    const testing = readFileSync(join(PACKAGE, "docs", "testing.md"), "utf8");
-    for (const f of shipped.filter((f) => f.startsWith("test/embed/") && f.endsWith(".test.mjs"))) assert.ok(testing.includes(f), `docs/testing.md names ${f}`);
-    assert.ok(testing.includes("test/publisher/"), "docs/testing.md names the publisher's tests");
+      assert.match(limitations, pattern, `the limitations document says ${what}`);
+    const testing = readFileSync(join(PACKAGE, DOCS.testing[0]), "utf8");
+    for (const f of collect(join(PACKAGE, "dist"), DIST_LOOPS)) assert.ok(shipped.includes(`dist/${f}`), `${f} ships`);
+    assert.ok(testing.includes("04-test/engineering-check/publisher/"), "the testing document names the publisher's tests");
     assert.match(testing, /not (delivered|shipped)|do(es)? not ship/i, "and says they are not delivered");
   });
 
-  it("foundation/T13 [foundation/F9, foundation/A6]: the scripts name the consumer and publisher suites and the runner, and files ships the delivered layout and no publisher test", () => {
+  it("foundation/T13 [foundation/F9, foundation/A6]: npm test is the delivered verification (built first in source), there is no runner, and files ships dist/ alone", () => {
     const { scripts = {}, files = [] } = manifest();
-    assert.equal(scripts["test:all"], "node test/run.mjs", "test:all is the runner");
-    assert.equal(scripts.test, "npm run test:all", "npm test runs the runner as a declared suite");
-    assert.equal(scripts["test:embedded"], "node test/verify.mjs", "test:embedded runs the delivered verification");
-    assert.ok(/test\/publisher\//.test(scripts["test:publisher"] ?? ""), "test:publisher runs the publisher's tests");
-    for (const f of ["lib", "docs", "test/embed", "test/verify.mjs", "test/run.mjs"]) assert.ok(files.includes(f), `files includes ${f}`);
-    assert.ok(!files.some((f) => f === "test" || f.startsWith("test/publisher") || f.startsWith("plan")), "files ships no plan and no publisher test");
-  });
-
-  it("foundation/T14 [foundation/F9, foundation/A6]: the shipped runner tells source from installed explicitly: in source it runs every declared test:<name> suite once and never test:all itself; installed under node_modules it runs only test:embedded; damaged, ambiguous, empty or incomplete layouts are cannot verify and run nothing; a failing suite fails it", { timeout: 300_000 }, () => {
-    const runner = join(PACKAGE, "test", "run.mjs");
-    assert.ok(existsSync(runner), "blocked before behavioural assertion: test/run.mjs does not exist");
-    const work = mkdtempSync(join(tmpdir(), "kaal-foundation-runner-"));
-    try {
-      let n = 0;
-      const say = (word, code = 0) => `node -e "console.log(['ran', '${word}'].join(' '));process.exit(${code})"`;
-      const fixture = (scripts, { installed = false, markers = installed ? [] : ["plan", "test/publisher"] } = {}) => {
-        const dir = installed ? join(work, `app-${++n}`, "node_modules", "fixture") : join(work, `src-${++n}`);
-        mkdirSync(join(dir, "test"), { recursive: true });
-        writeFileSync(join(dir, "test", "run.mjs"), readFileSync(runner));
-        for (const m of markers) mkdirSync(join(dir, m), { recursive: true });
-        writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "0.0.0", private: true, type: "module", scripts: { test: "npm run test:all", "test:all": "node test/run.mjs", ...scripts } }));
-        return run("npm", ["test"], dir);
-      };
-      const ran = (r) => [...r.out.matchAll(/^ran (\w+)$/gm)].map((m) => m[1]);
-      const all = { "test:embedded": say("embedded"), "test:publisher": say("publisher"), "test:extra": say("extra") };
-
-      const source = fixture(all);
-      assert.equal(source.status, 0, source.out);
-      assert.deepEqual(ran(source), ["embedded", "publisher", "extra"], `in source every declared suite runs once, in order, and npm test never invokes itself: ${source.out}`);
-      const installed = fixture(all, { installed: true });
-      assert.equal(installed.status, 0, installed.out);
-      assert.deepEqual(ran(installed), ["embedded"], "installed, only test:embedded runs");
-      const cannot = fixture({ ...all, "test:embedded": say("embedded", 2) }, { installed: true });
-      assert.equal(cannot.status, 2, `installed, the runner exits with the embedded verification's result: ${cannot.out}`);
-      const failing = fixture({ ...all, "test:publisher": say("publisher", 1) });
-      assert.notEqual(failing.status, 0, "a failing suite fails the source npm test");
-      assert.deepEqual(ran(failing), ["embedded", "publisher", "extra"], "a failing suite does not hide the suites after it");
-
-      const refused = {
-        "a damaged source checkout, missing test/publisher/": fixture(all, { markers: ["plan"] }),
-        "a damaged source checkout, missing plan/": fixture(all, { markers: ["test/publisher"] }),
-        "a damaged source checkout, missing both markers": fixture(all, { markers: [] }),
-        "an installed package carrying a source marker": fixture(all, { installed: true, markers: ["test/publisher"] }),
-        "no declared suite": fixture({}),
-        "no test:publisher in source": fixture({ "test:embedded": say("embedded") }),
-        "no test:embedded in source": fixture({ "test:publisher": say("publisher") }),
-        "no test:embedded installed": fixture({ "test:publisher": say("publisher") }, { installed: true }),
-      };
-      for (const [layout, r] of Object.entries(refused)) {
-        assert.equal(r.status, 2, `${layout} is cannot verify: ${r.out}`);
-        assert.match(r.out, /cannot verify/, `${layout} says cannot verify`);
-        assert.deepEqual(ran(r), [], `${layout} runs no suite`);
-      }
-    } finally {
-      rmSync(work, { recursive: true, force: true });
-    }
+    assert.equal(scripts.test, "node dist/test/package-check/verify.mjs", "npm test is the delivered verification");
+    assert.equal(scripts["test:all"], undefined, "there is no runner");
+    assert.ok(/04-test\/engineering-check\/publisher\//.test(scripts["test:publisher"] ?? ""), "test:publisher runs the publisher's tests");
+    assert.deepEqual(files, ["dist"], "files ships dist/ alone: no plan and no publisher test");
+    assert.equal(existsSync(join(PACKAGE, "test", "run.mjs")), false, "the runner is retired (foundation/C20)");
   });
 });

@@ -1,4 +1,4 @@
-// foundation/C15 planned scenario. DO moves unchanged to test/acceptance/.
+// foundation/C15 planned scenario. DO keeps it in test/acceptance/ until Testing discovery reads the final layout (foundation/C20).
 // Existing Testing discovery and Engineering's pack-once ledger own execution.
 import assert from "node:assert/strict";
 import { join } from "node:path";
@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { install } from "kaal-testing/acceptance";
 import { spawnSync } from "node:child_process";
 import { lstat, readFile } from "node:fs/promises";
-import { sha256 } from "../../lib/sha256.mjs";
+import { sha256 } from "../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
 
 // Node's own facilities, so this scenario does not depend on how Hosting is named.
 const execute = async (command, args, options) => {
@@ -34,7 +34,7 @@ test("foundation/T51 [foundation/F25, foundation/F26, foundation/F27, foundation
   const line = r.stdout.trim().split(/\r?\n/).at(-1);
   assert.ok(line.startsWith("kaal-foundation-verification "));
   const report = JSON.parse(line.slice("kaal-foundation-verification ".length));
-  const manifestBytes = await readFile(join(installed, "test/verify.json"));
+  const manifestBytes = await readFile(join(installed, "dist/test/package-check/verify.json"));
   const manifest = JSON.parse(manifestBytes.toString("utf8"));
   assert.equal(report.result, "verified");
   assert.equal(report.exit, 0);

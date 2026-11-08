@@ -7,11 +7,14 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, test } from "node:test";
-import { sha256 } from "../../lib/sha256.mjs";
+import { sha256 } from "../../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const NAME = "@kaihacksai/kaal-foundation";
-const NODE = "capability/Foundation.md";
+const NODE = "kaal/Foundation.md";
+const PACKED_NODE = `dist/${NODE}`;
+const MANIFEST = "dist/test/package-check/verify.json";
+const SOURCE_MANIFEST = "04-test/package-check/verify.json";
 const ID = "649fbafb81a8d976b65a4e8c0db7228a194ec515385820d489e4a74041dc27c5";
 const env = () => ({ ...process.env, NODE_TEST_CONTEXT: undefined, npm_config_audit: "false", npm_config_fund: "false", npm_config_offline: "true" });
 function npm(args, cwd) {
@@ -42,9 +45,9 @@ console.log(JSON.stringify({path:p,bytes:readFileSync(p).toString('hex')}));`;
 let work, pack, tarball, sourceManifest;
 before(() => {
   work = mkdtempSync(join(tmpdir(), "foundation-declaration-"));
-  sourceManifest = readFileSync(join(ROOT, "test/verify.json"));
+  sourceManifest = readFileSync(join(ROOT, SOURCE_MANIFEST));
   pack = packed(npm(["pack", "--json", "--pack-destination", work], ROOT));
-  assert.deepEqual(readFileSync(join(ROOT, "test/verify.json")), sourceManifest, "normal pack does not repair committed evidence");
+  assert.deepEqual(readFileSync(join(ROOT, SOURCE_MANIFEST)), sourceManifest, "normal pack does not repair committed evidence");
   tarball = join(work, pack.filename);
 });
 after(() => { if (work) rmSync(work, { recursive: true, force: true }); });
@@ -65,15 +68,15 @@ test("foundation/T47 [foundation/F26, foundation/N15]: normal pack preserves com
   const dry = packed(npm(["pack", "--dry-run", "--json", "--ignore-scripts"], ROOT));
   const paths = pack.files.map(f => f.path).sort();
   assert.deepEqual(paths, dry.files.map(f => f.path).sort());
-  assert.ok(paths.includes(NODE), "normal pack delivers the declaration");
+  assert.ok(paths.includes(PACKED_NODE), "normal pack delivers the declaration");
   assert.ok(!paths.includes("ownership.kaal.json"), "the repository claim never ships");
-  assert.deepEqual(paths.filter(p => p.startsWith("capability/")), [NODE]);
+  assert.deepEqual(paths.filter(p => p.startsWith("dist/kaal/")), [PACKED_NODE]);
   const { dir, installed } = install("exact");
-  const m = JSON.parse(readFileSync(join(installed, "test/verify.json"), "utf8"));
-  assert.deepEqual(paths, [...Object.keys(m.files), "test/verify.json"].sort());
+  const m = JSON.parse(readFileSync(join(installed, MANIFEST), "utf8"));
+  assert.deepEqual(paths, [...Object.keys(m.files), MANIFEST].sort());
   assert.deepEqual(inventory(installed), paths);
-  assert.deepEqual(readFileSync(join(installed, "test/verify.json")), beforeManifest);
-  assert.deepEqual(readFileSync(join(ROOT, "test/verify.json")), beforeManifest);
+  assert.deepEqual(readFileSync(join(installed, MANIFEST)), beforeManifest);
+  assert.deepEqual(readFileSync(join(ROOT, SOURCE_MANIFEST)), beforeManifest);
   const resolved = JSON.parse(ok(node(resolve, dir)).stdout);
   assert.equal(sha256(Buffer.from(resolved.bytes, "hex")), ID);
   assert.ok(resolved.path.startsWith(installed), "resolution belongs to the installed package");
@@ -92,7 +95,7 @@ test("foundation/T47 [foundation/F26, foundation/N15]: normal pack preserves com
 
 test("foundation/T48 [foundation/F26]: missing or changed declaration cannot verify, and wrong owner/name/type behind refreshed manifest digests fails an executed delivered Case", { timeout: 300_000 }, () => {
   const { installed } = install("negative");
-  const path = join(installed, NODE), mf = join(installed, "test/verify.json");
+  const path = join(installed, PACKED_NODE), mf = join(installed, MANIFEST);
   const original = readFileSync(path), originalManifest = readFileSync(mf);
   const verify = () => npm(["test"], installed);
   for (const change of [() => rmSync(path), () => writeFileSync(path, Buffer.concat([original, Buffer.from("\nchanged\n")]))]) {
@@ -110,7 +113,7 @@ test("foundation/T48 [foundation/F26]: missing or changed declaration cannot ver
   ]) {
     writeFileSync(path, wrong);
     const m = JSON.parse(originalManifest);
-    m.files[NODE] = sha256(readFileSync(path));
+    m.files[PACKED_NODE] = sha256(readFileSync(path));
     writeFileSync(mf, JSON.stringify(m, null, 2) + "\n");
     const r = verify(), s = report(r);
     assert.equal(r.status, 1, r.stdout);

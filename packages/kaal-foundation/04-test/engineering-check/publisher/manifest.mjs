@@ -8,7 +8,7 @@ import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { collect, SOURCE_LOOPS } from "../../package-check/collect.mjs";
+import { collect, DIST_LOOPS } from "../../package-check/collect.mjs";
 import { sha256 } from "../../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
@@ -30,8 +30,8 @@ function packed() {
 /** The delivered cases, in path and title order: every `test(` call must carry a well-formed title. */
 function cases() {
   const out = [];
-  for (const f of collect(PACKAGE, SOURCE_LOOPS)) {
-    const text = readFileSync(join(PACKAGE, f), "utf8");
+  for (const f of collect(join(PACKAGE, "dist"), DIST_LOOPS)) {
+    const text = readFileSync(join(PACKAGE, "dist", f), "utf8");
     const calls = [...text.matchAll(/\btest\(/g)].length;
     const titled = [...text.matchAll(TITLE)].map((m) => ({ id: m[1], tests: m[2].split(",").map((t) => t.trim()) }));
     if (titled.length !== calls) throw new Error(`${f}: every test( needs a title "foundation/T<n> [<targets>]: <what it checks>"`);

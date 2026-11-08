@@ -10,12 +10,15 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { collect, DIST_LOOPS } from "../../package-check/collect.mjs";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const NAME = "@kaihacksai/kaal-foundation";
 const LINE = "kaal-foundation-verification ";
 const ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+const MANIFEST = "dist/test/package-check/verify.json";
+const LIB = "dist/skills/kaal-foundation/scripts";
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
 
@@ -57,18 +60,17 @@ const listed = (root) => {
 
 /** The delivered cases of an installed copy: each test title's leading identifier and bracketed targets. */
 const delivered = (root) => {
-  const dir = join(root, "test", "embed");
   const cases = [];
-  for (const f of readdirSync(dir).filter((f) => f.endsWith(".test.mjs")).sort()) {
-    for (const m of readFileSync(join(dir, f), "utf8").matchAll(/\btest\(\s*"(foundation\/T\d+) \[([^\]]+)\]: /g)) cases.push({ id: m[1], tests: m[2].split(",").map((t) => t.trim()) });
+  for (const f of collect(join(root, "dist"), DIST_LOOPS)) {
+    for (const m of readFileSync(join(root, "dist", f), "utf8").matchAll(/\btest\(\s*"(foundation\/T\d+) \[([^\]]+)\]: /g)) cases.push({ id: m[1], tests: m[2].split(",").map((t) => t.trim()) });
   }
   return cases;
 };
 /** Every identifier the documents define as a bold term, a heading, or a table row's first cell. */
 const defined = (root) => {
   const ids = new Set();
-  for (const f of readdirSync(join(root, "docs")).filter((f) => f.endsWith(".md")))
-    for (const m of readFileSync(join(root, "docs", f), "utf8").matchAll(/(?:\*\*|^#+\s+|^\|\s*)([a-z][a-z-]*\/[A-Z]+\d+)\b/gm)) ids.add(m[1]);
+  for (const f of listed(join(root, "dist")).filter((f) => f.endsWith(".md") && (f.startsWith("docs/") || f.includes("/references/"))))
+    for (const m of readFileSync(join(root, "dist", f), "utf8").matchAll(/(?:\*\*|^#+\s+|^\|\s*)([a-z][a-z-]*\/[A-Z]+\d+)\b/gm)) ids.add(m[1]);
   return ids;
 };
 
@@ -93,21 +95,21 @@ function verifyCopy(mutate) {
   const copy = join(root, "node_modules", "@kaihacksai", "kaal-foundation");
   cpSync(installed, copy, { recursive: true });
   mutate(copy);
-  const r = run("node", [join(copy, "test", "verify.mjs")], root);
+  const r = run("node", [join(copy, "dist", "test", "package-check", "verify.mjs")], root);
   return { ...r, summary: summary(r) };
 }
 const rewrite = (copy, path) => {
-  const file = join(copy, "test", "verify.json");
+  const file = join(copy, MANIFEST);
   const v = JSON.parse(readFileSync(file, "utf8"));
   v.files[path] = hash(readFileSync(join(copy, path)));
   writeFileSync(file, JSON.stringify(v, null, 2) + "\n");
 };
 
 test("foundation/T15 [foundation/F11, foundation/F13]: the installed manifest lists every other installed file with its SHA-256, its cases are exactly the delivered titles' identifiers, its model is those cases with their targets, every target is defined in the installed documents, and the committed manifest is the packed one", () => {
-  const file = join(installed, "test", "verify.json");
-  assert.ok(existsSync(file), "the package ships no test/verify.json");
+  const file = join(installed, MANIFEST);
+  assert.ok(existsSync(file), "the package ships no dist/test/package-check/verify.json");
   const v = JSON.parse(readFileSync(file, "utf8"));
-  const files = listed(installed).filter((p) => p !== "test/verify.json");
+  const files = listed(installed).filter((p) => p !== MANIFEST);
   assert.deepEqual(Object.keys(v.files ?? {}).sort(), files, "files lists exactly the other installed files");
   for (const p of files) assert.equal(v.files[p], hash(readFileSync(join(installed, p))), `${p} has its SHA-256`);
   const cases = delivered(installed);
@@ -118,7 +120,7 @@ test("foundation/T15 [foundation/F11, foundation/F13]: the installed manifest li
   const ids = defined(installed);
   for (const c of cases) for (const t of c.tests) assert.ok(ids.has(t), `${c.id} tests ${t}, which the installed documents do not define`);
   for (const key of ["identifiers", "coverage", "allocated", "unverified"]) assert.equal(v[key], undefined, `the manifest declares no ${key}`);
-  assert.deepEqual(readFileSync(join(PACKAGE, "test", "verify.json")), readFileSync(file), "the committed manifest is the packed one");
+  assert.deepEqual(readFileSync(join(PACKAGE, "04-test", "package-check", "verify.json")), readFileSync(file), "the committed manifest is the packed one");
 });
 
 test("foundation/T16 [foundation/F12, foundation/F17]: the installed npm test ends on the verification line with verified, exit 0, every declared case once with outcome pass, and no cause", () => {
@@ -129,13 +131,13 @@ test("foundation/T16 [foundation/F12, foundation/F17]: the installed npm test en
   assert.equal(s.result, "verified");
   assert.equal(s.exit, 0);
   assert.deepEqual(s.causes, []);
-  const declared = JSON.parse(readFileSync(join(installed, "test", "verify.json"), "utf8")).cases;
+  const declared = JSON.parse(readFileSync(join(installed, MANIFEST), "utf8")).cases;
   assert.deepEqual(s.cases, declared.map((name) => ({ name, outcome: "pass" })), "every declared case ran once and passed");
   assert.doesNotMatch(r.out, /test:publisher/, "the installed npm test never starts the publisher suite");
 });
 
 test("foundation/T17 [foundation/F12, foundation/N10]: on an installed copy, a changed document, a missing manifest, a removed case file and an undeclared case are cannot verify with their cause; a wrong library behind a matching manifest is failed", { timeout: 300_000 }, () => {
-  assert.ok(existsSync(join(installed, "test", "verify.json")), "blocked before behavioural assertion: no manifest ships, so tampering cannot be told");
+  assert.ok(existsSync(join(installed, MANIFEST)), "blocked before behavioural assertion: no manifest ships, so tampering cannot be told");
   const cannot = (why, r, cause) => {
     assert.equal(r.status, 2, `${why}: ${r.out}`);
     assert.ok(r.summary, `${why} ends on the verification line: ${r.out}`);
@@ -143,18 +145,18 @@ test("foundation/T17 [foundation/F12, foundation/N10]: on an installed copy, a c
     assert.equal(r.summary.exit, 2, why);
     assert.ok(r.summary.causes.some((c) => cause.test(c)), `${why} names its cause: ${JSON.stringify(r.summary.causes)}`);
   };
-  cannot("a changed document", verifyCopy((c) => writeFileSync(join(c, "docs", "intent.md"), "changed\n")), /docs\/intent\.md/);
-  cannot("a missing manifest", verifyCopy((c) => rmSync(join(c, "test", "verify.json"))), /verify\.json/);
-  const first = readdirSync(join(installed, "test", "embed")).filter((f) => f.endsWith(".test.mjs")).sort()[0];
-  cannot("a removed case file", verifyCopy((c) => rmSync(join(c, "test", "embed", first))), new RegExp(`test/embed/${first.replaceAll(".", "\\.")}`));
+  cannot("a changed document", verifyCopy((c) => writeFileSync(join(c, "dist", "docs", "intent", "intent.md"), "changed\n")), /docs\/intent\/intent\.md/);
+  cannot("a missing manifest", verifyCopy((c) => rmSync(join(c, MANIFEST))), /verify\.json/);
+  const first = collect(join(installed, "dist"), DIST_LOOPS)[0];
+  cannot("a removed case file", verifyCopy((c) => rmSync(join(c, "dist", first))), new RegExp(first.replaceAll(".", "\\.")));
   cannot(
     "an undeclared case",
-    verifyCopy((c) => writeFileSync(join(c, "test", "embed", "zz-extra.test.mjs"), 'import { test } from "node:test";\ntest("foundation/T999 [foundation/F1]: extra", () => {});\n')),
+    verifyCopy((c) => writeFileSync(join(c, "dist", "docs", "intent", "zz-extra.test.mjs"), 'import { test } from "node:test";\ntest("foundation/T999 [foundation/F1]: extra", () => {});\n')),
     /foundation\/T999/,
   );
   const wrong = verifyCopy((c) => {
-    writeFileSync(join(c, "lib", "sha256.mjs"), 'export function sha256(bytes) { if (!(bytes instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n');
-    rewrite(c, "lib/sha256.mjs");
+    writeFileSync(join(c, LIB, "sha256.mjs"), 'export function sha256(bytes) { if (!(bytes instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n');
+    rewrite(c, `${LIB}/sha256.mjs`);
   });
   assert.equal(wrong.status, 1, `a wrong library is failed: ${wrong.out}`);
   assert.equal(wrong.summary?.result, "failed", wrong.out);
@@ -163,7 +165,7 @@ test("foundation/T17 [foundation/F12, foundation/N10]: on an installed copy, a c
 });
 
 test("foundation/T18 [foundation/F14, foundation/N8]: the declared bin, run in the consumer through npm exec, prints the host's digest for a file and standard input, exits 2 with a usage line on an unreadable file or an unknown command, and verify ends on the verification line", () => {
-  assert.deepEqual(manifest().bin, { "kaal-foundation": "bin/kaal-foundation.mjs" }, "the package declares the kaal-foundation bin");
+  assert.deepEqual(manifest().bin, { "kaal-foundation": `${LIB}/kaal-foundation.mjs` }, "the package declares the kaal-foundation bin");
   const exec = (args, input) => run("npm", ["exec", "--no", "--", "kaal-foundation", ...args], consumer, input);
   writeFileSync(join(consumer, "abc.txt"), "abc");
   const file = exec(["sha256", "abc.txt"]);
@@ -194,47 +196,22 @@ test("foundation/T19 [foundation/F16]: the repository's AGENTS.md has a Foundati
   for (const s of ["skills/kaal-foundation/SKILL.md", "kaal-foundation sha256", "kaal-foundation verify"]) assert.ok(section.includes(s), `the Foundation section names ${s}`);
 });
 
-test("foundation/T20 [foundation/F17]: the source Test Plan is declared; in source the runner runs test:embedded then test:publisher and ends on a bare result, installed it runs test:embedded alone and passes its last line through", { timeout: 300_000 }, () => {
+test("foundation/T20 [foundation/F17]: the source Test Plan is declared; npm test builds dist/ and runs the delivered verification alone, and test:publisher builds first and names explicit publisher files", () => {
   const { scripts = {}, files = [] } = manifest();
-  assert.equal(scripts.test, "npm run test:all", "npm test runs a declared suite");
-  assert.equal(scripts["test:all"], "node test/run.mjs", "test:all is the runner");
-  assert.equal(scripts["test:embedded"], "node test/verify.mjs", "test:embedded is the installed verification");
+  assert.equal(scripts.pretest, `node -e "if(require('fs').existsSync('04-test')){require('child_process').execFileSync(process.execPath,['04-test/engineering-check/build.mjs'],{stdio:'inherit'})}"`, "in source, npm test builds dist/ first; installed, there is no 04-test and it builds nothing");
+  assert.equal(scripts.test, "node dist/test/package-check/verify.mjs", "npm test is the delivered verification");
+  assert.equal(scripts["test:all"], undefined, "there is no runner: npm test is the one verification");
+  assert.equal(scripts["test:embedded"], undefined, "there is no separate embedded suite");
   const publisher = (scripts["test:publisher"] ?? "").split(/\s+/);
-  assert.deepEqual(publisher.slice(0, 2), ["node", "--test"], "test:publisher runs node --test");
-  assert.ok(publisher.length > 2, "test:publisher names its files");
-  for (const f of publisher.slice(2)) {
-    assert.match(f, /^test\/publisher\/[\w.-]+\.test\.mjs$/, `${f} is an explicit test/publisher/ file`);
+  assert.deepEqual(publisher.slice(0, 5), ["npm", "run", "build", "&&", "node"], "test:publisher builds first");
+  assert.equal(publisher[5], "--test", "test:publisher runs node --test");
+  const named = publisher.slice(6);
+  assert.ok(named.length > 0, "test:publisher names its files");
+  for (const f of named) {
+    assert.match(f, /^04-test\/engineering-check\/publisher\/[\w.-]+\.test\.mjs$/, `${f} is an explicit publisher file`);
     assert.ok(existsSync(join(PACKAGE, f)), `${f} exists`);
   }
-  assert.ok(!files.some((f) => f === "test" || f.startsWith("test/publisher") || f.startsWith("plan")), "files ships no plan and no publisher suite");
-
-  const fixtures = mkdtempSync(join(work, "runner-"));
-  let n = 0;
-  const say = (word, code = 0, line = `ran ${word}`) => `node -e "console.log('${line}');process.exit(${code})"`;
-  const fixture = (scripts, installed) => {
-    const dir = installed ? join(fixtures, `app-${++n}`, "node_modules", "fixture") : join(fixtures, `src-${++n}`);
-    mkdirSync(join(dir, "test"), { recursive: true });
-    cpSync(join(PACKAGE, "test", "run.mjs"), join(dir, "test", "run.mjs"));
-    if (!installed) for (const m of ["plan", "test/publisher"]) mkdirSync(join(dir, m), { recursive: true });
-    writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fixture", version: "0.0.0", private: true, type: "module", scripts: { test: "npm run test:all", "test:all": "node test/run.mjs", ...scripts } }));
-    return run("npm", ["test"], dir);
-  };
-  const ran = (r) => [...r.out.matchAll(/^ran (\w+)$/gm)].map((m) => m[1]);
-  const both = { "test:embedded": say("embedded"), "test:publisher": say("publisher") };
-  const source = fixture(both, false);
-  assert.equal(source.status, 0, source.out);
-  assert.deepEqual(ran(source), ["embedded", "publisher"], source.out);
-  assert.equal(last(source), "verified", "in source the runner ends on a bare result");
-  const failing = fixture({ ...both, "test:embedded": say("embedded", 1) }, false);
-  assert.equal(failing.status, 1, failing.out);
-  assert.deepEqual(ran(failing), ["embedded", "publisher"], "a failing suite does not hide the next");
-  assert.equal(last(failing), "failed");
-  // No double quote in the fixture's line: npm runs a script through its shell, and the line sits inside one.
-  const passthrough = `${LINE}{}`;
-  const inst = fixture({ "test:embedded": say("embedded", 0, passthrough), "test:publisher": say("publisher") }, true);
-  assert.equal(inst.status, 0, inst.out);
-  assert.doesNotMatch(inst.out, /^ran publisher$/m, "installed, the publisher suite never runs");
-  assert.equal(last(inst), passthrough, "installed, the verification line is the last line");
+  assert.deepEqual(files, ["dist"], "dist/ is the only shipped thing: no plan, no publisher suite");
 });
 
 test("foundation/T21 [foundation/N7]: no file in the package, tests included, reads the platform, names the Windows platform, writes a command-script launcher or passes a shell option", () => {
@@ -248,8 +225,8 @@ test("foundation/T21 [foundation/N7]: no file in the package, tests included, re
 });
 
 test("foundation/T22 [foundation/N9]: the library is byte for byte main's, and the package declares no dependency", () => {
-  assert.equal(hash(readFileSync(join(PACKAGE, "lib", "sha256.mjs"))), "c504c09d231c8a58f2ae2dbf346edbdf4dd544bdbdba1161515875d051df5ee0");
-  assert.equal(hash(readFileSync(join(PACKAGE, "lib", "sha256.d.ts"))), "e0b71d43eb02726e7ed9fa05cf1c60c4b88224f99a5120de56bb54b3da303a16");
+  assert.equal(hash(readFileSync(join(PACKAGE, "05-src", "skills", "kaal-foundation", "scripts", "sha256.mjs"))), "c504c09d231c8a58f2ae2dbf346edbdf4dd544bdbdba1161515875d051df5ee0");
+  assert.equal(hash(readFileSync(join(PACKAGE, "05-src", "skills", "kaal-foundation", "scripts", "sha256.d.ts"))), "e0b71d43eb02726e7ed9fa05cf1c60c4b88224f99a5120de56bb54b3da303a16");
   const m = manifest();
   for (const kind of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies", "bundleDependencies", "bundledDependencies"])
     assert.equal(Object.keys(m[kind] ?? {}).length, 0, `the package declares no ${kind}`);

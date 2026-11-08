@@ -13,17 +13,17 @@
   - `kaal-foundation verify` runs the verification of foundation/F12 and exits with its status. It loads no library code itself, so a changed or broken library gives `cannot verify`, never a crash.
 
   An unreadable file, an unknown command or option, or no command at all prints the cause and a usage line on standard error, and exits 2. The command decides nothing the library does not. Its digests are `sha256`'s.
-- **foundation/F18** Every documented way to run the command runs the scoped package's own bin by its path: `node node_modules/@kaihacksai/kaal-foundation/bin/kaal-foundation.mjs …`, after `npm install @kaihacksai/kaal-foundation` (amended by foundation/C10). The documents never recommend `npx kaal-foundation` or `npm exec … kaal-foundation`, which run whichever installed package owns `node_modules/.bin/kaal-foundation` and may select an unrelated unscoped package. Where the scoped package is not installed, the documented command fails and never runs another package.
+- **foundation/F18** Every documented way to run the command runs the scoped package's own bin by its path: `node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs …`, after `npm install @kaihacksai/kaal-foundation` (amended by foundation/C10). The documents never recommend `npx kaal-foundation` or `npm exec … kaal-foundation`, which run whichever installed package owns `node_modules/.bin/kaal-foundation` and may select an unrelated unscoped package. Where the scoped package is not installed, the documented command fails and never runs another package.
 
 ## The skill
 
-- **foundation/F15** The package ships one skill, `skills/kaal-foundation/SKILL.md`. It tells an agent when to use Foundation's SHA-256, how to hash text, how to check a digest and verify an installation with the command, and where a new shared concern belongs.
+- **foundation/F15** The package ships one skill, `dist/skills/kaal-foundation/SKILL.md`. It tells an agent when to use Foundation's SHA-256, how to hash text, how to check a digest and verify an installation with the command, and where a new shared concern belongs.
 
 ## The verification
 
 - **foundation/F12** In an installation, `npm test` (or `kaal-foundation verify`) does three things:
-  - it compares every file that `test/verify.json` lists with the installed copy, using the host's SHA-256;
-  - it runs the delivered cases in `test/embed/`;
+  - it compares every file that `dist/test/package-check/verify.json` lists with the installed copy, using the host's SHA-256;
+  - it runs the delivered cases that sit beside the Nodes in `dist/` (the temporary collector `collect.mjs` finds them, foundation/C20);
   - it matches the cases that ran, by name, against the manifest.
 
   Its last line is `kaal-foundation-verification {json}`, holding `result`, `exit`, each executed case as `{ name, outcome }`, and `causes`. The result is one of:
@@ -31,13 +31,13 @@
   - `failed` (1): a declared case failed;
   - `cannot verify` (2): the manifest is missing, a listed file is missing or differs, a declared case did not run, an undeclared case ran, or nothing ran.
 
-[Testing](testing.md) says which case checks which Requirement.
+[Testing](../../../test/package-check/testing.md) says which case checks which Requirement.
 
 ## Foundation's own Capability declaration
 
 - **foundation/F25** The public data export
   `@kaihacksai/kaal-foundation/capability` resolves to the delivered
-  `capability/Foundation.md`. Read its exact UTF-8 Markdown bytes, rather than
+  `dist/kaal/Foundation.md`. Read its exact UTF-8 Markdown bytes, rather than
   importing it as JavaScript. It is Foundation's authoritative Capability Node,
   named `Foundation`, typed by Core's existing `KAAL Capability` reference
   `56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e`.

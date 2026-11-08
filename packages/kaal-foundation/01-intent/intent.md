@@ -11,4 +11,4 @@ Foundation holds the shared, pure and deterministic primitives that any KAAL pac
   package supplies its authoritative Capability Node for explicitly requested
   Core registration. Foundation owns the bytes; Core owns registration.
 
-See [Requirements](requirements.md) for what this guarantees.
+See [Requirements](../requirements/functional/requirements.md) for what this guarantees.
