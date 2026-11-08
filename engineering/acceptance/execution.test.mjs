@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute, readFile } from "kaal-hosting";
+import { execute, readFile } from "@kaihacksai/kaal-hosting";
 import { install } from "kaal-testing/acceptance";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
@@ -27,10 +27,10 @@ it("Engineering C51 frozen boundary, error handling and eight behavioural mutati
 });
 
 it("Engineering adapter consumes once-packed Testing and preserves real child exits and observations", async () => {
-  const host = await install(["kaal-testing", "kaal-hosting"]);
+  const host = await install(["kaal-testing", "@kaihacksai/kaal-hosting"]);
   const script = `
     import assert from "node:assert/strict";
-    import { execute } from "kaal-hosting";
+    import { execute } from "@kaihacksai/kaal-hosting";
     import * as testing from "kaal-testing/duplicates";
     import { run } from ${JSON.stringify(new URL("engineering/execution/adopt.mjs", root).href)};
     // Only the repository mechanism is imported by absolute URL. Testing and

@@ -8,7 +8,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "nod
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import {
-  GUIDE, RULES, attribute, autoMerge, claim, collector, establishment, incorporated, landedAs, landing, marker, merge, methodFor, promotionFreshness,
+  GUIDE, RULES, attribute, autoMerge, claim, collector, effectiveMethod, establishment, incorporated, landedAs, landing, marker, merge, methodFor, promotionFreshness,
   promotionSource, readClaim, readCollectors, readExpected, readFreshness, readLanding, readSync, readWorkingBranch, stateAt, synchronization, unevidenced,
   workingBranch, type CheckClaim, type ClaimFacts, type WorkingBranchFacts, type CollectorFacts, type CollectorRecord, type Hold, type LandingFacts, type Pull, type SyncFacts,
 } from "./lineage.ts";
@@ -106,6 +106,58 @@ describe("methodFor", () => {
     assert.equal(methodFor("main", "kaal/x", v("not-applicable")), "squash");
   });
   it("names none when the synchronization verdict fails", () => assert.equal(methodFor("main", "kaal/x", v("fail")), null));
+});
+
+describe("effectiveMethod (B1 F1: the configured queue method, not GitHub's label)", () => {
+  const queue = (merge_method: string) => [{ type: "pull_request" }, { type: "merge_queue", parameters: { merge_method } }];
+  it("takes the queue's squash over the reported merge for a promotion (T128)", () => {
+    assert.equal(effectiveMethod("merge", queue("SQUASH"), "main", "main"), "squash");
+    assert.equal(autoMerge({ baseRef: "main", head: A, expected: "squash", enabled: effectiveMethod("merge", queue("SQUASH"), "main", "main") }).kind, "pass");
+  });
+  it("fails a promotion when the queue is configured to merge or rebase (T129)", () => {
+    for (const m of ["MERGE", "REBASE"]) {
+      assert.equal(autoMerge({ baseRef: "main", head: A, expected: "squash", enabled: effectiveMethod("merge", queue(m), "main", "main") }).kind, "fail");
+    }
+  });
+  it("keeps the reported label when the branch has no queue rule (T130)", () => {
+    assert.equal(effectiveMethod("merge", [{ type: "pull_request" }], "main", "main"), "merge");
+    assert.equal(autoMerge({ baseRef: "main", head: A, expected: "squash", enabled: effectiveMethod("merge", [], "main", "main") }).kind, "fail");
+  });
+  it("keeps auto-merge off when it is off, whatever the queue says (T131)", () => {
+    assert.equal(effectiveMethod(null, queue("SQUASH"), "main", "main"), null);
+    assert.equal(autoMerge({ baseRef: "main", head: A, expected: "squash", enabled: effectiveMethod(null, queue("SQUASH"), "main", "main") }).kind, "fail");
+  });
+  it("is unjudgeable when the rules are not a list, name an unknown method, or disagree (T132, T133)", () => {
+    assert.throws(() => effectiveMethod("merge", { message: "Not Found" }, "main", "main"), /not a list/);
+    assert.throws(() => effectiveMethod("squash", null, "main", "main"), /not a list/); // a supplied JSON null is not "no rules"
+    assert.throws(() => effectiveMethod("merge", queue("FAST_FORWARD"), "main", "main"), /does not know/);
+    assert.throws(() => effectiveMethod("merge", [...queue("SQUASH"), ...queue("MERGE")], "main", "main"), /disagree/);
+    assert.throws(() => effectiveMethod("merge", [{ type: "merge_queue" }], "main", "main"), /does not know/);
+  });
+  it("leaves a collector base to the reported label, and no rules to today's behaviour (T134, T135)", () => {
+    assert.equal(effectiveMethod("merge", queue("SQUASH"), "kaal/x", "main"), "merge");
+    for (const m of ["squash", "merge", "rebase", null] as const) assert.equal(effectiveMethod(m, undefined, "main", "main"), m);
+  });
+  it("end to end: the CLI judges with the rules file and is unjudgeable on a missing or broken one (T136)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "rules-"));
+    try {
+      const run = (...rest: string[]) => {
+        const git = (...a: string[]) => spawnSync("git", a, { cwd: dir, encoding: "utf8" });
+        git("init", "-q", "-b", "main"); git("-c", "user.email=a@b", "-c", "user.name=a", "commit", "-q", "--allow-empty", "-m", "x");
+        return spawnSync(process.execPath, [join(import.meta.dirname, "lineage.ts"), "auto-merge", "main", "main", "HEAD", "HEAD", "HEAD", "merge", ...rest], { cwd: dir, encoding: "utf8" });
+      };
+      writeFileSync(join(dir, "ok.json"), JSON.stringify(queue("SQUASH")));
+      writeFileSync(join(dir, "bad.json"), "not json");
+      writeFileSync(join(dir, "null.json"), "null");
+      writeFileSync(join(dir, "merge.json"), JSON.stringify(queue("MERGE")));
+      assert.equal(run("ok.json").status, 0);
+      assert.equal(run("merge.json").status, 1);
+      assert.equal(run().status, 1);
+      assert.equal(run("bad.json").status, 2);
+      assert.equal(run("missing.json").status, 2);
+      assert.equal(run("null.json").status, 2);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
 });
 
 describe("autoMerge", () => {
@@ -289,7 +341,7 @@ describe("claim", () => {
   it("does not apply while the default branch holds no numbering rule", () => {
     const v = claim({ ...f, rules: null });
     assert.equal(v.kind, "not-applicable");
-    assert.match(v.message, /not in force: main holds no packages\/skills\/kaal-change\/lib\/record\.mjs/);
+    assert.match(v.message, /not in force: main holds no packages\/kaal-change\/lib\/record\.mjs/);
   });
   it("hands Change's rule exactly the files it read", () => {
     let seen: unknown;
@@ -384,7 +436,7 @@ function repo() {
 
 const pkg = (scripts: string[], name = "Engineering repository for KAAL") =>
   `{\n  "description": "${name}",\n  "scripts": {\n${scripts.map((s) => `    ${s},`).join("\n")}\n    "build": "tsc"\n  },\n  "engines": { "node": ">=24" }\n}\n`;
-const MAIN_SCRIPTS = ['"test:hosting": "npm test -w kaal-hosting"'];
+const MAIN_SCRIPTS = ['"test:hosting": "npm test -w @kaihacksai/kaal-hosting"'];
 const KAAL_SCRIPTS = ['"test": "npm run test:hosting && npm run test:kaal"', ...MAIN_SCRIPTS, '"test:kaal": "node lanes/kaal.mjs"'];
 
 describe("acceptance: synchronizing a divergent lineage", () => {
@@ -508,7 +560,7 @@ describe("acceptance: stepwise synchronization", () => {
   r.land("kaal/l", { ".github/workflows/ci.yml": "uses: checkout@v5\n" }, "lineage .github Change");
   r.land("kaal/l", { "package.json": pkg(KAAL_SCRIPTS) }, "lineage root Change");
   const github = r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4.2\n" }, "main .github Change");
-  const root = r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace kaal-hosting"']) }, "main root Change");
+  const root = r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace @kaihacksai/kaal-hosting"']) }, "main root Change");
   const keepLineage = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("show", `kaal/l:${p}`) + "\n"]));
 
   it("a synchronization straight to main's tip mixes .github and root resolutions, which Change Isolation rejects", () => {
@@ -934,7 +986,7 @@ describe("acceptance: resolutions adopted from main", () => {
   r.land("kaal/l", { "package.json": pkg(KAAL_SCRIPTS) }, "lineage root Change");
   r.land("kaal/l", { "old.md": "lineage edit\n" }, "lineage edits a file main deletes");
   r.land("main", { ".github/workflows/ci.yml": "uses: checkout@v4.2\n" }, "main .github Change");
-  r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace kaal-hosting"']), "old.md": null }, "main root Change");
+  r.land("main", { "package.json": pkg(['"test:hosting": "npm test --workspace @kaihacksai/kaal-hosting"']), "old.md": null }, "main root Change");
   const main = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("ls-tree", "main", "--", p) ? r.g("show", `main:${p}`) + "\n" : null]));
   const lineage = (paths: string[]) => Object.fromEntries(paths.map((p) => [p, r.g("show", `kaal/l:${p}`) + "\n"]));
 
