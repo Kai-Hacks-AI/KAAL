@@ -9,12 +9,12 @@ permissions:
 
 jobs:
   suite:
-    name: Core full source suite on Windows at the D1/D2/D3 fix head
+    name: Core full source suite on Windows at kaal/core 57ae58c
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: 62afa5e8c366475a0285546dfccf47b74dc438d9
+          ref: 57ae58c
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
