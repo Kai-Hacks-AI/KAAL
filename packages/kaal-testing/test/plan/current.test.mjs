@@ -9,7 +9,7 @@ import { describe, it } from "node:test";
 async function model() {
   let m;
   try {
-    m = await import("kaal-testing/model");
+    m = await import("@kaihacksai/kaal-testing/model");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./model (${e.code ?? e.message})`);
   }

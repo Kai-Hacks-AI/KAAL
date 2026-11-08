@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
-import { current, tested } from "kaal-testing/model";
+import { current, tested } from "@kaihacksai/kaal-testing/model";
 
 const at = (path) => new URL(`../../${path}`, import.meta.url);
 const text = (path) => readFile(at(path), "utf8");

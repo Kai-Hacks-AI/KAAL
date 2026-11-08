@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { accept, discover, findings, integrity, packed as packedOf, sha256 } from "kaal-testing/acceptance";
+import { accept, discover, findings, integrity, packed as packedOf, sha256 } from "@kaihacksai/kaal-testing/acceptance";
 
 const LIB = pathToFileURL(fileURLToPath(new URL("../lib/acceptance.mjs", import.meta.url))).href;
 

@@ -24,7 +24,7 @@
 // non-zero only when the mappings cannot be found.
 import { join } from "node:path";
 import { HostingError, execute, kind, readFile, within } from "@kaihacksai/kaal-hosting";
-import { classify, problems } from "kaal-testing/contracts";
+import { classify, problems } from "@kaihacksai/kaal-testing/contracts";
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);

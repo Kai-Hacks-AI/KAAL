@@ -13,7 +13,7 @@
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execute, initialize, readFile } from "@kaihacksai/kaal-hosting";
-import { integrity, sha256 } from "kaal-testing/acceptance";
+import { integrity, sha256 } from "@kaihacksai/kaal-testing/acceptance";
 import { pack as packOnce, workspaces as listWorkspaces } from "../delivery/pack.mjs";
 import { EXIT, acceptance, bind, firstSteps, locate, publishable, readiness, record, verification, weakest } from "./release.mjs";
 

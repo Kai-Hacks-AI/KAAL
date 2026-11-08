@@ -10,8 +10,8 @@ import { describe, it } from "node:test";
 async function contract() {
   let m, model;
   try {
-    m = await import("kaal-testing/verifiers");
-    model = await import("kaal-testing/model");
+    m = await import("@kaihacksai/kaal-testing/verifiers");
+    model = await import("@kaihacksai/kaal-testing/model");
   } catch (e) {
     assert.fail(`blocked before behavioural assertion: kaal-testing exports no ./verifiers or ./model (${e.code ?? e.message})`);
   }

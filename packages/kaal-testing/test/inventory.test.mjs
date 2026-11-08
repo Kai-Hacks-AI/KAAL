@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { inventory, textLines } from "kaal-testing/inventory";
+import { inventory, textLines } from "@kaihacksai/kaal-testing/inventory";
 
 const text = (s) => new TextEncoder().encode(s);
 

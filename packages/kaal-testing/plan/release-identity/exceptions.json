@@ -1,0 +1,137 @@
+{
+  "note": "Matches of T74's search that are not an operational package reference. Each is one line, identified by its path and the SHA-256 of its trimmed text, with its class and the owner whose judgment it is. Historical evidence keeps the identity actually observed; a registered holder is Core's fixture data; the Agent Skill's directory and name are distinct from the npm scope; test titles are prose; a deferred export is not implemented. This list is the reviewed baseline: a changed or added line is unclassified until it is reviewed here.",
+  "exceptions": [
+    {
+      "path": "engineering/execution/qualification/inspection.json",
+      "sha256": "d918c51f53bbed3becf41c27ecb1c07cca1b009b1ce0cc70efcc72c13513dccf",
+      "class": "historical-evidence",
+      "owner": "engineering"
+    },
+    {
+      "path": "engineering/execution/qualification/inspection.json",
+      "sha256": "f5b1a39168e571fcdfdc94fdb22a9eab4dcedc5caa05c06f08eb2e21d8efff80",
+      "class": "historical-evidence",
+      "owner": "engineering"
+    },
+    {
+      "path": "packages/kaal-core/test/embed/intent.test.mjs",
+      "sha256": "b62352f99716a17160097e5ea1d0306197fb9f166b6c900ab867f86e87469258",
+      "class": "registered-holder-identity",
+      "owner": "core"
+    },
+    {
+      "path": "packages/kaal-core/test/plan/registration.test.mjs",
+      "sha256": "51904b9baf8a48e2f2d111f38dfde120173c0fa464551944178f72d0e775883b",
+      "class": "registered-holder-identity",
+      "owner": "core"
+    },
+    {
+      "path": "packages/kaal-core/test/plan/registration.test.mjs",
+      "sha256": "bf262f2a31c5f8830bfc71cb088e4e77acd8d8017922757bb6eb0bb641cd0cc6",
+      "class": "registered-holder-identity",
+      "owner": "core"
+    },
+    {
+      "path": "packages/kaal-core/test/plan/registration.test.mjs",
+      "sha256": "dee5425789229499b2858722491f9dc128ca19778d00c04bfffe5dc8c1207e27",
+      "class": "registered-holder-identity",
+      "owner": "core"
+    },
+    {
+      "path": "packages/kaal-testing/plan/composed-plan/boundary.json",
+      "sha256": "342d5b741b99b8b09769224a229d098b2b2a3a16cb88532a0d0271712074279f",
+      "class": "deferred-composed-plan-export-name",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/plan/duplicates-dependency/do-evidence.json",
+      "sha256": "899ec3daa80012ff9b68702a12658073629556fdcb899062c10a33fe40fe6845",
+      "class": "historical-evidence",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/plan/release-identity/inventory.json",
+      "sha256": "39ffa677510f1fcf5a487ee324907d3968d71c50f2285cbde305dda40e407f44",
+      "class": "planning-record-of-this-migration",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/plan/release-identity/inventory.json",
+      "sha256": "5b26e85708cd65c5a21ae1ac76bdf2bea5b96ce678141439118aba9807245bec",
+      "class": "planning-record-of-this-migration",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/plan/release-identity/t74-classification.json",
+      "sha256": "b456465376f402a59fa45ee64f178b9d8a5c1668d4cd3aba97749f1d7eb25140",
+      "class": "planning-record-of-this-migration",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/plan/release-identity/t74-classification.json",
+      "sha256": "b86b96ae01c50038104dae736ee4b28a3982f8cf2a0acf33cab07e8fc6196acc",
+      "class": "planning-record-of-this-migration",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/plan/release-identity/t74-classification.json",
+      "sha256": "bda40948f61eec720f7038714ba42f88fda98a5f410e6ebc8e762e7bd8a3d384",
+      "class": "planning-record-of-this-migration",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/engineer/redesign-acceptance-evidence.json",
+      "sha256": "1a8bd654aa8c928073d76b1caa9ff10a1ff568993959a6da4a2bd79eb460750f",
+      "class": "historical-evidence",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/plan/composed-plan/consumer.cases.mjs",
+      "sha256": "048c4c77a0258b1153223e77539c66a83ef61f66257d09e6a82c2f8439f62bd4",
+      "class": "deferred-composed-plan-export-name",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/plan/composed-plan/consumer.cases.mjs",
+      "sha256": "ed0d833f30525307f2cfa7f22c0793a3324f329607807d07d3fc2ede50163dbc",
+      "class": "skill-path-component",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/plan/model.test.mjs",
+      "sha256": "6087a4b9f280a0509f005f64c7fc779460464bdaa4ba6efc3463018edf32786f",
+      "class": "test-title-prose",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/run.test.mjs",
+      "sha256": "375218a3e23976a04f834909fa65b43ccd5df66a8a2cd19dd52307f63902e9c6",
+      "class": "test-title-prose",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/testing.test.mjs",
+      "sha256": "1193866f5f9e0b0364d5f85ec17a2196cadf557b4f3939a006d6851ee7e2834e",
+      "class": "skill-identifier",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/testing.test.mjs",
+      "sha256": "2e9c4c657511cc4abd931ea31f10f2e76a1fbb1290a56dea7dda82fa74a449c2",
+      "class": "test-title-prose",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/testing.test.mjs",
+      "sha256": "8c4020b8e2e56aefffe6c9c0d6175863b2895a7428918a87355e47e25c3b12d9",
+      "class": "skill-identifier",
+      "owner": "testing"
+    },
+    {
+      "path": "packages/kaal-testing/test/testing.test.mjs",
+      "sha256": "b4cd4f859b030ebea1d832bf9a33e8b992e83cc71485465975749324204edaad",
+      "class": "skill-path-component",
+      "owner": "testing"
+    }
+  ]
+}

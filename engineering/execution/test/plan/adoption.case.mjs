@@ -149,7 +149,7 @@ it("E-D12: owner APIs are called through public signatures and their advisory re
 it("E-D13: the same orchestration contract consumes the actual Testing public exports", async () => {
   const run = await adapter();
   let testing;
-  try { testing = await import("kaal-testing/duplicates"); }
+  try { testing = await import("@kaihacksai/kaal-testing/duplicates"); }
   catch (e) { assert.fail(`blocked before behavioural assertion: Testing dependency unavailable (${e.code})`); }
   const f = fixture();
   f.ports.testing = { schedule: testing.schedule, duplicates: testing.duplicates };

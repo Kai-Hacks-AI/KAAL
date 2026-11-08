@@ -39,5 +39,5 @@ const held = JSON.parse(await readFile(join(host, 'node_modules/.package-lock.js
 for (const p of [name, ...providers]) {
   assert.equal(held['node_modules/' + p]?.integrity, packed[p].integrity, p + ' must be the caller-packed artifact');
 }
-for (const p of ['kaal-core', 'kaal-testing', 'kaal-engineer-skill'])
+for (const p of ['kaal-core', '@kaihacksai/kaal-testing', 'kaal-engineer-skill'])
   assert.equal(held['node_modules/' + p], undefined, 'production verification must not require development provider ' + p);

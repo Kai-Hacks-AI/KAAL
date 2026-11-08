@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { candidates, refactored } from "kaal-testing/redesign";
+import { candidates, refactored } from "@kaihacksai/kaal-testing/redesign";
 
 const V1 = "1".repeat(64), V2 = "2".repeat(64);
 const run = (version) => ({ platform: "__proto__", cases: [

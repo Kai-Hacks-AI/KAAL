@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { install } from 'kaal-testing/acceptance';
+import { install } from '@kaihacksai/kaal-testing/acceptance';
 import { execute, readFile, reconcile } from '@kaihacksai/kaal-hosting';
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
 import { join } from 'node:path';

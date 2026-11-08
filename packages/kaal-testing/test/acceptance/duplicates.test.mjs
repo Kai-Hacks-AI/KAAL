@@ -2,13 +2,13 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { install, packed } from "kaal-testing/acceptance";
+import { install, packed } from "@kaihacksai/kaal-testing/acceptance";
 
 it("the packed duplicates API retains failed, unknown and independently required observations", async () => {
-  const host = await install(["kaal-testing", ...(await packed(["@kaihacksai/kaal-hosting"]))]);
+  const host = await install(["@kaihacksai/kaal-testing", ...(await packed(["@kaihacksai/kaal-hosting"]))]);
   const script = `
     import assert from "node:assert/strict";
-    import { duplicates, schedule } from "kaal-testing/duplicates";
+    import { duplicates, schedule } from "@kaihacksai/kaal-testing/duplicates";
     const file = { path: "cases.mjs", sha256: "1".repeat(64) };
     const on = { subject: "a".repeat(64), platform: process.platform, node: process.version };
     const q = (by, extra = {}) => ({ by, files: [file], ...on, ...extra });

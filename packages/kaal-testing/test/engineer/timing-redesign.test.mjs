@@ -2,14 +2,14 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { install, packed } from "kaal-testing/acceptance";
+import { install, packed } from "@kaihacksai/kaal-testing/acceptance";
 
 it("the installed timing and redesign exports keep faster timing separate from preserved discrimination", async () => {
-  const host = await install(["kaal-testing", ...(await packed(["@kaihacksai/kaal-hosting"]))]);
+  const host = await install(["@kaihacksai/kaal-testing", ...(await packed(["@kaihacksai/kaal-hosting"]))]);
   const script = `
     import assert from "node:assert/strict";
-    import { profile, skew } from "kaal-testing/timing";
-    import { candidates, refactored } from "kaal-testing/redesign";
+    import { profile, skew } from "@kaihacksai/kaal-testing/timing";
+    import { candidates, refactored } from "@kaihacksai/kaal-testing/redesign";
     const v1 = "1".repeat(64), v2 = "2".repeat(64);
     const run = (version, ms) => ({ platform: "host", cases: [
       ...Array.from({ length: 5 }, (_, i) => ({ name: "quick " + i, sha256: v1, ms: 100 })),

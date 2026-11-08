@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { kind, read } from "@kaihacksai/kaal-hosting";
-import { discover } from "kaal-testing/acceptance";
+import { discover } from "@kaihacksai/kaal-testing/acceptance";
 import { deliver, workspaces } from "../delivery/pack.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");

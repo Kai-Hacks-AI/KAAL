@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { guard, MARKER } from "kaal-testing/reentry";
+import { guard, MARKER } from "@kaihacksai/kaal-testing/reentry";
 
 const source = readFileSync(new URL("./verify.mjs", import.meta.url), "utf8");
 const block = source.slice(source.indexOf("// reentry:begin"), source.indexOf("// reentry:end"));

@@ -8,10 +8,10 @@ payload/Testing.md                     the Skill Node, typed by Core's KAAL Skil
 docs/                                  the shipped documents: Intent, Requirements, Architecture, Testing, Limitations, Operations
 skills/kaal-testing/                   the Agent Skill: SKILL.md
 skills/kaal-testing/references/        approach.md, brittle.md, findings.md
-lib/coverage.mjs                       execution and evidence: kaal-testing/coverage
-lib/inventory.mjs                      non-blank text lines: kaal-testing/inventory
-lib/attribution.mjs                    CASE-owned file attribution: kaal-testing/attribution
-lib/contracts.mjs                      contract evidence: kaal-testing/contracts
+lib/coverage.mjs                       execution and evidence: @kaihacksai/kaal-testing/coverage
+lib/inventory.mjs                      non-blank text lines: @kaihacksai/kaal-testing/inventory
+lib/attribution.mjs                    CASE-owned file attribution: @kaihacksai/kaal-testing/attribution
+lib/contracts.mjs                      contract evidence: @kaihacksai/kaal-testing/contracts
 lib/reporter.mjs                       the runner reporter accept() observes tests through
 lib/observed.mjs                       what accept() observed, kept private to the process
 ownership.kaal.json                    Testing's own ownership claim (repository data, not delivered)
@@ -46,11 +46,11 @@ A capability's evidence comes from three loops, and none stands in for another:
 
 Intent, Requirements and Architecture each own the tests PLAN establishes for them. Those tests are immutable to DO and CHECK; implementation tests may evolve without weakening them. A planned test stands clean RED before coding, failing for the intended missing behaviour alone, and GREEN is bounded evidence, not proof of the outcome. A defect in a planned test belongs to ACT.
 
-Each concern owner declares its planned boundary, the planned tests and everything that gives them meaning, and `interpret` from `kaal-testing/boundary` reads a realization's verdict on it: separate PLAN Change or trusted Seal, read the same way (testing/F18–F23). A changed declared path is a verified failure; an untrusted anchor or working-tree bytes are unknown; an untouched boundary is unchanged within the declaration, never met. Byte integrity, reproducibility and behavioural validity stay separate claims. Testing interprets the verdict and never produces or authenticates it: `interpret(declaration, verdict, attestation)` reads it only with its trust authority's attestation bound to its anchor, and is unknown otherwise or when the verdict does not read (testing/C19).
+Each concern owner declares its planned boundary, the planned tests and everything that gives them meaning, and `interpret` from `@kaihacksai/kaal-testing/boundary` reads a realization's verdict on it: separate PLAN Change or trusted Seal, read the same way (testing/F18–F23). A changed declared path is a verified failure; an untrusted anchor or working-tree bytes are unknown; an untouched boundary is unchanged within the declaration, never met. Byte integrity, reproducibility and behavioural validity stay separate claims. Testing interprets the verdict and never produces or authenticates it: `interpret(declaration, verdict, attestation)` reads it only with its trust authority's attestation bound to its anchor, and is unknown otherwise or when the verdict does not read (testing/C19).
 
-`kaal-testing/model` holds a product's Strategies, Plans, Suites and Cases as plain data, with the identities their holder assigns and outgoing **tests →** traces to opaque subjects (testing/F24–F33). `check` gives the model's findings, `tested` and `data` the derived views, `results(model, run)` each Case's, Suite's and Plan's result in one Run, `evaluate(model, run, { allowances })` a Plan Run's evaluation, and `current(model, runs, of, { allowances })` the current evidenced quality of a Plan, Suite or Case from the Runs a consumer retained, oldest first (testing/F40–F42): the latest applicable Run's, never an older one's, with every inapplicable Run disclosed. A Case that did not run, ran skipped, or ran a version its Run does not identify is unknown; an allowed Case stays failed; Testing keeps no Run. `results` gives raw observations of one Run, never a verdict: a `passed` in it beside any finding is not GREEN evidence. The only verdict is `evaluate`'s `result`, which is unknown whenever there is a finding. How a consumer, such as Change, turns it into its own criterion is that consumer's. The module imports nothing.
+`@kaihacksai/kaal-testing/model` holds a product's Strategies, Plans, Suites and Cases as plain data, with the identities their holder assigns and outgoing **tests →** traces to opaque subjects (testing/F24–F33). `check` gives the model's findings, `tested` and `data` the derived views, `results(model, run)` each Case's, Suite's and Plan's result in one Run, `evaluate(model, run, { allowances })` a Plan Run's evaluation, and `current(model, runs, of, { allowances })` the current evidenced quality of a Plan, Suite or Case from the Runs a consumer retained, oldest first (testing/F40–F42): the latest applicable Run's, never an older one's, with every inapplicable Run disclosed. A Case that did not run, ran skipped, or ran a version its Run does not identify is unknown; an allowed Case stays failed; Testing keeps no Run. `results` gives raw observations of one Run, never a verdict: a `passed` in it beside any finding is not GREEN evidence. The only verdict is `evaluate`'s `result`, which is unknown whenever there is a finding. How a consumer, such as Change, turns it into its own criterion is that consumer's. The module imports nothing.
 
-`kaal-testing/verifiers` is the shared observable result contract for a product's consumer verifier (testing/F43–F50). `SCENARIOS` are the outcomes every verifier must report correctly, `observe(run, { prefix, words })` reads one verifier run's exit and one-line JSON summary, and `judge(scenario, observed, facts)` compares it with the facts its harness established: the result, the package, platform, Node and digest, and every declared case with its outcome and applicability. A failed result needs established evidence; whatever was not established is unknown, with a diagnosis. The publisher and Engineering use it to check a verifier; no verifier or product depends on it, and the module imports nothing.
+`@kaihacksai/kaal-testing/verifiers` is the shared observable result contract for a product's consumer verifier (testing/F43–F50). `SCENARIOS` are the outcomes every verifier must report correctly, `observe(run, { prefix, words })` reads one verifier run's exit and one-line JSON summary, and `judge(scenario, observed, facts)` compares it with the facts its harness established: the result, the package, platform, Node and digest, and every declared case with its outcome and applicability. A failed result needs established evidence; whatever was not established is unknown, with a diagnosis. The publisher and Engineering use it to check a verifier; no verifier or product depends on it, and the module imports nothing.
 
 An invariant is tested exhaustively where it is owned, and its integration selectively where it is consumed.
 
@@ -58,7 +58,7 @@ Findings are verified failures, potential defects, architectural concerns or unk
 
 ## Execution and evidence
 
-`kaal-testing/coverage` runs a workspace's own tests under V8 coverage (c8) and measures which delivered files and lines they executed:
+`@kaihacksai/kaal-testing/coverage` runs a workspace's own tests under V8 coverage (c8) and measures which delivered files and lines they executed:
 
 - `cover(workspace, delivered, { root, dir })` runs `npm test -w <workspace>` from `root`, counting only the `delivered` files the caller names, into a report directory the caller provides fresh: one already holding a summary is refused, and `cover` removes nothing. It resolves to line, branch and function coverage, each delivered file's executed and executable lines, and the delivered files never executed, or to a failure naming the workspace and the missing evidence.
 - `evidence(workspace, root, text)` reads one c8 JSON summary into that evidence, or into that failure.
@@ -67,7 +67,7 @@ Which workspaces exist, building them and which files they deliver are packaging
 
 ## Acceptance runs
 
-`kaal-testing/acceptance` runs capabilities' acceptance scenarios against the packages as delivered. Each capability owns its scenarios and what they assert. They live in its workspace under `test/engineer/*.test.mjs`. Building and packing each package exactly once is packaging: the caller does it and hands over a manifest, `{ name: { tarball, sha256, integrity } }`.
+`@kaihacksai/kaal-testing/acceptance` runs capabilities' acceptance scenarios against the packages as delivered. Each capability owns its scenarios and what they assert. They live in its workspace under `test/engineer/*.test.mjs`. Building and packing each package exactly once is packaging: the caller does it and hands over a manifest, `{ name: { tarball, sha256, integrity } }`.
 
 - **Discovery:** `discover(workspaces)` finds the scenarios by that convention. Test locations say a case's purpose and owner. They are locations, not Testing kinds: Case, Suite, Plan and Run are unchanged. `test/embed/` holds a capability's own cases, shipped with it and run by its own `npm test` against the installed package. `test/engineer/` holds Engineering's lane scenarios, which `install()` the packed tarballs. There is no `test/external/` convention. Until every owner has moved its scenarios, `discover` also reads the earlier `test/acceptance/`.
 - **Running:** `accept({ manifest, scenarios, run, cwd })` runs them in parallel. `run` is a missing or empty directory, which Testing initializes with the manifest, a ledger and the hosts. An empty scenario list is refused before anything is written or run, since the runner would otherwise discover tests of its own.
@@ -90,7 +90,7 @@ Whether any package was rebuilt, or a tarball changed during the run, is packagi
 
 ## Non-blank text lines
 
-`kaal-testing/inventory` counts the files a caller lists. The metric is broad on purpose: a **non-blank text line** is any line with a non-whitespace character in any text file, whether code, Markdown, YAML, JSON or configuration. It is not executable lines of code, and it is never a denominator for coverage.
+`@kaihacksai/kaal-testing/inventory` counts the files a caller lists. The metric is broad on purpose: a **non-blank text line** is any line with a non-whitespace character in any text file, whether code, Markdown, YAML, JSON or configuration. It is not executable lines of code, and it is never a denominator for coverage.
 
 `inventory(files)` takes `{ path, bytes }` for each file and returns every file once, with how it was counted:
 - **text:** its non-blank lines;
@@ -101,7 +101,7 @@ Which files exist is the caller's answer. The count says how much text is tracke
 
 ## CASE-owned attribution
 
-`kaal-testing/attribution` attributes an inventory's files to the Capabilities, Agents, Skills and Extensions that claim them. Testing owns how claims are read, resolved and reported, with one rule for all four kinds. Each owner owns its own claim.
+`@kaihacksai/kaal-testing/attribution` attributes an inventory's files to the Capabilities, Agents, Skills and Extensions that claim them. Testing owns how claims are read, resolved and reported, with one rule for all four kinds. Each owner owns its own claim.
 
 - **A claim** is an ownership file named `ownership.kaal.json`, kept in its owner's own tree and found by that name. There is no central list. It names one typed owner: its CASE kind (`capability`, `agent`, `skill` or `extension`) and the exact `{ name, id }` of its own Node. It lists repository-relative path patterns. A pattern is a file path, or a directory path ending in `/` that covers everything beneath it. Patterns are literal: there are no wildcards.
 - **Scope:** an ownership file's scope is the directory holding it. Every pattern must lie within that scope, so an owner claims only within its own tree. An ownership file with a pattern outside its scope is a verified failure and claims nothing.
@@ -118,7 +118,7 @@ Which files exist is the caller's answer. The count says how much text is tracke
 
 ## Reconciled report
 
-`kaal-testing/report` puts the two dimensions side by side. Neither is derived from the other.
+`@kaihacksai/kaal-testing/report` puts the two dimensions side by side. Neither is derived from the other.
 
 - **Package dimension:** each workspace's delivered JavaScript, executed by that workspace's own tests, from `cover`.
 - **Ownership dimension:** each owner's files and non-blank text lines, from `attribute`, unchanged.
@@ -133,7 +133,7 @@ Which files exist is the caller's answer. The count says how much text is tracke
 
 ## Contract evidence
 
-`kaal-testing/contracts` reads what a capability's own mapping shows about its contracts in one run. The capability owns the mapping, `evidence.kaal.json` beside its ownership claim. Each entry quotes one of its authoritative statements verbatim, pinned by the quote's sha256, and offers conformance or acceptance tests for it, each pinned by its file's sha256 and its full suite path. Implementation tests are never offered. Each entry also states the inference from those tests to the statement, its limits, and a review record or `null`.
+`@kaihacksai/kaal-testing/contracts` reads what a capability's own mapping shows about its contracts in one run. The capability owns the mapping, `evidence.kaal.json` beside its ownership claim. Each entry quotes one of its authoritative statements verbatim, pinned by the quote's sha256, and offers conformance or acceptance tests for it, each pinned by its file's sha256 and its full suite path. Implementation tests are never offered. Each entry also states the inference from those tests to the statement, its limits, and a review record or `null`.
 
 - **Mechanical facts:** the statement is present verbatim, and each test file holds its pinned bytes.
 - **Judgment:** the inference is "proposed, not reviewed". A review record in the mapping is the owner's own claim, so it is reported as declared, not verified, and as stale once a pin changes.
@@ -156,8 +156,8 @@ Each capability owns its contracts and its cases. The obligation to demonstrate 
 ## Register the Nodes
 
 ```sh
-npx kaal register capability testing node_modules/kaal-testing/capability
-npx kaal register skill kaal-testing node_modules/kaal-testing/payload
+npx kaal register capability testing node_modules/@kaihacksai/kaal-testing/capability
+npx kaal register skill kaal-testing node_modules/@kaihacksai/kaal-testing/payload
 ```
 
 ## License
@@ -190,6 +190,6 @@ The caller holds the history, oldest first: `{ platform, cases: [{ name, sha256,
 
 ## No duplicate runs
 
-`kaal-testing/duplicates` exports `duplicates(execution)` and `schedule(requests)`. The former challenges repeated Cases with the same file bytes, subject, platform and Node, naming their re-runners and time beyond one run. The latter plans one run per distinct file and conditions, with a read for every requester. Malformed evidence is unknown; malformed requests plan nothing. These are pure functions: they run nothing, choose no result and keep no history.
+`@kaihacksai/kaal-testing/duplicates` exports `duplicates(execution)` and `schedule(requests)`. The former challenges repeated Cases with the same file bytes, subject, platform and Node, naming their re-runners and time beyond one run. The latter plans one run per distinct file and conditions, with a read for every requester. Malformed evidence is unknown; malformed requests plan nothing. These are pure functions: they run nothing, choose no result and keep no history.
 
 The caller supplies one execution at a time, observes nested runs and binds readers to that execution's original observation, including failure or uncertainty. Independent required executions stay separate, even with identical subjects and conditions. A schedule is neither observed evidence nor permission to reuse a result across processes. Engineering must integrate the API before it can reduce lane execution time.

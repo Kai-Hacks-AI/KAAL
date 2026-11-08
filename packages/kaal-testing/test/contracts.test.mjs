@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { sha256 } from "kaal-testing/acceptance";
-import { classify, LOOPS, problems } from "kaal-testing/contracts";
+import { sha256 } from "@kaihacksai/kaal-testing/acceptance";
+import { classify, LOOPS, problems } from "@kaihacksai/kaal-testing/contracts";
 
 const OWNER = { kind: "capability", name: "Alpha", id: "a".repeat(64) };
 const SOURCE = "x/README.md";

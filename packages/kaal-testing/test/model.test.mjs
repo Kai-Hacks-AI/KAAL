@@ -2,7 +2,7 @@
 // planned outer tests in test/plan/model.test.mjs and test/plan/current.test.mjs.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { check, current, data, evaluate, results, tested } from "kaal-testing/model";
+import { check, current, data, evaluate, results, tested } from "@kaihacksai/kaal-testing/model";
 
 const SHARED = () => ({
   plans: [{ id: "P", suites: ["S1", "S2"] }],

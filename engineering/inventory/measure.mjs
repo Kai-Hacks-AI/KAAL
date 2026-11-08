@@ -14,7 +14,7 @@
 // a file.
 import { join } from "node:path";
 import { execute, readFile } from "@kaihacksai/kaal-hosting";
-import { inventory } from "kaal-testing/inventory";
+import { inventory } from "@kaihacksai/kaal-testing/inventory";
 
 const ROOT = process.cwd();
 const json = process.argv.includes("--json");

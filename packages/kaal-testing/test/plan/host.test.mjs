@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { describe, it } from "node:test";
-import { judge, observe, SCENARIOS } from "kaal-testing/verifiers";
+import { judge, observe, SCENARIOS } from "@kaihacksai/kaal-testing/verifiers";
 
 const VERIFIER = { prefix: "acme-verification ", words: { verified: "verified", failed: "failed", unknown: "cannot verify" } };
 const FACT = "kaal-hosting/special-entries";

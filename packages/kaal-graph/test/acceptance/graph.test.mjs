@@ -12,7 +12,7 @@ import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { install } from "kaal-testing/acceptance";
+import { install } from "@kaihacksai/kaal-testing/acceptance";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../../../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-graph-acceptance-"));
