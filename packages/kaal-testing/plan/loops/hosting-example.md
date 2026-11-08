@@ -10,11 +10,9 @@ packages/kaal-hosting/
   02-requirements/
     functional/         F<n>-<slug>.md            serves -> I
     non-functional/     N<n>-<slug>.md            serves -> I
-    defects/            D<n>-<slug>.md            Defect Nodes (from 06-defects/D*.md)
-                                                  serves -> I; reveals -> F or N once it exists
   03-architecture/      A<n>-<slug>.md            realizes -> F or N
   04-test/              every suite has its own Cases in its own loop files; all of them
-                        cite items in the shared folders above
+                        cite items in the shared folders above (01-03, and 06-defects for Defects)
     package-check/      intent, requirements, defects, architecture, hosting .test.mjs
                         (Cases on the installed package; targets I, F/N, D, A, code)
     boundary-check/     the same loop files for Cases on Hosting's boundary
@@ -26,10 +24,12 @@ packages/kaal-hosting/
                         loops.md  the Loop Declaration (new)
                         plan/ build.mjs publisher/  as today, moving into loop files
   05-src/               code, the innermost answer
-  06-defects/           retired when the DO lands
+  06-defects/           D<n>-<slug>.md   Defect Nodes, next to 02-requirements (the records stay);
+                        serves -> I; reveals -> F or N once it exists.
+                        Only the .red.mjs Cases move out, into 04-test/*/defects
 ```
 
-Suites differ in their Cases, not in their items: a loop is a file (or a folder) under each suite, and the item a Case cites always sits in a shared 01–03 folder, Hosting's or, from `engineering-check`, Engineering's. Each loop is a file, or a folder where one file would be too large (`defects/` holds ten Defects' Cases today). The declaration names locations as path prefixes, so either works.
+Suites differ in their Cases, not in their items: a loop is a file (or a folder) under each suite, and the item a Case cites always sits in a shared folder (01–03, or `06-defects` for a Defect), Hosting's or, from `engineering-check`, Engineering's. Each loop is a file, or a folder where one file would be too large (`defects/` holds ten Defects' Cases today). The declaration names locations as path prefixes, so either works.
 
 ## The declaration (proposal)
 
@@ -57,7 +57,7 @@ A location names a loop in any suite (`*` is the suite folder), so the same leve
 
 - Hosting's `hosting.test.mjs` Cases cite both Requirements and Architecture, such as `hosting/T110 [hosting/F63, hosting/A26]`. Under the model each would point at one code item, and the Requirement and Architecture links are reached by traversal from it. That is a migration of titles, which Owner said is fine.
 - The 73 functional bullets, the nonfunctional ones, Intents and Architecture elements become Nodes. This is the item owners' work, mechanical with `kaal-graph`'s `createNode`, and it can proceed loop by loop, since unparsed items give `unknown` and never a pass.
-- D5–D14 become Defect Nodes with their `.red.mjs` Cases moved into `defects.test.mjs`. Answered Defects keep their Cases as regression Cases in place. D15–D17 stay as they are until their PRs merge.
+- D5–D14 become Defect Nodes in place in `06-defects/`, and their `.red.mjs` Cases move into `04-test/*/defects`. Answered Defects keep their Cases as regression Cases in place. D15–D17 stay as they are until their PRs merge.
 
 ## Open: what is a Code item?
 
