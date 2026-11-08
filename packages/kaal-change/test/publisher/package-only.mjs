@@ -24,7 +24,8 @@ await initialize(host, { 'package.json': Buffer.from(JSON.stringify({ name: 'cha
 const inherited = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^npm_config_cache$/i.test(k)));
 const env = { ...inherited, npm_config_cache: join(host, '.cache'), npm_config_audit: 'false',
   npm_config_fund: 'false', npm_config_update_notifier: 'false' };
-const args = ['install', '--omit=dev', packed[name].tarball];
+// Graph is an optional peer, so it is requested explicitly beside Change.
+const args = ['install', '--omit=dev', packed[name].tarball, packed['kaal-graph'].tarball];
 const installed = await execute('npm', args, { cwd: host, env });
 assert.equal(installed.status, 0, installed.stdout + installed.stderr);
 const candidate = join(host, 'node_modules', ...name.split('/'));

@@ -16,10 +16,12 @@ and multi-loop testing obligations. It executes no subject or tests. Even an
 `unestablished` and `execution.status` remains `not-assessed`.
 
 The pure isolation module imports only Foundation and accepts the caller's Graph
-view. The package declares Foundation, Graph and Hosting as required production
-dependencies because its shipped verification and example need those providers.
-A normal package install acquires them; verification never installs anything or
-skips Cases when a provider is absent. Missing providers produce `cannot verify`.
+view. The package declares Foundation and Hosting as required production
+dependencies. Graph is an optional peer (`kaal-graph`, one exact version): the
+isolation API works without it, but the shipped example and Cases build their
+model with Graph. Installed verification never installs anything or skips Cases:
+with Graph absent it reports `cannot verify` and names `kaal-graph` as the
+missing optional peer to install, never a verdict.
 
 Verify the normally installed package:
 

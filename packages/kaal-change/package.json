@@ -46,13 +46,21 @@
   },
   "dependencies": {
     "@kaihacksai/kaal-foundation": "0.0.1",
-    "kaal-graph": "0.0.1",
     "@kaihacksai/kaal-hosting": "0.0.1"
+  },
+  "peerDependencies": {
+    "kaal-graph": "0.0.1"
+  },
+  "peerDependenciesMeta": {
+    "kaal-graph": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "kaal-testing": "0.0.1",
     "kaal-core": "0.0.1",
-    "kaal-engineer-skill": "0.0.1"
+    "kaal-engineer-skill": "0.0.1",
+    "kaal-graph": "0.0.1"
   },
   "publishConfig": {
     "access": "public"
