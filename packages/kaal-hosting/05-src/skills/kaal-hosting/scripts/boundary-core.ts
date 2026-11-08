@@ -186,7 +186,15 @@ const HOST_QUESTION = "Is this case genuinely inapplicable where the fact does n
 
 /** The literal titles of the tests registered in `code`, with where each call starts. */
 function titles(code: string): { index: number; title: string }[] {
-  return [...code.matchAll(/\b(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/g)].map((m) => ({ index: m.index!, title: m[2] }));
+  return [...code.matchAll(/\b(?:it|test)(?:\s*\.\s*\w+)?\s*\)?\s*\(\s*(["'`])((?:(?!\1)[^\\]|\\.)*)\1/g)].map((m) => ({ index: m.index!, title: literalText(m[1], m[2]) }));
+}
+
+/** The text a string literal denotes, with its escapes resolved as the program resolves them (hosting/D15). */
+function literalText(quote: string, raw: string): string {
+  const file = ts.createSourceFile("title.ts", `(${quote}${raw}${quote})`, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+  const statement = file.statements[0];
+  const expression = statement && ts.isExpressionStatement(statement) && ts.isParenthesizedExpression(statement.expression) ? statement.expression.expression : undefined;
+  return expression && (ts.isStringLiteral(expression) || ts.isNoSubstitutionTemplateLiteral(expression)) ? expression.text : raw;
 }
 
 /** The registration functions a callee names: `it`/`test` register a case, `describe`/`suite` a suite, whichever branch of a conditional selects them. */
@@ -241,7 +249,7 @@ function affected(code: string, line: number, column: number): string[] {
       }
       if (kinds.cases) {
         const title = node.arguments[0];
-        if (title && (ts.isStringLiteral(title) || ts.isNoSubstitutionTemplateLiteral(title))) calls.push({ start, end, title: title.getText(file).slice(1, -1) });
+        if (title && (ts.isStringLiteral(title) || ts.isNoSubstitutionTemplateLiteral(title))) calls.push({ start, end, title: title.text });
       }
     }
     ts.forEachChild(node, collect);
