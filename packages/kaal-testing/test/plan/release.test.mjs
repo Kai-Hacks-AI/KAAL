@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { join, posix, relative, sep } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { sha256 as recordDigest } from "@kaihacksai/kaal-foundation/sha256";
 import { execute } from "@kaihacksai/kaal-hosting";
 
 const PACKAGE = fileURLToPath(new URL("../..", import.meta.url));
@@ -53,7 +54,7 @@ describe("kaal-testing 0.0.1 as a KAAL Package (testing/C35)", () => {
     const unclassified = r.stdout.split("\n").filter(Boolean).filter((l) => {
       const [path, , ...rest] = l.split(":");
       const line = rest.join(":").trim();
-      return !exceptions.some((e) => e.path === path && e.sha256 === sha256(line));
+      return !exceptions.some((e) => e.path === path && e.sha256 === recordDigest(Buffer.from(line, "utf8")));
     });
     assert.deepEqual(unclassified, [], "no module specifier, dependency or workspace entry names kaal-testing by its old name, and every other match is classified");
   });
