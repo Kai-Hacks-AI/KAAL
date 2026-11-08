@@ -87,6 +87,6 @@
     "test/embedded/declarations.test.mjs": "49b2e6c35c8ce51afda0076a2b588641164d3efb9454f7e730ae467f8e52161b",
     "test/embedded/graph.test.mjs": "9d23680c13035349b0060b0197868b061f2fca3079c8a282be1c0f81f15a2e05",
     "test/embedded/structure.test.mjs": "83c1a8d3a2de18133810aba18ba6535ad4e11b6754fcc55d1067c3366063dc25",
-    "test/verify.mjs": "af39e0b2728582705d5a62644a8c7be521ab79dcb235f95191af42b5ce3ceea1"
+    "test/verify.mjs": "8144e1c62ee2060f9947754c4ed2eab19cb6d0661aafcdd7b46702a5a3506aa9"
   }
 }

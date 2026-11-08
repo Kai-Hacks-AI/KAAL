@@ -5,8 +5,7 @@
 // verified (exit 0), failed (1) or cannot verify (2), Testing's unknown. Its last line is the
 // summary, as JSON after PREFIX. It realizes Testing's consumer-verification semantics in Graph's
 // own code, after Guard's, without importing either; it imports nothing from skills/, so a broken
-// runtime cannot mask itself, and uses only Node's built-ins.
-import { createHash } from "node:crypto";
+// runtime cannot mask itself, and uses only Node's built-ins and Foundation's SHA-256.
 import { existsSync, lstatSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve, sep } from "node:path";
@@ -28,7 +27,12 @@ export const PREFIX = "kaal-graph-verification ";
 /** Files npm ships whatever `files` says. */
 const ALWAYS = ["package.json", "README.md", "LICENSE"];
 
-const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
+// KAAL's one SHA-256 is Foundation's (AGENTS.md). If Foundation cannot be loaded, the prerequisites report it as cannot verify and nothing is hashed.
+let foundation = null;
+try {
+  ({ sha256: foundation } = await import("@kaihacksai/kaal-foundation/sha256"));
+} catch {}
+const sha256 = (data) => foundation(typeof data === "string" ? new TextEncoder().encode(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength));
 
 const slash = (p) => p.split(sep).join("/");
 
@@ -188,8 +192,8 @@ export async function main(log = (line) => console.log(line)) {
   // Installed bytes that are not the shipped bytes are failed (graph/F6), and no case is run against them.
   const before = consumer();
   let installed = {};
-  if (pkg) installed = hashes();
-  if (manifest && pkg) {
+  if (pkg && foundation) installed = hashes();
+  if (manifest && pkg && foundation) {
     const expected = manifest.files;
     const differ = Object.keys(expected).filter((f) => f in installed && installed[f] !== expected[f]).sort();
     const absent = Object.keys(expected).filter((f) => !(f in installed)).sort();
@@ -243,7 +247,7 @@ export async function main(log = (line) => console.log(line)) {
     package: { name: pkg?.name ?? null, version: pkg?.version ?? null, location: PACKAGE },
     platform: process.platform,
     node: process.versions.node,
-    digest: pkg ? digest(installed) : null,
+    digest: pkg && foundation ? digest(installed) : null,
     cases: cases.map(({ name, outcome }) => ({ name, outcome })),
   };
   log(`${PREFIX}${JSON.stringify(summary)}`);
