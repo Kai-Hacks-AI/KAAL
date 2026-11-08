@@ -70,6 +70,19 @@ const NONCE = globalThis.crypto.randomUUID().slice(0, 8);
 export const hostId = () => `${process.pid}-${NONCE}-${++installations}`;
 
 /**
+ * Of `names`, those this run packed. A scenario that installs a package
+ * which declares a dependency on another package of this repository names that
+ * dependency here, so the host holds the packed bytes whenever the run packed
+ * it and the registry's copy only when it did not.
+ */
+export async function packed(names) {
+  const run = process.env[RUN];
+  if (!run) throw new Error(`acceptance scenarios run through kaal-testing/acceptance's accept(), which sets ${RUN}`);
+  const manifest = JSON.parse((await readFile(join(run, "manifest.json"))).toString("utf8"));
+  return names.filter((name) => Object.hasOwn(manifest, name));
+}
+
+/**
  * Install the run's packed tarballs of `names` into a fresh host of this
  * scenario's own, and record what was consumed. Each tarball is checked to
  * still hold the bytes the manifest records before it is installed. Resolves

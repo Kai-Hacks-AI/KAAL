@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { accept, discover, findings, integrity, sha256 } from "kaal-testing/acceptance";
+import { accept, discover, findings, integrity, packed as packedOf, sha256 } from "kaal-testing/acceptance";
 
 const LIB = pathToFileURL(fileURLToPath(new URL("../lib/acceptance.mjs", import.meta.url))).href;
 
@@ -120,6 +120,20 @@ describe("running acceptance", () => {
       result.findings.map((f) => f.kind),
       ["unknown", "unknown"],
     );
+  });
+
+  it("names, of the packages a scenario would consume, those this run packed, so a packed dependency is never taken from the registry", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "kaal-testing-acceptance-"));
+    writeFileSync(join(dir, "manifest.json"), JSON.stringify({ one: {}, two: {} }));
+    const before = process.env.KAAL_ACCEPTANCE_RUN;
+    process.env.KAAL_ACCEPTANCE_RUN = dir;
+    try {
+      assert.deepEqual(await packedOf(["one", "three", "two"]), ["one", "two"]);
+      assert.deepEqual(await packedOf(["three"]), []);
+    } finally {
+      if (before === undefined) delete process.env.KAAL_ACCEPTANCE_RUN;
+      else process.env.KAAL_ACCEPTANCE_RUN = before;
+    }
   });
 
   it("refuses to install a tarball whose bytes changed after packing, and the failed run is a verified failure", async () => {
