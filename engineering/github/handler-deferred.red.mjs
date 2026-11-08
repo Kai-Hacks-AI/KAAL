@@ -15,7 +15,7 @@
 // They show the handler's judgment, not GitHub's behaviour; the live proof is Case 6. Do not edit a Case to make it pass.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
@@ -63,7 +63,7 @@ function scenario({ files, carry = true, tamper } = {}) {
   git(dir, ["clone", "-q", origin, work]);
   git(work, ["config", "user.email", "t@example.com"]); git(work, ["config", "user.name", "t"]);
   const put = (path, body) => { mkdirSync(dirname(join(work, path)), { recursive: true }); writeFileSync(join(work, path), body); };
-  for (const p of ["engineering/change-isolation/check.mjs", "engineering/change-isolation/attestation.mjs", "packages/kaal-foundation/lib/sha256.mjs"]) {
+  for (const p of ["engineering/change-isolation/check.mjs", "engineering/change-isolation/attestation.mjs", ["packages/kaal-foundation/05-src/skills/kaal-foundation/scripts/sha256.mjs", "packages/kaal-foundation/lib/sha256.mjs"].find((q) => existsSync(join(ROOT, q)))]) {
     mkdirSync(dirname(join(work, p)), { recursive: true }); cpSync(join(ROOT, p), join(work, p));
   }
   put(LEDGER, doc([])); put("packages/kaal-core/x.txt", "before\n");
