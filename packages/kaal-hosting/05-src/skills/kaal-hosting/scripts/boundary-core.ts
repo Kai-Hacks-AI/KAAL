@@ -227,11 +227,23 @@ function registers(callee: ts.Expression): { cases: boolean; suites: boolean } {
 function affected(code: string, line: number, column: number): string[] {
   const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const at = code.split("\n").slice(0, line - 1).reduce((n, text) => n + text.length + 1, 0) + column - 1;
-  const calls: { start: number; end: number; title: string }[] = [];
+  const calls: { start: number; end: number; title: string; via?: number }[] = [];
   const suites: { start: number; end: number; body: number }[] = [];
+  // A registration function bound to a local name (`const run = cond ? it.skip : it`): every call of the name registers
+  // like the function it was bound to, and a finding inside the binding governs all of them (hosting/D16).
+  const bound: { name: string; kinds: { cases: boolean; suites: boolean }; start: number; end: number }[] = [];
+  const binds = (node: ts.Node): void => {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
+      const kinds = registers(node.initializer);
+      if (kinds.cases || kinds.suites) bound.push({ name: node.name.text, kinds, start: node.initializer.getStart(file), end: node.initializer.getEnd() });
+    }
+    ts.forEachChild(node, binds);
+  };
+  binds(file);
   const collect = (node: ts.Node): void => {
     if (ts.isCallExpression(node)) {
-      const kinds = registers(node.expression);
+      const through = ts.isIdentifier(node.expression) ? bound.findIndex((b) => b.name === (node.expression as ts.Identifier).text) : -1;
+      const kinds = through >= 0 ? bound[through].kinds : registers(node.expression);
       const start = node.getStart(file);
       const end = node.getEnd();
       if (kinds.suites) {
@@ -241,7 +253,7 @@ function affected(code: string, line: number, column: number): string[] {
       }
       if (kinds.cases) {
         const title = node.arguments[0];
-        if (title && (ts.isStringLiteral(title) || ts.isNoSubstitutionTemplateLiteral(title))) calls.push({ start, end, title: title.getText(file).slice(1, -1) });
+        if (title && (ts.isStringLiteral(title) || ts.isNoSubstitutionTemplateLiteral(title))) calls.push({ start, end, title: title.getText(file).slice(1, -1), via: through >= 0 ? through : undefined });
       }
     }
     ts.forEachChild(node, collect);
@@ -251,6 +263,10 @@ function affected(code: string, line: number, column: number): string[] {
   const result = new Set<string>();
   const containing = calls.filter((call) => call.start <= at && at < call.end).sort((a, b) => (a.end - a.start) - (b.end - b.start));
   if (containing.length) result.add(containing[0].title);
+  // A finding in the binding of a registration function governs every case registered through that name.
+  bound.forEach((b, index) => {
+    if (at >= b.start && at < b.end) for (const call of calls) if (call.via === index) result.add(call.title);
+  });
   // A finding in a suite's selector or options, before its body, governs every case the suite encloses.
   for (const suite of suites) {
     if (at < suite.start || at >= suite.body) continue;
