@@ -11,7 +11,7 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1030 at 68
   "expected": "A platform finding that governs a suite registration (a skip option that queries the platform, or a conditional that picks the suite function) challenges every case the suite encloses, because none of them is registered on the excluded host (hosting/F29, hosting/F40).",
   "observed": "`describe(\"suite\", { skip: process.platform === \"win32\" }, () => { it(\"child\", ...) })` and `(process.platform === \"win32\" ? describe.skip : describe)(\"suite\", ...)` leave portability().challenged empty. The same skip written on an `it` challenges that case.",
   "where": "packages/kaal-hosting/05-src/skills/kaal-hosting/scripts/boundary-core.ts, affected (it recognises only it/test registrations)",
-  "status": "open",
+  "status": "answered",
   "tests": ["hosting/T227", "hosting/T228", "hosting/T229"]
 }
 ```
@@ -24,4 +24,6 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1030 at 68
 | hosting/T230 | control, passes before and after: a sibling case outside the suite is not challenged | same file |
 | hosting/T231 | control, passes before and after: a suite with no platform condition challenges nothing | same file |
 
-**Confirming Run (8 Nov, Node 24, Linux, 68d5b28):** T227, T228 and T229 fail; T230 and T231 pass. The fix is a separate Change; the Cases are not edited.
+**Confirming Run (8 Nov, Node 24, Linux, 68d5b28):** T227, T228 and T229 fail; T230 and T231 pass. The Cases are not edited by the fix.
+
+**Answering Run (8 Nov, Node 24, Linux, with the fix in `boundary-core.ts`, `affected`):** all five pass, and `npm run test:publisher` passes (204 pass, 3 skipped, 0 fail; then 5 and 9 pass), including the frozen mutation challenges for `affected`. The fix keeps suites apart from cases: a finding in a `describe`/`suite` selector or options, before its body, challenges every case the suite encloses; a finding inside a case body still challenges only that case.
