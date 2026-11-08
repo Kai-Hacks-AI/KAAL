@@ -19,12 +19,17 @@
     "kaal-graph": "skills/kaal-graph/scripts/graph.mjs"
   },
   "files": [
+    "docs",
     "payload",
-    "skills"
+    "skills",
+    "test/embedded",
+    "test/verify.json",
+    "test/verify.mjs"
   ],
   "scripts": {
-    "pretest": "npm run build -w @kaihacksai/kaal-hosting",
-    "test": "node --test test/graph.test.mjs test/ownership.test.mjs test/structure.test.mjs test/declarations.test.mjs test/plan/cycles.test.mjs test/plan/composition.test.mjs"
+    "test": "node test/verify.mjs",
+    "test:publisher": "node --test \"test/publisher/*.test.mjs\" && node --test --test-name-pattern=\"^graph/T(8|9|1[024-5]) \" test/plan/release.test.mjs && node test/verify.mjs",
+    "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {
     "node": ">=24"
@@ -37,5 +42,13 @@
   "devDependencies": {
     "kaal-engineer-skill": "0.0.1",
     "kaal-testing": "0.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kai-Hacks-AI/KAAL.git",
+    "directory": "packages/kaal-graph"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

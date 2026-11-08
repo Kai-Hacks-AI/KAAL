@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const SCRIPTS = fileURLToPath(new URL("../skills/kaal-graph/scripts/", import.meta.url));
+const SCRIPTS = fileURLToPath(new URL("../../skills/kaal-graph/scripts/", import.meta.url));
 const text = (f) => readFileSync(`${SCRIPTS}${f}`, "utf8");
 
 /** The values a declaration file exports: functions, classes and non-type names in export lists. */
