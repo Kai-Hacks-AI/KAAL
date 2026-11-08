@@ -12,7 +12,7 @@
 // Each step writes summary.md into --out (publish: next to nothing) for the run's summary.
 import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execute, initialize, readFile } from "kaal-hosting";
+import { execute, initialize, readFile } from "@kaihacksai/kaal-hosting";
 import { integrity, sha256 } from "kaal-testing/acceptance";
 import { pack as packOnce, workspaces as listWorkspaces } from "../delivery/pack.mjs";
 import { EXIT, acceptance, bind, firstSteps, locate, publishable, readiness, record, verification, weakest } from "./release.mjs";
@@ -45,18 +45,23 @@ async function versions(name, cwd, run) {
   return Array.isArray(v) ? v : [v];
 }
 
-/** A fresh consumer in `dir` (missing or empty), with its own HOME and npm cache; installs `spec` and runs the installed npm test. */
+/** A fresh consumer in `dir` (missing or empty), with its own HOME and npm cache beside it (never inside it, or npm's own debug log would read as a change to the consumer); installs `spec` and runs the installed npm test. */
 async function consume(name, spec, dir, run) {
   await initialize(dir, { "package.json": json({ name: "kaal-release-consumer", version: "0.0.0", private: true }) });
-  const env = { HOME: join(dir, ".home"), USERPROFILE: join(dir, ".home"), npm_config_cache: join(dir, ".cache") };
+  const home = `${dir}-home`;
+  const env = { HOME: home, USERPROFILE: home, npm_config_cache: `${dir}-cache` };
   const i = await run(["install", spec], dir, env);
   if (i.status !== 0) return { result: "failed", cause: `npm install ${spec} failed: ${i.stderr.trim().split("\n").at(-1)}` };
-  // The cases the installed candidate itself declares, read from its own test/verify.json.
+  // The cases the installed candidate itself declares, read from its own verify.json: in the package
+  // layout's `dist/test/package-check/`, else in the older `test/`.
   let declared;
-  try {
-    declared = JSON.parse((await readFile(join(dir, "node_modules", ...name.split("/"), "test", "verify.json"))).toString("utf8")).cases;
-  } catch {
-    declared = undefined;
+  for (const where of [["dist", "test", "package-check"], ["test"]]) {
+    try {
+      declared = JSON.parse((await readFile(join(dir, "node_modules", ...name.split("/"), ...where, "verify.json"))).toString("utf8")).cases;
+      break;
+    } catch {
+      declared = undefined;
+    }
   }
   const t = await run(["explore", name, "--", "npm", "test"], dir, env);
   return verification(t.stdout, name, { status: t.status, declared });

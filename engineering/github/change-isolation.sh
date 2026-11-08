@@ -7,7 +7,8 @@
 # branch holds it.
 #
 # Facts from Guard: GUARD_HEAD, the candidate commit; GUARD_BASE, the target branch's current tip;
-# GUARD_BASE_REF, the target branch. From KAAL's job: KAAL_DEFAULT, the default branch.
+# GUARD_BASE_REF, the target branch. From KAAL's job: KAAL_DEFAULT, the default branch; optionally KAAL_ATTESTATION=deferred
+# (judge all but the attestation of a carried entry; unset, the check is strict).
 # Exits 0 when the Change conforms, 1 when it does not, 2 when it cannot be judged, 3 when it does not
 # apply (a synchronization already admitted on the default branch).
 set -o pipefail
@@ -39,10 +40,35 @@ if ! git show "$BASE:engineering/change-isolation/check.mjs" > "$T/check.mjs" 2>
   echo "not verified: the target does not hold engineering/change-isolation/check.mjs"
   exit 2
 fi
+# Foundation's one SHA-256, verbatim from the target's tip, beside the checker (the checker digests a carried
+# ledger entry with it, never with node:crypto). A target without it can still judge every change that
+# carries no entry of its own.
+git show "$BASE:packages/kaal-foundation/lib/sha256.mjs" > "$T/kaal-foundation-sha256.mjs" 2>/dev/null \
+  || rm -f "$T/kaal-foundation-sha256.mjs"
 if [ -z "$CHANGE" ]; then
   echo "Synchronization: judging its explicit resolutions only."
   node "$T/check.mjs" < "$T/resolved"
 else
+  # The transition ledger is the target's own, read from its tip. A target without it has no ledger
+  # entry to match and a checker that does not accept the arguments, so it is judged as before.
+  LEDGER=()
+  if git show "$BASE:engineering/change-isolation/transitions.json" > "$T/transitions.json" 2>/dev/null; then
+    LEDGER=(--ledger "$T/transitions.json" --git "$BASE" "$HEAD")
+    # An entry the candidate carries is admitted only with KAAL_ATTESTED (<id>:<sha256>), which only the trusted
+    # review-event handler sets, from an author-independent code-owner approval at this head. Unset, the
+    # candidate's ledger is ignored here and the change is judged by the default rules.
+    if [ -n "$KAAL_ATTESTED" ]; then
+      git show "$HEAD:engineering/change-isolation/transitions.json" > "$T/candidate-transitions.json" 2>/dev/null || {
+        echo "the candidate does not hold the ledger it was attested for"; exit 2; }
+      LEDGER+=(--candidate-ledger "$T/candidate-transitions.json" --attested "$KAAL_ATTESTED")
+    elif [ "$KAAL_ATTESTATION" = deferred ]; then
+      # The pull request job under the two-check design: judge everything except the attestation, which the
+      # separate review check (Change Isolation (review)) judges. Set only by the activation Change.
+      git show "$HEAD:engineering/change-isolation/transitions.json" > "$T/candidate-transitions.json" 2>/dev/null || {
+        echo "the candidate does not hold the ledger"; exit 2; }
+      LEDGER+=(--candidate-ledger "$T/candidate-transitions.json" --attestation deferred)
+    fi
+  fi
   git diff --no-ext-diff --no-relative --no-renames --name-only -z --end-of-options "$CHANGE" \
-    | node "$T/check.mjs"
+    | node "$T/check.mjs" "${LEDGER[@]}"
 fi

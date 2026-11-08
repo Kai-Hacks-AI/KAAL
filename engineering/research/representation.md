@@ -36,10 +36,10 @@ Each human-facing row in §1 would move only through its owner's own Change. Tha
 
 | Artifact | Tests that pin it today |
 | --- | --- |
-| `evidence.kaal.json` | `packages/skills/kaal-testing/test/contracts.test.mjs`, `engineering/contracts/measure.test.mjs` |
+| `evidence.kaal.json` | `packages/kaal-testing/test/contracts.test.mjs`, `engineering/contracts/measure.test.mjs` |
 | `holds.json` | `engineering/github/lineage.test.ts` (holds and `unevidenced`) |
 | `agents.json` | `packages/kaal-core/test/plan/installation.test.mjs` (core/T14), Guard External's `deliver.test.mjs` |
-| `ownership.kaal.json` | `packages/skills/kaal-testing/test/attribution.test.mjs`, `engineering/contracts/measure.test.mjs` |
+| `ownership.kaal.json` | `packages/kaal-testing/test/attribution.test.mjs`, `engineering/contracts/measure.test.mjs` |
 
 ## 3. Machine-only Markdown
 
