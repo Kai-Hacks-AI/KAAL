@@ -5,7 +5,8 @@
 # outer tests, which install the packed package alone into fresh repositories: like Acceptance, they
 # run on every supported OS, Linux in the Guard job, Windows and macOS in Guard (Windows, macOS).
 # The Linux Guard job builds KAAL's workspace first, since guard/T46's file (workspace.test.mjs) needs
-# it; the Windows and macOS jobs install nothing and leave that file out.
+# it; the Windows and macOS jobs install the workspace and build Hosting, which Guard's acceptance harness
+# imports (guard/C142), and leave that file out.
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -104,4 +105,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      # The shipped acceptance harness imports Hosting (guard/C142): install the workspace and build Hosting, as the Linux job does.
+      - run: npm ci
+      - run: npm run build -w @kaihacksai/kaal-hosting
       - run: node --test packages/kaal-guard/test/*.test.mjs packages/kaal-guard/test/unit/*.test.mjs packages/kaal-guard/test/acceptance/*.test.mjs engineering/guard/acceptance/external.test.mjs engineering/guard/acceptance/kaal.test.mjs engineering/guard/acceptance/package.test.mjs
