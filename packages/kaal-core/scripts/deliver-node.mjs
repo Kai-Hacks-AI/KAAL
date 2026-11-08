@@ -21,7 +21,7 @@ const name = Object.keys(core.devDependencies ?? {}).find((n) => /^(@kaihacksai\
 if (!name) throw new Error("kaal-core's devDependencies name no Graph package to deliver Node support from");
 const graph = dirname(createRequire(join(CORE, "package.json")).resolve(`${name}/package.json`));
 const { version } = JSON.parse(readFileSync(join(graph, "package.json"), "utf8"));
-if (version !== core.devDependencies[name]) throw new Error(`kaal-core pins ${name}@${core.devDependencies[name]}, but the workspace holds ${version}`);
+if (!core.devDependencies[name].startsWith("file:") && version !== core.devDependencies[name]) throw new Error(`kaal-core pins ${name}@${core.devDependencies[name]}, but the workspace holds ${version}`);
 
 /** Graph's edges.d.ts, reduced to the statements that declare node.mjs's run-time exports and the types they use. */
 async function select(edges, node) {
