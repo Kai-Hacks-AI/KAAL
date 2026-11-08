@@ -23,7 +23,7 @@
 // trusting a capture. Findings are reported, not gated: the exit status is
 // non-zero only when the mappings cannot be found.
 import { join } from "node:path";
-import { HostingError, execute, kind, readFile, within } from "kaal-hosting";
+import { HostingError, execute, kind, readFile, within } from "@kaihacksai/kaal-hosting";
 import { classify, problems } from "kaal-testing/contracts";
 
 const ROOT = process.cwd();

@@ -4,9 +4,9 @@
 // or refuses the file whose path ends in RACE_PATH with the HostingError code
 // RACE_FAIL; then it asks the real within().
 import { rmSync } from "node:fs";
-import { HostingError, within as asked } from "kaal-hosting";
+import { HostingError, within as asked } from "@kaihacksai/kaal-hosting";
 
-export * from "kaal-hosting";
+export * from "@kaihacksai/kaal-hosting";
 
 const { RACE_VANISH, RACE_PATH, RACE_FAIL } = process.env;
 
