@@ -5184,6 +5184,21 @@
         "packages/kaal-testing/test/boundary.test.mjs": "9e3706e6f90023172f09a52f562dbec861471202",
         "packages/kaal-testing/test/testing.test.mjs": "688c5bdd0e8ce6e3d026a4a160d60675c0291b12"
       }
+    },
+    {
+      "id": "engineering-release-consumer-home-b1-2026-11-08",
+      "paths": [
+        "engineering/release/release.test.mjs",
+        "engineering/release/run.mjs"
+      ],
+      "pre": {
+        "engineering/release/release.test.mjs": "656b64588712e66f88dc1eb790b917e6fdf5212e",
+        "engineering/release/run.mjs": "d5aacfc7c0e3e7a7285f2f5501925a7533627749"
+      },
+      "post": {
+        "engineering/release/release.test.mjs": "cf54979a3db4546e29260f00c3fb5eb3a66cd506",
+        "engineering/release/run.mjs": "d02a083ab00c033cbecd9afc6665d8a9b441a7eb"
+      }
     }
   ]
 }
