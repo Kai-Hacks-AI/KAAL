@@ -14,6 +14,9 @@
       "types": "./lib/isolation.d.ts",
       "default": "./lib/isolation.mjs"
     },
+    "./delivery": "./lib/delivery.mjs",
+    "./lifecycle": "./lib/lifecycle.mjs",
+    "./record": "./lib/record.mjs",
     "./package.json": "./package.json"
   },
   "files": [
@@ -35,7 +38,9 @@
     "manifest": "node test/publisher/manifest.mjs",
     "prepack": "node test/publisher/manifest.mjs",
     "mutations": "node test/publisher/mutations.mjs",
-    "test:package-only": "node test/publisher/package-only.mjs"
+    "test:package-only": "node test/publisher/package-only.mjs",
+    "pretest:collector": "npm run build -w kaal-core",
+    "test:collector": "node --test test/change.test.mjs test/record.test.mjs test/numbering.test.mjs test/lifecycle.test.mjs test/chaos.test.mjs test/classification.test.mjs test/delivery.test.mjs test/plan/delivery.test.mjs"
   },
   "engines": {
     "node": ">=24"

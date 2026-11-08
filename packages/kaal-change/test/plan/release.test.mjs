@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const PACKAGE = fileURLToPath(new URL("../../", import.meta.url));
 const GRAPH = join(PACKAGE, "../kaal-graph");
-const HOSTING = join(PACKAGE, "../../extensions/kaal-hosting");
+const HOSTING = join(PACKAGE, "../kaal-hosting");
 const NAME = "@kaihacksai/kaal-change";
 const PEER = "@kaihacksai/kaal-graph";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));

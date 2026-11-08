@@ -1,10 +1,4 @@
 {
-  "owner": {
-    "kind": "capability",
-    "name": "Change",
-    "id": "2204f5ed5aa675fdbae1047afeb522f17d1c934c9d86f791165e308fd4d55a0b"
-  },
-  "paths": [
-    "packages/kaal-change/"
-  ]
+  "owner": { "kind": "capability", "name": "Change", "id": "5cdac8ea10554bfc247ed1a61818801a748918e6817dd6f3a20823bbb2b97e53" },
+  "paths": ["packages/kaal-change/"]
 }
