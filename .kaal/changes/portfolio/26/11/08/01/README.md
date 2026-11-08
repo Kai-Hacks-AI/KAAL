@@ -14,7 +14,8 @@ The CPO accepted the scope of this PLAN in principle (8 Nov). Evidence and seque
 
 | Capability | Responsibility |
 |---|---|
-| **Portfolio** | Cross-product priorities, dependencies, sequencing and blockers |
+| **Portfolio** | Membership, cross-subject priorities, contention and blockers; it identifies shared dependencies |
+| **Roadmap** | Milestones, dependencies (the one planning meaning of `depends-on`), sequence and checks; usable for any subject, Portfolio included |
 | **Product** | Individual product direction, acceptance and readiness |
 | **Project** | Coordinated delivery toward an objective |
 | **Engineering / Review** | Technical evidence, controls and approval mechanisms |
@@ -24,6 +25,7 @@ Portfolio **consumes existing evidence and creates no second source of truth.** 
 
 Edges kept clean:
 
+- Roadmap keeps the single planning interpretation of `depends-on`, sequencing and milestones. Portfolio may reference Roadmap relationships and identify shared dependencies; it does not redefine them. Roadmap requires none of Product, Project or Portfolio.
 - Product keeps one product's direction, acceptance and readiness. Portfolio does not decide what one product should become; it reads several products' states to order, relate and unblock them.
 - Project keeps governance of related Changes toward one Outcome. Portfolio does not govern Changes. Project's own Program and Portfolio scope text is not changed by this PLAN; how Project's wording relates to Portfolio is a question for the Project thread when it exists (section 8).
 - Engineering and Review keep promotion, publication and approval mechanics. Portfolio may name readiness, promotion and publication as distinct portfolio states with distinct deciders, and cites the owner's evidence for each.
@@ -43,7 +45,7 @@ Edges kept clean:
 | R1 | Every Portfolio concept is traced to an observed release-program workflow. | Each concept names the workflow it serves; a concept without one is removed. |
 | R2 | Portfolio reads existing evidence and owns none of it. | No Portfolio text defines a verifier, trace, Test Case identity or approval; each fact cited names its owner. |
 | R3 | Readiness, promotion and publication are distinct states, each with its own decider and evidence source. | A reader can tell, for one package, which state it is in, who decided it and what evidence supports it. |
-| R4 | Sequencing and blockers are stated as portfolio-level readings of existing dependencies and states. | Each sequencing or blocker statement cites the dependency or state it reads and its owner. |
+| R4 | Cross-subject priorities and blockers are stated as portfolio-level readings of existing dependencies and states; dependency and sequence semantics are Roadmap's. | Each priority or blocker statement cites the dependency or state it reads and its owner; Portfolio defines no `depends-on` of its own. |
 | R5 | Owner decisions that touch several products stay traceable. | A cross-product decision can be found with its Question, chosen Option, Decider and affected products, using Product's Decision Preparation shape. |
 | R6 | The Portfolio, Product and Project boundaries are explicit and non-overlapping. | Each responsibility in section 2 appears under exactly one capability. |
 | R7 | Portfolio, Product and Project each stand alone, and combine as optional enrichment. | Each is usable and accepted without the others; no required dependency is declared. |
@@ -58,7 +60,8 @@ Edges kept clean:
 
 ## 6. Sequencing
 
-1. This PLAN, reviewed by the CPO and Owner.
+0. Roadmap is created as an independent capability and its PLAN precedes Portfolio's implementation (Owner decision, 8 Nov). Creating it is a separate Owner act.
+1. This PLAN, as amended, reviewed by the CPO and Owner.
 2. Once the shared Portfolio contract (sections 2 to 4) is accepted, **Portfolio's implementation and Product's Skill may proceed in parallel**, provided Product does not duplicate Portfolio's responsibilities. Portfolio's complete implementation is not a precondition for Product's Skill.
 3. Project's use of Portfolio comes after Project has a thread, main lineage and its own layout and wording work. It changes an existing contract and needs separate approval.
 
@@ -79,3 +82,7 @@ Markdown only; required checks on this PR.
 ## 10. Validated by
 
 CPO review of product meaning and boundaries; Owner review of the new-capability boundary in section 5.
+
+## 11. Amendment (8 Nov 2026): Roadmap ownership
+
+Owner (Kai) and CPO decided that Roadmap is a separate, independently usable capability (see the strategy model PLAN). This amendment narrows Portfolio: the sections above are edited in place to move sequencing, milestones and the planning meaning of `depends-on` to Roadmap. Portfolio keeps membership, cross-subject priorities, contention and blockers, and identifies shared dependencies by citing Roadmap's type. The earlier "shared base" role for Product and Project therefore narrows to membership, relations and contention. No other part of this PLAN changes; no implementation is authorized.
