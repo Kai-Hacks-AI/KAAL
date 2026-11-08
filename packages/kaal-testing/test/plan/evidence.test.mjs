@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { accept, integrity, sha256 } from "kaal-testing/acceptance";
 import { classify } from "kaal-testing/contracts";
 
@@ -190,7 +190,7 @@ describe("Contract evidence with an observed run (testing/C7)", () => {
 describe("Testing judges what it does not own (testing/C7)", () => {
   it("testing/T13 [testing/N3, testing/A6]: kaal-testing's runtime depends on Hosting only (c8 is an optional, exactly pinned peer: the c8 Defect), and nothing it delivers imports a package it judges", () => {
     const pkg = JSON.parse(readFileSync(new URL("package.json", PACKAGE), "utf8"));
-    assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), ["kaal-hosting"]);
+    assert.deepEqual(Object.keys(pkg.dependencies ?? {}).sort(), ["@kaihacksai/kaal-hosting"]);
     assert.deepEqual(pkg.peerDependencies, { c8: "12.0.0" });
     assert.deepEqual(pkg.peerDependenciesMeta, { c8: { optional: true } });
     assert.deepEqual(Object.keys(pkg.optionalDependencies ?? {}), []);
@@ -199,7 +199,7 @@ describe("Testing judges what it does not own (testing/C7)", () => {
     for (const file of readdirSync(lib).filter((f) => f.endsWith(".mjs"))) {
       const text = readFileSync(new URL(file, lib), "utf8");
       for (const [, name] of text.matchAll(/(?:from\s+|import\s*\(\s*)["']((?:@kaihacksai\/)?kaal-[a-z-]+)/g)) {
-        if (name !== "kaal-hosting") imports.push(`lib/${file}: ${name}`);
+        if (name !== "@kaihacksai/kaal-hosting") imports.push(`lib/${file}: ${name}`);
       }
     }
     assert.deepEqual(imports, [], "Testing's delivered code imports no package it judges");

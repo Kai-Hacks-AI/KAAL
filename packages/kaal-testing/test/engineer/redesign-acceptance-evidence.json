@@ -25,6 +25,6 @@
   "installations": 1,
   "packed": [
     "kaal-testing",
-    "kaal-hosting"
+    "@kaihacksai/kaal-hosting"
   ]
 }

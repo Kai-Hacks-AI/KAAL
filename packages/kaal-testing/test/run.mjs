@@ -53,14 +53,14 @@ else {
   // step; every command after it goes through Hosting.
   let hosting;
   try {
-    hosting = await import("kaal-hosting");
+    hosting = await import("@kaihacksai/kaal-hosting");
   } catch {
     const { spawnSync } = await import("node:child_process");
     const npm = process.env.npm_execpath ? [process.execPath, [process.env.npm_execpath]] : ["npm", []];
-    const built = spawnSync(npm[0], [...npm[1], "run", "--silent", "build", "-w", "kaal-core", "-w", "kaal-hosting"], { cwd: ROOT, stdio: "inherit", shell: !process.env.npm_execpath });
+    const built = spawnSync(npm[0], [...npm[1], "run", "--silent", "build", "-w", "kaal-core"], { cwd: ROOT, stdio: "inherit", shell: !process.env.npm_execpath });
     if (built.status !== 0) unknown("the source workspace's Hosting cannot be built");
     try {
-      hosting = await import("kaal-hosting");
+      hosting = await import("@kaihacksai/kaal-hosting");
     } catch (e) {
       unknown(`Hosting cannot be loaded (${e.code ?? e.message})`);
     }

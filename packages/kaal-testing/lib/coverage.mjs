@@ -4,7 +4,7 @@
 // passes the delivered files in. Hosting realizes the commands and reads.
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execute, kind, readFile } from "kaal-hosting";
+import { execute, kind, readFile } from "@kaihacksai/kaal-hosting";
 
 // c8 is an optional peer of kaal-testing, not a dependency: a consumer that
 // does not measure coverage installs nothing. It is looked up when a run
