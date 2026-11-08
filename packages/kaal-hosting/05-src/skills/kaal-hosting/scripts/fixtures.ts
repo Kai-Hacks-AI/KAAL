@@ -5,7 +5,7 @@
 import { lstatSync, mkdtempSync, rmSync } from "node:fs";
 import { createServer, type Server } from "node:net";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { execute } from "./index.js";
 
 /** A host fact a case may need, named without any platform. */
@@ -70,8 +70,10 @@ const closing = (server: Server) => (): Promise<void> => new Promise((done) => s
  * when either cannot be. Returns the fixture, or the reason it could not be made.
  */
 async function attempt(dir: string): Promise<SpecialEntries | { failed: string }> {
-  const fifo = join(dir, "fifo");
-  const socket = join(dir, "socket");
+  // `mkfifo` runs in the temporary directory, so a relative `dir` is resolved here, against this process's
+  // working directory, and handed to it as an absolute path (hosting/D17).
+  const fifo = join(resolve(dir), "fifo");
+  const socket = join(resolve(dir), "socket");
   // These names belong to the caller until this attempt creates them. In
   // particular, a failed mkfifo/listen is never authority to unlink them.
   for (const path of [fifo, socket]) if (look(path)) return { failed: `${path} already exists` };
