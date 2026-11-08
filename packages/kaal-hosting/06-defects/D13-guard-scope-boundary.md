@@ -32,3 +32,4 @@ Codex review of the fix found these shapes, which stay open and are not claimed 
 
 - A returning guard inside a `try` also challenges registrations in that `try`'s `catch` handler, which a return does not enter (Codex on #1176, `catch { it(...) }`).
 - A `process.exit()` ends the process, so every registration after it in the module is skipped; the range stops at the function the exit is in, because an exit in a function that is never called must not challenge module-level cases without knowing whether the function runs.
+- A guard in a `switch` clause that ends with `break` also challenges registrations in the later, mutually exclusive clauses; the sibling exclusion handles `if` statements only (Codex on #1176).
