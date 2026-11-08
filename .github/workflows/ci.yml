@@ -7,6 +7,8 @@
 # The Linux Guard job builds KAAL's workspace first, since guard/T46's file (workspace.test.mjs) needs
 # it; the Windows and macOS jobs install the workspace and build Hosting, which Guard's acceptance harness
 # imports (guard/C142), and leave that file out.
+# The Windows job also puts its temporary directory on the runner's temp (the D: drive), not C:, which is far slower for the
+# many small files its outer tests create (guard/C142).
 # Hosting is KAAL's host boundary: its conformance suite runs on every
 # supported OS. Acceptance, a fresh install of the packed packages, also runs
 # on every supported OS: Linux in the lanes below, Windows and macOS here.
@@ -105,6 +107,15 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      # On the Windows runner the default temporary directory is on the C: drive, which is about seven times slower
+      # for many small files than the D: drive that holds the workspace and the runner's temp directory. Guard's
+      # outer tests create their scratch repositories and installs there: put them on the runner's temp (guard/C142).
+      - if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "TEMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
+          echo "TMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
+          echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"
       # The shipped acceptance harness imports Hosting (guard/C142): install the workspace and build Hosting, as the Linux job does.
       - run: npm ci
       - run: npm run build -w @kaihacksai/kaal-hosting
