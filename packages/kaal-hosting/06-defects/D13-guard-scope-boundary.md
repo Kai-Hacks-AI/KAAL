@@ -11,7 +11,7 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1174 at c2
   "expected": "A platform guard that returns from the function a case is registered in challenges every case registered after it in that function, however deeply the guard sits in blocks inside it, because none of them is registered on the guarded host (hosting/F29, hosting/F40).",
   "observed": "`describe(\"suite\", () => { try { if (process.platform === \"win32\") return; } catch {} it(\"after\", () => {}); })` leaves portability().challenged empty: the guard's range ends at the closing brace of the try block, not at the end of the suite callback, which the return actually leaves.",
   "where": "packages/kaal-hosting/05-src/skills/kaal-hosting/scripts/boundary-core.ts, affected (the enclosing block of a leaving guard)",
-  "status": "open",
+  "status": "answered",
   "tests": ["hosting/T243", "hosting/T244"]
 }
 ```
@@ -23,4 +23,4 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1174 at c2
 | hosting/T243, hosting/T244 | RED on 4d80a07: the guard in a try block, in a bare block | [guard-scope.red.mjs](guard-scope.red.mjs) |
 | hosting/T245 | control, passes before and after: a guard in a block inside a case callback leaves only that case | same file |
 
-**Confirming Run (8 Nov, Node 24, Linux, 4d80a07, the collector head carrying the D12 fix):** T243 and T244 fail; T245 passes. The fix is a separate Change; the Cases are not edited.
+**Confirming Run (8 Nov, Node 24, Linux, 4d80a07, the collector head carrying the D12 fix):** T243 and T244 fail; T245 passes. The fix is a separate Change; the Cases are not edited. **Answered:** the Cases pass unmodified with the fix: the range of a leaving guard ends at the function it leaves (an enclosing try with a catch handler excepted for throws), and `leavesScope` now also classifies throwing and exiting guards (`couplings.ts`).

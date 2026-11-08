@@ -214,7 +214,7 @@ function classify(code: string, at: number, parens: [number, number][], braces: 
       body = rest(code, k);
       controlled = true;
     }
-    if (REGISTRATION.test(body) || returnsFromBranch(body, controlled)) return "registration";
+    if (REGISTRATION.test(body) || returnsFromBranch(body, controlled) || leavesScope(controlled ? firstStatement(maskLiterals(body)) : body)) return "registration";
     if (/\bassert\b|\bexpect\s*\(/.test(body)) return "dilution";
     return "setup";
   }
@@ -328,6 +328,26 @@ function returnsFromBranch(text: string, unbraced = false): boolean {
   }
   return /(?<![\w$])(?<!\.\s*)return\b(?!\s*:)/.test(chars.join(""));
 }
+
+/** Whether a statement leaves the scope it is in: a return, an uncaught throw or `process.exit()`, outside nested functions (hosting/D12, hosting/D14). `caughtAround`: an enclosing try with a catch handles a throw. */
+export function leavesScope(text: string, caughtAround = false): boolean {
+  const file = ts.createSourceFile("guard.ts", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const visit = (node: ts.Node, caught: boolean): boolean => {
+    if (ts.isFunctionLike(node) || ts.isClassLike(node)) return false;
+    if (ts.isReturnStatement(node)) return true;
+    if (ts.isThrowStatement(node) && !caught) return true;
+    if (ts.isCallExpression(node) && /^process\s*\.\s*exit$/.test(node.expression.getText(file))) return true;
+    if (ts.isTryStatement(node)) {
+      const inTry = visit(node.tryBlock, caught || node.catchClause !== undefined);
+      const inCatch = node.catchClause ? visit(node.catchClause.block, caught) : false;
+      const inFinally = node.finallyBlock ? visit(node.finallyBlock, caught) : false;
+      return inTry || inCatch || inFinally;
+    }
+    return ts.forEachChild(node, (child) => visit(child, caught) || undefined) ?? false;
+  };
+  return visit(file, caughtAround);
+}
+
 
 interface Raw {
   index: number;
