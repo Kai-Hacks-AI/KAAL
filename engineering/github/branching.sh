@@ -6,7 +6,9 @@
 #
 # Facts from Guard: GUARD_HEAD, the candidate commit; GUARD_BASE_REF, the target branch. From KAAL's
 # job: KAAL_DEFAULT, the default branch; KAAL_HEAD_REF, the source branch; KAAL_AUTO_MERGE, the
-# auto-merge method, if any. The job's checkout holds the remote branches.
+# auto-merge method, if any, and optionally KAAL_RULES, the trusted rules/branches/<target> response:
+# under a merge queue GitHub reports the method as "merge" whatever was asked, so the queue's configured
+# method decides (absent, the reported method stands). The job's checkout holds the remote branches.
 # Judges the proposed result (freshness into the default branch, synchronization into a collector),
 # then the merge method. Exits 1 on a fail, 2 when either cannot be judged, 3 when neither applies,
 # else 0.
@@ -33,7 +35,7 @@ case $RC in
 esac
 FIRST=$RC
 RC=0; node "$LINEAGE" auto-merge "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" \
-  "refs/remotes/origin/$BASE_REF" "$HEAD" "${KAAL_AUTO_MERGE:-none}" > "$T/method" 2>&1 || RC=$?
+  "refs/remotes/origin/$BASE_REF" "$HEAD" "${KAAL_AUTO_MERGE:-none}" ${KAAL_RULES:+"$KAAL_RULES"} > "$T/method" 2>&1 || RC=$?
 [ -n "$GITHUB_STEP_SUMMARY" ] && cat "$T/method" >> "$GITHUB_STEP_SUMMARY"
 case $RC in
   0) cat "$T/method" ;;
