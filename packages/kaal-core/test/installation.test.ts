@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import { realize } from "kaal-core/agent";
+import { installationConformance } from "kaal-core/conformance";
 import { checkContract, installationFormat } from "kaal-core/installation";
 import { evaluate, foundation, payload } from "kaal-core";
 
@@ -77,5 +78,37 @@ describe("kaal-core/agent", () => {
     const files = { "SKILL.md": Buffer.from("---\nname: s\n---\n\n## Description\n\nD.\n") };
     for (const skills of [[{ name: "s", files: { ...files, "AGENTS.md": Buffer.from("x") } }], [{ name: "s", files: { ...files, "docs/CLAUDE.md": Buffer.from("x") } }], [{ name: "../s", files }], [{ name: "s", files: { ...files, "../x.md": Buffer.from("x") } }], [{ name: "s", files }, { name: "s", files }]])
       assert.throws(() => realize({ skills, providers: [], record: {}, present: {} }), TypeError);
+  });
+});
+
+describe("kaal-core/conformance", () => {
+  const contract = {
+    format: installationFormat(),
+    capability: "elsewhere",
+    version: "1.0.0",
+    assets: [
+      { name: "docs", source: "docs", target: "elsewhere", kind: "directory" },
+      { name: "probe", source: "probe.md", target: "conformance-probe-0/conformance-probe.md", kind: "file" },
+    ],
+    catalogue: { "elsewhere/guide.md": ["a".repeat(64)], "conformance-probe-0/conformance-probe.md": ["b".repeat(64)] },
+    record: ".kaal/state/elsewhere/installation.json",
+    runtime: { node: 24 },
+    provides: [],
+  };
+
+  it("probes the catalogue with a path no asset owns, whatever targets the instance declares", () => {
+    assert.deepEqual(checkContract(contract), []);
+    assert.deepEqual(installationConformance(contract).map((r) => [r.id, r.holds, r.failures]), [
+      ["core/T10", true, []],
+      ["core/T11", true, []],
+      ["core/T12", true, []],
+      ["core/T13", true, []],
+    ]);
+  });
+
+  it("fails core/T12 under a check that accepts invalid digests, with every other catalogue entry kept", () => {
+    const lax = (c: unknown) => checkContract(c).filter((f) => f.rule !== "sha256");
+    const t12 = installationConformance(contract, lax).find((r) => r.id === "core/T12");
+    assert.deepEqual(t12, { id: "core/T12", holds: false, failures: ["catalogue digest: not refused"] });
   });
 });

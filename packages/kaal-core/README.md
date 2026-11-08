@@ -2,18 +2,37 @@
 
 KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Capabilities, Agents, Skills and Extensions by one mechanism, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
-Core depends on no Git host and no agent provider. It has two runtime dependencies, and neither depends on Core. `kaal-graph` owns the general Node mechanics Core uses: a Node's Form and identity, and finding Nodes by id, name and type. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
+Core depends on no Git host and no agent provider. Its KAAL runtime dependencies are `@kaihacksai/kaal-foundation`, for SHA-256, and `@kaihacksai/kaal-hosting`, and neither depends on Core. Core installs and works without `kaal-graph`. A Node's Form and identity are Graph's contract, and Core delivers Graph's own `form.mjs` and `node.mjs` inside the package, byte for byte, in `dist/node/`. `dist/node/provenance.json` names the Graph version they came from and each file's SHA-256. Graph's navigation and analysis are not part of Core; install `kaal-graph` beside Core for them. `@kaihacksai/kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
+
+## Release status
+
+kaal-core is not released. Its version is 0.0.1, and that version is not published on npm or anywhere else. Its interfaces and the bytes of its foundational Nodes can still change without an upgrade path. Core's releases are separate from those of other KAAL packages: `@kaihacksai/kaal-guard` is published on its own and does not depend on kaal-core, so a Guard release says nothing about Core's.
+
+## Documents
+
+The package ships its own documents in `docs/`:
+
+- [Intent](docs/intent.md): why kaal-core exists and what it must achieve.
+- [Requirements](docs/requirements.md): what it must do, one line for each `core/…` Requirement.
+- [Architecture](docs/architecture.md): its modules, entry points, payload and dependencies.
+- [Limitations](docs/limitations.md): what 0.0.1 does not do, and what its tests cannot show.
+- [Operations](docs/operations.md): supported platforms, installation, use, verification and removal.
+- [Testing](docs/testing.md): the delivered tests, the publisher's tests, and coverage.
 
 ## Install and bootstrap
 
+kaal-core publishes under the scoped name `@kaihacksai/kaal-core` (core/F74). Always name the scoped package, and run its command by its path inside the scoped package, so no other package's `kaal` can stand in for it. Never run `npm install kaal-core` or `npx kaal`.
+
 ```sh
-npm install kaal-core
-npx kaal init      # materializes ./.kaal/ from the package payload (or: --engine <dir>)
-npx kaal verify    # checks the Kernel and the six foundational Nodes by identity
-npx kaal version   # the kaal-core that runs, and the version that installed ./.kaal
-npx kaal upgrade   # bring ./.kaal to this kaal-core
-npx kaal remove    # remove Core's installation, keeping what is not Core's
+npm install @kaihacksai/kaal-core
+node node_modules/@kaihacksai/kaal-core/dist/cli.js init    # materializes ./.kaal/ from the package payload (or: --engine <dir>)
+node node_modules/@kaihacksai/kaal-core/dist/cli.js verify  # checks the Kernel and the six foundational Nodes by identity
+node node_modules/@kaihacksai/kaal-core/dist/cli.js version # the kaal-core that runs, and the version that installed ./.kaal
+node node_modules/@kaihacksai/kaal-core/dist/cli.js upgrade # bring ./.kaal to this kaal-core
+node node_modules/@kaihacksai/kaal-core/dist/cli.js remove  # remove Core's installation, keeping what is not Core's
 ```
+
+Until 0.0.1 is published under that name, install kaal-core only from packed tarballs, never by name: in a KAAL checkout, `npm ci && npm run build -w kaal-core`, then `npm pack` kaal-core and its KAAL runtime dependencies, and `npm install` those tarballs in your repository. Such an installation sits in `node_modules/kaal-core`, under its current name, so run it as `node node_modules/kaal-core/dist/cli.js <command>` and verify it with `npm explore kaal-core -- npm test` until the rename ([Operations](docs/operations.md)).
 
 Installing the package writes nothing into your repository. `kaal init` does, and only when you run it.
 
@@ -102,16 +121,15 @@ A contribution is a directory of Nodes of one kind (capability, agent, skill or 
 
 ## API
 
-Functions that read or write an Engine go through Hosting and return promises; `evaluate`, `payload` and `foundation` are pure and synchronous. An Engine is what admission found, `{ nodes, rejected }`: looking its Nodes up, and reading a Node's identity, are Graph's (`kaal-graph`).
+Functions that read or write an Engine go through Hosting and return promises; `evaluate`, `payload` and `foundation` are pure and synchronous. An Engine is what admission found, `{ nodes, rejected }`. A Node's identity is read with Graph's `identify`, delivered inside Core. Looking Nodes up by Edge, and navigating them, are Graph's: hold `engine.nodes` in a `kaal-graph` Graph when Graph is installed.
 
 ```js
 import { bootstrap, verify, loadEngine, register, registerSkill, registerExtension, catalog, payload, foundation, exportPayload } from "kaal-core";
-import { Graph } from "kaal-graph";
 
 await bootstrap(".kaal");
 (await verify(".kaal")).ok;                          // true
 const engine = await loadEngine(".kaal");            // { nodes, rejected }
-new Graph(engine.nodes).resolve(foundation().skill); // the KAAL Skill Node
+engine.nodes.find((n) => n.id === foundation().skill.id); // the KAAL Skill Node
 await registerSkill(".kaal", "greeting", { "Greeting.md": bytes });
 await register(".kaal", "capability", "greeting", { "Greeting-People.md": bytes });
 await catalog(".kaal");                              // { capabilities: [{ name, id }], agents, skills, extensions }
@@ -134,7 +152,7 @@ The state depends only on the admitted Nodes, the artifact's frontmatter and the
 
 ### Frontmatter
 
-`kaal-core/frontmatter` validates the YAML frontmatter of KAAL's collaborative Markdown artifacts, deterministically and from the frontmatter alone: the body never changes the result. Each Capability owns its Types and their schemas and supplies them as a mapping from Type name, `<Capability>/<Type>`, to schema. A schema lists every key the Type allows, each with one value kind (`id`, `name`, `enum`, `ref`, `path`, `boolean`, `number` or `parameter`), optionally as a list or required; there is no free-text kind, prose keys such as `description` are refused, and `type`, which names the artifact's Type, is never declared. Reading the YAML is Graph's (`kaal-graph/form`). The module is pure, and imports no host module.
+`kaal-core/frontmatter` validates the YAML frontmatter of KAAL's collaborative Markdown artifacts, deterministically and from the frontmatter alone: the body never changes the result. Each Capability owns its Types and their schemas and supplies them as a mapping from Type name, `<Capability>/<Type>`, to schema. A schema lists every key the Type allows, each with one value kind (`id`, `name`, `enum`, `ref`, `path`, `boolean`, `number` or `parameter`), optionally as a list or required. Structured values nest declarations: a `record` is a closed mapping of declared `fields`, a `map` has keys matching a `parameter` declaration (`key`) and values matching `of`, and an `either` conforms when any of its two or more alternatives (`of`) does; `required` applies to a top-level key or a record field. A finding inside a structured value carries `at`, a JSON Pointer (RFC 6901) to where it is, and flat findings carry none; there is no free-text kind, prose keys such as `description` are refused, and `type`, which names the artifact's Type, is never declared. Reading the YAML is Graph's (its `form.mjs`, delivered inside Core). The module is pure, and imports no host module.
 
 ```js
 import { checkSchema, validate } from "kaal-core/frontmatter";
@@ -160,6 +178,37 @@ checkContract({ format: installationFormat(), capability: "sample", version: "0.
 ```
 
 An asset marked with a `surface`, such as `hook`, is installed only when a consumer opts in, by the Capability's own command; Core never realizes it. The record a contract names maps each file the Capability owns to its `sha256` and `version`, and any other member is the Capability's. `checkRecord(record)` returns its findings, and `register({ contract, record, written })` returns the record once the files Core wrote are registered: only asset files Core wrote, with the contract's version, keeping every other entry and member.
+
+### Installation Contract Conformance
+
+`kaal-core/conformance` offers Core's own Test Cases for the Installation Contract, core/T10 to core/T13, as reusable cases over any contract instance. `installationConformance(instance)` checks that the instance conforms, then that `checkContract` refuses each of the cases' mutations of it: unknown and missing members, wrong types, unsafe targets, catalogue entries that name no asset, and Skills provided at another location. It returns one result per case, and a test runner wraps each in a test of its own. A mutation that cannot be applied to the instance is a failure, never a pass. The module registers no test, imports no test harness, and nothing in Core's runtime loads it.
+
+```js
+import { installationConformance } from "kaal-core/conformance";
+
+installationConformance(contract);
+// [{ id: "core/T10", holds: true, failures: [] }, { id: "core/T11", ... }, { id: "core/T12", ... }, { id: "core/T13", ... }]
+```
+
+### Registration
+
+`kaal-core/registration` assembles registrations: each holder's statement of the scope it claims, the kinds it defines there with their outgoing rules, and the instances it holds with their outgoing traces. A registration is a typed artifact of Core's Type `Core/Registration` (`REGISTRATION_TYPE`), and `verify` always validates it against `REGISTRATION_SCHEMA`. `assemble(registrations)` is pure. It reads scopes, identities and kind names as opaque text, and returns:
+- the scope claims, the kinds qualified by their owner's scope, and the instances;
+- the findings, which are Core's global verdict: scope collisions, identities stated twice, unknown kinds with their candidates, rules naming an unknown kind, unresolved or unclaimed targets, traces the source kind's rule does not permit, and stated incoming traces;
+- the untraced instances, and the terms several owners define, reported unaligned;
+- `outgoing(scope, id)`.
+
+Graph's analysis (`reach`, `incoming` and observed `cycles`) is an optional complement. kaal-core does not use it yet, so those views are `null`, meaning unavailable, never empty. `verify` and `kaal verify` assemble the registrations an Engine holds and fail on a finding, never on a cycle, an untraced instance, a shared term or Graph's absence. Core's Type Definition for registrations, `Core/Registration`, sits beside the Core Capability Node in the KAAL repository; it does not ship in this package.
+
+```js
+import { assemble } from "kaal-core/registration";
+
+const r = assemble([
+  { holder: "kaal-requirements", scope: "requirements", kinds: { F: { traces: [] } } },
+  { holder: "acme-product", scope: "acme", instances: [{ id: "REQ-001", kind: { scope: "requirements", kind: "F" }, traces: [] }] },
+]);
+// r.findings: [], r.untraced: [{ scope: "acme", id: "REQ-001" }], r.cycles: null
+```
 
 ### Agent Realization
 
@@ -213,7 +262,7 @@ Core is a Capability of its own. `capability/Core.md` is its Node, typed by `KAA
 
 It owns none of the domain semantics of Intent, Requirements, Architecture, Code, Testing or Operating. `ownership.kaal.json` claims `packages/kaal-core/` for that Node, in the claim format Testing reads. Both files are repository data, not delivered.
 
-Core depends on no discipline. Its only KAAL dependencies are `kaal-graph` and `kaal-hosting`. Its interface is what `exports` lists and the `kaal` command, each named in this README, and nothing else resolves.
+Core depends on no discipline. Its only KAAL runtime dependencies are `@kaihacksai/kaal-foundation` and `@kaihacksai/kaal-hosting`; `kaal-graph` is used only to build it. Its interface is what `exports` lists and the `kaal` command, each named in this README, and nothing else resolves.
 
 ## License
 

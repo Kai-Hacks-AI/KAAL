@@ -4,12 +4,12 @@
 // reconciliation, so a precondition that fails leaves the repository unchanged.
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { kind, read, readFile, reconcile, type Leftover, type Removal, type Write } from "kaal-hosting";
+import { kind, read, readFile, reconcile, type Leftover, type Removal, type Write } from "@kaihacksai/kaal-hosting";
 import { declaration, realize, type Contracted, type Digests, type Plan, type SkillSource } from "./agent.js";
 import { checkContract, checkRecord, register, type InstallationRecord } from "./installation.js";
 import { KaalError } from "./node.js";
 import { describe, optional, parse, readRecord } from "./records.js";
-import { sha256 } from "./sha256.js";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 /** Where Core keeps its own record of the provider deployments it made (core/F18). */
 export const record = ".kaal/state/core/installation.json";

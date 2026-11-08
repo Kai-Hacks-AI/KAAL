@@ -5,14 +5,14 @@
 // nothing (core/N12). Every step acts on the Engine at `./.kaal` of `root` (core/F46).
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { kind, read, readFile, reconcile, type Expectation, type Reconciliation, type Removal, type Write } from "kaal-hosting";
+import { kind, read, readFile, reconcile, type Expectation, type Reconciliation, type Removal, type Write } from "@kaihacksai/kaal-hosting";
 import { bootstrapWith, check } from "./bootstrap.js";
 import { checkContract, register, type InstallationRecord, type RecordEntry } from "./installation.js";
 import { KaalError } from "./node.js";
 import { payload } from "./payload.js";
 import { record as RECORD } from "./realization.js";
 import { readRecord } from "./records.js";
-import { sha256 } from "./sha256.js";
+import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
 /** The Engine directory Core's contract installs into, relative to the repository root. */
 export const ENGINE = ".kaal";
