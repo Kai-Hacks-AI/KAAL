@@ -25,3 +25,10 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1174 at c2
 | hosting/T249 to hosting/T254 | controls, added with the fix after Codex review: a caught throw skips the registrations to the end of its try block and no further; a function body with a return-type annotation is the boundary a return leaves; the finally block of the try a guard sits in still runs; a process exit runs no finally block; an exit guard in a never-called function challenges no module-level case; the other branch of an enclosing if is not challenged | [guard-scope.controls.mjs](guard-scope.controls.mjs) |
 
 **Confirming Run (8 Nov, Node 24, Linux, 4d80a07, the collector head carrying the D12 fix):** T243 and T244 fail; T245 passes. The fix is a separate Change; the Cases are not edited. **Answered:** the Cases pass unmodified with the fix: the range of a leaving guard ends at the function it leaves, found on the parsed tree (a throw caught by an enclosing try ends at that try block), and `exitKinds`/`leavesScope` now also classify throwing and exiting guards (`couplings.ts`).
+
+## Known limits carried to the parsed-tree rewrite of `affected`
+
+Codex review of the fix found these shapes, which stay open and are not claimed by this Defect. Each over-includes or under-includes a case in a rare shape; the fix is the rewrite of `affected` over the parsed tree (its own Change, with T227 to T254 as acceptance), not further patches to this one:
+
+- A returning guard inside a `try` also challenges registrations in that `try`'s `catch` handler, which a return does not enter (Codex on #1176, `catch { it(...) }`).
+- A `process.exit()` ends the process, so every registration after it in the module is skipped; the range stops at the function the exit is in, because an exit in a function that is never called must not challenge module-level cases without knowing whether the function runs.
