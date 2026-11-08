@@ -14,5 +14,5 @@ Observations from X are inputs to KAAL and stay with their owner. They become KA
 ## Relations
 
 - Part of: [KAAL](../Product.md)
-- Depends on: [CORE](core.md) (what is taught must exist and be legible)
+- Draws on: [CORE](core.md) for learnable KAAL knowledge (the repository as it stands). This is not a dependency on completed engineering; hard prerequisites are left open until a first trial subject is declared.
 - Sequenced as: item 5 in [Roadmap](../roadmap/Roadmap.md)

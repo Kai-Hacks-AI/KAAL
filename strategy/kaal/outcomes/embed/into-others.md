@@ -12,5 +12,6 @@ KAAL capabilities are embedded into other repositories or environments. Principl
 ## Relations
 
 - Part of: [EMBED](../embed.md)
-- Depends on: [Into KAAL](into-kaal.md) (KAAL embeds its own packages first)
+- Needs: published packages to embed (the relevant releases of item 1 in the [Roadmap](../../roadmap/Roadmap.md)).
+- Preferred trial order: [Into KAAL](into-kaal.md) first. This is a Sequence choice, not a hard prerequisite.
 - Sequenced as: item 4 in [Roadmap](../../roadmap/Roadmap.md)

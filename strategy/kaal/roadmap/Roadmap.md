@@ -28,7 +28,19 @@ Each item gives the Outcome it serves and the check that proves it. A check is a
 4. **Embed KAAL (others).** [Into others](../outcomes/embed/into-others.md). Check: to be declared with its first consumer.
 5. **External KAAL.** [TAKE](../outcomes/take.md). Check: to be declared with its first trial subject.
 
-## Dependencies
+## Sequence versus prerequisites
 
-- 2 depends on 1. 3 depends on 1 (published packages) and 2. 4 and 5 depend on 3.
-- Within 1, the listed order is the declared order; a reorder is a [Decision](../decisions/), not a silent edit.
+The numbered order is the Owner's declared Sequence. It is not a dependency graph, and a later item does not depend on an earlier one merely by being later.
+
+Genuine necessary prerequisites (only these are stated as dependencies):
+
+- Item 3 (install published packages into `.kaal`) needs the packages it installs to be published, that is, the relevant releases of item 1.
+- Item 4 (embed in others) needs published packages to embed, that is, the relevant releases of item 1.
+- Item 1 publishes from content integrated on `main`; main normally precedes npm. Item 2 therefore does not depend on item 1, and item 1 does not wait on all of item 2.
+
+Not prerequisites (stated here so they are not inferred):
+
+- Item 4 does not require item 3. Embedding into KAAL first is the preferred trial order, a Sequence choice, not a hard prerequisite.
+- Item 5 does not require item 3, item 4 or completed engineering. Other prerequisites are left open until a first trial subject is declared.
+
+Within item 1, the listed order is the declared order; a reorder is a [Decision](../decisions/), not a silent edit.

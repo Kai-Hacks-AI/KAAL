@@ -14,5 +14,5 @@ Open questions (undecided, recorded not resolved): who installs; `.kaal` versus 
 ## Relations
 
 - Part of: [EMBED](../embed.md)
-- Depends on: [CORE](../core.md), published packages
+- Needs: published packages to install (the relevant releases of item 1 in the [Roadmap](../../roadmap/Roadmap.md))
 - Sequenced as: item 3 in [Roadmap](../../roadmap/Roadmap.md)

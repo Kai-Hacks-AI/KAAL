@@ -17,5 +17,5 @@ KAAL capabilities are embedded into environments: into other repositories, and i
 ## Relations
 
 - Part of: [KAAL](../Product.md)
-- Depends on: [CORE](core.md)
+- Needs: published packages from [CORE](core.md)'s release output
 - Served by: [npmjs](../mechanisms/npmjs.md)
