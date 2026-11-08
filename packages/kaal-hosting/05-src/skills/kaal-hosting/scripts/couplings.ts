@@ -393,7 +393,16 @@ export function scopeEnd(file: ts.SourceFile, position: number, kinds: { returns
     }
     // The other clauses of an enclosing switch are reached by matching, not by passing the guard.
     if ((ts.isCaseClause(node) || ts.isDefaultClause(node)) && ts.isCaseBlock(node.parent)) {
-      for (const clause of node.parent.clauses) if (clause !== node) runs.push([clause.getStart(file), clause.getEnd()]);
+      // A clause that does not end in break, return, throw or continue falls into the next one, which the guard is then on the way to.
+      const clauses = node.parent.clauses;
+      const reached = new Set<ts.Node>([node]);
+      for (let k = clauses.indexOf(node); k + 1 < clauses.length; k++) {
+        let last: ts.Statement | undefined = clauses[k].statements[clauses[k].statements.length - 1];
+        while (last && ts.isBlock(last)) last = last.statements[last.statements.length - 1];
+        if (last && (ts.isBreakStatement(last) || ts.isReturnStatement(last) || ts.isThrowStatement(last) || ts.isContinueStatement(last))) break;
+        reached.add(clauses[k + 1]);
+      }
+      for (const clause of clauses) if (!reached.has(clause)) runs.push([clause.getStart(file), clause.getEnd()]);
     }
     // The other branch of an enclosing if is never reached from the guard.
     if (ts.isIfStatement(node)) {

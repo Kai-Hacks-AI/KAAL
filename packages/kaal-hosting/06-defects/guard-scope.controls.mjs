@@ -64,3 +64,8 @@ test("hosting/T256 control: the other clauses of an enclosing switch are not cha
   const r = await challenged('describe("suite", () => {\n  switch (mode) {\n    case 1: {\n      if (process.platform === "win32") return;\n      break;\n    }\n    default: {\n      it("alternative", () => {});\n    }\n  }\n  it("after", () => {});\n});');
   assert.deepEqual(r, ["after"]);
 });
+
+test("hosting/T257 control: a switch clause that falls through reaches the next clause, so its cases are challenged", async () => {
+  const r = await challenged('describe("suite", () => {\n  switch (mode) {\n    case 1:\n      if (process.platform === "win32") return;\n    default:\n      it("fallthrough", () => {});\n  }\n});');
+  assert.deepEqual(r, ["fallthrough"]);
+});

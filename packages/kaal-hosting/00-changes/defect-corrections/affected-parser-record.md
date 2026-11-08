@@ -10,11 +10,11 @@ Answers the stop-patching ruling of 8 November 2026 (Owner chose A: rewrite `aff
 - a finding in a suite's selector or options, before its body, governs every case the suite encloses;
 - a finding in an `if` condition governs the cases in its branches, and, when a branch leaves its function (return, uncaught throw, `process.exit`), every case registered after it in that function or the module, except the ones the guard is not on the way to.
 
-`05-src/skills/kaal-hosting/scripts/couplings.ts`: `scopeEnd` takes the parsed file instead of re-parsing text, and its excluded ranges now also hold the catch handler a returning guard in a `try` block bypasses, and the other clauses of an enclosing `switch` (the two limits recorded in D13). Nothing else in the classification changes.
+`05-src/skills/kaal-hosting/scripts/couplings.ts`: `scopeEnd` takes the parsed file instead of re-parsing text, and its excluded ranges now also hold the catch handler a returning guard in a `try` block bypasses, and the clauses of an enclosing `switch` the guard cannot reach, fall-through followed (the two limits recorded in D13). Nothing else in the classification changes.
 
 ## Acceptance
 
-The Cases are unchanged: T227 to T254 (D11 to D14 RED Cases and their controls) and the Cases behind the superseded challenges (T82, T90, T91, T92, T98, T99, T100) all pass. Two controls are new: T255 (a returning guard in a try block does not challenge the catch handler) and T256 (a guard in one switch clause does not challenge the other clauses). Linux, Node 24, after `npm run build`: `06-defects` all pass except the stale `unscoped-specifiers.red.mjs` (ENOENT on `skills/`, superseded by T140 to T142, unchanged by this Change); `npm run test:publisher` passes.
+The Cases are unchanged: T227 to T254 (D11 to D14 RED Cases and their controls) and the Cases behind the superseded challenges (T82, T90, T91, T92, T98, T99, T100) all pass. Three controls are new: T255 (a returning guard in a try block does not challenge the catch handler), T256 (a guard in one switch clause does not challenge a clause it cannot reach) and T257 (a clause that falls through, one not ending in break, return, throw or continue, does reach the next clause, which stays challenged; found by Codex on the first push). Linux, Node 24, after `npm run build`: `06-defects` all pass except the stale `unscoped-specifiers.red.mjs` (ENOENT on `skills/`, superseded by T140 to T142, unchanged by this Change); `npm run test:publisher` passes.
 
 ## Mutation challenges superseded, old and new side by side
 
