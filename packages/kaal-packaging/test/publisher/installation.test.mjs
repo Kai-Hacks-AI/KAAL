@@ -230,7 +230,7 @@ describe("packaging/C26: one installation check for every package", () => {
 
   it("T123 the verifier reads no package name and judges any package the same way", async () => {
     const source = readFileSync(INSTALLATION, "utf8").replace(/\/\/.*$/gm, "");
-    for (const name of ["kaal-guard", "kaal-core", "kaal-foundation", "kaal-hosting", "kaal-testing", "kaal-packaging"]) {
+    for (const name of ["kaal-guard", "kaal-core", "kaal-foundation", "@kaihacksai/kaal-hosting", "kaal-testing", "kaal-packaging"]) {
       assert.ok(!source.includes(name), `lib/installation.mjs must not name ${name}`);
     }
     const a = await verifyInstalled(layout({ name: "kaal-alpha" }), { run: ok("kaal-alpha"), resolve: noRecord });

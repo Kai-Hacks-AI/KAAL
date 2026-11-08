@@ -16,7 +16,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, describe, it } from "node:test";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SCRATCH = mkdtempSync(join(tmpdir(), "kaal-packaging-conformance-"));
@@ -341,7 +341,8 @@ describe("packaging/C5 the KAAL Package conformance suite", () => {
     expect(by(platforms({ ...pkg, os: [] }, { osBoundary: boundary })), "packaging/F12", "failed", /os \[\]/);
     expect(by(platforms({ ...pkg, os: ["linux"], osBoundary: true }, { osBoundary: boundary })), "packaging/F12", "failed", /fixture is not it/);
     expect(by(platforms({ ...pkg, name: "@kaihacksai/kaal-hosting", os: ["linux"] }, { osBoundary: boundary })), "packaging/F12", "verified", /Hosting's OS boundary/);
-    expect(by(platforms({ ...pkg, os: ["linux"] }, { osBoundary: undefined })), "packaging/F12", "unknown", /declares no OS boundary/);
+    // Hosting 0.0.1 declares its OS boundary, so an absent one is given as null (the destructuring default would fill undefined).
+    expect(by(platforms({ ...pkg, os: ["linux"] }, { osBoundary: null })), "packaging/F12", "unknown", /declares no OS boundary/);
     // Installed: the same restriction, decided by the installed Hosting, is never verified.
     const restricted = (await conform(conforming({ pkg: { os: ["linux"] } }))).by["packaging/F12"];
     assert.notEqual(restricted.result, "verified", restricted.cause);

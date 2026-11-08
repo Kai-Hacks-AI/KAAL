@@ -10,7 +10,7 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 const ROOT = realpathSync(join(dirname(fileURLToPath(import.meta.url)), ".."));
 const parent = dirname(ROOT);

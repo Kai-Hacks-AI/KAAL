@@ -145,6 +145,19 @@ The DO (`lib/structure.mjs`, `lib/host.mjs`) is **temporary collector work**. Tw
 - **Shipped docs are listed, not copied wholesale (Kai, 5 Nov).** `dist/docs/{intent,requirements,architecture,defects}` holds only the documents relevant to what ships, named in an explicit shipped-docs list in the package. C27 changes the whole-folder copy check: each listed doc exists and is byte-equal to its source, and nothing else is in `dist/docs`. This changes the Cases that assume whole-folder copies (the `dist-copy-missing` and `dist-copy-extra` findings), under the same blanket ruling, listed before and after in the Change. It is required by the public checker-only Packaging `dist/` (packaging/C26).
 - **Verified on the actual Hosting candidate, not only fixtures.** The Change's acceptance step installs the Hosting candidate (the packed tarball of `kaal/hosting` at its head, not a stub), runs T98 to T112 against it, and runs `checkStructure` on Hosting's own folder once Hosting has taken the layout. That last run is Hosting's layout acceptance; it must be `verified`.
 
+## C27, first part: the swap to Hosting's list and scratch (8 Nov)
+
+Done in this Change, on the Packaging collector, against the registry's `@kaihacksai/kaal-hosting` 0.0.1 (on `main` and npm since 8 Nov). It is first because Hosting's own Case on `main` forbids the retired name `kaal-hosting` anywhere in the repository, so a synchronization cannot land while Packaging uses it.
+
+- `package.json`: `"kaal-hosting": "0.0.1"` becomes `"@kaihacksai/kaal-hosting": "0.0.1"`; the lock gains the registry entry. Every import in `lib/` and `test/` moves to the scoped name.
+- `lib/host.mjs` re-exports `execute, kind, list, read, readFile, scratch, within`. `lib/structure.mjs` and `lib/installation.mjs` no longer run a Node script: the folder is read once with `list`, and the build's scratch folders are `scratch`. `execute` stays only for what it is for (running a package's own self check and npm).
+- **Links.** Hosting's `list` refuses a link to a directory and lists a link to a file as a file. A link to a directory is therefore a refused path (structure: `refused-path`, result unknown; installation: `link`, failed), and a file link counts as a link only when Hosting's `within` says it leaves the package; one that stays inside is judged by its bytes against the manifest or the copy. The earlier wording, "a link anywhere is refused", is narrowed to that. **Pending Kai (decision card, 8 Nov):** this reading (A), keeping the Node script for link detection only (B), or a link-aware Hosting listing first (C). One consequence of A: a directory link inside a package-local `node_modules/` is now a refused path too, where the earlier script skipped that tree.
+- **Superseded Case clauses (the blanket name-clause ruling, Kai A, 5 Nov), before and after:**
+  - T6, `test/embed/measurement.test.mjs`: the allowed specifiers `kaal-hosting`, `kaal-hosting/conformance` become `@kaihacksai/kaal-hosting`, `@kaihacksai/kaal-hosting/conformance`; the dependency allow-list entry likewise. The title says the same. Behaviour unchanged.
+  - T20 (F12): the "Hosting declares no OS boundary" branch is now given as `osBoundary: null`; Hosting 0.0.1 declares its boundary, so `undefined` falls to that default. `platforms()` treats `null` like `undefined`.
+  - T27: Hosting is packed from the registry copy under `node_modules`, not from the retired workspace; the interim F7 result still names Hosting and Foundation as `file:`.
+- Still to do in C27 (a second Change): the shipped-docs list and its change to the whole-folder copy check, and the acceptance run on Hosting's own folder.
+
 ## Held, not proposed
 
 - Which skills a package has, and what its Agent says (the owner's).

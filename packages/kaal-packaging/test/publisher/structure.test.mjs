@@ -267,13 +267,13 @@ describe("packaging/C24: the package folder structure", () => {
   });
 
   it("T110 the same checker judges any package and reads no package name", async () => {
-    const hosting = layout({ name: "kaal-hosting" });
+    const hosting = layout({ name: "@kaihacksai/kaal-hosting" });
     const other = layout({ name: "kaal-anything" });
     const [a, b] = [await check(hosting), await check(other)];
     assert.equal(a.result, b.result);
     assert.deepEqual(kinds(a), kinds(b));
     const source = readFileSync(STRUCTURE, "utf8");
-    for (const name of ["kaal-hosting", "kaal-core", "kaal-guard", "kaal-foundation", "kaal-testing"]) assert.ok(!source.includes(name), `the checker names ${name}`);
+    for (const name of ["@kaihacksai/kaal-hosting", "kaal-core", "kaal-guard", "kaal-foundation", "kaal-testing"]) assert.ok(!source.includes(name), `the checker names ${name}`);
   });
 
   it("T111 kaal/<Name>.md and kaal/<capability>/ are checked for shape and for their shipped copy only", async () => {

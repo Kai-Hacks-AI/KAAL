@@ -8,11 +8,11 @@
 // Testing's verifier contract (testing/C29) is approved, a result line is checked only for what
 // every product already agrees on: the three results and exit codes 0, 1 and 2.
 //
-// Every host operation goes through kaal-hosting, and SHA-256 comes from kaal-foundation
+// Every host operation goes through @kaihacksai/kaal-hosting, and SHA-256 comes from kaal-foundation
 // (packaging/A1, packaging/N3).
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute, initialize, kind, read, readFile } from "kaal-hosting";
-import * as hosting from "kaal-hosting/conformance";
+import { execute, initialize, kind, read, readFile } from "@kaihacksai/kaal-hosting";
+import * as hosting from "@kaihacksai/kaal-hosting/conformance";
 import builtins from "./builtins.json" with { type: "json" };
 import { command, resolution } from "./npm/realization.mjs";
 
@@ -225,7 +225,7 @@ export function platforms(pkg, { osBoundary = typeof hosting.osBoundary === "fun
   const limits = ["os", "cpu"].filter((k) => pkg[k] !== undefined);
   if (limits.length === 0) return finding("packaging/F12", "verified", `node ${pkg.engines.node}, with no os or cpu restriction: which hosts it runs on is Hosting's (hosting/F39)`);
   const fields = limits.map((k) => `${k} ${JSON.stringify(pkg[k])}`).join(" and ");
-  if (osBoundary === undefined) return finding("packaging/F12", "unknown", `it restricts ${fields}, and the installed Hosting declares no OS boundary (hosting/F36) to decide whether it may`);
+  if (osBoundary === undefined || osBoundary === null) return finding("packaging/F12", "unknown", `it restricts ${fields}, and the installed Hosting declares no OS boundary (hosting/F36) to decide whether it may`);
   if (osBoundary(String(pkg.name)) === true) return finding("packaging/F12", "verified", `node ${pkg.engines.node}; ${pkg.name} is Hosting's OS boundary (hosting/F36), so its ${fields} is Hosting's to decide`);
   return finding("packaging/F12", "failed", `it restricts ${fields}, but only Hosting's OS boundary may (hosting/F39); ${pkg.name} is not it (hosting/F36)`);
 }

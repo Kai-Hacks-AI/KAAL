@@ -16,7 +16,7 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { after, describe, it } from "node:test";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SCRATCH = mkdtempSync(join(tmpdir(), "kaal-packaging-test-"));
@@ -249,9 +249,9 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
     assert.match(render(compare(a, b, ["lib/"])), /\+4300/);
   });
 
-  it("packaging/T6 [packaging/N3, packaging/A1, packaging/A6]: the package imports only kaal-hosting (and its conformance, for hosting/F36's OS boundary) and kaal-foundation, never Testing (packaging/F13 takes Testing's model functions from its caller), no node: module, reads nothing of the process but the running Node's location (packaging/A13), and parses no archive or compression format", () => {
+  it("packaging/T6 [packaging/N3, packaging/A1, packaging/A6]: the package imports only @kaihacksai/kaal-hosting (and its conformance, for hosting/F36's OS boundary) and kaal-foundation, never Testing (packaging/F13 takes Testing's model functions from its caller), no node: module, reads nothing of the process but the running Node's location (packaging/A13), and parses no archive or compression format", () => {
     const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
-    for (const dep of Object.keys(pkg.dependencies ?? {})) assert.ok(["kaal-hosting", "@kaihacksai/kaal-foundation"].includes(dep), dep);
+    for (const dep of Object.keys(pkg.dependencies ?? {})) assert.ok(["@kaihacksai/kaal-hosting", "@kaihacksai/kaal-foundation"].includes(dep), dep);
     const lib = join(PACKAGE, "lib");
     const files = readdirSync(lib, { recursive: true }).filter((f) => f.endsWith(".mjs"));
     assert.ok(files.length > 0);
@@ -259,7 +259,7 @@ describe("Package size measurement (packaging/C1, amended by packaging/C3)", () 
       const source = readFileSync(join(lib, file), "utf8");
       const specifiers = [...source.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g)].map((m) => m[1]);
       for (const s of specifiers) {
-        assert.ok(s.startsWith("./") || s.startsWith("../") || s === "kaal-hosting" || s === "kaal-hosting/conformance" || s.startsWith("@kaihacksai/kaal-foundation/"), `${file} imports ${s}`);
+        assert.ok(s.startsWith("./") || s.startsWith("../") || s === "@kaihacksai/kaal-hosting" || s === "@kaihacksai/kaal-hosting/conformance" || s.startsWith("@kaihacksai/kaal-foundation/"), `${file} imports ${s}`);
       }
       assert.doesNotMatch(source, /\brequire\s*\(|\bprocess\.(?!execPath\b)|\bglobalThis\b/, file);
       assert.doesNotMatch(source, /\binflate|gunzip|\bzlib\b|crc-?32|ustar|DecompressionStream|512\s*\*|subarray\(/i, `${file} parses an archive or compression format`);

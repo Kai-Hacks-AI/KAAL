@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const MANIFEST = "test/verify.json";

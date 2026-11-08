@@ -10,7 +10,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, describe, it } from "node:test";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { ROOT } from "./manifest.mjs";
 
 const SCRATCH = mkdtempSync(join(tmpdir(), "kaal-packaging-verifier-"));

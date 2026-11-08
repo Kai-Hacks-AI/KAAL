@@ -5,7 +5,7 @@
 //
 // npm's time and memory grow with the artifact, and Hosting bounds neither. So this is for
 // artifacts of known provenance (packaging/N5).
-import { execute, kind, readFile } from "kaal-hosting";
+import { execute, kind, readFile } from "@kaihacksai/kaal-hosting";
 
 export const ecosystem = "npm";
 

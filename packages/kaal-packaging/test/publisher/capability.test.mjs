@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, 
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { after, describe, it } from "node:test";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { conform, conformSource } from "kaal-packaging/conformance";
 import { manifest, ROOT } from "./manifest.mjs";
 
@@ -55,8 +55,9 @@ const TESTING = REAL ?? STAND_IN;
 let installed;
 function installPackaging() {
   installed ??= (async () => {
-    const hosting = join(REPOSITORY, "packages", "extensions", "kaal-hosting");
-    assert.ok(existsSync(join(hosting, "dist", "index.js")), "kaal-hosting is built (npm run build -w kaal-hosting)");
+    // Hosting is the registry's 0.0.1, installed under the repository's node_modules; its tarball is packed from that copy.
+    const hosting = join(REPOSITORY, "node_modules", "@kaihacksai", "kaal-hosting");
+    assert.ok(existsSync(join(hosting, "package.json")), "@kaihacksai/kaal-hosting is installed (npm ci)");
     const out = fresh("packed");
     const tarballs = [];
     for (const dir of [hosting, join(REPOSITORY, "packages", "kaal-foundation"), ROOT]) {
@@ -96,7 +97,7 @@ describe("packaging/C8 Packaging as a capability, from its source workspace", ()
     assert.equal(f7.result, "failed", f7.cause);
     const named = f7.cause.split("; ");
     assert.equal(named.length, 2, f7.cause);
-    assert.ok(named.some((c) => /^kaal-hosting resolved from "file:/.test(c)), f7.cause);
+    assert.ok(named.some((c) => /^@kaihacksai\/kaal-hosting resolved from "file:/.test(c)), f7.cause);
     assert.ok(named.some((c) => /^@kaihacksai\/kaal-foundation resolved from "file:/.test(c)), f7.cause);
     assert.deepEqual(report.reported, { result: "verified", exit: 0, causes: [] });
   });

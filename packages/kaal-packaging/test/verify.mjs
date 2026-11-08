@@ -11,7 +11,7 @@ import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const NAME = "kaal-packaging";

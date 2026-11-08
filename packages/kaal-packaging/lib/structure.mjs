@@ -7,21 +7,13 @@
 // refused path) or "not-in-layout" (a package that has not taken the layout is neither verified nor failed).
 // Each finding is { kind, path }. It reads no package name and implies no dependency (packaging/N8).
 //
-// Every host operation goes through Hosting (lib/host.mjs, packaging/A1, T6). Hosting has no operation that lists a
-// directory's entries (an empty directory is invisible to `read`), so `entries`, `scratch` and `drop` run a
-// one-line Node script through Hosting's `execute`. That is the Boundary Check finding this module carries for
-// Hosting's owner to decide (raised to the Owner): a listing operation in Hosting would remove all three.
-import { execute, kind, read, readFile } from "./host.mjs";
+// Every host operation goes through Hosting (lib/host.mjs, packaging/A1, T6): the folder is read once with Hosting's
+// `list`, whether a link leaves the folder is Hosting's `within`, and the build's scratch folders are Hosting's `scratch`.
+// (Packaging/C27 replaced the one-line Node script this module ran through `execute` before Hosting 0.0.1 had them.)
+import { kind, list, read, readFile, scratch, within } from "./host.mjs";
 
 /** `/`-separated join; Hosting accepts it on every host. */
 const join = (...parts) => parts.join("/");
-
-/** Run a small Node script through Hosting; its data is inlined as JSON, so no process state is read. */
-async function node(script, cwd) {
-  const r = await execute(process.execPath, ["-e", script], { cwd });
-  if (r.status !== 0) throw new Error(r.stderr);
-  return r.stdout.trim();
-}
 
 /** Where each source folder is copied to under dist/ (packaging/F42). Skills are compiled, so only their SKILL.md is required. */
 const COPIES = [
@@ -65,30 +57,43 @@ const FAMILIES = [
 const SINGLE = new Set(["MIT", "ISC", "Unlicense", "Apache-2.0"]);
 const familyOf = (id) => FAMILIES.map(([f]) => f).find((f) => id.toUpperCase().startsWith(f.toUpperCase()));
 
-/** Directory entries by name; a missing or unreadable directory throws. */
-async function entries(path) {
-  return JSON.parse(await node(`console.log(JSON.stringify(fs.readdirSync(".",{withFileTypes:true}).map(e=>({name:e.name,dir:e.isDirectory(),link:e.isSymbolicLink()}))))`, path));
+/** A refused listing: a link to a directory, named by its path relative to the listed folder. */
+class Refused extends Error {}
+
+/**
+ * The folder's whole tree through Hosting's `list`: every directory and every file by `/` path. A link to a directory
+ * makes Hosting refuse the listing (Refused, naming the link). A link to a file lists as a file, so it is flagged as a
+ * link only when it leaves the folder (canonical-path containment); one that stays inside is judged by its bytes.
+ */
+async function treeOf(dir) {
+  let listed;
+  try {
+    listed = await list(dir);
+  } catch (e) {
+    if (e?.code !== "INVALID_PATH") throw e;
+    throw new Refused(/^(.+?) is a link to a directory/.exec(String(e.message))?.[1] ?? ".");
+  }
+  const all = [];
+  for (const e of listed) {
+    all.push({ path: e.path, dir: e.kind === "directory", link: e.kind !== "directory" && !(await within(dir, `${dir}/${e.path}`).catch(() => false)) });
+  }
+  return all;
 }
+/** Direct children of `rel` ("" is the folder itself) as { name, dir, link }. */
+const kidsOf = (all) => (rel) =>
+  all
+    .filter((e) => (rel === "" ? !e.path.includes("/") : e.path.startsWith(`${rel}/`) && !e.path.slice(rel.length + 1).includes("/")))
+    .map((e) => ({ name: e.path.slice(rel === "" ? 0 : rel.length + 1), dir: e.dir, link: e.link }));
 const present = async (path) => (await kind(path)) !== "missing";
 
-/** A scratch directory for a build, removed afterwards. */
-async function scratch(use, cwd) {
-  const root = await node(`console.log(fs.mkdtempSync(path.join(os.tmpdir(),"kaal-structure-")))`, cwd);
-  try {
-    return await use(root);
-  } finally {
-    await node(`fs.rmSync(${JSON.stringify(root)},{recursive:true,force:true})`, cwd);
-  }
-}
-
-/** Every file below `base/rel`, `/`-separated; a link anywhere is recorded as refused, never followed. */
-async function walk(base, rel, files, dirs, refused) {
-  for (const e of await entries(join(base, rel))) {
+/** Every file below `rel`, `/`-separated; a link anywhere is recorded as refused, never followed. */
+function walk(kids, rel, files, dirs, refused) {
+  for (const e of kids(rel)) {
     const p = `${rel}/${e.name}`;
     if (e.link) refused.push(p);
     else if (e.dir) {
       dirs.add(p);
-      await walk(base, p, files, dirs, refused);
+      walk(kids, p, files, dirs, refused);
     } else files.push(p);
   }
 }
@@ -105,7 +110,16 @@ export async function checkStructure(dir, { packed, build } = {}) {
     const pack = packed.map((p) => String(p).replaceAll("\\", "/"));
     for (const p of pack) if (!safe(p)) add("refused-path", p);
 
-    const root = await entries(dir);
+    let all;
+    try {
+      all = await treeOf(dir);
+    } catch (e) {
+      if (!(e instanceof Refused)) throw e;
+      add("refused-path", e.message);
+      return { result: "unknown", findings };
+    }
+    const kids = kidsOf(all);
+    const root = kids("");
     const folders = root.filter((e) => e.dir && !e.name.startsWith("."));
     const numbered = folders.filter((e) => /^\d\d-/.test(e.name)).map((e) => e.name);
     const stray = folders.filter((e) => !/^\d\d-/.test(e.name) && !ROOT_FOLDERS.has(e.name) && e.name !== "scripts");
@@ -119,7 +133,7 @@ export async function checkStructure(dir, { packed, build } = {}) {
     const refused = [];
     for (const top of [...numbered, ...["kaal", "dist"].filter((n) => folders.some((e) => e.name === n))]) {
       dirs.add(top);
-      await walk(dir, top, files, dirs, refused);
+      walk(kids, top, files, dirs, refused);
     }
     for (const e of root) if (e.link) refused.push(e.name);
     for (const p of refused) add("refused-path", p);
@@ -144,14 +158,14 @@ export async function checkStructure(dir, { packed, build } = {}) {
     // 05-src: the Agent layer and the skills, whose scripts live inside their skill.
     if (numbered.includes("05-src")) {
       if (!files.includes("05-src/AGENTS.md")) add("missing-file", "05-src/AGENTS.md");
-      for (const e of await entries(join(dir, "05-src"))) {
+      for (const e of kids("05-src")) {
         if (e.name === "scripts") add("misplaced-script", "05-src/scripts");
         else if (e.name === "agent") add("agent-folder", "05-src/agent");
         else if (e.dir && e.name !== "skills") add("unknown-folder", `05-src/${e.name}`);
         else if (!e.dir && e.name !== "AGENTS.md") add(SCRIPT.test(e.name) ? "misplaced-script" : "unknown-file", `05-src/${e.name}`);
       }
       if (dirs.has("05-src/skills")) {
-        for (const e of await entries(join(dir, "05-src/skills"))) {
+        for (const e of kids("05-src/skills")) {
           if (e.dir && !files.includes(`05-src/skills/${e.name}/SKILL.md`)) add("skill-without-skill-md", `05-src/skills/${e.name}`);
           else if (!e.dir && !e.name.startsWith(".")) add(SCRIPT.test(e.name) ? "misplaced-script" : "unknown-file", `05-src/skills/${e.name}`);
         }
@@ -160,7 +174,7 @@ export async function checkStructure(dir, { packed, build } = {}) {
 
     // kaal/: <Name>.md Extension Nodes, and <capability>/ folders with README.md and <command>.md.
     if (dirs.has("kaal")) {
-      for (const e of await entries(join(dir, "kaal"))) {
+      for (const e of kids("kaal")) {
         if (e.name.startsWith(".")) continue;
         if (!e.dir) {
           if (!/^[A-Z][A-Za-z0-9]*\.md$/.test(e.name)) add("kaal-shape", `kaal/${e.name}`);
@@ -168,7 +182,7 @@ export async function checkStructure(dir, { packed, build } = {}) {
           const sub = `kaal/${e.name}`;
           if (!/^[a-z][a-z0-9-]*$/.test(e.name)) add("kaal-shape", sub);
           else {
-            for (const s of await entries(join(dir, sub))) if (s.dir || (!s.name.startsWith(".") && !s.name.endsWith(".md"))) add("kaal-shape", `${sub}/${s.name}`);
+            for (const s of kids(sub)) if (s.dir || (!s.name.startsWith(".") && !s.name.endsWith(".md"))) add("kaal-shape", `${sub}/${s.name}`);
             if (!files.includes(`${sub}/README.md`)) add("kaal-shape", `${sub}/README.md`);
           }
         }
@@ -195,22 +209,22 @@ export async function checkStructure(dir, { packed, build } = {}) {
 
     // dist/: built from the other folders, reproducible, and equal to what is on disk.
     const onDisk = await read(join(dir, "dist"));
-    await scratch(async (tmp) => {
-      const [a, b] = [join(tmp, "a"), join(tmp, "b")];
-      await node(`fs.mkdirSync(${JSON.stringify(a)});fs.mkdirSync(${JSON.stringify(b)})`, dir);
-      await build(dir, a);
-      await build(dir, b);
-      const [first, second] = [await read(join(a, "dist")), await read(join(b, "dist"))];
-      const names = (m) => Object.keys(m);
-      for (const n of new Set([...names(first), ...names(second)])) {
-        if (!first[n] || !second[n] || !first[n].equals(second[n])) add("dist-not-reproducible", `dist/${n}`);
-      }
-      for (const n of new Set([...names(first), ...names(onDisk)])) {
-        if (!onDisk[n]) add("dist-copy-missing", `dist/${n}`);
-        else if (!first[n]) add("dist-not-reproducible", `dist/${n}`);
-        else if (!first[n].equals(onDisk[n])) add(n.startsWith("skills/") ? "dist-not-reproducible" : "dist-copy-differs", `dist/${n}`);
-      }
-    }, dir);
+    await scratch(async (a) => {
+      await scratch(async (b) => {
+        await build(dir, a);
+        await build(dir, b);
+        const [first, second] = [await read(join(a, "dist")), await read(join(b, "dist"))];
+        const names = (m) => Object.keys(m);
+        for (const n of new Set([...names(first), ...names(second)])) {
+          if (!first[n] || !second[n] || !first[n].equals(second[n])) add("dist-not-reproducible", `dist/${n}`);
+        }
+        for (const n of new Set([...names(first), ...names(onDisk)])) {
+          if (!onDisk[n]) add("dist-copy-missing", `dist/${n}`);
+          else if (!first[n]) add("dist-not-reproducible", `dist/${n}`);
+          else if (!first[n].equals(onDisk[n])) add(n.startsWith("skills/") ? "dist-not-reproducible" : "dist-copy-differs", `dist/${n}`);
+        }
+      });
+    });
 
     // Source copies, judged independently of the supplied build, so a build that omits one cannot certify it.
     const expected = new Set();

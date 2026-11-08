@@ -7,7 +7,7 @@
 // asks npm (./npm/realization.mjs). Packaging parses no archive. It checks what the tool reports
 // (packaging/N4), and takes the packed size and SHA-256 from the artifact's own bytes.
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { readFile } from "kaal-hosting";
+import { readFile } from "@kaihacksai/kaal-hosting";
 import * as npm from "./npm/realization.mjs";
 
 const REALIZATIONS = [npm];

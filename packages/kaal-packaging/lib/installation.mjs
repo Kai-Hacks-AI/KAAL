@@ -20,10 +20,9 @@
 // The manifest is consistency, not provenance (testing/F14): it detects an accidental or partial change,
 // not a malicious replacement of both. Trust in the package itself is the registry's integrity and provenance.
 //
-// Every host operation goes through Hosting (lib/host.mjs, packaging/A1, T6). Hosting has no operation that
-// lists a directory without following links, so the listing runs a one-line Node script through Hosting's
-// `execute`. That is the same transitional workaround as lib/structure.mjs and is replaced by packaging/C27.
-import { execute, readFile, sha256 } from "./host.mjs";
+// Every host operation goes through Hosting (lib/host.mjs, packaging/A1, T6): the listing is Hosting's `list`, and
+// whether a link leaves the package is Hosting's `within`.
+import { list, readFile, sha256, within } from "./host.mjs";
 
 /** `/`-separated join; Hosting accepts it on every host. */
 const join = (...parts) => parts.join("/");
@@ -125,25 +124,27 @@ const REGISTRY_TARBALL = /^https?:\/\/[^\s]+\/-\/[^\s/]+$/;
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 
-/** Every entry under `dir`, by `/` path with its type, never following a link. node_modules at the root is not listed. */
+/**
+ * Every entry under `dir`, by `/` path with its type, through Hosting's listing. A link to a directory makes Hosting refuse
+ * the listing; that is reported as the one finding, naming the link. A link to a file lists as a file, so it is a link
+ * only when it leaves the package (canonical-path containment); one that stays inside is judged by its bytes. node_modules
+ * at the root is not listed.
+ */
 async function walk(dir) {
-  const script = `
-    const out = [];
-    const go = (rel) => {
-      for (const e of fs.readdirSync(rel === "" ? "." : rel, { withFileTypes: true })) {
-        const at = rel === "" ? e.name : rel + "/" + e.name;
-        if (rel === "" && e.name === "node_modules") continue;
-        if (e.isSymbolicLink()) out.push({ path: at, type: "link" });
-        else if (e.isDirectory()) { out.push({ path: at, type: "directory" }); go(at); }
-        else if (e.isFile()) out.push({ path: at, type: "file" });
-        else out.push({ path: at, type: "other" });
-      }
-    };
-    go("");
-    console.log(JSON.stringify(out));`;
-  const r = await execute(process.execPath, ["-e", script], { cwd: dir });
-  if (r.status !== 0) throw new Error(r.stderr);
-  return JSON.parse(r.stdout.trim());
+  let listed;
+  try {
+    listed = await list(dir);
+  } catch (e) {
+    if (e?.code !== "INVALID_PATH") throw e;
+    return [{ path: /^(.+?) is a link to a directory/.exec(String(e.message))?.[1] ?? ".", type: "link" }];
+  }
+  const out = [];
+  for (const e of listed) {
+    if (e.path === "node_modules" || e.path.startsWith("node_modules/")) continue;
+    if (e.kind === "directory") out.push({ path: e.path, type: "directory" });
+    else out.push({ path: e.path, type: (await within(dir, `${dir}/${e.path}`).catch(() => false)) ? "file" : "link" });
+  }
+  return out;
 }
 
 const text = async (path) => (await readFile(path)).toString("utf8");
