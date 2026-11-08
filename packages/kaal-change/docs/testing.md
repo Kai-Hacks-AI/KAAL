@@ -50,7 +50,7 @@ worked-use validation is reported separately from test execution.
 Run T56 from the source workspace after a caller has packed once:
 
 ```sh
-npm run test:package-only -- <absolute packed-manifest.json> <absolute fresh consumer directory>
+node test/publisher/package-only.mjs <absolute packed-manifest.json> <absolute fresh consumer directory>
 ```
 
 The probe neither builds nor packs. Its overrides supply artifact transport only;
