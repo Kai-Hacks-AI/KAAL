@@ -4,7 +4,7 @@
 // passes the delivered files in. Hosting realizes the commands and reads.
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execute, kind, readFile } from "kaal-hosting";
+import { execute, kind, readFile } from "@kaihacksai/kaal-hosting";
 
 const C8 = fileURLToPath(import.meta.resolve("c8/bin/c8.js"));
 
