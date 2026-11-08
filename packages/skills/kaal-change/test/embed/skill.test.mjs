@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execute } from 'kaal-hosting';
+import { execute } from '@kaihacksai/kaal-hosting';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 test('change/T51 [change/F46, change/F47]: the delivered skill command exposes qualified isolation and omission challenges', async () => {
