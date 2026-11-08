@@ -84,11 +84,12 @@ export async function install(names, { offline = false } = {}) {
   const tarballs = [];
   for (const name of names) {
     // A package packed from a workspace of the same name without its scope (a collector that has not yet taken the scoped name) is the same package.
-    const packed = manifest[name] ?? manifest[name.replace(/^@[^/]+\//, "")];
+    const key = name in manifest ? name : name.replace(/^@[^/]+\//, "");
+    const packed = manifest[key];
     if (!packed) throw new Error(`${name} was not packed for this run`);
     const hash = await sha256(await readFile(packed.tarball));
     if (hash !== packed.sha256) throw new Error(`${packed.tarball} no longer holds the bytes packed for ${name}`);
-    consumed[name] = hash;
+    consumed[key] = hash;
     tarballs.push(packed.tarball);
   }
   const id = hostId();
