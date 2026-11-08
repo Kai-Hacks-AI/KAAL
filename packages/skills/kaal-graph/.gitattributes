@@ -1,0 +1,3 @@
+# Core copies Graph's public Node declarations byte-for-byte and pins their hash (core manifest):
+# keep the reviewed bytes through checkout, including on Windows.
+skills/kaal-graph/scripts/node.d.ts -text
