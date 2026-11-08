@@ -26,7 +26,7 @@
     },
     {
       "path": "engineering/execution/test/plan/adoption.case.mjs",
-      "sha256": "351de21261ac3f22b5f2c0b3c8d1df88ea7a2f1850d5a3131e83dc5a453e8446"
+      "sha256": "ccd6cf8e8922d1cba00165ab37546ed2e91b370504e8a34dc9928e5adb2ac1bc"
     },
     {
       "path": "engineering/execution/test/plan/fixtures.mjs",

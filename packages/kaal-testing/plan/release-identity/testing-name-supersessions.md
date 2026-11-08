@@ -44,6 +44,7 @@ Every import, dependency entry, workspace selector and acquisition selector that
 - `packages/kaal-review/package.json`
 - `packages/kaal-review/test/review.test.mjs`
 - `packages/kaal-change/test/verify.json` (regenerated: it pins the hash of Change's `package.json`, whose devDependency changed)
+- `engineering/execution/test/plan/adoption.case.mjs` and its frozen-boundary pin in `engineering/execution/plan/boundary.json` (Engineering's accepted E-D13 imports Testing's public `duplicates` export; the specifier is the only change to the Case, and the pin records the new bytes of that one file)
 
 ## Left as they are, by classification
 
