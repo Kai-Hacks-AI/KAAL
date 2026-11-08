@@ -26,7 +26,7 @@
     "lib/timing.mjs": "1564228da70beb39f3882b62170a85c284a001b43688018e7de07d3cf9368ac6",
     "lib/traces.mjs": "6a896f4b3ae81cc3b2e93cc5b2c67f8362d4e64d857abd93a15cdf00e316a332",
     "lib/verifiers.mjs": "dc8cef90663f0d2bbf8cef4f6e6947a2e07bf2b3f15a2a51f241b248c30f76e1",
-    "package.json": "a5b5dc28d7769e283999686db8a6d0178d2573f73a4048173c5b9c2c958c5791",
+    "package.json": "d187f91f582614acf74f92a6afb2fdef43347d884c48ee0fa9592121fb58f131",
     "payload/Testing.md": "89e300cafdc01612b94112c7b6adbc7b4c97d31a8207473ec1327c8c1f7572be",
     "skills/kaal-testing/SKILL.md": "bf44a78d98225a1d4d8337548c97e31fb194489adea8f6defd727b9d17621815",
     "skills/kaal-testing/references/approach.md": "fdc688a262b6995da84eaf6ea8ef913687ef9a240771c850fdc6584bb924e0fb",
@@ -36,7 +36,7 @@
     "test/embed/model.test.mjs": "7a371f840517807008f049ac88a1b41d311355ec5808bc4e75c41bcc3a2b5653",
     "test/embed/verifiers.test.mjs": "a64dffd2801e0b851ec29da565f59cfd4587f811d9ae2b2839efb814e256ac6d",
     "test/run.mjs": "6d5f33ebaedbb9f8021d35d6645cab5d3dcfa346775a4b4bae4bdb2686f29142",
-    "test/verify.mjs": "383e99915e9ef69a447d3df229432b637994495fa53592ac2b13a47376be9e23"
+    "test/verify.mjs": "db01cdcae50feeeaa3b5a52464e651162ccf7f6fdbd9edeb8c8bed4e6fb4052a"
   },
   "cases": [
     "reads an untouched boundary as unchanged within the declaration, never as met [testing/F22, testing/F23]",

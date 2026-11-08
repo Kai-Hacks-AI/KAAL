@@ -146,15 +146,23 @@ function end(result, diagnosis) {
 const unknown = (cause, evidence, step = "inspect the evidence", kind = "diagnostic") => end("unknown", { cause, evidence, next: { kind, step } });
 
 // A run never re-enters itself (testing/F103, testing/F104): the verification is level 2, so it enters under the run
-// entry's marker and when started directly, and its case processes inherit level 2.
-try {
-  const { guard } = await import("../lib/reentry.mjs");
-  const entry = guard(process.env, 2);
-  if (!entry.entered) unknown(entry.findings.join("; "), entry.findings);
-  Object.assign(process.env, entry.env);
-} catch (e) {
-  unknown("the re-entry guard cannot be applied", [String(e.code ?? e.message)]);
+// entry's marker and when started directly, and its case processes inherit level 2. The guard of lib/reentry.mjs is
+// inlined here so this entry imports only Node's built-ins (testing/F65); a Case keeps the two identical.
+// reentry:begin
+const MARKER = "KAAL_TESTING_RUN";
+function guard(env, level) {
+  const own = env !== null && typeof env === "object" && !Array.isArray(env) ? env : {};
+  if (!Number.isInteger(level) || level < 1) return { entered: false, env: own, findings: ["the entry's level is not a positive integer"] };
+  if (!Object.hasOwn(own, MARKER) || own[MARKER] === undefined) return { entered: true, env: { ...own, [MARKER]: String(level) }, findings: [] };
+  const value = own[MARKER];
+  if (typeof value !== "string" || !/^(0|[1-9][0-9]*)$/.test(value)) return { entered: false, env: own, findings: [`${MARKER} does not read as a level, so the run was possibly re-entered`] };
+  if (Number(value) >= level) return { entered: false, env: own, findings: [`the run was re-entered: ${MARKER} is already ${value}, at or above this entry's level ${level}`] };
+  return { entered: true, env: { ...own, [MARKER]: String(level) }, findings: [] };
 }
+// reentry:end
+const entry = guard(process.env, 2);
+if (!entry.entered) unknown(entry.findings.join("; "), entry.findings);
+Object.assign(process.env, entry.env);
 
 // The candidate: the manifest, and every other file against it.
 let manifest;
