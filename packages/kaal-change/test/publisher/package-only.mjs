@@ -19,13 +19,16 @@ for (const p of [name, ...providers]) {
   assert.equal(sha256(await readFile(packed[p].tarball)), packed[p].sha256, p + ' artifact differs from the manifest');
 }
 const overrides = Object.fromEntries(providers.map(p => [p, 'file:' + packed[p].tarball.replaceAll('\\', '/')]));
+// Graph is an optional peer, so the consumer requests it as a direct dependency beside Change.
+// npm requires a direct dependency and its override to share one spec, so the override refers to it.
+const graph = overrides['kaal-graph'];
+overrides['kaal-graph'] = '$kaal-graph';
 await initialize(host, { 'package.json': Buffer.from(JSON.stringify({ name: 'change-package-only-consumer',
-  version: '1.0.0', private: true, overrides }, null, 2) + '\n') });
+  version: '1.0.0', private: true, dependencies: { 'kaal-graph': graph }, overrides }, null, 2) + '\n') });
 const inherited = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^npm_config_cache$/i.test(k)));
 const env = { ...inherited, npm_config_cache: join(host, '.cache'), npm_config_audit: 'false',
   npm_config_fund: 'false', npm_config_update_notifier: 'false' };
-// Graph is an optional peer, so it is requested explicitly beside Change.
-const args = ['install', '--omit=dev', packed[name].tarball, packed['kaal-graph'].tarball];
+const args = ['install', '--omit=dev', packed[name].tarball];
 const installed = await execute('npm', args, { cwd: host, env });
 assert.equal(installed.status, 0, installed.stdout + installed.stderr);
 const candidate = join(host, 'node_modules', ...name.split('/'));

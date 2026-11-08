@@ -45,9 +45,16 @@ Engineering Change. Say if you want it.
 `npm test` verified; `test:publisher` 8 pass; `test:collector` 94 pass; manifest
 current; root `test:engineering` 278 pass. A copy of the package with only Foundation
 and Hosting resolvable: `verify.mjs` exits 2 `cannot verify` naming `kaal-graph`;
-the example exits 3. Not run locally: the packed-artifact probe (T56) and Acceptance,
-which need the lane and a packing step; CI covers Acceptance.
+the example exits 3. T56 (packed probe, run by hand over packed artifacts): verified, 10 Cases. Not run locally: Acceptance,
+which needs the lane; CI covers it.
 
 ## Boundary
 
 No promotion, publication or version bump. Not part of the Hosting promotion.
+
+## Review follow-up
+
+Codex (P2, valid): the T56 probe's Graph override and its direct tarball install had
+different specs, and npm rejects that (`EOVERRIDE`). The probe now declares Graph as a
+direct dependency of the consumer and the override refers to it (`$kaal-graph`). Rerun
+by hand over freshly packed artifacts: verified, 10 Cases.
