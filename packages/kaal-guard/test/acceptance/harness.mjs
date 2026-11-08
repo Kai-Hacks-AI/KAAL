@@ -15,6 +15,9 @@ import { fileURLToPath } from "node:url";
 /** The package under test: two directories up from here. */
 export const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
+/** The one KAAL element the package declares (guard/N6, guard/A8): Hosting, at this exact version, imported only by this harness. */
+export const HOSTING = { name: "@kaihacksai/kaal-hosting", version: "0.0.1" };
+
 /** The name the package is published under (N6), in the Owner's npm scope; its command is kaal-guard. */
 export const NAME = "@kaihacksai/kaal-guard";
 
