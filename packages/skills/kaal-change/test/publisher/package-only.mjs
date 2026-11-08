@@ -3,7 +3,7 @@
 // npm still resolves Change's real production dependency declarations itself.
 import assert from 'node:assert/strict';
 import { join, isAbsolute } from 'node:path';
-import { readFile, initialize, execute, kind } from 'kaal-hosting';
+import { readFile, initialize, execute, kind } from '@kaihacksai/kaal-hosting';
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
 import { verification } from '../../../../../engineering/release/release.mjs';
 
@@ -13,7 +13,7 @@ assert.ok(manifestPath && host && isAbsolute(manifestPath) && isAbsolute(host),
 assert.equal(await kind(host), 'missing', 'consumer must be fresh');
 const packed = JSON.parse(await readFile(manifestPath));
 const name = '@kaihacksai/kaal-change';
-const providers = ['@kaihacksai/kaal-foundation', 'kaal-graph', 'kaal-hosting'];
+const providers = ['@kaihacksai/kaal-foundation', 'kaal-graph', '@kaihacksai/kaal-hosting'];
 for (const p of [name, ...providers]) {
   assert.ok(packed[p]?.tarball && packed[p]?.sha256 && packed[p]?.integrity, p + ' needs a caller-packed artifact');
   assert.equal(sha256(await readFile(packed[p].tarball)), packed[p].sha256, p + ' artifact differs from the manifest');
