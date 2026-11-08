@@ -331,7 +331,7 @@ function affected(code: string, line: number, column: number): string[] {
       const caught = /\btry$/.test(before) && /^\s*catch\b/.test(mask.slice(to + 1));
       if (arrow || method || caught) for (let k = from; k <= to; k++) exits[k - close - 1] = " ";
     }
-    if (/\b(?:return|throw)\b|\bprocess\s*\.\s*exit\s*\(/.test(exits.join(""))) {
+    if (/(?<![.\w$])(?:return|throw)\b(?!\s*:)|\bprocess\s*\.\s*exit\s*\(/.test(exits.join(""))) {
       let block = mask.length;
       for (const [from, to] of pairs) if (mask[from] === "{" && from < open && to >= end && to < block) block = to;
       end = block;

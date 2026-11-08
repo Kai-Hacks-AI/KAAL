@@ -24,5 +24,6 @@ Owner: Hosting. Raised on 8 November 2026 from Codex's P2 finding on #1171 at 11
 | hosting/T238 | control, passes before and after: a case registered before the guard is not challenged | same file |
 | hosting/T239 | control, added with the fix after Codex review: a return inside a guarded case's own callback (arrow or function) leaves only that callback and does not challenge the cases after the guard | guard-before-registrations.controls.mjs |
 | hosting/T240 | control, added with the fix after a second Codex finding: a throw caught by a try/catch inside the guarded branch does not leave the suite | guard-before-registrations.controls.mjs |
+| hosting/T241 | control, added with the fix after a third Codex finding: a method or property named `return` (for example `iterator.return()`) is not a control-flow exit | guard-before-registrations.controls.mjs |
 
 **Confirming Run (8 Nov, Node 24, Linux, d4feaba, the collector head carrying the D11 fix):** T235, T236 and T237 fail; T238 passes. The fix is a separate Change; the Cases are not edited.

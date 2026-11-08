@@ -38,3 +38,8 @@ test("hosting/T240 control: a throw caught inside the guarded branch does not ch
   const r = await challenged('describe("suite", () => {\n  if (process.platform === "win32") { try { throw new Error("probe"); } catch {} it("windows-only", () => {}); }\n  it("portable", () => {});\n});');
   assert.deepEqual(r, ["windows-only"]);
 });
+
+test("hosting/T241 control: a method named return in the guarded branch does not leave the suite", async () => {
+  const r = await challenged('describe("suite", () => {\n  if (process.platform === "win32") { iterator.return(); it("windows-only", () => {}); }\n  it("portable", () => {});\n});');
+  assert.deepEqual(r, ["windows-only"]);
+});
