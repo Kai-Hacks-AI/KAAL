@@ -319,12 +319,16 @@ function affected(code: string, line: number, column: number): string[] {
     let end = statementEnd(close + 1);
     const otherwise = space(end);
     if (/^else\b/.test(mask.slice(otherwise))) end = statementEnd(otherwise + 4);
-    // A guard that returns, throws or exits leaves the function it is in (hosting/D12, hosting/D13): every registration
-    // after it in that function (or the module) is skipped too, however deep in blocks the guard sits; a throw that an
-    // enclosing try with a catch handler inside that function catches skips only to the end of that try block.
-    const kinds = exitKinds(code.slice(close + 1, end));
-    if (kinds.returns || kinds.throws) end = Math.max(end, scopeEnd(code, open, kinds));
     for (const call of calls) if (close < call.start && call.start < end) result.add(call.title);
+    // A guard that returns, throws or exits leaves the function it is in (hosting/D12, hosting/D13): every registration
+    // after it in that function (or the module) is skipped too, however deep in blocks the guard sits, except those in a
+    // finally block of a try the guard is in, which still runs; a throw that an enclosing try with a catch handler inside
+    // that function catches skips only to the end of that try block.
+    const kinds = exitKinds(code.slice(close + 1, end));
+    if (kinds.returns || kinds.throws) {
+      const scope = scopeEnd(code, open, kinds);
+      for (const call of calls) if (end <= call.start && call.start < scope.end && !scope.runs.some(([from, to]) => from <= call.start && call.start < to)) result.add(call.title);
+    }
   }
   return [...result];
 }

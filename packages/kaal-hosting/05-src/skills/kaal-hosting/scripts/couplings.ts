@@ -362,9 +362,10 @@ export function leavesScope(text: string): boolean {
 /**
  * Where the registrations skipped by a leaving guard end (hosting/D13): the end of the function the guard at `position`
  * is in, however deep in blocks it sits, or of the module. A throw that an enclosing try with a catch handler inside
- * that function catches leaves only that try block, so it ends there. Decided on the parsed tree.
+ * that function catches leaves only that try block, so it ends there. The finally blocks of the tries the guard sits in
+ * still run, so their ranges are returned to be left out. Decided on the parsed tree.
  */
-export function scopeEnd(code: string, position: number, kinds: { returns: boolean; throws: boolean }): number {
+export function scopeEnd(code: string, position: number, kinds: { returns: boolean; throws: boolean }): { end: number; runs: Array<[number, number]> } {
   const file = ts.createSourceFile("source.ts", code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const chain: ts.Node[] = [];
   const descend = (node: ts.Node): void => {
@@ -379,13 +380,17 @@ export function scopeEnd(code: string, position: number, kinds: { returns: boole
   };
   descend(file);
   let caught: number | undefined;
+  const runs: Array<[number, number]> = [];
   for (let i = chain.length - 1; i > 0; i--) {
     const node = chain[i];
-    if (ts.isTryStatement(node) && node.catchClause && chain[i + 1] === node.tryBlock && caught === undefined) caught = node.tryBlock.getEnd();
+    if (ts.isTryStatement(node)) {
+      if (node.catchClause && chain[i + 1] === node.tryBlock && caught === undefined) caught = node.tryBlock.getEnd();
+      if (node.finallyBlock && (chain[i + 1] === node.tryBlock || chain[i + 1] === node.catchClause)) runs.push([node.finallyBlock.getStart(file), node.finallyBlock.getEnd()]);
+    }
     const body = ts.isFunctionLike(node) ? (node as ts.FunctionLikeDeclaration).body : undefined;
-    if (body) return kinds.returns ? body.getEnd() : (caught ?? body.getEnd());
+    if (body) return { end: kinds.returns ? body.getEnd() : (caught ?? body.getEnd()), runs };
   }
-  return kinds.returns ? code.length : (caught ?? code.length);
+  return { end: kinds.returns ? code.length : (caught ?? code.length), runs };
 }
 
 interface Raw {
