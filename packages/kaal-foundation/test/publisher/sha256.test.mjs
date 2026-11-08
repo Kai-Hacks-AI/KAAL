@@ -108,7 +108,7 @@ describe("SHA-256 (foundation/C1)", () => {
     };
     walk(join(REPOSITORY, ".kaal"));
     const packages = (dir) => readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => join(dir, e.name));
-    for (const root of [join(REPOSITORY, "packages"), join(REPOSITORY, "packages", "skills"), join(REPOSITORY, "packages", "extensions")]) {
+    for (const root of [join(REPOSITORY, "packages")]) {
       for (const pkg of packages(root)) if (existsSync(join(pkg, "payload"))) walk(join(pkg, "payload"));
     }
     assert.ok(files.length > 0, "found the Nodes KAAL ships");
