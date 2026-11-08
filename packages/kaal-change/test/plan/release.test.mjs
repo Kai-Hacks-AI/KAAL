@@ -15,7 +15,7 @@ const PACKAGE = fileURLToPath(new URL("../../", import.meta.url));
 const GRAPH = join(PACKAGE, "../kaal-graph");
 const HOSTING = join(PACKAGE, "../kaal-hosting");
 const NAME = "@kaihacksai/kaal-change";
-const PEER = "@kaihacksai/kaal-graph";
+const PEER = "kaal-graph";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
 /** Every subprocess is bounded: a synchronous call blocks the event loop, so a test timeout alone cannot stop it. */
 const BOUND = 120_000;
