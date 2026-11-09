@@ -20,3 +20,5 @@ not exist (missing-deliverable evidence). The Testing document carries the inven
 branch, the cross-cutting Requirements found so far, and the Cases to split (T15, T17, T18, T46, T47, T62).
 
 Case T70 (F43, front matter with a `tests` edge) is added, RED. T16, T17 and T47 are placed (Owner): generic acceptance is Delivery, governed by kaal-packaging, held by Engineering; T17 and T47 split. The untitled Cases (sha256, publication, verifier, manifest) get the next free T-numbers and `tests` edges in the DO (Owner). The `foundation/T999` fixture becomes `foundation/TX-undeclared` (Owner). No question is open.
+
+Owner guidance (2026-11-09): capabilities are soft-tried, and Architecture also names what is placed here but belongs to an outside package. New: Intent I16 (comply with kaal-packaging; the generic acceptance Cases trace to it), F44 and A25 ("Placed here, belongs elsewhere").

@@ -15,7 +15,7 @@ Measured on `kaal/foundation` at 8ea2ef2 plus the boundary DO #1293. The branch 
 | T54 to T61 | F34 to F37, N20, N22 | `04-test/engineering-check/publisher/boundary.test.mjs` | Solution | one leaf; they only need the built `dist/` |
 | T62 | N21 | same file | Solution **and** Delivery | two leaves: scan imports (Solution) and `package.json` dependencies (Delivery). **Split** |
 | T15 | F11, F13 | `publisher/capability.test.mjs` | Solution **and** Delivery | two leaves: the installed manifest (Solution) and "the committed manifest is the packed one" (Delivery). **Split** |
-| T16 | F12, F17 | same file | Delivery (Packaging) | one leaf. The installed `npm test` ends on the verification line and every declared Case passes: the same for every package. Governing capability kaal-packaging (L15); Engineering holds it until Packaging lands. Foundation-specific: nothing but the manifest's own Case list |
+| T16 | F12, F17 | same file | Delivery (Packaging) | one leaf. The installed `npm test` ends on the verification line and every declared Case passes: the same for every package. Traces to foundation/I16 (comply with kaal-packaging), listed in A25. Governing capability kaal-packaging (L15); Engineering holds it until Packaging lands. Foundation-specific: nothing but the manifest's own Case list |
 | T17 | F12, N10 | same file | Delivery (Packaging) **and** Solution | two leaves. Tamper detection (changed document, missing manifest, removed or undeclared Case give `cannot verify`) is generic: Delivery, Packaging. "A wrong library behind a matching manifest is `failed`" is Foundation-specific: A9, Foundation checks with the host's SHA-256, never its own library (Solution). **Split** |
 | T18 | F14, N8 | same file | Solution **and** Delivery | two leaves: the command (Solution) and the declared bin through `npm exec` (Delivery). **Split** |
 | T32 | F18 | `acquisition.test.mjs` | Delivery | one leaf |
@@ -53,3 +53,7 @@ All seven are expected RED today, each because the tree, the folders or the buil
 ## The carrier of the pointers (foundation/F43): decided
 
 The Owner ruled on 2026-11-09 that each Case carries a `tests` edge in its own YAML front matter, pointing at the Defect, Requirement, Intent or Architecture element it verifies. Suites are derived backwards ("who points at this?"). Today a Case's targets are only text in its title, `foundation/T<n> [<targets>]: …`, and no Case carries front matter, so foundation/T70 is RED. The DO adds the edge to every Case, then generates the manifest's `cases` and `model` and the suites from the edges. Left to the DO: the exact JavaScript form of the front matter (T70 accepts a leading `/*---` … `---` comment block or a plain `---` block).
+
+## Soft-trying capabilities (Owner, 2026-11-09)
+
+The placements above are the current best home. A Case or element can move when its owner capability lands, and the move is its own Change. foundation/A25 is where Architecture records such things, and foundation/F44 requires the list. No planned Case is added for F44 yet: its check is a section of the Architecture the DO writes, and the DO adds the Case with the section.
