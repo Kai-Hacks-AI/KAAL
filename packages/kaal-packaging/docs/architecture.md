@@ -31,6 +31,7 @@ Each element names, in brackets, the Requirements it answers (`requirements.md`)
 - **packaging/A14** [packaging/F19]: **Registry resolution is read, not fetched.** F7 reads the consumer's install record, `node_modules/.package-lock.json` (or the consumer's `package-lock.json`), for each runtime dependency of the package under test. It makes no network request, so its result does not depend on a registry being reachable.
 - **packaging/A19** [packaging/F25, packaging/I5]: **Observation and judgment are kept apart.** Packaging's scripts (`measure`, `conform`, the manifest check) establish observations that can be repeated. Whether a package's incoming and outgoing boundaries are complete, whether its own Cases exercise their obligations, and whether its evidence supports a claim are judgments an agent makes with the skill, and each is recorded with its reasons. A report separates four things: what scripts observed, what the agent judged and why, what is unknown, and what only the Owner can authorize. Structure that is present, such as headings, links, Cases or a passing script, never stands for an adequate boundary account. The judgment is the agent's and the package's own account stays its owner's.
 - **packaging/A22** [packaging/F29]: **One probe.** The declaration of behaviour-bearing files only widens the set of files the one N9 probe corrupts, and the second copy changes only the text written. The probe reads no verifier code and no package-specific wording, and there is no second judgment engine.
+- **packaging/A28** [packaging/F53–F57, packaging/N13]: **The held-copy classifier.** `lib/held.mjs` exports `classifyHeld`, offered as `kaal-packaging/held`. It imports nothing from the host and reads the registry-URL pattern from `lib/registry.mjs`, which the installation check also reads, so a nested copy's origin is judged the same way as a prerequisite's (packaging/F19).
 
 ## The Changes that set this package
 
@@ -46,4 +47,5 @@ Each Requirement and element above that names a Change was set or corrected by i
 | packaging/C6 | packaging/F12 decided through Hosting's OS boundary |
 | packaging/C7 | packaging/F13 read through Testing's model |
 | packaging/C8 | The PLAN for Packaging as a capability: packaging/I7, F15–F19, N11, N12, A12–A14 |
+| packaging/C28 | The held-copy classifier: packaging/I8, I9, F53–F57, N13, A28 |
 | packaging/C9 | The DO for Packaging as a capability |

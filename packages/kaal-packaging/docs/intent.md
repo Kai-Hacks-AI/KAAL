@@ -21,3 +21,5 @@ Every KAAL package answers to two independently authoritative contracts, both te
 ## Packaging as a capability
 
 - **packaging/I7.** Packaging holds itself to the contract it enforces. Installed, `kaal-packaging` passes its own `conform` on every Requirement it can decide. It is usable by an agent without writing JavaScript, through a skill, commands and instructions, and no file in it decides anything by operating system. Hosting stays the only place that may (hosting/F36, testing/F67).
+- **packaging/I8.** An installation host holds the packed tarball of every package a run packed. A copy that differs is reported, and one narrow difference is visible without being a failure: a copy nested under a consumer, from a registry, at a strictly older version than the packed one.
+- **packaging/I9.** Every other difference stays a failure: a top-level copy with other bytes, a nested copy of the same or a newer version, a copy from anywhere but a registry, and a copy whose versions cannot be compared.

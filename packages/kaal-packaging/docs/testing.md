@@ -74,6 +74,14 @@ These run in the source workspace only, in `test/publisher/capability.test.mjs`,
 | packaging/T67 | packaging/F29 | a syntax-only verification survives the emptied copy and fails N9, naming it (the plan's T62c) | `test/embed/package.test.mjs` |
 | packaging/T51 | packaging/F25 | an agent using the shipped skill judges an adequate boundary account adequate, finds the material omission in an account whose headings, links and passing scripts look complete (an outgoing obligation whose refusals no Case exercises), and keeps unsupported evidence unresolved. A recorded independent trial, with its scenarios and expectations set before it ran |
 | packaging/T52 | packaging/F17 | the same trial run without an Engine, from the shipped skill alone: the agent chooses its inspections, interprets the script observations and records judgments, unknowns and Owner authorization separately, without proving completeness mechanically or taking another package's content |
+| packaging/T137 | packaging/F55, packaging/F57 | a nested, older, registry copy is a pin-behind, and the verdict names the package, consumer, held and packed version | `test/embed/held.test.mjs` |
+| packaging/T138 | packaging/F54 | a copy whose integrity equals the packed one is a match, at any depth and any version | `test/embed/held.test.mjs` |
+| packaging/T139 | packaging/F56 | a top-level copy with other bytes is a verified failure | `test/embed/held.test.mjs` |
+| packaging/T140 | packaging/F56 | a nested copy of the same version, and one of a newer version, are verified failures | `test/embed/held.test.mjs` |
+| packaging/T141 | packaging/F56 | an older nested copy whose origin is missing, a file path, a link or not a registry is a verified failure | `test/embed/held.test.mjs` |
+| packaging/T142 | packaging/F56 | a missing, non-plain or prerelease version on either side is a verified failure | `test/embed/held.test.mjs` |
+| packaging/T143 | packaging/N13, packaging/F57 | the verdict is the same for any package and consumer name, the classifier reads only the fact, and its source names no package, consumer or role | `test/embed/held.test.mjs` |
+| packaging/T144 | packaging/A28, packaging/N13 | kaal-packaging/held is exported, and importing it needs no host module | `test/embed/held.test.mjs` |
 
 ## Running
 
