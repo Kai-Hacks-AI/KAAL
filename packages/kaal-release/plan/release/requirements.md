@@ -1,4 +1,4 @@
-# kaal-release 0.0.1: Requirements
+# Release: Requirements (target)
 
 Scoped `release/`. F are functional, N nonfunctional.
 
@@ -8,12 +8,12 @@ Scoped `release/`. F are functional, N nonfunctional.
   2. establish readiness (tests pass on the commit to be released, the version is unused, the manifest is complete);
   3. build once, and promote that same artifact through every later step (never rebuild between test and publish);
   4. approve publication (a named person or role decides, separately from whoever built);
-  5. publish through trusted publishing (OIDC, no long-lived token) with provenance attached;
+  5. publish with an authenticated, auditable identity and attach provenance where the ecosystem supports it (prefer short-lived credentials over long-lived tokens);
   6. verify the published artifact against the promoted one, installed as a consumer installs it;
   7. announce (release notes, changelog) and tag;
-  8. recover (deprecate and publish a fixed version; unpublish only where the registry's own policy allows).
+  8. recover (mark the release as not to be used and publish a fixed version; withdraw only where the registry's own policy allows).
 - **release/F3. Decisions are named, not made.** For each step the Skill lists the decision a repository owns and its common options, and tells the agent to read the repository's own record of that decision first (a KAAL Engine's Nodes, or `AGENTS.md`). Absent a record, it asks the Owner rather than choosing.
-- **release/F4. Examples are worked in npm.** `references/npm.md` applies F2 to npm packages (provenance, trusted publisher, `npm pack` once, `npm view` for existence). The Skill body stays ecosystem-neutral.
+- **release/F4. The Skill body is ecosystem-neutral; worked examples are separate.** `references/npm.md` applies F2 to npm as one example: npm trusted publishing (OIDC), npm provenance, `npm pack` once, `npm view` for existence, `npm deprecate`. These are npm choices, not requirements on a consumer. The Skill body names no registry or tool.
 - **release/F5. KAAL's realization is pointed to, never copied.** One section tells the agent that if the repository is KAAL's own, its release decisions are in `engineering/release-management/`, and to read them there. The shipped files contain no KAAL collector, gate, control or station name.
 - **release/F6. Mnemonics are referenced by name only,** and only those that exist as Nodes in the Engine the agent is in. The shipped files do not redefine them.
 - **release/N1. Conforms.** The Agent Skill passes `kaal-engineer-skill`'s checker with no `standard` or `kaal` finding.

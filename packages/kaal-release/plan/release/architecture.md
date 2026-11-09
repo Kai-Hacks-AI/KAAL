@@ -1,4 +1,4 @@
-# kaal-release 0.0.1: Architecture
+# Release: Architecture (target)
 
 ## Placement
 
@@ -9,7 +9,8 @@ Two questions per element, in order (Owner, 9 Nov 2026): is it ours, then is it 
 | General release-management guidance (the F2 loop) | ours | Solution | `packages/kaal-release/` (this plan) |
 | The `Release` Skill Node and the `kaal-release` Agent Skill | ours | Solution | `packages/kaal-release/` |
 | npm worked example | ours | Solution | `packages/kaal-release/skills/kaal-release/references/npm.md` |
-| SemVer, trusted publishing, provenance (what they are) | not ours | external standards | cited by name, not restated |
+| SemVer (what it is) | not ours | external standard | cited by name, not restated |
+| npm trusted publishing, npm provenance, `npm deprecate` | not ours | ecosystem mechanisms | worked example only, in `references/npm.md` |
 | KAAL's collectors, two gates, merge queue on `main`, control names | ours | Delivery | `engineering/release-management/`, not shipped |
 | The Release engine (`release.mjs`, `run.mjs`) | ours | Delivery | `engineering/release-management/05-src/release-engine/`, not shipped |
 | Who approves a KAAL publication, the `npm` environment | Owner's decision | Delivery | the Owner, recorded in repository decisions only |
@@ -30,16 +31,7 @@ packages/kaal-release/
 
 The shape follows `kaal-engineer-skill`, the smallest existing Skill package.
 
-## USE vs BUILD
-
-| Need | Decision | Why |
-| --- | --- | --- |
-| Skill format check | USE `kaal-engineer-skill` checker | It already decides `standard` and `kaal` conformance. |
-| Version rules | USE Semantic Versioning 2.0.0 | An industry standard; the Skill cites it. |
-| Publishing identity and provenance | USE npm trusted publishing and provenance | The registry's own mechanism; no equivalent to build. |
-| Markdown reading in tests | USE `commonmark` | A parser does what a hand-written reader would do. |
-| Release engine for consumers | NOT in 0.0.1 | It is KAAL's realization; whether any part generalizes is a later Change with its own USE vs BUILD. |
-| Version comparison script | NOT in 0.0.1 | The `semver` package exists; a Script level is added only when a behaviour must repeat exactly. |
+The Delivery target that holds KAAL's own identities is `engineering/release-management/03-architecture/architecture.md` (landing through its own collector). It is the single source of what counts as KAAL-specific.
 
 ## BASS allocation
 
@@ -48,7 +40,7 @@ The shape follows `kaal-engineer-skill`, the smallest existing Skill package.
 | Choosing the version bump, writing release notes | Skill (judgment) |
 | Reading the repository's own release decisions | Agent (`AGENTS.md` and Engine Nodes) |
 | Checking the Skill's own conformance | Script (the existing `kaal-engineer-skill` checker) |
-| Verifying a published artifact | not in 0.0.1 |
+| Verifying a published artifact | not yet (see 00-changes.md) |
 
 ## Mnemonics
 
@@ -61,4 +53,4 @@ Existing ones that bear on release work are reused by reference. None is added.
 
 ## Relationship to release management
 
-`engineering/release-management/` defines KAAL's Delivery target and is landing into `main` through its own collector. `kaal-release` does not depend on it landing, since the Skill only points at the folder. The pointer text is checked for being a pointer (F5 Case) so it cannot grow into a copy.
+`kaal-release` does not depend on `engineering/release-management/` landing: the Skill only points at the folder, and the pointer is checked for being a pointer (T5).
