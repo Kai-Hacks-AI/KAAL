@@ -103,7 +103,19 @@ The last two ports map to no control today. `push-check.sh` is the local, before
 
 ### What we learn about kaal-control (log)
 
-Filled in as each control is done. Questions to answer on the way:
+Filled in as each control is done.
+
+**Lesson 1, from Promotion source: a control has a type, and today none declares it.** By the standard types:
+- **Preventive (the primary type).** As a required check on a pull request into `main`, it stops a merge from a source that is not a `kaal/*` branch of this repository (a working branch or a fork). It acts before the change lands.
+- **Directive (secondary).** The rule is stated in `branching:Promote` and the Intent, which tell people that only a Capability's collector promotes. That directs behaviour and does not itself stop anything.
+- **Detective: not by itself.** It reports a verdict on each pull request, but its report is what blocks, so it reads as preventive. Detection of a promotion that got through is the Lineage audit's job, a different control.
+- **Corrective: none.** Nothing here repairs a bad promotion. The guidance says what the author should do, and that is not a correction.
+
+A preventive control only prevents if it is required. Whether the check is required before merge, and that it ran on a given promotion, is the unresolved operation claim already recorded for it. So the type changes what its Assurance can claim: a preventive control needs an operation claim, a directive one does not.
+
+Question this raises for kaal-control: **should every control declare its type (directive, preventive, detective, corrective), and may one control carry more than one?** Promotion source is preventive with a directive part. Across the eight, my reading is: Lineage audit detective; Required tests and Merge queue preventive; Review before merge preventive, enforced by a human; One promotion directive today; Change Isolation and Lineage preventive. That reading is mine and not yet checked with the CPO.
+
+Questions to answer on the way:
 - Does a control's chain read the same as a package's chain with the same tool (the traceability computer)?
 - Where does a Case that several controls share belong (for example `lineage.test.ts`)?
 - Can a control with no code (Review before merge) still carry a chain, and what does its Test index say?
