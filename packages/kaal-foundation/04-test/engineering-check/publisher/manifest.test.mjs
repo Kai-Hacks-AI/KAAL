@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "manifest.mjs");
 
-test("the committed 04-test/package-check/verify.json is current: manifest.mjs --check passes", () => {
+test("foundation/T71 [foundation/F11]: the committed 04-test/package-check/verify.json is current: manifest.mjs --check passes", () => {
   const r = spawnSync(process.execPath, [SCRIPT, "--check"], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
   assert.equal(r.status, 0, `${r.stdout}${r.stderr}`);
   assert.match(r.stdout, /package-check\/verify\.json is current/);

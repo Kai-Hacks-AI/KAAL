@@ -123,7 +123,7 @@ test("foundation/T15 [foundation/F11, foundation/F13]: the installed manifest li
   assert.deepEqual(readFileSync(join(PACKAGE, "04-test", "package-check", "verify.json")), readFileSync(file), "the committed manifest is the packed one");
 });
 
-test("foundation/T16 [foundation/F12, foundation/F17]: the installed npm test ends on the verification line with verified, exit 0, every declared case once with outcome pass, and no cause", () => {
+test("foundation/T16 [foundation/F17]: the installed npm test ends on the verification line with verified, exit 0, every declared case once with outcome pass, and no cause", () => {
   const r = run("npm", ["test"], installed);
   const s = summary(r);
   assert.ok(s, `the last line is ${LINE}{json}: ${r.out}`);
@@ -136,7 +136,7 @@ test("foundation/T16 [foundation/F12, foundation/F17]: the installed npm test en
   assert.doesNotMatch(r.out, /test:publisher/, "the installed npm test never starts the publisher suite");
 });
 
-test("foundation/T17 [foundation/F12, foundation/N10]: on an installed copy, a changed document, a missing manifest, a removed case file and an undeclared case are cannot verify with their cause; a wrong library behind a matching manifest is failed", { timeout: 300_000 }, () => {
+test("foundation/T17 [foundation/F17]: on an installed copy, a changed document, a missing manifest, a removed case file and an undeclared case are cannot verify with their cause", { timeout: 300_000 }, () => {
   assert.ok(existsSync(join(installed, MANIFEST)), "blocked before behavioural assertion: no manifest ships, so tampering cannot be told");
   const cannot = (why, r, cause) => {
     assert.equal(r.status, 2, `${why}: ${r.out}`);
@@ -151,9 +151,13 @@ test("foundation/T17 [foundation/F12, foundation/N10]: on an installed copy, a c
   cannot("a removed case file", verifyCopy((c) => rmSync(join(c, "dist", first))), new RegExp(first.replaceAll(".", "\\.")));
   cannot(
     "an undeclared case",
-    verifyCopy((c) => writeFileSync(join(c, "dist", "docs", "intent", "zz-extra.test.mjs"), 'import { test } from "node:test";\ntest("foundation/T999 [foundation/F1]: extra", () => {});\n')),
-    /foundation\/T999/,
+    verifyCopy((c) => writeFileSync(join(c, "dist", "docs", "intent", "zz-extra.test.mjs"), 'import { test } from "node:test";\ntest("foundation/TX-undeclared [foundation/F1]: extra", () => {});\n')),
+    /foundation\/TX-undeclared/,
   );
+});
+
+test("foundation/T76 [foundation/F12, foundation/N10]: on an installed copy, a wrong library behind a matching manifest is failed", { timeout: 300_000 }, () => {
+  assert.ok(existsSync(join(installed, MANIFEST)), "blocked before behavioural assertion: no manifest ships, so tampering cannot be told");
   const wrong = verifyCopy((c) => {
     writeFileSync(join(c, LIB, "sha256.mjs"), 'export function sha256(bytes) { if (!(bytes instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n');
     rewrite(c, `${LIB}/sha256.mjs`);

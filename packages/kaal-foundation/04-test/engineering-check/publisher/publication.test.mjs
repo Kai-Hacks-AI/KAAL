@@ -76,7 +76,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
       assert.equal(Object.keys(m[kind] ?? {}).length, 0, `the package declares no ${kind}`);
   });
 
-  it("foundation/T10 [foundation/F5, foundation/F8, foundation/A5, foundation/I4, foundation/I6]: packed and installed into a clean directory, the installed files are exactly the documented ones, the subpath hashes abc, and the installed npm test is verified; a wrong digest, a wrong FIPS answer, an accepted string, a broken module, a failing test, an empty test file and missing tests are never verified", { timeout: 600_000 }, () => {
+  it("foundation/T10 [foundation/F5, foundation/F8, foundation/I4, foundation/I6]: packed and installed into a clean directory, the installed files are exactly the documented ones, the subpath hashes abc, and the installed npm test is verified; a wrong digest, a wrong FIPS answer, an accepted string, a broken module, a failing test, an empty test file and missing tests are never verified", { timeout: 600_000 }, () => {
     assert.equal(manifest().scripts?.test, "node dist/test/package-check/verify.mjs", "blocked before release acceptance: npm test is not the delivered verification");
     const work = mkdtempSync(join(tmpdir(), "kaal-foundation-release-"));
     try {
@@ -197,7 +197,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
     assert.match(testing, /not (delivered|shipped)|do(es)? not ship/i, "and says they are not delivered");
   });
 
-  it("foundation/T13 [foundation/F9, foundation/A6]: npm test is the delivered verification (built first in source), there is no runner, and files ships dist/ alone", () => {
+  it("foundation/T13 [foundation/F9]: npm test is the delivered verification (built first in source), there is no runner, and files ships dist/ alone", () => {
     const { scripts = {}, files = [] } = manifest();
     assert.equal(scripts.test, "node dist/test/package-check/verify.mjs", "npm test is the delivered verification");
     assert.equal(scripts["test:all"], undefined, "there is no runner");
