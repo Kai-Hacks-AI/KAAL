@@ -143,7 +143,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     }
     assert.throws(() => readFileSync(marker), "nothing from a definition is executed");
   });
-  it("T10 (RED until the DO) [R1, R2]: the adapter gives one Boundary Case per test, in suite boundary, with the definition's tests edge and ships flag", async () => {
+  it("T10 (RED until the DO) [R1, R2]: the provisional adapter gives one descriptor per test, suite boundary, with the definition's tests edge and ships flag", async () => {
     const tests = put("t10/tests.md", def("demo", CRYPTO + CRYPTO.replace("id: crypto", "id: crypto2").replace("tests: demo/I1", "tests: demo/I2").replace("ships: true", "ships: false")));
     const { boundaryCases } = await import(pathToFileURL(CASES).href);
     const cases = boundaryCases([tests]);
@@ -153,18 +153,21 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     ]);
     assert.ok(cases.every((c) => typeof c.run === "function"));
   });
-  it("T11 (RED until the DO) [R1, R3]: a Case's result is in Testing's terms: unknown without full coverage, failed with an undecided finding, verified once decided by id and line digest", async () => {
+  it("T11 (RED until the DO) [R1, R3]: a run keeps evidence completeness and finding disposition apart and returns no verdict", async () => {
     const tests = put("t11/tests.md", def("demo", CRYPTO));
     const file = put("t11/t/a.mjs", "x\ncreateHash(\"sha256\")\n");
     const [one] = (await import(pathToFileURL(CASES).href)).boundaryCases([tests]);
     const ctx = { targets: [join(dir, "t11/t")], base: join(dir, "t11") };
-    const failed = await one.run({ ...ctx, decisions: [] });
-    assert.equal(failed.result, "failed");
-    assert.equal(failed.findings.length, 1);
+    const open = await one.run({ ...ctx, decisions: [] });
+    assert.equal(open.result, "complete");
+    assert.equal(open.findings.length, 1);
+    assert.deepEqual([open.decided, open.undecided], [[], ["demo/t/a.mjs:2"]]);
+    for (const key of ["pass", "passed", "fail", "failed", "verified", "verdict"]) assert.ok(!(key in open) && open.result !== key, key);
     const decision = { id: "demo/t/a.mjs:2", digest: sha("createHash(\"sha256\")") };
-    assert.equal((await one.run({ ...ctx, decisions: [decision] })).result, "verified");
+    const decided = await one.run({ ...ctx, decisions: [decision] });
+    assert.deepEqual([decided.decided, decided.undecided], [["demo/t/a.mjs:2"], []]);
     writeFileSync(file, "x\ncreateHash(\"sha256\", 1)\n");
-    assert.equal((await one.run({ ...ctx, decisions: [decision] })).result, "failed", "a changed line is undecided again");
+    assert.deepEqual((await one.run({ ...ctx, decisions: [decision] })).undecided, ["demo/t/a.mjs:2"], "a changed line is undecided again");
     const unknown = await one.run({ targets: [join(dir, "t11/nope")], base: join(dir, "t11"), decisions: [] });
     assert.equal(unknown.result, "unknown");
   });
@@ -177,8 +180,8 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     const ctx = { targets: [join(dir, "t12/t")], base: join(dir, "t12"), decisions: [] };
     const [a] = mod.boundaryCases([put("t12/a.md", def("demo", CRYPTO))]);
     const [b] = mod.boundaryCases([put("t12/b.md", def("demo", CRYPTO.replace("[sha256, sha-256]", "[md5]")))]);
-    assert.equal((await a.run(ctx)).result, "verified");
-    assert.equal((await b.run(ctx)).result, "failed");
+    assert.deepEqual((await a.run(ctx)).findings, []);
+    assert.equal((await b.run(ctx)).findings.length, 1);
     assert.equal(bytes(), before);
   });
 });

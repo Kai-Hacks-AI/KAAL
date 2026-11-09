@@ -17,4 +17,4 @@ Cases); Hosting's scan migrates to a definition.
 
 No promotion, version bump on main, SYNC, ledger entry, release dispatch or npm publication is authorized.
 
-Embedding: Testing is embedded into KAAL Engineering. Each Boundary Test is a Boundary Case of its capability (suite B of BEST, with a `tests` edge and a `ships` flag); Testing owns the Case, Suite and result contracts; the engine is an Engineering mechanism that supplies evidence to the common BEST runner through an adapter and creates no second registry or result authority.
+Embedding (incremental): Testing is embedded into KAAL Engineering but has not landed as a usable package, so Engineering offers a provisional, Engineering-owned execution adapter today, shaped to map onto Testing's Case later. Evidence completeness, finding disposition (a finding is an observation, not a defect) and the canonical test result are kept apart; no pass or fail is defined here, and Foundation 0.0.2 depends on no unlanded Testing.
