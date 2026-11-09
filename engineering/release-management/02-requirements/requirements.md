@@ -22,6 +22,8 @@ test Candidate (into `main`) and test Integration (into a collector) apply FAR (
 - **Features** test the incoming change: they are the Cases the candidate adds or changes, they travel with the candidate (Solution content) and run as candidate code.
 - **Accepts** is a short, explicit list that lets a candidate weaken named Regression Cases. It is the only door to weaken Regression, and a change to Accepts is reviewed and approved like any change; a Regression Case missing, edited or skipped without an Accepts entry fails.
 
+Each run tests both Features and Regression and **communicates what gets weakened**: it reports every Accepts entry it applied (which Regression Case was weakened, and how: removed, edited, skipped or expected to fail) visibly in the check output, for example the job summary, so the reviewer sees it at the decision point. A run that applied no Accepts entry says so.
+
 By I4 the machinery is Delivery and pinned; the Cases under test are Solution content. Allocated to the testing controls (`main/` test Candidate, `collectors/` test Integration), which share the FAR rule.
 
 ## Root (spans stations; the Owner's list, 9 Nov)
