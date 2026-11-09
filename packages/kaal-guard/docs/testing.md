@@ -7,7 +7,7 @@ This is Guard's Product Verification Test Plan: the one that ships, and that you
 | Loop | Checks | Where | Runs in your installation |
 | --- | --- | --- | --- |
 | Intent | the outcomes hold for a user of Guard | `test/acceptance/intent.test.mjs` | yes |
-| Requirements | each obligation holds | `test/acceptance/requirements.test.mjs` | yes |
+| Requirements | each obligation holds | `test/acceptance/requirements.test.mjs`, `requirements-configuration.test.mjs`, `requirements-installation.test.mjs` | yes |
 | Architecture | each element keeps its placement, ownership, boundaries and dependencies | `test/acceptance/architecture.test.mjs` | yes |
 | Code | the implementation behaves as designed | `test/unit/*.test.mjs` | yes |
 

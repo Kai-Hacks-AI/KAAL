@@ -43,7 +43,9 @@ fi
 # Foundation's one SHA-256, verbatim from the target's tip, beside the checker (the checker digests a carried
 # ledger entry with it, never with node:crypto). A target without it can still judge every change that
 # carries no entry of its own.
-git show "$BASE:packages/kaal-foundation/lib/sha256.mjs" > "$T/kaal-foundation-sha256.mjs" 2>/dev/null \
+# The package layout moved it (foundation layout Change): the new path first, the old path while a target still has it.
+git show "$BASE:packages/kaal-foundation/05-src/skills/kaal-foundation/scripts/sha256.mjs" > "$T/kaal-foundation-sha256.mjs" 2>/dev/null \
+  || git show "$BASE:packages/kaal-foundation/lib/sha256.mjs" > "$T/kaal-foundation-sha256.mjs" 2>/dev/null \
   || rm -f "$T/kaal-foundation-sha256.mjs"
 if [ -z "$CHANGE" ]; then
   echo "Synchronization: judging its explicit resolutions only."
