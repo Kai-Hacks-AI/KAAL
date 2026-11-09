@@ -87,7 +87,7 @@ export class NotCanonical extends Error { constructor(m) { super(m); this.name =
 
 // Foundation's one SHA-256 (AGENTS.md: no node:crypto for a KAAL digest). Resolved from the package where the
 // workspace is installed, otherwise from the verbatim copy the wrapper script places beside this file
-// (git show <target>:packages/kaal-foundation/lib/sha256.mjs). With neither, digests cannot be judged.
+// (git show <target>:packages/kaal-foundation/05-src/skills/kaal-foundation/scripts/sha256.mjs, else the pre-layout lib/sha256.mjs). With neither, digests cannot be judged.
 let sha256Impl;
 for (const specifier of ["@kaihacksai/kaal-foundation/sha256", "./kaal-foundation-sha256.mjs"]) {
   try { sha256Impl = (await import(specifier)).sha256; break; } catch { /* try the next */ }
