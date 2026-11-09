@@ -107,6 +107,12 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 
 One row per control: the name in the records (this folder), its component under `05-src/` and its control target, and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/release-engine/` | `KAAL / release / publish / approve Publishing`.
 
+| Control | Intent | Requirement | Control target | Component (`05-src/`) | Job in the GitHub UI | Cases |
+| --- | --- | --- | --- | --- | --- | --- |
+| version Package | I5 | F3 | main | `release-engine/` | `KAAL / release / promote / version Package` | T1, T2, T3, T11 |
+| approve Publishing | I6 | F1 | npmjs | `release-engine/` | `KAAL / release / publish / approve Publishing` | T4, T11 |
+| verify Package Promotion | I7 | F2 | npmjs | `release-engine/` | `KAAL / release / publish / verify Package Promotion` | T5, T11 |
+
 ## Target: into `main` now, without `pull_request_target` (Owner, 9 Nov 2026)
 
 This work is driven into `main` now, and it is also how the repository gets off `pull_request_target`. GitHub blocks that event by default from 2 Dec 2026; today the gates run only under a temporary repository Actions policy (a workflow-execution exception). The Owner prefers `merge_group` over a policy exception, so the gate design must run without `pull_request_target`, and the `merge_group` move is part of this work, not a separate PLAN.
