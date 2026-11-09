@@ -42,7 +42,7 @@ How it is built, packed, published, accepted and checked. It never ships.
 
 - **foundation/A6** [foundation/F4, foundation/F7, foundation/F9, foundation/F17, foundation/N6, foundation/N2, foundation/I4, foundation/I6]: **The delivered layout and the scripts.** `files` is `["dist"]`; `npm` adds `package.json`, `README.md` and `LICENSE`. `dist/` is built by `04-test/engineering-check/build.mjs` and holds the Nodes, their delivered Cases, the skill, the declaration, the verification and the Boundary Check. `npm test` builds `dist/` first in source and runs `dist/test/package-check/verify.mjs`; `npm run test:publisher` runs the publisher's Cases. Plans, the publisher's Cases and `00-changes/` never ship. The delivered Cases are plain `node:test` files that import the package by its name, so they exercise whichever copy is installed.
 
-- **foundation/A26** [foundation/F11, foundation/F12, foundation/F13, foundation/F14, foundation/F17, foundation/F25, foundation/F26, foundation/F27, foundation/N2, foundation/N8, foundation/N15, foundation/N16, foundation/F4, foundation/F19]: **How it is built, packed and accepted (Delivery layout).** What does not ship, and how the shipped parts are made and checked.
+- **foundation/A26** [foundation/F11, foundation/F13, foundation/F14, foundation/F17, foundation/F25, foundation/F26, foundation/F27, foundation/N2, foundation/N8, foundation/N15, foundation/N16, foundation/F4, foundation/F19]: **How it is built, packed and accepted (Delivery layout).** What does not ship, and how the shipped parts are made and checked.
 
   | Path in the package | Role |
   | --- | --- |
@@ -72,7 +72,7 @@ How it is built, packed, published, accepted and checked. It never ships.
 
 Not ours: carried forward from the publication Change and held here until kaal-packaging lands on main (foundation/I16).
 
-- **foundation/A5** [foundation/F5, foundation/F8, foundation/I4]: **Release acceptance.** Acceptance packs the package with `npm pack`, installs the tarball with `npm install` into a directory under the operating system's temporary directory, and runs there: the import, the file inventory and the installed `npm test`.
+- **foundation/A5** [foundation/F5, foundation/F6, foundation/F8, foundation/I4]: **Release acceptance.** Acceptance packs the package with `npm pack`, installs the tarball with `npm install` into a directory under the operating system's temporary directory, and runs there: the import, the file inventory and the installed `npm test`.
 
 ## Cross-cutting
 
