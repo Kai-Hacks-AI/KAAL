@@ -5,6 +5,7 @@ Each element names, in brackets, the Requirements it answers.
 - **change/A5** [change/F7–change/F11, change/N3, change/N4]: `kaal-change/far` exports `proposal`, `decide`, `exceptions` and `compose`. It imports no module. It reads Plans as `{ plan, cases }`, and Testing's evaluations as data.
 - **change/A6** [change/F7, change/F8, change/F50, change/F51]: **Where FAR lives.** *Revised.* A Change's FAR record is transition documentation, kept as `far.json` in that Change's record. It references the Plans and never copies them. Where the record lives is the repository's choice (#280).
   - **Established by the PLAN.** The record, with its Case digests and its Accepts, is established by the PLAN Change and read from the commit where that PLAN landed. A DO Change carries a copy and is judged against the landing, never on its own word.
+  - **Not self-authenticating.** The candidate's `by` and `evidence` are claims. The gate establishes the landing independently, and `authorize` verifies the decision against the designation it is given.
   - **Why this order.** Revisions cannot key an Accept that a PLAN authorizes, because the PLAN lands before the revisions it will be judged at exist. Identity and digest exist at the PLAN and are checked at the DO.
 - **change/A7** [change/F9, change/F50, change/F52]: **Authority.** *Revised.* Who may decide is the embedding repository's designation. In KAAL, it is the Owner.
   - **What a decision states.** It states its authority, its evidence, its reason and its end condition.
@@ -14,12 +15,13 @@ Each element names, in brackets, the Requirements it answers.
 - **change/A8** [change/F10, change/F11, change/F51, change/F53, change/F54]: **The integration gate is Engineering's.** *Revised.* It does nine things:
   - names the integration, with the Change, the boundary and the source and target revisions as evidence;
   - finds the PLAN's landing commit: an ancestor of the candidate, on the collector for a collector pull request, and on the collector for the promotion that carries it;
-  - reads the record and the Features Plan at that commit, and the candidate's copies at its own head;
+  - reads the record and the Case definitions and digests of the Features Plan at that commit (definition), and the candidate's copies at its own head, only to compare them;
   - selects the complete Regression Plan at the integration's protected baseline (change/I6), never at the PLAN's landing, and gives the exceptions only for Cases of it that the Accept names with an equal digest;
   - observes the baseline and the head in one process (`testing/N4`);
   - obtains the state each Accept's end condition is judged by (change/F52), and calls `authorize`, `integrity` and `lifecycle`, with the designation and that state as data;
   - calls `exceptions` with their findings, so an unauthorized, altered or expired Accept gives no exception;
-  - has Testing evaluate the Features Plan at the head with no exceptions and no baseline, and the Regression Plan at the head against the baseline with the exceptions;
+  - has Testing execute the Features Plan's planned Cases, exactly as the landing defines them, against the candidate's head with no exceptions and no baseline (execution), never a plan the DO supplied;
+  - has Testing evaluate the Regression Plan at the head against the baseline with the exceptions;
   - calls `compose` with those findings too, so an expired or unjudgeable Accept cannot give a passing outcome, and applies its policy;
   - treats any finding, and anything unreadable, as no exception and no pass (change/F54).
 - **change/A24** [change/F50, change/F51, change/F52, change/F53, change/F54, change/N3, change/N4]: **Pure judgments.** `kaal-change/far` also exports `authorize`, `integrity` and `lifecycle`. Like the rest, they import no module, take data and return data, change nothing they are given, and give the same result for the same input.
