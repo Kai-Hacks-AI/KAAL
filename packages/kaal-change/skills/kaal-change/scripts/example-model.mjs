@@ -1,5 +1,12 @@
 // Controlled example data shared by the skill demonstration and delivered Cases.
-import { Graph, createNode, identifyRoot } from 'kaal-graph';
+// Graph is an optional peer; this controlled example needs it and says so when it is absent.
+let kaalGraph;
+try { kaalGraph = await import('kaal-graph'); } catch (e) {
+  if (e?.code !== 'ERR_MODULE_NOT_FOUND') throw e;
+  console.error('kaal-graph (optional peer) is not installed; install it to run the controlled example. No assessment was made.');
+  process.exit(3);
+}
+const { Graph, createNode, identifyRoot } = kaalGraph;
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
 
 const root = identifyRoot(Buffer.from('---\nname: Model\n---\n\n# Model\n'));

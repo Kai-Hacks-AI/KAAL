@@ -1,10 +1,12 @@
-// The harness of kaal-guard's outer acceptance tests. It packs kaal-guard once, then gives each
-// test a fresh consumer repository outside this one, with a bare remote and a home of its own, and
-// installs only the packed tarball there. Node built-ins and Git only: no KAAL element.
+// The harness of kaal-guard's outer acceptance tests. It packs kaal-guard once, builds a starting
+// consumer repository once per test file (a bare remote, a home of its own and the packed tarball
+// installed), and gives each test its own independent copy of it. The only KAAL element it uses is
+// Hosting's process start and environment (@kaihacksai/kaal-hosting, a dependency of the package);
+// the rest is Node built-ins and Git.
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { executeSync, isolatedEnvironment, prepare } from "@kaihacksai/kaal-hosting";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { after } from "node:test";
@@ -13,10 +15,11 @@ import { fileURLToPath } from "node:url";
 /** The package under test: two directories up from here. */
 export const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
+/** The one KAAL element the package declares (guard/N6, guard/A8): Hosting, at this exact version, imported only by this harness. */
+export const HOSTING = { name: "@kaihacksai/kaal-hosting", version: "0.0.1" };
+
 /** The name the package is published under (N6), in the Owner's npm scope; its command is kaal-guard. */
 export const NAME = "@kaihacksai/kaal-guard";
-
-const WINDOWS = process.platform === "win32";
 
 /**
  * Where a repository declares its checks (guard/F1, guard/F28), one `<name>.md` each. Joined, never
@@ -60,10 +63,14 @@ export function declaration(check, body = "Guidance for people and agents; Guard
   return `---\n${lines.join("\n")}\n---\n\n${body}`;
 }
 
-/** Runs a program; never throws, returns { status, stdout, stderr }. */
+/** Runs a program through Hosting (no `cmd.exe` for `npm`); never throws, returns { status, stdout, stderr }. */
 export function exec(cwd, file, args, env = {}, input = "") {
-  const r = spawnSync(file, args, { cwd, env: { ...process.env, ...env }, input, encoding: "utf8", shell: WINDOWS && file === "npm" });
-  return { status: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "", output: `${r.stdout ?? ""}${r.stderr ?? ""}` };
+  try {
+    const r = executeSync(file, args, { cwd, env: { ...process.env, ...env }, input });
+    return { status: r.status, stdout: r.stdout, stderr: r.stderr, output: r.output };
+  } catch (error) {
+    return { status: null, stdout: "", stderr: String(error?.message ?? error), output: String(error?.message ?? error) };
+  }
 }
 
 /** Every temporary root a case of this file makes, removed when the file ends, whether its cases pass or fail. */
@@ -116,24 +123,16 @@ const changed = guard.GUARD_CHANGED ? readFileSync(guard.GUARD_CHANGED, "utf8").
 writeFileSync(process.argv[2], JSON.stringify({ cwd: process.cwd(), stdin, guard, changed }));
 `;
 
-/**
- * A fresh consumer repository with a bare remote `origin`, an isolated home, and the scripts
- * `checks/exit.mjs` and `checks/facts.mjs`. With `install`, the packed tarball is its only
- * development dependency.
- */
-export function consumer({ install = true } = {}) {
-  const root = scratch("kaal-guard-consumer-");
+/** Asserts a program succeeded. */
+const must = (r, what) => (assert.equal(r.status, 0, `${what}: ${r.output}`), r);
+
+/** The consumer repository that lives under `root`: its bare remote `origin`, an isolated home and its working tree. */
+function open(root) {
   const home = join(root, "home");
   const remote = join(root, "remote.git");
   const dir = join(root, "repo");
-  mkdirSync(home);
-  mkdirSync(dir);
-  const env = { HOME: home, USERPROFILE: home, XDG_CONFIG_HOME: join(home, ".config"), GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: join(home, ".gitconfig"), npm_config_cache: join(root, "npm-cache") };
+  const env = isolatedEnvironment(root, {});
   const git = (...args) => exec(dir, "git", args, env);
-  const must = (r, what) => (assert.equal(r.status, 0, `${what}: ${r.output}`), r);
-  must(exec(root, "git", ["init", "-q", "--bare", remote], env), "git init --bare");
-  must(git("init", "-q", "-b", "main"), "git init");
-  for (const [k, v] of [["user.name", "Consumer"], ["user.email", "consumer@example.invalid"], ["commit.gpgsign", "false"]]) must(git("config", k, v), "git config");
   const repo = {
     root, home, remote, dir, env, git,
     write(path, content) {
@@ -198,6 +197,19 @@ export function consumer({ install = true } = {}) {
       return out.sort();
     },
   };
+  return repo;
+}
+
+
+/** Builds the starting consumer under `root`: the bare remote, `git init`, its configuration, the first commit and push, and with `install` the packed tarball as its only development dependency. */
+function populate(root, install) {
+  mkdirSync(join(root, "home"), { recursive: true });
+  mkdirSync(join(root, "repo"));
+  const repo = open(root);
+  const { dir, remote, env, git } = repo;
+  must(exec(root, "git", ["init", "-q", "--bare", remote], env), "git init --bare");
+  must(git("init", "-q", "-b", "main"), "git init");
+  for (const [k, v] of [["user.name", "Consumer"], ["user.email", "consumer@example.invalid"], ["commit.gpgsign", "false"]]) must(git("config", k, v), "git config");
   repo.write("package.json", JSON.stringify({ name: "consumer", version: "1.0.0", private: true, type: "module" }, null, 2) + "\n");
   repo.write(".gitignore", "node_modules/\n");
   repo.write("checks/exit.mjs", EXIT);
@@ -207,8 +219,36 @@ export function consumer({ install = true } = {}) {
   must(git("remote", "add", "origin", remote), "git remote add");
   must(git("push", "-q", "-u", "origin", "main"), "git push");
   if (install) {
-    must(exec(dir, "npm", ["install", "--save-dev", "--no-audit", "--no-fund", "--offline", packed()], env), `npm install ${NAME}`);
+    must(exec(dir, "npm", ["install", "--save-dev", "--no-audit", "--no-fund", packed()], env), `npm install ${NAME}`);
     repo.commit(`install ${NAME}`);
   }
+}
+
+/**
+ * The starting consumers, each built once per test file with Hosting's `prepare` (one `npm install` of
+ * the packed package, a few Git calls), and removed when the file ends. Every call of `consumer()` takes
+ * its own independent copy, so no case sees another's repository, remote, configuration or worktree.
+ */
+const starting = {
+  full: await prepare((dir) => populate(dir, true)),
+  bare: await prepare((dir) => populate(dir, false)),
+};
+after(async () => {
+  await starting.full.dispose();
+  await starting.bare.dispose();
+});
+
+/**
+ * A fresh consumer repository with a bare remote `origin`, an isolated home, and the scripts
+ * `checks/exit.mjs` and `checks/facts.mjs`. With `install`, the packed tarball is its only
+ * development dependency. It is a copy of the file's starting consumer with its remote repointed:
+ * Hosting's `copy()` is asynchronous and the cases call this function synchronously, so the copy is made
+ * here with the same options (links kept as they are, modes kept).
+ */
+export function consumer({ install = true } = {}) {
+  const root = scratch("kaal-guard-consumer-");
+  cpSync((install ? starting.full : starting.bare).dir, root, { recursive: true, verbatimSymlinks: true, dereference: false });
+  const repo = open(root);
+  must(repo.git("remote", "set-url", "origin", repo.remote), "git remote set-url");
   return repo;
 }

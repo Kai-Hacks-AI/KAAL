@@ -2,11 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { install } from 'kaal-testing/acceptance';
-import { execute, read, initialize, readFile, reconcile } from 'kaal-hosting';
+import { execute, read, initialize, readFile, reconcile } from '@kaihacksai/kaal-hosting';
 import { sha256 } from '@kaihacksai/kaal-foundation/sha256';
 
 const packages = ['@kaihacksai/kaal-change', '@kaihacksai/kaal-foundation', 'kaal-graph',
-  'kaal-hosting', 'kaal-core', 'kaal-engineer-skill'];
+  '@kaihacksai/kaal-hosting', 'kaal-core', 'kaal-engineer-skill'];
 async function run(host, script, args = [], cwd = host) {
   const r = await execute(process.execPath, [script, ...args], { cwd });
   assert.equal(r.status, 0, r.stdout + r.stderr);
@@ -59,6 +59,6 @@ test('change/T54 [change/F46, change/F48]: a clean consumer admits the packaged 
   const result = JSON.parse(verified.trim().split('\n').at(-1).slice('kaal-change-verification '.length));
   assert.equal(result.result, 'verified');
   assert.equal(result.provenance.version, '0.0.1');
-  assert.equal(result.cases.length, 9);
+  assert.equal(result.cases.length, 10);
   assert.ok(result.cases.every(c => c.outcome === 'pass'));
 });
