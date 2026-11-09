@@ -1,6 +1,8 @@
-# Engineering: the Case graph computer, a requirements traceability computer (PLAN)
+# Engineering: ARTIST, the Case graph computer (PLAN)
 
 Status: PLAN (engineering, collector `kaal/engineering-boundary-engine`). Ids provisional until the collector integrates them. It authorizes no DO beyond this plan's own, and no promotion, version bump, SYNC, ledger entry, release dispatch or npm publication.
+
+**ARTIST** = Agent Requirements Tracing Implements Systematic Trail (Owner mnemonic, 9 Nov). It names the requirements traceability computer and its coverage-gap report. Engineering owns it, as it owns TOMBSTONES.
 
 ## Intent
 
