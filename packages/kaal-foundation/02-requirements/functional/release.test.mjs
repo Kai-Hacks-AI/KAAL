@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F14, foundation/F19, foundation/N10, foundation/A26]
+---*/
 // foundation/C9 publisher cases, from the review of #717 (issuecomment-6544821400): what npm
 // publication needs from the package, and a verify command that reports instead of crashing.
 // npm runs as its CLI script under this Node (npm_execpath), with no shell (foundation/N7). Not shipped.
@@ -9,7 +12,7 @@ import { dirname, join, relative } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const LINE = "kaal-foundation-verification ";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
@@ -21,7 +24,7 @@ const npm = (args, cwd) => {
   return { status: r.status, stdout: r.stdout ?? "", out: `${r.stdout ?? ""}${r.stderr ?? ""}` };
 };
 
-test("foundation/T33 [foundation/F14, foundation/N10]: installed, kaal-foundation verify on a changed or unloadable library reports cannot verify with exit 2 and ends on the verification line, never a crash", { timeout: 300_000 }, () => {
+test("foundation/T33 [foundation/F14, foundation/N10, foundation/A26]: installed, kaal-foundation verify on a changed or unloadable library reports cannot verify with exit 2 and ends on the verification line, never a crash", { timeout: 300_000 }, () => {
   const work = mkdtempSync(join(tmpdir(), "kaal-foundation-release-"));
   try {
     const pack = npm(["pack", "--json", "--ignore-scripts", "--pack-destination", work], PACKAGE);

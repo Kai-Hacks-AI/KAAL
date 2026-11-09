@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/I2, foundation/F1, foundation/F2, foundation/F3, foundation/N1, foundation/N2, foundation/N3, foundation/N4, foundation/A28]
+---*/
 // foundation/C1 planned outer tests: SHA-256. Immutable to DO and CHECK; foundation/C2 turns them
 // GREEN. Each title names the contracts it checks (plan/sha256/*.md). They use the package's public
 // interface only. node:crypto is the reference: the tests may use it, the module may not.
@@ -8,7 +11,7 @@ import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const reference = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
@@ -37,7 +40,7 @@ function bytes(length, seed) {
 const ascii = (text) => new TextEncoder().encode(text);
 
 describe("SHA-256 (foundation/C1)", () => {
-  it("foundation/T1 [foundation/F1]: the FIPS 180-4 examples give their published digests", async () => {
+  it("foundation/T1 [foundation/F1, foundation/A28]: the FIPS 180-4 examples give their published digests", async () => {
     const sha256 = await subject();
     const examples = [
       ["", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
@@ -52,7 +55,7 @@ describe("SHA-256 (foundation/C1)", () => {
     for (const [text, digest] of examples) assert.equal(sha256(ascii(text)), digest, `${text.length} bytes`);
   });
 
-  it("foundation/T2 [foundation/F1, foundation/N3]: every length from 0 to 1024 bytes, which crosses every padding boundary, equals the reference", async () => {
+  it("foundation/T2 [foundation/F1, foundation/N3, foundation/A28]: every length from 0 to 1024 bytes, which crosses every padding boundary, equals the reference", async () => {
     const sha256 = await subject();
     const all = bytes(1024, 0x5eed);
     for (let length = 0; length <= 1024; length++) {
@@ -63,7 +66,7 @@ describe("SHA-256 (foundation/C1)", () => {
     }
   });
 
-  it("foundation/T3 [foundation/F1, foundation/N3]: seeded pseudo-random inputs up to 1 MiB equal the reference", async () => {
+  it("foundation/T3 [foundation/F1, foundation/N3, foundation/A28]: seeded pseudo-random inputs up to 1 MiB equal the reference", async () => {
     const sha256 = await subject();
     for (let seed = 1; seed <= 32; seed++) {
       const input = bytes(bytes(4, seed).reduce((n, b) => n * 256 + b, 0) % (1 << 20), seed);
@@ -73,7 +76,7 @@ describe("SHA-256 (foundation/C1)", () => {
     assert.equal(sha256(mebibyte), reference(mebibyte), "1 MiB");
   });
 
-  it("foundation/T4 [foundation/F2, foundation/N1]: a Buffer and a Uint8Array agree, a view counts only its own bytes, the input is unchanged, and repeated calls agree", async () => {
+  it("foundation/T4 [foundation/F2, foundation/N1, foundation/A28]: a Buffer and a Uint8Array agree, a view counts only its own bytes, the input is unchanged, and repeated calls agree", async () => {
     const sha256 = await subject();
     const whole = bytes(300, 7);
     const before = Uint8Array.from(whole);
@@ -88,7 +91,7 @@ describe("SHA-256 (foundation/C1)", () => {
     assert.equal(sha256(whole), first);
   });
 
-  it("foundation/T5 [foundation/F3]: a string, ArrayBuffer, DataView, Uint16Array, array of numbers or undefined is refused with a TypeError", async () => {
+  it("foundation/T5 [foundation/F3, foundation/A28]: a string, ArrayBuffer, DataView, Uint16Array, array of numbers or undefined is refused with a TypeError", async () => {
     const sha256 = await subject();
     const buffer = new ArrayBuffer(4);
     for (const input of ["abc", buffer, new DataView(buffer), new Uint16Array(2), [1, 2, 3], undefined]) {
@@ -96,7 +99,7 @@ describe("SHA-256 (foundation/C1)", () => {
     }
   });
 
-  it("foundation/T6 [foundation/N3, foundation/I2]: every Node KAAL ships hashes to the reference, so no Node id changes", async () => {
+  it("foundation/T6 [foundation/N3, foundation/I2, foundation/A28]: every Node KAAL ships hashes to the reference, so no Node id changes", async () => {
     const sha256 = await subject();
     const files = [];
     const walk = (dir) => {
@@ -118,7 +121,7 @@ describe("SHA-256 (foundation/C1)", () => {
     }
   });
 
-  it("foundation/T7 [foundation/N1, foundation/N2]: the module imports nothing and names no host global, and the package declares no dependencies", async () => {
+  it("foundation/T7 [foundation/N1, foundation/N2, foundation/A28]: the module imports nothing and names no host global, and the package declares no dependencies", async () => {
     await subject();
     const manifest = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
     for (const key of ["dependencies", "peerDependencies", "optionalDependencies", "bundleDependencies", "bundledDependencies"]) {
@@ -130,7 +133,7 @@ describe("SHA-256 (foundation/C1)", () => {
     assert.doesNotMatch(source, /\b(globalThis|process|Buffer|crypto|window|self|Deno|Bun)\b/, "the module names no host global");
   });
 
-  it("foundation/T8 [foundation/N4]: the package's README states that each concern's ownership is provisional", async () => {
+  it("foundation/T8 [foundation/N4, foundation/A28]: the package's README states that each concern's ownership is provisional", async () => {
     await subject();
     const readme = readFileSync(join(PACKAGE, "README.md"), "utf8");
     const rows = readme.split("\n").filter((line) => line.includes("@kaihacksai/kaal-foundation/"));

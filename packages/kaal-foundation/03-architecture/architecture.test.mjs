@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F15, foundation/N1, foundation/N2, foundation/N4, foundation/A1, foundation/A7]
+---*/
 // Delivered cases: the Architecture loop. They read the installed copy only: its package directory
 // is found from the installed subpath, never from a repository checkout.
 import assert from "node:assert/strict";
@@ -20,14 +23,14 @@ const defined = new Set(
     .flatMap((f) => [...readDist(f).matchAll(/(?:\*\*|^#+\s+|^\|\s*)([a-z][a-z-]*\/[A-Z]+\d+)\b/gm)].map((m) => m[1])),
 );
 
-test("foundation/T27 [foundation/N1, foundation/N2]: the installed module imports nothing and names no host global, and the package declares no dependency", () => {
+test("foundation/T27 [foundation/N1, foundation/N2, foundation/A1]: the installed module imports nothing and names no host global, and the package declares no dependency", () => {
   for (const key of ["dependencies", "peerDependencies", "optionalDependencies", "bundleDependencies", "bundledDependencies"]) assert.equal(manifest[key], undefined, `package.json declares ${key}`);
   const source = read(manifest.exports["./sha256"].default.slice(2)).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "");
   assert.doesNotMatch(source, /^\s*import\b|\bimport\s*\(|\brequire\s*\(|^\s*export\s+[^;]*\bfrom\b/m, "the module imports nothing");
   assert.doesNotMatch(source, /\b(globalThis|process|Buffer|crypto|window|self|Deno|Bun)\b/, "the module names no host global");
 });
 
-test("foundation/T28 [foundation/N4]: the README states provisional ownership for each concern it lists", () => {
+test("foundation/T28 [foundation/N4, foundation/A7]: the README states provisional ownership for each concern it lists", () => {
   const rows = read("README.md").split("\n").filter((line) => line.includes("@kaihacksai/kaal-foundation/"));
   for (const subpath of Object.keys(manifest.exports).filter((k) => k !== "./package.json")) {
     const row = rows.find((line) => line.includes(`@kaihacksai/kaal-foundation/${subpath.slice(2)}`));

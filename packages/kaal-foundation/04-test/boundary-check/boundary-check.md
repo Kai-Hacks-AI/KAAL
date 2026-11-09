@@ -5,21 +5,18 @@ tests:
     detector: file-identity
     equals: [../../skills/kaal-foundation/scripts/sha256.mjs, ../../skills/kaal-foundation/scripts/sha256.d.ts]
     tests: foundation/I1
-    ships: true
     looks-for: a file whose bytes equal Foundation's sha256.mjs or sha256.d.ts
   - id: implementation
     detector: token-sequence
     tokens: ["0x428a2f98", "0x71374491"]
     window: 3
     tests: foundation/I1
-    ships: true
     looks-for: the first two SHA-256 round constants written together, or the second within the next three lines
   - id: crypto
     detector: call-with-literal
     callee: [createHash, digest]
     literal: [sha256, sha-256]
     tests: foundation/I1
-    ships: true
     looks-for: the platform asked for SHA-256, as createHash("sha256") or digest("SHA-256")
 ---
 
@@ -51,7 +48,7 @@ The front matter above is the definition. Each test is typed, and the engine ref
 | `implementation` | `token-sequence` | the SHA-256 round constants `0x428a2f98` and `0x71374491` are written out together, or the second follows the first within three lines (the place is the line of the first) |
 | `crypto` | `call-with-literal` | the platform is asked for SHA-256, as `createHash("sha256")` or `digest("SHA-256")`, in any quote form and letter case, with or without the hyphen |
 
-A place is reported once, as the first test above that matches it. Each finding has the id `Foundation/<file>:<line>`, the Foundation SHA-256 of the line, and the owner named by the nearest `ownership.kaal.json`. A directory owned by Foundation is skipped and reported, because the owner holds the thing. Each test carries a `tests` edge to the Node it checks and a `ships` flag.
+A place is reported once, as the first test above that matches it. Each finding has the id `Foundation/<file>:<line>`, the Foundation SHA-256 of the line, and the owner named by the nearest `ownership.kaal.json`. A directory owned by Foundation is skipped and reported, because the owner holds the thing. Each test carries a `tests` edge to the Node it checks; whether it ships is never written here.
 
 ## Two axes
 

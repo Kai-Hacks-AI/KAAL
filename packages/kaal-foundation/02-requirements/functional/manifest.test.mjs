@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F11, foundation/N23, foundation/A26]
+---*/
 // The Owner's review of foundation/C7 (#711): manifest generation's --check is mandatory in the
 // publisher's verification. The committed 04-test/package-check/verify.json must be exactly what
 // 04-test/engineering-check/publisher/manifest.mjs writes from npm's pack list, so any change to a shipped file without a
@@ -9,16 +12,16 @@ import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "manifest.mjs");
+const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "04-test", "engineering-check", "publisher", "manifest.mjs");
 
-test("foundation/T71 [foundation/F11]: the committed 04-test/package-check/verify.json is current: manifest.mjs --check passes", () => {
+test("foundation/T71 [foundation/F11, foundation/A26]: the committed 04-test/package-check/verify.json is current: manifest.mjs --check passes", () => {
   const r = spawnSync(process.execPath, [SCRIPT, "--check"], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
   assert.equal(r.status, 0, `${r.stdout}${r.stderr}`);
   assert.match(r.stdout, /package-check\/verify\.json is current/);
 });
 
 // A Case id names exactly one executed Case: suites and tests edges are composed by id (foundation/N23).
-const PACKAGE = join(dirname(SCRIPT), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const caseFiles = (dir = PACKAGE) =>
   readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     if (["node_modules", "dist", ".git", "00-changes", "plan"].includes(e.name)) return [];

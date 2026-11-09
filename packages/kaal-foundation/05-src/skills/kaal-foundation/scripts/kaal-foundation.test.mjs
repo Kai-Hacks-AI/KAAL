@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F14, foundation/A7]
+---*/
 // Delivered cases: the Code loop for the installed command, run under this Node without a shell. It
 // writes only in a scratch directory it removes.
 import assert from "node:assert/strict";
@@ -12,7 +15,7 @@ import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 const BIN = join(dirname(fileURLToPath(import.meta.resolve("@kaihacksai/kaal-foundation/sha256"))), "kaal-foundation.mjs");
 const command = (args, { cwd, input } = {}) => spawnSync(process.execPath, [BIN, ...args], { cwd, input, encoding: "utf8" });
 
-test("foundation/T29 [foundation/F14]: kaal-foundation sha256 prints the library's digest for a file and for standard input", () => {
+test("foundation/T29 [foundation/F14, foundation/A7]: kaal-foundation sha256 prints the library's digest for a file and for standard input", () => {
   const scratch = mkdtempSync(join(tmpdir(), "kaal-foundation-command-"));
   try {
     const bytes = new TextEncoder().encode("KAAL Foundation\n");
@@ -31,7 +34,7 @@ test("foundation/T29 [foundation/F14]: kaal-foundation sha256 prints the library
   }
 });
 
-test("foundation/T30 [foundation/F14]: an unreadable file and an unknown command exit 2 with a usage line", () => {
+test("foundation/T30 [foundation/F14, foundation/A7]: an unreadable file and an unknown command exit 2 with a usage line", () => {
   const scratch = mkdtempSync(join(tmpdir(), "kaal-foundation-command-"));
   try {
     for (const [why, args] of [["an unreadable file", ["sha256", "missing.txt"]], ["an unknown command", ["frobnicate"]], ["an unknown option", ["sha256", "--fast"]], ["no command", []]]) {

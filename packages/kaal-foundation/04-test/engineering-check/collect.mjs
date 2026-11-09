@@ -1,13 +1,15 @@
-// Collects the Engineering Cases of the publisher folder and runs them, so no list of files is kept by hand
-// (foundation/F42). Delivery tooling; it needs only Node and ships nowhere.
-//   node collect.mjs   runs every *.test.mjs under 04-test/engineering-check/publisher/
-import { readdirSync } from "node:fs";
+// Runs the Engineering suite from the Case graph Engineering computed, so no list of files is kept by hand (foundation/F42).
+// Cases with ships: true run in the installed verification (npm test); Cases whose flag is runs: external belong to another
+// runner; every other Case file runs here, once. Fails closed when cases.json is not exactly the Case files on disk.
+// Delivery tooling; it needs only Node and ships nowhere.
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readGraph } from "./cases.mjs";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const folder = join(PACKAGE, "04-test", "engineering-check", "publisher");
-const cases = readdirSync(folder).filter((f) => f.endsWith(".test.mjs")).sort().map((f) => join(folder, f));
-if (cases.length === 0) { console.error("collect: no Cases found in " + folder); process.exit(1); }
-process.exit(spawnSync(process.execPath, ["--test", ...cases], { stdio: "inherit" }).status ?? 1);
+let graph;
+try { graph = readGraph(PACKAGE); } catch (e) { console.error(`collect: ${e.message}`); process.exit(1); }
+const here = Object.entries(graph.files).filter(([, f]) => f.runs === "collector").map(([path]) => join(PACKAGE, path)).sort();
+if (here.length === 0) { console.error("collect: no Case file runs in the collector"); process.exit(1); }
+process.exit(spawnSync(process.execPath, ["--test", ...here], { stdio: "inherit" }).status ?? 1);

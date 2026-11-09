@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F20, foundation/F21, foundation/N11, foundation/N12, foundation/A27, foundation/A28]
+---*/
 // foundation/C11 planned publisher cases: Foundation's ownership claim (plan/ownership/*.md). Immutable
 // to DO and CHECK; the DO moves this file unchanged to test/publisher/ and turns it GREEN. Each title
 // names the contracts it checks. npm runs as its CLI script under this Node, named by npm_execpath; no
@@ -8,9 +11,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { sha256 } from "../../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
+import { sha256 } from "../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const LOCATION = "packages/kaal-foundation/";
 const NODE = "kaal/Foundation.md";
@@ -20,7 +23,7 @@ const CLAIM = "ownership.kaal.json";
 const typeOf = (text) => text.match(/^---\n[\s\S]*?^type:\n {2}name: (.+)\n {2}id: ([0-9a-f]{64})\n[\s\S]*?^---\n/m)?.slice(1, 3);
 const nameOf = (text) => text.match(/^---\n(?:[\s\S]*?\n)?name: (.+)\n/)?.[1];
 
-test("foundation/T35 [foundation/F20]: Foundation is a Capability Node, named Foundation and typed by KAAL Capability under Core's type reference", () => {
+test("foundation/T35 [foundation/F20, foundation/A28]: Foundation is a Capability Node, named Foundation and typed by KAAL Capability under Core's type reference", () => {
   assert.ok(existsSync(join(PACKAGE, NODE)), `${NODE} exists`);
   const text = readFileSync(join(PACKAGE, NODE)).toString("utf8");
   const core = readFileSync(join(REPOSITORY, "packages", "kaal-core", "capability", "Core.md"), "utf8");
@@ -29,7 +32,7 @@ test("foundation/T35 [foundation/F20]: Foundation is a Capability Node, named Fo
   assert.equal(typeOf(core)?.[0], "KAAL Capability");
 });
 
-test("foundation/T75 [foundation/F21]: the repository's claim names the Foundation Node by its SHA-256 and claims packages/kaal-foundation/", () => {
+test("foundation/T75 [foundation/F21, foundation/A27]: the repository's claim names the Foundation Node by its SHA-256 and claims packages/kaal-foundation/", () => {
   const bytes = readFileSync(join(PACKAGE, NODE));
   const claim = JSON.parse(readFileSync(join(PACKAGE, CLAIM), "utf8"));
   assert.deepEqual(claim, { owner: { kind: "capability", name: "Foundation", id: sha256(bytes) }, paths: [LOCATION] });
