@@ -11,7 +11,7 @@ import ts from "typescript";
 import { parse } from "yaml";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const ROOT = resolve(HERE, "../../../..");
+const ROOT = resolve(HERE, "../../..");
 const SHIMS = ["engineering/release/release.mjs", "engineering/release/run.mjs"];
 const REQUIREMENT = "engineering/release-management/00-changes/change-requirements.md";
 
@@ -60,7 +60,7 @@ export function judgeMigration({ callers, present, requirementPresent }) {
   }
   if (present.length === 0 && callers.size === 0) {
     return requirementPresent
-      ? { ok: false, notes, message: `${why}\nThe last shim is gone and nothing calls an old path: the migration is done, but ${REQUIREMENT} still exists. Delete it with the terminate Change (step 8 of the path to main in engineering/release-management/README.md), together with this Case, T12 and the shim checks in placement.test.mjs.` }
+      ? { ok: false, notes, message: `${why}\nThe last shim is gone and nothing calls an old path: the migration is done, but ${REQUIREMENT} still exists. Delete it with the terminate Change (step 8 of the path to main in engineering/release-management/README.md), together with this Case, T12, T14 and their files in 00-changes.` }
       : { ok: true, notes, message: "" };
   }
   return requirementPresent

@@ -1,0 +1,367 @@
+{
+  "ids": {
+    "A1": {
+      "to": "03-architecture/architecture.md",
+      "reworded": true,
+      "from": "03-architecture/architecture.md"
+    },
+    "A2": {
+      "to": "03-architecture/architecture.md",
+      "reworded": true,
+      "from": "03-architecture/architecture.md"
+    },
+    "A3": {
+      "to": "03-architecture/architecture.md",
+      "reworded": true,
+      "from": "03-architecture/architecture.md"
+    },
+    "F1": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F2": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F3": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F4": {
+      "to": "02-requirements/requirements.md",
+      "reworded": false,
+      "from": "02-requirements/requirements.md"
+    },
+    "F5": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F6": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F7": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F8": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F9": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F10": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F11": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F12": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F13": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F14": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F15": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F16": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F17": {
+      "to": "02-requirements/requirements.md",
+      "reworded": false,
+      "from": "02-requirements/requirements.md"
+    },
+    "F18": {
+      "to": "02-requirements/requirements.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "F20": {
+      "to": "00-changes/change-requirements.md",
+      "reworded": true,
+      "from": "00-changes/change-requirements.md"
+    },
+    "G1": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G2": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G3": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G4": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G5": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G6": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G7": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G8": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G9": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G10": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "G11": {
+      "to": "00-changes/gaps.md",
+      "reworded": true,
+      "from": "02-requirements/requirements.md"
+    },
+    "I1": {
+      "to": "01-intent/intent.md",
+      "reworded": false,
+      "from": "01-intent/intent.md"
+    },
+    "I2": {
+      "to": "01-intent/intent.md",
+      "reworded": false,
+      "from": "01-intent/intent.md"
+    },
+    "I3": {
+      "to": "01-intent/intent.md",
+      "reworded": false,
+      "from": "01-intent/intent.md"
+    },
+    "I4": {
+      "to": "01-intent/intent.md",
+      "reworded": false,
+      "from": "01-intent/intent.md"
+    },
+    "I5": {
+      "to": "01-intent/intent.md",
+      "reworded": false,
+      "from": "01-intent/intent.md"
+    },
+    "I6": {
+      "to": "01-intent/intent.md",
+      "reworded": false,
+      "from": "01-intent/intent.md"
+    },
+    "I7": {
+      "to": "01-intent/intent.md",
+      "reworded": false,
+      "from": "01-intent/intent.md"
+    },
+    "T1": {
+      "to": "04-test/testing.md",
+      "reworded": true,
+      "from": "04-test/testing.md"
+    },
+    "T2": {
+      "to": "04-test/testing.md",
+      "reworded": true,
+      "from": "04-test/testing.md"
+    },
+    "T3": {
+      "to": "04-test/testing.md",
+      "reworded": true,
+      "from": "04-test/testing.md"
+    },
+    "T4": {
+      "to": "04-test/testing.md",
+      "reworded": true,
+      "from": "04-test/testing.md"
+    },
+    "T5": {
+      "to": "04-test/testing.md",
+      "reworded": true,
+      "from": "04-test/testing.md"
+    },
+    "T6": {
+      "to": "04-test/testing.md",
+      "reworded": false,
+      "from": "04-test/testing.md"
+    },
+    "T7": {
+      "to": "04-test/testing.md",
+      "reworded": false,
+      "from": "04-test/testing.md"
+    },
+    "T8": {
+      "to": "04-test/testing.md",
+      "reworded": false,
+      "from": "04-test/testing.md"
+    },
+    "T9": {
+      "to": "04-test/testing.md",
+      "reworded": true,
+      "from": "04-test/testing.md"
+    },
+    "T10": {
+      "to": "04-test/testing.md",
+      "reworded": false,
+      "from": "04-test/testing.md"
+    },
+    "T11": {
+      "to": "04-test/testing.md",
+      "reworded": true,
+      "from": "04-test/testing.md"
+    },
+    "T12": {
+      "to": "00-changes/cases.md",
+      "reworded": true,
+      "from": "00-changes/change-requirements.md"
+    },
+    "T13": {
+      "to": "00-changes/cases.md",
+      "reworded": true,
+      "from": "00-changes/change-requirements.md"
+    }
+  },
+  "decisions": {
+    "collectors are named by capability": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "one gate job per ruleset": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "no gate for npmjs": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "root controls are reusable workflows": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "end state without pull_request_target": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "a queue on main only": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "collectors keep their merge model": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "release controls are hard-pinned": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "testing controls apply FAR": {
+      "to": "02-requirements/requirements.md",
+      "from": "02-requirements/requirements.md"
+    },
+    "trust root": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "gate fails closed": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "gate does not read candidate results": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "npmjs has no branch ruleset": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    },
+    ".github travels alone is a failure": {
+      "to": "02-requirements/requirements.md",
+      "from": "02-requirements/requirements.md"
+    },
+    "Branching is split": {
+      "to": "00-changes/transformation.md",
+      "from": "02-requirements/requirements.md"
+    },
+    "names aligned, not identical": {
+      "to": "02-requirements/requirements.md",
+      "from": "02-requirements/requirements.md"
+    },
+    "the path to main ends with terminate": {
+      "to": "00-changes/transformation.md",
+      "from": "README.md"
+    },
+    "control continuity condition": {
+      "to": "00-changes/transformation.md",
+      "from": "README.md"
+    },
+    "approval assurance condition": {
+      "to": "00-changes/transformation.md",
+      "from": "README.md"
+    },
+    "native approval retires the review check": {
+      "to": "00-changes/transformation.md",
+      "from": "00-changes/README.md"
+    },
+    "build order": {
+      "to": "00-changes/transformation.md",
+      "from": "00-changes/README.md"
+    },
+    "add-new, Owner adds context, remove-old": {
+      "to": "00-changes/transformation.md",
+      "from": "00-changes/README.md"
+    },
+    "shim rule": {
+      "to": "00-changes/change-requirements.md",
+      "from": "03-architecture/architecture.md"
+    },
+    "stations are control targets, not folders": {
+      "to": "03-architecture/architecture.md",
+      "from": "03-architecture/architecture.md"
+    }
+  }
+}
