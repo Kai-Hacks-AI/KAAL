@@ -218,7 +218,8 @@ test("foundation/T52 [foundation/F25]: the shipped package declares its Boundary
 test("foundation/T53 [foundation/F25, foundation/N13]: Hosting's scan of the shipped dist/ reads every JavaScript source and finds nothing (a control, GREEN before and after the DO)", () => {
   let cli;
   try { cli = createRequire(join(REPOSITORY, "package.json")).resolve("@kaihacksai/kaal-hosting/package.json"); } catch { assert.fail("cannot judge: @kaihacksai/kaal-hosting does not resolve from the repository"); }
-  const bin = join(dirname(cli), "dist", "skills", "kaal-hosting", "scripts", "boundary-cli.mjs");
+  // The command is read from Hosting's own package.json bin, so no path here spells Hosting's directory names.
+  const bin = join(dirname(cli), JSON.parse(readFileSync(cli, "utf8")).bin["kaal-hosting-boundary"]);
   assert.ok(existsSync(bin), "cannot judge: Hosting's boundary scan is not delivered");
   const r = spawnSync(process.execPath, [bin, "--target", join(PACKAGE, "dist")], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
   const line = r.stdout.trim().split(/\r?\n/).at(-1) ?? "";
