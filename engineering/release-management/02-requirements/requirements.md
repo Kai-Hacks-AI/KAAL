@@ -4,7 +4,7 @@ Controls of a station are its requirements, in three kinds: **in** (the receiver
 
 ## Naming is aligned (spans everything) [release-management/F4]
 
-Each station and control has one name, spelled the same in the Intent, Requirements, Architecture, `05-src` (folder and file names, script names), and the GitHub UI (workflow `release/<station>`, job named by the control, the two gates). A name that appears in one place and not the others, or is spelled differently, is a finding. Checked by a parser per surface (YAML parser for workflows, Markdown parser for the records, directory listing for `05-src`), never by pattern matching over text; the names come from one list in this folder's Architecture. Use vs build: the YAML parser already in Engineering is used; no new parser.
+Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or control appears (Intent, Requirements, Architecture, `05-src` folders, files and scripts, GitHub workflows, jobs and gates), its name is self-explanatory, easy to understand and semantically consistent with the control's name, so a reader and a program can tell which control it is. Each surface may spell it its own way (a folder `approve-publishing`, a job `approve Publishing`); a **mapping** in the Architecture lists, per control, its spelling on each surface, and later its graph id (deferred). A surface name that maps to no control, or a control with no name on a surface where it runs, is a finding (an observation, not a gate). Read by parsers (YAML for workflows, Markdown AST for the records, directory listing for `05-src`), never regex. Use vs build: the YAML parser already in Engineering is used; no new parser.
 
 ## Root (spans stations)
 

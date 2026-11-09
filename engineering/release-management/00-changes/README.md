@@ -1,6 +1,6 @@
 # Changes (planned)
 
-One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Each Change does four things, in this order, and nothing else:
+One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Each Change does four things, in this order, and nothing else (names aligned per F4: self-explanatory, mapped in `03-architecture`, not identical strings):
 
 1. **Add** the control as a job named by the control inside the workflow `release/<station>` (see `03-architecture`), running the code from its home in `05-src/<station>/<control>/`.
 2. **Move** the code from where it lives today into `05-src` (history kept with `git mv`; the old path keeps a one-line shim only if a required check or hook still calls it).
@@ -27,8 +27,12 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 
 Two gates close the set: `gate (main)` and `gate (kaal)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts.
 
+## Build order (agreed)
+
+Root (audit Lineage), then `10-npmjs`, then `11-main`, then `12-kaal`.
+
 ## Open for the Owner
 
 - Whether the CI lanes stay separate jobs under test Candidate/test Integration (recommended; the gate makes it cosmetic) or become one check each.
 - Where `CodeQL` belongs (a lane of test Candidate is proposed) and which control owns `Change Isolation (review)` on `main`.
-- Order: proposed bottom-up by risk, `10-npmjs` and `version Package` first (already designed), then 12, then 11.
+

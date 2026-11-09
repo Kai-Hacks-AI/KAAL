@@ -50,3 +50,7 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 - **No `gate (npmjs)`**: npmjs has no branch ruleset, so it needs no gate. The `npm` environment approval stays the npmjs control (*approve Publishing*); `Publish` waits on that approval directly.
 
 Use vs build: the gate uses the existing `re-actors/alls-green` action (SHA-pinned, subject to the repository Actions policy) and no gate code is written here. Rename is add-new, then Owner adds the gate contexts to the rulesets by hand, then remove-old; every step is additive so promotions in flight are not blocked. Nothing is renamed by this PLAN.
+
+## Naming map (control names across surfaces)
+
+One row per control: the name in the records (this folder), the folder under `05-src`, and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/10-npmjs/approve-publishing/` | `release/npmjs / approve Publishing`.
