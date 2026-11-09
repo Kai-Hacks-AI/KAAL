@@ -10,7 +10,7 @@ What the repository and its settings hold now, observed on the collector `kaal/e
 
 - **The release engine.**
 
-  Current: the engine lives in `engineering/release-management/05-src/release-engine/` (#1324). `engineering/release/release.mjs` and `run.mjs` stand as full-facade shims with no caller left since #1327. `readiness()` rejects a non-semver version and a version already on the registry; `publishable()` binds record, run, commit and digest; `provenance()` checks the OIDC provenance against `Kai-Hacks-AI/KAAL`, `publish.yml` and the release commit.
+  Current: the engine lives in `engineering/release-management/05-src/release-engine/` (#1324). `engineering/release/release.mjs` stands as a full-facade shim, still imported by four test files (two of Hosting, two of Change) and no longer by `.github`; `run.mjs` had no caller since #1327 and is removed. `readiness()` rejects a non-semver version and a version already on the registry; `publishable()` binds record, run, commit and digest; `provenance()` checks the OIDC provenance against `Kai-Hacks-AI/KAAL`, `publish.yml` and the release commit.
 
   Target: F1, F2, F3, `release-engine/`.
 
