@@ -1,0 +1,3 @@
+# Engineering PLAN: release management, station 10-npmjs
+
+Capability: Engineering. Target: `kaal/engineering-release-management`. Record number provisional until integration. A PLAN only (`engineering/release-management/`): the root loop for how a package moves from `main` to the world, with the station `10-npmjs` (in: version Package, approve Publishing; stock: verify Package Promotion) mapped to what exists and eleven named gaps. Other stations are names only. The existing controls README and other controls are untouched. No promotion, version bump, SYNC, ledger entry, release dispatch or publication.
