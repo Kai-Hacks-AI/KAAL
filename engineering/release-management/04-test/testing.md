@@ -10,5 +10,6 @@ All RED until their DO. Each Case is placed next to its component in its `05-src
 | release-management/T4 | F1, G5 | `release.json` names the approving run |
 | release-management/T5 | F2, G9 | `release.json` names the promotion (PR or ledger entry) that put the commit on `main` |
 | release-management/T6 | F4 | every control in the Architecture mapping has a name on each surface where it runs (record, `05-src`, workflow job), and every workflow job, gate and `05-src` component (`pipeline/`, `npmjs/`, `main/`, `collectors/`) maps to its allocated controls; read by parsers (YAML, Markdown AST, directory listing); an unmapped or missing name is reported, exact string equality is not required |
+| release-management/T7 | F6 | a change touching `.github/` and one path outside it fails (exit 1, not a warning) with base `kaal/*`, and with base `main`; a lone `.github` change passes; an adopted synchronization is exempt; the `.github` test reads paths as a path (split on `/`), not a regex over text |
 
 Whether a gap becomes a Case, a decision or a documented limit is for the Owner and CPO to say.

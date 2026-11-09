@@ -95,7 +95,7 @@ Today four workflows use `pull_request_target`: `change-isolation.yml` (Change I
 
 **What replaces it (to settle with the Owner and prove on a throwaway branch):**
 - The controls run on `merge_group` and on `pull_request` (no `_target`), checking out the default branch's checker and reading the candidate as Git data, as the merge-group jobs do today. The pull-request run supplies the context a pull request needs in order to enter the queue; the merge-group run is the judgment that counts.
-- **Trust gap to close:** on `merge_group` and `pull_request` the workflow definition comes from the candidate's side, so a candidate could change the workflow that judges it. A `.github` change travels alone and needs approval, but the workflow cannot be its own only guard. Candidate fix: a ruleset **"Require workflows to pass"** rule that pins the `release/*` workflows to the default branch (`refs/heads/main`), so the definition that judges a change is the one `main` holds. Availability for this repository and how it names the required checks are unverified.
+- **Trust gap, closed by isolate Change:** on `merge_group` and `pull_request` the workflow definition comes from the candidate's side, but `.github travels alone` is a failing check (F6, T7), so a workflow change reaches `main` only as a lone `.github` change with human approval. "Require workflows to pass" pinned to `main` is an optional extra layer, unverified here.
 - The `gate (main)` and `gate (collectors)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
 
 Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and does not depend on it or wait for it.
@@ -104,7 +104,7 @@ Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and doe
 1. This PLAN lands.
 2. `pipeline/` controls, with the `release/*` workflows on `merge_group` and `pull_request` alongside the old checks (add-new).
 3. `npmjs/`, `main/`, `collectors/` controls in the order of `00-changes`.
-4. The Owner adds the new contexts and the pinned-workflow rule, then removes the old contexts (`Change Isolation (review)` first).
+4. The Owner adds the new contexts, then removes the old contexts (`Change Isolation (review)` first).
 5. Delete the four `pull_request_target` workflows, then remove the temporary Actions policy before 2 Dec 2026.
 
 ## The merge queue and serialize Promotion (Owner, 9 Nov 2026)
@@ -120,4 +120,4 @@ Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and doe
 **Collectors keep their merge model** (Owner): squash for a Change, merge commit for a synchronization, chosen per pull request, which a queue with one `merge_method` could not do. They land without a queue. So for `kaal/*`:
 - approve Change and the `collectors` gate run on `pull_request` (not `_target`), with no `merge_group` run;
 - ordering comes from the ruleset's strict up-to-date policy (on) and the Branching merge-method verdict (moving to `bind Merge`);
-- **open:** protection against a candidate editing the workflow that judges it, since `pull_request` runs the definition from the candidate's side. Candidate: the "Require workflows to pass" rule, pinned to `main`; whether it works on a pattern ruleset and how it names the required checks are unverified. If it does not work, the guards left are `.github` travelling alone and the code owner approval.
+- **protection against a candidate editing the workflow that judges it (Owner, 9 Nov):** collectors check features on `pull_request`, and `main` (queue, `merge_group`) is the hard regression gate. Self-editing is stopped by isolate Change: `.github travels alone` is a failing check (requirement F6, Case T7), so a workflow change cannot ride in a collector's feature Change and reaches `main` only as a lone `.github` change with human approval. "Require workflows to pass" pinned to `main` stays an optional extra layer, unverified on a pattern ruleset, and is not a must.
