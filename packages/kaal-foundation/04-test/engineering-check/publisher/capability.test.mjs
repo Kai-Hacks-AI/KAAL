@@ -196,21 +196,14 @@ test("foundation/T19 [foundation/F16]: the repository's AGENTS.md has a Foundati
   for (const s of ["skills/kaal-foundation/SKILL.md", "kaal-foundation sha256", "kaal-foundation verify"]) assert.ok(section.includes(s), `the Foundation section names ${s}`);
 });
 
-test("foundation/T20 [foundation/F17]: the source Test Plan is declared; npm test builds dist/ and runs the delivered verification alone, and test:publisher builds first and names explicit publisher files", () => {
+test("foundation/T20 [foundation/F17]: the source Test Plan is declared; npm test builds dist/ and runs the delivered verification alone, and test:publisher builds first and runs the collector, with no hand-kept list of files", () => {
   const { scripts = {}, files = [] } = manifest();
   assert.equal(scripts.pretest, `node -e "if(require('fs').existsSync('04-test')){require('child_process').execFileSync(process.execPath,['04-test/engineering-check/build.mjs'],{stdio:'inherit'})}"`, "in source, npm test builds dist/ first; installed, there is no 04-test and it builds nothing");
   assert.equal(scripts.test, "node dist/test/package-check/verify.mjs", "npm test is the delivered verification");
   assert.equal(scripts["test:all"], undefined, "there is no runner: npm test is the one verification");
   assert.equal(scripts["test:embedded"], undefined, "there is no separate embedded suite");
-  const publisher = (scripts["test:publisher"] ?? "").split(/\s+/);
-  assert.deepEqual(publisher.slice(0, 5), ["npm", "run", "build", "&&", "node"], "test:publisher builds first");
-  assert.equal(publisher[5], "--test", "test:publisher runs node --test");
-  const named = publisher.slice(6);
-  assert.ok(named.length > 0, "test:publisher names its files");
-  for (const f of named) {
-    assert.match(f, /^04-test\/engineering-check\/publisher\/[\w.-]+\.test\.mjs$/, `${f} is an explicit publisher file`);
-    assert.ok(existsSync(join(PACKAGE, f)), `${f} exists`);
-  }
+  assert.equal(scripts["test:publisher"], "npm run build && node 04-test/engineering-check/collect.mjs", "test:publisher builds first, then runs the collector");
+  assert.ok(existsSync(join(PACKAGE, "04-test/engineering-check/collect.mjs")), "the collector exists");
   assert.deepEqual(files, ["dist"], "dist/ is the only shipped thing: no plan, no publisher suite");
 });
 

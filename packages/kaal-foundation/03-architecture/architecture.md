@@ -46,7 +46,7 @@ How it is built, packed, published, accepted and checked. It never ships.
 
   | Path in the package | Role |
   | --- | --- |
-  | `04-test/engineering-check/` | the build and the publisher's tests. Never shipped |
+  | `04-test/engineering-check/` | the build, the collector (`collect.mjs`, which runs every publisher Case without a hand-kept list) and the publisher's tests. Never shipped |
   | `dist/` | the only thing shipped (`files: ["dist"]`), built by `04-test/engineering-check/build.mjs` as byte-for-byte copies of the folders above. It is not committed. |
   | `npm test` | in source it builds `dist/` first (`pretest`) and then runs `dist/test/package-check/verify.mjs`, exactly as in an installed package. |
 
