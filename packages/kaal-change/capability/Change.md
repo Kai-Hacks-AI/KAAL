@@ -7,6 +7,16 @@ type:
 
 # Change
 
-Change owns the bounded alteration proposed to what KAAL holds and the coordination of its work, independent of the technology carrying it. It owns semantic isolation: the chosen scope, affected surroundings, boundary interfaces and required evidence. Intent, Requirements, Defect, Architecture, relationship and interface meanings remain with their owners. Graph traverses their relationships; Testing owns verification, doubles and test-loop semantics; Engineering owns Git/path admission and CI enforcement.
+Change is the responsibility for orchestrating the work around a Change: what a Change is, what makes it self-contained, and how its distributed work is coordinated toward integration, independent of any technology that carries it. Its scope is that alone.
 
-This focused delivery provides the Change and Change Isolation Definitions, the Change Practice Skill and the isolation assessment API. It does not deliver succession, delivery satisfaction, lifecycle, classification, CHAOS or FAR. The consumer chooses how to apply Change's contracts, and integration never proves an Intent's Outcome.
+A Change coordinates the concerns of engineering, as Engineering's GLUE names them: Describe Intent, Define Requirements, Design Architecture, Develop Code, Do IT and Detect Defects. It coordinates them; it does not own their semantics, artifacts, implementations or tests, and they are not stages it must run in order.
+
+Change defines the available ways to manage Changes. A repository that embeds KAAL chooses which of them it applies and how strictly; where KAAL is embedded, its `.kaal/` governs Changes. Where a repository keeps its Change documentation is that consuming context's choice too.
+
+It provides the Change Definition, the Change Record Definition, the Change Lifecycle Definition, the Change Classification Definition and the CHAOS Definition. It also provides the Change Isolation Definition, the Change Practice Skill and the isolation assessment API. For admission it requires Core's KAAL Capability and KAAL Definition, and nothing else.
+
+It also provides the Succeeds and Delivers Definitions, the relationships a Change states to the Changes it succeeds and to the Intents it delivers. Their instances are a Change Node's own Edges, and nothing registers them unless the consuming context does.
+
+Change owns semantic isolation: the chosen scope, affected surroundings, boundary interfaces and required evidence. Intent, Requirements, Defect, Architecture, relationship and interface meanings remain with their owners. Graph traverses their relationships; Testing owns verification, doubles and test-loop semantics; Engineering owns Git/path admission and CI enforcement.
+
+Its functional relationships are uses, not ownership. A Change may realize an Intent, whose meaning and Outcome are Intent's; integrating a Change does not prove the Outcome. It uses Testing for verification and Review for validation, tracking their status and referencing their evidence and judgments without owning or repeating either. Filesystem access and containment are Hosting's. How a pull request realizes a Change is Engineering's Branching. Communication consumes the facts of a Change without owning them.

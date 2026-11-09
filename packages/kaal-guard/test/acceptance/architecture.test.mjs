@@ -5,7 +5,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { CONFIG, consumer, NAME, PACKAGE, RECORD } from "./harness.mjs";
+import { CONFIG, consumer, HOSTING, NAME, PACKAGE, RECORD } from "./harness.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -55,14 +55,16 @@ describe("Architecture conformance", () => {
     assert.deepEqual(Object.keys(manifest.bin ?? {}), ["kaal-guard"], "the package's command is kaal-guard");
     for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
       const kaal = Object.keys(manifest[field] ?? {}).filter((n) => /^(@[^/]+\/)?kaal-/.test(n));
-      assert.deepEqual(kaal, [], `${field} names a KAAL element`);
+      assert.deepEqual(kaal, field === "dependencies" ? [HOSTING.name] : [], `${field} names a KAAL element other than Hosting in dependencies`);
     }
+    assert.equal(manifest.dependencies?.[HOSTING.name], HOSTING.version, "Hosting is not declared at its exact version");
     assert.ok(!manifest.bundleDependencies && !manifest.bundledDependencies, "the package bundles dependencies");
     const engineering = ["engineering", ""].join("/");
     const engine = [".kaal", ""].join("/");
     for (const f of files(PACKAGE)) {
       const text = readFileSync(join(PACKAGE, f), "utf8");
-      if (/\.(mjs|js|cjs)$/.test(f)) for (const s of specifiers(text)) assert.ok(!/^(@[^/]+\/)?kaal-/.test(s) || s === NAME || s.startsWith(`${NAME}/`), `${f} imports ${s}`);
+      // Hosting is imported by the shipped test harness and by nothing else (bin/ and lib/ import no KAAL element).
+      if (/\.(mjs|js|cjs)$/.test(f)) for (const s of specifiers(text)) assert.ok(!/^(@[^/]+\/)?kaal-/.test(s) || s === NAME || s.startsWith(`${NAME}/`) || (s === HOSTING.name && f === "test/acceptance/harness.mjs"), `${f} imports ${s}`);
       assert.ok(!text.includes(engineering), `${f} references an Engineering path`);
       // The .kaal namespace is not a KAAL Engine (guard/F1): only Guard's own config and state directories in it are allowed.
       const own = text.replaceAll(`${engine}config/guard`, "").replaceAll(`${engine}state/guard`, "");
@@ -73,7 +75,7 @@ describe("Architecture conformance", () => {
   it("guard/T31 [guard/A8, guard/N6]: the acceptance boundary is closed: its files import only Node built-ins and files inside it", () => {
     for (const f of files(HERE).filter((f) => f.endsWith(".mjs"))) {
       for (const s of specifiers(readFileSync(join(HERE, f), "utf8"))) {
-        assert.ok(s.startsWith("node:") || (s.startsWith("./") && !s.includes("..")), `${f} imports ${s}, outside the boundary`);
+        assert.ok(s.startsWith("node:") || (s.startsWith("./") && !s.includes("..")) || (s === HOSTING.name && f === "harness.mjs"), `${f} imports ${s}, outside the boundary`);
       }
     }
   });

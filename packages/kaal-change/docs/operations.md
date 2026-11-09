@@ -11,8 +11,9 @@ scope without an impact trace under complete supplied evidence. Missing facts ar
 `unknown`. Inspect all findings and qualifications rather than mapping the first
 word to a repository GREEN.
 
-A normal package install resolves its required Foundation, Graph and Hosting
-dependencies. Run the delivered consumer checks without a separate provider
+A normal package install resolves its required Foundation and Hosting
+dependencies; Graph (`kaal-graph`) is an optional peer, installed when the example
+or installed verification is wanted. Run the delivered consumer checks without a separate provider
 installation step:
 
 ```sh
@@ -57,10 +58,10 @@ separately authorized; no publication is implied by the package version.
 
 ## Production installation and release prerequisites
 
-Change declares exact Foundation, Graph and Hosting versions as required package
-runtime dependencies. The semantic module remains pure and imports only
-Foundation; package installation also supplies the providers for shipped Cases
-and examples. Verification performs no dependency installation or registry
+Change declares exact Foundation and Hosting versions as required package
+runtime dependencies and `kaal-graph` as an optional peer at one exact version
+(also a development dependency here). The semantic module remains pure and imports
+only Foundation; Graph is needed only by the shipped Cases and example. Verification performs no dependency installation or registry
 acquisition. Removing a provider is an incomplete installation, reported as
 cannot verify; no required Case is silently skipped or removed.
 
