@@ -18,7 +18,7 @@ B is the persistent intent; a Change is disposable. Each Change entry names the 
 
 The root documents mix the three. The release-management documents state B and A together (`Exists`, `Gaps`, `Today's code`, `Retires`), and the README and architecture carry the migration sequence and the shim rule. The example is `publish.yml` (B) beside `release.yml` (A): the transition between them is Change.
 
-## Placement (every statement keeps its home or moves; nothing is deleted)
+## Placement (every statement keeps its home or moves, possibly reworded; no decision is lost)
 
 Solution here is thin: the consumer-visible promise. Release management is Engineering's Delivery architecture (I4), so most of B is Delivery.
 
@@ -64,7 +64,7 @@ These Cases are Delivery Cases about the documents; they sit with the documents,
 
 1. This PLAN, CPO review, merge into the collector. A landed PLAN is a go.
 2. RED: the Cases above, failing against today's documents, and the captured id list.
-3. DO: move the statements as placed; no wording of a decision, requirement or Case changes, only where it lives. Documents only, no code, no `.github`.
+3. DO: make each document clean, by moving, rewriting or a mix (Owner, 9 Nov: the result must be clean, the method is free). A rewrite may reword a statement to remove current-state phrasing, but every id, decision, requirement and Case keeps its meaning and appears exactly once (criterion 5). Documents only, no code, no `.github`.
 4. The Change record for `.kaal/changes/engineering/` and the transformation table list #1323 to #1327.
 
 ## Not in this Change
