@@ -45,6 +45,29 @@ export function importCallers(text, file, shims = SHIMS) {
   return [...found];
 }
 
+/** The migration's end rule as a pure decision, so each state can be shown. */
+export function judgeMigration({ callers, present, requirementPresent }) {
+  const why = [
+    "release-management/T13 (F20, a temporary requirement owned by the migration; see engineering/release-management/00-changes/change-requirements.md).",
+    `Callers of the old release paths found now: ${callers.size ? [...callers].join(", ") : "none"}. Shims present: ${present.length ? present.join(", ") : "none"}.`,
+  ].join("\n");
+  const notes = [];
+  for (const shim of SHIMS) {
+    if (callers.has(shim) && !present.includes(shim)) {
+      return { ok: false, notes, message: `${why}\n${shim} is still called but its shim is missing. Removing a shim before its last caller is rewired breaks that caller. Restore the shim (a full facade: export * plus main, F20), or rewire the caller first. A caller in .github travels alone, so rewire it in a .github-only Change before the shim is removed.` };
+    }
+    if (present.includes(shim) && !callers.has(shim)) notes.push(`${shim} has no caller left: its shim is dead code. Remove it in an Engineering Change (never in the same Change as a .github change).`);
+  }
+  if (present.length === 0 && callers.size === 0) {
+    return requirementPresent
+      ? { ok: false, notes, message: `${why}\nThe last shim is gone and nothing calls an old path: the migration is done, but ${REQUIREMENT} still exists. Delete it with the terminate Change (step 8 of the path to main in engineering/release-management/README.md), together with this Case, T12 and the shim checks in placement.test.mjs.` }
+      : { ok: true, notes, message: "" };
+  }
+  return requirementPresent
+    ? { ok: true, notes, message: "" }
+    : { ok: false, notes, message: `${why}\nA shim or an old-path caller still exists, so ${REQUIREMENT} must stay: F20 and T12 still apply until the last shim is removed.` };
+}
+
 describe("release-management/T13 the migration ends cleanly", () => {
   it("the detectors find a caller in a workflow and in an import, and none in unrelated text", () => {
     assert.deepEqual(workflowCallers("jobs:\n  a:\n    steps:\n      - run: node engineering/release/run.mjs pack --x 1\n"), ["engineering/release/run.mjs"]);
@@ -54,7 +77,22 @@ describe("release-management/T13 the migration ends cleanly", () => {
     assert.deepEqual(importCallers('import fs from "node:fs";', "engineering/z.mjs"), []);
   });
 
-  it("while something still calls an old path the shims and the requirement stay; once nothing does they must be gone", () => {
+  it("the end rule: pending removal passes, a missing called shim fails, done-but-requirement-remains fails", () => {
+    const run = (callers, present, requirementPresent) => judgeMigration({ callers: new Set(callers), present, requirementPresent });
+    const [a, b] = SHIMS;
+    assert.equal(run([a, b], [a, b], true).ok, true, "in migration");
+    const pending = run([b], [a, b], true);
+    assert.equal(pending.ok, true, "a callerless shim is the pending state");
+    assert.match(pending.notes.join(" "), /dead code/);
+    assert.equal(run([a], [b], true).ok, false);
+    assert.match(run([a], [b], true).message, /rewire the caller first/);
+    assert.equal(run([], [], true).ok, false, "done but the requirement remains");
+    assert.match(run([], [], true).message, /terminate Change/);
+    assert.equal(run([], [], false).ok, true, "done and cleaned up");
+    assert.equal(run([], [a], false).ok, false, "requirement deleted while a shim remains");
+  });
+
+  it("a called shim never goes missing, and the requirement goes only with the last shim", (t) => {
     const files = execFileSync("git", ["ls-files", "-z", "--cached", "--others", "--exclude-standard"], { cwd: ROOT, encoding: "utf8" }).split("\0").filter(Boolean);
     const callers = new Set();
     for (const f of files) {
@@ -62,32 +100,8 @@ describe("release-management/T13 the migration ends cleanly", () => {
       if (/^\.github\/workflows\/.+\.ya?ml$/.test(f)) workflowCallers(readFileSync(join(ROOT, f), "utf8")).forEach((p) => callers.add(p));
       else if (/\.(mjs|js|ts)$/.test(f) && !f.endsWith("migration-end.test.mjs") && !f.includes("node_modules")) importCallers(readFileSync(join(ROOT, f), "utf8"), f).forEach((p) => callers.add(p));
     }
-    const why = [
-      "release-management/T13 (F20, a temporary requirement owned by the migration; see engineering/release-management/00-changes/change-requirements.md).",
-      `Callers of the old release paths found now: ${callers.size ? [...callers].join(", ") : "none"}.`,
-    ].join("\n");
-    const stage = (t) => `${why}\n${t}`;
-    for (const shim of SHIMS) {
-      const stillCalled = callers.has(shim);
-      const present = existsSync(join(ROOT, shim));
-      assert.ok(
-        present === stillCalled,
-        stage(
-          stillCalled
-            ? `${shim} is still called but its shim is missing. Removing a shim before its last caller is rewired breaks that caller. Restore the shim (a full facade: export * plus main, F20), or rewire the caller first. A caller in .github travels alone, so rewire it in a .github-only Change before this shim is removed.`
-            : `${shim} has no caller left, so its shim is dead code and the migration step for it is done. Remove the shim in an Engineering Change (never in the same Change as a .github change), then remove the requirement file once both shims are gone.`,
-        ),
-      );
-    }
-    const anyCalled = SHIMS.some((s) => callers.has(s));
-    const requirementPresent = existsSync(join(ROOT, REQUIREMENT));
-    assert.ok(
-      requirementPresent === anyCalled,
-      stage(
-        anyCalled
-          ? `${REQUIREMENT} is missing while an old path is still called. Restore it: F20 and T12 still apply until the last caller is rewired.`
-          : `The migration is done (no caller of any old path) but ${REQUIREMENT} still exists. Delete it with the terminate Change (step 8 of the path to main in engineering/release-management/README.md), together with this Case, T12 and the last shim.`,
-      ),
-    );
+    const verdict = judgeMigration({ callers, present: SHIMS.filter((s) => existsSync(join(ROOT, s))), requirementPresent: existsSync(join(ROOT, REQUIREMENT)) });
+    for (const n of verdict.notes) t.diagnostic(n);
+    assert.ok(verdict.ok, verdict.message);
   });
 });
