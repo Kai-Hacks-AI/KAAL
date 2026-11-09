@@ -61,8 +61,8 @@ A promotion runs every package's definition against the others and collects what
 
 - A finding is a place to look at. It is not a fault, and nothing here ranks it.
 - It does not find a digest computed some other way, for example with the algorithm held in a variable.
-- It reads what is written in source. It never runs it.
-- The `crypto` test is lexical evidence, not proof of an executable call. It matches a call by its whole name (so `crypto.createHash(...)` matches and `myDigest(...)` does not) when the first argument is exactly the quoted literal; the same text in a comment or a string also matches.
+- It reads what is written in source, as a syntax tree (JavaScript and TypeScript, the js and ts code blocks of Markdown). It never runs it. A file type with no parser, or a file that does not parse, is reported as unreadable, so the result is unknown rather than clean.
+- The `crypto` test is structural evidence, not proof of what runs. It matches a call in the syntax tree by its whole name (so `crypto.createHash(...)` matches and `myDigest(...)` does not) when the first argument is a string literal equal to a listed literal. The same text in a comment or a string is not a call and does not match; a call split across lines is one call.
 - An empty list is no compliance. It says that nothing was found within the stated coverage, and an unknown result says that not everything was read.
 
 ## Where findings and decisions live

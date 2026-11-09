@@ -12,4 +12,4 @@ let graph;
 try { graph = readGraph(PACKAGE); } catch (e) { console.error(`collect: ${e.message}`); process.exit(1); }
 const here = Object.entries(graph.files).filter(([, f]) => f.runs === "collector").map(([path]) => join(PACKAGE, path)).sort();
 if (here.length === 0) { console.error("collect: no Case file runs in the collector"); process.exit(1); }
-process.exit(spawnSync(process.execPath, ["--test", ...here], { stdio: "inherit" }).status ?? 1);
+process.exit(spawnSync(process.execPath, ["--test", "--test-concurrency=1", ...here], { stdio: "inherit" }).status ?? 1);
