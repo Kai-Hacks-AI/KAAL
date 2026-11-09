@@ -1,0 +1,3 @@
+# Engineering: the shell inventory Case, first step of the gate ports
+
+Capability: Engineering. Target: `kaal/engineering-gate-ports`. Record number provisional until integration. First DO of the approved PLAN `engineering/github/ports/PLAN.md` (#1315): `engineering/github/ports/shell-inventory.test.mjs` pins the exact list of tracked shell files (10: seven `.sh` and three pre-push hooks), read from `git ls-files`. A new shell file or a stale entry fails it. The list only shrinks, one port per PR. Added to `test:engineering`. No gate behaviour changes; no promotion, version bump, SYNC, ledger entry, release dispatch or publication.
