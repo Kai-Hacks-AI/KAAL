@@ -37,7 +37,7 @@ Solution here is thin: the consumer-visible promise. Release management is Engin
 | F18 "Interim" paragraph, T9's "interim, marked temporary" wording, the interim reading `far.json` | Change (interim state) | `00-changes/interim-states.md`, each interim with its `ends when` and the target requirement it stands in for |
 | Engine README "What Foundation needs before its `0.0.1`" and "Order" (observations about `main` at 8a5836b, now partly stale: Foundation's manifest has `repository` and `publishConfig`) | Change (A, stale) | `00-changes/current-state.md`, refreshed against `main` at DO; the engine's package-as-input rule (F28) stays as B |
 | Cases T1 to T10 (standing) | Delivery | stay in `04-test` |
-| T11 (the engine lives in `05-src`; old path holds shims) | Change (placement during migration) | `00-changes/`, Case T11 split: the standing half (the engine lives in `05-src/release-engine/`) stays in `04-test`, the shim half is Change |
+| T11 (the engine lives in `05-src`; old path holds shims) | Change (placement during migration) | Case T11 is split: the standing half (the engine lives in `05-src/release-engine/`) keeps the id T11 and its original test contract in `04-test`; the shim half gets a new Change Case id in `00-changes/` that cites T11 as its provenance |
 
 Open for the Owner: whether T12 and T13 move into `00-changes/` now, as the Change Case lifecycle design proposes (a separate thread owns that design; the move is the same one and is done once, here).
 
@@ -45,7 +45,7 @@ Open for the Owner: whether T12 and T13 move into `00-changes/` now, as the Chan
 
 - **Solution/Delivery chain (B):** Intent → Requirement → Architecture (component, control, control target) → Case → Implementation. Each hop is an id reference already in the records; nothing in the chain mentions A.
 - **Change chain (A→B):** Change Intent (reach B for control X) → current-state entry (A) → gap (names the target requirement id and the Case that will turn green) → transformation step (names the Change, its PR and the component) → completion criterion (the target Case green, and the temporary requirement's `ends when`). Every Change entry names its target id; none restates the target text.
-- **Existing Change records stay traceable:** #1323 to #1326 and their records under `.kaal/changes/engineering/26/11/09/05` to `08` are listed in `transformation.md` against the control they moved, with the requirement and Case they serve.
+- **Existing Change records stay traceable:** #1323 to #1327 and their records under `.kaal/changes/engineering/26/11/09/05` to `08` (#1327 is `.github`-only and has no record) are listed in `transformation.md` against the control they moved, with the requirement and Case they serve.
 
 ## Acceptance criteria and their Cases (RED first)
 
@@ -55,9 +55,9 @@ Open for the Owner: whether T12 and T13 move into `00-changes/` now, as the Chan
 | 2 | Current-state observations and gaps are distinguished from target requirements | every gap and current-state entry in `00-changes/` carries a target id that resolves to a requirement or component in the root documents |
 | 3 | Migration requirements, including F20, belong to Change | F20 and its Cases resolve only under `00-changes/` |
 | 4 | Temporary mechanisms have termination conditions | every shim, interim and temporary requirement has an `ends when` that a parser can read |
-| 5 | Nothing is lost | the set of ids (I, F, G, T, A) and the set of decisions before the Change equals the set after, each found exactly once; checked against the list captured at RED |
-| 6 | Existing Changes stay traceable | each of #1323 to #1326 is listed against a control, requirement and Case, all of which resolve |
-| 7 | Change duplicates no target text | no paragraph of a `00-changes` document equals a paragraph of a root document (compared as parsed text) |
+| 5 | Nothing is lost | every id (I, F, G, T, A) and every decision captured at RED has **exactly one authoritative definition** after the Change (a heading or list item that defines it) and any number of references; references are not definitions. The capture records, per id, its meaning (the statement and, for a Case, its test contract: targets and what it checks) and its provenance (the file it came from), and the check compares the meaning after with the meaning before, not only the id set. A Case that is split keeps the original id on the part that keeps the original test contract; the other part gets its own new id and names the original in its provenance (T11: the standing half keeps T11, the migration half becomes a new Change Case that cites T11) |
+| 6 | Existing Changes stay traceable | each of #1323, #1324, #1325, #1326 and #1327 is listed against a control, requirement and Case, all of which resolve |
+| 7 | Change references B and never redefines it | structural, on the parsed Markdown of `00-changes/`: (a) every current-state entry, gap, transformation step and interim carries a target id that resolves to a requirement, component or Case in the root documents; (b) `00-changes/` defines no target id (no heading or list item that defines an `I`, `F` or control entry of B, and no component or control row of the architecture): it only references them; (c) a Change entry has a fixed set of members (current state, target id, difference, step, completion) and no member holds a normative statement of the target (`must`, `shall` sentence about B). A paraphrase of B in Change is a finding. CPO validation uses the same semantic rule: a Change entry that says what B must be, instead of pointing at it, is rejected |
 
 These Cases are Delivery Cases about the documents; they sit with the documents, and the parsers already in Engineering (Markdown AST, YAML) are used. No new parser.
 
