@@ -52,7 +52,7 @@ const COPY = "sha256.mjs";
 const CONSTANTS = "export const K = [\n  0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,\n];\n";
 const CRYPTO = "import { createHash } from \"node:crypto\";\nexport const d = (b) => createHash(\"sha256\").update(b).digest(\"hex\");\n";
 
-test("foundation/T37 [foundation/F22]: the rules copy, implementation and crypto each give a finding at the expected file and line, and clean files give none", () => {
+test("foundation/T54 [foundation/F34]: the rules copy, implementation and crypto each give a finding at the expected file and line, and clean files give none", () => {
   const d = fresh();
   mkdirSync(join(d, "t", "vendor"), { recursive: true });
   cpSync(SHA256_MJS, join(d, "t", "vendor", COPY));
@@ -67,7 +67,7 @@ test("foundation/T37 [foundation/F22]: the rules copy, implementation and crypto
   assert.deepEqual(found, ["copy t/vendor/sha256.mjs:1", "crypto t/uses.mjs:2", "implementation t/own.mjs:2", "implementation t/vendor/sha256.mjs:6"]);
 });
 
-test("foundation/T38 [foundation/F23]: ids, one finding per line, Foundation's digest of the line, the last line and exit 0 with findings", () => {
+test("foundation/T55 [foundation/F35]: ids, one finding per line, Foundation's digest of the line, the last line and exit 0 with findings", () => {
   const d = fresh();
   put(d, "t/two.mjs", "const a = createHash(\"sha256\"), b = createHash('SHA256');\nconst c = 1;\n");
   const { status, json } = run(["--target", "t", "--base", d], scratch);
@@ -81,7 +81,7 @@ test("foundation/T38 [foundation/F23]: ids, one finding per line, Foundation's d
   assert.ok(Number.isInteger(json.coverage.read) && json.coverage.read >= 1);
 });
 
-test("foundation/T39 [foundation/F23]: a target not read, or with no source, is unknown (exit 2); a clean read target is complete and is never called compliant", () => {
+test("foundation/T56 [foundation/F35]: a target not read, or with no source, is unknown (exit 2); a clean read target is complete and is never called compliant", () => {
   const d = fresh();
   put(d, "empty/readme.txt", "no source here\n");
   put(d, "clean/a.mjs", "export const a = 1;\n");
@@ -96,7 +96,7 @@ test("foundation/T39 [foundation/F23]: a target not read, or with no source, is 
   assert.doesNotMatch(clean.stdout, /compliant|verified/i);
 });
 
-test("foundation/T40 [foundation/N15]: no target is a usage error; a target added later is found by the same scan bytes; the scan names no repository path", () => {
+test("foundation/T57 [foundation/N22]: no target is a usage error; a target added later is found by the same scan bytes; the scan names no repository path", () => {
   const d = fresh();
   const before = hash(readFileSync(SCAN));
   const usage = scan([], d);
@@ -108,7 +108,7 @@ test("foundation/T40 [foundation/N15]: no target is a usage error; a target adde
   assert.doesNotMatch(readFileSync(SCAN, "utf8"), /packages\/|kaal-(hosting|core|guard|testing|packaging|graph|change)\b/, "scan.mjs must not name another package or a repository path");
 });
 
-test("foundation/T41 [foundation/F24]: a finding carries the owner of its nearest ownership.kaal.json, null where none; a directory owned by Foundation is skipped and yields nothing", () => {
+test("foundation/T58 [foundation/F36]: a finding carries the owner of its nearest ownership.kaal.json, null where none; a directory owned by Foundation is skipped and yields nothing", () => {
   const d = fresh();
   const own = (name) => JSON.stringify({ owner: { kind: "capability", name, id: "x" }, paths: ["."] });
   for (const [dir, name] of [["t/a", "A"], ["t/b", "B"], ["t/f", "Foundation"]]) { put(d, `${dir}/ownership.kaal.json`, own(name)); put(d, `${dir}/x.mjs`, CRYPTO); }
@@ -119,7 +119,7 @@ test("foundation/T41 [foundation/F24]: a finding carries the owner of its neares
   assert.ok(json.coverage.skipped.some((s) => JSON.stringify(s).includes("t/f") && JSON.stringify(s).includes("owner")), "the owner skip is reported");
 });
 
-test("foundation/T42 [foundation/N13]: the scan never runs or changes what it reads", () => {
+test("foundation/T59 [foundation/N20]: the scan never runs or changes what it reads", () => {
   const d = fresh();
   put(d, "t/trap.mjs", `import { writeFileSync } from "node:fs";\nwriteFileSync(new URL("./marker", import.meta.url), "ran");\n${CRYPTO}`);
   put(d, "t/trap.cjs", `require("node:fs").writeFileSync(__dirname + "/marker-cjs", "ran");\n`);
@@ -130,7 +130,7 @@ test("foundation/T42 [foundation/N13]: the scan never runs or changes what it re
   assert.ok(!existsSync(join(d, "t", "marker")) && !existsSync(join(d, "t", "marker-cjs")));
 });
 
-test("foundation/T43 [foundation/F25, foundation/N15]: the shipped record declares the Boundary Check Applicable, with command, rules, both axes, limits, and where findings and decisions live; it names no role and no repository path", () => {
+test("foundation/T60 [foundation/F37, foundation/N22]: the shipped record declares the Boundary Check Applicable, with command, rules, both axes, limits, and where findings and decisions live; it names no role and no repository path", () => {
   const record = join(DIST, "test", "boundary-check", "boundary-check.md");
   assert.ok(existsSync(record), "dist/test/boundary-check/boundary-check.md is not delivered");
   const text = readFileSync(record, "utf8");
@@ -140,7 +140,7 @@ test("foundation/T43 [foundation/F25, foundation/N15]: the shipped record declar
   assert.doesNotMatch(text, /\b(CTO|CPO)\b|packages\//, "the record names no role and no repository path");
 });
 
-test("foundation/T44 [foundation/F25]: documents, skill and AGENTS.md name the scan by the scoped package path and say findings are audit and decisions the repository's; verify.json lists scan.mjs and the record", () => {
+test("foundation/T61 [foundation/F37]: documents, skill and AGENTS.md name the scan by the scoped package path and say findings are audit and decisions the repository's; verify.json lists scan.mjs and the record", () => {
   const scoped = /node node_modules\/@kaihacksai\/kaal-foundation\/dist\/test\/boundary-check\/scan\.mjs --target\b/;
   const agents = readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8");
   const section = agents.slice(agents.indexOf("## Foundation"), agents.indexOf("\n## ", agents.indexOf("## Foundation") + 1) >>> 0 || undefined);
@@ -154,7 +154,7 @@ test("foundation/T44 [foundation/F25]: documents, skill and AGENTS.md name the s
   assert.ok(manifest.includes("test/boundary-check/scan.mjs") && manifest.includes("test/boundary-check/boundary-check.md"), "verify.json lists the scan and the record");
 });
 
-test("foundation/T45 [foundation/N14]: scan.mjs imports only node: modules and sha256.mjs; the library is unchanged; the package declares no dependency", () => {
+test("foundation/T62 [foundation/N21]: scan.mjs imports only node: modules and sha256.mjs; the library is unchanged; the package declares no dependency", () => {
   assert.ok(existsSync(SCAN), "dist/test/boundary-check/scan.mjs is not delivered");
   const text = readFileSync(SCAN, "utf8");
   for (const [, from] of text.matchAll(/(?:^|\n)\s*import[^"'`]*["'`]([^"'`]+)["'`]/g)) assert.ok(from.startsWith("node:") || from.endsWith("/sha256.mjs") || from === "./sha256.mjs", `scan.mjs imports ${from}`);

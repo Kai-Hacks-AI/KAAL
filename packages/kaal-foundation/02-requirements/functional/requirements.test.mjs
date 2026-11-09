@@ -2,6 +2,11 @@
 // @kaihacksai/kaal-foundation is installed, imported by its package name. Titles are
 // `foundation/T<n> [<targets>]: <what it checks>`; the manifest's cases and model come from them.
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 
@@ -36,4 +41,26 @@ test("foundation/T25 [foundation/F2]: a view counts only its own bytes and stays
 
 test("foundation/T26 [foundation/F3]: each refusal is a TypeError", () => {
   for (const bad of ["abc", new ArrayBuffer(3), new DataView(new ArrayBuffer(3)), new Uint16Array(3), [97, 98, 99], undefined]) assert.throws(() => sha256(bad), TypeError);
+});
+
+test("foundation/T63 [foundation/F34, foundation/F35]: the shipped Boundary Check scan finds a platform SHA-256 in a fixture it is pointed at and is complete (exit 0), and for a target that does not exist it is unknown (exit 2)", () => {
+  const root = dirname(createRequire(import.meta.url).resolve("@kaihacksai/kaal-foundation/package.json"));
+  const scan = join(root, "dist", "test", "boundary-check", "scan.mjs");
+  const dir = mkdtempSync(join(tmpdir(), "foundation-scan-"));
+  try {
+    mkdirSync(join(dir, "target"));
+    writeFileSync(join(dir, "target", "x.mjs"), `const a = 1;\nconst d = createHash("sha${"256"}");\n`);
+    const run = (...targets) => {
+      const r = spawnSync(process.execPath, [scan, ...targets.flatMap((t) => ["--target", t]), "--base", dir], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
+      const line = r.stdout.trim().split(/\r?\n/).at(-1);
+      assert.ok(line.startsWith("kaal-foundation-scan "), `no scan line: ${r.stdout}${r.stderr}`);
+      return { status: r.status, json: JSON.parse(line.slice("kaal-foundation-scan ".length)) };
+    };
+    const found = run("target");
+    assert.deepEqual([found.status, found.json.result, found.json.findings.map((f) => `${f.rule} ${f.id}`)], [0, "complete", ["crypto kaal-foundation/target/x.mjs:2"]]);
+    const missing = run("nowhere");
+    assert.deepEqual([missing.status, missing.json.result], [2, "unknown"]);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
