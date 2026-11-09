@@ -1,6 +1,6 @@
 # Changes (planned)
 
-One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Each Change does four things, in this order, and nothing else (names aligned per F4: self-explanatory, mapped in `03-architecture`, not identical strings):
+One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Because `.github` travels alone (F6, T7), a control's work is **two Changes**, not one: an Engineering Change that moves the code into `05-src` (and adds its Cases), and a `.github`-only Change that adds the job and wiring. Together they do four things, in this order, and nothing else (names aligned per F4: self-explanatory, mapped in `03-architecture`, not identical strings):
 
 1. **Add** the control as a job named by the control inside the workflow `release/<station>` (see `03-architecture`), running the code from its component under `05-src/` (`pipeline/` for the five shared controls, or the station component `npmjs/`, `main/` or `collectors/`, per the allocation in `03-architecture`); a control realized by a native setting or a used tool moves no code.
 2. **Move** the code from where it lives today into `05-src` (history kept with `git mv`; the old path keeps a one-line shim only if a required check or hook still calls it).
