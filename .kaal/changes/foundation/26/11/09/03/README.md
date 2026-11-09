@@ -28,3 +28,5 @@ Decided (Owner, 2026-11-09, "sounds fair"): circular dependencies are kept out b
 Refinement (Owner, 2026-11-09): Packaging embeds into Engineering, and every package uses Engineering, which is never a package. The upward dev edge therefore goes to Engineering, not to Packaging, and no package has a dev edge to another package, so no workspace-to-workspace cycle arises.
 
 Correction (Owner, 2026-11-09): there is no bootstrap case, so the pinned-release clause is dropped. Engineering, and the dev edges into it, exist in the KAAL repository only. What a consumer repository has or does is a different game and this Change says nothing about it.
+
+Forest (Owner, 2026-11-09): Architecture is a small forest placed by two questions in order, ours or not ours, then way of working (Delivery) or Solution. I15, F38, A22, A25 and the Testing document are worded that way. Foundation's own trees are Solution and Delivery (T64 unchanged); the not-ours trees are rooted at their governing capability and held by Engineering.

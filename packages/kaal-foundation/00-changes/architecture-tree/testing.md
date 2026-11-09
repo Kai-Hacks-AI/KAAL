@@ -59,3 +59,12 @@ The Owner ruled on 2026-11-09 that each Case carries a `tests` edge in its own Y
 The placements above are the current best home. A Case or element can move when its owner capability lands, and the move is its own Change. foundation/A25 is where Architecture records such things, and foundation/F44 requires the list. No planned Case is added for F44 yet: its check is a section of the Architecture the DO writes, and the DO adds the Case with the section.
 
 **Direction of edges.** For T16, T17 and T47 the Packaging halves, when they move to kaal-packaging, carry `tests` edges at Packaging's Requirements (F17, N10 and their kin) and Architecture only. A suite in Foundation's `04-test/` collects them by reference (from I16), as a suite collects any Case it relies on; until Packaging lands, Engineering holds the generic Packaging Cases (Owner, 2026-11-09), not Foundation, so the other packages can reuse them, and Foundation's suite collects them from Engineering by reference (the dev edge goes to Engineering, which is never a package, not to Packaging). Engineering and its dev edges exist in the KAAL repository only. The DO moves the generic halves of T16, T17 and T47 to Engineering when it splits them. The suite is a dev (Delivery) dependency and never ships: T69 already asserts that no file from a `delivery` folder is in `verify.json`, and N2 keeps `package.json` free of dependencies. The Foundation-specific halves (A9, A15) keep edges at Foundation's own elements. No edge goes from a Packaging element to Foundation.
+
+## The placement questions (Owner, 2026-11-09)
+
+Every node and every Case is placed by two questions, asked in this order, and each gets one value on each:
+
+1. **Ours or not ours?** Is this really us, or is it coming from somewhere else? Not-ours items go to foundation/A25, in a tree rooted at their governing capability and held by Engineering until it lands.
+2. **Way of working (Delivery) or Solution?** Delivery is how it is built, packed, published and accepted and never ships; Solution is what ships.
+
+The result is a small forest of four trees: Solution/ours, Delivery/ours, Solution/not-ours, Delivery/not-ours. The inventory above answers the second question per Case; today the first question marks the generic halves of T16, T17 and T47 (Packaging) and the temporary collector (Testing) as not ours. The DO asks both for every node and records the answers.
