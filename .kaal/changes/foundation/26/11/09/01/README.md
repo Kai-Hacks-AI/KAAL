@@ -11,10 +11,10 @@ earlier guidance that kept C14 off the 0.0.2 critical path is superseded by that
 The four PLAN documents move to `00-changes/boundary/` with paths restated for the layout. Changes beyond the move:
 - foundation/F23 step 3 now runs the resolved copy's own `verify` through the path that copy's `package.json` names
   under `bin`, because a consumer may hold Foundation 0.0.1 (`bin/`) or 0.0.2 (`dist/skills/...`).
-- New foundation/F25 and Cases T52 and T53: Foundation's own Boundary Check record, with both axes (package -> consumer
+- New foundation/F25 and Cases T52, T53 and T54: Foundation's own Boundary Check record, with both axes (package -> consumer
   through `check` and `boundary`, package <--> package through Hosting's `kaal-hosting-boundary` scan).
 - The RED Case file moves to `04-test/engineering-check/plan/boundary.test.mjs` and reads the generated `dist/`.
-  Eight of the nine Cases are RED (`unknown command check`/`boundary`, no Boundary Check record). T53 is a control and
+  Nine of the ten Cases are RED (`unknown command check`/`boundary`, no Boundary Check record). T53 is a control and
   is GREEN today (Hosting's scan of `dist/`: complete, 8 sources, no findings).
 
 No promotion, version bump on main, SYNC or npm publication is authorized by this record.

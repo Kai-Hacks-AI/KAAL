@@ -33,8 +33,9 @@ So the boundary is not "the same cases with opposite results". Two Intents are m
 | foundation/T45 | Intent | foundation/I9, foundation/F23: the two observations stay distinct. For one verifying consumer: with no list, `digests` is `not checked`, `check` is `null`, `scope` excludes `digests`, and the summary says `digest agreement: not checked` and never `digests verified`. With an agreeing list, `scope` holds both and `digests` is `verified`. With a differing list, `resolution` stays `verified`, `digests` is `failed`, and the result is `failed`. With a wrong resolved library and an agreeing list, `resolution` is `failed`, `digests` stays `verified`, and the result is `failed`. Every summary line states that the result does not certify the consumer | A boundary that reports `digests: verified`, or one combined flag, when no list ran; or that lets one observation's result overwrite the other's |
 | foundation/T52 | Requirements | foundation/F25: the shipped package holds `dist/test/boundary-check/boundary-check.md`. It names `check`, `boundary`, `kaal-hosting-boundary`, both axes, and the limits of `verified`; it never says the check is "not applicable" | Today's package, whose `boundary-check` folder is empty and declares nothing |
 | foundation/T53 | Architecture | foundation/F25, foundation/N13: Hosting's scan run on the shipped `dist/` reads every JavaScript source and reports `result: complete` with no findings. If Hosting cannot be resolved the case is `cannot judge`, never a skip or a pass. It runs in the repository's publisher lane only; it does not ship | A Foundation that decides by platform, or a scan that silently read nothing. A control: GREEN before and after the DO |
+| foundation/T54 | Requirements | foundation/F25: the shipped `dist/test/boundary-check/scan.mjs` runs, prints a last line `kaal-foundation-scan {json}` that holds Hosting's result for `dist/`, and exits 0 on a `complete` scan with no findings. With Hosting unresolvable it exits 2 with `cannot verify`, never 0 | Today's package, which ships no scan script; or a script that exits 0 when Hosting is missing |
 
-T37, T39 and T45 are Intent-level. T52 and T53 are Foundation's own Boundary Check record and its peer evidence. They assert only outcomes a consumer sees, and they survive any solution the DO picks. T38, T40 and T42 pin the Requirements. T41 is the boundary's Architecture: it keeps the boundary at the outer loop.
+T37, T39 and T45 are Intent-level. T52, T53 and T54 are Foundation's own Boundary Check record, its scan script and its peer evidence. They assert only outcomes a consumer sees, and they survive any solution the DO picks. T38, T40 and T42 pin the Requirements. T41 is the boundary's Architecture: it keeps the boundary at the outer loop.
 
 ## Delivered cases
 
@@ -57,10 +58,11 @@ Under this design, the same measurement is expected to give two results. `bounda
 
 ## RED evidence
 
-On `kaal/foundation`, eight of the nine planned cases are RED and T53 is a control that stays GREEN. The commands are missing, because `kaal-foundation check` and `kaal-foundation boundary` exit 2 with `unknown command`:
+On `kaal/foundation`, nine of the ten planned cases are RED and T53 is a control that stays GREEN. The commands are missing, because `kaal-foundation check` and `kaal-foundation boundary` exit 2 with `unknown command`:
 - T37, T39, T41 and T45 fail on their first behavioural assertion.
 - T38 and T40 fail on the result line.
 - T52 fails because `04-test/boundary-check/` holds no record.
+- T54 fails because `scan.mjs` is not delivered.
 - T53 is GREEN today (Hosting's scan of `dist/` reports no findings on 8 sources). It is a control: it stays GREEN and guards the evidence the record cites.
 - T42 fails because the documents name neither command.
 

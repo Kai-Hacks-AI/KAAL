@@ -229,3 +229,15 @@ test("foundation/T53 [foundation/F25, foundation/N13]: Hosting's scan of the shi
   assert.ok(j.coverage.read.length > 0, "the scan read nothing");
   assert.deepEqual(j.coverage.unreadable, []);
 });
+
+test("foundation/T54 [foundation/F25]: the shipped scan.mjs prints Hosting's result for dist/ as its last line and exits 0 when it is complete and clean; with Hosting unresolvable it exits 2, never 0", () => {
+  const script = join(PACKAGE, "dist", "test", "boundary-check", "scan.mjs");
+  assert.ok(existsSync(script), "dist/test/boundary-check/scan.mjs is not delivered");
+  const ok = spawnSync(process.execPath, [script], { cwd: REPOSITORY, encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
+  const j = last(ok.stdout, "kaal-foundation-scan");
+  assert.ok(j, `no kaal-foundation-scan line: ${ok.stdout}${ok.stderr}`);
+  assert.deepEqual([ok.status, j.result, j.findings], [0, "complete", []]);
+  const lone = fresh();
+  const missing = spawnSync(process.execPath, [script], { cwd: lone, encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined, NODE_PATH: "" } });
+  assert.equal(missing.status, 2, `an unresolvable Hosting must give 2: ${missing.stdout}${missing.stderr}`);
+});

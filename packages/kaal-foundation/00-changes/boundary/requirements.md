@@ -41,10 +41,14 @@ Each Requirement names, in brackets, the Intents it serves.
   The same holds for `check`: it vouches only for the lines it read. The human summary line of both commands says this, and so do `references/limitations.md` and the skill.
 - **foundation/F24** [foundation/I9, foundation/I7]: **Documented for agents.** The installed `references/operations.md`, the skill (foundation/F15) and the repository's `AGENTS.md` Foundation section (foundation/F16) name both commands and state the limits of `verified` in foundation/F23. They tell a consumer to produce its own list from the digests it already states, in the form of foundation/F22, at the time it states them. Each command is invoked by the scoped package's own bin path (foundation/F18).
 
-- **foundation/F25** [foundation/I9]: **Foundation's own Boundary Check record.** `04-test/boundary-check/boundary-check.md` ships in the package (`dist/test/boundary-check/boundary-check.md`) and declares the Boundary Check, as every KAAL package must. It is not a bare status: it names
+- **foundation/F25** [foundation/I9]: **Foundation's own Boundary Check record and its scripts.** `04-test/boundary-check/boundary-check.md` and `04-test/boundary-check/scan.mjs` ship in the package (`dist/test/boundary-check/boundary-check.md`) and declares the Boundary Check, as every KAAL package must. It is not a bare status: it names
   - the package -> consumer axis: `check` and `boundary` (foundation/F22, foundation/F23), who runs them (foundation/A14), and the recorded run on the first consumer (Guard: `boundary` gives `cannot verify (not a consumer)`, `check` over its stated digests gives `verified`);
   - the package <--> package axis: Hosting's `kaal-hosting-boundary --target` scan of Foundation's own `dist/`, with its result and its coverage (files read and skipped), as the peer's challenge of Foundation;
   - what it does not establish (foundation/F23's limits) and which peers have no check that targets Foundation.
+
+  **Scripts an agent can run (BASS: Script over Skill over Agent over Bare).** The record names the commands to run, and each ends in a verdict line:
+  - `node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs check|boundary …` for the package -> consumer axis (foundation/F22, foundation/F23);
+  - `node node_modules/@kaihacksai/kaal-foundation/dist/test/boundary-check/scan.mjs` for the package <--> package axis. `scan.mjs` runs Hosting's scan on the delivered `dist/` and prints Hosting's result line unchanged as `kaal-foundation-scan {json}`. It exits 0 when the scan is `complete` with no findings, 1 on findings, and 2 when Hosting cannot be resolved or the scan does not finish (`cannot verify`, never a skip). It adds no dependency: Hosting is looked up at run time, as the repository's lane already does.
 
 ## Non-functional
 
