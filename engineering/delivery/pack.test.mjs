@@ -58,6 +58,8 @@ describe("delivery: pack once, then nothing shared changes", () => {
     assert.deepEqual(failures(result), []);
     assert.equal(result.passed, true);
     assert.deepEqual(Object.keys(result.manifest), ["fixture-pkg"]);
+    // testing/F117: the manifest records each package's packed version, which Testing's pin-behind rule compares.
+    assert.equal(result.manifest["fixture-pkg"].version, "1.0.0");
     assert.equal(result.records.length, 2);
     assert.equal(new Set(result.records.map((r) => r.pid)).size, 2);
     assert.equal(new Set(result.records.map((r) => r.host)).size, 2);
