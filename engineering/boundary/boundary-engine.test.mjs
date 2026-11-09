@@ -290,7 +290,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     const r = run("--tests", tests, "--target", join(dir, "t19/t"), "--base", join(dir, "t19"));
     assert.deepEqual(r.summary.findings.map((f) => f.id), ["demo/t/decimal.mjs:1", "demo/t/separator.mjs:1", "demo/t/upper.mjs:1"]);
   });
-  it("T20 [R2, R3]: code detectors read JavaScript, TypeScript and the js or ts code blocks of Markdown; JSON and YAML are read as data; a file type with no parser, or a file that does not parse, makes the result unknown and is never matched by pattern", () => {
+  it("T20 [R2, R3]: code detectors read JavaScript, TypeScript and the js or ts code blocks of Markdown; JSON and YAML are read as data; a file type with no parser is not applicable and never matched by pattern, and a file that does not parse makes the result unknown", () => {
     const tests = put("t20/tests.md", def("demo", CRYPTO));
     put("t20/ok/a.ts", "x\ncreateHash(\"sha256\");\n");
     put("t20/ok/doc.md", "# Doc\n\ncreateHash(\"sha256\") in prose is not code.\n\n```js\nconst a = 1;\ncreateHash(\"sha256\");\n```\n");
@@ -302,13 +302,85 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     put("t20/bad/a.mjs", "createHash(\"sha256\")\n");
     put("t20/bad/run.sh", "createHash(\"sha256\")\n");
     const none = run("--tests", tests, "--target", join(dir, "t20/bad"), "--base", join(dir, "t20"));
-    assert.equal(none.status, 2);
-    assert.equal(none.summary.result, "unknown");
-    assert.deepEqual(none.summary.coverage.unreadable, [{ path: "bad/run.sh", cause: "no parser" }]);
-    assert.deepEqual(none.summary.findings.map((f) => f.id), ["demo/bad/a.mjs:1"], "what was parsed is still reported");
+    assert.equal(none.status, 0, "an unsupported kind is not applicable, not unknown");
+    assert.deepEqual(none.summary.coverage.notApplicable, [{ path: "bad/run.sh", provider: "demo", detectors: ["crypto"], byteChecked: false, reason: "no structural parser for this file kind" }]);
+    assert.deepEqual(none.summary.findings.map((f) => f.id), ["demo/bad/a.mjs:1"], "what was parsed is still reported, and the shell is never matched by pattern");
     put("t20/broken/b.mjs", "createHash(\"sha256\"\nconst = ;\n");
     const broken = run("--tests", tests, "--target", join(dir, "t20/broken"), "--base", join(dir, "t20"));
     assert.equal(broken.summary.result, "unknown");
     assert.deepEqual(broken.summary.coverage.unreadable, [{ path: "broken/b.mjs", cause: "does not parse" }]);
+  });
+  it("T21 [R1, R2]: a file kind the code detectors do not apply to is recorded not applicable with a reason, is not counted as read, and is not clean; a definition with only file-identity applies to every file", () => {
+    const tests = put("t21/tests.md", def("demo", CRYPTO));
+    put("t21/t/a.mjs", "const a = 1;\n");
+    put("t21/t/LICENSE", "MIT\n");
+    put("t21/t/img.png", "x");
+    const r = run("--tests", tests, "--target", join(dir, "t21/t"), "--base", join(dir, "t21"));
+    assert.equal(r.status, 0);
+    assert.equal(r.summary.coverage.read, 1, "only the file the detectors read");
+    assert.deepEqual(r.summary.coverage.notApplicable.map((n) => [n.path, n.reason]), [["t/LICENSE", "a licence text, no executable content"], ["t/img.png", "no structural parser for this file kind"]]);
+    const only = put("t21/identity.md", def("demo", `  - id: copy\n    detector: file-identity\n    equals: [ref.txt]\n    tests: demo/I1\n    looks-for: a copy\n`));
+    put("t21/ref.txt", "MIT\n");
+    const bytes = run("--tests", only, "--target", join(dir, "t21/t"), "--base", join(dir, "t21"));
+    assert.deepEqual(bytes.summary.coverage.notApplicable, []);
+    assert.deepEqual(bytes.summary.findings.map((f) => f.id), ["demo/t/LICENSE:1"], "R6: bytes still count");
+  });
+  it("T22 [R3]: the global list supplies the reason by exact name or extension, and the default covers the rest", () => {
+    const tests = put("t22/tests.md", def("demo", CRYPTO));
+    for (const f of ["LICENSE", ".gitignore", ".gitattributes", "CODEOWNERS", "x.bin"]) put(`t22/t/${f}`, "x\n");
+    put("t22/t/a.mjs", "const a = 1;\n");
+    const r = run("--tests", tests, "--target", join(dir, "t22/t"), "--base", join(dir, "t22"));
+    assert.equal(r.status, 0);
+    assert.deepEqual(r.summary.coverage.notApplicable.map((n) => n.reason.includes("no executable content") || n.reason === "no structural parser for this file kind"), [true, true, true, true, true]);
+    assert.equal(run("--tests", tests, "--target", join(dir, "t22/t/LICENSE"), "--base", join(dir, "t22")).summary.result, "unknown", "nothing read is no evidence");
+    assert.equal(r.summary.coverage.notApplicable.filter((n) => n.reason.includes("no executable content")).length, 4);
+  });
+  it("T23 [R4]: a local list gives its reason to its own definition only, and the file stays visible to another definition", () => {
+    const local = put("t23/local.md", `---\nprovider: demo\nnot-applicable:\n  - extension: .sh\n    reason: demo's tests are JS-shaped\ntests:\n${CRYPTO}---\nWhy.\n`);
+    const plain = put("t23/plain.md", def("other", CRYPTO.replace("demo/I1", "other/I1")));
+    put("t23/t/run.sh", "x\n");
+    const a = run("--tests", local, "--target", join(dir, "t23/t"), "--base", join(dir, "t23"));
+    assert.deepEqual(a.summary.coverage.notApplicable.map((n) => n.reason), ["demo's tests are JS-shaped"]);
+    const b = run("--tests", plain, "--target", join(dir, "t23/t"), "--base", join(dir, "t23"));
+    assert.deepEqual(b.summary.coverage.notApplicable.map((n) => n.reason), ["no structural parser for this file kind"]);
+  });
+  it("T24 [R5, R7]: a list entry that names a parsed kind, has no reason, a glob, a path, a target or a role, or is duplicated, is refused", () => {
+    const entry = (e) => `---\nprovider: demo\nnot-applicable:\n${e}tests:\n${CRYPTO}---\nWhy.\n`;
+    for (const [name, e] of [
+      ["parsed extension", "  - extension: .mjs\n    reason: x\n"],
+      ["parsed name", "  - name: build.json\n    reason: x\n"],
+      ["markdown", "  - extension: .md\n    reason: x\n"],
+      ["no reason", "  - extension: .sh\n"],
+      ["glob", "  - name: \"*.sh\"\n    reason: x\n"],
+      ["path", "  - name: hooks/pre-push\n    reason: x\n"],
+      ["target", "  - extension: .sh\n    reason: x\n    target: packages/kaal-hosting\n"],
+      ["role", "  - extension: .sh\n    reason: x\n    decider: CTO\n"],
+      ["both", "  - extension: .sh\n    name: run\n    reason: x\n"],
+      ["no dot", "  - extension: sh\n    reason: x\n"],
+      ["duplicate", "  - extension: .sh\n    reason: x\n  - extension: .sh\n    reason: y\n"],
+    ]) assert.equal(run("--tests", put(`t24/${name.replace(/ /g, "-")}.md`, entry(e)), "--target", dir).status, 2, name);
+  });
+  it("T25 [R5]: a file of a supported kind that does not parse stays unknown, whatever a list says", () => {
+    const tests = put("t25/tests.md", `---\nprovider: demo\nnot-applicable:\n  - extension: .sh\n    reason: shell\ntests:\n${CRYPTO}---\nWhy.\n`);
+    for (const [f, text] of [["b.mjs", "const = ;\n"], ["c.json", "{\n"], ["d.yml", "a: [\n"]]) {
+      put(`t25/${f.replace(".", "-")}/${f}`, text);
+      const r = run("--tests", tests, "--target", join(dir, `t25/${f.replace(".", "-")}`), "--base", join(dir, "t25"));
+      assert.equal(r.status, 2, f);
+      assert.equal(r.summary.result, "unknown", f);
+      assert.equal(r.summary.coverage.unreadable[0].cause, "does not parse", f);
+    }
+  });
+  it("T26 [R2, R6]: two definitions over the same unsupported file and reason stay separately visible with their own detectors, and byteChecked says when file-identity ran on bytes though no parser did", () => {
+    const one = put("t26/one.md", def("alpha", CRYPTO.replace("demo/I1", "alpha/I1")));
+    const two = put("t26/two.md", def("beta", `  - id: seq\n    detector: token-sequence\n    tokens: ["1", "2", "3"]\n    window: 3\n    tests: beta/I1\n    looks-for: a sequence\n` +
+      `  - id: copy\n    detector: file-identity\n    equals: [ref.txt]\n    tests: beta/I1\n    looks-for: a copy\n`));
+    put("t26/ref.txt", "other\n");
+    put("t26/t/a.mjs", "const a = 1;\n");
+    put("t26/t/run.sh", "x\n");
+    const r = run("--tests", one, "--tests", two, "--target", join(dir, "t26/t"), "--base", join(dir, "t26"));
+    assert.equal(r.status, 0);
+    const mine = r.summary.coverage.notApplicable.filter((n) => n.path === "t/run.sh").map((n) => [n.provider, n.detectors, n.byteChecked]);
+    assert.deepEqual(mine, [["alpha", ["crypto"], false], ["beta", ["seq"], true]]);
+    assert.equal(r.summary.coverage.read, 1, "a byte check is not a structural read");
   });
 });
