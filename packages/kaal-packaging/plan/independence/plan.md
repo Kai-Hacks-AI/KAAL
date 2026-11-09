@@ -11,7 +11,7 @@ Packages are ideally independently deployable, so a consumer can operate with on
 ## What we observe today
 
 - **One workspace list.** The root `package.json` lists every package by path, one line each, and the root `package-lock.json` is a single lock for all of them. Every collector edits both when it adds or renames a package.
-- **That list and lock are where collectors conflict.** A trial merge of `main` into `kaal/packaging` conflicts in `AGENTS.md` and `package-lock.json`. `package.json` merged cleanly this time, though both sides changed the same `workspaces` array and the long `test:engineering` script that names individual test files, including `packages/skills/kaal-change/test/...` paths. The root `test:engineering` line is an enumeration of other owners' files, so any package that adds a test file changes it.
+- **That list and lock are where collectors conflict.** A trial merge of `main` into `kaal/packaging` conflicted in `AGENTS.md` and `package-lock.json` (9 Nov: that collector was since re-cut from main's tip as a fresh `kaal/packaging`, which landed in #1290, so the conflict was avoided and not solved). `package.json` merged cleanly this time, though both sides changed the same `workspaces` array and the long `test:engineering` script that names individual test files, including `packages/skills/kaal-change/test/...` paths. The root `test:engineering` line is an enumeration of other owners' files, so any package that adds a test file changes it.
 - **A published package never ships the root lock.** npm ignores a lockfile in a published package. A consumer installs from the package's own `package.json` and the registry. So the shared lock affects Engineering's development and CI installs and our merge conflicts. It does not decide what a consumer gets.
 - **Packages already differ in how independent they are.** Foundation has no KAAL dependency. Hosting is a hard dependency of Core, Graph, Testing, Change and Packaging. Packaging hands Testing's model functions in through its caller instead of importing Testing (packaging/N8), which is the pattern the guide asks for.
 
@@ -48,7 +48,7 @@ The dependency declaration is decided by the concept above. These options only d
 
 **Step 1 only, as the next bounded Engineering investigation.** That is: workspace globs, and root test ownership (each package declares its repository tests instead of the root `test:engineering` script naming other owners' files). It must preserve reproducibility and the Hosting, Foundation, Core release path. It is not a way to unblock dependencies: structural churn is not used as a shortcut around a dependency, and any hard-dependency reclassification needs each package owner's own evidence and Change.
 
-The "install alone" lane (step 2) and per-package locks (step 3) stay as options in this plan. They are not recommended or approved now. They are revisited after step 1 shows what the conflicts look like, and after Hosting and Foundation are on a registry.
+The "install alone" lane (step 2) and per-package locks (step 3) stay as options in this plan. They are not recommended or approved now. They are revisited after step 1 shows what the conflicts look like, and after Hosting and Foundation are on a registry (Hosting 0.0.1 is on npm as `@kaihacksai/kaal-hosting`; Foundation 0.0.1 is too, and 0.0.2 is pending).
 
 The staged hybrid (Option D) remains the analysis of the whole problem. Only its step 1 is proposed.
 
@@ -62,7 +62,7 @@ The staged hybrid (Option D) remains the analysis of the whole problem. Only its
 
 - Step 1 needs nothing from a registry.
 - The "install alone" lane (not proposed now) needs a pack of each package, which exists today. Packages whose hard dependencies are unpublished would be verified with packed tarballs and reported interim, as Packaging's own F7 is.
-- The per-package lock (not proposed now) waits on Hosting and Foundation being on a registry.
+- The per-package lock (not proposed now) waits on Hosting and Foundation being on a registry. Both have a registry release now (Hosting 0.0.1, Foundation 0.0.1); what remains is the decision, not the availability.
 
 ## Open points for the Owner
 
