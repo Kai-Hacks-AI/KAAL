@@ -1,0 +1,13 @@
+name: trial pinned
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+permissions:
+  contents: read
+jobs:
+  pinned:
+    name: pinned
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "pinned version from trial/q-b; run sha=${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
