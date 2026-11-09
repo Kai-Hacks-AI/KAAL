@@ -5,8 +5,8 @@ import { lstatSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { DETECTORS } from "./detectors/index.mjs";
+import { parseSource } from "./parse.mjs";
 
-const SOURCE = /\.(?:[cm]?js|[cm]?ts)$/;
 const NOT_WALKED = new Set(["node_modules", ".git"]);
 const OWNERSHIP = "ownership.kaal.json";
 
@@ -52,8 +52,12 @@ export function scanDefinition(definition, targets, base) {
     }
     const file = rel(path);
     read.add(file);
-    const lines = bytes.toString("utf8").split(/\r?\n/);
-    const subject = { digest: sha256(bytes), lines };
+    const text = bytes.toString("utf8");
+    const lines = text.split(/\r?\n/);
+    const parsed = parseSource(file, text);
+    if (parsed.kind === "none" && prepared.some(({ detector }) => detector.needsParse)) unreadable.push({ path: file, cause: "no parser" });
+    if (parsed.kind === "error") unreadable.push({ path: file, cause: "does not parse" });
+    const subject = { digest: sha256(bytes), lines, sources: parsed.sources };
     const owner = ownerOf(dirname(path));
     const places = new Map();
     for (const { test, detector, state } of prepared) {
@@ -82,7 +86,7 @@ export function scanDefinition(definition, targets, base) {
       else if (entry.isDirectory()) {
         if (NOT_WALKED.has(entry.name)) skipped.push({ path: rel(path), reason: entry.name });
         else walk(path);
-      } else if (entry.isFile() && SOURCE.test(entry.name)) scanFile(path);
+      } else if (entry.isFile()) scanFile(path);
     }
   };
 
