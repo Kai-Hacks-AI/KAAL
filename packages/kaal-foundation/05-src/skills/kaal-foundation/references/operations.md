@@ -60,6 +60,16 @@ node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/script
 
 Both check the installed copy against its manifest and run the shipped cases. They end in `verified`, `failed` or `cannot verify`, and the last line is `kaal-foundation-verification {json}` ([Testing](../../../test/package-check/testing.md)).
 
+## Find a second SHA-256 elsewhere (Boundary Check)
+
+```sh
+node node_modules/@kaihacksai/kaal-foundation/dist/test/boundary-check/scan.mjs --target <path>... [--base <dir>]
+```
+
+The scan reads the files and directories you name and reports each place where the SHA-256 Foundation owns is done somewhere else: a copy of Foundation's library (`copy`), the algorithm written out (`implementation`), or the platform asked for SHA-256 (`crypto`). It names no target of its own: you name them, so a new target needs no change here. The last line is `kaal-foundation-scan {json}`, with the result `complete` or `unknown`, the coverage, and the findings (`id`, `rule`, `file`, `line`, `digest`, `owner`). The exit is 0 when complete, including with findings, and 2 when unknown.
+
+A finding is audit, a place to look at and not a fault. Decisions about findings are held by the repository against the finding `id` and `digest`, never in the package. An empty list says only that nothing was found within the coverage. The record is `dist/test/boundary-check/boundary-check.md`.
+
 ## Remove
 
 ```sh
@@ -89,6 +99,8 @@ dist/skills/kaal-foundation/scripts/kaal-foundation.mjs
 dist/skills/kaal-foundation/scripts/kaal-foundation.test.mjs
 dist/skills/kaal-foundation/scripts/sha256.d.ts
 dist/skills/kaal-foundation/scripts/sha256.mjs
+dist/test/boundary-check/boundary-check.md
+dist/test/boundary-check/scan.mjs
 dist/test/package-check/collect.mjs
 dist/test/package-check/testing.md
 dist/test/package-check/verify.json
