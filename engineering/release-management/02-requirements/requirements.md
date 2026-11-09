@@ -21,7 +21,7 @@ Controls of a station are its requirements, in three kinds: **in** (the receiver
   - Exists: `readiness()` in `engineering/release/release.mjs` rejects a non-semver version and a version already on the registry ("raise the version"); dependencies must be exact and already published.
   - Gaps: G1 no check that the version is greater than the latest published. G2 no tag marks the released commit. G3 no check that the version was set by a recorded Change. G4 no changelog or bump tooling; versions are hand-edited.
 - **stock:** audit Lineage (from the root).
-- **in, backwards from the stock (names only):** bind Merge (merge queue and `bind-group`), approve Promotion (review), test Candidate (FAR lanes on `kaal/*` to `main`), serialize Promotion (one promotion at a time), accept Collector (promotion source).
+- **in, backwards from the stock (names only):** bind Merge (merge queue and `bind-group`), approve Promotion (review), test Candidate (FAR lanes on `kaal/*` to `main`), serialize Promotion (one promotion at a time), accept Capability (promotion source).
 
 ## Station 12-kaal (names only)
 

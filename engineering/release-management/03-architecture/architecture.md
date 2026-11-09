@@ -27,3 +27,15 @@ Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: eac
 - **release-management/A3 [F2]. Promotion check (10-npmjs stock).** `provenance()` and Accept. Planned: the record carries the promotion it came from (G9).
 
 Nothing above changes `.github` in this PLAN; `.github` changes travel alone as their own Change.
+
+## Decision: how collectors are named (Owner, 9 Nov 2026; recorded, not yet applied)
+
+Collectors are named by capability, and a sub-capability is allowed, with one clean concept:
+
+- A collector is always `kaal/<capability>/<leaf>`, never a bare `kaal/<capability>`, because git cannot hold the ref `kaal/<capability>` and the refs under `kaal/<capability>/` at the same time.
+- The leaf is the **version** for a versioned capability (`kaal/foundation/0.0.2`) and a **descriptive name** otherwise (`kaal/engineering/release-management`).
+- The Owner will change the ruleset pattern to `kaal/**`.
+- Link to *version Package* (`11-main` out): the collector's version leaf should match the package version that gets released.
+- Consequence for the control: `accept Capability` (formerly accept Collector, today's promotion source) judges that a promotion comes from a capability's collector.
+
+Nothing is renamed by this PLAN: existing branches (including this PLAN's own collector `kaal/engineering-release-management`, which would be `kaal/engineering/release-management`), rulesets and the Promotion Source check keep their names. Migration is a later Change.
