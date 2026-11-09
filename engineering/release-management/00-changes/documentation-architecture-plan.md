@@ -35,6 +35,7 @@ Solution here is thin: the consumer-visible promise. Release management is Engin
 | "Path to `main`" steps 1 to 8, "Conditions before promotion", "Retiring `Change Isolation (review)`", "Build order", "Open for the Owner" | Change (sequence, conditions, evidence) | `00-changes/transformation.md` and `00-changes/README.md`; the README keeps layout and the loop only |
 | The migration element, the shim rule, F20, T12, T13 | Change (temporary, with termination) | `00-changes/` (F20 stays in `change-requirements.md`; the shim rule moves from `03-architecture` to it; T12 and T13 are Change Cases) |
 | F18 "Interim" paragraph, T9's "interim, marked temporary" wording, the interim reading `far.json` | Change (interim state) | `00-changes/interim-states.md`, each interim with its `ends when` and the target requirement it stands in for |
+| Engine README "What Foundation needs before its `0.0.1`" and "Order" (observations about `main` at 8a5836b, now partly stale: Foundation's manifest has `repository` and `publishConfig`) | Change (A, stale) | `00-changes/current-state.md`, refreshed against `main` at DO; the engine's package-as-input rule (F28) stays as B |
 | Cases T1 to T10 (standing) | Delivery | stay in `04-test` |
 | T11 (the engine lives in `05-src`; old path holds shims) | Change (placement during migration) | `00-changes/`, Case T11 split: the standing half (the engine lives in `05-src/release-engine/`) stays in `04-test`, the shim half is Change |
 
