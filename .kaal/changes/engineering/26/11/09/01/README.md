@@ -1,0 +1,3 @@
+# Engineering: PLAN for porting the shell gates to `.mjs` and shrinking shell to shims
+
+Capability: Engineering. Target: `kaal/engineering-gate-ports`. Record number provisional until integration. PLAN only: `engineering/github/ports/PLAN.md`. Requested by the Owner's rulings (2026-11-09): keep the must-be-shell list really small, every hook and template a minimal shim that only runs `.mjs`, the ports gate the Foundation 0.0.2 release, and one Case pins each shim to its exact bytes. It changes no code and authorizes no promotion, version bump, SYNC, ledger entry, release dispatch or npm publication.
