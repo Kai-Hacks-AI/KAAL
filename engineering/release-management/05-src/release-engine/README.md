@@ -53,7 +53,7 @@ The engine owns no package's semantics and adds no assertion to a package's own 
   1. **Download** F31's artifact, the exact tarball that was tested: `gh run download <run-id> --name <file>.tgz`, or from the run page.
   2. **Verify** it: `sha256sum <file>.tgz` must print the release record's SHA-256. Stop if it does not.
   3. **Publish those bytes**, with 2FA: `npx npm@11.21.0 publish ./<file>.tgz --access public`. Never `npm publish` in a package directory, which would pack again.
-  4. **Bind Trusted Publishing**: `npx npm@11.21.0 trust github <name> --file release.yml --repo Kai-Hacks-AI/KAAL --env npm --allow-publish`, or the same setting on npmjs.com.
+  4. **Bind Trusted Publishing**: `npx npm@11.21.0 trust github <name> --file publish.yml --repo Kai-Hacks-AI/KAAL --env npm --allow-publish`, or the same setting on npmjs.com.
   5. **Close the token path**: on npmjs.com, set the package's publishing access to "Require two-factor authentication and disallow tokens".
   6. **Accept it**: dispatch F35 with the Pack run's id.
 
@@ -70,13 +70,13 @@ The engine owns no package's semantics and adds no assertion to a package's own 
 
 ## Design
 
-`engineering/release/release.mjs` holds the engine, and `.github/workflows/release.yml` is the adapter. The workflow takes the inputs `package` (a string, validated by the engine and not by a choice list that would repeat the workspaces), `publish` (a boolean) and, for `registry`, `run`, the Pack run whose release record and artifact it accepts. It runs `node engineering/release/release.mjs <step> …` in each job and acts on the exit status: 0 verified, 1 failed, 2 cannot judge. Each job keeps Guard Release's settings: actions pinned by SHA, `persist-credentials: false`, `contents: read`, and `id-token: write` only in Publish.
+`engineering/release-management/05-src/release-engine/release.mjs` holds the engine, and `.github/workflows/publish.yml` (renamed from `release.yml` on 9 Nov, before any package was trusted or accepted) is the adapter. The workflow takes the inputs `package` (a string, validated by the engine and not by a choice list that would repeat the workspaces), `publish` (a boolean) and, for `registry`, `run`, the Pack run whose release record and artifact it accepts. It runs `node engineering/release/release.mjs <step> …` in each job and acts on the exit status: 0 verified, 1 failed, 2 cannot judge. Each job keeps Guard Release's settings: actions pinned by SHA, `persist-credentials: false`, `contents: read`, and `id-token: write` only in Publish.
 
 The registry is reached through `npm` (`view`, `pack <spec>`, `install <spec>`, `publish`), one seam that the tests replace with a fixture registry, so no test needs the network. One read has no npm command: F35's attestation bundle. `run.mjs`'s `attest` fetches it from the URL npm's own `dist.attestations` gives, and refuses any URL outside `https://registry.npmjs.org/-/npm/v1/attestations/`. It is a second seam, also replaced in the tests.
 
 **The steps, as `run.mjs` names them.** `pack` (F28–F32, writes `record/release.json`, `report/summary.md` and the tarball under `artifact/`), `bind` (F31: the uploaded artifact's id and digest into the record), `publish` (F33) and `accept` (F35). Each prints `kaal-release <step>: <result>` and exits 0, 1 or 2.
 
-Trusted publishers are set per package on npm, and each names the workflow file. Every package therefore names `release.yml`, so one environment, one approval rule and one adapter serve them all.
+Trusted publishers are set per package on npm, and each names the workflow file. Every package therefore names `publish.yml`, so one environment, one approval rule and one adapter serve them all.
 
 ## Decisions for the Owner
 
