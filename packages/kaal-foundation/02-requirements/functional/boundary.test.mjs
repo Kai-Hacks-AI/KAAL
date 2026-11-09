@@ -37,7 +37,7 @@ test("foundation/T60 [foundation/F34, foundation/F37, foundation/N22, foundation
   for (const [id, detector] of [["copy", "file-identity"], ["implementation", "token-sequence"], ["crypto", "call-with-literal"]]) assert.match(front, new RegExp(`- id: ${id}\\n    detector: ${detector}\\n`), `${id} is a ${detector} test`);
   assert.equal([...front.matchAll(/^  - id:/gm)].length, 3, "only the three tests");
   assert.equal([...front.matchAll(/^    tests: foundation\/I1$/gm)].length, 3, "each test has its tests edge");
-  assert.equal([...front.matchAll(/^    ships: true$/gm)].length, 3, "each test has its ships flag");
+  assert.equal([...front.matchAll(/^\s+ships:/gm)].length, 0, "no test carries a hand-kept ships flag");
   assert.doesNotMatch(front, /\b(pattern|regex|script|targets?|decider)\s*:/i, "the definition holds no regular expression, code, target or role");
   for (const needle of ["Applicable", "Boundary Engine", "engine.mjs --tests", "package <--> package", "package -> consumer", "audit", "no compliance"]) assert.ok(text.includes(needle), `the record never mentions ${needle}`);
   assert.doesNotMatch(text, /not applicable/i, "Foundation's Boundary Check is not declared not applicable");
