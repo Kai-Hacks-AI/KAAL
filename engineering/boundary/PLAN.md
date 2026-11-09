@@ -41,13 +41,26 @@ Replace "the Suite ships with the provider's package as a reusable asset: execut
 
 `engineering/boundary/boundary-engine.red.mjs` holds seven Cases, all RED because `engine.mjs` is not delivered (missing-deliverable evidence, not behavioural). T1 R1 finds the rule's line (id `demo/t/a.mjs:2`, rule, line, exit 0); T2 R2 refuses a rules file that names a target or a role; T3 R3 a missing target is `unknown`, exit 2, with the `kaal-boundary-scan` last line; T4 R3 an owned directory is skipped and reported; T5 R1 and R8 the engine only reads and imports only `node:` modules and `yaml`; T6 R4 Foundation's rules file gives the old scanner's findings; T7 R7 conformance with Hosting's scan. The DO turns them GREEN and adds the matrix Cases (R6).
 
+## Replacement Change for C14 / #1293 (decided: rules only in 0.0.2)
+
+The Owner decided that Foundation 0.0.2 ships rules only. This supersedes the C14 design merged in #1293, which shipped `scan.mjs`. Deleting the script is not enough; Foundation's follow-up Change is an explicit replacement Change that reconciles all of:
+- the script (`scan.mjs` removed), the shipped record (becomes the rules file), references to the script, `verify.json` and the build list;
+- the Cases that test the scanner (T54 to T62 move to the engine's Cases; T63 becomes the rules-well-formedness Case);
+- updated acceptance evidence, shown before and after: the engine run on Foundation's rules file reproduces the findings `scan.mjs` gives today on the same fixtures (T6), so the capability to detect boundary violations is kept, not removed.
+
+Responsibilities: Foundation owns what to detect (rules); Engineering owns how (parsing, traversal, execution, reporting); the KAAL repository owns what findings mean (audit records, decisions, resulting Changes).
+
+## Proof point honesty
+
+The final proof point states separately what KAAL verifies (repository-only evidence: engine run on Foundation, Hosting and Guard, package checks both ways) and what is only planned. It claims no external consumer validation.
+
 ## Order
 
 1. This PLAN, then its DO (the engine and the rules reader) in Engineering.
-2. Foundation's Change: rules file replaces `scan.mjs`; tree DO follows.
+2. Foundation's replacement Change: rules file replaces `scan.mjs`; tree DO follows. Engine DO and tree DO each get their own exact-head review.
 3. Hosting migrates later.
 
 ## Open
 
-- Whether 0.0.2 ships the rules file only (this PLAN) or also keeps `scan.mjs` for one release. The PLAN says rules only.
+- Decided by the Owner: 0.0.2 ships rules only.
 - The DO, Foundation's follow-up Change and Hosting's migration are separate Changes with their own reviews.
