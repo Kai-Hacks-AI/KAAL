@@ -12,7 +12,17 @@ Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or co
 
 Rationale: I4, Delivery architecture changes independently of Solution architecture.
 
-A release control judges a candidate with the checker `main` holds (checkout of `main`, on `pull_request` and `merge_group`), with its logic in `05-src` and only wiring in `.github`. Allocated to the architecture's wiring rule (a cross-cutting requirement like F4, checked by T8). Open for the testing controls (test Candidate, test Integration): the test machinery is Delivery, so by I4 it is pinned like the other controls; the Cases under test are Solution content that travels in the candidate. Whether and how the collection of those Cases is pinned is still being decided.
+A release control judges a candidate with the checker `main` holds (checkout of `main`, on `pull_request` and `merge_group`), with its logic in `05-src` and only wiring in `.github`. Allocated to the architecture's wiring rule (a cross-cutting requirement like F4, checked by T8). The testing controls are pinned through F18 (FAR): their machinery and Regression run as `main`'s copy, Features travel with the candidate.
+
+## Testing applies FAR [release-management/F18]
+
+test Candidate (into `main`) and test Integration (into a collector) apply FAR (Owner, 9 Nov):
+
+- **Regression** protects the target: it is the target's own Cases, run as the target's copy and pinned (F17), never the candidate's version of them.
+- **Features** test the incoming change: they are the Cases the candidate adds or changes, they travel with the candidate (Solution content) and run as candidate code.
+- **Accepts** is a short, explicit list that lets a candidate weaken named Regression Cases. It is the only door to weaken Regression, and a change to Accepts is reviewed and approved like any change; a Regression Case missing, edited or skipped without an Accepts entry fails.
+
+By I4 the machinery is Delivery and pinned; the Cases under test are Solution content. Allocated to the testing controls (`main/` test Candidate, `collectors/` test Integration), which share the FAR rule.
 
 ## Root (spans stations; the Owner's list, 9 Nov)
 
@@ -42,10 +52,10 @@ Controls that act on more than one station live at the root. All are names only 
   - Exists: `readiness()` in `engineering/release/release.mjs` rejects a non-semver version and a version already on the registry ("raise the version"); dependencies must be exact and already published.
   - Gaps: G1 no check that the version is greater than the latest published. G2 no tag marks the released commit. G3 no check that the version was set by a recorded Change. G4 no changelog or bump tooling; versions are hand-edited.
 - **stock:** audit Lineage (from the root).
-- **in, backwards from the stock (names only):** bind Merge [F10] (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion [F11] (native approval settings), test Candidate [F12] (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion [F13] (one promotion at a time), accept Capability [F14] (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
+- **in, backwards from the stock (names only):** bind Merge [F10] (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion [F11] (native approval settings), test Candidate [F12, F18] (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion [F13] (one promotion at a time), accept Capability [F14] (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
 
 ## Station 12-collectors (names only)
 
 - **stock:** audit Lineage (from the root).
-- **in:** approve Change [F15] (native approval settings of `kaal/*`), test Integration [F16] (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (collectors)`.
+- **in:** approve Change [F15] (native approval settings of `kaal/*`), test Integration [F16, F18] (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (collectors)`.
 - **out:** none of its own; verify Ancestry and isolate Change act here from the root.
