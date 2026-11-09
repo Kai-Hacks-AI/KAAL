@@ -16,7 +16,7 @@ A capability's Cases sit beside the Node that motivated them (an Intent, a Requi
 - **R6. Capability side stays parser-free.** The capability's own tooling (build, collector, shipped verification) reads only `cases.json`. It copies a Case file into `dist/` only when `cases.json` marks it as shipping (its Cases are Solution), runs the other Case files itself unless they are `runs: external`, and fails closed when a Case file in the tree is not in `cases.json`, when `cases.json` lists a file that is missing, or when a Case would run twice or not at all.
 - **R7. Currency.** `--check` fails when the file on disk differs from a fresh computation. Engineering runs it for each capability it builds; the capability cannot run it (it has no parser).
 - **R8. One dependency.** The computer imports `yaml` and Node's built-ins only. No package imports it.
-- **R9. Fishy.** The computer also reports, as an observation and not as a failure, every Intent that no Requirement serves, every Requirement that no Architecture element answers, every Defect that names no Architecture element, and every Intent, Requirement, Defect or Architecture element that no Case reaches. A Case reaches a Node by pointing at it or at something below it in the chain (Intent <- Requirement <- Architecture, Defect <- Architecture). A disposition for a fishy item is recorded in the repository, as for boundary findings; the computer decides none.
+- **R9. Gaps.** Engineering owns this report for now (Kai, 9 Nov); where it finally lives is open. The computer also reports, as a gap and not as a failure, and not as a failure, every Intent that no Requirement serves, every Requirement that no Architecture element answers, every Defect that names no Architecture element, and every Intent, Requirement, Defect or Architecture element that no Case reaches. A Case reaches a Node by pointing at it or at something below it in the chain (Intent <- Requirement <- Architecture, Defect <- Architecture). A disposition for a gap is recorded in the repository, as for boundary findings; the computer decides none.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ A capability's Cases sit beside the Node that motivated them (an Intent, a Requi
 
 ## Testing (RED until the DO)
 
-Engineering Cases on fixtures (no live capability is read): R2 inputs found, R3 each branch computed, R4 each refusal, R5 an outer check that names the Delivery element is Delivery and does not ship, R7 `--check` fails on drift, R8 imports. A conformance Case runs the computer on a fixture shaped like Foundation 0.0.2 (the Cases that ship today are exactly the computed Solution Cases), and a fixture with fishy items proves R9.
+Engineering Cases on fixtures (no live capability is read): R2 inputs found, R3 each branch computed, R4 each refusal, R5 an outer check that names the Delivery element is Delivery and does not ship, R7 `--check` fails on drift, R8 imports. A conformance Case runs the computer on a fixture shaped like Foundation 0.0.2 (the Cases that ship today are exactly the computed Solution Cases), and a fixture with gaps proves R9.
 
 ## Order
 
