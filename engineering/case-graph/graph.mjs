@@ -7,8 +7,11 @@ import { parse } from "yaml";
 
 const SKIP = new Set(["00-changes", "node_modules", "dist", ".git"]);
 const ELEMENT = /^\s*- \*\*([\w-]+)\/([A-Z]+)(\d+)\*\*(?: \[([^\]]*)\])?/;
-const TITLE_LINE = /^\s*(?:test|it)\(\s*["'`]/;
-const TITLE = /^\s*(?:test|it)\(\s*(["'`])([\w-]+\/(?:T\d+|TX-[\w-]+))(?: \[([^\]]+)\])?:/;
+// Every call of `test` or `it` (also `.skip`, `.only`, `.todo`), on one line or across lines, but not a method such as `re.test(`.
+const CALL = /(?<![.\w$])(?:test|it)(?:\.(?:skip|only|todo))?\s*\(/g;
+const TITLE = /^\s*(["'`])([\w-]+\/(?:T\d+|TX-[\w-]+))(?: \[([^\]]+)\])?:/;
+// An alias would hide a Case from the scan above, so it is refused.
+const ALIAS = [/import\s*\{[^}]*\bas\b[^}]*\}\s*from\s*["']node:test["']/, /import\s*\(\s*["']node:test["']/, /(?<![=!<>])=\s*(?:test|it)\s*[;,)\n]/];
 const FRONT = /^\/\*---\n([\s\S]*?)\n---\*\//;
 const SECTIONS = { Solution: "solution", Delivery: "delivery", "Cross-cutting": "cross-cutting" };
 
@@ -100,15 +103,17 @@ export function readCaseFile(root, file) {
   }
   if (front.runs !== undefined && front.runs !== "external") refuse(`${file}: runs may only be external`);
   const cases = [];
-  const lines = text.split("\n");
-  lines.forEach((line, i) => {
-    if (!TITLE_LINE.test(line)) return;
-    const t = TITLE.exec(line);
-    if (!t) refuse(`${file}:${i + 1}: a Case title must be "<cap>/T<n> [<targets>]: ..."`);
-    if (t[1] === "`" && line.includes("${")) refuse(`${file}:${i + 1}: a generated (template) Case title`);
-    if (!t[3]) refuse(`${file}:${i + 1}: Case ${t[2]} names no target`);
+  const lineAt = (index) => text.slice(0, index).split("\n").length;
+  for (const pattern of ALIAS) if (pattern.test(text)) refuse(`${file}: test or it is aliased, so the Cases cannot be enumerated`);
+  for (const call of text.matchAll(CALL)) {
+    const rest = text.slice(call.index + call[0].length);
+    const t = TITLE.exec(rest);
+    const at = `${file}:${lineAt(call.index)}`;
+    if (!t) refuse(`${at}: a Case title must be "<cap>/T<n> [<targets>]: ..."; every test( or it( call must be a recognized Case`);
+    if (t[1] === "`" && /^[^`]*\$\{/.test(rest.slice(rest.indexOf("`") + 1))) refuse(`${at}: a generated (template) Case title`);
+    if (!t[3]) refuse(`${at}: Case ${t[2]} names no target`);
     cases.push({ id: t[2], file, targets: ids(t[3]) });
-  });
+  }
   if (cases.length === 0) refuse(`${file}: no Case title found`);
   const union = [...new Set(cases.flatMap((c) => c.targets))];
   if (!sameSet(union, front.tests.map((t) => t.trim()))) {

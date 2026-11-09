@@ -99,11 +99,22 @@ test("T3 [R4]: the computer refuses what it cannot place, and writes nothing", (
   bad("a duplicate Case id", { "02-requirements/n.test.mjs": caseFile([["T1", ["demo/F3"]]]) });
   bad("a title without an id and targets", { "02-requirements/n.test.mjs": front(["demo/F3"]) + 'test("does a thing", () => {});\n' });
   bad("a generated title", { "02-requirements/n.test.mjs": front(["demo/F3"]) + 'for (const n of [1]) test(`demo/T9 [demo/F3]: ${n}`, () => {});\n' });
+  bad("an unrecognized multiline call", { "02-requirements/n.test.mjs": front(["demo/F3"]) + 'test("demo/T9 [demo/F3]: x", () => {});\ntest(\n  name,\n  () => {},\n);\n' });
+  bad("an aliased test", { "02-requirements/n.test.mjs": front(["demo/F3"]) + 'import { test as check } from "node:test";\ncheck("demo/T9 [demo/F3]: x", () => {});\n' });
+  bad("a test assigned to another name", { "02-requirements/n.test.mjs": front(["demo/F3"]) + 'const run = test;\ntest("demo/T9 [demo/F3]: x", () => {});\n' });
   bad("a cross-cutting target and no element", { "02-requirements/n.test.mjs": caseFile([["T9", ["demo/F1"]]]) });
   bad("elements of both branches", { "02-requirements/n.test.mjs": caseFile([["T9", ["demo/A1", "demo/A2"]]]) });
   bad("a file whose Cases are of both branches", { "02-requirements/n.test.mjs": caseFile([["T9", ["demo/A1"]], ["T8", ["demo/A2"]]]) });
   bad("a target the named element's branch does not answer", { "02-requirements/n.test.mjs": caseFile([["T9", ["demo/A1", "demo/F2"]]]) });
   bad("a Case file that cannot be read", { "02-requirements/n.test.mjs": "\u0000" });
+});
+
+test("T9 [R2, R4]: a Case declared across lines is enumerated, test.skip counts, a method named test does not, and a second Case missing from tests is refused", () => {
+  const body = 'import { test } from "node:test";\ntest(\n  "demo/T3 [demo/A3, demo/F3]: multiline",\n  () => {},\n);\ntest.skip("demo/T4 [demo/A3]: skipped", () => {});\nconst ok = /x/.test("x");\n';
+  const graph = compute(fixture({ "05-src/m.test.mjs": front(["demo/A3", "demo/F3"]) + body }));
+  assert.deepEqual(graph.files["05-src/m.test.mjs"].cases, ["demo/T3", "demo/T4"]);
+  const hidden = 'test("demo/T3 [demo/F3]: one", () => {});\ntest(\n  "demo/T5 [demo/A3]: two",\n  () => {},\n);\n';
+  refusal({ "05-src/m.test.mjs": front(["demo/F3"]) + hidden });
 });
 
 test("T4 [R5]: an outer check of a shipped part names the Delivery element, so it is Delivery and does not ship", () => {
