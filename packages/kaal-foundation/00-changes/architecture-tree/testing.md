@@ -1,0 +1,54 @@
+# Architecture tree: Testing
+
+## Proposed placement (an inventory, to be settled by the tree and not by guess)
+
+Measured on `kaal/foundation` at 8ea2ef2 plus the boundary DO #1293. The branch is what the tree would derive from the leaf a Case verifies. Cross-cutting is not a Case property: it is a Requirement that leaves in both branches answer, and a Case that verifies two leaves is a Case to split. The first column of "Reading" says which of the two each Case is.
+
+| Case | Targets | Where it sits today | Branch | Reading |
+| --- | --- | --- | --- | --- |
+| T23 to T26 | F1 to F3 | `02-requirements/functional/requirements.test.mjs` | Solution | one leaf |
+| T27, T28 | N1, N2, N4 | `03-architecture/architecture.test.mjs` | Solution | one leaf (N2, no dependency, also has a Delivery leaf: see T62) |
+| T31 | F15 | `03-architecture/architecture.test.mjs` | Solution | one leaf: the skill and the documents both ship; I had wrongly called it cross-cutting |
+| T29, T30 | F14 | `05-src/skills/kaal-foundation/scripts/kaal-foundation.test.mjs` | Solution | one leaf |
+| T50 | F25, F26 | `02-requirements/functional/declaration.test.mjs` | Solution | one leaf (A15) |
+| T63 | F34, F35 | `02-requirements/functional/requirements.test.mjs` | Solution | one leaf |
+| T54 to T61 | F34 to F37, N20, N22 | `04-test/engineering-check/publisher/boundary.test.mjs` | Solution | one leaf; they only need the built `dist/` |
+| T62 | N21 | same file | Solution **and** Delivery | two leaves: scan imports (Solution) and `package.json` dependencies (Delivery). **Split** |
+| T15 | F11, F13 | `publisher/capability.test.mjs` | Solution **and** Delivery | two leaves: the installed manifest (Solution) and "the committed manifest is the packed one" (Delivery). **Split** |
+| T16, T17 | F12, F17, N10 | same file | Solution | one leaf (the shipped `npm test` and its tamper detection). It needs a pack-and-install fixture to run, which is a harness question below |
+| T18 | F14, N8 | same file | Solution **and** Delivery | two leaves: the command (Solution) and the declared bin through `npm exec` (Delivery). **Split** |
+| T32 | F18 | `acquisition.test.mjs` | Delivery | one leaf |
+| T33, T34 | F14, F19, N10 | `release.test.mjs` | Delivery | one leaf |
+| T35, T36 | F20, F21, N11, N12 | `ownership.test.mjs` | Delivery | one leaf |
+| T46 | F25, N16 | `declaration.test.mjs` | Solution **and** Delivery | two leaves: declaration bytes (A15, Solution) and the pack inventory and identity independent of version (Delivery). **Split** |
+| T47 | F26, N15 | `declaration-consumer.test.mjs` | Solution | one leaf (A15 resolved by a consumer); needs the harness |
+| T48, T49 | F26, F27 | same file | Delivery | one leaf |
+| T51 | F25 to F27, N15 | `test/acceptance/declaration-acceptance.test.mjs` | Requirement-level | F25 to F27 are answered in both branches (A15 Solution, A16 distribution Delivery), so this acceptance Case verifies a cross-cutting Requirement and is listed as such |
+| no id | C1, C3, C5, manifest currency | `sha256.test.mjs`, `publication.test.mjs`, `verifier.test.mjs`, `manifest.test.mjs` | untitled | each needs an id and targets before it can be placed |
+
+**Cross-cutting Requirements found so far** (the list the Architecture would carry): F11 and F13 (manifest: Solution reads, Delivery writes), F14 and N8 (command: Solution behaviour, Delivery bin), N2 (no dependency: scan and library imports, and `package.json`), F25 to F27 and N16 (declaration: Solution bytes, Delivery distribution and ownership).
+
+**A question the tree does not answer yet (the harness).** T16, T17 and T47 verify a Solution leaf but need a pack-and-install fixture to run, so they cannot ship inside the package they verify. Their branch is Solution; where they run is a second fact. The PLAN states it as an open question for the Owner: a Solution Case that needs delivery machinery is pulled by the engineering suite, which would then hold Cases of both branches by reference.
+
+One fixture in `capability.test.mjs` writes a fake Case named `foundation/T999` to prove that an undeclared Case is refused. It is not a Case, but it looks like one to a reader or a scanner, so the DO gives it an obviously fictitious id.
+
+## Publisher's planned cases
+
+`04-test/engineering-check/plan/architecture-tree.test.mjs` holds these planned cases. They are immutable to DO and CHECK. The DO moves the file unchanged to a `delivery/` folder beside the Architecture Node. They read the repository and the generated `dist/`; run `npm run build` first.
+
+| Test | Loop | Checks | The state it must fail |
+| --- | --- | --- | --- |
+| foundation/T64 | Requirements | foundation/F38: `architecture.md` has exactly the branches Solution and Delivery (and Cross-cutting), and every Architecture element is defined under exactly one | Today's flat list of elements |
+| foundation/T65 | Requirements | foundation/F39, foundation/N23: every Case title in the repository has an id and targets, every target is answered by an Architecture element, and a Case that verifies leaves in both branches either targets a listed cross-cutting Requirement or is refused as unsplit | Untitled Cases, no tree to trace into, and unsplit Cases such as T15, T18, T46 and T62 |
+| foundation/T66 | Requirements | foundation/F40: no `04-test/*-check/` folder (apart from `plan/`) holds a `test(` call | The ~25 Cases held in `04-test/engineering-check/publisher/` |
+| foundation/T67 | Requirements | foundation/F41: the build, run on a copy of the package that has a `delivery/` folder beside a Node, leaves it out of `dist/` | A build that copies every folder |
+| foundation/T68 | Requirements | foundation/F42: `package.json` names no `.test.mjs` file in `test:publisher`; the engineering suite is collected | A hand-kept list of 20 test files |
+| foundation/T69 | Architecture | foundation/N23: the Cross-cutting section lists exactly the Requirements and Intents that leaves in both branches answer, each with a reason, and the shipped `verify.json` lists no file from a `delivery/` folder | No Cross-cutting section |
+
+No Defect exists in `06-defects/` today, so no Case about Defects can be RED. The DO adds the check that a Defect names exactly one Architecture element, with a fixture Defect, as a delivered or planned Case of its own.
+
+All six are expected RED today, each because the tree, the folders or the build rule do not exist. This is missing-deliverable evidence, not behavioural.
+
+## Open question for the Owner: the carrier of the pointers (foundation/F43)
+
+Today a Case's targets are text in its title, `foundation/T<n> [<targets>]: …`. The manifest's `cases` and `model` are already a backwards analysis of those titles, so they can be derived without a hand-kept list. Suite membership is not: `npm test` runs every `*.test.mjs` it finds beside the Nodes (by location), `test:publisher` names its files by hand, and the shipped set in `verify.json` is npm's pack list (by folder, not by pointer). No Foundation Node carries YAML pointers today: `kaal/Foundation.md` has a `name` and `type` front matter only. The PLAN states the principle and does not pick the carrier. It needs the Owner's word on which YAML KAAL uses for "points at" (a front-matter block in the Case file, a sibling file, or the Node's own YAML), and so no Case for F43 is planned yet.
