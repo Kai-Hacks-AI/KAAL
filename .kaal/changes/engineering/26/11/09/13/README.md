@@ -1,0 +1,3 @@
+# Engineering: PLAN for FAR authorization and PLAN/DO integrity
+
+Capability: Engineering. Target: `kaal/engineering-release-management`. Record number provisional until integration. PLAN only (F18, T9): a DO may consume only Accepts authorized by an accepted PLAN; a DO cannot rewrite the Cases or Accepts of its PLAN; every Accept has a reason, authority and end condition; gates fail closed when authorization cannot be established; one authority per judgment across Change, Release and Guard. Decided by the CPO on 9 Nov after the CTO assessment. Documents only: no code, no gate, no ruleset, no promotion.
