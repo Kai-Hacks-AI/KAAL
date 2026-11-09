@@ -21,3 +21,12 @@ The capabilities divide FAR as follows:
   - **Evidence.** Accepted Cases stay observed RED, while the Regression Plan's evaluation succeeds under the authorized exceptions.
   - **No waiver.** There is no standing waiver.
 - **change/I8.** Change decides and composes. Testing evaluates the Plans, Engineering gates, and Review evidences the authority.
+
+## Revision: authorization before reliance (9 Nov 2026)
+
+Decided by the CPO after the CTO's assessment, and requested of Change by Engineering's PLAN `far-authorization-plan.md` (#1340). Change owns the authorization and lifecycle of Accepts. The rest of FAR is unchanged.
+
+- **change/I9.** An Accept is authorized before a DO relies on it. A DO may consume only Accepts that an accepted PLAN established, and the evidence names that exact PLAN and the designated authority that decided it.
+- **change/I10.** A PLAN fixes what its DO is judged by. The Cases and the Accepts a PLAN established are immutable to its DO. A correction is a Defect or a Change that drives a new PLAN, never an edit by the DO. Authorization that is unknown, expired or cannot be verified is never a pass.
+
+change/I7 stays as written: "separately negotiated and authorized" now has a requirement behind it.

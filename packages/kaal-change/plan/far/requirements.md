@@ -12,15 +12,16 @@ Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional
 
-- **change/F7** [change/I5, change/I6]: A FAR record names its integration and the two Plans.
-  - **`integration`** is `{ source: { change, revision }, target: { name, baseline } }`.
+- **change/F7** [change/I5, change/I6, change/I9]: A FAR record names its integration and the two Plans. *Revised: it is keyed to the Change and to Case identities and digests, not to revisions.*
+  - **`integration`** is `{ change, boundary }`.
     - `change` is the incoming Change's identity, `<namespace>/C<n>`.
-    - The revisions and the target name are Engineering's evidence. Change only compares them.
-  - **`features`** is `{ plan, at }`. `at` must equal the source's revision.
-  - **`regression`** is `{ plan, at }`. `at` must equal the target's baseline.
+    - `boundary` is `{ from, into }`, the one boundary the record serves, such as a Change's branch into a collector, or the collector into `main`. Engineering names it. Change only compares it.
+  - **`features`** is `{ plan, cases }`: the Features Plan and the identity and content digest of each of its Cases, as the PLAN established them.
+  - **`regression`** is `{ plan, cases }`: the Regression Plan and the identity and content digest of each Case the Accept names.
+  - **`authorization`** is `{ plan, landed, by, evidence }`: the PLAN Change that established the record, the commit where it landed, the designated authority that decided it, and the evidence of that decision (change/F12).
   - **`accept`** is optional, and holds `{ proposal, decision }`.
 
-  A Plan reference is a Plan identity in its owner's namespace. A missing or malformed member, or an `at` that is not the revision its Plan must be read at, is a finding.
+  A Plan reference is a Plan identity in its owner's namespace. A missing or malformed member is a finding. Source and target revisions are no longer members: they stay Engineering's evidence of where it read the Plans, and a revision alone neither authorizes nor voids an Accept.
 - **change/F8** [change/I6, change/I7]: An Accept proposal holds these members:
   - `intent`: the Intent the incoming Change realizes;
   - `entries`: at least one, each `{ case, justifiedBy, protects }`;
@@ -34,13 +35,13 @@ Each Requirement names, in brackets, the Intents it serves.
   - a `case` listed twice;
   - a missing or empty member.
 - **change/F9** [change/I7]: A decision is `accept`, `reject`, `narrow` or `redesign`, with `by` and `evidence`. Only `narrow` lists `cases`, a nonempty strict subset of the proposed Cases. Anything else is a finding.
-- **change/F10** [change/I7]: Exceptions for one integration.
+- **change/F10** [change/I7, change/I9]: Exceptions for one integration. *Revised: bound to the Change and the boundary, and to each excepted Case's digest.*
   - **What is produced.** Given a record and the integration Engineering gates, `exceptions` gives the Regression Plan's `[{ case, cite }]`:
     - every proposed Case, when accepted;
     - the subset, when narrowed;
-    - none, when rejected, redesigned or carrying a finding.
-  - **The cite.** It names the Change and its integration.
-  - **No transfer.** When the gated integration differs from the record's in any member, it gives no exceptions and a finding: the source's Change or revision, the target, or the baseline.
+    - none, when rejected, redesigned, unauthorized (change/F12) or carrying a finding.
+  - **The cite.** It names the Change, the boundary and the PLAN that authorized it.
+  - **No transfer.** When the gated integration differs from the record's in the Change or the boundary, it gives no exceptions and a finding. A different source revision or target baseline alone gives none of these. A Case whose content digest differs from the record's is a finding, and its Accept does not apply.
   - **Features.** Exceptions are never produced for the Features Plan.
 - **change/F11** [change/I5, change/I6, change/I8]: `compose` takes the gate's two evaluations, each `{ plan, at, exceptions, result }`, where `result` is Testing's plan evaluation. It returns `{ features, regression, accepted, findings }`, and gives these as findings:
   - an evaluation of another Plan, or of a Plan read at another revision, than the record names;
@@ -48,3 +49,18 @@ Each Requirement names, in brackets, the Intents it serves.
   - Regression exceptions that differ from F10's.
 
   `accepted` lists the Cases Testing reports excepted, still RED.
+- **change/F12** [change/I9]: **Authorization by an accepted PLAN.** A record carries `authorization` and `exceptions` produces nothing without it.
+  - **The PLAN.** `plan` is the PLAN Change that established the record and `landed` the commit where it landed. A record is read from that commit, never from the candidate alone: the candidate's copy is compared with it, and a difference is a finding (change/F13).
+  - **The authority.** `by` must be the repository's designated authority and `evidence` must be the decision's landing. The designation is data given to the function and is never read from the record or the candidate. In KAAL it is the Owner. Where the designation is read from is open (G13, below).
+  - **The evidence names both.** A result of `exceptions` cites the exact PLAN, its landing commit and the authority. An authorization that names none of them is a finding.
+- **change/F13** [change/I10]: **A DO cannot change its PLAN.** `integrity` takes the Cases and the Accepts as the PLAN established them (identities and digests, from the landing commit) and as the candidate carries them.
+  - A Case the PLAN established that the candidate removes, skips, marks todo or edits is a finding naming it.
+  - A change to an Accept entry, its decision or its authorization, or an Accept the PLAN did not establish, is a finding.
+  - A candidate that is itself a PLAN Change decided by the designated authority is judged by change/F12, not as a DO.
+- **change/F14** [change/I7, change/I9]: **Lifecycle.** Every Accept has a `reason`, an authority and an `endsWhen`, a condition a Case can judge. `exceptions` is empty and a finding is given when the end condition has passed. The outstanding count and each end condition are given in the result, so a gate can report them. The count may not exceed the count the PLAN authorized; that is a ratchet against unauthorized growth and does not require a fall in every DO.
+- **change/F15** [change/I7, change/I10]: **One boundary, closed.** An Accept serves one Change into one boundary and is consumed with that integration. The same weakening at the next boundary, such as a collector's promotion into `main`, needs its own entry, authorized by a PLAN, with its own cite. Nothing is inherited.
+- **change/F16** [change/I10]: **Unknown fails closed.** When the record cannot be read, an entry cannot be traced to its PLAN, the authority cannot be verified, or the end condition cannot be judged, `exceptions` gives none and a finding that names which, and `compose` gives no passing outcome. Unknown and expired authorization is never a pass.
+
+### Open for the Owner
+
+- **G13. Where the designated authority's decision is read from.** Either from the entry (`by` and `evidence`, compared with the repository's designation), which the gate can check; or from the approving review of the PLAN's landing, which depends on a Review capability that is not built (change/A7). This PLAN requires only that the designation is given as data. It does not choose.

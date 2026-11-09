@@ -12,14 +12,24 @@ The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may
 | change/T12: rejecting and redesigning yield nothing, and neither does a decision without authority or evidence, or a proposal with a finding | change/I7, change/F9, change/F10 | Requirements |
 | change/T13: compose reports accepted Cases still RED, and finds an excepted Features evaluation and mismatched Regression exceptions | change/I6, change/F11 | Intent |
 | change/T14: the same input gives the same result, the input is unchanged, and a record without an Accept yields no exceptions | change/N3, change/N4 | Architecture |
-| change/T15: exceptions never transfer to another integration, whether its source Change, source revision, target or baseline differs | change/I7, change/F10 | Intent |
-| change/T16: each Plan must be the one the record names, read at its revision: Features at the source's, Regression at the baseline | change/I5, change/F7, change/F11 | Requirements |
+| change/T15: *revised.* exceptions never transfer to another integration whose Change or boundary differs, and a different revision alone neither authorizes nor voids them; a Case whose digest differs gets no exception | change/I7, change/I9, change/F10 | Intent |
+| change/T16: *revised.* each Plan must be the one the record names, read at the PLAN's landing commit, and each Case by identity and digest | change/I5, change/F7, change/F11 | Requirements |
+| change/T17: without an authorization naming the exact PLAN, its landing commit and the designated authority, there are no exceptions and a finding; a cite names all three | change/I9, change/F12 | Intent |
+| change/T18: an authority other than the one given as data, or evidence that is not the decision's landing, authorizes nothing, and the designation is never read from the record | change/I9, change/F12, change/N3 | Requirements |
+| change/T19: a DO that removes, skips, marks or edits a PLAN's Case is a finding naming the Case, and so is an altered Accept or an Accept the PLAN did not establish | change/I10, change/F13 | Intent |
+| change/T20: a PLAN Change decided by the designated authority may change Cases and Accepts, and is judged by authorization, not as a DO | change/I10, change/F13 | Requirements |
+| change/T21: an Accept whose end condition has passed gives no exceptions and a finding; the outstanding count and conditions are reported; growth beyond the authorized count is a finding | change/I7, change/F14 | Intent |
+| change/T22: an Accept serves one Change into one boundary; the same weakening at another boundary has no exception until it has its own authorized entry | change/I9, change/F15 | Requirements |
+| change/T23: an unreadable record, an untraceable entry, an unverifiable authority and a condition that cannot be judged each give no exceptions, a finding naming which, and no passing `compose` | change/I10, change/F16 | Intent |
 
 The following are validated by review:
-- `change/A6` and `change/A8` are placements.
+- `change/A6` and `change/A8` are placements. That the gate reads the landing commit and the designation is Engineering's PLAN (#1340).
+- That G13's outcome fits `change/A7` is checked when the Owner decides it.
 - `change/A7` rests on the repository's controls and on Review.
 - That Testing reports an excepted Case RED is Testing's contract, in its Test Plan PLAN.
 
 ## RED evidence
 
-At `change/C2`, all eight tests are RED, and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./far`. They run with `node --test packages/skills/kaal-change/test/plan/far.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
+At `change/C2`, T9–T16 are RED and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./far`. They run with `node --test packages/skills/kaal-change/test/plan/far.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
+
+T15 and T16 are revised in place; their planned Cases in `far.test.mjs` are immutable and are not edited here. T17–T23 are new and become RED Cases in a separate Change before the DO Change begins, so the DO is judged by them (change/I10).
