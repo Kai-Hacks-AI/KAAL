@@ -1,6 +1,6 @@
 ---
 type: Guard/Check
-command: bash engineering/github/promotion-source.sh engineering/github/lineage.ts
+command: node engineering/github/promotion-source.mjs engineering/github/lineage.ts
 runs: [ci]
 facts: [base, base-ref]
 trusted: engineering/github/lineage.ts
