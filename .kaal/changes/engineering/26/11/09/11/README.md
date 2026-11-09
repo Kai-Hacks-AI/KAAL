@@ -7,3 +7,4 @@ Capability: Engineering. Target: `kaal/engineering-boundary-engine`. Record numb
 - **A parse failure is never hidden:** a supported file that does not parse is `unreadable`, so the result is unknown, whatever a list says.
 - **Cases:** T20 changed (unsupported kind is not applicable), T21 to T25 added, on fixtures.
 - Not in this Change: Foundation's local list, the invalid YAML template fix (`guard.yml`), the shell ports.
+- **Evidence kept per provider (CPO review):** each `notApplicable` entry carries `provider`, its `detectors` and `byteChecked`; entries are merged only for the same file, provider and reason, with detectors unioned in sorted order, so one definition never hides another's. `read` means the structural detectors read the file (parsed source or data); `byteChecked: true` says `file-identity` ran on the bytes of a file no parser read. Case T26.

@@ -303,7 +303,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     put("t20/bad/run.sh", "createHash(\"sha256\")\n");
     const none = run("--tests", tests, "--target", join(dir, "t20/bad"), "--base", join(dir, "t20"));
     assert.equal(none.status, 0, "an unsupported kind is not applicable, not unknown");
-    assert.deepEqual(none.summary.coverage.notApplicable, [{ path: "bad/run.sh", detectors: ["crypto"], reason: "no structural parser for this file kind" }]);
+    assert.deepEqual(none.summary.coverage.notApplicable, [{ path: "bad/run.sh", provider: "demo", detectors: ["crypto"], byteChecked: false, reason: "no structural parser for this file kind" }]);
     assert.deepEqual(none.summary.findings.map((f) => f.id), ["demo/bad/a.mjs:1"], "what was parsed is still reported, and the shell is never matched by pattern");
     put("t20/broken/b.mjs", "createHash(\"sha256\"\nconst = ;\n");
     const broken = run("--tests", tests, "--target", join(dir, "t20/broken"), "--base", join(dir, "t20"));
@@ -369,5 +369,18 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
       assert.equal(r.summary.result, "unknown", f);
       assert.equal(r.summary.coverage.unreadable[0].cause, "does not parse", f);
     }
+  });
+  it("T26 [R2, R6]: two definitions over the same unsupported file and reason stay separately visible with their own detectors, and byteChecked says when file-identity ran on bytes though no parser did", () => {
+    const one = put("t26/one.md", def("alpha", CRYPTO.replace("demo/I1", "alpha/I1")));
+    const two = put("t26/two.md", def("beta", `  - id: seq\n    detector: token-sequence\n    tokens: ["1", "2", "3"]\n    window: 3\n    tests: beta/I1\n    looks-for: a sequence\n` +
+      `  - id: copy\n    detector: file-identity\n    equals: [ref.txt]\n    tests: beta/I1\n    looks-for: a copy\n`));
+    put("t26/ref.txt", "other\n");
+    put("t26/t/a.mjs", "const a = 1;\n");
+    put("t26/t/run.sh", "x\n");
+    const r = run("--tests", one, "--tests", two, "--target", join(dir, "t26/t"), "--base", join(dir, "t26"));
+    assert.equal(r.status, 0);
+    const mine = r.summary.coverage.notApplicable.filter((n) => n.path === "t/run.sh").map((n) => [n.provider, n.detectors, n.byteChecked]);
+    assert.deepEqual(mine, [["alpha", ["crypto"], false], ["beta", ["seq"], true]]);
+    assert.equal(r.summary.coverage.read, 1, "a byte check is not a structural read");
   });
 });

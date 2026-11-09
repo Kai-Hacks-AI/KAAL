@@ -11,7 +11,7 @@ import { GLOBAL_LIST, reasonFor } from "./scope.mjs";
 const NOT_WALKED = new Set(["node_modules", ".git"]);
 const OWNERSHIP = "ownership.kaal.json";
 
-/** Runs one definition over the targets. Returns { findings, read: Set<file>, unreadable, skipped, notApplicable }. */
+/** Runs one definition over the targets. Returns { findings, read: Set<file> (files the structural detectors read: parsed source or data; a byte check alone is not a read, see notApplicable.byteChecked), unreadable, skipped, notApplicable }. */
 export function scanDefinition(definition, targets, base) {
   const rel = (path) => relative(base, path).split(sep).join("/") || ".";
   const unreadable = [];
@@ -60,7 +60,7 @@ export function scanDefinition(definition, targets, base) {
     const structural = prepared.filter(({ detector }) => detector.needsParse);
     if (parsed.kind === "none" && structural.length > 0) {
       // No parser for this kind: the code detectors do not apply. Recorded with a reason, never counted as read or as clean.
-      notApplicable.push({ path: file, detectors: structural.map(({ test }) => test.id), reason: reasons(path) });
+      notApplicable.push({ path: file, provider: definition.provider, detectors: structural.map(({ test }) => test.id), byteChecked: prepared.some(({ detector }) => !detector.needsParse), reason: reasons(path) });
     } else read.add(file);
     if (parsed.kind === "error") unreadable.push({ path: file, cause: "does not parse" });
     const subject = { digest: sha256(bytes), lines, sources: parsed.sources };
@@ -128,7 +128,15 @@ export function scan(definitions, targets, base) {
     part.read.forEach((f) => read.add(f));
     for (const item of part.unreadable) if (!seen(unreadable, item)) unreadable.push(item);
     for (const item of part.skipped) if (!seen(skipped, item)) skipped.push(item);
-    for (const item of part.notApplicable) if (!notApplicable.some((x) => x.path === item.path && x.reason === item.reason)) notApplicable.push(item);
+    // One entry per file, provider and reason, so no provider's non-applicability is hidden by another's; detector sets merge in sorted order.
+    for (const item of part.notApplicable) {
+      const same = notApplicable.find((x) => x.path === item.path && x.provider === item.provider && x.reason === item.reason);
+      if (!same) notApplicable.push({ ...item, detectors: [...item.detectors].sort() });
+      else {
+        same.detectors = [...new Set([...same.detectors, ...item.detectors])].sort();
+        same.byteChecked ||= item.byteChecked;
+      }
+    }
     findings.push(...part.findings);
   }
   const complete = unreadable.length === 0 && read.size > 0;
