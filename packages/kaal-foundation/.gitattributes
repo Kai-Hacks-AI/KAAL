@@ -1,2 +1,4 @@
+# Foundation's manifest binds the SHA-256 of exact bytes (T23-T30): Git must never rewrite any of its files on a checkout host (a Windows checkout would otherwise turn LF into CRLF).
+* -text
 # C12's Node identity is its exact reviewed bytes on every checkout host.
 kaal/Foundation.md -text
