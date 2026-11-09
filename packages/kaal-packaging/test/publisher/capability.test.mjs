@@ -56,7 +56,7 @@ let installed;
 function installPackaging() {
   installed ??= (async () => {
     // Hosting is the registry's 0.0.1, installed under the repository's node_modules; its tarball is packed from that copy.
-    const hosting = join(REPOSITORY, "node_modules", "@kaihacksai", "kaal-hosting");
+    const hosting = join(REPOSITORY, "node_modules", "@kaihacksai/kaal-hosting");
     assert.ok(existsSync(join(hosting, "package.json")), "@kaihacksai/kaal-hosting is installed (npm ci)");
     const out = fresh("packed");
     const tarballs = [];
