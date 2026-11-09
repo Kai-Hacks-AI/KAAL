@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { CONFIG, consumer, NAME, verdicts } from "./harness.mjs";
+import { CONFIG, consumer, HOSTING, NAME, verdicts } from "./harness.mjs";
 
 describe("Intent outcome validation", () => {
   it("guard/T1 [guard/I2, guard/I3]: one check gives the same verdict through the hook and through CI, for the same facts", () => {
@@ -42,7 +42,7 @@ describe("Intent outcome validation", () => {
     const foreign = () => {
       // Installed packages, scoped ones as @scope/name: any KAAL element but the package itself is foreign.
       const installed = readdirSync(join(c.dir, "node_modules")).flatMap((n) => (n.startsWith("@") ? readdirSync(join(c.dir, "node_modules", n)).map((m) => `${n}/${m}`) : [n]));
-      const modules = installed.filter((n) => /^(@[^/]+\/)?kaal-/.test(n) && n !== NAME);
+      const modules = installed.filter((n) => /^(@[^/]+\/)?kaal-/.test(n) && n !== NAME && n !== HOSTING.name);
       // The .kaal namespace is not a KAAL element (guard/F1): Guard's own config and state directories in it are allowed.
       const paths = c.files().filter((p) => /^(\.kaal|engineering)\//.test(p) && !/^\.kaal\/(config|state)\/guard\//.test(p));
       return [...modules, ...paths];

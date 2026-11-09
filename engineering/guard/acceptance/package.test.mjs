@@ -4,7 +4,7 @@
 // (guard/C107, written in guard/C108). Planned in PLAN; DO and CHECK do not change it.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-// Import the checked-in public module: Guard's Windows/macOS jobs install no workspace.
+// Import the checked-in public module: the package under test and its Foundation digest need no build.
 import { sha256 } from "../../../packages/kaal-foundation/lib/sha256.mjs";
 import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import fs from "node:fs";
@@ -68,7 +68,7 @@ const snapshot = (base) => Object.fromEntries(tree(base).map((f) => [f, sha256(r
 let candidate;
 
 /**
- * The candidate a consumer installs, with its source (guard/N9): `packed`, the package in this tree
+ * The candidate a consumer installs, with its source (guard/N9): `packed`, the package in this tree (installed from the registry for its Hosting dependency, never offline)
  * packed now, unless GUARD_CANDIDATE=registry:<version> names a published one.
  */
 function spec() {
@@ -82,7 +82,7 @@ function spec() {
   const out = scratch("kaal-guard-verify-pack-");
   const r = must(exec(PACKAGE, "npm", ["pack", "--pack-destination", out, "--silent"], clean()), "npm pack");
   const version = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).version;
-  return (candidate = { source: "packed", install: join(out, r.stdout.trim().split(/\r?\n/).pop()), version, offline: true });
+  return (candidate = { source: "packed", install: join(out, r.stdout.trim().split(/\r?\n/).pop()), version, offline: false });
 }
 
 /**

@@ -16,7 +16,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { CASES, PACKAGED, SECTIONS, SPEC } from "./cases.mjs";
 import { kaal, materialize } from "./fixtures.mjs";
 

@@ -84,3 +84,12 @@ test('change/T49 [change/F44, change/N10]: deterministic immutable facts and sta
   assert.deepEqual(r.proposal, proposal.ref);
   assert.equal(r.sources.length, model.sources.length);
 });
+test('change/T58 [change/F44]: the verdict does not depend on the order of the selected scope', () => {
+  // `provider` is inventoried but not impacted by shop/I1; `missing` has no owner source.
+  const assess = scope => {
+    const r = assessed({ scope });
+    return { assessment: r.assessment, findings: r.findings.map(f => `${f.kind}:${f.code}:${f.subject}`).sort() };
+  };
+  for (const [a, b] of [[['provider', 'missing'], ['missing', 'provider']], [['shop', 'provider', 'missing'], ['shop', 'missing', 'provider']]])
+    assert.deepEqual(assess(a), assess(b), `order changed the result: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+});
