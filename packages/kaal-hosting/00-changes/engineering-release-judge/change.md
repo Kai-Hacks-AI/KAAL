@@ -4,6 +4,10 @@
 
 Tests live in one place and run against their targets. Engineering judges release readiness and acceptance once, in its Package control, for every package that leaves main. Hosting's tests assert Hosting's own contract and do not import a file of KAAL's engineering directory.
 
+## Authority
+
+Driven by hosting/D21 (`06-defects/D21-engineering-release-judge-duplicated.md`). The Case corrections below are authorized by the accepted PLAN `plan.md` in this folder (#1338, CPO-approved at its exact head). The Owner's ruling (Kai, 2026-11-09) applies: Case immutability stops silent change; a decided Defect or Change may change or retire Cases openly.
+
 ## What changes
 
 - `release-record.test.mjs`: the import of `engineering/release/release.mjs` goes. hosting/T83 (Release readiness of the real package) is retired; its exact-version clause was already carried by hosting/T174. hosting/T84, hosting/T85 and hosting/T86 keep every assertion on Hosting's own record (result, exit status, causes, cases) and lose only the call to `verification()`; their titles lose the words "the unchanged Release judge". Case identities are kept.
@@ -13,7 +17,7 @@ Tests live in one place and run against their targets. Engineering judges releas
 
 ## What is lost
 
-The early signal. Until now a Hosting change that would make the package fail Engineering's readiness rules (a dependency not on the registry, a malformed record) failed in Hosting's own pull request. After this Change it is found by Engineering's Package control when a release is prepared, and not before. Hosting still asserts its own result and evidence record and its exact dependency versions. The registry lookup of dependencies, and the judgment of a record against the declared inventory, are no longer exercised by Hosting's tests.
+The early signal. Until now a Hosting change that would make the package fail Engineering's readiness rules (a dependency not on the registry, a malformed record) failed in Hosting's own pull request. After this Change it is found by Engineering's Package control when a release is prepared, and not before. Hosting still asserts its own result and evidence record and its exact dependency versions. The registry lookup of dependencies, and the judgment of a record against the declared inventory, are no longer exercised by Hosting's tests. When Engineering's Package control can run on a pull request that touches a package is for Engineering's Release management to decide; it is raised with that thread.
 
 ## Not changed
 
