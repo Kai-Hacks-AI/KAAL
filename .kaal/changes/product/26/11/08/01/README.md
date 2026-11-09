@@ -1,6 +1,6 @@
 # Product PLAN: Product Skill v0, from the release program (provisional number 26/11/08/01)
 
-Markdown only. PLAN only: no Node, Definition, Skill, claim, package, workflow, policy or implementation is created or changed, and nothing here is started. The Portfolio contract is accepted at PLAN level (Portfolio PLAN, 26/11/08/01 on `kaal/portfolio`); this PLAN does not depend on it.
+Markdown only. PLAN only: no Node, Definition, Skill, claim, package, workflow, policy or implementation is created or changed, and nothing here is started. The Portfolio contract is accepted at PLAN level (Portfolio PLAN, 26/11/08/01 on `kaal/portfolio`, as amended by #1259); this PLAN does not depend on it.
 
 ## 1. Intent
 
@@ -12,7 +12,7 @@ Owner direction (Kai, 8 Nov): Product Skill v0 leads. Portfolio's implementation
 
 ## 2. Scope: one product, not the portfolio
 
-Per the agreed boundaries, Product keeps **one product's** direction, acceptance and readiness. Cross-product priorities, dependencies, sequencing and blockers are Portfolio's. Where a step needs a cross-product reading, v0 says only that it is Portfolio's and does not perform it. Product Skill v0 works alone, and if Portfolio text is available a reader may use it as optional enrichment.
+Per the Owner-approved Roadmap/Portfolio split (#1258, #1259), Product keeps **one product's** direction, acceptance and readiness. **Roadmap** owns the generic Sequence, Milestone and depends-on planning semantics. **Portfolio** owns cross-subject membership, priority, contention and blockers, and identifies shared dependencies by reference to Roadmap. Where a step needs a cross-subject reading, v0 says only that it belongs to Roadmap or Portfolio, as stated, and does not perform it. Product Skill v0 works alone, and if Roadmap or Portfolio text is available a reader may use it as optional enrichment.
 
 ## 3. Procedures v0 would teach
 
@@ -32,7 +32,7 @@ Rules v0 states for all three: use evidence, never re-run or re-judge verificati
 |---|---|---|
 | R1 | Each procedure is traced to an observed release-program workflow. | A procedure with no named workflow is removed. |
 | R2 | The Skill adds no verifier, trace model, store or approval mechanism and owns none of the evidence it reads. | Each cited fact names its owner; no step re-runs verification. |
-| R3 | The Skill stays inside one product; cross-product readings are named as Portfolio's. | No procedure produces a sequencing or cross-product blocker reading. |
+| R3 | The Skill stays inside one product; sequencing and depends-on semantics are named as Roadmap's, and cross-subject membership, priority, contention and blockers as Portfolio's. | No procedure produces a sequence, a depends-on reading, or a cross-subject priority, contention or blocker reading. |
 | R4 | The Skill never decides or implies a decision. | The Decider is never Product; every Option set ends at the Decider's choice. |
 | R5 | The Skill stands alone and declares its effects: advice only, no writes to any repository. | A cold Agent given only the Skill and the evidence can follow it; no installation, registration or Engine is needed. |
 | R6 | The Skill is a valid KAAL Skill and Agent Skill. | The Engineer Skill's check passes on it, and Core admits its Skill Node. |
@@ -40,7 +40,7 @@ Rules v0 states for all three: use evidence, never re-run or re-judge verificati
 
 ## 5. Not in this PLAN
 
-Implementation (the Skill Node, `SKILL.md`, references, tests); a script or checker; persistence of Product Direction objects; PLAN items 3 (Product to Engineering seam) and 4 (Process template); cross-product sequencing and blockers (Portfolio); handover formats between CTO and CPO (Roles and Review); an npm package, SYNC, promotion or publication. Product stays internal-only.
+Implementation (the Skill Node, `SKILL.md`, references, tests); a script or checker; persistence of Product Direction objects; PLAN items 3 (Product to Engineering seam) and 4 (Process template); sequencing and depends-on semantics (Roadmap) and cross-subject membership, priority, contention and blockers (Portfolio); handover formats between CTO and CPO (Roles and Review); an npm package, SYNC, promotion or publication. Product stays internal-only.
 
 ## 6. DO outline (needs its own authorization after this PLAN is approved)
 
@@ -52,7 +52,7 @@ Layout and SYNC: the collector is behind main and uses the older `packages/skill
 
 ## 7. Decisions for the CPO
 
-1. Confirm P1 to P3 as the v0 scope (and that cross-product work stays out).
+1. Confirm P1 to P3 as the v0 scope (and that Roadmap's and Portfolio's responsibilities stay out).
 2. Confirm a Skill rather than a Script for v0.
 3. Confirm the pilot on the live release program as the acceptance of v0.
 
