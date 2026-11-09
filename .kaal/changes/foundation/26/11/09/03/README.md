@@ -17,7 +17,6 @@ The Owner's standard of 2026-11-09, which this PLAN states and tests:
 Delivered by this PLAN: the four PLAN documents in `00-changes/architecture-tree/` and seven RED Cases T64 to T70 in
 `04-test/engineering-check/plan/architecture-tree.test.mjs`, all RED because the tree, the folders and the build rule do
 not exist (missing-deliverable evidence). The Testing document carries the inventory of today's Cases with a proposed
-branch, the cross-cutting Requirements found so far, and the Cases to split (T15, T18, T46, T62).
+branch, the cross-cutting Requirements found so far, and the Cases to split (T15, T17, T18, T46, T47, T62).
 
-Case T70 (F43, front matter with a `tests` edge) is added, RED. Open: whether a Solution Case that needs delivery machinery (T16, T17, T47) is pulled
-by the engineering suite; the untitled Cases; the `foundation/T999` fixture id.
+Case T70 (F43, front matter with a `tests` edge) is added, RED. T16, T17 and T47 are placed (Owner): generic acceptance is Delivery, governed by kaal-packaging, held by Engineering; T17 and T47 split. Open: the untitled Cases; the `foundation/T999` fixture id.

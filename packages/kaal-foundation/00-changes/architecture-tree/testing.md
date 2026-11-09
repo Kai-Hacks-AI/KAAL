@@ -15,20 +15,21 @@ Measured on `kaal/foundation` at 8ea2ef2 plus the boundary DO #1293. The branch 
 | T54 to T61 | F34 to F37, N20, N22 | `04-test/engineering-check/publisher/boundary.test.mjs` | Solution | one leaf; they only need the built `dist/` |
 | T62 | N21 | same file | Solution **and** Delivery | two leaves: scan imports (Solution) and `package.json` dependencies (Delivery). **Split** |
 | T15 | F11, F13 | `publisher/capability.test.mjs` | Solution **and** Delivery | two leaves: the installed manifest (Solution) and "the committed manifest is the packed one" (Delivery). **Split** |
-| T16, T17 | F12, F17, N10 | same file | Solution | one leaf (the shipped `npm test` and its tamper detection). It needs a pack-and-install fixture to run, which is a harness question below |
+| T16 | F12, F17 | same file | Delivery (Packaging) | one leaf. The installed `npm test` ends on the verification line and every declared Case passes: the same for every package. Governing capability kaal-packaging (L15); Engineering holds it until Packaging lands. Foundation-specific: nothing but the manifest's own Case list |
+| T17 | F12, N10 | same file | Delivery (Packaging) **and** Solution | two leaves. Tamper detection (changed document, missing manifest, removed or undeclared Case give `cannot verify`) is generic: Delivery, Packaging. "A wrong library behind a matching manifest is `failed`" is Foundation-specific: A9, Foundation checks with the host's SHA-256, never its own library (Solution). **Split** |
 | T18 | F14, N8 | same file | Solution **and** Delivery | two leaves: the command (Solution) and the declared bin through `npm exec` (Delivery). **Split** |
 | T32 | F18 | `acquisition.test.mjs` | Delivery | one leaf |
 | T33, T34 | F14, F19, N10 | `release.test.mjs` | Delivery | one leaf |
 | T35, T36 | F20, F21, N11, N12 | `ownership.test.mjs` | Delivery | one leaf |
 | T46 | F25, N16 | `declaration.test.mjs` | Solution **and** Delivery | two leaves: declaration bytes (A15, Solution) and the pack inventory and identity independent of version (Delivery). **Split** |
-| T47 | F26, N15 | `declaration-consumer.test.mjs` | Solution | one leaf (A15 resolved by a consumer); needs the harness |
+| T47 | F26, N15 | `declaration-consumer.test.mjs` | Delivery (Packaging) **and** Solution | two leaves. Normal pack keeps committed bytes and exact inventory, and an isolated consumer verifies every declared Case: generic, Delivery, Packaging. That the consumer resolves *Foundation's* owner Node (`kaal/Foundation.md`, A15) is Foundation-specific, Solution. **Split** |
 | T48, T49 | F26, F27 | same file | Delivery | one leaf |
 | T51 | F25 to F27, N15 | `test/acceptance/declaration-acceptance.test.mjs` | Requirement-level | F25 to F27 are answered in both branches (A15 Solution, A16 distribution Delivery), so this acceptance Case verifies a cross-cutting Requirement and is listed as such |
 | no id | C1, C3, C5, manifest currency | `sha256.test.mjs`, `publication.test.mjs`, `verifier.test.mjs`, `manifest.test.mjs` | untitled | each needs an id and targets before it can be placed |
 
 **Cross-cutting Requirements found so far** (the list the Architecture would carry): F11 and F13 (manifest: Solution reads, Delivery writes), F14 and N8 (command: Solution behaviour, Delivery bin), N2 (no dependency: scan and library imports, and `package.json`), F25 to F27 and N16 (declaration: Solution bytes, Delivery distribution and ownership).
 
-**A question the tree does not answer yet (the harness).** T16, T17 and T47 verify a Solution leaf but need a pack-and-install fixture to run, so they cannot ship inside the package they verify. Their branch is Solution; where they run is a second fact. The PLAN states it as an open question for the Owner: a Solution Case that needs delivery machinery is pulled by the engineering suite, which would then hold Cases of both branches by reference.
+**Placement of T16, T17 and T47 (Owner, 2026-11-09).** What they check is how any package is accepted, which is the same for every package, so it is Delivery and governed by kaal-packaging (L15). Engineering holds it as a workaround until Packaging lands, and a Packaging Requirement then replaces it. Foundation keeps only what is Foundation-specific: the host-SHA-256 check behind a wrong library (A9) and the resolution of its own owner Node (A15). The pack-and-install harness is then a Delivery matter and no Solution Case needs delivery machinery, so the question of a Solution Case pulled by the engineering suite does not arise. F17 and N10 are cited by T16 and T17 but defined nowhere; with this placement they are Packaging Requirements, and the DO retargets the Foundation-specific halves to F12 and A9.
 
 One fixture in `capability.test.mjs` writes a fake Case named `foundation/T999` to prove that an undeclared Case is refused. It is not a Case, but it looks like one to a reader or a scanner, so the DO gives it an obviously fictitious id.
 
