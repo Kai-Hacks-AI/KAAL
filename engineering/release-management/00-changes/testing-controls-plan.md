@@ -26,18 +26,21 @@ A lane is needed only if one of these four needs it and no other lane already es
 | `Guard` (Linux) | Guard's package suites and the shipped acceptance | 1, 2 | to verify: `Workspaces` runs Guard's `npm test`. If these suites are the same files, retire `Guard` as a duplicate (one place); if it holds extra shipped-acceptance Cases, move them to `Acceptance` |
 | `Guard (Windows, macOS)` | the same suites on the other hosts | 4 for a shipped package (Guard) | keep only the host dimension Guard's own requirements need; to verify against Guard's requirements, otherwise retire |
 
+**Evidence for a retirement (CPO review of this PLAN).** Two lanes cover the same ground only if, for every Case they run, all of these match: the Case (by id, not by file or command), the host (operating system), the installed artifact (the packed tarball or the source tree), the environment (Node, dependencies, working directory, variables) and the execution context (pull request, merge group or push; candidate or `main` copy). Matching files or commands is not enough. For each proposed retirement the Change records this comparison, Case by Case, as its RED evidence, and the Owner decides separately; a lane whose comparison shows any difference is kept or merged, never retired.
+
 Everything marked "to verify" is verified first, as the first RED of the Change, by reading what each lane runs with the parsers already in Engineering (YAML for the workflow, the lane plan `lanes/plan.json`), never by reading names. A lane whose Cases another lane already runs is retired; its host dimension survives only if a requirement names it.
 
 ## Shape of the controls
 
 - test Integration (F16) and test Candidate (F12) are each one control, realized in `lanes/` with its jobs named by the control (`test Integration`, `test Candidate`), one job per kept lane and host. The two gates `gate (integration)` and `gate (promotion)` need exactly these jobs (F18 reading `far.json`, interim and marked temporary: `interim-states.md`).
-- Every kept lane is required on its gate. A lane that is not needed by a control is not run and not required.
+- **Gate behavior is fail-closed (CPO review of this PLAN).** For every lane and host a control expects, the gate judges one of: passed, failed, or no outcome. A lane that is skipped, missing, conditional (a path filter or an `if`), cancelled or on a host that is unavailable counts as no outcome and fails the gate. The only door is a FAR Accepts entry that names the lane and host, with its reason and decision. A retained lane need not be a separately required context: a gate may aggregate the evidence of several lanes into one required context, as long as it reads each expected lane and host from the control's own list, so that no required coverage can disappear by a job being renamed, dropped or skipped. A Case judges this with a fixture workflow in which one expected lane is missing, one is skipped and one is conditional.
+- Every kept lane is judged by its gate, separately or as aggregated evidence. A lane that is not needed by a control is not run and not required.
 - Windows `Acceptance` failing with "host directory is not empty" (#1331) is a defect to be fixed in Acceptance or Hosting before the lane becomes a required gate. It is recorded as a Defect and does not wait for this Change.
 
 ## Sequence
 
 1. This PLAN, CPO review, merge into the collector. A landed PLAN is a go for steps 2 to 4; the gates and any ruleset change keep the Owner's own steps.
-2. RED: a Case that lists the lanes of `ci.yml`, parsed, and fails for each lane that no control claims, naming it; and a Case per verified duplicate.
+2. RED: a Case that lists the lanes of `ci.yml`, parsed, and fails for each lane that no control claims, naming it; a Case per proposed retirement that compares the two lanes Case by Case, host by host, artifact by artifact (see the evidence rule above) and fails if coverage would disappear; and the fail-closed Cases for a missing, skipped or conditional lane.
 3. DO, engine first: the lane definitions move into `05-src/lanes/` with the FAR reading interim, parity Cases pinning that each kept lane runs what it ran.
 4. DO, `.github` only: the jobs named by the control, next to the old ones. The Owner adds the contexts to the rulesets; the old lane names retire after (transformation, step 3).
 
