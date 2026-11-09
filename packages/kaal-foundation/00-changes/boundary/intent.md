@@ -1,0 +1,28 @@
+# Consumer boundary: Intent
+
+foundation/C13 is this PLAN. It ships no code. foundation/C14, its DO, turns the planned cases GREEN. It authorizes no synchronization, promotion, version change or npm publication: those stay with the Owner.
+
+On 2026-10-31 the Owner asked two things. Does Foundation ship boundary tests, and can they run against Guard? The answer was no, because every case Foundation ships tests only Foundation itself. The Owner then asked for a design: "It should be testing without knowing details of what it tests, so arguably it can only do the outer loop."
+
+So Foundation's boundary check stays at Intent level. It checks a consumer only against Foundation's own outcomes, foundation/I1 (one SHA-256 for KAAL) and foundation/I2 (adopting it changes no digest). It sees only what any npm package exposes and what the consumer itself states. A consumer's source, layout, language and tests are inner loops. They belong to the consumer's own Requirements and Architecture tests, never to Foundation.
+
+- **foundation/I9.** **A consumer can show it holds Foundation's outcomes, and Foundation needs no knowledge of the consumer to check that.** Any package, KAAL or not, can ask Foundation two questions:
+  - Is the Foundation it resolves a verified Foundation (foundation/I1)?
+  - Are the SHA-256 digests it states the digests Foundation computes for the same bytes (foundation/I2)?
+
+  The answer is `verified`, `failed` or `cannot verify`. Foundation never judges how the consumer gets its digests. A `verified` answer covers only the observations that ran, and it never certifies the consumer itself (foundation/F23).
+
+**How a boundary case is derived (the Owner's question, 2026-10-31).** A boundary case is one of Foundation's own outer cases, Intent or Requirements, with the consumer as its subject. Architecture has no counterpart, because a consumer cannot break Foundation's placement. Its expectation is not simply the opposite of the provider's case. Each Foundation obligation takes one of three forms at the boundary:
+- **mirror**: the same expectation, held by the consumer. Foundation's digest is FIPS SHA-256, so the consumer's stated digest is Foundation's digest.
+- **inverted**: Foundation's guarantee becomes the consumer's precondition. Foundation refuses a value that is not a `Uint8Array`, so a consumer must never depend on that refusal. An inverted case is visible only by running the consumer. It is outside the outer loop, so Foundation reports it as not judged, and the consumer's own tests own it.
+- **none**: the obligation is Foundation's alone, such as purity, layout, provisional ownership or the manifest. It has no boundary case.
+
+`testing.md` derives every boundary case from a Foundation identifier this way.
+
+**Release scope (Owner decision, 2026-11-09).** An earlier CPO guidance kept C14 off the 0.0.2 critical path. On 2026-11-09 the Owner reversed that: Foundation 0.0.2 ships its Boundary Check, because Foundation is becoming the reference package and must do better than Hosting 0.0.1, whose Boundary Check is declared "not applicable". So C14 now rides into 0.0.2, with this PLAN as its first Change. Publication still depends on the Owner's separate go.
+
+**Two axes.** A Boundary Check challenges package <--> package (peers challenge each other) and package -> consumer (what the package's outcomes mean for those who depend on it). `check` and `boundary` are the package -> consumer axis. For package <--> package, Foundation's Boundary Check record names Hosting's `kaal-hosting-boundary` scan of Foundation's own `dist/` as its peer evidence (foundation/F25).
+
+**What a `verified` digest answer does not prove.** A list `check` that matches shows only that the digests the consumer supplied equal the digests Foundation computes for the same bytes. It does not prove that those lists cover all of the consumer's digests, or that the consumer actually adopted Foundation. Adoption and coverage stay with the consumer's own Requirements, Architecture and tests.
+
+This PLAN changes nothing a consumer computes. `scripts/sha256.mjs` and `scripts/sha256.d.ts` stay byte for byte the same (foundation/N5, foundation/N9).
