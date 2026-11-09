@@ -35,7 +35,7 @@ Controls that act on more than one station live at the root. All are names only 
 - **stock:** audit Lineage (from the root).
 - **in, backwards from the stock (names only):** bind Merge (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion (native approval settings), test Candidate (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion (one promotion at a time), accept Capability (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
 
- ## Station 12-kaal (names only)
+## Station 12-kaal (names only)
 
 - **stock:** audit Lineage (from the root).
 - **in:** approve Change (native approval settings of `kaal/*`), test Integration (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (kaal)`.
