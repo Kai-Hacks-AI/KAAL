@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 import { execute } from "@kaihacksai/kaal-hosting";
 import { install } from "kaal-testing/acceptance";
+import { classifyNested } from "./pin-ratchet/classify.mjs";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
@@ -164,7 +165,21 @@ describe("package", () => {
       const pkg = JSON.parse(readFileSync(join(host, "node_modules", dependency, "package.json"), "utf8"));
       for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `${dependency} ${field}`);
     }
-    assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-foundation, one kaal-hosting and one yaml, not copies inside kaal-core");
+    // foundation/C19: a consumer may stay on an older published Foundation (a pin-behind report, held and visible, no failure);
+    // a duplicate of the same version, a newer copy, a copy below a floor Foundation declares (none yet), or any other nested package fails.
+    const nestedDir = join(host, "node_modules", "kaal-core", "node_modules");
+    const nested = {};
+    if (existsSync(nestedDir)) {
+      for (const entry of readdirSync(nestedDir)) {
+        const names = entry.startsWith("@") ? readdirSync(join(nestedDir, entry)).map((n) => `${entry}/${n}`) : [entry];
+        for (const name of names) nested[name] = JSON.parse(readFileSync(join(nestedDir, name, "package.json"), "utf8")).version;
+      }
+    }
+    const workspace = JSON.parse(readFileSync(join(host, "node_modules", "@kaihacksai", "kaal-foundation", "package.json"), "utf8")).version;
+    // Foundation declares no required floor yet; when it does, pass it here as `floor` and the hard failure applies.
+    const verdict = classifyNested({ consumer: "kaal-core", workspace, nested });
+    for (const report of verdict.reports) console.log(`acceptance: ${report}`);
+    assert.deepEqual(verdict.failures, [], "one kaal-foundation, one kaal-hosting and one yaml: no duplicate or foreign copies inside kaal-core");
   });
 
   it("runs installed Core npm test against every declared Case without Graph or a publisher suite", async (t) => {

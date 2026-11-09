@@ -1,0 +1,130 @@
+// The Change Record path syntax, decided mechanically. Whether a record's
+// contents say the right thing is validation, by review.
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
+import { foundation } from "kaal-core";
+import { identify } from "kaal-graph";
+import { ROOT, readRecordPath, recordPath } from "@kaihacksai/kaal-change/record";
+
+const CAPABILITY = fileURLToPath(new URL("../capability/", import.meta.url));
+
+describe("the Change Record Definition", () => {
+  const text = readFileSync(join(CAPABILITY, "Change-Record.md"), "utf8");
+
+  it("is typed by Core's KAAL Definition", () => {
+    const node = identify(readFileSync(join(CAPABILITY, "Change-Record.md")));
+    assert.equal(node.name, "Change Record");
+    assert.deepEqual(node.type, foundation().definition);
+  });
+
+  it("holds what supports a Change and references the work", () => {
+    assert.match(text, /It references the work and never contains it\./);
+    assert.match(text, /a record is never a second source of truth/);
+  });
+
+  it("is an address, not an identity, and leaves files to Hosting", () => {
+    assert.match(text, /^A record is the folder `<root>\/<capability>\/YY\/MM\/DD\/CC\/`\./m);
+    assert.match(text, /Core does not admit anything as a Node because it lies under this path/);
+    assert.match(text, /reading and writing files there is Hosting's/);
+  });
+
+  it("leaves the root to the consuming context and keeps .kaal/changes as KAAL's own convention", () => {
+    assert.match(text, /The root is chosen by the consuming context, not by Change: no placement is universal\./);
+    assert.match(text, /KAAL's own repository keeps its records under `\.kaal\/changes\/`, a local convention/);
+  });
+
+  it("keeps the Change apart from its record folder, with Git and GitHub optional", () => {
+    assert.match(text, /^A Change Record is not the Change\. Change owns its Change objects: each Change has its own canonical identity and relationships, and KAAL registers and navigates it independently of where its record lies and of the technology that realizes it\./m);
+    assert.match(text, /A record folder is not the Change and not its canonical content store\. It is an address for the Change's evidence and transition history, and it links to the authoritative objects, the Change among them, without duplicating them\./);
+    assert.match(text, /Git and GitHub realizations, such as pull requests and merge checks, are optional controls a repository may apply\./);
+  });
+
+  it("documents the transition and links the resulting state's documentation, never duplicating it", () => {
+    assert.match(text, /A record documents the transition: why the Change was made, how, and with what evidence\./);
+    assert.match(text, /The two are distinct concerns, linked from the record and never duplicated in it\./);
+  });
+});
+
+describe("the Capability Node on governance", () => {
+  it("offers ways to manage Changes and leaves how strictly to the embedding repository", () => {
+    const text = readFileSync(join(CAPABILITY, "Change.md"), "utf8");
+    assert.match(text, /^Change defines the available ways to manage Changes\. A repository that embeds KAAL chooses which of them it applies and how strictly; where KAAL is embedded, its `\.kaal\/` governs Changes\./m);
+  });
+});
+
+describe("a chosen root", () => {
+  const root = "docs/changes";
+
+  it("defaults to KAAL's own .kaal/changes", () => {
+    assert.equal(ROOT, ".kaal/changes");
+    assert.equal(recordPath({ capability: "change", date: "2026-10-20", number: 1 }), ".kaal/changes/change/26/10/20/01/");
+  });
+
+  it("reads and writes record paths under another root, of any depth", () => {
+    const address = { capability: "change", date: "2026-10-20", number: 3 };
+    assert.equal(recordPath(address, { root }), "docs/changes/change/26/10/20/03/");
+    assert.deepEqual(readRecordPath("docs/changes/change/26/10/20/03/", { root }), address);
+    assert.deepEqual(readRecordPath("changes/change/26/10/20/03", { root: "changes" }), address);
+  });
+
+  it("refuses a path under any other root, the default included", () => {
+    assert.match(readRecordPath(".kaal/changes/change/26/10/20/01/", { root }).finding, /a record lies under docs\/changes\//);
+    assert.match(readRecordPath("docs/changes/change/26/10/20/", { root }).finding, /a record is docs\/changes\/<capability>\/YY\/MM\/DD\/CC\//);
+  });
+
+  it("refuses a root that is not a repository-relative folder path", () => {
+    for (const bad of ["", "/changes", "changes/", "a//b", "./changes", "../changes", "a\\b", "C:/changes", "C:changes", "docs/c:x", 7]) {
+      assert.ok(readRecordPath("changes/change/26/10/20/01/", { root: bad }).finding, String(bad));
+      assert.throws(() => recordPath({ capability: "change", date: "2026-10-20", number: 1 }, { root: bad }), String(bad));
+    }
+  });
+});
+
+describe("readRecordPath", () => {
+  it("reads a record's capability, day and number, with or without a trailing slash", () => {
+    const address = { capability: "change", date: "2026-10-19", number: 1 };
+    assert.deepEqual(readRecordPath(".kaal/changes/change/26/10/19/01/"), address);
+    assert.deepEqual(readRecordPath(".kaal/changes/change/26/10/19/01"), address);
+    assert.deepEqual(readRecordPath(".kaal/changes/engineer-skill/24/02/29/99/"), { capability: "engineer-skill", date: "2024-02-29", number: 99 });
+  });
+
+  it("refuses paths outside .kaal/changes, of the wrong depth, or with backslashes", () => {
+    for (const path of ["changes/change/26/10/19/01/", ".kaal/change/26/10/19/01/", ".kaal/changes/change/26/10/19/", ".kaal/changes/change/26/10/19/01/notes.md", ".kaal\\changes\\change\\26\\10\\19\\01", "/.kaal/changes/change/26/10/19/01/"]) {
+      assert.ok(readRecordPath(path).finding, path);
+    }
+  });
+
+  it("refuses capability names that are not lowercase letters, digits and single hyphens", () => {
+    for (const name of ["Change", "kaal_change", "-change", "change-", "kaal--change", ".", ".."]) {
+      assert.match(readRecordPath(`.kaal/changes/${name}/26/10/19/01/`).finding, /is not a capability name/, name);
+    }
+  });
+
+  it("refuses days that do not exist and parts that are not two digits", () => {
+    for (const day of ["26/02/29", "26/13/01", "26/00/10", "26/04/31", "26/10/00", "2026/10/19", "26/1/19"]) {
+      assert.ok(readRecordPath(`.kaal/changes/change/${day}/01/`).finding, day);
+    }
+  });
+
+  it("numbers records from 01 to 99", () => {
+    for (const cc of ["00", "1", "100", "ab"]) {
+      assert.ok(readRecordPath(`.kaal/changes/change/26/10/19/${cc}/`).finding, cc);
+    }
+  });
+});
+
+describe("recordPath", () => {
+  it("is the inverse of readRecordPath", () => {
+    const address = { capability: "change", date: "2026-10-19", number: 7 };
+    assert.equal(recordPath(address), ".kaal/changes/change/26/10/19/07/");
+    assert.deepEqual(readRecordPath(recordPath(address)), address);
+  });
+
+  it("refuses addresses that have no record path", () => {
+    assert.throws(() => recordPath({ capability: "change", date: "2026-10-19", number: 100 }));
+    assert.throws(() => recordPath({ capability: "change", date: "2126-10-19", number: 1 }));
+  });
+});
