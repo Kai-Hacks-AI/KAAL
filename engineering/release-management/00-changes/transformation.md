@@ -130,7 +130,7 @@ Build order (agreed): audit Lineage first, then the npmjs controls, then main, t
 
   Target: F1, F2, F3, `release-engine/`.
 
-  Difference: the engine moved into `05-src/release-engine/` with parity Cases, and full-facade shims at the old path.
+  Difference: the engine moved into `05-src/release-engine/` with parity Cases, and a full-facade shim at the old path (`run.mjs` removed, `release.mjs` stays until its four importers are rewired; `shim-removal-plan.md`).
 
 - **#1325**
 
