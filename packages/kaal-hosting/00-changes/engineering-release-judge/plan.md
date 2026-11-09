@@ -4,7 +4,11 @@ This is the PLAN. It authorizes the Case corrections below and changes no Case, 
 
 ## Why
 
-hosting/D21 (recorded, with hosting/T270 RED and hosting/T271 passing): Hosting's publisher tests import `engineering/release/release.mjs` and call its `readiness()` and `verification()`. Engineering judges release readiness and acceptance once, in its Package control, for every package that leaves main; the Owner's rules are that tests live in one place and run against their targets, and that a dependency on KAAL is fine for development but not for running. The Defect is the driver for correcting these Cases (a Defect or a Change drives a Case correction, outside an inner RED, GREEN and refactor loop).
+hosting/D21 (recorded, with hosting/T270 RED and hosting/T271 passing): Hosting's publisher tests import `engineering/release/release.mjs` and call its `readiness()` and `verification()`. Engineering judges release readiness and acceptance once, in its Package control, for every package that leaves main; the Owner's rules are that tests live in one place and run against their targets, and that a dependency on KAAL is fine for development but not for running.
+
+## The rule this PLAN follows
+
+The Owner's ruling (Kai, 2026-11-09): Case immutability exists to stop code from silently changing things. A decided Defect or Change may change or retire Cases openly; that is a different discussion from silent drift. Hosting's AGENTS.md ("Planned Cases are immutable once their RED has merged") therefore does not bar this correction, provided the correction is explicit, traced to the Defect, and authorized by an accepted PLAN before the DO. This PLAN is that authorization. No frozen originals and no successor identities are created merely to satisfy immutability.
 
 ## Where it sits
 
@@ -33,7 +37,7 @@ Not changed: hosting/T87, hosting/T173, hosting/T175 and every other Case. No ne
 
 - hosting/T270 passes, unmodified, and hosting/T271 still passes.
 - `npm run test:publisher` passes, and CI is green at the DO's exact head, the installed-package Cases (hosting/T221 to hosting/T225) included.
-- The Change record names the loss below.
+- The Change record names the loss below and cites this PLAN and the ruling above.
 
 ## What is lost, and who decides what replaces it
 
