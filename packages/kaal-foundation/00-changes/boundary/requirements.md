@@ -1,56 +1,34 @@
-# Consumer boundary: Requirements
+# Foundation Boundary Check: Requirements
 
 Each Requirement names, in brackets, the Intents it serves.
 
 ## Functional
 
-- **foundation/F22** [foundation/I9, foundation/I2]: **Digest agreement: `kaal-foundation check [<list>…]`.** Each list holds lines `<digest>  <file>`, the exact form `kaal-foundation sha256` prints (foundation/F14) and `sha256sum` prints. With no list, or with `-`, it reads standard input. A file is resolved against the current directory, as `sha256sum -c` does. For each line, Foundation's own `sha256` hashes the file's bytes, and the result is compared with the stated digest. The check ends in one result:
-  - `verified` (0): at least one line was read, and every stated digest equals Foundation's;
-  - `failed` (1): a stated digest is well formed, and it differs from Foundation's digest of the same file's bytes;
-  - `cannot verify` (2): no line was read, a line is not in the form, a digest is not 64 lowercase hexadecimal digits, a file cannot be read, or a list cannot be read.
+- **foundation/F22** [foundation/I9, foundation/I1, foundation/I2]: **The scan: `node dist/test/boundary-check/scan.mjs --target <path>… [--base <dir>]`.** Each `--target` is a file or a directory, given by the caller. A directory is walked for JavaScript and TypeScript sources (`.js .mjs .cjs .ts .mts .cts`); the directories `node_modules` and `.git` are not walked and are counted as skipped. The scan reports a place for each of these rules, and only these:
+  - `copy`: a file whose bytes equal Foundation's `sha256.mjs` or `sha256.d.ts` as shipped beside the scan. The place is line 1 of the file.
+  - `implementation`: a line that holds SHA-256's first two round constants `0x428a2f98` and `0x71374491` together, or the first of them when the second follows within the next three lines. The place is the line of the first.
+  - `crypto`: a line that asks the platform for SHA-256: `createHash("sha256")` (any of the three quote forms, any letter case, with or without the hyphen), or `digest("SHA-256"…)`.
 
-  `failed` outranks `cannot verify`. The last line of standard output is `kaal-foundation-check {json}`. The JSON holds `result`, `exit`, `checked` (the number of lines compared) and `causes`. Each cause is a `{ file, cause }`, where `cause` is `differs`, `unreadable` or `malformed`.
-- **foundation/F23** [foundation/I9, foundation/I1]: **Resolution: `kaal-foundation boundary <consumer> [<list>…]`.** `<consumer>` is a directory that holds a `package.json`. The check:
-  1. reads the consumer's `package.json`, which must declare `@kaihacksai/kaal-foundation` in `dependencies`. A package that does not declare it is not a consumer: the result is `cannot verify` with the cause `not a consumer`, and nothing else is checked.
-  2. resolves `@kaihacksai/kaal-foundation/package.json` from the consumer's directory, by Node's own module resolution. A declared dependency that does not resolve is `cannot verify` with the cause `unresolved`.
-  3. runs the resolved copy's own `verify` (foundation/F12) through the path its own `package.json` names under `bin`, under the running Node, and takes the result from that copy's last line. The path comes from the resolved copy, never from the copy that runs the boundary: a consumer may hold Foundation 0.0.1 (`bin/kaal-foundation.mjs`) or 0.0.2 (`dist/skills/kaal-foundation/scripts/kaal-foundation.mjs`), and Foundation 0.0.2 itself moved that path; The resolved copy decides its own verification, not the copy that runs the boundary.
-  4. if lists are given, runs foundation/F22 on them, with the consumer's directory as the current directory.
+  A line is one place, whatever the number of matches on it. The scan decides nothing by operating system (foundation/N7).
+- **foundation/F23** [foundation/I9]: **The result.** The last line of standard output is `kaal-foundation-scan {json}`. The JSON holds:
+  - `mode`: `"scan"`;
+  - `result`: `complete` when every target was read and at least one source file was read, otherwise `unknown`;
+  - `coverage`: `read` (source files read), `unreadable` (each target or file that could not be read, by path) and `skipped` (directories not walked, with the reason);
+  - `findings`: each with `id` (`kaal-foundation/<file>:<line>`, the file relative to `--base`, default the current directory, with `/` separators), `rule`, `file`, `line`, `digest` (Foundation's SHA-256 of the line's text without its line terminator, so a later record can bind to the line as it was) and `owner` (foundation/F24).
 
-  `boundary` reports its two observations separately, and only the ones it made:
-  - `resolution` (foundation/I1) is the resolved copy's own result from step 3;
-  - `digests` (foundation/I2) is foundation/F22's result over the supplied lists, or `not checked` when no list is supplied.
+  Exit codes follow Hosting's scan: 0 when `complete`, including with findings; 2 when `unknown`, and for a usage error (no target). It never exits 1. Findings are not failures, because the scan decides nothing. A scan that read nothing is `unknown`, never a clean result. The human summary line states the coverage and says "none found within this coverage" when there are no findings, and never says "compliant" or "verified".
+- **foundation/F24** [foundation/I9]: **Where a place is found, and what is not Foundation's to look at.** Each finding carries `owner`: the `owner.name` of the nearest `ownership.kaal.json` above the file within the base, or `null`. A directory whose `ownership.kaal.json` names Foundation as owner is skipped, reported in `coverage.skipped` with the reason `owner`, and yields no finding: the owner holds the thing. No other path is named or skipped by the scan.
+- **foundation/F25** [foundation/I9, foundation/I7]: **Foundation's own Boundary Check record and its documents.** `04-test/boundary-check/boundary-check.md` and `04-test/boundary-check/scan.mjs` ship (`dist/test/boundary-check/`). The record:
+  - declares the Boundary Check **Applicable**, with the command (`scan.mjs --target <path>…`), the three rules and what each looks for;
+  - names both axes: Foundation's scan pointed at a package or at the repository, and the peers' scans pointed at Foundation;
+  - states what the scan does not establish: it does not find a digest computed some other way (for example `createHash` with the algorithm in a variable), does not say a place is a fault, and an empty list is no compliance;
+  - states that findings are audit and decisions about them are held by the repository against the finding `id` and `digest`, never in the package, and that only a consequence of a decision (a Defect, a Requirement, or a change to Intent or Architecture) enters the package, through a Change;
+  - names no target path and no role.
 
-  `scope` names the observations that ran: `["resolution"]` without a list, and `["resolution", "digests"]` with one. The overall `result` covers `scope` only:
-  - `verified` (0) when every observation in scope is `verified`;
-  - `failed` (1) when any of them is `failed`;
-  - `cannot verify` (2) otherwise.
-
-  So `boundary <consumer>` with no list never reports, implies or counts digest agreement. Its human summary line says `digest agreement: not checked`. The last line is `kaal-foundation-boundary {json}`. The JSON holds:
-  - `result`, `exit` and `scope`;
-  - `observations`, with `resolution` and `digests`;
-  - `consumer`, its `name` and `version` as declared;
-  - `resolved`, the resolved copy's `version` and the directory it was resolved to, relative to the consumer;
-  - `check`, foundation/F22's JSON, or `null`;
-  - `causes`.
-
-  **What `verified` means, and what it does not.** `boundary` checks two things only: that the Foundation copy the consumer resolves verifies, and that the digests the consumer supplied are Foundation's. It does not establish:
-  - that the consumer conforms to anything;
-  - that the consumer uses Foundation correctly, or at all, in its code;
-  - that the supplied lists cover every digest the consumer computes or states.
-
-  The same holds for `check`: it vouches only for the lines it read. The human summary line of both commands says this, and so do `references/limitations.md` and the skill.
-- **foundation/F24** [foundation/I9, foundation/I7]: **Documented for agents.** The installed `references/operations.md`, the skill (foundation/F15) and the repository's `AGENTS.md` Foundation section (foundation/F16) name both commands and state the limits of `verified` in foundation/F23. They tell a consumer to produce its own list from the digests it already states, in the form of foundation/F22, at the time it states them. Each command is invoked by the scoped package's own bin path (foundation/F18).
-
-- **foundation/F25** [foundation/I9]: **Foundation's own Boundary Check record and its scripts.** `04-test/boundary-check/boundary-check.md` and `04-test/boundary-check/scan.mjs` ship in the package (`dist/test/boundary-check/boundary-check.md`) and declares the Boundary Check, as every KAAL package must. It is not a bare status: it names
-  - the package -> consumer axis: `check` and `boundary` (foundation/F22, foundation/F23), who runs them (foundation/A14), and the recorded run on the first consumer (Guard: `boundary` gives `cannot verify (not a consumer)`, `check` over its stated digests gives `verified`);
-  - the package <--> package axis: Hosting's `kaal-hosting-boundary --target` scan of Foundation's own `dist/`, with its result and its coverage (files read and skipped), as the peer's challenge of Foundation;
-  - what it does not establish (foundation/F23's limits) and which peers have no check that targets Foundation.
-
-  **Scripts an agent can run (BASS: Script over Skill over Agent over Bare).** The record names the commands to run, and each ends in a verdict line:
-  - `node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs check|boundary …` for the package -> consumer axis (foundation/F22, foundation/F23);
-  - `node node_modules/@kaihacksai/kaal-foundation/dist/test/boundary-check/scan.mjs` for the package <--> package axis. `scan.mjs` runs Hosting's scan on the delivered `dist/` and prints Hosting's result line unchanged as `kaal-foundation-scan {json}`. It exits 0 when the scan is `complete` with no findings, 1 on findings, and 2 when Hosting cannot be resolved or the scan does not finish (`cannot verify`, never a skip). It adds no dependency: Hosting is looked up at run time, as the repository's lane already does.
+  The installed `references/operations.md`, the skill (foundation/F15) and the repository's `AGENTS.md` Foundation section (foundation/F16) name the scan by the scoped package's own path and state the same limits and the same place for decisions.
 
 ## Non-functional
 
-- **foundation/N13** [foundation/I9]: **Outer loop only.** The boundary reads nothing of the consumer except three things: its `package.json`, the path Node's resolution returns, and the files its lists name. It never imports, requires or runs consumer code, scripts or tests. It never scans consumer source, never reads a consumer's manifest format (a KAAL `test/verify.json` included), and never infers how the consumer computes a digest. So a consumer that keeps its own SHA-256 and states the same digests passes foundation/F22. Whether a consumer keeps its own implementation is that consumer's Architecture, not Foundation's.
-- **foundation/N14** [foundation/I9, foundation/I1]: **No new reach.** Both commands use only Node's built-in modules and Foundation's own `scripts/sha256.mjs`. They touch no network, install nothing, write no file, and make no decision by operating system (foundation/N7). The package still declares no dependency (foundation/N2). `scripts/sha256.*` are unchanged (foundation/N9).
+- **foundation/N13** [foundation/I9]: **Read only.** The scan reads files. It never imports, requires or runs what it reads, writes nothing, touches no network and starts no process.
+- **foundation/N14** [foundation/I9, foundation/I1]: **No new reach.** The scan uses only Node's built-in modules and the `sha256.mjs` shipped beside it. The package still declares no dependency (foundation/N2). `scripts/sha256.*` are unchanged (foundation/N9).
+- **foundation/N15** [foundation/I9]: **No hard-coded target and no hard-coded role.** Neither the scan, nor the record, nor any shipped document names a repository path, another package's directory, or a decision role. A new target needs no change to Foundation.

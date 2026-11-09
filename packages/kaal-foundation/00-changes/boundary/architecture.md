@@ -1,20 +1,18 @@
-# Consumer boundary: Architecture
+# Foundation Boundary Check: Architecture
 
 Each element names, in brackets, the Requirements it answers.
 
-- **foundation/A13** [foundation/F22, foundation/F23, foundation/N13, foundation/N14]: **One boundary module behind the command.** `scripts/boundary.mjs` holds `check` and `boundary`. It imports only `node:` modules and `./sha256.mjs`. It is not a package export: its contract is the command and the last line, so `exports` stays `./sha256` and `./package.json`. `scripts/kaal-foundation.mjs` keeps parsing arguments and nothing else (foundation/A10). It loads `scripts/boundary.mjs` lazily, as it already loads `scripts/sha256.mjs` (foundation/C9). So `verify` still reports on a damaged library and never crashes. The resolution of foundation/F23 is `createRequire(join(consumer, "package.json")).resolve("@kaihacksai/kaal-foundation/package.json")`, Node's public algorithm. The resolved copy's verification runs under `process.execPath` with `spawnSync` and no shell, as foundation/A10 already does.
-- **foundation/A14** [foundation/F22, foundation/F23]: **Where it runs.** Foundation ships the check. The consumer, or the lane that verifies the consumer, runs it. Foundation never runs it against anyone:
-  - **A consumer's own tests.** A package that depends on Foundation runs `boundary .` on its installed candidate, from its publisher's tests.
-  - **Engineering's lane.** Engineering orchestrates Core-owned conformance (#607), so it can run `check` and `boundary` across packages. That includes packages that are not consumers, such as Guard today: `boundary` reports `not a consumer` honestly, and `check` still judges the digests they state.
-  - **Packaging.** Packaging's conform may turn a KAAL `test/verify.json` into a list. That translation is Packaging's, because it knows the format. Foundation does not (foundation/N13).
+- **foundation/A13** [foundation/F22, foundation/F23, foundation/N13, foundation/N14, foundation/N15]: **One script, targets as arguments.** `04-test/boundary-check/scan.mjs` holds the three rules and the walk. It imports only `node:` modules and the `sha256.mjs` shipped beside it (`../../skills/kaal-foundation/scripts/sha256.mjs` inside `dist/`). It is not a package export and not a `bin`: it is a file in the shipped Boundary Check, run by path. `scripts/kaal-foundation.mjs` is unchanged, and there are no `check` or `boundary` commands. The rules are data in the script. Targets are never.
+- **foundation/A14** [foundation/F22, foundation/F24]: **Where it runs, and who decides.** Foundation ships the scan. Whoever promotes a package, or the repository's own lane, points it at the packages and at the repository. Foundation never runs it against anyone. The scan reports and ships no finding list. A finding is audit, held by Engineering; the repository records its decisions about findings against the finding `id` and `digest`, with the deciders its own role mapping names. Packaging may read the finding list later (its C23 reads only `id`, references and line digest); nothing here depends on Packaging.
+- **foundation/A15** [foundation/F23]: **Hosting-shaped output.** The result line, the per-line finding and the exit codes 0 and 2 follow Hosting's scan, so one reader serves both. The id prefix is Foundation's own, and the rules are Foundation's.
 
 ## Sequence
 
 | Order | Change | Depends on |
 | --- | --- | --- |
-| 1 | foundation/C13 PLAN, this Change | the Owner's ask (2026-10-31) |
-| 2 | foundation/C14 DO: `scripts/boundary.mjs`, the two commands, the Boundary Check record in `04-test/boundary-check/` (foundation/F25), documents, skill, `AGENTS.md`, the manifest regenerated, delivered cases T43–T44, and T37–T42 and T45 GREEN and moved to `04-test/engineering-check/publisher/` | 1 |
-| 3 | promotion `kaal/foundation` → `main` | 2, the coordinator's turn |
+| 1 | foundation/C13 PLAN, this Change | the Owner's ask and rulings (2026-10-31, 2026-11-09) |
+| 2 | foundation/C14 DO: `04-test/boundary-check/scan.mjs` and `boundary-check.md`, documents, skill, `AGENTS.md`, the manifest regenerated, delivered case T46, and T37–T45 GREEN and moved to `04-test/engineering-check/publisher/` | 1 |
+| 3 | promotion `kaal/foundation` → `main`, with the package proof point running every package's own checks | 2, the Owner's go |
 | 4 | publication of `@kaihacksai/kaal-foundation` 0.0.2 | 3, the Owner |
 
-Adopting the boundary check in Graph, Core, Testing or Guard is each consumer's own Change. It is not part of this PLAN.
+Adopting the scan in the repository's lane, and the repository's place for decisions, are separate Changes. They are not part of this PLAN.

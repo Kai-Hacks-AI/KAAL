@@ -1,14 +1,12 @@
-// foundation/C13 planned publisher cases: the consumer boundary (00-changes/boundary/*.md). Immutable to DO
+// foundation/C13 planned publisher cases: Foundation's Boundary Check (00-changes/boundary/*.md). Immutable to DO
 // and CHECK; foundation/C14 moves this file unchanged to 04-test/engineering-check/publisher/ and turns it GREEN.
-// It reads the generated dist/: run `npm run build` in this package first. Each title
-// names the contracts it checks. Fixtures live in a temporary directory; a fixture consumer's Foundation
-// is a copy of this package's shipped files, so no npm and no network is needed. No platform is
-// consulted and no shell is chosen (foundation/N7).
+// It runs the generated dist/test/boundary-check/scan.mjs: run `npm run build` in this package first. Each title
+// names the contracts it checks. Fixtures live in a temporary directory, so no npm and no network is needed. No
+// platform is consulted and no shell is chosen (foundation/N7).
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import { createHash } from "node:crypto";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, test } from "node:test";
@@ -16,9 +14,10 @@ import { fileURLToPath } from "node:url";
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
-const NAME = "@kaihacksai/kaal-foundation";
-const SCRIPTS = ["skills", "kaal-foundation", "scripts"];
-const BIN = join(PACKAGE, "dist", ...SCRIPTS, "kaal-foundation.mjs");
+const DIST = join(PACKAGE, "dist");
+const SCAN = join(DIST, "test", "boundary-check", "scan.mjs");
+const SHA256_MJS = join(DIST, "skills", "kaal-foundation", "scripts", "sha256.mjs");
+const SOURCE = join(PACKAGE, "05-src", "skills", "kaal-foundation");
 const hash = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
 const MAIN_SHA256_MJS = "c504c09d231c8a58f2ae2dbf346edbdf4dd544bdbdba1161515875d051df5ee0";
@@ -28,217 +27,139 @@ const scratch = mkdtempSync(join(tmpdir(), "foundation-boundary-"));
 after(() => rmSync(scratch, { recursive: true, force: true }));
 let n = 0;
 const fresh = () => { const d = join(scratch, String(n++)); mkdirSync(d, { recursive: true }); return d; };
+const put = (dir, file, text) => { mkdirSync(dirname(join(dir, file)), { recursive: true }); writeFileSync(join(dir, file), text); };
 
-/** Runs this package's command under this Node, without a shell; never throws. */
-const foundation = (args, cwd, input) => {
-  const r = spawnSync(process.execPath, [BIN, ...args], { cwd, encoding: "utf8", input, env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
+/** Runs the shipped scan under this Node, without a shell; never throws. */
+const scan = (args, cwd) => {
+  const r = spawnSync(process.execPath, [SCAN, ...args], { cwd, encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
   return { status: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? "" };
 };
-/** The JSON of the last stdout line that starts with `<prefix> `, or null. */
-const last = (stdout, prefix) => {
+/** The JSON of the last stdout line, which must be `kaal-foundation-scan {json}`, or null. */
+const result = (stdout) => {
   const line = stdout.split(/\r?\n/).map((l) => l.trim()).filter(Boolean).at(-1) ?? "";
-  if (!line.startsWith(`${prefix} `)) return null;
-  try { return JSON.parse(line.slice(prefix.length + 1)); } catch { return null; }
+  if (!line.startsWith("kaal-foundation-scan ")) return null;
+  try { return JSON.parse(line.slice("kaal-foundation-scan ".length)); } catch { return null; }
 };
+const run = (args, cwd) => {
+  const r = scan(args, cwd);
+  const json = result(r.stdout);
+  assert.ok(json, `no kaal-foundation-scan line (is the scan delivered?): ${r.stdout}${r.stderr}`);
+  return { ...r, json };
+};
+const tree = (dir) => readdirSync(dir, { recursive: true }).sort().map((f) => { const p = join(dir, f); return statSync(p).isFile() ? `${f}:${hash(readFileSync(p))}` : f; });
 
-/** A copy of this package's shipped files, as npm would install them. */
-const installFoundation = (consumer) => {
-  const to = join(consumer, "node_modules", ...NAME.split("/"));
-  mkdirSync(to, { recursive: true });
-  for (const f of ["package.json", "README.md", "LICENSE", ...pkg.files]) if (existsSync(join(PACKAGE, f))) cpSync(join(PACKAGE, f), join(to, f), { recursive: true });
-  return to;
-};
-/** A fixture consumer; `depends` declares Foundation in dependencies. */
-const consumer = ({ depends = true, install = depends, extra = {} } = {}) => {
+const COPY = "sha256.mjs";
+const CONSTANTS = "export const K = [\n  0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,\n];\n";
+const CRYPTO = "import { createHash } from \"node:crypto\";\nexport const d = (b) => createHash(\"sha256\").update(b).digest(\"hex\");\n";
+
+test("foundation/T37 [foundation/F22]: the rules copy, implementation and crypto each give a finding at the expected file and line, and clean files give none", () => {
   const d = fresh();
-  writeFileSync(join(d, "package.json"), JSON.stringify({ name: "fixture-consumer", version: "1.2.3", type: "module", ...(depends ? { dependencies: { [NAME]: pkg.version } } : {}), ...extra }, null, 2));
-  writeFileSync(join(d, "a.txt"), "alpha\n");
-  writeFileSync(join(d, "b.bin"), new Uint8Array([0, 1, 2, 255]));
-  const copy = install ? installFoundation(d) : null;
-  return { d, copy };
-};
-const listFor = (dir, files) => files.map((f) => `${hash(readFileSync(join(dir, f)))}  ${f}`).join("\n") + "\n";
-
-test("foundation/T37 [foundation/I9, foundation/F22]: a list that kaal-foundation sha256 printed is verified, and a file changed afterwards is failed with cause differs for that file only", () => {
-  const { d } = consumer({ depends: false });
-  const printed = foundation(["sha256", "a.txt", "b.bin"], d);
-  assert.equal(printed.status, 0, printed.stderr);
-  writeFileSync(join(d, "list"), printed.stdout);
-  const ok = foundation(["check", "list"], d);
-  const okJson = last(ok.stdout, "kaal-foundation-check");
-  assert.ok(okJson, `no kaal-foundation-check line: ${ok.stdout}${ok.stderr}`);
-  assert.deepEqual([ok.status, okJson.result, okJson.exit, okJson.checked], [0, "verified", 0, 2]);
-  writeFileSync(join(d, "a.txt"), "changed\n");
-  const bad = foundation(["check", "list"], d);
-  const badJson = last(bad.stdout, "kaal-foundation-check");
-  assert.deepEqual([bad.status, badJson?.result], [1, "failed"]);
-  assert.deepEqual(badJson.causes, [{ file: "a.txt", cause: "differs" }]);
+  mkdirSync(join(d, "t", "vendor"), { recursive: true });
+  cpSync(SHA256_MJS, join(d, "t", "vendor", COPY));
+  put(d, "t/own.mjs", CONSTANTS);
+  put(d, "t/uses.mjs", CRYPTO);
+  put(d, "t/clean.mjs", "export const label = \"sha256sum\";\nexport const m = (b) => b.length;\n");
+  put(d, "t/md5.mjs", "import { createHash } from \"node:crypto\";\nexport const m = (b) => createHash(\"md5\").update(b).digest(\"hex\");\n");
+  const { status, json } = run(["--target", "t"], d);
+  assert.equal(status, 0);
+  const found = json.findings.map((f) => `${f.rule} ${f.file}:${f.line}`).sort();
+  // A copy of Foundation's library is both a copy and, line 6 of it, the algorithm written out.
+  assert.deepEqual(found, ["copy t/vendor/sha256.mjs:1", "crypto t/uses.mjs:2", "implementation t/own.mjs:2", "implementation t/vendor/sha256.mjs:6"]);
 });
 
-test("foundation/T38 [foundation/F22]: an empty list, a malformed line, a bad digest and a missing file are cannot verify; a differing line outranks them; the last line parses", () => {
-  const { d } = consumer({ depends: false });
-  const good = `${hash(readFileSync(join(d, "a.txt")))}  a.txt`;
-  const cases = [
-    ["", "empty"],
-    [`${hash(Buffer.from("x"))} a.txt`, "malformed"],
-    [`${hash(readFileSync(join(d, "a.txt"))).toUpperCase()}  a.txt`, "malformed"],
-    [`${hash(readFileSync(join(d, "a.txt"))).slice(1)}  a.txt`, "malformed"],
-    [`${hash(Buffer.from("x"))}  missing.txt`, "unreadable"],
-  ];
-  for (const [list, cause] of cases) {
-    const r = foundation(["check"], d, list ? `${good}\n${list}\n` : "");
-    const j = last(r.stdout, "kaal-foundation-check");
-    assert.ok(j, `no kaal-foundation-check line for ${cause}: ${r.stdout}${r.stderr}`);
-    assert.deepEqual([r.status, j.result, j.exit], [2, "cannot verify", 2], cause);
-    if (list) assert.ok(j.causes.some((c) => c.cause === cause), `${cause}: ${JSON.stringify(j.causes)}`);
-  }
-  const mixed = foundation(["check"], d, `${hash(Buffer.from("x"))}  a.txt\n${hash(Buffer.from("x"))}  missing.txt\n`);
-  assert.deepEqual([mixed.status, last(mixed.stdout, "kaal-foundation-check")?.result], [1, "failed"]);
+test("foundation/T38 [foundation/F23]: ids, one finding per line, Foundation's digest of the line, the last line and exit 0 with findings", () => {
+  const d = fresh();
+  put(d, "t/two.mjs", "const a = createHash(\"sha256\"), b = createHash('SHA256');\nconst c = 1;\n");
+  const { status, json } = run(["--target", "t", "--base", d], scratch);
+  assert.equal(status, 0, "findings are not failures");
+  assert.equal(json.mode, "scan");
+  assert.equal(json.result, "complete");
+  assert.equal(json.findings.length, 1, "two matches on one line are one finding");
+  const f = json.findings[0];
+  assert.equal(f.id, "kaal-foundation/t/two.mjs:1");
+  assert.equal(f.digest, hash(Buffer.from("const a = createHash(\"sha256\"), b = createHash('SHA256');", "utf8")));
+  assert.ok(Number.isInteger(json.coverage.read) && json.coverage.read >= 1);
 });
 
-test("foundation/T39 [foundation/I9, foundation/F23]: a consumer that declares Foundation and resolves a verifying copy, with no list, is verified in scope resolution only, digests not checked, and the JSON names consumer and resolved version", () => {
-  const { d } = consumer();
-  const r = foundation(["boundary", d], fresh());
-  const j = last(r.stdout, "kaal-foundation-boundary");
-  assert.ok(j, `no kaal-foundation-boundary line: ${r.stdout}${r.stderr}`);
-  assert.deepEqual([r.status, j.result, j.exit], [0, "verified", 0]);
-  assert.deepEqual(j.scope, ["resolution"]);
-  assert.deepEqual(j.observations, { resolution: "verified", digests: "not checked" });
-  assert.deepEqual(j.consumer, { name: "fixture-consumer", version: "1.2.3" });
-  assert.equal(j.resolved.version, pkg.version);
-  assert.equal(j.check, null);
+test("foundation/T39 [foundation/F23]: a target not read, or with no source, is unknown (exit 2); a clean read target is complete and is never called compliant", () => {
+  const d = fresh();
+  put(d, "empty/readme.txt", "no source here\n");
+  put(d, "clean/a.mjs", "export const a = 1;\n");
+  const missing = run(["--target", "nowhere"], d);
+  assert.deepEqual([missing.status, missing.json.result], [2, "unknown"]);
+  assert.ok(missing.json.coverage.unreadable.some((u) => JSON.stringify(u).includes("nowhere")), "the unreadable target is named");
+  const none = run(["--target", "empty"], d);
+  assert.deepEqual([none.status, none.json.result], [2, "unknown"]);
+  const clean = run(["--target", "clean"], d);
+  assert.deepEqual([clean.status, clean.json.result, clean.json.findings], [0, "complete", []]);
+  assert.match(clean.stdout, /none found within this coverage/i);
+  assert.doesNotMatch(clean.stdout, /compliant|verified/i);
 });
 
-test("foundation/T40 [foundation/F23]: not a consumer, unresolved, a changed resolved copy, a wrong resolved library and a differing list each give their result", () => {
-  const outside = fresh();
-  const run = (d, ...lists) => { const r = foundation(["boundary", d, ...lists], outside); return { status: r.status, j: last(r.stdout, "kaal-foundation-boundary"), out: r.stdout + r.stderr }; };
-
-  const none = run(consumer({ depends: false }).d);
-  assert.deepEqual([none.status, none.j?.result], [2, "cannot verify"], none.out);
-  assert.ok(none.j.causes.some((c) => /not a consumer/.test(JSON.stringify(c))));
-
-  const missing = run(consumer({ install: false }).d);
-  assert.deepEqual([missing.status, missing.j?.result], [2, "cannot verify"], missing.out);
-  assert.ok(missing.j.causes.some((c) => /unresolved/.test(JSON.stringify(c))));
-
-  const changed = consumer();
-  writeFileSync(join(changed.copy, "README.md"), "changed\n");
-  const c = run(changed.d);
-  assert.deepEqual([c.status, c.j?.result, c.j?.observations?.resolution], [2, "cannot verify", "cannot verify"], c.out);
-
-  const wrong = consumer();
-  const lib = join(wrong.copy, "dist", ...SCRIPTS, "sha256.mjs");
-  writeFileSync(lib, 'export function sha256(b) { if (!(b instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n');
-  const manifest = join(wrong.copy, "dist", "test", "package-check", "verify.json");
-  const m = JSON.parse(readFileSync(manifest, "utf8"));
-  m.files["dist/skills/kaal-foundation/scripts/sha256.mjs"] = hash(readFileSync(lib));
-  writeFileSync(manifest, JSON.stringify(m, null, 2) + "\n");
-  const w = run(wrong.d);
-  assert.deepEqual([w.status, w.j?.result, w.j?.observations?.resolution], [1, "failed", "failed"], w.out);
-
-  const listed = consumer();
-  writeFileSync(join(listed.d, "list"), `${hash(Buffer.from("not alpha"))}  a.txt\n`);
-  const l = run(listed.d, "list");
-  assert.deepEqual([l.status, l.j?.result, l.j?.observations?.resolution, l.j?.observations?.digests, l.j?.check?.result], [1, "failed", "verified", "failed", "failed"], l.out);
+test("foundation/T40 [foundation/N15]: no target is a usage error; a target added later is found by the same scan bytes; the scan names no repository path", () => {
+  const d = fresh();
+  const before = hash(readFileSync(SCAN));
+  const usage = scan([], d);
+  assert.equal(usage.status, 2);
+  put(d, "added-later/new-package/x.mjs", CRYPTO);
+  const { json } = run(["--target", "added-later"], d);
+  assert.equal(json.findings.length, 1);
+  assert.equal(hash(readFileSync(SCAN)), before);
+  assert.doesNotMatch(readFileSync(SCAN, "utf8"), /packages\/|kaal-(hosting|core|guard|testing|packaging|graph|change)\b/, "scan.mjs must not name another package or a repository path");
 });
 
-test("foundation/T41 [foundation/N13]: the boundary never imports, runs or judges the consumer: marker-writing main, postinstall and test scripts, and a consumer's own createHash, leave it verified and write no marker", () => {
-  const marker = (name) => `require("node:fs").writeFileSync(${JSON.stringify(join(scratch, `marker-${name}`))}, "ran")`;
-  const { d } = consumer({ extra: { main: "index.cjs", scripts: { postinstall: `node -e '${marker("postinstall")}'`, test: `node -e '${marker("test")}'` } } });
-  writeFileSync(join(d, "index.cjs"), `${marker("main")};\nconst { createHash } = require("node:crypto");\nmodule.exports = (b) => createHash("sha256").update(b).digest("hex");\n`);
-  writeFileSync(join(d, "list"), listFor(d, ["a.txt", "b.bin", "index.cjs"]));
-  const r = foundation(["boundary", d, "list"], fresh());
-  const j = last(r.stdout, "kaal-foundation-boundary");
-  assert.deepEqual([r.status, j?.result, j?.observations?.digests, j?.check?.result], [0, "verified", "verified", "verified"], r.stdout + r.stderr);
-  for (const name of ["main", "postinstall", "test"]) assert.equal(existsSync(join(scratch, `marker-${name}`)), false, `the boundary ran the consumer's ${name}`);
+test("foundation/T41 [foundation/F24]: a finding carries the owner of its nearest ownership.kaal.json, null where none; a directory owned by Foundation is skipped and yields nothing", () => {
+  const d = fresh();
+  const own = (name) => JSON.stringify({ owner: { kind: "capability", name, id: "x" }, paths: ["."] });
+  for (const [dir, name] of [["t/a", "A"], ["t/b", "B"], ["t/f", "Foundation"]]) { put(d, `${dir}/ownership.kaal.json`, own(name)); put(d, `${dir}/x.mjs`, CRYPTO); }
+  put(d, "t/none/x.mjs", CRYPTO);
+  const { json } = run(["--target", "t"], d);
+  const owners = Object.fromEntries(json.findings.map((f) => [f.file, f.owner]));
+  assert.deepEqual(owners, { "t/a/x.mjs": "A", "t/b/x.mjs": "B", "t/none/x.mjs": null });
+  assert.ok(json.coverage.skipped.some((s) => JSON.stringify(s).includes("t/f") && JSON.stringify(s).includes("owner")), "the owner skip is reported");
 });
 
-test("foundation/T42 [foundation/F24, foundation/N14]: documents, skill and AGENTS.md name check and boundary by the scoped bin; scripts/boundary.mjs imports only node: and ./sha256.mjs; scripts/sha256 unchanged; no dependency", () => {
-  const scoped = /node node_modules\/@kaihacksai\/kaal-foundation\/dist\/skills\/kaal-foundation\/scripts\/kaal-foundation\.mjs (check|boundary)\b/g;
-  const agents = readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8");
-  const section = agents.slice(agents.indexOf("## Foundation"), agents.indexOf("\n## ", agents.indexOf("## Foundation") + 1) >>> 0 || undefined);
-  for (const [where, text] of [["references/operations.md", readFileSync(join(PACKAGE, "05-src", ...SCRIPTS.slice(0, 2), "references", "operations.md"), "utf8")], ["skill", readFileSync(join(PACKAGE, "05-src", ...SCRIPTS.slice(0, 2), "SKILL.md"), "utf8")], ["AGENTS.md", section]]) {
-    const named = new Set([...text.matchAll(scoped)].map((m) => m[1]));
-    assert.deepEqual([...named].sort(), ["boundary", "check"], `${where} must name both commands by the scoped bin`);
-    const invoked = text.split("\n").filter((line) => /\b(npx|npm\s+(exec|x))\b[^\n]*\bkaal-foundation\b/.test(line) && !/\bnever\b/i.test(line));
-    assert.deepEqual(invoked, [], `${where}: no invocation through npx or npm exec (a line that warns with "never" is guidance, not an invocation)`);
-  }
-  const boundary = readFileSync(join(PACKAGE, "05-src", ...SCRIPTS, "boundary.mjs"), "utf8");
-  for (const [, from] of boundary.matchAll(/(?:^|\n)\s*import[^"'`]*["'`]([^"'`]+)["'`]/g)) assert.ok(from.startsWith("node:") || from === "./sha256.mjs", `scripts/boundary.mjs imports ${from}`);
-  assert.doesNotMatch(boundary, /import\(/, "scripts/boundary.mjs imports nothing dynamically");
-  assert.equal(hash(readFileSync(join(PACKAGE, "05-src", ...SCRIPTS, "sha256.mjs"))), MAIN_SHA256_MJS);
-  assert.equal(hash(readFileSync(join(PACKAGE, "05-src", ...SCRIPTS, "sha256.d.ts"))), MAIN_SHA256_DTS);
-  assert.equal(pkg.dependencies, undefined);
+test("foundation/T42 [foundation/N13]: the scan never runs or changes what it reads", () => {
+  const d = fresh();
+  put(d, "t/trap.mjs", `import { writeFileSync } from "node:fs";\nwriteFileSync(new URL("./marker", import.meta.url), "ran");\n${CRYPTO}`);
+  put(d, "t/trap.cjs", `require("node:fs").writeFileSync(__dirname + "/marker-cjs", "ran");\n`);
+  const before = tree(join(d, "t"));
+  const { json } = run(["--target", "t"], d);
+  assert.equal(json.findings.length, 1);
+  assert.deepEqual(tree(join(d, "t")), before);
+  assert.ok(!existsSync(join(d, "t", "marker")) && !existsSync(join(d, "t", "marker-cjs")));
 });
 
-test("foundation/T45 [foundation/I9, foundation/F23]: resolution and digests are reported separately; no list means digests not checked, never verified; neither observation overwrites the other; no summary certifies the consumer", () => {
-  const outside = fresh();
-  const run = (d, ...lists) => { const r = foundation(["boundary", d, ...lists], outside); return { status: r.status, j: last(r.stdout, "kaal-foundation-boundary"), stdout: r.stdout, out: r.stdout + r.stderr }; };
-  const summary = (stdout) => stdout.split(/\r?\n/).filter((l) => l.trim() && !l.startsWith("kaal-foundation-")).join("\n");
-  const certifies = /does not (certify|establish)[^\n]*consumer/i;
-
-  const { d } = consumer();
-  const bare = run(d);
-  assert.ok(bare.j, bare.out);
-  assert.deepEqual([bare.status, bare.j.result, bare.j.scope, bare.j.observations, bare.j.check], [0, "verified", ["resolution"], { resolution: "verified", digests: "not checked" }, null]);
-  assert.match(summary(bare.stdout), /digest agreement: not checked/);
-  assert.doesNotMatch(summary(bare.stdout), /digests?( agreement)?:? verified/i);
-  assert.match(summary(bare.stdout), certifies);
-
-  writeFileSync(join(d, "agree"), listFor(d, ["a.txt", "b.bin"]));
-  const agreed = run(d, "agree");
-  assert.deepEqual([agreed.status, agreed.j?.result, agreed.j?.scope, agreed.j?.observations], [0, "verified", ["resolution", "digests"], { resolution: "verified", digests: "verified" }], agreed.out);
-  assert.match(summary(agreed.stdout), certifies);
-
-  writeFileSync(join(d, "differ"), `${hash(Buffer.from("not alpha"))}  a.txt\n`);
-  const differs = run(d, "differ");
-  assert.deepEqual([differs.status, differs.j?.result, differs.j?.observations], [1, "failed", { resolution: "verified", digests: "failed" }], differs.out);
-
-  const wrong = consumer();
-  const lib = join(wrong.copy, "dist", ...SCRIPTS, "sha256.mjs");
-  writeFileSync(lib, 'export function sha256(b) { if (!(b instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n');
-  const manifest = join(wrong.copy, "dist", "test", "package-check", "verify.json");
-  const m = JSON.parse(readFileSync(manifest, "utf8"));
-  m.files["dist/skills/kaal-foundation/scripts/sha256.mjs"] = hash(readFileSync(lib));
-  writeFileSync(manifest, JSON.stringify(m, null, 2) + "\n");
-  writeFileSync(join(wrong.d, "agree"), listFor(wrong.d, ["a.txt"]));
-  const broken = run(wrong.d, "agree");
-  assert.deepEqual([broken.status, broken.j?.result, broken.j?.observations], [1, "failed", { resolution: "failed", digests: "verified" }], broken.out);
-});
-
-test("foundation/T52 [foundation/F25]: the shipped package declares its Boundary Check, naming both axes, the commands, Hosting's scan and the limits of verified", () => {
-  const record = join(PACKAGE, "dist", "test", "boundary-check", "boundary-check.md");
+test("foundation/T43 [foundation/F25, foundation/N15]: the shipped record declares the Boundary Check Applicable, with command, rules, both axes, limits, and where findings and decisions live; it names no role and no repository path", () => {
+  const record = join(DIST, "test", "boundary-check", "boundary-check.md");
   assert.ok(existsSync(record), "dist/test/boundary-check/boundary-check.md is not delivered");
   const text = readFileSync(record, "utf8");
-  for (const needle of ["kaal-foundation check", "kaal-foundation boundary", "kaal-hosting-boundary", "package <--> package", "package -> consumer", "does not establish"])
+  for (const needle of ["Applicable", "scan.mjs --target", "copy", "implementation", "crypto", "package <--> package", "package -> consumer", "audit", "no compliance"])
     assert.ok(text.includes(needle), `the record never mentions ${needle}`);
   assert.doesNotMatch(text, /not applicable/i, "Foundation's Boundary Check is not declared not applicable");
+  assert.doesNotMatch(text, /\b(CTO|CPO)\b|packages\//, "the record names no role and no repository path");
 });
 
-test("foundation/T53 [foundation/F25, foundation/N13]: Hosting's scan of the shipped dist/ reads every JavaScript source and finds nothing (a control, GREEN before and after the DO)", () => {
-  let cli;
-  try { cli = createRequire(join(REPOSITORY, "package.json")).resolve("@kaihacksai/kaal-hosting/package.json"); } catch { assert.fail("cannot judge: @kaihacksai/kaal-hosting does not resolve from the repository"); }
-  // The command is read from Hosting's own package.json bin, so no path here spells Hosting's directory names.
-  const bin = join(dirname(cli), JSON.parse(readFileSync(cli, "utf8")).bin["kaal-hosting-boundary"]);
-  assert.ok(existsSync(bin), "cannot judge: Hosting's boundary scan is not delivered");
-  const r = spawnSync(process.execPath, [bin, "--target", join(PACKAGE, "dist")], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
-  const line = r.stdout.trim().split(/\r?\n/).at(-1) ?? "";
-  assert.ok(line.startsWith("kaal-hosting-boundary "), `no scan result: ${r.stdout}${r.stderr}`);
-  const j = JSON.parse(line.slice("kaal-hosting-boundary ".length));
-  assert.equal(j.result, "complete");
-  assert.deepEqual(j.findings, []);
-  assert.ok(j.coverage.read.length > 0, "the scan read nothing");
-  assert.deepEqual(j.coverage.unreadable, []);
+test("foundation/T44 [foundation/F25]: documents, skill and AGENTS.md name the scan by the scoped package path and say findings are audit and decisions the repository's; verify.json lists scan.mjs and the record", () => {
+  const scoped = /node node_modules\/@kaihacksai\/kaal-foundation\/dist\/test\/boundary-check\/scan\.mjs --target\b/;
+  const agents = readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8");
+  const section = agents.slice(agents.indexOf("## Foundation"), agents.indexOf("\n## ", agents.indexOf("## Foundation") + 1) >>> 0 || undefined);
+  for (const [where, text] of [["references/operations.md", readFileSync(join(SOURCE, "references", "operations.md"), "utf8")], ["skill", readFileSync(join(SOURCE, "SKILL.md"), "utf8")], ["AGENTS.md", section]]) {
+    assert.match(text, scoped, `${where} must name the scan by the scoped package path`);
+    assert.match(text, /audit/i, `${where} must say findings are audit`);
+    const invoked = text.split("\n").filter((line) => /\b(npx|npm\s+(exec|x))\b[^\n]*\bscan\.mjs\b/.test(line) && !/\bnever\b/i.test(line));
+    assert.deepEqual(invoked, [], `${where}: no invocation through npx or npm exec`);
+  }
+  const manifest = readFileSync(join(PACKAGE, "04-test", "package-check", "verify.json"), "utf8");
+  assert.ok(manifest.includes("test/boundary-check/scan.mjs") && manifest.includes("test/boundary-check/boundary-check.md"), "verify.json lists the scan and the record");
 });
 
-test("foundation/T54 [foundation/F25]: the shipped scan.mjs prints Hosting's result for dist/ as its last line and exits 0 when it is complete and clean; with Hosting unresolvable it exits 2, never 0", () => {
-  const script = join(PACKAGE, "dist", "test", "boundary-check", "scan.mjs");
-  assert.ok(existsSync(script), "dist/test/boundary-check/scan.mjs is not delivered");
-  const ok = spawnSync(process.execPath, [script], { cwd: REPOSITORY, encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
-  const j = last(ok.stdout, "kaal-foundation-scan");
-  assert.ok(j, `no kaal-foundation-scan line: ${ok.stdout}${ok.stderr}`);
-  assert.deepEqual([ok.status, j.result, j.findings], [0, "complete", []]);
-  const lone = fresh();
-  const missing = spawnSync(process.execPath, [script], { cwd: lone, encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined, NODE_PATH: "" } });
-  assert.equal(missing.status, 2, `an unresolvable Hosting must give 2: ${missing.stdout}${missing.stderr}`);
+test("foundation/T45 [foundation/N14]: scan.mjs imports only node: modules and sha256.mjs; the library is unchanged; the package declares no dependency", () => {
+  assert.ok(existsSync(SCAN), "dist/test/boundary-check/scan.mjs is not delivered");
+  const text = readFileSync(SCAN, "utf8");
+  for (const [, from] of text.matchAll(/(?:^|\n)\s*import[^"'`]*["'`]([^"'`]+)["'`]/g)) assert.ok(from.startsWith("node:") || from.endsWith("/sha256.mjs") || from === "./sha256.mjs", `scan.mjs imports ${from}`);
+  assert.doesNotMatch(text, /import\(|require\(/, "scan.mjs imports nothing dynamically");
+  assert.equal(hash(readFileSync(join(SOURCE, "scripts", "sha256.mjs"))), MAIN_SHA256_MJS);
+  assert.equal(hash(readFileSync(join(SOURCE, "scripts", "sha256.d.ts"))), MAIN_SHA256_DTS);
+  assert.equal(pkg.dependencies, undefined);
 });

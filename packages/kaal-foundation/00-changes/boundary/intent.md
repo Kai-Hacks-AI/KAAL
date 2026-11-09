@@ -1,28 +1,20 @@
-# Consumer boundary: Intent
+# Foundation Boundary Check: Intent
 
 foundation/C13 is this PLAN. It ships no code. foundation/C14, its DO, turns the planned cases GREEN. It authorizes no synchronization, promotion, version change or npm publication: those stay with the Owner.
 
-On 2026-10-31 the Owner asked two things. Does Foundation ship boundary tests, and can they run against Guard? The answer was no, because every case Foundation ships tests only Foundation itself. The Owner then asked for a design: "It should be testing without knowing details of what it tests, so arguably it can only do the outer loop."
+**Release scope (Owner decision, 2026-11-09).** Foundation 0.0.2 ships its Boundary Check, because Foundation is becoming the reference package and must do better than Hosting 0.0.1, whose Boundary Check is declared "not applicable". An earlier guidance that kept C14 off the 0.0.2 critical path is superseded by that decision. Publication still depends on the Owner's separate go.
 
-So Foundation's boundary check stays at Intent level. It checks a consumer only against Foundation's own outcomes, foundation/I1 (one SHA-256 for KAAL) and foundation/I2 (adopting it changes no digest). It sees only what any npm package exposes and what the consumer itself states. A consumer's source, layout, language and tests are inner loops. They belong to the consumer's own Requirements and Architecture tests, never to Foundation.
+**Design rulings (Owner, 2026-11-09), which replace the earlier consumer-boundary design of #747 and #1292's first head.**
+- A boundary test finds things that should be owned by the package but may be done somewhere else. It points at files and folders. Hosting's scan is a version of that.
+- A boundary test carries what it looks for. It never carries where it looks: whenever a target is added to the repository, no package may need a code change to see it. Targets are input.
+- A finding is just a finding: an audit result, which belongs to Engineering and not to the package. What is decided because of a finding may well enter the package, as a Defect, a Requirement, or a change to Intent or Architecture, through a normal Change. The finding itself does not.
+- A package never names a role. Who decides about a finding is the repository's, because roles change over time and a role written into a package becomes mandatory in every package.
+- On a promotion the incoming package's boundary test challenges the existing packages and the consumer repository, and the existing packages' boundary tests challenge the incoming package. The sum is one list of findings, each against the place where it was found. The package proof point only runs the packages' own checks and collects what they report. It has no check of its own.
 
-- **foundation/I9.** **A consumer can show it holds Foundation's outcomes, and Foundation needs no knowledge of the consumer to check that.** Any package, KAAL or not, can ask Foundation two questions:
-  - Is the Foundation it resolves a verified Foundation (foundation/I1)?
-  - Are the SHA-256 digests it states the digests Foundation computes for the same bytes (foundation/I2)?
+- **foundation/I9.** **Foundation can find, anywhere it is pointed, what Foundation owns being done somewhere else.** What Foundation owns here is the byte-level SHA-256 (foundation/I1, foundation/I2, and the digest-ownership position of foundation/C18: Sealing, Packaging and Process each build their identity on `@kaihacksai/kaal-foundation/sha256`; none copies the implementation and none uses `node:crypto` for a KAAL digest). The check reports each place as a finding and decides nothing: it never says a finding is a fault, never ranks it, and never turns "none found" into "compliant".
 
-  The answer is `verified`, `failed` or `cannot verify`. Foundation never judges how the consumer gets its digests. A `verified` answer covers only the observations that ran, and it never certifies the consumer itself (foundation/F23).
+**Two axes.** A Boundary Check challenges package <--> package and package -> consumer repository. Foundation's check serves both by the same means: it is pointed at a package, or at the repository, and reports what it finds there. Hosting's boundary scan challenges Foundation in the other direction. It is Hosting's check, run by whoever promotes Foundation. It is not part of Foundation.
 
-**How a boundary case is derived (the Owner's question, 2026-10-31).** A boundary case is one of Foundation's own outer cases, Intent or Requirements, with the consumer as its subject. Architecture has no counterpart, because a consumer cannot break Foundation's placement. Its expectation is not simply the opposite of the provider's case. Each Foundation obligation takes one of three forms at the boundary:
-- **mirror**: the same expectation, held by the consumer. Foundation's digest is FIPS SHA-256, so the consumer's stated digest is Foundation's digest.
-- **inverted**: Foundation's guarantee becomes the consumer's precondition. Foundation refuses a value that is not a `Uint8Array`, so a consumer must never depend on that refusal. An inverted case is visible only by running the consumer. It is outside the outer loop, so Foundation reports it as not judged, and the consumer's own tests own it.
-- **none**: the obligation is Foundation's alone, such as purity, layout, provisional ownership or the manifest. It has no boundary case.
-
-`testing.md` derives every boundary case from a Foundation identifier this way.
-
-**Release scope (Owner decision, 2026-11-09).** An earlier CPO guidance kept C14 off the 0.0.2 critical path. On 2026-11-09 the Owner reversed that: Foundation 0.0.2 ships its Boundary Check, because Foundation is becoming the reference package and must do better than Hosting 0.0.1, whose Boundary Check is declared "not applicable". So C14 now rides into 0.0.2, with this PLAN as its first Change. Publication still depends on the Owner's separate go.
-
-**Two axes.** A Boundary Check challenges package <--> package (peers challenge each other) and package -> consumer (what the package's outcomes mean for those who depend on it). `check` and `boundary` are the package -> consumer axis. For package <--> package, Foundation's Boundary Check record names Hosting's `kaal-hosting-boundary` scan of Foundation's own `dist/` as its peer evidence (foundation/F25).
-
-**What a `verified` digest answer does not prove.** A list `check` that matches shows only that the digests the consumer supplied equal the digests Foundation computes for the same bytes. It does not prove that those lists cover all of the consumer's digests, or that the consumer actually adopted Foundation. Adoption and coverage stay with the consumer's own Requirements, Architecture and tests.
+**What a finding is not.** A finding is a place to look at. A package that holds its own SHA-256 may have a reason, and a package that holds none may still compute a digest some other way the rules cannot see. The record of Foundation's check states these limits, and findings and the decisions about them are held in the repository as audit, never in the package. Only a consequence of a decision enters the package.
 
 This PLAN changes nothing a consumer computes. `scripts/sha256.mjs` and `scripts/sha256.d.ts` stay byte for byte the same (foundation/N5, foundation/N9).
