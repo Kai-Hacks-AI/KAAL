@@ -31,7 +31,7 @@ Measured on `kaal/foundation` at 8ea2ef2 plus the boundary DO #1293. The branch 
 
 **Placement of T16, T17 and T47 (Owner, 2026-11-09).** What they check is how any package is accepted, which is the same for every package, so it is Delivery and governed by kaal-packaging (L15). Engineering holds it as a workaround until Packaging lands, and a Packaging Requirement then replaces it. Foundation keeps only what is Foundation-specific: the host-SHA-256 check behind a wrong library (A9) and the resolution of its own owner Node (A15). The pack-and-install harness is then a Delivery matter and no Solution Case needs delivery machinery, so the question of a Solution Case pulled by the engineering suite does not arise. F17 and N10 are cited by T16 and T17 but defined nowhere; with this placement they are Packaging Requirements, and the DO retargets the Foundation-specific halves to F12 and A9.
 
-One fixture in `capability.test.mjs` writes a fake Case named `foundation/T999` to prove that an undeclared Case is refused. It is not a Case, but it looks like one to a reader or a scanner, so the DO gives it an obviously fictitious id.
+One fixture in `capability.test.mjs` writes a fake Case named `foundation/T999` to prove that an undeclared Case is refused. It is not a Case, but it looks like one to a reader or a scanner, so the DO gives it the obviously fictitious id `foundation/TX-undeclared` (Owner, 2026-11-09), which can never collide with a real Case.
 
 ## Publisher's planned cases
 
