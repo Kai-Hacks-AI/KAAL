@@ -2,14 +2,14 @@
 
 One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Each Change does four things, in this order, and nothing else (names aligned per F4: self-explanatory, mapped in `03-architecture`, not identical strings):
 
-1. **Add** the control as a job named by the control inside the workflow `release/<station>` (see `03-architecture`), running the code from its home in `05-src/<station>/<control>/`.
+1. **Add** the control as a job named by the control inside the workflow `release/<station>` (see `03-architecture`), running the code from its component folder `05-src/<control>/` (kebab-case, e.g. `05-src/approve-publishing/`; no station folders).
 2. **Move** the code from where it lives today into `05-src` (history kept with `git mv`; the old path keeps a one-line shim only if a required check or hook still calls it).
 3. **Retire** the old check name once the Owner has added the new context to the ruleset by hand, and only when that makes sense: a control with no old equivalent retires nothing.
 4. **Prove** it with Cases that sit next to the code (test layout rule); parity Cases pin that the moved code behaves as before.
 
 Order of every rename is **add-new, Owner adds the context to the ruleset, remove-old**, so no step blocks a promotion in flight (#1278, #1272).
 
-| Control | Station | Today (code, check) | Retires |
+| Control | Station (drawing only) | Today (code, check) | Retires |
 | --- | --- | --- | --- |
 | isolate Change | root | `engineering/change-isolation/`, `change-isolation.sh`; `Change Isolation`; plus the synchronization shape from `Branching` (`lineage.ts` `synchronization`) | `Change Isolation` |
 | verify Ancestry | root | freshness half of `Branching` (`lineage.ts` `freshness`, `branching.sh`) | `Branching` (together with the two rows below) |
@@ -48,7 +48,7 @@ Not blocked: nothing here touches the required contexts that #1278 and #1272 dep
 
 ## Build order (agreed)
 
-Root (audit Lineage), then `10-npmjs`, then `11-main`, then `12-kaal`.
+Root controls (audit Lineage first), then the controls of the drawing's station 10 (npmjs), then 11 (main), then 12 (kaal).
 
 ## Open for the Owner
 
