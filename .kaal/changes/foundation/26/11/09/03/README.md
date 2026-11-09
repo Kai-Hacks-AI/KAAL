@@ -27,4 +27,4 @@ Decided (Owner, 2026-11-09, "sounds fair"): circular dependencies are kept out b
 
 Refinement (Owner, 2026-11-09): Packaging embeds into Engineering, and every package uses Engineering, which is never a package. The upward dev edge therefore goes to Engineering, not to Packaging, and no package has a dev edge to another package, so no workspace-to-workspace cycle arises.
 
-Correction (Owner, 2026-11-09): there is no bootstrap case, so the pinned-release clause is dropped. KAAL exists already. Other repos become KAAL-enabled without developing KAAL further, so they have no Engineering and only solution dependencies on released packages. Engineering, and the dev edges into it, exist only in the KAAL repository. A consumer repository sees only shipped packages and needs no Engineering.
+Correction (Owner, 2026-11-09): there is no bootstrap case, so the pinned-release clause is dropped. Engineering, and the dev edges into it, exist in the KAAL repository only. What a consumer repository has or does is a different game and this Change says nothing about it.
