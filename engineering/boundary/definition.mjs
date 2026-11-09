@@ -2,10 +2,10 @@
 // (engineering/boundary/PLAN.md R2, R8). A definition names a provider and typed tests; it names no target, role, code or regular expression.
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { parse } from "yaml";
+import { frontMatter } from "../parsers/front-matter.mjs";
 import { DETECTORS } from "./detectors/index.mjs";
 
-const COMMON = new Set(["id", "detector", "looks-for", "tests", "ships"]);
+const COMMON = new Set(["id", "detector", "looks-for", "tests"]);
 const NAME = /^[A-Za-z_$][\w$]*$/;
 const text = (v) => typeof v === "string" && v.trim() !== "";
 const list = (v, ok) => Array.isArray(v) && v.length > 0 && v.every(ok);
@@ -30,7 +30,7 @@ export function problems(front) {
     else if (ids.has(test.id)) out.push(`${at}: duplicate id ${test.id}`);
     else ids.add(test.id);
     for (const field of ["looks-for", "tests"]) if (!text(test[field])) out.push(`${at}: ${field} must be text`);
-    if (typeof test.ships !== "boolean") out.push(`${at}: ships must be true or false`);
+    if ("ships" in test) out.push(`${at}: ships is computed from the Architecture and never written in a definition`);
     const detector = DETECTORS.get(test.detector);
     if (!detector) return out.push(`${at}: unknown detector ${JSON.stringify(test.detector)}`);
     for (const key of Object.keys(test)) if (!COMMON.has(key) && !(key in detector.params)) out.push(`${at}: unknown parameter ${key}`);
@@ -46,14 +46,10 @@ export function problems(front) {
 export function loadDefinition(file) {
   const path = resolve(file);
   const source = readFileSync(path, "utf8");
-  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-  if (!match) throw new Error(`${file}: no YAML front matter`);
-  let front;
-  try {
-    front = parse(match[1]);
-  } catch (error) {
-    throw new Error(`${file}: front matter is not YAML (${error.message.split("\n")[0]})`);
-  }
+  const parsed = frontMatter(source);
+  if (!parsed) throw new Error(`${file}: no YAML front matter`);
+  if (parsed.errors.length > 0) throw new Error(`${file}: front matter is not YAML (${parsed.errors[0]})`);
+  const front = parsed.value;
   const found = problems(front);
   if (found.length) throw new Error(`${file}: ${found.join("; ")}`);
   return { provider: front.provider, tests: front.tests, dir: dirname(path), file: path };

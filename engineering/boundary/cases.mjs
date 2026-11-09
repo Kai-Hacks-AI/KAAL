@@ -14,7 +14,6 @@ export function boundaryCases(definitionFiles) {
       id: `${definition.provider}/${test.id}`,
       suite: "boundary",
       tests: test.tests,
-      ships: test.ships,
       async run({ targets, base, decisions = [] }) {
         // Each Case runs its own test alone, so its findings, coverage and completeness are its own: another test matching the
         // same place, or another test's unreadable reference, can neither hide nor mask this Case's evidence. The aggregate
