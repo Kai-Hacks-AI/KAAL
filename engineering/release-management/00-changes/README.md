@@ -29,6 +29,10 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 
 `Branching` retires only after all three halves have a new home (verify Ancestry, isolate Change, bind Merge), each add-new first. Two gates close the set: `gate (promotion)` and `gate (integration)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts, and adds the control's traced entries at the root: its Intent entry, requirement, allocation and `applied at` target in `03-architecture`, Cases and Defects where any.
 
+## The migration and its last step
+
+This folder is the migration, a Delivery element of the architecture (`03-architecture`): it owns the temporary change requirements (F20 and its Case T12). Its **last step is terminate**, after the final control Change and the `.github` Changes that remove the old checks: delete the remaining shims, delete F20 and T12, and close this record. Until then, every shim goes with its own last caller (F20).
+
 ## Retiring `Change Isolation (review)` (Owner, 9 Nov)
 
 Reason: the native ruleset settings (code owner review, approval of the most recent push, dismiss on push) carry the approval when set up correctly. The check's one extra, binding the approval to the ledger entry's digest, is given up (`ledger-in-promotion-plan.md` called the plain approval "not recommended" for that reason; the Owner has decided otherwise). Native approval stays bound to the head by dismiss-on-push.

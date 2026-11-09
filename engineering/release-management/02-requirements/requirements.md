@@ -28,7 +28,7 @@ By I4 the machinery is Delivery and pinned; the Cases under test are Solution co
 
 ## A moved module keeps its old interface until its last caller is rewired [release-management/F20]
 
-Rationale: I4, and the control-continuity condition in the README. **A change requirement, not a product requirement (Owner, 9 Nov): Delivery, not Solution, and temporary.** It binds the migration Changes of this folder and ends when the last shim is removed.
+Rationale: I4, and the control-continuity condition in the README. **A change requirement, not a product requirement (Owner, 9 Nov): Delivery, not Solution, and temporary.** It is placed by functional placement, like any requirement: allocated in `03-architecture` to the **migration** (the change process from the current controls to the new ones, `00-changes`), which owns it and ends it with its terminate step. There is no flag to maintain: temporary means owned by the migration and gone when the migration ends.
 
 When a Change moves a module into `05-src`, the old path keeps serving the module's **whole** old interface (every export and the command line) for as long as any caller still uses that path, and is removed together with its last caller in the `.github`-only or owner Change that rewires it. A shim is therefore a full facade (re-export plus the command line), never a partial one. Found by the CPO on #1324 (the first shim exported nothing); the gap was in the requirements and in the architecture's "one-line shim" wording, not in the code. Allocated to the shim rule in `03-architecture` and checked by T12 for every shim.
 
