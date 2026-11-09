@@ -62,12 +62,12 @@ describe("the shipped verifier's interface (foundation/C5)", () => {
     },
     "sha256.mjs throwing on import": (dir) => writeFileSync(join(dir, LIB, "sha256.mjs"), 'throw new Error("broken");\n'),
   };
-  for (const [name, mutate] of Object.entries(unexercisable)) {
-    it(`foundation/T73 [foundation/F12]: gives cannot verify, never verified, for ${name}`, () => {
+  it("foundation/T73 [foundation/F12]: gives cannot verify, never verified, for each of: ./sha256 removed from exports, misdirected to a missing file, misdirected to a module without sha256, and sha256.mjs throwing on import", () => {
+    for (const [name, mutate] of Object.entries(unexercisable)) {
       const r = verifyInstalled(mutate);
-      assert.deepEqual([r.status, r.result], [2, "cannot verify"], r.out);
-    });
-  }
+      assert.deepEqual([r.status, r.result], [2, "cannot verify"], `${name}: ${r.out}`);
+    }
+  });
 
   it("foundation/T74 [foundation/F12]: gives failed, never verified, when ./sha256 loads and answers wrongly", () => {
     const r = verifyInstalled((dir) => writeFileSync(join(dir, LIB, "sha256.mjs"), 'export const sha256 = () => "0".repeat(64);\n'));

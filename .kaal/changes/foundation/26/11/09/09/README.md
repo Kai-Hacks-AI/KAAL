@@ -16,3 +16,6 @@ T66 (Cases leave the 04-test check folders), T70 (a `tests` edge in every Case f
 
 ## Not authorized
 No promotion, version bump on main, SYNC, ledger entry, release dispatch or npm publication.
+
+## Review fix (CPO, exact head f7b68e0)
+T73 was generated in a loop and gave four Cases one id. It is now one Case that checks its four scenarios, named in its title. New T77 refuses any two Cases sharing an id and any Case whose id is in a template (generated) title. `npm run test:publisher` 40 of 40 (T73 four to one, T77 added).
