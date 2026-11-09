@@ -10,14 +10,14 @@ The Owner's standard of 2026-11-09, which this PLAN states and tests:
 - Architecture is a tree with two branches, Solution (ships) and Delivery (never ships), either/or. Elements are the
   leaves. Cross-cutting shows only higher up, as an Intent or Requirement that leaves in both branches answer.
 - A Defect hangs off one Architecture element and takes its branch.
-- Suite membership is a backwards analysis: each Case points, in YAML, at what it verifies; a suite is "who points at
-  this?". The carrier of the YAML is an open question for the Owner.
+- Suite membership is a backwards analysis: each Case carries a `tests` edge in its own YAML front matter (Owner, 2026-11-09:
+  defect <- test case); a suite is "who points at this?".
 - The build ships the Solution branch only; the engineering suite pulls the Delivery branch.
 
-Delivered by this PLAN: the four PLAN documents in `00-changes/architecture-tree/` and six RED Cases T64 to T69 in
+Delivered by this PLAN: the four PLAN documents in `00-changes/architecture-tree/` and seven RED Cases T64 to T70 in
 `04-test/engineering-check/plan/architecture-tree.test.mjs`, all RED because the tree, the folders and the build rule do
 not exist (missing-deliverable evidence). The Testing document carries the inventory of today's Cases with a proposed
 branch, the cross-cutting Requirements found so far, and the Cases to split (T15, T18, T46, T62).
 
-Open: the carrier of the pointers (F43); whether a Solution Case that needs delivery machinery (T16, T17, T47) is pulled
+Case T70 (F43, front matter with a `tests` edge) is added, RED. Open: whether a Solution Case that needs delivery machinery (T16, T17, T47) is pulled
 by the engineering suite; the untitled Cases; the `foundation/T999` fixture id.

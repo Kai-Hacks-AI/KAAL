@@ -47,8 +47,8 @@ One fixture in `capability.test.mjs` writes a fake Case named `foundation/T999` 
 
 No Defect exists in `06-defects/` today, so no Case about Defects can be RED. The DO adds the check that a Defect names exactly one Architecture element, with a fixture Defect, as a delivered or planned Case of its own.
 
-All six are expected RED today, each because the tree, the folders or the build rule do not exist. This is missing-deliverable evidence, not behavioural.
+All seven are expected RED today, each because the tree, the folders or the build rule do not exist. This is missing-deliverable evidence, not behavioural.
 
-## Open question for the Owner: the carrier of the pointers (foundation/F43)
+## The carrier of the pointers (foundation/F43): decided
 
-Today a Case's targets are text in its title, `foundation/T<n> [<targets>]: …`. The manifest's `cases` and `model` are already a backwards analysis of those titles, so they can be derived without a hand-kept list. Suite membership is not: `npm test` runs every `*.test.mjs` it finds beside the Nodes (by location), `test:publisher` names its files by hand, and the shipped set in `verify.json` is npm's pack list (by folder, not by pointer). No Foundation Node carries YAML pointers today: `kaal/Foundation.md` has a `name` and `type` front matter only. The PLAN states the principle and does not pick the carrier. It needs the Owner's word on which YAML KAAL uses for "points at" (a front-matter block in the Case file, a sibling file, or the Node's own YAML), and so no Case for F43 is planned yet.
+The Owner ruled on 2026-11-09 that each Case carries a `tests` edge in its own YAML front matter, pointing at the Defect, Requirement, Intent or Architecture element it verifies. Suites are derived backwards ("who points at this?"). Today a Case's targets are only text in its title, `foundation/T<n> [<targets>]: …`, and no Case carries front matter, so foundation/T70 is RED. The DO adds the edge to every Case, then generates the manifest's `cases` and `model` and the suites from the edges. Left to the DO: the exact JavaScript form of the front matter (T70 accepts a leading `/*---` … `---` comment block or a plain `---` block).

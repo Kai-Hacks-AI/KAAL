@@ -113,3 +113,17 @@ test("foundation/T69 [foundation/N23]: the Cross-cutting section lists exactly t
   const manifest = JSON.parse(readFileSync(join(PACKAGE, "04-test", "package-check", "verify.json"), "utf8"));
   assert.ok(!Object.keys(manifest.files).some((f) => f.includes("/delivery/")), "no file from a delivery folder is shipped");
 });
+
+test("foundation/T70 [foundation/F43]: every Case file carries a YAML front matter with a tests edge, and each edge names an element that exists in a Node", () => {
+  const nodes = ["01-intent", "02-requirements", "03-architecture", "06-defects"].flatMap((d) =>
+    files(PACKAGE).filter((f) => f.startsWith(`${d}/`) && f.endsWith(".md") && !f.includes("/delivery/")).map((f) => readFileSync(join(PACKAGE, f), "utf8")));
+  const known = new Set(nodes.flatMap((t) => [...t.matchAll(/\*\*foundation\/([IFNAD]\d+)\*\*/g)].map((m) => m[1])));
+  const bad = [];
+  for (const f of CASE_FILES()) {
+    const m = readFileSync(join(PACKAGE, f), "utf8").match(/^(?:\/\*)?---\r?\n([\s\S]*?)\r?\n---/);
+    const edge = m && m[1].match(/^tests:\s*\[([^\]]*)\]\s*$/m);
+    const ids = edge ? edge[1].split(",").map((s) => s.trim().replace(/^foundation\//, "")).filter(Boolean) : [];
+    if (ids.length === 0 || !ids.every((id) => known.has(id))) bad.push(f);
+  }
+  assert.deepEqual(bad, [], "Case files without a resolvable tests edge");
+});
