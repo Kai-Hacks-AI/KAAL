@@ -57,6 +57,26 @@ Note: `merge-group-admission.yml` is a `pull_request_target` workflow, so it is 
 
 So three of the original seven controls are implemented by GitHub scripts and workflows, plus Change Isolation (own checker folder) and Required tests (the lanes), and the new Merge queue. Two controls have no code at all.
 
+## Organized by concern (supersedes the one-control-per-mechanism list)
+
+Owner direction: organize by business concern. The eight controls above were cut by mechanism, and their requirements overlap. Regrouped by the concern each requirement serves, they are **six concerns**. Folders, scripts and Change records follow the concern name; required check names stay unchanged. The requirement ids are the current ones (control and number) and move with their text unchanged.
+
+| # | Concern (proposed folder) | One line | Requirements under it | Type | Code today |
+| --- | --- | --- | --- | --- | --- |
+| 1 | **Changes stand alone** (`changes-stand-alone/`) | A Change to Core, and a Change to `.github/`, can each be reviewed, reverted and promoted on its own | Change Isolation F1 (Core holds only Core and its listed files), F2 (`.github/` holds nothing else), N1 (decided from changed paths alone) | preventive | `change-isolation/check.mjs`, `change-isolation.sh`, check `Change Isolation` |
+| 2 | **Only owners release** (`only-owners-release/`) | Work reaches `main` only through its Capability's collector, so a promotion carries one Capability's reviewed Changes | Lineage F1 (working branch lands in `kaal/<capability>`; a collector is brought current only by a synchronization), Lineage F2 (each flow lands by its own method: squash for a Change or promotion, merge commit for a synchronization), Promotion source F1 (a PR into `main` comes from a `kaal/*` branch of this repository) | preventive, with a directive part | `lineage.ts` (`synchronization`, `methodFor`, `autoMerge`, `landing`, `promotionSource`), `branching.sh`, `promotion-source.mjs`, checks `Branching` and `Promotion Source` |
+| 3 | **What lands was validated** (`what-lands-was-validated/`) | What lands on `main` is exactly what was validated against the `main` it lands on, one promotion at a time, judged again at merge time | Promotion source F2 (head contains `main`'s tip and the merge tree is the head's tree), One promotion F1 (at most one promotion pair open), Merge queue F1 to F4 and N1 (group is the queued PR at its head; gates judge the group; attestation at merge time; admission to the queue) | preventive; the one-at-a-time rule is directive today | `lineage.ts` `promotionFreshness` (run by `Branching`), `merge-group*.yml`, `bind-group.sh` |
+| 4 | **Drift is found** (`drift-is-found/`) | A PR or collector that has fallen out of the branching policy is found even when nothing is pushed | Lineage audit F1 | detective | `lineage.ts` (`establishment`, `collector`, `workingBranch`), `holds.json`, `branching-audit.sh`, scheduled check `Branching audit` |
+| 5 | **Tested before landing** (`tested-before-landing/`) | No Change lands while KAAL's own tests fail | Required tests F1 | preventive | the lanes, `ci.yml`, `guard-acceptance-boundary.yml`, checks `Acceptance`, `Engineering`, `Hosting`, `Workspaces` |
+| 6 | **Reviewed before landing** (`reviewed-before-landing/`) | A Change lands on a protected branch only after its review is complete | Review before merge F1 (unresolved: the branch protection declares it) | preventive, enforced by a human | GitHub branch protection, no code |
+
+What the regrouping shows:
+- **The misplaced F2 is fixed.** Promotion source's freshness requirement (F2) is judged by `Branching`, so it moves out of "source" and joins the validation concern, 3, with One promotion and the merge queue.
+- **One check can serve two concerns.** `Branching` serves concern 2 (landing method, lineage) and concern 3 (freshness of a promotion). So a check is not a control, and check names must stay independent of control names. That is a second kaal-control lesson (below).
+- **Order of work** follows the port sequence: concern 2 first (its ports: `promotion-source`, landed; then `branching`), then 1 (`change-isolation`), 4 (`branching-audit`), 3 (`bind-group`, last, since it depends on the `pull_request_target` decision), then 5 and 6, which have no code.
+
+Lesson 2 for the log: a requirement belongs to a concern, not to the check that happens to run it; checks and controls are many-to-many.
+
 ## Naming the controls by business concern
 
 The Owner's direction: a control is named by the concern it protects, not by its mechanism. The names below are proposals, taken from each control's Intent. Folder names would follow (`engineering/controls/<concern>/`). Renaming a control is a re-id of its Nodes, so it needs the incoming-edge impact list first and is its own Change.
@@ -159,7 +179,7 @@ Questions to answer on the way:
 3. **Brackets or typed edges.** Today `[F1]` brackets are the traces. Keep them now; typed edges follow when Requirements and Architecture define them.
 4. **Case homes.** Parity Cases beside their script, the inventory and byte-pin Cases and the ports PLAN in `engineering/shell/`. Recommendation: yes.
 5. **Where the chain folders live: `engineering/controls/` or `engineering/github/controls/`.** A control is an enduring concern, kept apart from any mechanism (a Control carries `Has` edges and nothing else), and not all seven are about GitHub: Change Isolation's checker is `engineering/change-isolation/`, Required tests belongs to the lanes. Under `github/controls/` those would have no home, and every control would be tied to one provider. Recommendation: chain folders stay in `engineering/controls/<control>/`; the scripts and their parity Cases stay in `engineering/github/`, where the mechanism is. If the Owner prefers `github/controls/`, only the controls whose mechanism is a GitHub workflow (at least Lineage, Promotion source and Lineage audit; the others are to be checked one by one) would move there, and the rest stay behind.
-6. **Names.** Name each control by business concern, using the table above (or the Owner's own words), and decide whether the overlapping three stay separate.
+6. **Concerns.** Take the six concerns above (or the Owner's own grouping) as the unit, in place of the eight mechanism-named controls; the names are proposals.
 7. **Aligned names.** Name controls, folders, scripts and Change records by concern; keep required check names unchanged (table above), and decide (a) to (c).
 8. **Migration.** Control by control, as in the section above, starting with Promotion source. Bytes of each section stay unchanged, each control is its own Change. The ports' Architecture edits then land in the new place, once.
 
