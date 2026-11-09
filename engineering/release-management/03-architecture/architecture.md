@@ -14,7 +14,7 @@
  |                  |      |   serialize Pro- |      |   Package         |
  |gate (integration)| ---> |   motion, accept |      |   Promotion       |
  |                  |      |   Capability     | ---> | out:  (none yet)  |
- |                  |      | gate (promotion)  |      +-------------------+
+ |                  |      | gate (promotion) |      +-------------------+
  |                  |      | out: version     |
  +------------------+      |   Package        |
                            +------------------+
