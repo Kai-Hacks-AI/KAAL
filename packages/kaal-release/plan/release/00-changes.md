@@ -2,6 +2,8 @@
 
 This is `release/C1`, a PLAN Change. It ships no code and no package. It references the target in [intent.md](intent.md), [requirements.md](requirements.md), [architecture.md](architecture.md) and [testing.md](testing.md) by id and does not restate it. It ends when the Release target above is reached by `kaal-release` 0.0.1 and the DO Change has been accepted.
 
+The CPO clarified the product boundary (see intent.md): the generic loop serves branch promotion and package release; KAAL consumes it for both and keeps its own decisions.
+
 The Owner asked for "some basic setup with a skill, potentially mnemonics if we have some for release work already".
 
 ## A: the present
@@ -11,7 +13,7 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 ## The gap and the route
 
 1. This PLAN, approved by exact-head CPO review. Lands in a clean `kaal/release` collector (squash).
-2. DO: create the package shape from architecture.md, write the Cases RED, then GREEN: T1 to T9.
+2. DO: create the package shape from architecture.md, write the Cases RED, then GREEN: T1 to T10.
 3. Acceptance on the packed artifact in a clean directory.
 4. Release of `kaal-release` itself is the final step, after release management is on `main`, with its own explicit Owner go.
 

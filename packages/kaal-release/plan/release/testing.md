@@ -12,9 +12,21 @@ Cases trace one requirement each. Which are written in which Change is in [00-ch
 | release/T6 | F6 | every mnemonic the shipped files name exists as a Node on `main`; none is redefined |
 | release/T7 | N1 | `kaal-engineer-skill`'s checker reports no `standard` or `kaal` finding |
 | release/T8 | N2 | `package.json` has no KAAL runtime dependency; every file the Skill names resolves inside the skill directory |
+| release/T10 | F7 | acceptance demonstration with two consumers: see below |
 | release/T9 | N3 | the README states Skill-level, no Script, no verification |
 
 Cases run against the package as written and against the packed artifact installed into a clean directory. T5 is the one that keeps the general/KAAL line honest, so it fails with the offending term and file named.
+
+## T10: two consumers, one Skill
+
+Two scenarios are given to the Skill's loop as fixed contexts (inputs), and the decisions it leads an agent to are recorded for each:
+
+1. **Branch promotion**: a repository promoting a candidate branch into a protected default branch (no registry, no version).
+2. **Registry publication**: a package published to npm.
+
+T10 passes when (a) each scenario yields a complete decision for every F2 step, (b) the decisions differ where the contexts differ (identity, controls, authority, verification, recovery), (c) neither decision text, nor the Skill, uses a KAAL-specific identity (the T5 list), and (d) the npm-only mechanisms appear only in the registry scenario. Where a non-KAAL repository fixture is available, it replaces scenario 1. KAAL's own two realizations are cited by the Owner as reference consumers and are not Case inputs.
+
+The judgment in (a) and (b) is read by a reviewer from recorded outputs; (c) and (d) are checked by script.
 
 ## T5: what it forbids and what it allows
 

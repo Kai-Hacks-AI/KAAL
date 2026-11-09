@@ -17,6 +17,17 @@ Two questions per element, in order (Owner, 9 Nov 2026): is it ours, then is it 
 
 The shipped package contains Solution elements only. A Delivery element reaches a consumer only as a pointer in the Skill (F5).
 
+## KAAL as consumer
+
+KAAL consumes `kaal-release` for two targets, and its decisions are its own:
+
+| Target | KAAL's realization (Delivery, not shipped) |
+| --- | --- |
+| Promotion into `main` | `engineering/release-management/` (collectors, gates, merge queue on `main`) |
+| Publication to npm | `engineering/release-management/` (version, approval, publishing, verification controls) |
+
+Neither is a template for other consumers. When KAAL adopts the Skill, KAAL's realization is checked against the Skill's loop as a consumer's own decisions would be, and differences are KAAL's recorded decisions, not defects of the Skill.
+
 ## Shape
 
 ```

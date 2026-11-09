@@ -11,3 +11,15 @@ The line is the point of this capability. KAAL's own release approach (collector
 - **release/I3. The shipped Skill never forces a decision.** Where a repository has to choose (how many gates, who approves, where a candidate is tested), the Skill names the decision and its common options, and the repository's own record wins.
 - **release/I4. The capability runs standalone.** A dependency on KAAL is fair for developing `kaal-release` and not for running it (Owner, 9 Nov 2026).
 - **release/I5. The capability is shipped as BASS and says at which level each behaviour lives.** Judgment stays guidance (Skill). What must repeat exactly may become a Script later, and is not in 0.0.1.
+
+## Product boundary
+
+KAAL engineers `kaal-release` by learning from its own release-management work, then embeds it back as its first consumer. KAAL uses it for two targets: promoting updates into `main`, and publishing products to a package registry. Another repository benefits from the resulting techniques without repeating KAAL's engineering pain and without copying KAAL's decisions.
+
+| Part | What it is | Home |
+| --- | --- | --- |
+| **Generic Release Solution** | Reusable guidance that helps a consumer make its own decisions: assess the context, establish readiness, choose appropriate controls and authority, preserve artifact identity, promote or publish, verify, recover. It prescribes no collectors, gates, rulesets or registry setup. | `kaal-release` (this capability) |
+| **KAAL as consumer (Delivery)** | KAAL's realization for promotion into `main` and package publication. KAAL is a reference consumer, not a mandatory template. | `engineering/release-management/` |
+| **Change** | How each realization is established and improved. Migration and interim controls never enter the generic target. | `00-changes.md`, and the Changes of release management |
+
+- **release/I6. The generic loop serves any release target,** a branch promotion as well as a package publication. Which controls and authority apply is derived from the consumer's context, not fixed by the Skill.

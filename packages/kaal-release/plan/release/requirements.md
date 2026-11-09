@@ -3,19 +3,21 @@
 Scoped `release/`. F are functional, N nonfunctional.
 
 - **release/F1. One Skill.** The package ships one Agent Skill, `kaal-release`, in `skills/kaal-release/SKILL.md`, and one Skill Node `Release` in `payload/`, typed by Core's `KAAL Skill`. The Node states meaning and scope only.
-- **release/F2. The Skill covers the release loop in this order,** each as a decision to make or a check to hold, in industry terms:
-  1. choose the version (Semantic Versioning 2.0.0: what is breaking, a feature, a fix; pre-release identifiers);
-  2. establish readiness (tests pass on the commit to be released, the version is unused, the manifest is complete);
-  3. build once, and promote that same artifact through every later step (never rebuild between test and publish);
-  4. approve publication (a named person or role decides, separately from whoever built);
-  5. publish with an authenticated, auditable identity and attach provenance where the ecosystem supports it (prefer short-lived credentials over long-lived tokens);
-  6. verify the published artifact against the promoted one, installed as a consumer installs it;
-  7. announce (release notes, changelog) and tag;
-  8. recover (mark the release as not to be used and publish a fixed version; withdraw only where the registry's own policy allows).
+- **release/F2. The Skill covers a target-neutral release loop,** each step as a decision to make or a check to hold, in industry terms. A target is any place a release moves to: a protected branch, a package registry, a deployment.
+  1. assess the context (what is released, to whom, from where to where, what failure costs, who can decide);
+  2. choose the identity of the release (a version or equivalent name; Semantic Versioning 2.0.0 where versions apply);
+  3. establish readiness (evidence that the candidate meets its acceptance, and that the name is unused);
+  4. choose the controls and the authority that fit the context (how many independent checks, who approves, separation between author and approver);
+  5. preserve artifact identity: build once, move that same artifact, and never rebuild between test and release;
+  6. promote or publish through an identity that can be audited, with provenance where the target supports it;
+  7. verify what arrived against what was released, observed as a consumer sees it;
+  8. announce (release notes, changelog, tag);
+  9. recover (mark the release as not to be used, release a fix, withdraw only where the target permits).
 - **release/F3. Decisions are named, not made.** For each step the Skill lists the decision a repository owns and its common options, and tells the agent to read the repository's own record of that decision first (a KAAL Engine's Nodes, or `AGENTS.md`). Absent a record, it asks the Owner rather than choosing.
-- **release/F4. The Skill body is ecosystem-neutral; worked examples are separate.** `references/npm.md` applies F2 to npm as one example: npm trusted publishing (OIDC), npm provenance, `npm pack` once, `npm view` for existence, `npm deprecate`. These are npm choices, not requirements on a consumer. The Skill body names no registry or tool.
+- **release/F4. The Skill body is ecosystem-neutral; worked examples are separate.** `references/npm.md` applies F2 to npm as one example: npm trusted publishing (OIDC), npm provenance, `npm pack` once, `npm view` for existence, `npm deprecate`. These apply where the target is npm and are not requirements on any other consumer. The Skill body names no registry or tool.
 - **release/F5. KAAL's realization is pointed to, never copied.** One section tells the agent that if the repository is KAAL's own, its release decisions are in `engineering/release-management/`, and to read them there. The shipped files contain no KAAL collector, gate, control or station name.
 - **release/F6. Mnemonics are referenced by name only,** and only those that exist as Nodes in the Engine the agent is in. The shipped files do not redefine them.
+- **release/F7. Different consumers derive different decisions from the same Skill.** Following F2 and F3, two distinct consumers or targets reach appropriately different controls, authority and verification, and neither imports a KAAL-specific control name from the Skill. This is demonstrated, not asserted (T10).
 - **release/N1. Conforms.** The Agent Skill passes `kaal-engineer-skill`'s checker with no `standard` or `kaal` finding.
 - **release/N2. Standalone.** The package declares no dependency on another KAAL package at runtime, and its Skill resolves every file it names inside the skill directory.
 - **release/N3. Honest about its level.** The README states that 0.0.1 is Skill-level guidance, ships no Script, and does not verify anyone's release.
