@@ -9,6 +9,7 @@
 import { join } from "node:path";
 import { execute, initialize, kind, read, readFile } from "@kaihacksai/kaal-hosting";
 import { accept, integrity, sha256 } from "kaal-testing/acceptance";
+import { readHolds, reclassify } from "./pin-behind.mjs";
 
 async function npm(args, cwd) {
   const r = await execute("npm", args, { cwd, env: { ...process.env, npm_config_audit: "false", npm_config_fund: "false" } });
@@ -82,18 +83,21 @@ export async function packaging(manifest, before, after) {
  * One acceptance run of `scenarios` against `workspaces`, in `dir`, a missing
  * or empty directory outside the repository, from `cwd`. Packs once, hands
  * the manifest to Testing's accept(), then adds packaging's findings.
- * `passed` is Testing's evidence-based result and no packaging failure;
- * unknowns stay in the findings and do not decide it.
+ * `passed` is true when no finding, after the pin-behind rule, is a verified
+ * failure (Testing adds a failed runner as one); unknowns and pin-behind
+ * findings stay visible in the findings and do not decide it.
  */
 export async function deliver({ workspaces, scenarios, dir, cwd }) {
   const manifest = await pack(workspaces, join(dir, "packages"));
   const before = await builds(workspaces);
   const result = await accept({ manifest, scenarios, run: join(dir, "run"), cwd });
-  const found = [...result.findings, ...(await packaging(manifest, before, await builds(workspaces)))];
+  // foundation/C19 (interim Engineering rule, see pin-behind.mjs): a nested, strictly older copy is a pin-behind finding.
+  const settled = reclassify({ manifest, records: result.records, findings: result.findings, holds: await readHolds(result.records) });
+  const found = [...settled, ...(await packaging(manifest, before, await builds(workspaces)))];
   return {
     ...result,
     manifest,
     findings: found,
-    passed: result.passed && !found.some((f) => f.kind === "verified failure"),
+    passed: !found.some((f) => f.kind === "verified failure"),
   };
 }
