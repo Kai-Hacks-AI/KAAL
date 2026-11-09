@@ -49,7 +49,16 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 - **One gate job per ruleset**, named `gate (main)` and `gate (kaal)` (Owner, 9 Nov: these two only). It `needs:` every control job of its station, runs with `if: always()`, and fails unless every needed job succeeded (a skipped job counts as passing for GitHub, so the gate must check results itself). Each gate has a distinct job name because contexts are matched by job name. A ruleset then lists only its gate as required check.
 - **No `gate (npmjs)`**: npmjs has no branch ruleset, so it needs no gate. The `npm` environment approval stays the npmjs control (*approve Publishing*); `Publish` waits on that approval directly.
 
-Use vs build: the gate uses the existing `re-actors/alls-green` action (SHA-pinned, subject to the repository Actions policy) and no gate code is written here. Rename is add-new, then Owner adds the gate contexts to the rulesets by hand, then remove-old; every step is additive so promotions in flight are not blocked. Nothing is renamed by this PLAN.
+**Open design point: how a gate sees jobs in other workflows.** `needs:` works only inside one workflow, and today's checks sit in many files (`ci.yml`, `change-isolation.yml`, `promotion-source.yml`, `lineage-synchronization.yml`, `codeql.yml`, `dependency-review.yml`, `merge-group*.yml`), on different events: `pull_request`, `pull_request_target` (change-isolation, promotion-source, merge-group-admission, which must never share a run with jobs that check out PR code) and `merge_group`. Two ways, for the Owner:
+
+- **A. Consolidate** into one `release/<station>` workflow per event with `needs:` and the `alls-green` action. Cleanest UI nesting, but it merges trusted `pull_request_target` jobs with `pull_request` jobs and needs a separate merge_group copy; only possible where the trust model allows (reusable workflows via `workflow_call` for the trusted ones).
+- **B. Wait by API:** the gate is a trusted job that reads the required check runs of the head (or merge group) and fails closed unless all succeeded; this is the pattern `merge-group-review.yml` already uses ("waits for the others, then reads"). Workflows stay as they are and are renamed in place; the nesting `release/<station> / <control>` is then only by workflow and job name.
+
+Recommendation: B, because it matches existing code and keeps the trust split. Use vs build: B reuses that existing waiting pattern (extracted, not rewritten); A would add `re-actors/alls-green`, which is **not used anywhere in `.github` today**, so it would need a SHA pin and an Actions-policy allowance (an Owner step) and is not free. Neither is decided here.
+
+**Assumption, Owner-confirmed 9 Nov:** npmjs has no branch ruleset. Rulesets and the `npm` environment are not readable from the repository, so this is not verified there.
+
+**Mapping gaps to fill (F4 would flag them today):** `Dependency Review` (to `scan Dependencies`), `CodeQL` (to `scan Vulnerabilities`), the lane names that come from `${{ matrix.check }}` (Workspaces, Engineering), and `Guard Acceptance Boundary`. The map must say which `Guard` is meant: a workflow, a job and a check all carry that name, and `KAAL` names three workflows.
 
 ## Naming map (control names across surfaces)
 

@@ -33,6 +33,6 @@ Root (audit Lineage), then `10-npmjs`, then `11-main`, then `12-kaal`.
 
 ## Open for the Owner
 
-- Whether the CI lanes stay separate jobs under test Candidate/test Integration (recommended; the gate makes it cosmetic) or become one check each.
-- Where `CodeQL` belongs (a lane of test Candidate is proposed) and which control owns `Change Isolation (review)` on `main`.
+- Decided (Owner, 9 Nov): lanes stay separate jobs; `CodeQL` is its own control `scan Vulnerabilities`; `dependency-review.yml` becomes `scan Dependencies`; `isolate Change` at the root; the approval half is `approve Change` on `kaal/*` and `approve Promotion` on `main` (whether `Change Isolation (review)` is kept or retired for native settings is open).
+- Gate design A or B (see `03-architecture`).
 
