@@ -32,10 +32,10 @@ Architecture names the components and allocates each requirement to exactly one 
 | --- | --- | --- |
 | `05-src/pipeline/` | F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies | `lineage.ts` (establishment, collectors, working-branches, freshness, synchronization, claim) with `holds.json` and `branching-audit.sh`/`branching.sh`; `engineering/change-isolation/` and `change-isolation.sh`; scans are tools, below |
 | `05-src/npmjs/` | F1 approve Publishing, F2 verify Package Promotion | A2, A3: `release.yml` Publish and Accept, `publishable()`, `provenance()` (G5 to G11) |
-| `05-src/main/` | F3 version Package, F10 bind Merge, F11 approve Promotion, F12 test Candidate, F13 serialize Promotion, F14 accept Capability | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4); `lineage.ts` source and auto-merge, `promotion-source.sh`; `bind-group.sh`; `engineering/lanes/` for test Candidate |
-| `05-src/collectors/` | F15 approve Change, F16 test Integration | `engineering/lanes/` for test Integration; approve Change has no source |
+| `05-src/main/` | F3 version Package, F10 bind Merge, F11 approve Promotion, F12 test Candidate (FAR: F18), F13 serialize Promotion, F14 accept Capability | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4); `lineage.ts` source and auto-merge, `promotion-source.sh`; `bind-group.sh`; `engineering/lanes/` for test Candidate |
+| `05-src/collectors/` | F15 approve Change, F16 test Integration (FAR: F18) | `engineering/lanes/` for test Integration; approve Change has no source |
 
-Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component. A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
+Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
 
 **Realized by a native setting or a tool, not by source** (recorded here, no folder; the component only holds the requirement and its Case where one can check it):
 
