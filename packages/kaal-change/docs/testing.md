@@ -32,7 +32,7 @@ repository provenance and real outside integrations remain outside this evidence
 | change/T51 | Implementation, delivered | Documented example command invokes the public API and preserves authority/execution qualifications across complete, omitted-interface and new-dependent models. |
 | change/T52 | Architecture, publisher | Core admits Change Practice as a Skill; Engineer Skill checks the Agent Skill. |
 | change/T53 | Capability acceptance | Relocated packed skill runs in an External operator environment without target changes; a broken resource reference fails its public checker. |
-| change/T54 | Capability acceptance | Core registers only the packaged Skill contribution into an arbitrary Engine; installed 0.0.1 verification observes all nine delivered Cases. |
+| change/T54 | Capability acceptance | Core registers only the packaged Skill contribution into an arbitrary Engine; installed 0.0.1 verification observes all ten delivered Cases. |
 
 T51 and T52 begin assertion RED against executable/admitted scaffolds, then GREEN.
 Mechanical checks do not establish the correctness of an agent's reasoning;
@@ -42,14 +42,16 @@ worked-use validation is reported separately from test execution.
 
 | Case | Loop | Contract |
 | --- | --- | --- |
-| change/T55 | Architecture, publisher | The actual package declares all providers needed by shipped verification as exact production dependencies. |
-| change/T57 | Publisher integration | The existing Release readiness gate names missing required Graph/Hosting versions before packing; controlled registry observations do not claim publication. |
+| change/T59 | Architecture, publisher | Graph is an optional peer at one exact version, not a production dependency, and stays a development dependency for this package's own tests. |
+| change/T55 | Architecture, publisher | The actual package declares Foundation and Hosting, needed by shipped verification, as exact production dependencies. |
+| change/T58 | Implementation, delivered | An isolation verdict (assessment and findings) is the same for any order of the selected scope; one owner's finding, such as a missing owner source, cannot change another's. |
+| change/T57 | Publisher integration | The existing Release readiness gate names a missing required Hosting version before packing (Graph is an optional peer and is not required); controlled registry observations do not claim publication. |
 | change/T56 | Publisher integration, explicit artifact probe | With fresh consumer/cache, request only the Change tarball; npm resolves declared dependencies through checked local-tarball overrides, then the existing Release judge validates all installed Cases and their statuses. |
 
 Run T56 from the source workspace after a caller has packed once:
 
 ```sh
-npm run test:package-only -- <absolute packed-manifest.json> <absolute fresh consumer directory>
+node test/publisher/package-only.mjs <absolute packed-manifest.json> <absolute fresh consumer directory>
 ```
 
 The probe neither builds nor packs. Its overrides supply artifact transport only;
