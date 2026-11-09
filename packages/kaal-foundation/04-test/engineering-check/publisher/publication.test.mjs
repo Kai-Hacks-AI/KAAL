@@ -201,7 +201,7 @@ describe("Foundation publication readiness (foundation/C3)", () => {
     const { scripts = {}, files = [] } = manifest();
     assert.equal(scripts.test, "node dist/test/package-check/verify.mjs", "npm test is the delivered verification");
     assert.equal(scripts["test:all"], undefined, "there is no runner");
-    assert.ok(/04-test\/engineering-check\/publisher\//.test(scripts["test:publisher"] ?? ""), "test:publisher runs the publisher's tests");
+    assert.ok(/04-test\/engineering-check\/collect\.mjs/.test(scripts["test:publisher"] ?? ""), "test:publisher runs the collector of the publisher's tests");
     assert.deepEqual(files, ["dist"], "files ships dist/ alone: no plan and no publisher test");
     assert.equal(existsSync(join(PACKAGE, "test", "run.mjs")), false, "the runner is retired (foundation/C20)");
   });

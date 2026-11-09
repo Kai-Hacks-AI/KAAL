@@ -4,7 +4,7 @@
 //   node build.mjs [--out <dir>]   writes <dir>/dist (default: the package folder)
 // It is Engineering tooling for this package, not a shipped script, and it needs only Node.
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -29,5 +29,6 @@ for (const [from, to] of COPIES) {
   const source = join(PACKAGE, from);
   if (!existsSync(source)) continue;
   mkdirSync(dirname(join(dist, to)), { recursive: true });
-  cpSync(source, join(dist, to), { recursive: true });
+  // A folder named delivery holds Delivery Cases and mechanics; it never ships (foundation/F41, A26).
+  cpSync(source, join(dist, to), { recursive: true, filter: (src) => !relative(source, src).split(sep).includes("delivery") });
 }
