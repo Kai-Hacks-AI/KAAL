@@ -27,7 +27,7 @@
     "build": "node 04-test/engineering-check/build.mjs",
     "pretest": "node -e \"if(require('fs').existsSync('04-test')){require('child_process').execFileSync(process.execPath,['04-test/engineering-check/build.mjs'],{stdio:'inherit'})}\"",
     "test": "node dist/test/package-check/verify.mjs",
-    "test:publisher": "npm run build && node --test 04-test/engineering-check/publisher/manifest.test.mjs 04-test/engineering-check/publisher/sha256.test.mjs 04-test/engineering-check/publisher/publication.test.mjs 04-test/engineering-check/publisher/verifier.test.mjs 04-test/engineering-check/publisher/capability.test.mjs 04-test/engineering-check/publisher/acquisition.test.mjs 04-test/engineering-check/publisher/release.test.mjs 04-test/engineering-check/publisher/ownership.test.mjs 04-test/engineering-check/publisher/declaration.test.mjs 04-test/engineering-check/publisher/declaration-consumer.test.mjs",
+    "test:publisher": "npm run build && node --test 04-test/engineering-check/publisher/manifest.test.mjs 04-test/engineering-check/publisher/sha256.test.mjs 04-test/engineering-check/publisher/publication.test.mjs 04-test/engineering-check/publisher/verifier.test.mjs 04-test/engineering-check/publisher/capability.test.mjs 04-test/engineering-check/publisher/acquisition.test.mjs 04-test/engineering-check/publisher/release.test.mjs 04-test/engineering-check/publisher/ownership.test.mjs 04-test/engineering-check/publisher/boundary.test.mjs 04-test/engineering-check/publisher/declaration.test.mjs 04-test/engineering-check/publisher/declaration-consumer.test.mjs",
     "manifest": "npm run build && node 04-test/engineering-check/publisher/manifest.mjs && npm run build",
     "prepack": "node 04-test/engineering-check/build.mjs"
   },

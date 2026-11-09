@@ -11,4 +11,11 @@ Foundation holds the shared, pure and deterministic primitives that any KAAL pac
   package supplies its authoritative Capability Node for explicitly requested
   Core registration. Foundation owns the bytes; Core owns registration.
 
+- **foundation/I14** **It can find, anywhere it is pointed, what it owns being done somewhere else.**
+  The byte-level SHA-256 is Foundation's (foundation/I1, foundation/I2). Its Boundary
+  Check reports each place where it is done elsewhere, as a finding, and decides nothing:
+  a finding is audit, not a fault, and "none found" is not compliance. It carries what it
+  looks for and never where it looks, and it names no role. Only a consequence of a
+  decision enters a package.
+
 See [Requirements](../requirements/functional/requirements.md) for what this guarantees.
