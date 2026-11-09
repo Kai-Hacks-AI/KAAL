@@ -16,7 +16,19 @@ Use over build: no new dependency. Node's `child_process`, the repository's own 
 - **R4. Parity before the switch.** For each wrapper a Case runs the old shell and the new `.mjs` on the same recorded inputs (fixtures with stubbed `git` and `gh`) and requires identical exit codes and output text. The shell is removed in the same PR that switches the workflow, after the Case is green.
 - **R5. Required check names do not change.** Workflow job and check names stay exactly as they are; only the step command changes (`bash x.sh` to `node x.mjs`). A Case reads the workflows and refuses a changed name.
 - **R6. Fail closed.** A missing argument, a missing variable, a failed `git` or `gh` call, or an unparsable answer exits 2, never 0 and never a pass by default.
-- **R7. One at a time, exact-head review.** Order: `promotion-source` (15 lines, the pilot), `branching`, `change-isolation`, `branching-audit`, `bind-group`, `push-check` with the pre-push hook and the Guard `guard.sh` and templates (these ship to consumers through `deliver.mjs`, so their delivery Case also moves). Each is its own PR with its own CPO review.
+- **R7. One at a time, exact-head review.** Order (unchanged by R9): `promotion-source` (15 lines, the pilot), `branching`, `change-isolation`, `branching-audit`, `bind-group`, `push-check` with the pre-push hook and the Guard `guard.sh` and templates (these ship to consumers through `deliver.mjs`, so their delivery Case also moves). Each is its own PR with its own CPO review.
+- **R9. Each port lands in its release-management component (Owner, 9 Nov, to avoid a two-step move).** The `.mjs` is delivered straight into `engineering/release-management/05-src/` (PLAN #1320), not into `engineering/github/`, so it moves once. The Guard declaration (`.kaal/config/guard/*.md`) points at the new path in the same PR; the workflow is unchanged (R5). Destinations:
+
+  | Shell file | Control (component) | Destination |
+  | --- | --- | --- |
+  | `promotion-source.sh` (pilot, ported at `engineering/github/promotion-source.mjs`) | accept Capability (`main`) | `05-src/main/accept-capability/`; the `.mjs` moves there in its own small Change |
+  | `branching-audit.sh` | audit Lineage (`pipeline`) | `05-src/pipeline/audit-lineage/` |
+  | `change-isolation.sh` | isolate Change (`pipeline`) | `05-src/pipeline/isolate-change/` |
+  | `branching.sh` | verify Ancestry, isolate Change (synchronization shape) and bind Merge (merge method), three halves | ported whole under `05-src/pipeline/verify-ancestry/` to keep R3/R4 parity, then split by control in the release-management Changes (to settle in that port's DO) |
+  | `.github/scripts/bind-group.sh` | bind Merge (`main`) | `05-src/main/bind-merge/` |
+  | `push-check.sh`, `guard.sh`, the pre-push hooks and templates | not release controls | stay in Engineering/Guard as R7 says |
+
+  The shell inventory (`shell-inventory.test.mjs`) is unchanged by this: a port removes its entry from `ALLOWED` in its own PR, and its `.mjs` appears at the destination above, so the list still only shrinks and no new `.sh` path is added.
 - **R8. The workflow that tests itself.** The gates run from the base branch, so a port is judged by the old gate until it merges. The first merged port is the live test; the order above puts the smallest first, and each next port starts only after the previous one has run on real pull requests.
 
 ## Testing (RED until the DOs)

@@ -1,0 +1,3 @@
+# Engineering: shell ports land in their release-management components
+
+Capability: Engineering. Target: `kaal/engineering-gate-ports`. Record number provisional until integration. Documentation only: `engineering/github/ports/PLAN.md` gains R9 (each port is delivered straight into its release-management component under `engineering/release-management/05-src/`, one move instead of two, per the Owner's ruling of 9 Nov and the release-management PLAN #1320), with a destination per shell file, and the shell inventory comment points at it. The allowlist is unchanged and still only shrinks. No port, no workflow change, no promotion, release or publication.

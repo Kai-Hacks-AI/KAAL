@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
-/** Exactly these tracked files are shell. Port a file, remove it here; never add one. */
+/** Exactly these tracked files are shell. Port a file, remove it here; never add one. The ported `.mjs` lands in its release-management component (PLAN R9), never as a new shell path. */
 const ALLOWED = [
   ".githooks/pre-push",
   ".github/scripts/bind-group.sh",
