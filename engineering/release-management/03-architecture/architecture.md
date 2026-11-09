@@ -57,6 +57,10 @@ Architecture names the components and allocates each requirement to exactly one 
 
 Each of F1 to F3 and F5 to F16 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
 
+**The migration is an architecture element too (Owner, 9 Nov).** The change process from the current controls to the new ones (`00-changes`) is a Delivery element with a beginning and an end. It owns the temporary requirements (F20 today) and their Cases (T12), kept in `00-changes/change-requirements.md`, not in the root requirements and tests, and its last step is **terminate**: remove the last shim, delete F20 and T12, then close the migration record. Standing requirements stay with their components.
+
+**Shim rule (F20, owned by the migration).** A shim left at an old path is a full facade of the moved module: it re-exports everything (`export * from` the new path) and, where the module has a command line, calls the new module's `main`. It exists only while a caller still uses the old path. Because a caller in `.github` travels alone, the shim is removed in a separate Engineering Change after the `.github` Change has rewired the last caller, never in the same Change. T12 compares the old module's export names with the new one's and runs the command line through the old path, for every shim.
+
 **Realized by a native setting or a tool, not by source** (recorded here, no folder; the component only holds the requirement and its Case where one can check it):
 
 - approve Change (F15): the `kaal/*` ruleset (code owner review, approval of the most recent push).
@@ -106,6 +110,12 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 ## Naming map (control names across surfaces)
 
 One row per control: the name in the records (this folder), its component under `05-src/` and its control target, and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/release-engine/` | `KAAL / release / publish / approve Publishing`.
+
+| Control | Intent | Requirement | Control target | Component (`05-src/`) | Job in the GitHub UI | Cases |
+| --- | --- | --- | --- | --- | --- | --- |
+| version Package | I5 | F3 | main | `release-engine/` | `KAAL / release / promote / version Package` | T1, T2, T3, T11 |
+| approve Publishing | I6 | F1 | npmjs | `release-engine/` | `KAAL / release / publish / approve Publishing` | T4, T11 |
+| verify Package Promotion | I7 | F2 | npmjs | `release-engine/` | `KAAL / release / publish / verify Package Promotion` | T5, T11 |
 
 ## Target: into `main` now, without `pull_request_target` (Owner, 9 Nov 2026)
 

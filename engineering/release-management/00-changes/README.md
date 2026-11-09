@@ -3,7 +3,7 @@
 One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Because `.github` travels alone (F6, T7), a control's work is **two Changes**, not one: an Engineering Change that moves the code into `05-src` (and adds its Cases), and a `.github`-only Change that adds the job and wiring. Together they do four things, in this order, and nothing else (names aligned per F4: self-explanatory, mapped in `03-architecture`, not identical strings):
 
 1. **Add** the control as a job named by the control inside the workflow `KAAL / release / <step>` (see `03-architecture`), running the code from its component under `05-src/` (per the allocation in `03-architecture`); a control realized by a native setting or a used tool moves no code.
-2. **Move** the code from where it lives today into `05-src` (history kept with `git mv`; the old path keeps a one-line shim only if a required check or hook still calls it).
+2. **Move** the code from where it lives today into `05-src` (history kept with `git mv`; the old path keeps a full-facade shim (F20, the shim rule in `03-architecture`) only if a required check, hook or other capability's Case still calls it, and the shim is removed in a later Engineering Change, after the `.github` Change has rewired its last caller).
 3. **Retire** the old check name once the Owner has added the new context to the ruleset by hand, and only when that makes sense: a control with no old equivalent retires nothing.
 4. **Prove** it with Cases that sit next to the code (test layout rule); parity Cases pin that the moved code behaves as before.
 
@@ -28,6 +28,10 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 | audit Lineage | main, collectors | `branching-audit.sh`, `holds.json`; `Branching audit` | `Branching audit` |
 
 `Branching` retires only after all three halves have a new home (verify Ancestry, isolate Change, bind Merge), each add-new first. Two gates close the set: `gate (promotion)` and `gate (integration)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts, and adds the control's traced entries at the root: its Intent entry, requirement, allocation and `applied at` target in `03-architecture`, Cases and Defects where any.
+
+## The migration and its last step
+
+This folder is the migration, a Delivery element of the architecture (`03-architecture`): it owns the temporary change requirements (F20 and its Case T12, in `change-requirements.md`). Its **last step is terminate**, a Change of its own that also lands in `main` (step 8 of the path in the README), after the final control Change and the `.github` Changes that remove the old checks: delete the remaining shims, delete F20 and T12, and close this record. Until then, each shim is removed by its own Engineering Change once the `.github` Change has rewired its last caller (F20; `.github` travels alone, so the two are never one Change).
 
 ## Retiring `Change Isolation (review)` (Owner, 9 Nov)
 
