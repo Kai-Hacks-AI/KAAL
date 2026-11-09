@@ -147,10 +147,14 @@ test("T5 [R7]: --check recomputes the content: a wrong branch, a changed tests e
   assert.equal(cli(root, "--check").status, 1, "a missing graph is stale");
 });
 
-test("T6 [R8]: the computer imports yaml and Node's built-ins only, and no package imports it", () => {
-  for (const file of ["graph.mjs", "compute.mjs"]) {
-    const imports = [...readFileSync(join(HERE, file), "utf8").matchAll(/^import .* from "([^"]+)";$/gm)].map((m) => m[1]);
-    for (const spec of imports) assert.ok(spec.startsWith("node:") || spec === "yaml" || spec === "./graph.mjs", `${file}: ${spec}`);
+test("T6 [R8]: the computer reads with parsers and imports only yaml, commonmark, typescript and Node's built-ins, and no package imports it", () => {
+  const allowed = new Set(["yaml", "commonmark", "typescript", "./graph.mjs", "../parsers/front-matter.mjs"]);
+  for (const file of ["case-graph/graph.mjs", "case-graph/compute.mjs", "parsers/front-matter.mjs"]) {
+    const imports = [...readFileSync(join(HERE, "..", file), "utf8").matchAll(/^import .* from "([^"]+)";$/gm)].map((m) => m[1]);
+    for (const spec of imports) assert.ok(spec.startsWith("node:") || allowed.has(spec), `${file}: ${spec}`);
+  }
+  for (const file of ["case-graph/graph.mjs", "parsers/front-matter.mjs"]) {
+    assert.doesNotMatch(readFileSync(join(HERE, "..", file), "utf8"), /\.(?:match|matchAll)\(|RegExp\(|\.split\(["'`]\\n/, `${file} reads no source by pattern`);
   }
 });
 

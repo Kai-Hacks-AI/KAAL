@@ -2,7 +2,7 @@
 // (engineering/boundary/PLAN.md R2, R8). A definition names a provider and typed tests; it names no target, role, code or regular expression.
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { parse } from "yaml";
+import { frontMatter } from "../parsers/front-matter.mjs";
 import { DETECTORS } from "./detectors/index.mjs";
 
 const COMMON = new Set(["id", "detector", "looks-for", "tests"]);
@@ -46,14 +46,10 @@ export function problems(front) {
 export function loadDefinition(file) {
   const path = resolve(file);
   const source = readFileSync(path, "utf8");
-  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-  if (!match) throw new Error(`${file}: no YAML front matter`);
-  let front;
-  try {
-    front = parse(match[1]);
-  } catch (error) {
-    throw new Error(`${file}: front matter is not YAML (${error.message.split("\n")[0]})`);
-  }
+  const parsed = frontMatter(source);
+  if (!parsed) throw new Error(`${file}: no YAML front matter`);
+  if (parsed.errors.length > 0) throw new Error(`${file}: front matter is not YAML (${parsed.errors[0]})`);
+  const front = parsed.value;
   const found = problems(front);
   if (found.length) throw new Error(`${file}: ${found.join("; ")}`);
   return { provider: front.provider, tests: front.tests, dir: dirname(path), file: path };

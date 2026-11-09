@@ -1,19 +1,18 @@
 // ARTIST: Agent Requirements Tracing Implements Systematic Trail (engineering/case-graph/PLAN.md).
 // Reads a capability package and computes its Case graph: which branch of the Architecture each Case verifies, and so whether
-// it ships. It only reads the package: no Case is imported or run. YAML is parsed here and nowhere in a capability (R8).
+// it ships. It only reads the package: no Case is imported or run. Nothing is read by pattern: Markdown goes through commonmark,
+// Case files through the TypeScript parser, front matter through the yaml package. None of them is a dependency of a capability (R8).
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { Parser as MarkdownParser } from "commonmark";
+import ts from "typescript";
 import { parse } from "yaml";
+import { frontMatter } from "../parsers/front-matter.mjs";
 
 const SKIP = new Set(["00-changes", "node_modules", "dist", ".git"]);
-const ELEMENT = /^\s*- \*\*([\w-]+)\/([A-Z]+)(\d+)\*\*(?: \[([^\]]*)\])?/;
-// Every call of `test` or `it` (also `.skip`, `.only`, `.todo`), on one line or across lines, but not a method such as `re.test(`.
-const CALL = /(?<![.\w$])(?:test|it)(?:\.(?:skip|only|todo))?\s*\(/g;
-const TITLE = /^\s*(["'`])([\w-]+\/(?:T\d+|TX-[\w-]+))(?: \[([^\]]+)\])?:/;
-// An alias would hide a Case from the scan above, so it is refused.
-const ALIAS = [/import\s*\{[^}]*\bas\b[^}]*\}\s*from\s*["']node:test["']/, /import\s*\(\s*["']node:test["']/, /(?<![=!<>])=\s*(?:test|it)\s*[;,)\n]/];
-const FRONT = /^\/\*---\n([\s\S]*?)\n---\*\//;
-const SECTIONS = { Solution: "solution", Delivery: "delivery", "Cross-cutting": "cross-cutting" };
+const TITLE = /^([\w-]+\/(?:T\d+|TX-[\w-]+))(?: \[([^\]]+)\])?:/;
+const NODE = /^([\w-]+)\/([A-Z]+)(\d+)(?: \[([^\]]*)\])?/;
+const SECTIONS = { Solution: "solution", Delivery: "delivery" };
 
 export class Refusal extends Error {}
 const refuse = (message) => {
@@ -35,64 +34,76 @@ export function walk(root, suffixes) {
   return out;
 }
 
-const ids = (text) =>
-  text
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+// A bracketed list of ids is a YAML flow sequence.
+const ids = (text) => (parse(`[${text}]`) ?? []).map(String);
 
-/** The Nodes of the package: every `- **<cap>/<letter><n>** [<ids>]` line of its Markdown, with the ids it answers. */
+/** The text of a CommonMark node's inline content, with emphasis and code reduced to their text. */
+function inlineText(node) {
+  let out = "";
+  for (let child = node.firstChild; child; child = child.next) {
+    if (child.type === "softbreak" || child.type === "linebreak") out += " ";
+    else if (child.literal !== null && child.literal !== undefined) out += child.literal;
+    else out += inlineText(child);
+  }
+  return out;
+}
+
+/** The list items of a Markdown file that start with a Node id, in order, each with its `##` section: `- **<cap>/<letter><n>** [<ids>]`. */
+export function readItems(text) {
+  const out = [];
+  const walker = new MarkdownParser().parse(text).walker();
+  let section = null;
+  for (let step = walker.next(); step; step = walker.next()) {
+    const { node, entering } = step;
+    if (!entering) continue;
+    if (node.type === "heading" && node.level === 2) section = inlineText(node).trim();
+    if (node.type !== "item" || node.firstChild?.type !== "paragraph") continue;
+    const m = NODE.exec(inlineText(node.firstChild));
+    if (m) out.push({ cap: m[1], kind: m[2], id: `${m[1]}/${m[2]}${m[3]}`, answers: ids(m[4] ?? ""), section });
+  }
+  return out;
+}
+
+/** The Nodes of the package: every list item of its Markdown that starts with a Node id, with the ids it answers. */
 export function readNodes(root) {
   const nodes = new Map();
   for (const file of walk(root, [".md"])) {
-    for (const line of readFileSync(join(root, file), "utf8").split("\n")) {
-      const m = ELEMENT.exec(line);
-      if (!m) continue;
-      const id = `${m[1]}/${m[2]}${m[3]}`;
-      if (!nodes.has(id)) nodes.set(id, { id, kind: m[2], cap: m[1], file, answers: ids(m[4] ?? "") });
+    for (const item of readItems(readFileSync(join(root, file), "utf8"))) {
+      if (!nodes.has(item.id)) nodes.set(item.id, { ...item, file });
     }
   }
   return nodes;
 }
 
-/** The Architecture: each element's branch (`solution` or `delivery`) and the ids it answers; the cross-cutting entries answer in both. */
+/** The Architecture: each element's branch (`solution` or `delivery`) and the ids it answers. */
 export function readArchitecture(root) {
-  const text = readFileSync(join(root, "03-architecture/architecture.md"), "utf8");
-  let section = null;
   const elements = new Map();
-  const cross = new Set();
-  for (const line of text.split("\n")) {
-    const h = /^## (.+?)\s*$/.exec(line);
-    if (h) section = SECTIONS[h[1]] ?? null;
-    else if (/^### /.test(line)) continue;
-    const m = ELEMENT.exec(line);
-    if (!m || section === null) continue;
-    const id = `${m[1]}/${m[2]}${m[3]}`;
-    if (section === "cross-cutting") {
-      cross.add(id);
-      continue;
-    }
-    if (m[2] !== "A") continue;
-    if (elements.has(id)) refuse(`architecture: duplicate element ${id}`);
-    elements.set(id, { id, branch: section, answers: ids(m[4] ?? "") });
+  for (const item of readItems(readFileSync(join(root, "03-architecture/architecture.md"), "utf8"))) {
+    const branch = SECTIONS[item.section];
+    if (item.kind !== "A" || (branch !== "solution" && branch !== "delivery")) continue;
+    if (elements.has(item.id)) refuse(`architecture: duplicate element ${item.id}`);
+    elements.set(item.id, { id: item.id, branch, answers: item.answers });
   }
   if (elements.size === 0) refuse("architecture: no element in ## Solution or ## Delivery");
-  return { elements, cross };
+  return { elements };
 }
 
 const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
 
-/** One Case file: its YAML front matter (`tests`, optionally `runs: external`) and its Cases, from the titles. */
+const CALLEE = new Set(["test", "it"]);
+const MODIFIERS = new Set(["skip", "only", "todo"]);
+
+/** One Case file: its YAML front matter (`tests`, optionally `runs: external`) and its Cases, from the calls of `test` or `it`. */
 export function readCaseFile(root, file) {
   const text = readFileSync(join(root, file), "utf8");
-  const m = FRONT.exec(text);
-  if (!m) refuse(`${file}: no front matter (a leading /*--- ... ---*/ block)`);
-  let front;
-  try {
-    front = parse(m[1]);
-  } catch (error) {
-    refuse(`${file}: invalid front matter: ${error.message.split("\n")[0]}`);
-  }
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith(".ts") ? ts.ScriptKind.TS : ts.ScriptKind.JS);
+  const at = (node) => `${file}:${source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1}`;
+  const comment = ts.getLeadingCommentRanges(text, 0)?.find((range) => range.kind === ts.SyntaxKind.MultiLineCommentTrivia);
+  const block = comment ? text.slice(comment.pos + 2, comment.end - 2) : "";
+  const parsed = frontMatter(block.trimStart());
+  if (!parsed) refuse(`${file}: no front matter (a leading /*--- ... ---*/ block)`);
+  if (parsed.errors.length > 0) refuse(`${file}: invalid front matter: ${parsed.errors[0]}`);
+  const front = parsed.value;
   if (front === null || typeof front !== "object" || Array.isArray(front)) refuse(`${file}: front matter is not a mapping`);
   for (const key of Object.keys(front)) {
     if (key === "ships") refuse(`${file}: front matter carries ships; shipping is computed from the Architecture, never written`);
@@ -103,17 +114,32 @@ export function readCaseFile(root, file) {
   }
   if (front.runs !== undefined && front.runs !== "external") refuse(`${file}: runs may only be external`);
   const cases = [];
-  const lineAt = (index) => text.slice(0, index).split("\n").length;
-  for (const pattern of ALIAS) if (pattern.test(text)) refuse(`${file}: test or it is aliased, so the Cases cannot be enumerated`);
-  for (const call of text.matchAll(CALL)) {
-    const rest = text.slice(call.index + call[0].length);
-    const t = TITLE.exec(rest);
-    const at = `${file}:${lineAt(call.index)}`;
-    if (!t) refuse(`${at}: a Case title must be "<cap>/T<n> [<targets>]: ..."; every test( or it( call must be a recognized Case`);
-    if (t[1] === "`" && /^[^`]*\$\{/.test(rest.slice(rest.indexOf("`") + 1))) refuse(`${at}: a generated (template) Case title`);
-    if (!t[3]) refuse(`${at}: Case ${t[2]} names no target`);
-    cases.push({ id: t[2], file, targets: ids(t[3]) });
-  }
+  const isTest = (node) => ts.isIdentifier(node) && CALLEE.has(node.text);
+  const visit = (node) => {
+    if (ts.isImportSpecifier(node) && node.propertyName && CALLEE.has(node.propertyName.text) && node.name.text !== node.propertyName.text) {
+      refuse(`${at(node)}: ${node.propertyName.text} is imported under another name, so the Cases cannot be enumerated`);
+    }
+    if ((ts.isVariableDeclaration(node) && node.initializer && isTest(node.initializer)) || (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && isTest(node.right))) {
+      refuse(`${at(node)}: test or it is assigned to another name, so the Cases cannot be enumerated`);
+    }
+    if (ts.isCallExpression(node)) {
+      if (node.arguments.some(isTest)) refuse(`${at(node)}: test or it is passed as a value, so the Cases cannot be enumerated`);
+      const callee = node.expression;
+      const direct = isTest(callee) || (ts.isPropertyAccessExpression(callee) && isTest(callee.expression) && MODIFIERS.has(callee.name.text));
+      if (direct) {
+        const [title] = node.arguments;
+        if (!title || !(ts.isStringLiteral(title) || ts.isNoSubstitutionTemplateLiteral(title))) {
+          refuse(`${at(node)}: the title of a Case must be a literal "<cap>/T<n> [<targets>]: ..." (a computed or template title cannot be enumerated)`);
+        }
+        const t = TITLE.exec(title.text);
+        if (!t) refuse(`${at(node)}: a Case title must be "<cap>/T<n> [<targets>]: ..."; every test( or it( call must be a recognized Case`);
+        if (!t[2]) refuse(`${at(node)}: Case ${t[1]} names no target`);
+        cases.push({ id: t[1], file, targets: ids(t[2]) });
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
   if (cases.length === 0) refuse(`${file}: no Case title found`);
   const union = [...new Set(cases.flatMap((c) => c.targets))];
   if (!sameSet(union, front.tests.map((t) => t.trim()))) {
