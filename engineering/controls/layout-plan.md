@@ -86,6 +86,27 @@ Observation, not a decision: three of these overlap. `lineage`, `promotion-sourc
 
 Moving them changes only paths (and the `test:engineering` list); the Cases' bytes stay the same. It is its own Change, after the layout is decided.
 
+## Running it control by control
+
+Owner direction: take the controls one at a time, and use it to learn what the Controls capability (kaal-control) needs. Each control goes through the same steps, and the next one starts only when the previous one is done:
+
+1. **Concern name** (the proposal above, or the Owner's own words).
+2. **Chain folders:** its Intent, Requirements, Architecture and Test index in the numbered folders, with the bytes of each section unchanged. Defects folder created empty.
+3. **Cases:** the Cases it cites, in their homes (parity Cases beside the script, shell Cases in `engineering/shell/`).
+4. **Port,** where the control has a shell script: the port and its parity Case, with the Architecture line naming the `.mjs`.
+5. **Promotion** of that control's collector, on its own, with the Owner's go and the CPO's exact-head review.
+6. **Lessons:** what the step showed about the Controls capability, written into the log below before the next control starts.
+
+**First control: Promotion source.** Its port has already landed in the collector (#1317), it has one Intent and two Requirements, and its checker (`lineage.ts`) is shared with Lineage, so the first pass also shows how a control relates to a checker it shares. Proposed order after it: Lineage, Lineage audit, Change Isolation, then the controls that have no port (Required tests, Review before merge, One promotion at a time) and the merge queue, last, because its scripts also depend on the `pull_request_target` decision.
+
+### What we learn about kaal-control (log)
+
+Filled in as each control is done. Questions to answer on the way:
+- Does a control's chain read the same as a package's chain with the same tool (the traceability computer)?
+- Where does a Case that several controls share belong (for example `lineage.test.ts`)?
+- Can a control with no code (Review before merge) still carry a chain, and what does its Test index say?
+- What does a rename by business concern cost in incoming edges?
+
 ## Decisions for the Owner
 
 1. **Numbered folders (package-like) or the C3 flat files** (`intent.md`, `requirements.md`, `architecture.md`, `testing.md`)? Recommendation: numbered, so one traceability computer reads both.
@@ -94,7 +115,7 @@ Moving them changes only paths (and the `test:engineering` list); the Cases' byt
 4. **Case homes.** Parity Cases beside their script, the inventory and byte-pin Cases and the ports PLAN in `engineering/shell/`. Recommendation: yes.
 5. **Where the chain folders live: `engineering/controls/` or `engineering/github/controls/`.** A control is an enduring concern, kept apart from any mechanism (a Control carries `Has` edges and nothing else), and not all seven are about GitHub: Change Isolation's checker is `engineering/change-isolation/`, Required tests belongs to the lanes. Under `github/controls/` those would have no home, and every control would be tied to one provider. Recommendation: chain folders stay in `engineering/controls/<control>/`; the scripts and their parity Cases stay in `engineering/github/`, where the mechanism is. If the Owner prefers `github/controls/`, only the controls whose mechanism is a GitHub workflow (at least Lineage, Promotion source and Lineage audit; the others are to be checked one by one) would move there, and the rest stay behind.
 6. **Names.** Name each control by business concern, using the table above (or the Owner's own words), and decide whether the overlapping three stay separate.
-7. **Migration.** One control first (promotion-source, the pilot), bytes of each section unchanged, as its own Change. The other six follow once it is reviewed. The ports' Architecture edits then land in the new place, once.
+7. **Migration.** Control by control, as in the section above, starting with Promotion source. Bytes of each section stay unchanged, each control is its own Change. The ports' Architecture edits then land in the new place, once.
 
 ## Not in this PLAN
 
