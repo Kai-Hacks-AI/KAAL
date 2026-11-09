@@ -75,6 +75,7 @@
       "ships": false,
       "runs": "collector",
       "cases": [
+        "foundation/T9",
         "foundation/T10",
         "foundation/T11",
         "foundation/T12",
@@ -166,8 +167,8 @@
       "id": "foundation/T32",
       "file": "02-requirements/functional/acquisition.test.mjs",
       "targets": [
-        "F18",
-        "A26"
+        "foundation/F18",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -176,10 +177,10 @@
       "id": "foundation/T60",
       "file": "02-requirements/functional/boundary.test.mjs",
       "targets": [
-        "F34",
-        "F37",
-        "N22",
-        "A28"
+        "foundation/F34",
+        "foundation/F37",
+        "foundation/N22",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -188,8 +189,8 @@
       "id": "foundation/T61",
       "file": "02-requirements/functional/boundary.test.mjs",
       "targets": [
-        "F37",
-        "A28"
+        "foundation/F37",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -198,8 +199,8 @@
       "id": "foundation/T62",
       "file": "02-requirements/functional/boundary.test.mjs",
       "targets": [
-        "N21",
-        "A28"
+        "foundation/N21",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -208,9 +209,9 @@
       "id": "foundation/T15",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "F11",
-        "F13",
-        "A26"
+        "foundation/F11",
+        "foundation/F13",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -219,7 +220,7 @@
       "id": "foundation/T16",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "F17"
+        "foundation/F17"
       ],
       "branch": "delivery",
       "ships": false
@@ -228,7 +229,7 @@
       "id": "foundation/T17",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "F17"
+        "foundation/F17"
       ],
       "branch": "delivery",
       "ships": false
@@ -237,9 +238,9 @@
       "id": "foundation/T76",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "F12",
-        "N10",
-        "A28"
+        "foundation/F12",
+        "foundation/N10",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -248,9 +249,9 @@
       "id": "foundation/T18",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "F14",
-        "N8",
-        "A26"
+        "foundation/F14",
+        "foundation/N8",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -259,8 +260,8 @@
       "id": "foundation/T19",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "F16",
-        "A28"
+        "foundation/F16",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -269,7 +270,7 @@
       "id": "foundation/T20",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "F17"
+        "foundation/F17"
       ],
       "branch": "delivery",
       "ships": false
@@ -278,8 +279,8 @@
       "id": "foundation/T21",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "N7",
-        "A28"
+        "foundation/N7",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -288,8 +289,8 @@
       "id": "foundation/T22",
       "file": "02-requirements/functional/capability.test.mjs",
       "targets": [
-        "N9",
-        "A28"
+        "foundation/N9",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -298,9 +299,9 @@
       "id": "foundation/T47",
       "file": "02-requirements/functional/declaration-consumer.test.mjs",
       "targets": [
-        "F26",
-        "N15",
-        "A26"
+        "foundation/F26",
+        "foundation/N15",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -309,8 +310,8 @@
       "id": "foundation/T48",
       "file": "02-requirements/functional/declaration-consumer.test.mjs",
       "targets": [
-        "F26",
-        "A26"
+        "foundation/F26",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -319,8 +320,8 @@
       "id": "foundation/T49",
       "file": "02-requirements/functional/declaration-consumer.test.mjs",
       "targets": [
-        "F27",
-        "A26"
+        "foundation/F27",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -329,9 +330,9 @@
       "id": "foundation/T46",
       "file": "02-requirements/functional/declaration-distribution.test.mjs",
       "targets": [
-        "F25",
-        "N16",
-        "A26"
+        "foundation/F25",
+        "foundation/N16",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -340,9 +341,9 @@
       "id": "foundation/T50",
       "file": "02-requirements/functional/declaration.test.mjs",
       "targets": [
-        "F25",
-        "F26",
-        "A15"
+        "foundation/F25",
+        "foundation/F26",
+        "foundation/A15"
       ],
       "branch": "solution",
       "ships": true
@@ -351,8 +352,8 @@
       "id": "foundation/T71",
       "file": "02-requirements/functional/manifest.test.mjs",
       "targets": [
-        "F11",
-        "A26"
+        "foundation/F11",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -361,7 +362,7 @@
       "id": "foundation/T77",
       "file": "02-requirements/functional/manifest.test.mjs",
       "targets": [
-        "N23"
+        "foundation/N23"
       ],
       "branch": "delivery",
       "ships": false
@@ -370,8 +371,8 @@
       "id": "foundation/T35",
       "file": "02-requirements/functional/ownership.test.mjs",
       "targets": [
-        "F20",
-        "A28"
+        "foundation/F20",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -380,8 +381,8 @@
       "id": "foundation/T75",
       "file": "02-requirements/functional/ownership.test.mjs",
       "targets": [
-        "F21",
-        "A27"
+        "foundation/F21",
+        "foundation/A27"
       ],
       "branch": "delivery",
       "ships": false
@@ -390,8 +391,20 @@
       "id": "foundation/T36",
       "file": "02-requirements/functional/ownership.test.mjs",
       "targets": [
-        "N11",
-        "N12"
+        "foundation/N11",
+        "foundation/N12"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T9",
+      "file": "02-requirements/functional/publication.test.mjs",
+      "targets": [
+        "foundation/F4",
+        "foundation/N2",
+        "foundation/N6",
+        "foundation/A6"
       ],
       "branch": "delivery",
       "ships": false
@@ -400,10 +413,10 @@
       "id": "foundation/T10",
       "file": "02-requirements/functional/publication.test.mjs",
       "targets": [
-        "F5",
-        "F8",
-        "I4",
-        "I6"
+        "foundation/F5",
+        "foundation/F8",
+        "foundation/I4",
+        "foundation/I6"
       ],
       "branch": "delivery",
       "ships": false
@@ -412,7 +425,7 @@
       "id": "foundation/T11",
       "file": "02-requirements/functional/publication.test.mjs",
       "targets": [
-        "F6"
+        "foundation/F6"
       ],
       "branch": "delivery",
       "ships": false
@@ -421,7 +434,7 @@
       "id": "foundation/T12",
       "file": "02-requirements/functional/publication.test.mjs",
       "targets": [
-        "F7"
+        "foundation/F7"
       ],
       "branch": "delivery",
       "ships": false
@@ -430,7 +443,7 @@
       "id": "foundation/T13",
       "file": "02-requirements/functional/publication.test.mjs",
       "targets": [
-        "F9"
+        "foundation/F9"
       ],
       "branch": "delivery",
       "ships": false
@@ -439,9 +452,9 @@
       "id": "foundation/T33",
       "file": "02-requirements/functional/release.test.mjs",
       "targets": [
-        "F14",
-        "N10",
-        "A26"
+        "foundation/F14",
+        "foundation/N10",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false
@@ -450,7 +463,7 @@
       "id": "foundation/T34",
       "file": "02-requirements/functional/release.test.mjs",
       "targets": [
-        "F19"
+        "foundation/F19"
       ],
       "branch": "delivery",
       "ships": false
@@ -459,7 +472,8 @@
       "id": "foundation/T23",
       "file": "02-requirements/functional/requirements.test.mjs",
       "targets": [
-        "F1"
+        "foundation/F1",
+        "foundation/A7"
       ],
       "branch": "solution",
       "ships": true
@@ -468,7 +482,8 @@
       "id": "foundation/T24",
       "file": "02-requirements/functional/requirements.test.mjs",
       "targets": [
-        "F1"
+        "foundation/F1",
+        "foundation/A7"
       ],
       "branch": "solution",
       "ships": true
@@ -477,7 +492,8 @@
       "id": "foundation/T25",
       "file": "02-requirements/functional/requirements.test.mjs",
       "targets": [
-        "F2"
+        "foundation/F2",
+        "foundation/A7"
       ],
       "branch": "solution",
       "ships": true
@@ -486,7 +502,8 @@
       "id": "foundation/T26",
       "file": "02-requirements/functional/requirements.test.mjs",
       "targets": [
-        "F3"
+        "foundation/F3",
+        "foundation/A7"
       ],
       "branch": "solution",
       "ships": true
@@ -495,8 +512,9 @@
       "id": "foundation/T63",
       "file": "02-requirements/functional/requirements.test.mjs",
       "targets": [
-        "F34",
-        "F35"
+        "foundation/F34",
+        "foundation/F35",
+        "foundation/A19"
       ],
       "branch": "solution",
       "ships": true
@@ -505,8 +523,8 @@
       "id": "foundation/T1",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "F1",
-        "A28"
+        "foundation/F1",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -515,9 +533,9 @@
       "id": "foundation/T2",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "F1",
-        "N3",
-        "A28"
+        "foundation/F1",
+        "foundation/N3",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -526,9 +544,9 @@
       "id": "foundation/T3",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "F1",
-        "N3",
-        "A28"
+        "foundation/F1",
+        "foundation/N3",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -537,9 +555,9 @@
       "id": "foundation/T4",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "F2",
-        "N1",
-        "A28"
+        "foundation/F2",
+        "foundation/N1",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -548,8 +566,8 @@
       "id": "foundation/T5",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "F3",
-        "A28"
+        "foundation/F3",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -558,9 +576,9 @@
       "id": "foundation/T6",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "N3",
-        "I2",
-        "A28"
+        "foundation/N3",
+        "foundation/I2",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -569,9 +587,9 @@
       "id": "foundation/T7",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "N1",
-        "N2",
-        "A28"
+        "foundation/N1",
+        "foundation/N2",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -580,8 +598,8 @@
       "id": "foundation/T8",
       "file": "02-requirements/functional/sha256.test.mjs",
       "targets": [
-        "N4",
-        "A28"
+        "foundation/N4",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -590,8 +608,8 @@
       "id": "foundation/T72",
       "file": "02-requirements/functional/verifier.test.mjs",
       "targets": [
-        "F12",
-        "A28"
+        "foundation/F12",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -600,8 +618,8 @@
       "id": "foundation/T73",
       "file": "02-requirements/functional/verifier.test.mjs",
       "targets": [
-        "F12",
-        "A28"
+        "foundation/F12",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -610,8 +628,8 @@
       "id": "foundation/T74",
       "file": "02-requirements/functional/verifier.test.mjs",
       "targets": [
-        "F12",
-        "A28"
+        "foundation/F12",
+        "foundation/A28"
       ],
       "branch": "delivery",
       "ships": false
@@ -620,7 +638,7 @@
       "id": "foundation/T64",
       "file": "03-architecture/architecture-tree.test.mjs",
       "targets": [
-        "F38"
+        "foundation/F38"
       ],
       "branch": "delivery",
       "ships": false
@@ -629,8 +647,8 @@
       "id": "foundation/T65",
       "file": "03-architecture/architecture-tree.test.mjs",
       "targets": [
-        "F39",
-        "N23"
+        "foundation/F39",
+        "foundation/N23"
       ],
       "branch": "delivery",
       "ships": false
@@ -639,7 +657,7 @@
       "id": "foundation/T66",
       "file": "03-architecture/architecture-tree.test.mjs",
       "targets": [
-        "F40"
+        "foundation/F40"
       ],
       "branch": "delivery",
       "ships": false
@@ -648,7 +666,7 @@
       "id": "foundation/T67",
       "file": "03-architecture/architecture-tree.test.mjs",
       "targets": [
-        "F41"
+        "foundation/F41"
       ],
       "branch": "delivery",
       "ships": false
@@ -657,7 +675,7 @@
       "id": "foundation/T68",
       "file": "03-architecture/architecture-tree.test.mjs",
       "targets": [
-        "F42"
+        "foundation/F42"
       ],
       "branch": "delivery",
       "ships": false
@@ -666,7 +684,7 @@
       "id": "foundation/T69",
       "file": "03-architecture/architecture-tree.test.mjs",
       "targets": [
-        "N23"
+        "foundation/N23"
       ],
       "branch": "delivery",
       "ships": false
@@ -675,7 +693,7 @@
       "id": "foundation/T70",
       "file": "03-architecture/architecture-tree.test.mjs",
       "targets": [
-        "F43"
+        "foundation/F43"
       ],
       "branch": "delivery",
       "ships": false
@@ -684,9 +702,9 @@
       "id": "foundation/T27",
       "file": "03-architecture/architecture.test.mjs",
       "targets": [
-        "N1",
-        "N2",
-        "A1"
+        "foundation/N1",
+        "foundation/N2",
+        "foundation/A1"
       ],
       "branch": "solution",
       "ships": true
@@ -695,7 +713,8 @@
       "id": "foundation/T28",
       "file": "03-architecture/architecture.test.mjs",
       "targets": [
-        "N4"
+        "foundation/N4",
+        "foundation/A7"
       ],
       "branch": "solution",
       "ships": true
@@ -704,7 +723,7 @@
       "id": "foundation/T31",
       "file": "03-architecture/architecture.test.mjs",
       "targets": [
-        "F15"
+        "foundation/F15"
       ],
       "branch": "solution",
       "ships": true
@@ -713,8 +732,8 @@
       "id": "foundation/T29",
       "file": "05-src/skills/kaal-foundation/scripts/kaal-foundation.test.mjs",
       "targets": [
-        "F14",
-        "A7"
+        "foundation/F14",
+        "foundation/A7"
       ],
       "branch": "solution",
       "ships": true
@@ -723,8 +742,8 @@
       "id": "foundation/T30",
       "file": "05-src/skills/kaal-foundation/scripts/kaal-foundation.test.mjs",
       "targets": [
-        "F14",
-        "A7"
+        "foundation/F14",
+        "foundation/A7"
       ],
       "branch": "solution",
       "ships": true
@@ -733,11 +752,11 @@
       "id": "foundation/T51",
       "file": "test/acceptance/declaration-acceptance.test.mjs",
       "targets": [
-        "F25",
-        "F26",
-        "F27",
-        "N15",
-        "A26"
+        "foundation/F25",
+        "foundation/F26",
+        "foundation/F27",
+        "foundation/N15",
+        "foundation/A26"
       ],
       "branch": "delivery",
       "ships": false

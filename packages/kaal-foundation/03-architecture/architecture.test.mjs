@@ -1,5 +1,5 @@
 /*---
-tests: [foundation/F15, foundation/N1, foundation/N2, foundation/N4, foundation/A1]
+tests: [foundation/F15, foundation/N1, foundation/N2, foundation/N4, foundation/A1, foundation/A7]
 ---*/
 // Delivered cases: the Architecture loop. They read the installed copy only: its package directory
 // is found from the installed subpath, never from a repository checkout.
@@ -30,7 +30,7 @@ test("foundation/T27 [foundation/N1, foundation/N2, foundation/A1]: the installe
   assert.doesNotMatch(source, /\b(globalThis|process|Buffer|crypto|window|self|Deno|Bun)\b/, "the module names no host global");
 });
 
-test("foundation/T28 [foundation/N4]: the README states provisional ownership for each concern it lists", () => {
+test("foundation/T28 [foundation/N4, foundation/A7]: the README states provisional ownership for each concern it lists", () => {
   const rows = read("README.md").split("\n").filter((line) => line.includes("@kaihacksai/kaal-foundation/"));
   for (const subpath of Object.keys(manifest.exports).filter((k) => k !== "./package.json")) {
     const row = rows.find((line) => line.includes(`@kaihacksai/kaal-foundation/${subpath.slice(2)}`));

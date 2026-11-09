@@ -14,7 +14,7 @@ Capability: Foundation. Target: `kaal/foundation`. Record number provisional unt
 ## Not done here
 The computer itself and its report of what is unanswered (Engineering PLAN #1305, then its DO); BEST suites; the layering Change.
 
-**Merge gate (CPO, 9 Nov).** This Change does not merge until Engineering's computer DO has landed and its `--check` passes on this package: `cases.json` here came from a throwaway script with the same rule, and the computer regenerates it. The wrong-branch and changed-`tests`-edge refusals are Engineering's Cases. No Case or definition carries a `ships` flag: `ships` is computed output only (A23); Foundation's Boundary Test definition no longer carries one either.
+**Merge gate (CPO, 9 Nov), met.** `cases.json` is now written by Engineering's ARTIST (merged in #1307) and `compute.mjs --package . --check` passes on this package: 59 Cases, 11 ship. ARTIST is stricter than the throwaway script that first wrote the file, and it found T9, which that script had missed because its title is on its own line. This Change repaired Foundation's data to satisfy it: A28 answers the Requirements whose outer checks it places (so they are cross-cutting), and the shipped Cases that target such a Requirement name their Solution element (T23 to T26 and T28 name A7, T63 names A19). No Case or definition carries a `ships` flag; it is computed output only (A23).
 
 ## Verified
 `npm run test:publisher` 47 of 47, `npm test` verified, T64 to T70 GREEN.
