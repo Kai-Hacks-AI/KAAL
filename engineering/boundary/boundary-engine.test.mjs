@@ -72,7 +72,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.ok(files.includes("engine.mjs"), "engine.mjs is delivered");
     const src = files.map((f) => readFileSync(join(HERE, f), "utf8")).join("\n");
     const imports = [...src.matchAll(/(?:from\s+|import\s*\()\s*["']([^"']+)["']/g)].map((m) => m[1]);
-    assert.ok(imports.length > 0 && imports.every((m) => m.startsWith("node:") || m === "yaml" || m === "@kaihacksai/kaal-foundation/sha256" || m.startsWith("./") || m.startsWith("../")), `imports: ${imports}`);
+    assert.ok(imports.length > 0 && imports.every((m) => m.startsWith("node:") || m === "yaml" || m === "commonmark" || m === "typescript" || m === "@kaihacksai/kaal-foundation/sha256" || m.startsWith("./") || m.startsWith("../")), `imports: ${imports}`);
     assert.doesNotMatch(src, /\b(writeFile|appendFile|rmSync|unlink|mkdir|rename|spawn|exec|fetch)\w*\s*\(/);
   });
   it("T6 [R2, R4]: file-identity, token-sequence and call-with-literal find a byte copy, a bounded constant sequence and a crypto call, and not their near misses", () => {
@@ -260,7 +260,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.equal(other.result, "complete");
     assert.deepEqual(other.findings.map((f) => f.id), ["demo/t/a.mjs:1"]);
   });
-  it("T18 [R2]: call-with-literal matches a call by its whole name, including a member call, and is lexical evidence only", () => {
+  it("T18 [R2]: call-with-literal matches a call by its whole name, including a member call, in the syntax tree: a comment or a string is not a call", () => {
     const tests = put("t18/tests.md", def("demo", CRYPTO));
     put("t18/t/a.mjs", [
       "createHash(\"sha256\")",            // 1: a call
@@ -270,10 +270,45 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
       "xcreateHash(\"sha256\")",           // 5: likewise
       "createHash(algorithm)",              // 6: argument is not a literal
       "createHash(\"sha256\" + suffix)",   // 7: not a whole literal
-      "// createHash(\"sha256\")",         // 8: lexical: a comment matches too
+      "// createHash(\"sha256\")",         // 8: a comment is not a call
+      "const s = 'createHash(\"sha256\")';", // 9: nor is a string
+      "createHash(",                       // 10: a call across lines is one, found at its name
+      "  `sha256`,",
+      ");",
       "",
     ].join("\n"));
     const r = run("--tests", tests, "--target", join(dir, "t18/t"), "--base", join(dir, "t18"));
-    assert.deepEqual(r.summary.findings.map((f) => f.line), [1, 2, 3, 8]);
+    assert.deepEqual(r.summary.findings.map((f) => f.line), [1, 2, 3, 10]);
+  });
+  it("T19 [R2]: token-sequence compares numbers by value and ignores comments and strings that merely contain the text", () => {
+    const tests = put("t19/tests.md", def("demo", `  - id: implementation\n    detector: token-sequence\n    tokens: ["0x428a2f98", "0x71374491"]\n    window: 3\n    tests: demo/I1\n    looks-for: the constants written out\n`));
+    put("t19/t/upper.mjs", "const K = [0X428A2F98, 0X71374491];\n");
+    put("t19/t/decimal.mjs", "const K = [1116352408, 1899447441];\n");
+    put("t19/t/separator.mjs", "const K = [0x428a_2f98,\n  0x7137_4491];\n");
+    put("t19/t/comment.mjs", "// 0x428a2f98 0x71374491\nconst a = 1; /* 0x428a2f98, 0x71374491 */\n");
+    put("t19/t/string.mjs", "const t = '0x428a2f98 0x71374491';\n");
+    const r = run("--tests", tests, "--target", join(dir, "t19/t"), "--base", join(dir, "t19"));
+    assert.deepEqual(r.summary.findings.map((f) => f.id), ["demo/t/decimal.mjs:1", "demo/t/separator.mjs:1", "demo/t/upper.mjs:1"]);
+  });
+  it("T20 [R2, R3]: code detectors read JavaScript, TypeScript and the js or ts code blocks of Markdown; JSON and YAML are read as data; a file type with no parser, or a file that does not parse, makes the result unknown and is never matched by pattern", () => {
+    const tests = put("t20/tests.md", def("demo", CRYPTO));
+    put("t20/ok/a.ts", "x\ncreateHash(\"sha256\");\n");
+    put("t20/ok/doc.md", "# Doc\n\ncreateHash(\"sha256\") in prose is not code.\n\n```js\nconst a = 1;\ncreateHash(\"sha256\");\n```\n");
+    put("t20/ok/data.json", "{\"c\": \"createHash(\\\"sha256\\\")\"}\n");
+    put("t20/ok/data.yml", "run: createHash(\"sha256\")\n");
+    const ok = run("--tests", tests, "--target", join(dir, "t20/ok"), "--base", join(dir, "t20"));
+    assert.equal(ok.summary.result, "complete");
+    assert.deepEqual(ok.summary.findings.map((f) => f.id), ["demo/ok/a.ts:2", "demo/ok/doc.md:7"]);
+    put("t20/bad/a.mjs", "createHash(\"sha256\")\n");
+    put("t20/bad/run.sh", "createHash(\"sha256\")\n");
+    const none = run("--tests", tests, "--target", join(dir, "t20/bad"), "--base", join(dir, "t20"));
+    assert.equal(none.status, 2);
+    assert.equal(none.summary.result, "unknown");
+    assert.deepEqual(none.summary.coverage.unreadable, [{ path: "bad/run.sh", cause: "no parser" }]);
+    assert.deepEqual(none.summary.findings.map((f) => f.id), ["demo/bad/a.mjs:1"], "what was parsed is still reported");
+    put("t20/broken/b.mjs", "createHash(\"sha256\"\nconst = ;\n");
+    const broken = run("--tests", tests, "--target", join(dir, "t20/broken"), "--base", join(dir, "t20"));
+    assert.equal(broken.summary.result, "unknown");
+    assert.deepEqual(broken.summary.coverage.unreadable, [{ path: "broken/b.mjs", cause: "does not parse" }]);
   });
 });
