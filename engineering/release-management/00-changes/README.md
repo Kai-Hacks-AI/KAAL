@@ -2,7 +2,7 @@
 
 One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Because `.github` travels alone (F6, T7), a control's work is **two Changes**, not one: an Engineering Change that moves the code into `05-src` (and adds its Cases), and a `.github`-only Change that adds the job and wiring. Together they do four things, in this order, and nothing else (names aligned per F4: self-explanatory, mapped in `03-architecture`, not identical strings):
 
-1. **Add** the control as a job named by the control inside the workflow `release/<station>` (see `03-architecture`), running the code from its component under `05-src/` (per the allocation in `03-architecture`); a control realized by a native setting or a used tool moves no code.
+1. **Add** the control as a job named by the control inside the workflow `release/<step>` (see `03-architecture`), running the code from its component under `05-src/` (per the allocation in `03-architecture`); a control realized by a native setting or a used tool moves no code.
 2. **Move** the code from where it lives today into `05-src` (history kept with `git mv`; the old path keeps a one-line shim only if a required check or hook still calls it).
 3. **Retire** the old check name once the Owner has added the new context to the ruleset by hand, and only when that makes sense: a control with no old equivalent retires nothing.
 4. **Prove** it with Cases that sit next to the code (test layout rule); parity Cases pin that the moved code behaves as before.
