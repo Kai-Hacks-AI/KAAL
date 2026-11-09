@@ -1,0 +1,274 @@
+{
+  "files": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "6451c465a1dc3ddc5a1fcf3ff68003778e1f7ebaecc313a56d4bd938b893d729",
+    "bin/kaal-packaging.mjs": "3a02fa6e87a5f92627c48b50b74bfd23371d17e82ce762c088431167e2150337",
+    "capability/Packaging.md": "7bb7f9eeba38848847af8043265c4f07ffcc07bb1a0a0c6e635431c740309eae",
+    "docs/architecture.md": "22a4c0dcbdc7cbfc89c7472ff819d5ccc1cf9f0de5ef50c9fcd90bc6b175b58d",
+    "docs/intent.md": "5dee9dfa7a988c5e04a0610b52b9f7a64f78c699b749117ce8092800906b0f36",
+    "docs/limitations.md": "bef84175e8628f92f92ce75801de04a0c1567c41d7083d939237012a5ceb5ec5",
+    "docs/operations.md": "f216dbebf528b1ff7148ccb188106ee7975cb27175f85618c95196df738bcf4e",
+    "docs/requirements.md": "ea4dff510cd8a7152d93e54ccb13d3b6c92766a37d6fe8ff54b1473a29f1a42d",
+    "docs/testing.md": "369e1cbe6cbfc06b692a37de5aa4794a8bcef3e0dfc3bf91a12f05c871041ed0",
+    "lib/builtins.json": "c4f64e888345d8ff53a1580d2f286df86e836d9cd10d0ae24418554a3201cef4",
+    "lib/conformance.d.ts": "cd7faf3a1b49ad3a566c29d884513f84f03c605b0b70a98fd5563006d00b5000",
+    "lib/conformance.mjs": "5ad983d56eb0614d4260e6890bedf3e3b29750ddb52cd53adbe0a5778bb87699",
+    "lib/host.mjs": "76fefb907c0c1330d84c516b9bdb52b0b3f9ad0dd7cefa6c5d95f24083cf986f",
+    "lib/installation.mjs": "73cc5016a3634120bc0ff4e3f02f8a8641420a9031923c58cc0b4837a945c8c9",
+    "lib/npm/realization.mjs": "089410df0dde44791685b4693dea58bf40244f9e8b94b7b61fe16d8f3785a734",
+    "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
+    "lib/packaging.mjs": "363ed1d87b30740528d57b582e7549788a8e40e9eb5479b0e83807ad4c114076",
+    "lib/structure.mjs": "9e8ea7e7787e291456484d09f4de519c11b4d369d14e78f3e6ac1e898ae464da",
+    "package.json": "f0964c16088d27d9a5ed502cc9bad5f5a361a24de62a9b7265b8eedab2e142fc",
+    "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
+    "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
+    "test/embed/measurement.test.mjs": "6ca888abf9c118460d1041bb91cb6274123c1b525b5c91fdc5b5200ee5d8cfeb",
+    "test/embed/package.test.mjs": "e89145240a1ef09b92d532619f8962d5cde0b68d3b4a6801c217d581c03db610",
+    "test/run.mjs": "91edb472bd369555b5b6fc0d4f1d60ae888fbb544688526c5c1583cdf99b8aa4",
+    "test/verify.mjs": "714a5d5576dbdf13671415b7d7512e3bcbd1dc62f7f8a6d241a03193cb0b6488"
+  },
+  "cases": [
+    "packaging/T1",
+    "packaging/T2",
+    "packaging/T3",
+    "packaging/T4",
+    "packaging/T5",
+    "packaging/T6",
+    "packaging/T7",
+    "packaging/T8",
+    "packaging/T9",
+    "packaging/T10",
+    "packaging/T11",
+    "packaging/T12",
+    "packaging/T13",
+    "packaging/T14",
+    "packaging/T15",
+    "packaging/T16",
+    "packaging/T17",
+    "packaging/T18",
+    "packaging/T19",
+    "packaging/T20",
+    "packaging/T21",
+    "packaging/T22",
+    "packaging/T23",
+    "packaging/T24",
+    "packaging/T25",
+    "packaging/T26",
+    "packaging/T29",
+    "packaging/T30",
+    "packaging/T32",
+    "packaging/T34",
+    "packaging/T35",
+    "packaging/T64"
+  ],
+  "model": {
+    "cases": [
+      {
+        "id": "packaging/T1",
+        "tests": [
+          "packaging/F1",
+          "packaging/N1"
+        ]
+      },
+      {
+        "id": "packaging/T2",
+        "tests": [
+          "packaging/F2"
+        ]
+      },
+      {
+        "id": "packaging/T3",
+        "tests": [
+          "packaging/F3"
+        ]
+      },
+      {
+        "id": "packaging/T4",
+        "tests": [
+          "packaging/F4"
+        ]
+      },
+      {
+        "id": "packaging/T5",
+        "tests": [
+          "packaging/F5",
+          "packaging/N2"
+        ]
+      },
+      {
+        "id": "packaging/T6",
+        "tests": [
+          "packaging/N3",
+          "packaging/A1",
+          "packaging/A6"
+        ]
+      },
+      {
+        "id": "packaging/T7",
+        "tests": [
+          "packaging/F1",
+          "packaging/I1"
+        ]
+      },
+      {
+        "id": "packaging/T8",
+        "tests": [
+          "packaging/F1",
+          "packaging/A5"
+        ]
+      },
+      {
+        "id": "packaging/T9",
+        "tests": [
+          "packaging/F6"
+        ]
+      },
+      {
+        "id": "packaging/T10",
+        "tests": [
+          "packaging/N4"
+        ]
+      },
+      {
+        "id": "packaging/T11",
+        "tests": [
+          "packaging/N4",
+          "packaging/A6"
+        ]
+      },
+      {
+        "id": "packaging/T12",
+        "tests": [
+          "packaging/A6"
+        ]
+      },
+      {
+        "id": "packaging/T13",
+        "tests": [
+          "packaging/N6",
+          "packaging/F4"
+        ]
+      },
+      {
+        "id": "packaging/T14",
+        "tests": [
+          "packaging/A6"
+        ]
+      },
+      {
+        "id": "packaging/T15",
+        "tests": [
+          "packaging/F7"
+        ]
+      },
+      {
+        "id": "packaging/T16",
+        "tests": [
+          "packaging/F8"
+        ]
+      },
+      {
+        "id": "packaging/T17",
+        "tests": [
+          "packaging/F9",
+          "packaging/N9"
+        ]
+      },
+      {
+        "id": "packaging/T18",
+        "tests": [
+          "packaging/F10"
+        ]
+      },
+      {
+        "id": "packaging/T19",
+        "tests": [
+          "packaging/F11"
+        ]
+      },
+      {
+        "id": "packaging/T20",
+        "tests": [
+          "packaging/F12"
+        ]
+      },
+      {
+        "id": "packaging/T21",
+        "tests": [
+          "packaging/F13"
+        ]
+      },
+      {
+        "id": "packaging/T22",
+        "tests": [
+          "packaging/N7"
+        ]
+      },
+      {
+        "id": "packaging/T23",
+        "tests": [
+          "packaging/N8"
+        ]
+      },
+      {
+        "id": "packaging/T24",
+        "tests": [
+          "packaging/N9"
+        ]
+      },
+      {
+        "id": "packaging/T25",
+        "tests": [
+          "packaging/N10"
+        ]
+      },
+      {
+        "id": "packaging/T26",
+        "tests": [
+          "packaging/F14"
+        ]
+      },
+      {
+        "id": "packaging/T29",
+        "tests": [
+          "packaging/F16",
+          "packaging/N12",
+          "packaging/F13"
+        ]
+      },
+      {
+        "id": "packaging/T30",
+        "tests": [
+          "packaging/F17"
+        ]
+      },
+      {
+        "id": "packaging/T32",
+        "tests": [
+          "packaging/F19",
+          "packaging/F7",
+          "packaging/A14"
+        ]
+      },
+      {
+        "id": "packaging/T34",
+        "tests": [
+          "packaging/N11",
+          "packaging/A13"
+        ]
+      },
+      {
+        "id": "packaging/T35",
+        "tests": [
+          "packaging/A7"
+        ]
+      },
+      {
+        "id": "packaging/T64",
+        "tests": [
+          "packaging/N8"
+        ]
+      }
+    ]
+  }
+}

@@ -7,6 +7,7 @@
     "packages/kaal-hosting",
     "packages/kaal-core",
     "packages/kaal-foundation",
+    "packages/kaal-packaging",
     "packages/kaal-engineer-skill",
     "packages/kaal-graph",
     "packages/kaal-review",
