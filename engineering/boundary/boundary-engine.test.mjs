@@ -215,7 +215,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     const tests = put("t15/def/boundary-check.md", def("kaal-foundation",
       `  - id: copy\n    detector: file-identity\n    equals: [ref/sha256.mjs]\n    tests: foundation/I1\n    ships: true\n    looks-for: a file whose bytes equal Foundation's library\n` +
       `  - id: implementation\n    detector: token-sequence\n    tokens: ["0x428a2f98", "0x71374491"]\n    window: 3\n    tests: foundation/I1\n    ships: true\n    looks-for: the round constants written out\n` +
-      CRYPTO.replace("id: crypto", "id: crypto").replace("demo/I1", "foundation/I1")));
+      CRYPTO.replace("demo/I1", "foundation/I1")));
     put("t15/t/copy.mjs", lib);
     put("t15/t/noncopy.mjs", Buffer.concat([lib, Buffer.from("\n// x\n")]));
     put("t15/t/impl-near.mjs", "a\nconst K = [0x428a2f98,\n  0x71374491];\n");
