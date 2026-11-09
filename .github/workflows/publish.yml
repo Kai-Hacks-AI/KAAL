@@ -1,5 +1,5 @@
 # Release (engineering/C14, the adapter of engineering/C12's Release engine, engineering/release/README.md):
-# releases any KAAL package to npm. All judgment is the engine's (engineering/release/run.mjs); this file
+# releases any KAAL package to npm. All judgment is the engine's (engineering/release-management/05-src/release-engine/run.mjs); this file
 # supplies facts and acts on exit statuses: 0 verified, 1 failed, 2 cannot judge.
 #
 # The Owner starts it by hand (workflow_dispatch). It is also callable (workflow_call; a called run sees the
@@ -26,10 +26,10 @@
 #
 # Owner prerequisites, outside this file: the `npm` environment with the Owner as required reviewer,
 # restricted to the default branch (it exists, from Guard Release); for each package, after its first
-# publication, its trusted publisher set to Kai-Hacks-AI/KAAL, workflow release.yml, environment npm.
+# publication, its trusted publisher set to Kai-Hacks-AI/KAAL, workflow publish.yml, environment npm.
 #
 # Linux only: the commit's CI already ran the package's suites on Linux, Windows and macOS (N17).
-name: Release
+name: KAAL / release / publish
 
 on:
   workflow_dispatch:
@@ -100,7 +100,7 @@ jobs:
         run: |
           out="$RUNNER_TEMP/release"
           set +e
-          node engineering/release/run.mjs pack --package "$PACKAGE" --out "$out" --commit "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
+          node engineering/release-management/05-src/release-engine/run.mjs pack --package "$PACKAGE" --out "$out" --commit "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
           status=$?
           set -e
           [ -f "$out/report/summary.md" ] && cat "$out/report/summary.md" >> "$GITHUB_STEP_SUMMARY"
@@ -123,7 +123,7 @@ jobs:
           DIGEST: ${{ steps.upload.outputs.artifact-digest }}
           URL: ${{ steps.upload.outputs.artifact-url }}
         run: |
-          node engineering/release/run.mjs bind --record "$RUNNER_TEMP/release/record/$RECORD" --id "$ID" --digest "$DIGEST" --out "$RUNNER_TEMP/release/bound"
+          node engineering/release-management/05-src/release-engine/run.mjs bind --record "$RUNNER_TEMP/release/record/$RECORD" --id "$ID" --digest "$DIGEST" --out "$RUNNER_TEMP/release/bound"
           echo "Artifact \`${{ steps.pack.outputs.tarball }}\` (the exact bytes, digest \`$DIGEST\`): $URL" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -142,7 +142,7 @@ jobs:
           [ "$names" = "$want" ] || { echo "::error title=Release: cannot judge::artifacts are '$names', expected '$want'"; exit 2; }
 
   publish:
-    name: Publish
+    name: approve Publishing
     needs: pack
     if: github.event_name == 'workflow_dispatch' && inputs.publish && needs.pack.outputs.path == 'trusted' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
@@ -177,10 +177,10 @@ jobs:
         run: |
           t="$RUNNER_TEMP/in/tarball/$TARBALL"; r="$RUNNER_TEMP/in/record/$RECORD"
           [ -f "$t" ] && [ -f "$r" ] || { echo "::error title=Release: cannot judge::expected $t and $r"; ls -laR "$RUNNER_TEMP/in"; exit 2; }
-          node engineering/release/run.mjs publish --record "$r" --tarball "$t" --commit "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
+          node engineering/release-management/05-src/release-engine/run.mjs publish --record "$r" --tarball "$t" --commit "$GITHUB_SHA" --run "$GITHUB_RUN_ID"
 
   accept:
-    name: Accept
+    name: verify Package Promotion
     needs: [pack, publish]
     # always(): with step registry, Pack and Publish are skipped and Accept must still run. It reads no
     # output of either job, only run RUN's artifacts.
@@ -220,7 +220,7 @@ jobs:
           [ "$got" = "$PACKAGE $RUN" ] || { echo "::error title=Release: cannot judge::run $RUN's record is '$got', not '$PACKAGE $RUN'"; exit 2; }
           echo "Accepting $PACKAGE from Pack run $RUN"
           set +e
-          node engineering/release/run.mjs accept --record "$r" --run "$RUN" --out "$RUNNER_TEMP/accept"
+          node engineering/release-management/05-src/release-engine/run.mjs accept --record "$r" --run "$RUN" --out "$RUNNER_TEMP/accept"
           status=$?
           set -e
           [ -f "$RUNNER_TEMP/accept/report/summary.md" ] && cat "$RUNNER_TEMP/accept/report/summary.md" >> "$GITHUB_STEP_SUMMARY"
