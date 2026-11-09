@@ -27,7 +27,7 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 | verify Package Promotion | npmjs | `release.yml` Accept, `provenance()` | none |
 | audit Lineage | main, collectors | `branching-audit.sh`, `holds.json`; `Branching audit` | `Branching audit` |
 
-`Branching` retires only after all three halves have a new home (verify Ancestry, isolate Change, bind Merge), each add-new first. Two gates close the set: `gate (main)` and `gate (collectors)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts, and adds the control's traced entries at the root: its Intent entry, requirement, allocation and `applied at` target in `03-architecture`, Cases and Defects where any.
+`Branching` retires only after all three halves have a new home (verify Ancestry, isolate Change, bind Merge), each add-new first. Two gates close the set: `gate (promotion)` and `gate (integration)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts, and adds the control's traced entries at the root: its Intent entry, requirement, allocation and `applied at` target in `03-architecture`, Cases and Defects where any.
 
 ## Retiring `Change Isolation (review)` (Owner, 9 Nov)
 

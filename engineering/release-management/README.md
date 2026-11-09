@@ -20,7 +20,7 @@ Owner, 9 Nov: this goes into `main` ahead of Foundation 0.0.2 and does not wait 
 2. Proof on a throwaway branch (see Conditions below): the actual required-check identity of a reusable-workflow job, and that a merge-queue run executes the trusted checker from `main`. The branches `trial/q-a` and `trial/q-b` are kept until their evidence is retained in the repository and this proof no longer needs them.
 3. Per control, in the build order (audit Lineage first, then the `npmjs` controls, then `main`, then `collectors`): an Engineering Change moving the code into `05-src` with parity Cases, then a `.github`-only Change adding the job under `release/<step>`. Old checks stay until the new context is live.
 4. The testing controls (test Candidate, test Integration) do not wait for the `kaal-change/far` DO (F18). They follow the Foundation pattern: an interim version is built now, marked **temporary** in its code, Case names and check output, and replaced once FAR's DO lands. The interim reads the same `far.json` record shape as `change/F7` to `F10`, so the replacement swaps the module and not the record.
-5. The two gates, `gate (main)` and `gate (collectors)`, once their controls exist.
+5. The two gates, `gate (promotion)` and `gate (integration)`, once their controls exist.
 6. Promotion of the collector into `main` in reviewed slices, each with the Owner's explicit go.
 7. Only as verified migration steps (not as part of approving this PLAN), the Owner adds the new contexts to the rulesets, enables the pins and queue settings named in `03-architecture`, and removes the old contexts (`Change Isolation (review)` first, `Branching` last). Then delete the four `pull_request_target` workflows and remove the temporary Actions policy, before 2 Dec 2026.
 

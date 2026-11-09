@@ -54,10 +54,10 @@ Controls that act on more than one station live at the root. All are names only 
   - Exists: `readiness()` in `engineering/release/release.mjs` rejects a non-semver version and a version already on the registry ("raise the version"); dependencies must be exact and already published.
   - Gaps: G1 no check that the version is greater than the latest published. G2 no tag marks the released commit. G3 no check that the version was set by a recorded Change. G4 no changelog or bump tooling; versions are hand-edited.
 - **stock:** audit Lineage (from the root).
-- **in, backwards from the stock (names only):** bind Merge [F10] (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion [F11] (native approval settings), test Candidate [F12, F18] (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion [F13] (one promotion at a time), accept Capability [F14] (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
+- **in, backwards from the stock (names only):** bind Merge [F10] (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion [F11] (native approval settings), test Candidate [F12, F18] (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion [F13] (one promotion at a time), accept Capability [F14] (promotion source, today's `Promotion Source`). Gate: `gate (promotion)`.
 
 ## Station 12-collectors (names only)
 
 - **stock:** audit Lineage (from the root).
-- **in:** approve Change [F15] (native approval settings of `kaal/*`), test Integration [F16, F18] (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (collectors)`.
+- **in:** approve Change [F15] (native approval settings of `kaal/*`), test Integration [F16, F18] (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (integration)`.
 - **out:** none of its own; verify Ancestry and isolate Change act here from the root.

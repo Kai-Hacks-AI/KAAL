@@ -12,9 +12,9 @@
  |   Change, test   |      |   approve Promo, |      |   Publishing      |
  |   Integration    |      |   test Candidate,|      | stock: verify     |
  |                  |      |   serialize Pro- |      |   Package         |
- | gate (collectors)| ---> |   motion, accept |      |   Promotion       |
+ |gate (integration)| ---> |   motion, accept |      |   Promotion       |
  |                  |      |   Capability     | ---> | out:  (none yet)  |
- |                  |      | gate (main)      |      +-------------------+
+ |                  |      | gate (promotion)  |      +-------------------+
  |                  |      | out: version     |
  +------------------+      |   Package        |
                            +------------------+
@@ -89,15 +89,15 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 
 - **Workflow** = `release/<step>`, named by the process step it performs (Owner, 9 Nov): `release/integrate` (a Change into a collector, control target `collectors`), `release/promote` (a promotion into `main`, target `main`) and `release/publish` (target `npmjs`). The step is the process term; the station is the systems-thinking and lean view behind the design, and appears as the control target. The root `audit Lineage` stays its own scheduled workflow.
 - **Job** = the control name (`test Candidate`, `approve Change`, ...). A control with lanes (for example `test Candidate`) may call a reusable workflow, which GitHub shows one level deeper (`release/promote / test Candidate / Hosting (Linux)`).
-- **One gate job per ruleset**, named `gate (main)` and `gate (collectors)` (Owner, 9 Nov: these two only). It `needs:` every control job of its station, runs with `if: always()`, and fails unless every needed job succeeded (a skipped job counts as passing for GitHub, so the gate must check results itself). Each gate has a distinct job name because contexts are matched by job name. A ruleset then lists only its gate as required check.
-- **No `gate (npmjs)`**: npmjs has no branch ruleset, so it needs no gate. The `npm` environment approval stays the npmjs control (*approve Publishing*); `Publish` waits on that approval directly.
+- **One gate job per ruleset**, named `gate (promotion)` and `gate (integration)` (Owner, 9 Nov: these two only). It `needs:` every control job of its station, runs with `if: always()`, and fails unless every needed job succeeded (a skipped job counts as passing for GitHub, so the gate must check results itself). Each gate has a distinct job name because contexts are matched by job name. A ruleset then lists only its gate as required check.
+- **No `gate (publish)`**: npmjs has no branch ruleset, so it needs no gate. The `npm` environment approval stays the npmjs control (*approve Publishing*); `Publish` waits on that approval directly.
 
 **Design: a gate that depends on root controls across workflows.** `needs:` works only inside one workflow, and a `pull_request_target` workflow must never share a run with jobs that check out PR code (today's trust split). So:
 
 - **Root controls are reusable workflows** (`on: workflow_call`), one per control, and `release/promote` and `release/integrate` call them (`release/promote / isolate Change`). One definition, called from both stations, which is what a root control spanning two stations needs. The trusted controls (isolate Change, verify Ancestry, accept Capability, bind Merge) are called from a `pull_request_target` caller that never checks out the candidate; the lane controls (test Candidate, test Integration, scan Vulnerabilities, scan Dependencies) are called from a `pull_request` caller (and a `merge_group` caller), because they run candidate code.
 - **The gate is a job in the trusted caller.** It `needs:` the trusted controls in its own run, and for the lane controls, which run under another event, it waits on their check runs by API and fails closed, the pattern `merge-group-review.yml` already uses. No shared run, no trust mixing.
 - **Use vs build:** `workflow_call` and the existing wait-by-API pattern are used; `re-actors/alls-green` is not (not used anywhere in `.github` today; it would add a third-party Action needing a SHA pin and an Actions-policy allowance from the Owner) and it cannot join jobs across events anyway.
-- **To prove before the Changes:** that a required context from a job called through `workflow_call` is matched by the *called* job's name or the `caller / called` composite. A throwaway branch settles it; if the composite is what the ruleset sees, the gates' own names (`gate (main)`, `gate (collectors)`) are unaffected because they are plain jobs.
+- **To prove before the Changes:** that a required context from a job called through `workflow_call` is matched by the *called* job's name or the `caller / called` composite. A throwaway branch settles it; if the composite is what the ruleset sees, the gates' own names (`gate (promotion)`, `gate (integration)`) are unaffected because they are plain jobs.
 
 **Assumption, Owner-confirmed 9 Nov:** npmjs has no branch ruleset. Rulesets and the `npm` environment are not readable from the repository, so this is not verified there.
 
@@ -116,7 +116,7 @@ Today four workflows use `pull_request_target`: `change-isolation.yml` (Change I
 **What replaces it (to settle with the Owner and prove on a throwaway branch):**
 - The controls run on `merge_group` and on `pull_request` (no `_target`), checking out the default branch's checker and reading the candidate as Git data, as the merge-group jobs do today. The pull-request run supplies the context a pull request needs in order to enter the queue; the merge-group run is the judgment that counts.
 - **Trust root: required, not yet demonstrated (CPO, 9 Nov).** On `merge_group` and `pull_request` the workflow definition and the check's identity come from the candidate's side, so `.github travels alone` plus human approval is a *process* guard, not a trust root: a `.github`-only candidate could alter or omit its own gate, or emit a job that looks like the required context. `ref: main` for the checker's code does not authenticate the workflow that calls it. The migration therefore commits to no removal of any existing required context until a fail-closed trust root is demonstrated (see "Trust root and gate specification").
-- The `gate (main)` and `gate (collectors)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
+- The `gate (promotion)` and `gate (integration)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
 
 Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and does not depend on it or wait for it.
 
@@ -161,7 +161,7 @@ Consequence: a change to a control's logic takes effect after it is promoted, no
 2. Otherwise, the existing `pull_request_target` checks stay (they run the default branch's definition) and the 2 Dec 2026 default block is met by the Owner's policy decision, not by this PLAN.
 If neither is demonstrated, the PLAN's migration stops at "add new, remove nothing".
 
-**Gate specification (applies to `gate (main)` and `gate (collectors)`, whichever mechanism):**
+**Gate specification (applies to `gate (promotion)` and `gate (integration)`, whichever mechanism):**
 - **Binding.** The gate judges the exact `pull_request` head SHA, or on `merge_group` the group's head SHA (`github.sha`), and it prints that SHA and the SHA of the `main` checkout it ran (which must equal `main`'s tip read at run start). `bind-group.sh` binds the group to the queued pull request.
 - **Expected identities.** The gate lists the controls it requires by name and by check-run app (the GitHub Actions app) and workflow path; a check of the right name from another app or workflow is not accepted.
 - **Fail closed.** Absent, skipped, neutral, stale (another SHA), cancelled, timed-out or unreadable runs of a required control fail the gate. Success only when every required control completed successfully on that SHA.
