@@ -7,11 +7,12 @@ type:
 
 # ROCK 'N ROLL
 
-One mnemonic in two halves, joined by 'N:
+One mnemonic in three parts:
 
 - **ROCK**: Recording Optimizes Change Knowledge.
-- **ROLL**: Not Recording Obviously Loses Learning.
+- **'N**: Not, which turns the second half into its opposite.
+- **ROLL**: Recording Obviously Loses Learning.
 
-Recording what a Change learns keeps its knowledge available to the next Change. Not recording it loses the learning.
+Read whole: Recording Optimizes Change Knowledge, Not Recording Obviously Loses Learning. Recording what a Change learns keeps its knowledge available to the next Change. Not recording it loses the learning.
 
 ROCK 'N ROLL is one mnemonic, kept in one file. It owns no record and no process.
