@@ -74,6 +74,37 @@ The Owner's direction: a control is named by the concern it protects, not by its
 
 Observation, not a decision: three of these overlap. `lineage`, `promotion-source` and `one-promotion` all speak of promotions into `main` through a Capability's collector, validated against the `main` they land on. Naming them by concern may show that they are one or two concerns, not three. That is for the Owner and the CPO to judge.
 
+## Aligning names and controls
+
+Today one control is known by several unrelated names. The workflows are all named `KAAL`; the required check names are the job names. Measured on `main`:
+
+| Control (today) | Type | Guard check | Workflow file, job (= check name) | Script | Checker |
+| --- | --- | --- | --- | --- | --- |
+| `promotion-source` | preventive, with a directive part | `Promotion-Source` | `promotion-source.yml`, `Promotion Source` | `promotion-source.mjs` | `lineage.ts` (`source` verb) |
+| `lineage` | preventive | `Branching` | `lineage-synchronization.yml`, `Branching` | `branching.sh` | `lineage.ts` |
+| `change-isolation` | preventive | `Change-Isolation` | `change-isolation.yml`, `Change Isolation` | `change-isolation.sh` | `change-isolation/check.mjs` |
+| `lineage-audit` | detective | `Branching-audit` | `branching-audit.yml`, `Branching audit` (scheduled) | `branching-audit.sh` | `lineage.ts`, `holds.json` |
+| `merge-queue` (new) | preventive | none | `merge-group.yml` (`Change Isolation`, `Branching`, `Promotion Source` on the group), `merge-group-review.yml` and `merge-group-admission.yml` (`Change Isolation (review)`) | `bind-group.sh` | the three checkers above |
+| `required-tests` | preventive | `Acceptance`, `Engineering`, `Hosting`, `Workspaces` | `ci.yml` (`Hosting (...)`, `Acceptance (...)`, `Guard`, ...), `guard-acceptance-boundary.yml` | `npm run test:*` | the lanes |
+| `review-before-merge` | preventive, by a human | none | GitHub branch protection | none | none |
+| `one-promotion` | directive | none | none | none | none |
+
+The mismatches are plain: the control `lineage` runs as the check `Branching` from the file `lineage-synchronization.yml` and the script `branching.sh`; the control `promotion-source` shares the checker of `lineage`; the merge queue reuses the PR checks' names. A reader cannot go from the control's name to its check.
+
+**Proposal (to decide).** Name the control, its folder, its script and its Change records by the concern name, and keep the **required check names unchanged**. Required check names are the contexts the `main` ruleset waits for. A renamed job reports under a new context, the ruleset keeps waiting for the old one ("Expected, waiting for status", as the brownout showed), and every pull request is blocked until the Owner rewrites the ruleset by hand (only the Owner can write rulesets). So the check names should only move in an Owner window, with the ruleset change prepared and a rollback ready, and never inside a port.
+
+| Control | Concern name | Aligned control folder and script | Required check name |
+| --- | --- | --- | --- |
+| `promotion-source` | Only owners release | `only-owners-release/`, `only-owners-release.mjs` | `Promotion Source` (keep; **risky to rename**) |
+| `lineage` | Work comes through its owner | `work-comes-through-its-owner/`, script `work-through-owner.mjs` (to be ported) | `Branching` (keep; **risky**) |
+| `change-isolation` | Changes stand alone | `changes-stand-alone/`, script `changes-stand-alone.mjs` | `Change Isolation` (keep; **risky**) |
+| `lineage-audit` | Drift is found | `drift-is-found/`, script `drift-is-found.mjs` | `Branching audit` (scheduled, not a required check; free to rename) |
+| `merge-queue` | What lands is what was judged | `what-lands-is-what-was-judged/`, script `bind-group.mjs` keeps its role name | `Change Isolation (review)` (keep; **risky**) |
+
+Open points for the Owner: (a) whether scripts take the concern name or keep a short mechanism name next to a concern-named folder, since a script's name is also its address in Guard config, workflows and Cases; (b) whether the Guard check declaration names (`.kaal/config/guard/*.md`) follow, which are not required contexts but are cited by the controls; (c) the workflow file names, which are free to move because GitHub requires the job's check name, not the file's.
+
+**A correction to the one-liners.** "Promotion source blocks a pull request into `main` unless it comes from a `kaal/*` collector" is right for the source. The freshness half (head contains main's tip, merge tree equals head tree) is judged by `Branching`, i.e. by the control `lineage`: `lineage-synchronization.yml` says "into the default branch it judges promotion freshness". The controls README lists `#promotionFreshness` under Promotion source's Architecture, which looks wrong, or at least unclear. To be confirmed against `lineage.ts` and the workflows by the CPO; if confirmed, F2 of Promotion source moves to Lineage, and the three controls' overlap grows.
+
 ## Where the port Cases live
 
 `engineering/github/ports/` is not a good home: it is named for a mechanism, and it holds three different kinds of thing. The rule is that a Case sits next to what motivated it.
@@ -129,7 +160,8 @@ Questions to answer on the way:
 4. **Case homes.** Parity Cases beside their script, the inventory and byte-pin Cases and the ports PLAN in `engineering/shell/`. Recommendation: yes.
 5. **Where the chain folders live: `engineering/controls/` or `engineering/github/controls/`.** A control is an enduring concern, kept apart from any mechanism (a Control carries `Has` edges and nothing else), and not all seven are about GitHub: Change Isolation's checker is `engineering/change-isolation/`, Required tests belongs to the lanes. Under `github/controls/` those would have no home, and every control would be tied to one provider. Recommendation: chain folders stay in `engineering/controls/<control>/`; the scripts and their parity Cases stay in `engineering/github/`, where the mechanism is. If the Owner prefers `github/controls/`, only the controls whose mechanism is a GitHub workflow (at least Lineage, Promotion source and Lineage audit; the others are to be checked one by one) would move there, and the rest stay behind.
 6. **Names.** Name each control by business concern, using the table above (or the Owner's own words), and decide whether the overlapping three stay separate.
-7. **Migration.** Control by control, as in the section above, starting with Promotion source. Bytes of each section stay unchanged, each control is its own Change. The ports' Architecture edits then land in the new place, once.
+7. **Aligned names.** Name controls, folders, scripts and Change records by concern; keep required check names unchanged (table above), and decide (a) to (c).
+8. **Migration.** Control by control, as in the section above, starting with Promotion source. Bytes of each section stay unchanged, each control is its own Change. The ports' Architecture edits then land in the new place, once.
 
 ## Not in this PLAN
 
