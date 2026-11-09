@@ -26,11 +26,11 @@ Stations exist only in this drawing: they are not folders, and a control's stati
 
 Architecture names the components and allocates each requirement to exactly one of them (requirements allocation). A requirement and its component are linked by a graph edge; the tables are the readable form. Controls are requirements and components realize them, so a component holds several controls, and some controls are realized by a native setting or a tool we use and have no source.
 
-**Four components (Owner, 9 Nov):** the shared controls directly in `05-src/`, and the station components beside them: `05-src/npmjs/`, `05-src/main/`, `05-src/collectors/`. There is no named parent. A control's Cases sit next to its code in its component. The drawing above shows the stations. `release-management` itself is traced as an element of the Delivery architecture.
+**Four components (Owner, 9 Nov), all peers in `05-src/`:** `pipeline/` (the end-to-end piece that spans the stations and holds the five shared controls) and the stations `npmjs/`, `main/` and `collectors/`. Every folder is a node in the architecture and there are no loose files. Rule: a station may use `pipeline/` but never another station. The name follows Domain-Driven Design, with release-management as the bounded context. A control's Cases sit next to its code in its component. The drawing above shows the stations. `release-management` itself is traced as an element of the Delivery architecture.
 
 | Component | Allocated requirements | Realized by (today's code) |
 | --- | --- | --- |
-| `05-src/` (shared controls) | F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies | `lineage.ts` (establishment, collectors, working-branches, freshness, synchronization, claim) with `holds.json` and `branching-audit.sh`/`branching.sh`; `engineering/change-isolation/` and `change-isolation.sh`; scans are tools, below |
+| `05-src/pipeline/` | F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies | `lineage.ts` (establishment, collectors, working-branches, freshness, synchronization, claim) with `holds.json` and `branching-audit.sh`/`branching.sh`; `engineering/change-isolation/` and `change-isolation.sh`; scans are tools, below |
 | `05-src/npmjs/` | F1 approve Publishing, F2 verify Package Promotion | A2, A3: `release.yml` Publish and Accept, `publishable()`, `provenance()` (G5 to G11) |
 | `05-src/main/` | F3 version Package, F10 bind Merge, F11 approve Promotion, F12 test Candidate, F13 serialize Promotion, F14 accept Capability | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4); `lineage.ts` source and auto-merge, `promotion-source.sh`; `bind-group.sh`; `engineering/lanes/` for test Candidate |
 | `05-src/collectors/` | F15 approve Change, F16 test Integration | `engineering/lanes/` for test Integration; approve Change has no source |
@@ -47,7 +47,7 @@ Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (
 - scan Vulnerabilities (F8): the CodeQL action (`codeql.yml`), used, not built.
 - scan Dependencies (F9): `dependency-review-action` and Dependabot (`dependency-review.yml`), used, not built.
 
-Shared code lives in `05-src/`: `main/` uses `lineage.ts` verdicts that live there, so a station never imports a sibling. The lane code (`engineering/lanes/`) serves test Candidate (`main/`) and test Integration (`kaal/`); where it lives is decided in those Changes. The `claim` verdict (one Change Record per squash Change) is allocated to isolate Change (F6), subject to the Owner.
+Shared code lives in `pipeline/`: `main/` uses `lineage.ts` verdicts that live there, so a station never imports a sibling. The lane code (`engineering/lanes/`) serves test Candidate (`main/`) and test Integration (`kaal/`); where it lives is decided in those Changes. The `claim` verdict (one Change Record per squash Change) is allocated to isolate Change (F6), subject to the Owner.
 
 Nothing above changes `.github` in this PLAN; `.github` changes travel alone as their own Change.
 
@@ -85,4 +85,4 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 
 ## Naming map (control names across surfaces)
 
-One row per control: the name in the records (this folder), the component path under `05-src/`, and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/npmjs/` | `release/npmjs / approve Publishing`.
+One row per control: the name in the records (this folder), the component path under `05-src/` (`pipeline/`, `npmjs/`, `main/`, `collectors/`), and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/npmjs/` | `release/npmjs / approve Publishing`.

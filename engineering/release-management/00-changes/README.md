@@ -2,7 +2,7 @@
 
 One Change per control, each through the full loop as graph Nodes (Intent, Requirement, Architecture, Cases; a Case `tests` a Node and no Node points at a Case). Each Change does four things, in this order, and nothing else (names aligned per F4: self-explanatory, mapped in `03-architecture`, not identical strings):
 
-1. **Add** the control as a job named by the control inside the workflow `release/<station>` (see `03-architecture`), running the code from its component under `05-src/` (the shared controls directly in `05-src/`, or the station component `npmjs/`, `main/` or `collectors/`, per the allocation in `03-architecture`); a control realized by a native setting or a used tool moves no code.
+1. **Add** the control as a job named by the control inside the workflow `release/<station>` (see `03-architecture`), running the code from its component under `05-src/` (`pipeline/` for the five shared controls, or the station component `npmjs/`, `main/` or `collectors/`, per the allocation in `03-architecture`); a control realized by a native setting or a used tool moves no code.
 2. **Move** the code from where it lives today into `05-src` (history kept with `git mv`; the old path keeps a one-line shim only if a required check or hook still calls it).
 3. **Retire** the old check name once the Owner has added the new context to the ruleset by hand, and only when that makes sense: a control with no old equivalent retires nothing.
 4. **Prove** it with Cases that sit next to the code (test layout rule); parity Cases pin that the moved code behaves as before.
@@ -11,10 +11,10 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 
 | Control | Component | Today (code, check) | Retires |
 | --- | --- | --- | --- |
-| isolate Change | shared (05-src) | `engineering/change-isolation/`, `change-isolation.sh`; `Change Isolation`; plus the synchronization shape from `Branching` (`lineage.ts` `synchronization`) | `Change Isolation` |
-| verify Ancestry | shared (05-src) | freshness half of `Branching` (`lineage.ts` `freshness`, `branching.sh`) | `Branching` (together with the two rows below) |
-| scan Vulnerabilities | shared (05-src) | `codeql.yml`; `CodeQL (actions)`, `CodeQL (javascript-typescript)` | the two `CodeQL` names |
-| scan Dependencies | shared (05-src) | `dependency-review.yml`; `Dependency Review` | `Dependency Review` (a rename) |
+| isolate Change | pipeline | `engineering/change-isolation/`, `change-isolation.sh`; `Change Isolation`; plus the synchronization shape from `Branching` (`lineage.ts` `synchronization`) | `Change Isolation` |
+| verify Ancestry | pipeline | freshness half of `Branching` (`lineage.ts` `freshness`, `branching.sh`) | `Branching` (together with the two rows below) |
+| scan Vulnerabilities | pipeline | `codeql.yml`; `CodeQL (actions)`, `CodeQL (javascript-typescript)` | the two `CodeQL` names |
+| scan Dependencies | pipeline | `dependency-review.yml`; `Dependency Review` | `Dependency Review` (a rename) |
 | approve Change | collectors | native settings of the `kaal/*` ruleset (below) | none (nothing on `kaal/*` requires `Change Isolation (review)` today) |
 | test Integration | collectors | `engineering/lanes/`; `Hosting`, `Workspaces`, `Acceptance`, `Engineering`, `Guard` x3 (`Guard` as a job is meant, not the workflow) | the lane names, as they become jobs of the control |
 | accept Capability | main | `engineering/github/promotion-source.sh`; `Promotion Source` | `Promotion Source` |
@@ -25,7 +25,7 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 | version Package | main | `engineering/release/release.mjs` `readiness()` | none (extends G1 to G4) |
 | approve Publishing | npmjs | `release.yml` `environment: npm` | none |
 | verify Package Promotion | npmjs | `release.yml` Accept, `provenance()` | none |
-| audit Lineage | shared (05-src) | `branching-audit.sh`, `holds.json`; `Branching audit` | `Branching audit` |
+| audit Lineage | pipeline | `branching-audit.sh`, `holds.json`; `Branching audit` | `Branching audit` |
 
 `Branching` retires only after all three halves have a new home (verify Ancestry, isolate Change, bind Merge), each add-new first. Two gates close the set: `gate (main)` and `gate (collectors)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts.
 
@@ -48,7 +48,7 @@ Not blocked: nothing here touches the required contexts that #1278 and #1272 dep
 
 ## Build order (agreed)
 
-The shared controls (audit Lineage first), then `npmjs`, then `main`, then `collectors`.
+`pipeline` (audit Lineage first), then `npmjs`, then `main`, then `collectors`.
 
 ## Open for the Owner
 
