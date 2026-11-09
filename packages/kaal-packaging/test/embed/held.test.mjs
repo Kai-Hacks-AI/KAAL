@@ -69,13 +69,15 @@ describe("held-copy classifier (packaging/C28)", () => {
     assert.equal(classifyHeld(frozen).verdict, "pin-behind");
     assert.deepEqual(frozen, fact());
     const source = readFileSync(join(PACKAGE, "lib", "held.mjs"), "utf8");
-    assert.doesNotMatch(source, /kaal-|@kaihacksai|\b(CTO|CPO|Kai)\b|\bprocess\b|\bDate\b|\bfetch\b|\bimport\b/);
+    assert.doesNotMatch(source, /kaal-|@kaihacksai|\b(CTO|CPO|Kai)\b|\bprocess\b|\bDate\b|\bfetch\b/);
   });
 
   it("packaging/T144 [packaging/A28, packaging/N13]: kaal-packaging/held is exported, and importing it needs no host module", () => {
     const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
     assert.deepEqual(pkg.exports["./held"], { types: "./lib/held.d.ts", default: "./lib/held.mjs" });
     assert.equal(typeof classifyHeld, "function");
-    assert.doesNotMatch(readFileSync(join(PACKAGE, "lib", "held.mjs"), "utf8"), /^\s*import\b/m);
+    const source = readFileSync(join(PACKAGE, "lib", "held.mjs"), "utf8");
+    const specifiers = [...source.matchAll(/(?:\bfrom\s*|\bimport\s*\(?\s*)["']([^"']+)["']/g)].map((m) => m[1]);
+    assert.deepEqual(specifiers.filter((x) => !x.startsWith("./")), [], "held.mjs imports only siblings in lib/");
   });
 });

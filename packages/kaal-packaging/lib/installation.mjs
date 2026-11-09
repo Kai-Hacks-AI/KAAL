@@ -23,6 +23,7 @@
 // Every host operation goes through Hosting (lib/host.mjs, packaging/A1, T6): the listing is Hosting's `list`, and
 // whether a link leaves the package is Hosting's `within`.
 import { list, readFile, sha256, within } from "./host.mjs";
+import { REGISTRY_TARBALL } from "./registry.mjs";
 
 /** `/`-separated join; Hosting accepts it on every host. */
 const join = (...parts) => parts.join("/");
@@ -119,8 +120,6 @@ function specifiers(code) {
 /** Only a bare package specifier can name a package: relative and absolute paths never do. */
 const packageOf = (specifier) => (specifier.startsWith("@") ? specifier.split("/").slice(0, 2) : specifier.split("/").slice(0, 1)).join("/");
 const importsOwn = (code) => specifiers(code).some((x) => !/^[./\\]/.test(x) && !/^[A-Za-z]:/.test(x) && OWN_SPECIFIER.test(packageOf(x)));
-/** A registry archive: an http(s) URL under a registry's `/-/` path, as npm records a package it fetched from a registry. */
-const REGISTRY_TARBALL = /^https?:\/\/[^\s]+\/-\/[^\s/]+$/;
 const NOTE = "consistency, not provenance: the manifest detects an accidental or partial change, not a replaced package";
 const EXIT = { verified: 0, failed: 1, unknown: 2 };
 

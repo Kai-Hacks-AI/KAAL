@@ -14,6 +14,10 @@
       "types": "./lib/conformance.d.ts",
       "default": "./lib/conformance.mjs"
     },
+    "./held": {
+      "types": "./lib/held.d.ts",
+      "default": "./lib/held.mjs"
+    },
     "./package.json": "./package.json"
   },
   "bin": {

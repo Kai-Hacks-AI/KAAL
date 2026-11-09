@@ -9,19 +9,23 @@
     "docs/limitations.md": "f4e62fa23be9637afb37fe1abc1d3e0bcace431bf89f64aa11779d2cbccf943e",
     "docs/operations.md": "f216dbebf528b1ff7148ccb188106ee7975cb27175f85618c95196df738bcf4e",
     "docs/requirements.md": "28bda45d35651741fc7a160415c7d482ee68d7a3b95db210be3365dc2d740402",
-    "docs/testing.md": "5cdc3f7adf4180c2859547b27288e04152ccbf22c423bb935613dfe105bd13f8",
+    "docs/testing.md": "324cc473d6a5180363a872bcd4843d7b46458bcb2e36cf9b6fc6d4e935482352",
     "lib/builtins.json": "c4f64e888345d8ff53a1580d2f286df86e836d9cd10d0ae24418554a3201cef4",
     "lib/conformance.d.ts": "098e74665674f245c582181e4a125107a16f1c5a3c1ac2f6b639463c0918ba65",
     "lib/conformance.mjs": "a91be8e5bf5891ecb13491d395e5a8c952c334a324438cd03d8bcf65ea5c1161",
+    "lib/held.d.ts": "0adeb003c17ca69e885aec66c4ad3f57a948820122c26087db3742e0c6d1e806",
+    "lib/held.mjs": "28cd011e4af906512321db44c54c640296b814b5fe43edf1b700c861e29489a6",
     "lib/host.mjs": "76fefb907c0c1330d84c516b9bdb52b0b3f9ad0dd7cefa6c5d95f24083cf986f",
-    "lib/installation.mjs": "73cc5016a3634120bc0ff4e3f02f8a8641420a9031923c58cc0b4837a945c8c9",
+    "lib/installation.mjs": "fb81ebd470f6546c1434c78e0203713ec36d9f0c5d8d7f15930fce6e9738a5a7",
     "lib/npm/realization.mjs": "089410df0dde44791685b4693dea58bf40244f9e8b94b7b61fe16d8f3785a734",
     "lib/packaging.d.ts": "5eed0c8751e5ce0e445297889ccf572340320454370324992578c0a59dfcaaa2",
     "lib/packaging.mjs": "363ed1d87b30740528d57b582e7549788a8e40e9eb5479b0e83807ad4c114076",
+    "lib/registry.mjs": "c0ff6be5567cebd5331ef9bdab6294f1020d9913c3a3a17cd5ddf71e260901b9",
     "lib/structure.mjs": "9e8ea7e7787e291456484d09f4de519c11b4d369d14e78f3e6ac1e898ae464da",
-    "package.json": "f0964c16088d27d9a5ed502cc9bad5f5a361a24de62a9b7265b8eedab2e142fc",
+    "package.json": "cdab78badf515470f1f93cf01fd8413aa0ccfd11756a9678817850b0ae5fc442",
     "skills/kaal-packaging/SKILL.md": "bef7993ad2f74be4048b784cfd3ff07cbc66390eb7c3c74b0dad7fc15fd170a4",
     "test/embed/fixtures/kaal-guard-0.0.4.tgz": "ecd79c5bd251d2837c71688ba72798a1bcb140de36969347e2198e8982abaa4a",
+    "test/embed/held.test.mjs": "ef5c05b49f79f505011d1d0696e3de0d0c79ae81aa0a11f2257ea15aea6bb5b2",
     "test/embed/measurement.test.mjs": "6ca888abf9c118460d1041bb91cb6274123c1b525b5c91fdc5b5200ee5d8cfeb",
     "test/embed/package.test.mjs": "9f5c63b610f245a089ee8260514654c5b9d92a17427e93b3ba6a403317b626a8",
     "test/run.mjs": "91edb472bd369555b5b6fc0d4f1d60ae888fbb544688526c5c1583cdf99b8aa4",
@@ -65,7 +69,15 @@
     "packaging/T64",
     "packaging/T65",
     "packaging/T66",
-    "packaging/T67"
+    "packaging/T67",
+    "packaging/T137",
+    "packaging/T138",
+    "packaging/T139",
+    "packaging/T140",
+    "packaging/T141",
+    "packaging/T142",
+    "packaging/T143",
+    "packaging/T144"
   ],
   "model": {
     "cases": [
@@ -310,6 +322,57 @@
         "id": "packaging/T67",
         "tests": [
           "packaging/F29"
+        ]
+      },
+      {
+        "id": "packaging/T137",
+        "tests": [
+          "packaging/F55",
+          "packaging/F57"
+        ]
+      },
+      {
+        "id": "packaging/T138",
+        "tests": [
+          "packaging/F54"
+        ]
+      },
+      {
+        "id": "packaging/T139",
+        "tests": [
+          "packaging/F56"
+        ]
+      },
+      {
+        "id": "packaging/T140",
+        "tests": [
+          "packaging/F56"
+        ]
+      },
+      {
+        "id": "packaging/T141",
+        "tests": [
+          "packaging/F56"
+        ]
+      },
+      {
+        "id": "packaging/T142",
+        "tests": [
+          "packaging/F56"
+        ]
+      },
+      {
+        "id": "packaging/T143",
+        "tests": [
+          "packaging/N13",
+          "packaging/F57"
+        ]
+      },
+      {
+        "id": "packaging/T144",
+        "tests": [
+          "packaging/A28",
+          "packaging/N13"
         ]
       }
     ]
