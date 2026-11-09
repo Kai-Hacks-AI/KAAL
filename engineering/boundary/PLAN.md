@@ -37,9 +37,9 @@ Replace "the Suite ships with the provider's package as a reusable asset: execut
 - Foundation's change (its own Change, after this): remove `scan.mjs`, convert `boundary-check.md` into the rules file, and move T54–T62 (they test the scanner) to the engine's Cases in Engineering. T63 becomes a Case that the shipped rules file is well-formed.
 - No package-to-package edge: the engine is in Engineering, and Engineering is never a package.
 
-## Testing (planned, RED until the DO)
+## Testing (RED)
 
-Engine Cases in Engineering, each pointing at its Requirement: R1 rules applied and nothing else (copy / implementation / crypto reproduced on a fixture, the same findings Foundation's `scan.mjs` gives today); R2 a rules file with a target path or a role is refused; R3 shape, digest, owner, skip, exit codes; R4 Foundation's rules file gives the same findings as the old scanner on the old fixtures; R6 the matrix; R7 conformance with Hosting's scan output. All planned Cases are RED until the engine exists.
+`engineering/boundary/boundary-engine.red.mjs` holds seven Cases, all RED because `engine.mjs` is not delivered (missing-deliverable evidence, not behavioural). T1 R1 finds the rule's line (id `demo/t/a.mjs:2`, rule, line, exit 0); T2 R2 refuses a rules file that names a target or a role; T3 R3 a missing target is `unknown`, exit 2, with the `kaal-boundary-scan` last line; T4 R3 an owned directory is skipped and reported; T5 R1 and R8 the engine only reads and imports only `node:` modules and `yaml`; T6 R4 Foundation's rules file gives the old scanner's findings; T7 R7 conformance with Hosting's scan. The DO turns them GREEN and adds the matrix Cases (R6).
 
 ## Order
 

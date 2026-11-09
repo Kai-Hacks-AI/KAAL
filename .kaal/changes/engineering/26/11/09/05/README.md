@@ -2,7 +2,7 @@
 
 Capability: Engineering. Target: `kaal/engineering-boundary-engine`, cut from main 251e814 so that the contents of
 `kaal/engineering` are left untouched and do not ride along (Owner, 2026-11-09). Record number is provisional until
-integration. PLAN only: `engineering/boundary/PLAN.md`; no engine, no rules reader and no Case is built here.
+integration. PLAN: `engineering/boundary/PLAN.md` and seven RED Cases T1 to T7 in `engineering/boundary/boundary-engine.red.mjs`, all RED because the engine is not delivered (missing-deliverable evidence). No engine and no rules reader is built here.
 
 Owner rulings of 2026-11-09 that it states: boundary tests exist in one place only (DRY); Engineering owns the one engine
 and every package uses it; providers ship rules as Markdown with YAML front matter, parsed in Engineering only with the
