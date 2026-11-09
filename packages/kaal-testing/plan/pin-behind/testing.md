@@ -1,6 +1,6 @@
 # Pin-behind in the acceptance evidence: Testing
 
-The outer tests are in `test/plan/pin-behind.red.mjs`, run by hand with `node --test test/plan/pin-behind.red.mjs` until the DO. Cases carry the model's identities (numbers provisional, after testing/T140 of the loops PLAN):
+The outer tests are in `test/plan/pin-behind.red.mjs`, run by hand with `node --test test/plan/pin-behind.red.mjs` until the DO (since folded into `test/acceptance.test.mjs`, where `npm test` runs them). Cases carry the model's identities (numbers provisional, after testing/T140 of the loops PLAN):
 
 | Case | Checks | Role |
 | --- | --- | --- |

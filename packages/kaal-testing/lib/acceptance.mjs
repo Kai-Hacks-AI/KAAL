@@ -114,9 +114,31 @@ export async function install(names, { offline = false } = {}) {
   return host;
 }
 
+const PLAIN = /^\d+\.\d+\.\d+$/;
+const older = (a, b) => {
+  const x = a.split(".").map(Number);
+  const y = b.split(".").map(Number);
+  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] < y[i];
+  return false;
+};
+
+/**
+ * Whether a held entry that differs from the packed bytes is only a copy a consumer stays on (testing/F118): it is
+ * nested under a consumer (more than one `node_modules/` in `at`) and its version is strictly below the packed one.
+ * Resolves to { consumer, held, packed }, or null for anything else, which stays a verified failure (testing/F119):
+ * a top-level copy, the same or a newer version, and any version that is missing or not plain x.y.z.
+ */
+function pinBehind(at, entry, packed) {
+  const parts = at.split("node_modules/");
+  if (parts.length < 3) return null;
+  if (!PLAIN.test(entry.version ?? "") || !PLAIN.test(packed.version ?? "")) return null;
+  if (!older(entry.version, packed.version)) return null;
+  return { consumer: parts[parts.length - 2].replace(/\/$/, ""), held: entry.version, packed: packed.version };
+}
+
 /**
  * Read a run's evidence into findings. `manifest` maps each packed package to
- * { tarball, sha256, integrity }; `scenarios` lists the scenario paths that
+ * { tarball, sha256, integrity, version }; `scenarios` lists the scenario paths that
  * ran; `records` are the ledger's installations, { scenario, host, consumed };
  * `holds` maps each recorded host to the packages npm records it holds
  * (node_modules/.package-lock.json's `packages`), or to { unreadable } with
@@ -137,7 +159,10 @@ export function findings({ manifest, scenarios, records, holds }) {
     }
     for (const [at, entry] of Object.entries(held)) {
       const name = entry.name ?? at.split("node_modules/").pop();
-      if (manifest[name] && entry.integrity !== manifest[name].integrity) failure(scenario, `${host} holds ${name} from ${entry.resolved ?? "elsewhere"}, not the packed tarball`);
+      if (!manifest[name] || entry.integrity === manifest[name].integrity) continue;
+      const behind = pinBehind(at, entry, manifest[name]);
+      if (behind) out.push({ kind: "pin-behind", subject: scenario, evidence: `${host} holds ${name}@${behind.held} nested under ${behind.consumer}, behind the packed ${behind.packed}`, consumer: behind.consumer, package: name, held: behind.held, packed: behind.packed, host });
+      else failure(scenario, `${host} holds ${name} from ${entry.resolved ?? "elsewhere"}, not the packed tarball`);
     }
   }
   const hosts = records.map((r) => r.host);
