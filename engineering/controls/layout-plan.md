@@ -22,12 +22,25 @@ engineering/controls/<control>/
 
 Cases stay next to the code (for example `engineering/github/ports/promotion-source.parity.test.mjs`); `04-test` only refers to them by `test:<path>#<describe>`. Change records stay in `.kaal/changes/engineering/`, as Engineering's own folder holds only what improves Engineering.
 
+## Where the port Cases live
+
+`engineering/github/ports/` is not a good home: it is named for a mechanism, and it holds three different kinds of thing. The rule is that a Case sits next to what motivated it.
+
+| Case | Motivated by | Proposed home |
+| --- | --- | --- |
+| Parity Case of one port (for example `promotion-source.parity.test.mjs`, ports/T2) | that one script and its control's requirement that output and exit codes stay as they were | beside the script it ports: `engineering/github/promotion-source.parity.test.mjs`, next to `promotion-source.mjs` and `lineage.test.ts` |
+| Shell inventory Case (ports/T1) and the final three-shim byte pin | the repo-wide requirement that the must-be-shell list stays small and each shim is pinned | a new folder about shell as such: `engineering/shell/` |
+| The ports PLAN (`engineering/github/ports/PLAN.md`) | the same repo-wide requirement | `engineering/shell/` as well, with its Intent, Requirements and Architecture in the numbered folders above |
+
+Moving them changes only paths (and the `test:engineering` list); the Cases' bytes stay the same. It is its own Change, after the layout is decided.
+
 ## Decisions for the Owner
 
 1. **Numbered folders (package-like) or the C3 flat files** (`intent.md`, `requirements.md`, `architecture.md`, `testing.md`)? Recommendation: numbered, so one traceability computer reads both.
 2. **The term "Assurance".** It is the existing README heading for how each claim is checked. In the new layout it disappears as a heading: the claims' state is read from the Cases in `04-test` by trace.
 3. **Brackets or typed edges.** Today `[F1]` brackets are the traces. Keep them now; typed edges follow when Requirements and Architecture define them.
-4. **Migration.** One control first (promotion-source, the pilot), bytes of each section unchanged, as its own Change. The other six follow once it is reviewed. The ports' Architecture edits then land in the new place, once.
+4. **Case homes.** Parity Cases beside their script, the inventory and byte-pin Cases and the ports PLAN in `engineering/shell/`. Recommendation: yes.
+5. **Migration.** One control first (promotion-source, the pilot), bytes of each section unchanged, as its own Change. The other six follow once it is reviewed. The ports' Architecture edits then land in the new place, once.
 
 ## Not in this PLAN
 
