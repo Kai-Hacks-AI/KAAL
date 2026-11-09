@@ -1,7 +1,7 @@
 // The checker's command line with a ledger entry the candidate carries, on a real scratch repository.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
@@ -72,7 +72,7 @@ test("run as a lone copy beside Foundation's SHA-256, as the wrapper scripts do"
   const lone = mkdtempSync(join(tmpdir(), "carried-lone-"));
   try {
     copyFileSync(CHECK, join(lone, "check.mjs"));
-    copyFileSync(resolve(HERE, "../../packages/kaal-foundation/lib/sha256.mjs"), join(lone, "kaal-foundation-sha256.mjs"));
+    copyFileSync(resolve(HERE, "../../", ["packages/kaal-foundation/05-src/skills/kaal-foundation/scripts/sha256.mjs", "packages/kaal-foundation/lib/sha256.mjs"].find((p) => existsSync(resolve(HERE, "../../", p)))), join(lone, "kaal-foundation-sha256.mjs"));
     const diff = spawnSync("git", ["diff", "--no-renames", "--name-only", "-z", `${s.base}...${s.head}`], { cwd: s.dir, env });
     const r = spawnSync("node", [join(lone, "check.mjs"), "--ledger", join(s.tmp, "base-ledger.json"), "--git", s.base, s.head,
       "--candidate-ledger", join(s.tmp, "candidate-ledger.json"), "--attested", `carry-1:${entryDigest(s.entry)}`],

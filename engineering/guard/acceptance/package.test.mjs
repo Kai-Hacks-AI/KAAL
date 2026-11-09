@@ -5,7 +5,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 // Import the checked-in public module: the package under test and its Foundation digest need no build.
-import { sha256 } from "../../../packages/kaal-foundation/lib/sha256.mjs";
+const FOUNDATION_SHA256 = ["packages/kaal-foundation/05-src/skills/kaal-foundation/scripts/sha256.mjs", "packages/kaal-foundation/lib/sha256.mjs"].find((p) => fs.existsSync(new URL("../../../" + p, import.meta.url)));
+const { sha256 } = await import(new URL("../../../" + FOUNDATION_SHA256, import.meta.url).href);
 import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import fs from "node:fs";
 import { syncBuiltinESMExports } from "node:module";
