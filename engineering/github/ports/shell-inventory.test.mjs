@@ -19,7 +19,6 @@ const ALLOWED = [
   "engineering/github/branching-audit.sh",
   "engineering/github/branching.sh",
   "engineering/github/change-isolation.sh",
-  "engineering/github/promotion-source.sh",
   "engineering/github/push-check.sh",
   "engineering/guard/external/templates/guard.sh",
   "engineering/guard/external/templates/pre-push",
