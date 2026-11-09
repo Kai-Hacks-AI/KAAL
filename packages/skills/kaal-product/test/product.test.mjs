@@ -11,7 +11,7 @@ import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { bootstrap, catalog, foundation, readContribution, register, verify } from "kaal-core";
 import { identify } from "kaal-graph";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { CLAIM_FILE, readClaim } from "kaal-testing/attribution";
 
 const PACKAGE = fileURLToPath(new URL("../", import.meta.url));
