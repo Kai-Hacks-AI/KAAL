@@ -83,3 +83,34 @@
   - names no target path and no role.
 
   The installed `references/operations.md`, the skill (foundation/F15) and the repository's `AGENTS.md` Foundation section (foundation/F16) name the scan by the scoped package's own path and state the same limits and the same place for decisions.
+
+## Ownership
+
+- **foundation/F20** [foundation/I8]: **Capability Node.** `kaal/Foundation.md` is a Node named `Foundation` and typed by KAAL Capability, under the same type reference as Core's own Node. Its body states Foundation's responsibility.
+- **foundation/F21** [foundation/I8]: **Ownership claim.** `ownership.kaal.json` at the package root holds exactly `owner` and `paths`. `owner` is `{ kind: "capability", name: "Foundation", id }`, where `id` is the SHA-256 of `kaal/Foundation.md`'s bytes. `paths` is exactly `["packages/kaal-foundation/"]`.
+
+## Held for kaal-packaging
+
+Carried forward from the publication and capability Changes and restated for the final layout and for this repository only. They are not ours: kaal-packaging governs them for every package, and Foundation holds them until it lands on main (foundation/I16). Each leaves a one-line `moved:` tombstone when it moves.
+
+- **foundation/F4** [foundation/I4, foundation/I5]: **Publishable.** `package.json` is not marked `private`, keeps the name `@kaihacksai/kaal-foundation`, and declares no dependencies of any kind (foundation/N2).
+- **foundation/F5** [foundation/I4]: **The packed artifact is the listed files.** The packed artifact holds exactly the files that `dist/test/package-check/verify.json` lists, nothing more and nothing less. No plan and no publisher test ships. Installed from that tarball into a fresh directory, `@kaihacksai/kaal-foundation/sha256` imports and gives the FIPS 180-4 digest of `abc`.
+- **foundation/F6** [foundation/I4, foundation/I5]: **README.** The README gives the install command (`npm install @kaihacksai/kaal-foundation`), links each delivered document, does not call the package private, and states that each concern's ownership is provisional (foundation/N4).
+- **foundation/F7** [foundation/I6]: **Delivered documents.** The package ships its Nodes under `dist/docs/` (intent, requirements, architecture, defects) and the skill's references (limitations, operations). They link only files that ship and name no plan.
+- **foundation/F8** [foundation/I6]: **One installed result.** In an installation, `npm test` runs the delivered Cases against the installed copy and ends in exactly one result: **verified** when the files match and every declared Case ran once and passed; **failed** when a Case failed; **cannot verify** when the manifest or a listed file is missing or differs, a declared Case did not run, or nothing ran (foundation/F12).
+- **foundation/F11** [foundation/I7]: **Shipped manifest.** The package ships `test/package-check/verify.json`: `files` (every other shipped file by path with its SHA-256), `cases` (every delivered Case by name) and `model` (the delivered Cases as Testing's model).
+- **foundation/F19** [foundation/I5]: **Publishable as is.** `package.json` declares `publishConfig.access: "public"`, because a scoped package's first publish is otherwise restricted, and declares `repository` (`git+https://github.com/Kai-Hacks-AI/KAAL.git`, directory `packages/kaal-foundation`), because a publish with provenance checks it. Publication itself and the release workflow stay outside Foundation.
+
+## Held for kaal-testing
+
+Not ours: held here until kaal-testing lands on main (foundation/I16), with a `moved:` tombstone left when each moves.
+
+- **foundation/F9** [foundation/I4, foundation/I6]: **One test entry, two places.** In the source workspace `npm test` builds `dist/` and runs the delivered verification; the publisher's Cases run in `npm run test:publisher`. In an installation `npm test` runs the delivered verification only.
+- **foundation/F13** [foundation/I7]: **Traceability.** The shipped Nodes define, as bold identifiers, the Foundation identifiers a Case tests. Each delivered Case is a `node:test` test titled `foundation/T<n> [<targets>]: <what it checks>`; its targets are the identifiers it tests, and every target is defined in the shipped Nodes. Superseded by the `tests` edge in the Case's front matter (foundation/F43), to be retired when that lands.
+- **foundation/F17** [foundation/I7, foundation/I6]: **A declared source test plan.** This amends foundation/F9. The source workspace declares its suites as scripts: `test` builds `dist/` and runs the delivered verification, and `test:publisher` runs the publisher's Cases, collected and not a hand-kept list once the collector replaces it.
+
+## Held for kaal-agents
+
+Not ours: held here until kaal-agents lands on main.
+
+- **foundation/F16** [foundation/I7]: **Agent instructions.** The repository's `AGENTS.md` has a Foundation section, as every capability does. It says when to use Foundation, names the skill's path and both commands, and says that Foundation holds reviewed, provisional concerns and is not a utilities bucket.

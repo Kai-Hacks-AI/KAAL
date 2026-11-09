@@ -18,4 +18,14 @@ Foundation holds the shared, pure and deterministic primitives that any KAAL pac
   looks for and never where it looks, and it names no role. Only a consequence of a
   decision enters a package.
 
+- **foundation/I8** **Its location is its own.** Foundation states, in the repository, that `packages/kaal-foundation/` is its own location. A Change to it is traced to Foundation, as one is to Core, Graph or Testing. It claims nothing outside that folder.
+
+## Held for kaal-packaging
+
+Carried forward from the publication Change. They belong to kaal-packaging, which applies to every package, and are held here until it lands on main (foundation/I16). Each is placed: not ours, so a later cut and paste moves it.
+
+- **foundation/I4** **Installable by itself.** `@kaihacksai/kaal-foundation` can be installed by itself from its packed artifact, and it works there exactly as it does in the workspace.
+- **foundation/I5** **Ready to publish.** Foundation is ready to publish. Its name follows the Owner's `@kaihacksai/kaal-*` namespace.
+- **foundation/I6** **Documents and an honest installed verdict.** The package ships concise documents that explain it, and a delivered `npm test` that verifies the installed copy and reports an honest result.
+
 See [Requirements](../requirements/functional/requirements.md) for what this guarantees.
