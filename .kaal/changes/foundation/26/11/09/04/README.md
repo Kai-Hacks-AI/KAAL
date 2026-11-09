@@ -9,10 +9,10 @@ This Change defines them, plus I5 and I8 (cited by the Requirements it carries),
 `03-architecture`, each placed by the Owner's two questions (ours or not ours, then Delivery or Solution).
 
 - Ours, carried into the Nodes, reworded for the final layout: A6, F20, F21, I8, N3, N6 to N12.
-- Not ours, carried into a "Held for kaal-packaging" section of each Node (Owner, 2026-11-09: held ids stay inside
-  Foundation's Nodes): A5, F4 to F9, F11, F13, F16, F17, F19, I4 to I6. Targets in the inventory: kaal-packaging for A5,
-  F4 to F8, F11, F19, I4 to I6; kaal-testing for F9, F13, F17; kaal-agents for F16. The tree DO adds the A25 index, the
-  per-capability "Held for" sections and the `moved:` tombstone rule; here F9/F13/F17/F16 sit under the one section.
+- Not ours, carried into "Held for <capability>" sections of the Nodes (Owner, 2026-11-09: held ids stay inside
+  Foundation's Nodes): A5, F4 to F9, F11, F13, F16, F17, F19, I4 to I6. Targets, one section each: kaal-packaging for A5,
+  F4 to F8, F11, F19, I4 to I6; kaal-testing for F9, F13, F17; kaal-agents for F16. The tree DO adds the A25 index and the
+  `moved:` tombstone rule.
 - Reworded: no version 0.0.1, no flat `docs/*.md` layout, no Test Plan, and nothing about what a consumer has or does
   (Owner ruling, 2026-11-09). Ids are never reused.
 - Inventory and placement table: `foundation/carry-forward-inventory-0.0.2.md` in the project files.
