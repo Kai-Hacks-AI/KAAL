@@ -1,6 +1,6 @@
 # Gaps (A to B)
 
-Where the present state differs from a target requirement. Each gap names its target and the Case that judges it closed. A gap is an observation, not a gate (Owner and CPO decide whether it becomes a Case, a decision or a documented limit).
+Where the present state differs from a target requirement. Each gap names its target and its closing condition: the Case that judges it closed, or, where the gap awaits an Owner decision or a documented limit, that decision (a Case may follow it). A gap is an observation, not a gate (Owner and CPO decide whether it becomes a Case, a decision or a documented limit).
 
 - **release-management/G1.** version Package: no check that the version is greater than the latest published.
 
