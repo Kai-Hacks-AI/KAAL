@@ -98,6 +98,8 @@ Today four workflows use `pull_request_target`: `change-isolation.yml` (Change I
 - **Trust gap to close:** on `merge_group` and `pull_request` the workflow definition comes from the candidate's side, so a candidate could change the workflow that judges it. A `.github` change travels alone and needs approval, but the workflow cannot be its own only guard. Candidate fix: a ruleset **"Require workflows to pass"** rule that pins the `release/*` workflows to the default branch (`refs/heads/main`), so the definition that judges a change is the one `main` holds. Availability for this repository and how it names the required checks are unverified.
 - The `gate (main)` and `gate (collectors)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
 
+Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and does not depend on it or wait for it.
+
 **Order into `main` (each step additive, promotions in flight not blocked, each exact-head reviewed):**
 1. This PLAN lands.
 2. `pipeline/` controls, with the `release/*` workflows on `merge_group` and `pull_request` alongside the old checks (add-new).
