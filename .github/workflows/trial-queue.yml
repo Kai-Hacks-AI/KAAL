@@ -1,0 +1,13 @@
+name: trial queue
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+permissions:
+  contents: read
+jobs:
+  trial-ok:
+    name: trial-ok
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "event=${{ github.event_name }} ref=${{ github.ref }} base=${{ github.event.merge_group.base_ref }}"
