@@ -1,6 +1,5 @@
-// Engineering RED Cases (PLAN engineering/boundary/PLAN.md): one Boundary Engine, capability-owned Boundary Tests.
-// All RED until the DO delivers engineering/boundary/engine.mjs. Every Case asserts behavior through the engine as a
-// process, so each fails on a missing engine and can pass only when the contract holds (none passes on existsSync alone).
+// Engineering Cases (PLAN engineering/boundary/PLAN.md): one Boundary Engine, capability-owned Boundary Tests.
+// Every Case asserts behavior through the engine as a process or through its provisional Case adapter; none passes on existsSync alone.
 // Every fixture is built in a temporary directory.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -28,7 +27,7 @@ const run = (...args) => {
 };
 
 describe("one Boundary Engine, capability-owned Boundary Tests", () => {
-  it("T1 (RED until the DO) [R1]: the engine finds the call's line in a target, exit 0 with a finding", () => {
+  it("T1 [R1]: the engine finds the call's line in a target, exit 0 with a finding", () => {
     const tests = put("t1/tests.md", def("demo", CRYPTO));
     put("t1/t/a.mjs", "x\nconst h = createHash(\"sha256\");\n");
     const r = run("--tests", tests, "--target", join(dir, "t1/t"), "--base", join(dir, "t1"));
@@ -36,7 +35,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.equal(r.summary.result, "complete");
     assert.deepEqual(r.summary.findings.map((f) => [f.id, f.rule, f.line]), [["demo/t/a.mjs:2", "crypto", 2]]);
   });
-  it("T2 (RED until the DO) [R2]: a definition that names a target or a role, or has an unknown parameter, is refused", () => {
+  it("T2 [R2]: a definition that names a target or a role, or has an unknown parameter, is refused", () => {
     const base = def("demo", CRYPTO);
     for (const [name, text] of [
       ["target", base.replace("provider: demo", "provider: demo\ntargets: [packages/kaal-hosting]")],
@@ -48,12 +47,12 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
       ["ships", base.replace("    ships: true\n", "")],
     ]) assert.equal(run("--tests", put(`t2/${name}.md`, text), "--target", dir).status, 2, name);
   });
-  it("T3 (RED until the DO) [R3]: a missing target is unknown, exit 2, and the last line is kaal-boundary-scan", () => {
+  it("T3 [R3]: a missing target is unknown, exit 2, and the last line is kaal-boundary-scan", () => {
     const r = run("--tests", put("t3/tests.md", def("demo", CRYPTO)), "--target", join(dir, "nope"));
     assert.equal(r.status, 2);
     assert.equal(r.summary?.result, "unknown");
   });
-  it("T4 (RED until the DO) [R3]: a directory owned by the provider is skipped and reported, with no finding", () => {
+  it("T4 [R3]: a directory owned by the provider is skipped and reported, with no finding", () => {
     const tests = put("t4/tests.md", def("demo", CRYPTO));
     put("t4/own/ownership.kaal.json", JSON.stringify({ owner: { kind: "capability", name: "demo", id: "x" }, paths: ["own/"] }));
     put("t4/own/a.mjs", "createHash(\"sha256\")\n");
@@ -61,7 +60,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.equal(r.summary?.findings.length, 0);
     assert.ok(r.summary.coverage.skipped.some((s) => s.reason === "owner"));
   });
-  it("T5 (RED until the DO) [R1, R8]: the engine only reads: the target tree is identical after a run, and the engine imports only node: modules and yaml", () => {
+  it("T5 [R1, R8]: the engine only reads: the target tree is identical after a run, and the engine imports only node: modules and yaml", () => {
     const tests = put("t5/tests.md", def("demo", CRYPTO));
     put("t5/ro/a.mjs", "createHash(\"sha256\")\n");
     const snap = () => readdirSync(join(dir, "t5/ro"), { recursive: true }).sort().map((f) => [f, statSync(join(dir, "t5/ro", f)).isFile() ? readFileSync(join(dir, "t5/ro", f)).toString("hex") : "dir"]);
@@ -73,10 +72,10 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.ok(files.includes("engine.mjs"), "engine.mjs is delivered");
     const src = files.map((f) => readFileSync(join(HERE, f), "utf8")).join("\n");
     const imports = [...src.matchAll(/(?:from\s+|import\s*\()\s*["']([^"']+)["']/g)].map((m) => m[1]);
-    assert.ok(imports.length > 0 && imports.every((m) => m.startsWith("node:") || m === "yaml" || m.startsWith("./")), `imports: ${imports}`);
+    assert.ok(imports.length > 0 && imports.every((m) => m.startsWith("node:") || m === "yaml" || m === "@kaihacksai/kaal-foundation/sha256" || m.startsWith("./") || m.startsWith("../")), `imports: ${imports}`);
     assert.doesNotMatch(src, /\b(writeFile|appendFile|rmSync|unlink|mkdir|rename|spawn|exec|fetch)\w*\s*\(/);
   });
-  it("T6 (RED until the DO) [R2, R4]: file-identity, token-sequence and call-with-literal find a byte copy, a bounded constant sequence and a crypto call, and not their near misses", () => {
+  it("T6 [R2, R4]: file-identity, token-sequence and call-with-literal find a byte copy, a bounded constant sequence and a crypto call, and not their near misses", () => {
     const ref = "export const ref = 1;\n";
     put("t6/def/ref/lib.mjs", ref);
     const tests = put("t6/def/tests.md", def("demo",
@@ -105,7 +104,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.equal(lost.status, 2, "a file-identity reference that cannot be read makes the result unknown");
     assert.equal(lost.summary?.result, "unknown");
   });
-  it("T7 (RED until the DO) [R7]: a finding has exactly id, rule, file, line, digest and owner; the digest is the line's SHA-256; a usage error exits 2; the exit is never 1", () => {
+  it("T7 [R7]: a finding has exactly id, rule, file, line, digest and owner; the digest is the line's SHA-256; a usage error exits 2; the exit is never 1", () => {
     const tests = put("t7/tests.md", def("demo", CRYPTO));
     put("t7/t/a.mjs", "x\ncreateHash(\"sha256\")\n");
     const r = run("--tests", tests, "--target", join(dir, "t7/t"), "--base", join(dir, "t7"));
@@ -116,7 +115,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.equal(run("--target", join(dir, "t7/t")).status, 2);
     assert.notEqual(run("--tests", tests).status, 1);
   });
-  it("T8 (RED until the DO) [R2]: a capability changes its own Boundary Tests without an Engineering code change", () => {
+  it("T8 [R2]: a capability changes its own Boundary Tests without an Engineering code change", () => {
     const bytes = () => sha(sources().map((f) => readFileSync(join(HERE, f), "utf8")).join("\n"));
     const engineBefore = bytes();
     put("t8/t/a.mjs", "createHash(\"sha256\")\nconst m = \"md5\";\nopen(\"alpha\", \"beta\");\n");
@@ -129,7 +128,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.deepEqual(other, ["other/t/a.mjs:3"]);
     assert.equal(bytes(), engineBefore);
   });
-  it("T9 (RED until the DO) [R2]: a new generic detector needs an Engineering Change: a definition naming an unknown detector, or carrying code or a regular expression, is refused and runs nothing", () => {
+  it("T9 [R2]: a new generic detector needs an Engineering Change: a definition naming an unknown detector, or carrying code or a regular expression, is refused and runs nothing", () => {
     put("t9/t/a.mjs", "createHash(\"sha256\")\n");
     const marker = join(dir, "t9/ran.txt");
     put("t9/hook.mjs", `import { writeFileSync } from "node:fs"; writeFileSync(${JSON.stringify(marker)}, "ran");\n`);
@@ -143,7 +142,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     }
     assert.throws(() => readFileSync(marker), "nothing from a definition is executed");
   });
-  it("T10 (RED until the DO) [R1, R2]: the provisional adapter gives one descriptor per test, suite boundary, with the definition's tests edge and ships flag", async () => {
+  it("T10 [R1, R2]: the provisional adapter gives one descriptor per test, suite boundary, with the definition's tests edge and ships flag", async () => {
     const tests = put("t10/tests.md", def("demo", CRYPTO + CRYPTO.replace("id: crypto", "id: crypto2").replace("tests: demo/I1", "tests: demo/I2").replace("ships: true", "ships: false")));
     const { boundaryCases } = await import(pathToFileURL(CASES).href);
     const cases = boundaryCases([tests]);
@@ -153,7 +152,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     ]);
     assert.ok(cases.every((c) => typeof c.run === "function"));
   });
-  it("T11 (RED until the DO) [R1, R3]: a run keeps evidence completeness and finding disposition apart and returns no verdict", async () => {
+  it("T11 [R1, R3]: a run keeps evidence completeness and finding disposition apart and returns no verdict", async () => {
     const tests = put("t11/tests.md", def("demo", CRYPTO));
     const file = put("t11/t/a.mjs", "x\ncreateHash(\"sha256\")\n");
     const [one] = (await import(pathToFileURL(CASES).href)).boundaryCases([tests]);
@@ -171,7 +170,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     const unknown = await one.run({ targets: [join(dir, "t11/nope")], base: join(dir, "t11"), decisions: [] });
     assert.equal(unknown.result, "unknown");
   });
-  it("T12 (RED until the DO) [R1, R2]: no second framework: the adapter exports only boundaryCases, and a changed capability definition changes the Cases and results with the engine bytes unchanged", async () => {
+  it("T12 [R1, R2]: no second framework: the adapter exports only boundaryCases, and a changed capability definition changes the Cases and results with the engine bytes unchanged", async () => {
     const mod = await import(pathToFileURL(CASES).href);
     assert.deepEqual(Object.keys(mod), ["boundaryCases"]);
     put("t12/t/a.mjs", "createHash(\"md5\")\n");
@@ -183,5 +182,98 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.deepEqual((await a.run(ctx)).findings, []);
     assert.equal((await b.run(ctx)).findings.length, 1);
     assert.equal(bytes(), before);
+  });
+  it("T13 [R6]: the matrix runs each cell on its own and keeps its evidence unchanged", async () => {
+    const defFile = put("t13/tests.md", def("demo", CRYPTO));
+    put("t13/a/x.mjs", "createHash(\"sha256\")\n");
+    put("t13/b/y.mjs", "nothing here\n");
+    const { runMatrix } = await import(pathToFileURL(join(HERE, "matrix.mjs")).href);
+    const base = join(dir, "t13");
+    const { runs, notes } = runMatrix({ cells: [{ definition: defFile, target: "a" }, { definition: defFile, target: "b" }], base });
+    assert.deepEqual(notes, []);
+    assert.deepEqual(runs.map((r) => [r.target, r.evidence.findings.map((f) => f.id)]), [["a", ["demo/a/x.mjs:1"]], ["b", []]]);
+    const direct = run("--tests", defFile, "--target", join(base, "a"), "--base", base).summary;
+    assert.deepEqual(runs[0].evidence, direct);
+  });
+  it("T14 [R6]: an exclusion with a reason is not run and is reported; one without a reason is run and reported as unsupported", async () => {
+    const defFile = put("t14/tests.md", def("demo", CRYPTO));
+    put("t14/a/x.mjs", "createHash(\"sha256\")\n");
+    const { runMatrix } = await import(pathToFileURL(join(HERE, "matrix.mjs")).href);
+    const base = join(dir, "t14");
+    const { runs, notes } = runMatrix({ cells: [{ definition: defFile, target: "a", excluded: { reason: "the provider realizes this itself" } }], base });
+    assert.deepEqual(runs, []);
+    assert.deepEqual(notes.map((n) => [n.kind, n.target, n.reason]), [["excluded", "a", "the provider realizes this itself"]]);
+    const bare = runMatrix({ cells: [{ definition: defFile, target: "a", excluded: {} }], base });
+    assert.equal(bare.runs.length, 1);
+    assert.deepEqual(bare.notes.map((n) => n.kind), ["unsupported-exclusion"]);
+  });
+  it("T15 [R4]: Foundation's three tests, as a definition, give the findings and coverage of the old scan.mjs on the recorded fixture", () => {
+    const lib = readFileSync(join(HERE, "../../packages/kaal-foundation/lib/sha256.mjs"));
+    const first = lib.toString("utf8").split("\n").findIndex((l) => l.includes("0x428a2f98")) + 1;
+    assert.ok(first > 1, "the library writes the round constants out");
+    put("t15/def/ref/sha256.mjs", lib);
+    const tests = put("t15/def/boundary-check.md", def("kaal-foundation",
+      `  - id: copy\n    detector: file-identity\n    equals: [ref/sha256.mjs]\n    tests: foundation/I1\n    ships: true\n    looks-for: a file whose bytes equal Foundation's library\n` +
+      `  - id: implementation\n    detector: token-sequence\n    tokens: ["0x428a2f98", "0x71374491"]\n    window: 3\n    tests: foundation/I1\n    ships: true\n    looks-for: the round constants written out\n` +
+      CRYPTO.replace("demo/I1", "foundation/I1")));
+    put("t15/t/copy.mjs", lib);
+    put("t15/t/noncopy.mjs", Buffer.concat([lib, Buffer.from("\n// x\n")]));
+    put("t15/t/impl-near.mjs", "a\nconst K = [0x428a2f98,\n  0x71374491];\n");
+    put("t15/t/impl-far.mjs", "a\nconst K = [0x428a2f98,\n1,\n2,\n3,\n0x71374491];\n");
+    put("t15/t/impl-same.mjs", "const K = [0x428a2f98, 0x71374491];\nconst x = 0x428a2f98;\n");
+    put("t15/t/crypto.mjs", "x\ncreateHash( \"sha256\" );\ny\nh.digest(\"SHA-256\")\ncreateHash(\"md5\")\n");
+    const r = run("--tests", tests, "--target", join(dir, "t15/t"), "--base", join(dir, "t15"));
+    assert.equal(r.summary.result, "complete");
+    assert.equal(r.summary.coverage.read, 6);
+    // The findings the old scan.mjs gave on this fixture (PLAN, acceptance evidence), by file, rule and line.
+    assert.deepEqual(r.summary.findings.map((f) => [f.file, f.rule, f.line]), [
+      ["t/copy.mjs", "copy", 1],
+      ["t/copy.mjs", "implementation", first],
+      ["t/crypto.mjs", "crypto", 2],
+      ["t/crypto.mjs", "crypto", 4],
+      ["t/impl-near.mjs", "implementation", 2],
+      ["t/impl-same.mjs", "implementation", 1],
+      ["t/noncopy.mjs", "implementation", first],
+    ]);
+  });
+  it("T16 [R1, R2]: two tests that match the same place each keep their own evidence as Cases, while the aggregate output is one finding attributed to the first", async () => {
+    const tests = put("t16/tests.md", def("demo",
+      CRYPTO.replace("id: crypto", "id: first") + CRYPTO.replace("id: crypto", "id: second") + CRYPTO.replace("id: crypto", "id: third").replace("[sha256, sha-256]", "[md5]")));
+    put("t16/t/a.mjs", "x\ncreateHash(\"sha256\")\n");
+    const ctx = { targets: [join(dir, "t16/t")], base: join(dir, "t16"), decisions: [] };
+    const cases = (await import(pathToFileURL(CASES).href)).boundaryCases([tests]);
+    const seen = {};
+    for (const c of cases) seen[c.id] = (await c.run(ctx)).findings.map((f) => f.id);
+    assert.deepEqual(seen, { "demo/first": ["demo/t/a.mjs:2"], "demo/second": ["demo/t/a.mjs:2"], "demo/third": [] });
+    const aggregate = run("--tests", tests, "--target", join(dir, "t16/t"), "--base", join(dir, "t16")).summary.findings;
+    assert.deepEqual(aggregate.map((f) => [f.id, f.rule]), [["demo/t/a.mjs:2", "first"]]);
+  });
+  it("T17 [R1, R2]: one test's unreadable reference makes only its own Case unknown and does not mask another Case's evidence", async () => {
+    put("t17/def/ref/here.mjs", "export const ref = 1;\n");
+    const tests = put("t17/def/tests.md", def("demo",
+      `  - id: lost\n    detector: file-identity\n    equals: [ref/missing.mjs]\n    tests: demo/I1\n    ships: true\n    looks-for: a copy\n` + CRYPTO));
+    put("t17/t/a.mjs", "createHash(\"sha256\")\n");
+    const ctx = { targets: [join(dir, "t17/t")], base: join(dir, "t17"), decisions: [] };
+    const [lost, crypto] = (await import(pathToFileURL(CASES).href)).boundaryCases([tests]);
+    assert.equal((await lost.run(ctx)).result, "unknown");
+    const other = await crypto.run(ctx);
+    assert.equal(other.result, "complete");
+    assert.deepEqual(other.findings.map((f) => f.id), ["demo/t/a.mjs:1"]);
+  });
+  it("T18 [R2]: call-with-literal matches a call by its whole name, including a member call, and is lexical evidence only", () => {
+    const tests = put("t18/tests.md", def("demo", CRYPTO));
+    put("t18/t/a.mjs", [
+      "createHash(\"sha256\")",            // 1: a call
+      "crypto.createHash(\"SHA-256\")",    // 2: a member call, any case and hyphen
+      "h.digest( 'sha256' )",               // 3: another listed callee, spaced, single quotes
+      "myDigest(\"sha256\")",              // 4: not the callee: its name only ends with it
+      "xcreateHash(\"sha256\")",           // 5: likewise
+      "createHash(algorithm)",              // 6: argument is not a literal
+      "createHash(\"sha256\" + suffix)",   // 7: not a whole literal
+      "// createHash(\"sha256\")",         // 8: lexical: a comment matches too
+      "",
+    ].join("\n"));
+    const r = run("--tests", tests, "--target", join(dir, "t18/t"), "--base", join(dir, "t18"));
+    assert.deepEqual(r.summary.findings.map((f) => f.line), [1, 2, 3, 8]);
   });
 });
