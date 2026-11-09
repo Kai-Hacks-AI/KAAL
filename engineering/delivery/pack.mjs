@@ -25,7 +25,7 @@ export async function workspaces(root) {
  * Pack each of `workspaces` exactly once into `dir`, a missing or empty
  * directory. npm pack runs each package's own prepack, so each is built clean
  * once, before any scenario runs. Resolves to the manifest:
- * { name: { tarball, sha256, integrity } }.
+ * { name: { tarball, sha256, integrity, version } }; the version is the one npm pack reports (testing/F117).
  */
 export async function pack(workspaces, dir) {
   await initialize(dir, {});
@@ -34,7 +34,7 @@ export async function pack(workspaces, dir) {
     const [packed] = JSON.parse(await npm(["pack", "--json", "--pack-destination", dir], location));
     const tarball = join(dir, packed.filename);
     const bytes = await readFile(tarball);
-    manifest[name] = { tarball, sha256: await sha256(bytes), integrity: await integrity(bytes) };
+    manifest[name] = { tarball, sha256: await sha256(bytes), integrity: await integrity(bytes), version: packed.version };
   }
   return manifest;
 }
