@@ -2,6 +2,10 @@
 
 Controls of a station are its requirements, in three kinds: **in** (the receiver's check), **stock** (what must hold of what sits at the station) and **out** (the sender's check). Verified against `main` at 251e814; GitHub settings (the `npm` environment, rulesets, the npmjs trusted-publisher binding) are not readable from the repository and are unverified.
 
+## Naming is aligned (spans everything) [release-management/F4]
+
+Each station and control has one name, spelled the same in the Intent, Requirements, Architecture, `05-src` (folder and file names, script names), and the GitHub UI (workflow `release/<station>`, job named by the control, the two gates). A name that appears in one place and not the others, or is spelled differently, is a finding. Checked by a parser per surface (YAML parser for workflows, Markdown parser for the records, directory listing for `05-src`), never by pattern matching over text; the names come from one list in this folder's Architecture. Use vs build: the YAML parser already in Engineering is used; no new parser.
+
 ## Root (spans stations)
 
 - **audit Lineage** (today's `branching-audit`: `lineage.ts` `establishment`, `collector`, `workingBranch`, `holds.json`, `branching-audit.sh`, scheduled check `Branching audit`). Holds the stock of stations 11 and 12. Name only here.

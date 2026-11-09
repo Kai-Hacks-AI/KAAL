@@ -10,7 +10,7 @@
  |   Integration,   |      |   test Candidate,|      | stock: verify     |
  |   isolate Change |      |   serialize Pro- |      |   Package         |
  | stock: audit     |      |   motion, accept |      |   Promotion       |
- |   Lineage        |      |   Collector      |      | out:  (none yet)  |
+ |   Lineage        |      |   Capability     |      | out:  (none yet)  |
  | out: verify      | ---> | stock: audit     | ---> +-------------------+
  |   Ancestry       |      |   Lineage        |
  +------------------+      | out: version     |
