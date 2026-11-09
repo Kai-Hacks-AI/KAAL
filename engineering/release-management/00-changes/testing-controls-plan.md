@@ -15,6 +15,10 @@ The testing controls have no lane of their own. The present checks are the jobs 
 
 A lane is needed only if one of these four needs it and no other lane already establishes it.
 
+## Where the release judge runs on a package change (asked by the Hosting thread, 9 Nov)
+
+Packages no longer carry copies of Engineering's release judge (`readiness`, `verification`), so a pull request that touches a package would get no early signal. The proposal: the judge runs **once, in Release management, as a Regression Case of test Integration (F16) and test Candidate (F12)**, against **every package the candidate touches**, on the candidate's own packed bytes. `readiness` runs from the first step (exact runtime versions, a version greater than every published one, required providers present); the installed `verification` joins it as soon as the Owner decides G12 (optional peers), and until then it is reported as not judged for a package that declares one, never as passed. Release management owns it, as part of the testing controls; a package's thread asks for nothing and adds nothing to its own suite. *version Package* (F3) at `main` stays the judge that binds a release; this is the same judge, run earlier, so a defect is found on the pull request and not at release preparation. The package set is read from the candidate's changed paths by the workspace manifests with a parser, never from a list.
+
 ## Lane by lane (proposed; verdicts are the Owner's)
 
 | Lane | Proves | Needed by | Proposed verdict |
