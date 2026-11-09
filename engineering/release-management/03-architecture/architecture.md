@@ -32,7 +32,7 @@ Architecture names the components and allocates each requirement to exactly one 
 | --- | --- |
 | `lineage/` | audit Lineage F5, verify Ancestry F7, bind Merge F10 (merge-method verdict), isolate Change F6 (synchronization and claim verdicts) |
 | `change-isolation/` | isolate Change F6 (the isolation judge) |
-| `release-engine/` | version Package F3, approve Publishing F1 (binding in `publishable()`), verify Package Promotion F2 |
+| `release-engine/` | version Package F3, approve Publishing F1 (the binding of record, run, commit and digest), verify Package Promotion F2 |
 | `promotion-source/` | accept Capability F14 |
 | `merge-group/` | bind Merge F10 (queue binding) |
 | `lanes/` | test Candidate F12, test Integration F16 (FAR: F18) |
@@ -66,10 +66,10 @@ Each of F1 to F3 and F5 to F16 is allocated to a component, setting or tool abov
 - approve Change (F15): the `kaal/*` ruleset (code owner review, approval of the most recent push).
 - approve Promotion (F11): the `main` ruleset, same settings.
 - serialize Promotion (F13): the merge queue's one-at-a-time setting.
-- bind Merge (F10): the merge queue, plus the merge-method verdict (`lineage.ts` auto-merge) and `bind-group.sh`.
-- approve Publishing (F1): the `npm` environment's required reviewer, plus the binding in `publishable()`.
-- scan Vulnerabilities (F8): the CodeQL action (`codeql.yml`), used, not built.
-- scan Dependencies (F9): `dependency-review-action` and Dependabot (`dependency-review.yml`), used, not built.
+- bind Merge (F10): the merge queue, plus the merge-method verdict (`lineage/`) and the queue binding (`merge-group/`).
+- approve Publishing (F1): the `npm` environment's required reviewer, plus the binding of record, run, commit and digest (`release-engine/`).
+- scan Vulnerabilities (F8): the CodeQL action, used, not built.
+- scan Dependencies (F9): the dependency-review action and Dependabot, used, not built.
 
 The `claim` verdict (one Change Record per squash Change) is allocated to isolate Change (F6), subject to the Owner.
 
@@ -124,10 +124,10 @@ One row per control: the name in the records (this folder), its component under 
 
 ## Without `pull_request_target` (Owner, 9 Nov 2026)
 
-The gates run without `pull_request_target`, and the `merge_group` move is part of the design. The Owner prefers `merge_group` over a repository Actions-policy exception. The controls run the **default branch's** definition and checker, and the candidate's commits are read as Git data only. The merge group has the matching pattern: `merge-group.yml` runs for the group and checks out the default branch's checker.
+The gates run without `pull_request_target`, and the `merge_group` move is part of the design. The Owner prefers `merge_group` over a repository Actions-policy exception. The controls run the **default branch's checker** and read the candidate's commits as Git data only. The guarantee has two parts that are kept apart: the checker is pinned by checking out `main`, and the workflow definition that calls it, together with the identity of the check it reports, is trusted independently by the trust root below. Checking out `main` pins the checker, not the workflow definition.
 
 - The controls run on `merge_group` and on `pull_request` (no `_target`), checking out the default branch's checker and reading the candidate as Git data. The pull-request run supplies the context a pull request needs in order to enter the queue; the merge-group run is the judgment that counts.
-- The workflow definition and the check's identity come from the candidate's side on these events, so `.github travels alone` plus human approval is a process guard and not a trust root: a `.github`-only candidate could alter or omit its own gate, or emit a job that looks like the required context. `ref: main` for the checker's code does not authenticate the workflow that calls it. The trust root is specified below.
+- On these events the workflow definition and the check's identity would come from the candidate's side, so `.github travels alone` plus human approval is a process guard and not a trust root: a `.github`-only candidate could alter or omit its own gate, or emit a job that looks like the required context. `ref: main` for the checker's code does not authenticate the workflow that calls it. The trust root below does.
 - The `gate (promotion)` and `gate (integration)` jobs need no cross-event wait: with the controls on the same events, a gate `needs:` its controls in one workflow, and `alls-green` is an option (a new Action: SHA pin and Actions-policy allowance).
 
 ## The merge queue and serialize Promotion (Owner, 9 Nov 2026)
@@ -138,18 +138,18 @@ GitHub supports a merge queue rule only for a named branch or the default branch
 
 **The queue on `main`:** `merge_method: SQUASH`, `max_entries_to_build: 1`, `min_entries_to_merge: 1`, `max_entries_to_merge: 1`, `min_entries_to_merge_wait_minutes: 0`, `grouping_strategy: ALLGREEN`, `check_response_timeout_minutes: 60`. The ruleset of `kaal/*` has no queue. The queue's temporary validation branches are named for the base branch (`gh-readonly-queue/<base>/…`).
 
-**serialize Promotion** is the queue configuration on `main`: it makes promotions land in order. It is not a counting rule of ours and nothing is parsed from the head ref. Whether more than one entry may build at once is the Owner's setting, to raise only after `bind Merge` handles a group of several entries (it binds one entry, `bind-group.sh`).
+**serialize Promotion** is the queue configuration on `main`: it makes promotions land in order. It is not a counting rule of ours and nothing is parsed from the head ref. Whether more than one entry may build at once is the Owner's setting, to raise only after `bind Merge` handles a group of several entries (`merge-group/` binds the group to the queued pull request).
 
 **Collectors keep their merge model** (Owner): squash for a Change, merge commit for a synchronization, chosen per pull request, which a queue with one `merge_method` could not do. They land without a queue. So for `kaal/*`:
 - approve Change and the `collectors` gate run on `pull_request` (not `_target`), with no `merge_group` run;
-- ordering comes from the ruleset's strict up-to-date policy (on) and the Branching merge-method verdict (moving to `bind Merge`);
+- ordering comes from the ruleset's strict up-to-date policy (on) and the merge-method verdict of `bind Merge`;
 - **protection against a candidate editing the workflow that judges it:** collectors check features on `pull_request`, and `main` (queue, `merge_group`) is the hard regression gate (Owner, 9 Nov). Whether the workflow definition and check identity are trustworthy on these events is the trust-root requirement below.
 
 ## Release controls are hard-pinned (Owner, 9 Nov 2026)
 
 Rationale (I4): Delivery architecture changes independently of Solution architecture. The release controls, the workflow wiring and the test machinery are Delivery elements: they change in their own Changes and judge a candidate as `main`'s copy. Product code and the Cases that test it are Solution content and travel in candidates.
 
-Every release control (all but the testing controls, pinned through F18), runs the checker **from `main`** on both `pull_request` and `merge_group`: the job checks out `ref: main` (the default branch's tip, read at run start, never the event's base) and runs the logic from `engineering/release-management/05-src/`. The candidate is read as Git data only and never checked out, built or run, as the existing jobs do. `.github` holds only the wiring: which control runs on which event, the checkout of `main` and the call to the checker. The logic lives in `05-src`. The pin is protected because `.github travels alone` (F6, T7): the wiring can change only in a lone `.github` change with human approval, and the checker can change only through a promotion, so a candidate is always judged by the checker `main` already holds.
+Every release control (all but the testing controls, pinned through F18), runs the checker **from `main`** on both `pull_request` and `merge_group`: the job checks out `ref: main` (the default branch's tip, read at run start, never the event's base) and runs the logic from `engineering/release-management/05-src/`. The candidate is read as Git data only and never checked out, built or run, as the existing jobs do. `.github` holds only the wiring: which control runs on which event, the checkout of `main` and the call to the checker. The logic lives in `05-src`. The pin is protected because `.github travels alone` (F6, T7): the wiring can change only in a lone `.github` change with human approval, and the checker can change only through a promotion, so a candidate is judged by the checker `main` already holds, called from a workflow definition that the trust root authenticates.
 
 Consequence: a change to a control's logic takes effect after it is promoted, not in its own pull request, which is the intended behavior.
 
@@ -162,7 +162,7 @@ Consequence: a change to a control's logic takes effect after it is promoted, no
 **The trust root** is a repository ruleset "Require workflows to pass", pinned to `refs/heads/main`, so the workflow that produces the required check is the one `main` holds, whatever the candidate contains.
 
 **Gate specification (applies to `gate (promotion)` and `gate (integration)`, whichever mechanism):**
-- **Binding.** The gate judges the exact `pull_request` head SHA, or on `merge_group` the group's head SHA (`github.sha`), and it prints that SHA and the SHA of the `main` checkout it ran (which must equal `main`'s tip read at run start). `bind-group.sh` binds the group to the queued pull request.
+- **Binding.** The gate judges the exact `pull_request` head SHA, or on `merge_group` the group's head SHA (`github.sha`), and it prints that SHA and the SHA of the `main` checkout it ran (which must equal `main`'s tip read at run start). `merge-group/` binds the group to the queued pull request.
 - **Expected identities.** The gate lists the controls it requires by name and by check-run app (the GitHub Actions app) and workflow path; a check of the right name from another app or workflow is not accepted.
 - **Fail closed.** Absent, skipped, neutral, stale (another SHA), cancelled, timed-out or unreadable runs of a required control fail the gate. Success only when every required control completed successfully on that SHA.
 - **Retries and timeouts.** A bounded wait (the merge queue's `check_response_timeout_minutes` is 60); a re-run is judged afresh against the SHA; a flaky read is a failure, not a pass.

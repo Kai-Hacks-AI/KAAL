@@ -227,7 +227,7 @@
     },
     "T6": {
       "to": "04-test/testing.md",
-      "reworded": false,
+      "reworded": true,
       "from": "04-test/testing.md"
     },
     "T7": {
