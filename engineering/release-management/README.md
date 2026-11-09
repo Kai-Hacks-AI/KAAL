@@ -7,6 +7,7 @@ PLAN, nothing here is built. The root holds the full loop for how a package move
 | `01-intent/` to `04-test/` | the overarching view of the root: Intent, Requirements, Architecture (the flow drawing), planned Cases | this PLAN |
 | `10-npmjs/` | station: a package on the npm registry | in scope: designed here |
 | `11-main/` | station: the package's state on `main` | `out: version Package` designed here; other controls named only |
+| root controls | audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies | names only |
 | `12-kaal/` | station: the `kaal/*` collectors | names only |
 | `00-changes/` | one planned Change per control: add job, move code to `05-src`, retire the old check | this PLAN |
 

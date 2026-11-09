@@ -6,9 +6,17 @@ Controls of a station are its requirements, in three kinds: **in** (the receiver
 
 Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or control appears (Intent, Requirements, Architecture, `05-src` folders, files and scripts, GitHub workflows, jobs and gates), its name is self-explanatory, easy to understand and semantically consistent with the control's name, so a reader and a program can tell which control it is. Each surface may spell it its own way (a folder `approve-publishing`, a job `approve Publishing`); a **mapping** in the Architecture lists, per control, its spelling on each surface, and later its graph id (deferred). A surface name that maps to no control, or a control with no name on a surface where it runs, is a finding (an observation, not a gate). Read by parsers (YAML for workflows, Markdown AST for the records, directory listing for `05-src`), never regex. Use vs build: the YAML parser already in Engineering is used; no new parser.
 
-## Root (spans stations)
+## Root (spans stations; the Owner's list, 9 Nov)
 
-- **audit Lineage** (today's `branching-audit`: `lineage.ts` `establishment`, `collector`, `workingBranch`, `holds.json`, `branching-audit.sh`, scheduled check `Branching audit`). Holds the stock of stations 11 and 12. Name only here.
+Controls that act on more than one station live at the root. All are names only here, except where noted.
+
+- **audit Lineage** (today's `branching-audit`: `lineage.ts` `establishment`, `collector`, `workingBranch`, `holds.json`, `branching-audit.sh`, scheduled check `Branching audit`). Holds the stock of stations 11 and 12.
+- **isolate Change** (today's `Change Isolation`: what may travel together, `engineering/change-isolation/`) and the **synchronization shape** that `Branching` judged on `kaal/*` (a merge of `main`, first-parent shape, each step forward, resolutions adopted or its own Change).
+- **verify Ancestry** (today's freshness: a promotion's head contains `main`'s tip, so merging gives `main` exactly the state validated). One control with two targets, the `kaal/*` collector side and the promotion into `main`; it spans two stations, so it lives at the root.
+- **scan Vulnerabilities** (today's CodeQL, `codeql.yml`: `CodeQL (actions)`, `CodeQL (javascript-typescript)`).
+- **scan Dependencies** (today's `dependency-review.yml`, `Dependency Review`).
+
+`Branching` itself is retired by splitting: freshness to verify Ancestry, synchronization shape to isolate Change, merge method to bind Merge (below), add-new before remove-old.
 
 ## Station 10-npmjs (designed)
 
@@ -25,10 +33,10 @@ Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or co
   - Exists: `readiness()` in `engineering/release/release.mjs` rejects a non-semver version and a version already on the registry ("raise the version"); dependencies must be exact and already published.
   - Gaps: G1 no check that the version is greater than the latest published. G2 no tag marks the released commit. G3 no check that the version was set by a recorded Change. G4 no changelog or bump tooling; versions are hand-edited.
 - **stock:** audit Lineage (from the root).
-- **in, backwards from the stock (names only):** bind Merge (merge queue and `bind-group`), approve Promotion (review), test Candidate (FAR lanes on `kaal/*` to `main`), serialize Promotion (one promotion at a time), accept Capability (promotion source).
+- **in, backwards from the stock (names only):** bind Merge (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion (native approval settings), test Candidate (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion (one promotion at a time), accept Capability (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
 
-## Station 12-kaal (names only)
+ ## Station 12-kaal (names only)
 
-- **out:** verify Ancestry (today's freshness check: `main`'s tip is an ancestor of the collector).
 - **stock:** audit Lineage (from the root).
-- **in:** approve Change, test Integration, isolate Change (Change Isolation).
+- **in:** approve Change (native approval settings of `kaal/*`), test Integration (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (kaal)`.
+- **out:** none of its own; verify Ancestry and isolate Change act here from the root.

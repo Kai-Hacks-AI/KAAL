@@ -11,21 +11,23 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 
 | Control | Station | Today (code, check) | Retires |
 | --- | --- | --- | --- |
-| isolate Change | 12-kaal | `engineering/change-isolation/`, `change-isolation.sh`; `Change Isolation` | `Change Isolation` |
-| verify Ancestry | 12-kaal | `engineering/github/branching.sh`, `lineage.ts`; `Branching` | `Branching` (to confirm: it is the freshness check) |
+| isolate Change | root | `engineering/change-isolation/`, `change-isolation.sh`; `Change Isolation`; plus the synchronization shape from `Branching` (`lineage.ts` `synchronization`) | `Change Isolation` |
+| verify Ancestry | root | freshness half of `Branching` (`lineage.ts` `freshness`, `branching.sh`) | `Branching` (together with the two rows below) |
+| scan Vulnerabilities | root | `codeql.yml`; `CodeQL (actions)`, `CodeQL (javascript-typescript)` | the two `CodeQL` names |
+| scan Dependencies | root | `dependency-review.yml`; `Dependency Review` | `Dependency Review` (a rename) |
 | approve Change | 12-kaal | native settings of the `kaal/*` ruleset (below) | none (nothing on `kaal/*` requires `Change Isolation (review)` today) |
-| test Integration | 12-kaal | `engineering/lanes/`; `Hosting`, `Workspaces`, `Acceptance`, `Engineering`, `Guard` x3 | the lane names, as they become lanes of the control |
+| test Integration | 12-kaal | `engineering/lanes/`; `Hosting`, `Workspaces`, `Acceptance`, `Engineering`, `Guard` x3 (`Guard` as a job is meant, not the workflow) | the lane names, as they become jobs of the control |
 | accept Capability | 11-main | `engineering/github/promotion-source.sh`; `Promotion Source` | `Promotion Source` |
-| bind Merge | 11-main | `.github/scripts/bind-group.sh`, merge queue; no named check | none |
+| bind Merge | 11-main | `.github/scripts/bind-group.sh`, merge queue; plus the merge-method half of `Branching` (`lineage.ts` `auto-merge`) | `Branching` (last of the three halves to move) |
 | approve Promotion | 11-main | native settings of the `main` ruleset (below); today also `Change Isolation (review)` | `Change Isolation (review)`, retired per the sequence below |
-| test Candidate | 11-main | the lanes on `kaal/*` to `main` incl. `CodeQL` x2 (to confirm) | the lane names |
+| test Candidate | 11-main | the lanes on `kaal/*` to `main` | the lane names |
 | serialize Promotion | 11-main | merge queue, one promotion at a time; no named check | none |
 | version Package | 11-main | `engineering/release/release.mjs` `readiness()` | none (extends G1 to G4) |
 | approve Publishing | 10-npmjs | `release.yml` `environment: npm` | none |
 | verify Package Promotion | 10-npmjs | `release.yml` Accept, `provenance()` | none |
 | audit Lineage | root | `branching-audit.sh`, `holds.json`; `Branching audit` | `Branching audit` |
 
-Two gates close the set: `gate (main)` and `gate (kaal)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts.
+`Branching` retires only after all three halves have a new home (verify Ancestry, isolate Change, bind Merge), each add-new first. Two gates close the set: `gate (main)` and `gate (kaal)` (see `03-architecture`), added once the controls they need exist; the Owner adds those two contexts and then removes the old per-control contexts from the rulesets. Each Change has its own record under this folder when it starts.
 
 ## Retiring `Change Isolation (review)` (Owner, 9 Nov)
 
@@ -50,6 +52,5 @@ Root (audit Lineage), then `10-npmjs`, then `11-main`, then `12-kaal`.
 
 ## Open for the Owner
 
-- Decided (Owner, 9 Nov, includes retiring `Change Isolation (review)`): lanes stay separate jobs; `CodeQL` is its own control `scan Vulnerabilities`; `dependency-review.yml` becomes `scan Dependencies`; `isolate Change` at the root; the approval half is `approve Change` on `kaal/*` and `approve Promotion` on `main`.
-- Gate design A or B (see `03-architecture`).
+- Decided (Owner, 9 Nov, includes retiring `Change Isolation (review)`): lanes stay separate jobs; `CodeQL` is `scan Vulnerabilities` and `dependency-review.yml` is `scan Dependencies`, both at the root; `isolate Change` and `verify Ancestry` at the root; the approval half is `approve Change` on `kaal/*` and `approve Promotion` on `main`; `Branching` is split (freshness to verify Ancestry, sync shape to isolate Change, merge method to bind Merge). Gate design is in `03-architecture` (reusable workflows plus wait-by-API).
 

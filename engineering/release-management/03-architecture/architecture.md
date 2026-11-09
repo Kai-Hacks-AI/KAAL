@@ -3,22 +3,24 @@
 ## The flow (system view)
 
 ```
+   ROOT:  audit Lineage | isolate Change | verify Ancestry
+          scan Vulnerabilities | scan Dependencies
+
    12-kaal (kaal/*)             11-main                      10-npmjs
  +------------------+      +------------------+      +-------------------+
  | in:  approve     |      | in:  bind Merge  |      | in:  approve      |
  |   Change, test   |      |   approve Promo, |      |   Publishing      |
- |   Integration,   |      |   test Candidate,|      | stock: verify     |
- |   isolate Change |      |   serialize Pro- |      |   Package         |
- | stock: audit     |      |   motion, accept |      |   Promotion       |
- |   Lineage        |      |   Capability     |      | out:  (none yet)  |
- | out: verify      | ---> | stock: audit     | ---> +-------------------+
- |   Ancestry       |      |   Lineage        |
- +------------------+      | out: version     |
-                           |   Package        |
+ |   Integration    |      |   test Candidate,|      | stock: verify     |
+ |                  |      |   serialize Pro- |      |   Package         |
+ | gate (kaal)      | ---> |   motion, accept |      |   Promotion       |
+ |                  |      |   Capability     | ---> | out:  (none yet)  |
+ |                  |      | gate (main)      |      +-------------------+
+ |                  |      | out: version     |
+ +------------------+      |   Package        |
                            +------------------+
 ```
 
-Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move, and the sender owns its **out** check; the same station's out and the next station's in may be different controls. The drawing reads left to right (work moves toward npm) and the receiver pulls. This PLAN designs only the border `11-main` to `10-npmjs`; `audit Lineage` at the root serves both 11 and 12. Control names are the Owner's; existing checks and files keep their names.
+Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move, and the sender owns its **out** check; the same station's out and the next station's in may be different controls. The drawing reads left to right (work moves toward npm) and the receiver pulls. This PLAN designs only the border `11-main` to `10-npmjs`; `the root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies) serve both 11 and 12. Control names are the Owner's; existing checks and files keep their names.
 
 ## Elements
 
@@ -49,12 +51,12 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 - **One gate job per ruleset**, named `gate (main)` and `gate (kaal)` (Owner, 9 Nov: these two only). It `needs:` every control job of its station, runs with `if: always()`, and fails unless every needed job succeeded (a skipped job counts as passing for GitHub, so the gate must check results itself). Each gate has a distinct job name because contexts are matched by job name. A ruleset then lists only its gate as required check.
 - **No `gate (npmjs)`**: npmjs has no branch ruleset, so it needs no gate. The `npm` environment approval stays the npmjs control (*approve Publishing*); `Publish` waits on that approval directly.
 
-**Open design point: how a gate sees jobs in other workflows.** `needs:` works only inside one workflow, and today's checks sit in many files (`ci.yml`, `change-isolation.yml`, `promotion-source.yml`, `lineage-synchronization.yml`, `codeql.yml`, `dependency-review.yml`, `merge-group*.yml`), on different events: `pull_request`, `pull_request_target` (change-isolation, promotion-source, merge-group-admission, which must never share a run with jobs that check out PR code) and `merge_group`. Two ways, for the Owner:
+**Design: a gate that depends on root controls across workflows.** `needs:` works only inside one workflow, and a `pull_request_target` workflow must never share a run with jobs that check out PR code (today's trust split). So:
 
-- **A. Consolidate** into one `release/<station>` workflow per event with `needs:` and the `alls-green` action. Cleanest UI nesting, but it merges trusted `pull_request_target` jobs with `pull_request` jobs and needs a separate merge_group copy; only possible where the trust model allows (reusable workflows via `workflow_call` for the trusted ones).
-- **B. Wait by API:** the gate is a trusted job that reads the required check runs of the head (or merge group) and fails closed unless all succeeded; this is the pattern `merge-group-review.yml` already uses ("waits for the others, then reads"). Workflows stay as they are and are renamed in place; the nesting `release/<station> / <control>` is then only by workflow and job name.
-
-Recommendation: B, because it matches existing code and keeps the trust split. Use vs build: B reuses that existing waiting pattern (extracted, not rewritten); A would add `re-actors/alls-green`, which is **not used anywhere in `.github` today**, so it would need a SHA pin and an Actions-policy allowance (an Owner step) and is not free. Neither is decided here.
+- **Root controls are reusable workflows** (`on: workflow_call`), one per control, and `release/main` and `release/kaal` call them (`release/main / isolate Change`). One definition, called from both stations, which is what a root control spanning two stations needs. The trusted controls (isolate Change, verify Ancestry, accept Capability, bind Merge) are called from a `pull_request_target` caller that never checks out the candidate; the lane controls (test Candidate, test Integration, scan Vulnerabilities, scan Dependencies) are called from a `pull_request` caller (and a `merge_group` caller), because they run candidate code.
+- **The gate is a job in the trusted caller.** It `needs:` the trusted controls in its own run, and for the lane controls, which run under another event, it waits on their check runs by API and fails closed, the pattern `merge-group-review.yml` already uses. No shared run, no trust mixing.
+- **Use vs build:** `workflow_call` and the existing wait-by-API pattern are used; `re-actors/alls-green` is not (not used anywhere in `.github` today; it would add a third-party Action needing a SHA pin and an Actions-policy allowance from the Owner) and it cannot join jobs across events anyway.
+- **To prove before the Changes:** that a required context from a job called through `workflow_call` is matched by the *called* job's name or the `caller / called` composite. A throwaway branch settles it; if the composite is what the ruleset sees, the gates' own names (`gate (main)`, `gate (kaal)`) are unaffected because they are plain jobs.
 
 **Assumption, Owner-confirmed 9 Nov:** npmjs has no branch ruleset. Rulesets and the `npm` environment are not readable from the repository, so this is not verified there.
 
