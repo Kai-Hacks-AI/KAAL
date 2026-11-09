@@ -13,9 +13,15 @@ const CODE = new Map([
 const FENCES = new Map([["js", ts.ScriptKind.JS], ["javascript", ts.ScriptKind.JS], ["mjs", ts.ScriptKind.JS], ["ts", ts.ScriptKind.TS], ["typescript", ts.ScriptKind.TS]]);
 const extensionOf = (path) => (path.includes(".") ? path.slice(path.lastIndexOf(".")).toLowerCase() : "");
 
+/** Whether the Engine has a parser for this file name's type: JS and TS, Markdown, JSON, YAML. */
+export const hasParser = (path) => {
+  const extension = extensionOf(path);
+  return CODE.has(extension) || extension === ".md" || extension === ".json" || extension === ".yml" || extension === ".yaml";
+};
+
 /**
  * `{ kind, sources }` for one file. kind is `code` (sources: syntax trees with the line the text starts at), `data` (parsed, nothing to
- * detect), `none` (no parser for this file type) or `error` (the file did not parse).
+ * detect), `none` (no parser for this file type: not applicable to the code detectors) or `error` (the file did not parse).
  */
 export function parseSource(path, text) {
   const extension = extensionOf(path);

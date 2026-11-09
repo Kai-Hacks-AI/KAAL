@@ -6,17 +6,20 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
 import { DETECTORS } from "./detectors/index.mjs";
 import { parseSource } from "./parse.mjs";
+import { GLOBAL_LIST, reasonFor } from "./scope.mjs";
 
 const NOT_WALKED = new Set(["node_modules", ".git"]);
 const OWNERSHIP = "ownership.kaal.json";
 
-/** Runs one definition over the targets. Returns { findings, read: Set<file>, unreadable, skipped }. */
+/** Runs one definition over the targets. Returns { findings, read: Set<file>, unreadable, skipped, notApplicable }. */
 export function scanDefinition(definition, targets, base) {
   const rel = (path) => relative(base, path).split(sep).join("/") || ".";
   const unreadable = [];
   const skipped = [];
+  const notApplicable = [];
   const findings = [];
   const read = new Set();
+  const reasons = reasonFor(GLOBAL_LIST, definition.notApplicable ?? []);
   const prepared = definition.tests.map((test) => {
     const detector = DETECTORS.get(test.detector);
     const state = detector.prepare(test, { dir: definition.dir });
@@ -51,11 +54,14 @@ export function scanDefinition(definition, targets, base) {
       return;
     }
     const file = rel(path);
-    read.add(file);
     const text = bytes.toString("utf8");
     const lines = text.split(/\r?\n/);
     const parsed = parseSource(file, text);
-    if (parsed.kind === "none" && prepared.some(({ detector }) => detector.needsParse)) unreadable.push({ path: file, cause: "no parser" });
+    const structural = prepared.filter(({ detector }) => detector.needsParse);
+    if (parsed.kind === "none" && structural.length > 0) {
+      // No parser for this kind: the code detectors do not apply. Recorded with a reason, never counted as read or as clean.
+      notApplicable.push({ path: file, detectors: structural.map(({ test }) => test.id), reason: reasons(path) });
+    } else read.add(file);
     if (parsed.kind === "error") unreadable.push({ path: file, cause: "does not parse" });
     const subject = { digest: sha256(bytes), lines, sources: parsed.sources };
     const owner = ownerOf(dirname(path));
@@ -105,7 +111,7 @@ export function scanDefinition(definition, targets, base) {
       else scanFile(path);
     } else skipped.push({ path: rel(path), reason: "not a file" });
   }
-  return { findings, read, unreadable, skipped };
+  return { findings, read, unreadable, skipped, notApplicable };
 }
 
 /** The evidence of several definitions over the same targets: findings, coverage and whether it is complete. */
@@ -114,6 +120,7 @@ export function scan(definitions, targets, base) {
   const read = new Set();
   const unreadable = [];
   const skipped = [];
+  const notApplicable = [];
   const findings = [];
   const seen = (list, item) => list.some((x) => x.path === item.path && x.reason === item.reason && x.cause === item.cause);
   for (const definition of definitions) {
@@ -121,8 +128,9 @@ export function scan(definitions, targets, base) {
     part.read.forEach((f) => read.add(f));
     for (const item of part.unreadable) if (!seen(unreadable, item)) unreadable.push(item);
     for (const item of part.skipped) if (!seen(skipped, item)) skipped.push(item);
+    for (const item of part.notApplicable) if (!notApplicable.some((x) => x.path === item.path && x.reason === item.reason)) notApplicable.push(item);
     findings.push(...part.findings);
   }
   const complete = unreadable.length === 0 && read.size > 0;
-  return { mode: "scan", result: complete ? "complete" : "unknown", coverage: { read: read.size, unreadable, skipped }, findings };
+  return { mode: "scan", result: complete ? "complete" : "unknown", coverage: { read: read.size, unreadable, skipped, notApplicable }, findings };
 }

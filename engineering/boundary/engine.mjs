@@ -33,12 +33,12 @@ if (!tests.length || !targets.length || tests.some(bad) || targets.some(bad) || 
   }
   if (refused.length) {
     console.error(refused.join("\n"));
-    finish({ mode: "scan", result: "unknown", refused, coverage: { read: 0, unreadable: [], skipped: [] }, findings: [] }, 2);
+    finish({ mode: "scan", result: "unknown", refused, coverage: { read: 0, unreadable: [], skipped: [], notApplicable: [] }, findings: [] }, 2);
   } else {
     const evidence = scan(definitions, targets, baseArg);
     const { coverage, findings } = evidence;
     console.log(
-      `${LINE}: ${findings.length} finding(s) in ${coverage.read} source file(s) read; ${coverage.unreadable.length} unreadable, ${coverage.skipped.length} skipped. ` +
+      `${LINE}: ${findings.length} finding(s) in ${coverage.read} source file(s) read; ${coverage.unreadable.length} unreadable, ${coverage.skipped.length} skipped, ${coverage.notApplicable.length} not applicable. ` +
         (evidence.result === "complete" ? (findings.length ? "A finding is a place to look at, not a fault." : "None found within this coverage.") : "Unknown: not every target was read."),
     );
     finish(evidence, evidence.result === "complete" ? 0 : 2);

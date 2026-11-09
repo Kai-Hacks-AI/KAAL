@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { frontMatter } from "../parsers/front-matter.mjs";
 import { DETECTORS } from "./detectors/index.mjs";
+import { listProblems } from "./scope.mjs";
 
 const COMMON = new Set(["id", "detector", "looks-for", "tests"]);
 const NAME = /^[A-Za-z_$][\w$]*$/;
@@ -19,8 +20,9 @@ const CHECK = {
 export function problems(front) {
   const out = [];
   if (front === null || typeof front !== "object" || Array.isArray(front)) return ["the front matter is not a mapping"];
-  for (const key of Object.keys(front)) if (key !== "provider" && key !== "tests") out.push(`unknown key ${key}`);
+  for (const key of Object.keys(front)) if (key !== "provider" && key !== "tests" && key !== "not-applicable") out.push(`unknown key ${key}`);
   if (!text(front.provider) || /[\s/]/.test(front.provider)) out.push("provider must be a name without spaces or slashes");
+  if ("not-applicable" in front) out.push(...listProblems(front["not-applicable"]).map((m) => `not-applicable: ${m}`));
   if (!Array.isArray(front.tests)) return [...out, "tests must be a list"];
   const ids = new Set();
   front.tests.forEach((test, i) => {
@@ -52,5 +54,5 @@ export function loadDefinition(file) {
   const front = parsed.value;
   const found = problems(front);
   if (found.length) throw new Error(`${file}: ${found.join("; ")}`);
-  return { provider: front.provider, tests: front.tests, dir: dirname(path), file: path };
+  return { provider: front.provider, tests: front.tests, notApplicable: front["not-applicable"] ?? [], dir: dirname(path), file: path };
 }
