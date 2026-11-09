@@ -12,30 +12,50 @@
  |   Change, test   |      |   approve Promo, |      |   Publishing      |
  |   Integration    |      |   test Candidate,|      | stock: verify     |
  |                  |      |   serialize Pro- |      |   Package         |
- | gate (collectors)| ---> |   motion, accept |      |   Promotion       |
+ |gate (integration)| ---> |   motion, accept |      |   Promotion       |
  |                  |      |   Capability     | ---> | out:  (none yet)  |
- |                  |      | gate (main)      |      +-------------------+
+ |                  |      | gate (promotion) |      +-------------------+
  |                  |      | out: version     |
  +------------------+      |   Package        |
                            +------------------+
 ```
 
-Stations exist only in this drawing: they are not folders, and a control's station is traced by graph edge, not by path. Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move, and the sender owns its **out** check; the same station's out and the next station's in may be different controls. The drawing reads left to right (work moves toward npm) and the receiver pulls. This PLAN designs only the border `11-main` to `10-npmjs`; `the root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies) serve both 11 and 12. Control names are the Owner's; existing checks and files keep their names.
+Stations exist only in this drawing: they are not folders, and a control's station (its control target) is traced by graph edge, not by path. Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move, and the sender owns its **out** check; the same station's out and the next station's in may be different controls. The drawing reads left to right (work moves toward npm) and the receiver pulls. This PLAN designs only the border `11-main` to `10-npmjs`; `the root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies) serve both 11 and 12. Control names are the Owner's; existing checks and files keep their names.
 
 ## Components and requirements allocation
 
 Architecture names the components and allocates each requirement to exactly one of them (requirements allocation). A requirement and its component are linked by a graph edge; the tables are the readable form. Controls are requirements and components realize them, so a component holds several controls, and some controls are realized by a native setting or a tool we use and have no source.
 
-**Four components (Owner, 9 Nov), all peers in `05-src/`:** `pipeline/` (the end-to-end piece that spans the stations and holds the five shared controls) and the stations `npmjs/`, `main/` and `collectors/`. Every folder is a node in the architecture and there are no loose files. Rule: a station may use `pipeline/` but never another station. The name follows Domain-Driven Design, with release-management as the bounded context. A control's Cases sit next to its code in its component. The drawing above shows the stations. `release-management` itself is traced as an element of the Delivery architecture.
+**Controls are matters of concern, components are architecture elements (Owner, 9 Nov, revises the four-component layout).** A control is traced through the root documents: an Intent entry (a sentence on why it exists, under I1 to I4), its requirement (F#), its allocation to a component, its **control target**, its Cases (T#) and, where one exists, its Defect. A Case `tests` a Node and no Node points at a Case. Intent, Requirements, Architecture and Test are managed at this root only. A component is an element of the architecture, chosen for what the code is and what moves together, not for where the control is applied. Components are solution building blocks: while they stay reasonably stable where they sit they share this overarching documentation, and functional placement decides where each belongs. A component does not carry its own Intent, Requirements or Cases while it stays here; **only when a component moves (for example into its own capability) do its Intent, Requirements, Architecture and Cases follow it.** The control target (`npmjs`, `main`, `collectors`, or several) is a separate attribute: a traced edge `applied at` from the control to a Target node, defined once in the drawing above. Components sit in `05-src/`, all peers, named by what the code is; there are no station folders (`pipeline/`, `npmjs/`, `main/`, `collectors/`), and no loose files. One component may realize several controls, and a control may use a setting or tool and have no component. A component uses another only through a declared `uses` edge. Source-code tests (unit and parity Cases) always sit next to the code in its component, whichever way the documents are arranged (test layout rule); the root only traces them to their requirement. Following Domain-Driven Design, release-management stays the bounded context.
 
-| Component | Allocated requirements | Realized by (today's code) |
+| Component (`05-src/`) | Realizes (control, requirement) | Today's code |
 | --- | --- | --- |
-| `05-src/pipeline/` | F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies | `lineage.ts` (establishment, collectors, working-branches, freshness, synchronization, claim) with `holds.json` and `branching-audit.sh`/`branching.sh`; `engineering/change-isolation/` and `change-isolation.sh`; scans are tools, below |
-| `05-src/npmjs/` | F1 approve Publishing, F2 verify Package Promotion | A2, A3: `release.yml` Publish and Accept, `publishable()`, `provenance()` (G5 to G11) |
-| `05-src/main/` | F3 version Package, F10 bind Merge, F11 approve Promotion, F12 test Candidate (FAR: F18), F13 serialize Promotion, F14 accept Capability | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4); `lineage.ts` source and auto-merge, Promotion Source (`promotion-source.sh` on `main` today; the approved `.mjs` port, #1317, sits in `kaal/engineering-gate-ports` pending promotion, and this PLAN moves whichever implementation `main` holds when its Change runs and never reintroduces the `.sh`); `bind-group.sh`; `engineering/lanes/` for test Candidate |
-| `05-src/collectors/` | F15 approve Change, F16 test Integration (FAR: F18) | `engineering/lanes/` for test Integration; approve Change has no source |
+| `lineage/` | audit Lineage F5, verify Ancestry F7, bind Merge F10 (merge-method verdict), isolate Change F6 (synchronization and claim verdicts) | `lineage.ts`, `holds.json`, `branching.sh`, `branching-audit.sh` |
+| `change-isolation/` | isolate Change F6 (the isolation judge) | `engineering/change-isolation/`, `change-isolation.sh` |
+| `release-engine/` | version Package F3, approve Publishing F1 (binding in `publishable()`), verify Package Promotion F2 | `engineering/release/release.mjs` (`readiness()`, `publishable()`, `provenance()`), `release.yml` |
+| `promotion-source/` | accept Capability F14 | `promotion-source.mjs` (#1317, pending promotion; the `.sh` is not reintroduced) |
+| `merge-group/` | bind Merge F10 (queue binding) | `bind-group.sh` |
+| `lanes/` | test Candidate F12, test Integration F16 (FAR: F18) | `engineering/lanes/` |
 
-Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
+| Control | Requirement | Control target (applied at) | Component or other realization |
+| --- | --- | --- | --- |
+| audit Lineage | F5 | scheduled, all | `lineage/` |
+| isolate Change | F6 | main, collectors | `change-isolation/`, `lineage/` |
+| verify Ancestry | F7 | main, collectors | `lineage/` |
+| scan Vulnerabilities | F8 | main, collectors | tool: CodeQL |
+| scan Dependencies | F9 | main, collectors | tool: dependency-review, Dependabot |
+| bind Merge | F10 | main | `lineage/`, `merge-group/`, merge queue |
+| approve Promotion | F11 | main | setting: `main` ruleset |
+| test Candidate | F12 | main | `lanes/` |
+| serialize Promotion | F13 | main | setting: merge queue |
+| accept Capability | F14 | main | `promotion-source/` |
+| approve Change | F15 | collectors | setting: `kaal/*` ruleset |
+| test Integration | F16 | collectors | `lanes/` |
+| version Package | F3 (A1) | main | `release-engine/` |
+| approve Publishing | F1 (A2) | npmjs | setting: `npm` environment, `release-engine/` |
+| verify Package Promotion | F2 (A3) | npmjs | `release-engine/` |
+
+Each of F1 to F3 and F5 to F16 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
 
 **Realized by a native setting or a tool, not by source** (recorded here, no folder; the component only holds the requirement and its Case where one can check it):
 
@@ -47,7 +67,7 @@ Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (
 - scan Vulnerabilities (F8): the CodeQL action (`codeql.yml`), used, not built.
 - scan Dependencies (F9): `dependency-review-action` and Dependabot (`dependency-review.yml`), used, not built.
 
-Shared code lives in `pipeline/`: `main/` uses `lineage.ts` verdicts that live there, so a station never imports a sibling. The lane code (`engineering/lanes/`) serves test Candidate (`main/`) and test Integration (`kaal/`); where it lives is decided in those Changes. The `claim` verdict (one Change Record per squash Change) is allocated to isolate Change (F6), subject to the Owner.
+The `claim` verdict (one Change Record per squash Change) is allocated to isolate Change (F6), subject to the Owner.
 
 Nothing above changes `.github` in this PLAN; `.github` changes travel alone as their own Change.
 
@@ -67,17 +87,17 @@ Nothing is renamed by this PLAN: existing branches (including this PLAN's own co
 
 GitHub lists a check as `workflow name / job name`, and a ruleset matches the **job name only**. The names are:
 
-- **Workflow** = `release/<station>`: `release/npmjs`, `release/main`, `release/collectors`. The root `audit Lineage` stays its own scheduled workflow.
-- **Job** = the control name (`test Candidate`, `approve Change`, ...). A control with lanes (for example `test Candidate`) may call a reusable workflow, which GitHub shows one level deeper (`release/main / test Candidate / Hosting (Linux)`).
-- **One gate job per ruleset**, named `gate (main)` and `gate (collectors)` (Owner, 9 Nov: these two only). It `needs:` every control job of its station, runs with `if: always()`, and fails unless every needed job succeeded (a skipped job counts as passing for GitHub, so the gate must check results itself). Each gate has a distinct job name because contexts are matched by job name. A ruleset then lists only its gate as required check.
-- **No `gate (npmjs)`**: npmjs has no branch ruleset, so it needs no gate. The `npm` environment approval stays the npmjs control (*approve Publishing*); `Publish` waits on that approval directly.
+- **Workflow** = `KAAL / release / <step>`, named by the process step it performs (Owner, 9 Nov): `KAAL / release / integrate` (a Change into a collector, control target `collectors`), `KAAL / release / promote` (a promotion into `main`, target `main`) and `KAAL / release / publish` (target `npmjs`). The step is the process term; the station is the systems-thinking and lean view behind the design, and appears as the control target. The prefix `KAAL /` (Owner, 9 Nov, long form) is part of the workflow's `name:`, so a PR lists `KAAL / release / promote / gate (promotion)`; it does not enter the required context, because a check run is named by its job (the ruleset still lists `gate (promotion)`). The root `audit Lineage` stays its own scheduled workflow.
+- **Job** = the control name (`test Candidate`, `approve Change`, ...). A control with lanes (for example `test Candidate`) may call a reusable workflow, which GitHub shows one level deeper (`KAAL / release / promote / test Candidate / Hosting (Linux)`).
+- **One gate job per ruleset**, named `gate (promotion)` and `gate (integration)` (Owner, 9 Nov: these two only). It `needs:` every control job of its station, runs with `if: always()`, and fails unless every needed job succeeded (a skipped job counts as passing for GitHub, so the gate must check results itself). Each gate has a distinct job name because contexts are matched by job name. A ruleset then lists only its gate as required check.
+- **No `gate (publish)`**: npmjs has no branch ruleset, so it needs no gate. The `npm` environment approval stays the npmjs control (*approve Publishing*); `Publish` waits on that approval directly.
 
-**Design: a gate that depends on root controls across workflows.** `needs:` works only inside one workflow, and a `pull_request_target` workflow must never share a run with jobs that check out PR code (today's trust split). So:
+**Design: a gate that depends on root controls across workflows.** `needs:` works only inside one workflow, and today a `pull_request_target` workflow must never share a run with jobs that check out PR code (today's trust split, which the end state removes). So:
 
-- **Root controls are reusable workflows** (`on: workflow_call`), one per control, and `release/main` and `release/collectors` call them (`release/main / isolate Change`). One definition, called from both stations, which is what a root control spanning two stations needs. The trusted controls (isolate Change, verify Ancestry, accept Capability, bind Merge) are called from a `pull_request_target` caller that never checks out the candidate; the lane controls (test Candidate, test Integration, scan Vulnerabilities, scan Dependencies) are called from a `pull_request` caller (and a `merge_group` caller), because they run candidate code.
-- **The gate is a job in the trusted caller.** It `needs:` the trusted controls in its own run, and for the lane controls, which run under another event, it waits on their check runs by API and fails closed, the pattern `merge-group-review.yml` already uses. No shared run, no trust mixing.
+- **Root controls are reusable workflows** (`on: workflow_call`), one per control, and `KAAL / release / promote` and `KAAL / release / integrate` call them (`KAAL / release / promote / isolate Change`). One definition, called from both stations, which is what a root control spanning two stations needs. **End state: every caller runs on `pull_request` and `merge_group`, and no control uses `pull_request_target`** (Owner, 9 Nov; the temporary Actions policy is off). The trusted controls (isolate Change, verify Ancestry, accept Capability, bind Merge) never check out or run the candidate: they check out `main` (the hard pin, F17) and read the candidate as Git data only. The lane controls (test Candidate, test Integration, scan Vulnerabilities, scan Dependencies) run candidate code, also under the pin and FAR (F18). **Interim only:** while the four old `pull_request_target` workflows still exist, the new trusted controls may be added next to them (add-new), and are not required until the old ones are retired.
+- **The gate is a job in the caller of its step.** In the end state it `needs:` every control job in one run, with no cross-event wait. Only as an interim, while a control still runs under another event (an old `pull_request_target` workflow), the gate waits on that check run by API and fails closed, the pattern `merge-group-review.yml` already uses.
 - **Use vs build:** `workflow_call` and the existing wait-by-API pattern are used; `re-actors/alls-green` is not (not used anywhere in `.github` today; it would add a third-party Action needing a SHA pin and an Actions-policy allowance from the Owner) and it cannot join jobs across events anyway.
-- **To prove before the Changes:** that a required context from a job called through `workflow_call` is matched by the *called* job's name or the `caller / called` composite. A throwaway branch settles it; if the composite is what the ruleset sees, the gates' own names (`gate (main)`, `gate (collectors)`) are unaffected because they are plain jobs.
+- **To prove before the Changes:** that a required context from a job called through `workflow_call` is matched by the *called* job's name or the `caller / called` composite. A throwaway branch settles it; if the composite is what the ruleset sees, the gates' own names (`gate (promotion)`, `gate (integration)`) are unaffected because they are plain jobs.
 
 **Assumption, Owner-confirmed 9 Nov:** npmjs has no branch ruleset. Rulesets and the `npm` environment are not readable from the repository, so this is not verified there.
 
@@ -85,7 +105,7 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 
 ## Naming map (control names across surfaces)
 
-One row per control: the name in the records (this folder), the component path under `05-src/` (`pipeline/`, `npmjs/`, `main/`, `collectors/`), and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/npmjs/` | `release/npmjs / approve Publishing`.
+One row per control: the name in the records (this folder), its component under `05-src/` and its control target, and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/release-engine/` | `KAAL / release / publish / approve Publishing`.
 
 ## Target: into `main` now, without `pull_request_target` (Owner, 9 Nov 2026)
 
@@ -96,14 +116,14 @@ Today four workflows use `pull_request_target`: `change-isolation.yml` (Change I
 **What replaces it (to settle with the Owner and prove on a throwaway branch):**
 - The controls run on `merge_group` and on `pull_request` (no `_target`), checking out the default branch's checker and reading the candidate as Git data, as the merge-group jobs do today. The pull-request run supplies the context a pull request needs in order to enter the queue; the merge-group run is the judgment that counts.
 - **Trust root: required, not yet demonstrated (CPO, 9 Nov).** On `merge_group` and `pull_request` the workflow definition and the check's identity come from the candidate's side, so `.github travels alone` plus human approval is a *process* guard, not a trust root: a `.github`-only candidate could alter or omit its own gate, or emit a job that looks like the required context. `ref: main` for the checker's code does not authenticate the workflow that calls it. The migration therefore commits to no removal of any existing required context until a fail-closed trust root is demonstrated (see "Trust root and gate specification").
-- The `gate (main)` and `gate (collectors)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
+- The `gate (promotion)` and `gate (integration)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
 
 Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and does not depend on it or wait for it.
 
 **Order into `main` (each step additive, promotions in flight not blocked, each exact-head reviewed):**
 1. This PLAN lands.
-2. `pipeline/` controls, with the `release/*` workflows on `merge_group` and `pull_request` alongside the old checks (add-new).
-3. `npmjs/`, `main/`, `collectors/` controls in the order of `00-changes`.
+2. The five root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies), with the `KAAL / release / *` workflows on `merge_group` and `pull_request` alongside the old checks (add-new).
+3. The `npmjs`, `main` and `collectors` controls in the order of `00-changes`.
 4. The Owner adds the new contexts, then removes the old contexts (`Change Isolation (review)` first).
 5. Delete the four `pull_request_target` workflows, then remove the temporary Actions policy before 2 Dec 2026.
 
@@ -126,7 +146,7 @@ Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and doe
 
 Rationale (I4): Delivery architecture changes independently of Solution architecture. The release controls, the workflow wiring and the test machinery are Delivery elements: they change in their own Changes and judge a candidate as `main`'s copy. Product code and the Cases that test it are Solution content and travel in candidates.
 
-Every control of `pipeline/`, `npmjs/` and `main/`, and `collectors/` for its release controls (approve Change), runs the checker **from `main`** on both `pull_request` and `merge_group`: the job checks out `ref: main` (the default branch's tip, read at run start, never the event's base) and runs the logic from `engineering/release-management/05-src/`. The candidate is read as Git data only and never checked out, built or run, as the existing jobs do. `.github` holds only the wiring: which control runs on which event, the checkout of `main` and the call to the checker. The logic lives in `05-src`. The pin is protected because `.github travels alone` (F6, T7): the wiring can change only in a lone `.github` change with human approval, and the checker can change only through a promotion, so a candidate is always judged by the checker `main` already holds.
+Every release control (all but the testing controls, pinned through F18), runs the checker **from `main`** on both `pull_request` and `merge_group`: the job checks out `ref: main` (the default branch's tip, read at run start, never the event's base) and runs the logic from `engineering/release-management/05-src/`. The candidate is read as Git data only and never checked out, built or run, as the existing jobs do. `.github` holds only the wiring: which control runs on which event, the checkout of `main` and the call to the checker. The logic lives in `05-src`. The pin is protected because `.github travels alone` (F6, T7): the wiring can change only in a lone `.github` change with human approval, and the checker can change only through a promotion, so a candidate is always judged by the checker `main` already holds.
 
 Consequence: a change to a control's logic takes effect after it is promoted, not in its own pull request, which is the intended behavior (the same as today's Change Isolation and Branching).
 
@@ -138,10 +158,10 @@ Consequence: a change to a control's logic takes effect after it is promoted, no
 
 **Candidate trust roots, to be demonstrated live before any existing context is removed:**
 1. A repository ruleset "Require workflows to pass", pinned to `refs/heads/main`, so the workflow that produces the required check is the one `main` holds, whatever the candidate contains. Unverified for this repository: whether the rule is available, whether it applies on a `merge_group` event, whether it works on the `kaal/*` pattern ruleset, and how it names the check.
-2. Otherwise, the existing `pull_request_target` checks stay (they run the default branch's definition) and the 2 Dec 2026 default block is met by the Owner's policy decision, not by this PLAN.
+2. Otherwise, the old `pull_request_target` checks stay as they are and nothing is removed (an interim, not the goal): the end state still has no `pull_request_target`, and the 2 Dec 2026 default block is then an open decision for the Owner, not something this PLAN settles.
 If neither is demonstrated, the PLAN's migration stops at "add new, remove nothing".
 
-**Gate specification (applies to `gate (main)` and `gate (collectors)`, whichever mechanism):**
+**Gate specification (applies to `gate (promotion)` and `gate (integration)`, whichever mechanism):**
 - **Binding.** The gate judges the exact `pull_request` head SHA, or on `merge_group` the group's head SHA (`github.sha`), and it prints that SHA and the SHA of the `main` checkout it ran (which must equal `main`'s tip read at run start). `bind-group.sh` binds the group to the queued pull request.
 - **Expected identities.** The gate lists the controls it requires by name and by check-run app (the GitHub Actions app) and workflow path; a check of the right name from another app or workflow is not accepted.
 - **Fail closed.** Absent, skipped, neutral, stale (another SHA), cancelled, timed-out or unreadable runs of a required control fail the gate. Success only when every required control completed successfully on that SHA.
@@ -154,7 +174,7 @@ If neither is demonstrated, the PLAN's migration stops at "add new, remove nothi
 
 | Item | Status |
 | --- | --- |
-| Rulesets `main` and `lineage`: pull request settings, required contexts (GitHub Actions app), merge queue rule on `main` (SQUASH, 1/1/1, ALLGREEN, 60 min), `lineage` has no queue | Verified, read from the GitHub API on 9 Nov |
+| Rulesets `main` (to be renamed `promotion`) and `lineage` (to be renamed `integration`): pull request settings, required contexts (GitHub Actions app), merge queue rule on `main` (SQUASH, 1/1/1, ALLGREEN, 60 min), `lineage` has no queue | Verified, read from the GitHub API on 9 Nov |
 | CODEOWNERS on `main` | Verified, read from the repository |
 | Workflows using `pull_request_target` (four), `merge_group` triggers in `ci.yml`, `codeql.yml`, `merge-group*.yml` | Verified, read from the repository |
 | A merge queue rule is refused on a pattern ruleset | Owner trial, 9 Nov, evidenced by the refusal message |
