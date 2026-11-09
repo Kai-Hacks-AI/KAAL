@@ -3,21 +3,21 @@
 ## The flow (system view)
 
 ```
- 13-change-branch      12-kaal            11-main               10-npmjs
- (a Change on its   (KAAL installs     (promoted state)      (published version)
-  working branch)    the package)
-        |                  ^                  |                      ^
-        |  squash into     |  KAAL installs   |  Release (by hand)   |
-        |  collector,      |  its own         |  pack once, verify,  |
-        |  promotion to    |  published       |  approve, publish    |
-        |  main            |  package         |                      |
-        +----------------> +<-----------------+--------------------->+
-                                              ^                      |
-                                              +---- Accept ----------+
-                                                 (registry bytes vs tested bytes)
+        12-kaal                 11-main               10-npmjs
+     (KAAL installs        (promoted state)      (published version)
+      the package)
+          ^                       |                      ^
+          |  KAAL installs        |  Release (by hand)   |
+          |  its own published    |  pack once, verify,  |
+          |  package              |  approve, publish    |
+          |                       +--------------------->+
+          +<----------------------+--------------------->+
+                                  ^                      |
+                                  +---- Accept ----------+
+                                     (registry bytes vs tested bytes)
 ```
 
-Pull-oriented: each station owns its **in** move. This PLAN designs only the right-hand border (`11-main` to `10-npmjs`) and the stock of `10-npmjs`.
+Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move. This PLAN designs only the right-hand border (`11-main` to `10-npmjs`) and the stock of `10-npmjs`.
 
 ## Elements
 
