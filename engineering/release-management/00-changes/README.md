@@ -29,15 +29,15 @@ Two gates close the set: `gate (main)` and `gate (kaal)` (see `03-architecture`)
 
 ## Retiring `Change Isolation (review)` (Owner, 9 Nov)
 
-Reason: two accounts, ChBrain does the work and kaihacksai has the authority, so native approval settings carry it when set up correctly. The check's one extra, binding the approval to the ledger entry's digest, is given up (`ledger-in-promotion-plan.md` called the plain approval "not recommended" for that reason; the Owner has decided otherwise). Native approval stays bound to the head by dismiss-on-push.
+Reason: the native ruleset settings (code owner review, approval of the most recent push, dismiss on push) carry the approval when set up correctly. The check's one extra, binding the approval to the ledger entry's digest, is given up (`ledger-in-promotion-plan.md` called the plain approval "not recommended" for that reason; the Owner has decided otherwise). Native approval stays bound to the head by dismiss-on-push.
 
 Order (add-new, settings, remove-old), each step safe before the next:
 
 1. **Owner, rulesets (settings, nothing breaks):**
-   - `kaal/*` (ruleset `lineage`): turn **Require review from Code Owners** on (now off). Effect to accept: kaihacksai approves every collector PR.
+   - `kaal/*` (ruleset `lineage`): turn **Require review from Code Owners** on (now off). Effect to accept: a code owner approves every collector PR.
    - `main` and `kaal/*`: turn **Require approval of the most recent push** on (now off), so the last pusher cannot be the only approver.
    - Already on and kept: 1 approval, dismiss stale approvals on push, thread resolution, extra approval for unattributed changes (both); code owner review on `main`.
-   - Keep `CODEOWNERS` `* @kaihacksai`. When a second owner exists, add the ledger path as its own line.
+   - Keep the existing `CODEOWNERS` as it is. When a second owner exists, add the ledger path as its own line.
 2. **Owner, `main` ruleset:** remove the required context `Change Isolation (review)`. Only after step 1, so there is never a window without an approval rule.
 3. **Change, `.github` only** (travels alone): delete `merge-group-admission.yml`, `merge-group-review.yml`, `change-isolation-review.yml` and `change-isolation-review-relay.yml` (the jobs named `Change Isolation (review)` and `(review event)`).
 4. **Change, Engineering:** retire the attestation code and documents that only served them (`attest.mjs`, `attesters.json`, `ledger-in-promotion-plan.md`, their Cases), and decide what `change-isolation.sh` does with `KAAL_ATTESTATION` (strict path unused). A ledger entry is then admitted by the ledger match plus the native approval.
