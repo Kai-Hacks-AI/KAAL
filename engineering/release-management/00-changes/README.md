@@ -5,7 +5,7 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | File | Holds |
 | --- | --- |
 | `current-state.md` | the present state (A), each entry against the target it differs from |
-| `gaps.md` | the differences between A and B (G1 to G11), each with its target and the Case that closes it |
+| `gaps.md` | the differences between A and B (G1 to G12), each with its target and its closing condition: a Case, or, for an open decision, the Owner's decision (and the Case it may lead to) |
 | `transformation.md` | the route: the per-control Changes, the controls, the landed Changes, the path to `main`, the conditions, the retirement sequence, the build order |
 | `interim-states.md` | mechanisms that stand in for a target element until it exists, each with its end |
 | `change-requirements.md` | temporary requirements of the migration (F20), each with its end |
