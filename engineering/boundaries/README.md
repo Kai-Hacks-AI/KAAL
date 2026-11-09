@@ -1,12 +1,12 @@
 # Engineering's Boundary Test Plan
 
-> PLAN (engineering/C10): nothing below exists yet. The Owner's alignment on #641 (comment 6510155607) asks for an Engineering-owned Boundary Test Plan, built on Testing's existing model and not on a new framework. It is revised to the Owner's alignment on #649 (comment 6516997200): Boundary Test Suites are capability-owned, shipped, reusable assurance assets, and Engineering is one consumer of them. This is a bounded Engineering Change, separate from engineering/C7 (#641), the consumer-verification conformance PLAN, which it leaves unchanged. Approving this PLAN authorizes only its DO, on `kaal/engineering`, and only once the prerequisites below are on `main`.
+> PLAN (engineering/C10): the matrix below is not built; the Boundary Engine it runs is (`engineering/boundary/`), and the amendment of 2026-11-09 (the provider ships definitions as data, Engineering ships the engine) replaces the provider-shipped executable Suite where this document says otherwise. The Owner's alignment on #641 (comment 6510155607) asks for an Engineering-owned Boundary Test Plan, built on Testing's existing model and not on a new framework. It is revised to the Owner's alignment on #649 (comment 6516997200): Boundary Test Suites are capability-owned, shipped, reusable assurance assets, and Engineering is one consumer of them. This is a bounded Engineering Change, separate from engineering/C7 (#641), the consumer-verification conformance PLAN, which it leaves unchanged. Approving this PLAN authorizes only its DO, on `kaal/engineering`, and only once the prerequisites below are on `main`.
 
 ## Who owns what
 
 | Concern | Owner |
 | --- | --- |
-| A boundary definition, and the Boundary Test Suite that tests it. The Suite ships with the provider's package as a reusable asset: executable checks, and review instructions for judgments a check cannot establish deterministically | The Capability whose boundary it is. Hosting is the first provider: host and OS coupling, in production code and test code (#650) |
+| A boundary definition, and the Boundary Test Suite that tests it. The provider ships its Boundary Test definitions (and review instructions for judgments a check cannot establish deterministically) as data; Engineering ships the one Boundary Engine that executes them through its typed detectors (`engineering/boundary/`, amended by the Engineering Boundary Engine PLAN, engineering/boundary/PLAN.md) | The Capability whose boundary it is. Hosting is the first provider: host and OS coupling, in production code and test code (#650) |
 | Strategy, Plan, Suite, Case, Run, result and applicability semantics | Testing: testing/F24–F33, planned in testing/C14 and delivered by testing/C15 (#630) |
 | Validation judgments and their evidence | Review |
 | Escalating a judgment from an Agent to a human, when one is needed | PREACH |

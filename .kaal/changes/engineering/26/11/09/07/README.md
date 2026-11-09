@@ -1,0 +1,11 @@
+# Engineering: Boundary Engine DO (typed detectors, capability-owned Boundary Tests)
+
+Capability: Engineering. Target: `kaal/engineering-boundary-engine` (cut from main; `kaal/engineering` untouched). Record number provisional until integration. DO of the PLAN landed in #1297 (`engineering/boundary/PLAN.md`, CPO-approved at 5497719). A landed PLAN is the go (Owner, 2026-11-09).
+
+Delivers, in `engineering/boundary/`: the Boundary Test definition loader and validator (`definition.mjs`, Markdown with YAML front matter, `yaml` parsed here only), the three typed detectors (`detectors/`: `file-identity`, `token-sequence`, `call-with-literal`; no provider regex, code or target), the evidence walker (`scan.mjs`: findings per place, attributed to the first matching test, coverage, owner skip, exit semantics), the low-level command (`engine.mjs`), the provisional Engineering-owned Case adapter (`cases.mjs`: descriptors with `tests` and `ships`; evidence plus decided/undecided disposition, no pass or fail) and the applicability matrix runner (`matrix.mjs`: each cell its own Run, exclusions need a reason). The digest uses Foundation's `sha256` (`@kaihacksai/kaal-foundation/sha256`), the only SHA-256 the engine itself uses.
+
+Cases: the PLAN's twelve (T1 to T12, previously RED, now GREEN) plus T13 and T14 (matrix) and T15 (Foundation's three tests as a definition give the findings of the old `scan.mjs` on the recorded fixture: same files, rules and lines, 6 files read). `test:engineering` runs them.
+
+Amends `engineering/boundaries/README.md` (engineering/C10): the provider ships definitions as data and Engineering ships the engine. The matrix itself (C10 coverage of every package against every Suite, omission findings) remains planned; `matrix.mjs` covers cells and exclusions only.
+
+Not in this Change: Foundation's replacement Change (rules out of `scan.mjs`), Hosting's migration, any change to Testing, any promotion, version bump on main, SYNC, ledger entry, release dispatch or npm publication.
