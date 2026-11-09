@@ -236,4 +236,44 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
       ["t/noncopy.mjs", "implementation", first],
     ]);
   });
+  it("T16 [R1, R2]: two tests that match the same place each keep their own evidence as Cases, while the aggregate output is one finding attributed to the first", async () => {
+    const tests = put("t16/tests.md", def("demo",
+      CRYPTO.replace("id: crypto", "id: first") + CRYPTO.replace("id: crypto", "id: second") + CRYPTO.replace("id: crypto", "id: third").replace("[sha256, sha-256]", "[md5]")));
+    put("t16/t/a.mjs", "x\ncreateHash(\"sha256\")\n");
+    const ctx = { targets: [join(dir, "t16/t")], base: join(dir, "t16"), decisions: [] };
+    const cases = (await import(pathToFileURL(CASES).href)).boundaryCases([tests]);
+    const seen = {};
+    for (const c of cases) seen[c.id] = (await c.run(ctx)).findings.map((f) => f.id);
+    assert.deepEqual(seen, { "demo/first": ["demo/t/a.mjs:2"], "demo/second": ["demo/t/a.mjs:2"], "demo/third": [] });
+    const aggregate = run("--tests", tests, "--target", join(dir, "t16/t"), "--base", join(dir, "t16")).summary.findings;
+    assert.deepEqual(aggregate.map((f) => [f.id, f.rule]), [["demo/t/a.mjs:2", "first"]]);
+  });
+  it("T17 [R1, R2]: one test's unreadable reference makes only its own Case unknown and does not mask another Case's evidence", async () => {
+    put("t17/def/ref/here.mjs", "export const ref = 1;\n");
+    const tests = put("t17/def/tests.md", def("demo",
+      `  - id: lost\n    detector: file-identity\n    equals: [ref/missing.mjs]\n    tests: demo/I1\n    ships: true\n    looks-for: a copy\n` + CRYPTO));
+    put("t17/t/a.mjs", "createHash(\"sha256\")\n");
+    const ctx = { targets: [join(dir, "t17/t")], base: join(dir, "t17"), decisions: [] };
+    const [lost, crypto] = (await import(pathToFileURL(CASES).href)).boundaryCases([tests]);
+    assert.equal((await lost.run(ctx)).result, "unknown");
+    const other = await crypto.run(ctx);
+    assert.equal(other.result, "complete");
+    assert.deepEqual(other.findings.map((f) => f.id), ["demo/t/a.mjs:1"]);
+  });
+  it("T18 [R2]: call-with-literal matches a call by its whole name, including a member call, and is lexical evidence only", () => {
+    const tests = put("t18/tests.md", def("demo", CRYPTO));
+    put("t18/t/a.mjs", [
+      "createHash(\"sha256\")",            // 1: a call
+      "crypto.createHash(\"SHA-256\")",    // 2: a member call, any case and hyphen
+      "h.digest( 'sha256' )",               // 3: another listed callee, spaced, single quotes
+      "myDigest(\"sha256\")",              // 4: not the callee: its name only ends with it
+      "xcreateHash(\"sha256\")",           // 5: likewise
+      "createHash(algorithm)",              // 6: argument is not a literal
+      "createHash(\"sha256\" + suffix)",   // 7: not a whole literal
+      "// createHash(\"sha256\")",         // 8: lexical: a comment matches too
+      "",
+    ].join("\n"));
+    const r = run("--tests", tests, "--target", join(dir, "t18/t"), "--base", join(dir, "t18"));
+    assert.deepEqual(r.summary.findings.map((f) => f.line), [1, 2, 3, 8]);
+  });
 });
