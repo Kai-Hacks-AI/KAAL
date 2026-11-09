@@ -4,7 +4,7 @@ Controls of a station are its requirements, in three kinds: **in** (the receiver
 
 ## Naming is aligned (spans everything) [release-management/F4]
 
-Ids: F1 approve Publishing, F2 verify Package Promotion, F3 version Package, F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies, F10 bind Merge, F11 approve Promotion, F12 test Candidate, F13 serialize Promotion, F14 accept Capability, F15 approve Change, F16 test Integration. Each is allocated to its component in `03-architecture`; F4 is cross-cutting and allocated to the naming map, not to a component.
+Ids: F1 approve Publishing, F2 verify Package Promotion, F3 version Package, F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies, F10 bind Merge, F11 approve Promotion, F12 test Candidate, F13 serialize Promotion, F14 accept Capability, F15 approve Change, F16 test Integration. Each is allocated to one of the four components in `03-architecture`; F4 is cross-cutting and allocated to the naming map, not to a component.
 
 Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or control appears (Intent, Requirements, Architecture, `05-src` folders, files and scripts, GitHub workflows, jobs and gates), its name is self-explanatory, easy to understand and semantically consistent with the control's name, so a reader and a program can tell which control it is. Each surface may spell it its own way (a folder `approve-publishing`, a job `approve Publishing`); a **mapping** in the Architecture lists, per control, its spelling on each surface, and later its graph id (deferred). A surface name that maps to no control, or a control with no name on a surface where it runs, is a finding (an observation, not a gate). Read by parsers (YAML for workflows, Markdown AST for the records, directory listing for `05-src`), never regex. Use vs build: the YAML parser already in Engineering is used; no new parser.
 
@@ -37,8 +37,8 @@ Controls that act on more than one station live at the root. All are names only 
 - **stock:** audit Lineage (from the root).
 - **in, backwards from the stock (names only):** bind Merge [F10] (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion [F11] (native approval settings), test Candidate [F12] (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion [F13] (one promotion at a time), accept Capability [F14] (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
 
-## Station 12-kaal (names only)
+## Station 12-collectors (names only)
 
 - **stock:** audit Lineage (from the root).
-- **in:** approve Change [F15] (native approval settings of `kaal/*`), test Integration [F16] (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (kaal)`.
+- **in:** approve Change [F15] (native approval settings of `kaal/*`), test Integration [F16] (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (collectors)`.
 - **out:** none of its own; verify Ancestry and isolate Change act here from the root.
