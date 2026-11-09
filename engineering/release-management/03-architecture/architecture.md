@@ -32,7 +32,7 @@ Architecture names the components and allocates each requirement to exactly one 
 | --- | --- | --- |
 | `05-src/pipeline/` | F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies | `lineage.ts` (establishment, collectors, working-branches, freshness, synchronization, claim) with `holds.json` and `branching-audit.sh`/`branching.sh`; `engineering/change-isolation/` and `change-isolation.sh`; scans are tools, below |
 | `05-src/npmjs/` | F1 approve Publishing, F2 verify Package Promotion | A2, A3: `release.yml` Publish and Accept, `publishable()`, `provenance()` (G5 to G11) |
-| `05-src/main/` | F3 version Package, F10 bind Merge, F11 approve Promotion, F12 test Candidate (FAR: F18), F13 serialize Promotion, F14 accept Capability | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4); `lineage.ts` source and auto-merge, `promotion-source.sh`; `bind-group.sh`; `engineering/lanes/` for test Candidate |
+| `05-src/main/` | F3 version Package, F10 bind Merge, F11 approve Promotion, F12 test Candidate (FAR: F18), F13 serialize Promotion, F14 accept Capability | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4); `lineage.ts` source and auto-merge, Promotion Source (`promotion-source.sh` on `main` today; the approved `.mjs` port, #1317, sits in `kaal/engineering-gate-ports` pending promotion, and this PLAN moves whichever implementation `main` holds when its Change runs and never reintroduces the `.sh`); `bind-group.sh`; `engineering/lanes/` for test Candidate |
 | `05-src/collectors/` | F15 approve Change, F16 test Integration (FAR: F18) | `engineering/lanes/` for test Integration; approve Change has no source |
 
 Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
@@ -95,7 +95,7 @@ Today four workflows use `pull_request_target`: `change-isolation.yml` (Change I
 
 **What replaces it (to settle with the Owner and prove on a throwaway branch):**
 - The controls run on `merge_group` and on `pull_request` (no `_target`), checking out the default branch's checker and reading the candidate as Git data, as the merge-group jobs do today. The pull-request run supplies the context a pull request needs in order to enter the queue; the merge-group run is the judgment that counts.
-- **Trust gap, closed by isolate Change:** on `merge_group` and `pull_request` the workflow definition comes from the candidate's side, but `.github travels alone` is a failing check (F6, T7), so a workflow change reaches `main` only as a lone `.github` change with human approval. "Require workflows to pass" pinned to `main` is an optional extra layer, unverified here.
+- **Trust root: required, not yet demonstrated (CPO, 9 Nov).** On `merge_group` and `pull_request` the workflow definition and the check's identity come from the candidate's side, so `.github travels alone` plus human approval is a *process* guard, not a trust root: a `.github`-only candidate could alter or omit its own gate, or emit a job that looks like the required context. `ref: main` for the checker's code does not authenticate the workflow that calls it. The migration therefore commits to no removal of any existing required context until a fail-closed trust root is demonstrated (see "Trust root and gate specification").
 - The `gate (main)` and `gate (collectors)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
 
 Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and does not depend on it or wait for it.
@@ -120,7 +120,7 @@ Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and doe
 **Collectors keep their merge model** (Owner): squash for a Change, merge commit for a synchronization, chosen per pull request, which a queue with one `merge_method` could not do. They land without a queue. So for `kaal/*`:
 - approve Change and the `collectors` gate run on `pull_request` (not `_target`), with no `merge_group` run;
 - ordering comes from the ruleset's strict up-to-date policy (on) and the Branching merge-method verdict (moving to `bind Merge`);
-- **protection against a candidate editing the workflow that judges it (Owner, 9 Nov):** collectors check features on `pull_request`, and `main` (queue, `merge_group`) is the hard regression gate. Self-editing is stopped by isolate Change: `.github travels alone` is a failing check (requirement F6, Case T7), so a workflow change cannot ride in a collector's feature Change and reaches `main` only as a lone `.github` change with human approval. "Require workflows to pass" pinned to `main` stays an optional extra layer, unverified on a pattern ruleset, and is not a must.
+- **protection against a candidate editing the workflow that judges it:** collectors check features on `pull_request`, and `main` (queue, `merge_group`) is the hard regression gate (Owner, 9 Nov). That is the design intent; whether the workflow definition and check identity are trustworthy on these events is the trust-root requirement below, and the existing `pull_request_target` checks stay required until it is demonstrated.
 
 ## Release controls are hard-pinned (Owner, 9 Nov 2026)
 
@@ -131,3 +131,32 @@ Every control of `pipeline/`, `npmjs/` and `main/`, and `collectors/` for its re
 Consequence: a change to a control's logic takes effect after it is promoted, not in its own pull request, which is the intended behavior (the same as today's Change Isolation and Branching).
 
 **Testing controls apply FAR (F18, Owner, 9 Nov).** The test machinery is Delivery and pinned. Regression (the target's own Cases) runs as `main`'s copy and protects the target; Features (the candidate's new or changed Cases, Solution content) travel with the candidate and test the incoming change; Accepts is Change's Accept (`far.json` in the Change record, `change/A6`; `kaal-change/far`, built by its DO; until then an interim marked temporary reads the same record, Owner 9 Nov) and the only door through which a candidate can weaken a Regression Case. Each run tests Features and Regression both and reports the Accepts entries it applied (which Regression Case stays RED, and why) in its check output, so the reviewer sees it at the decision point. test Candidate (`main/`) and test Integration (`collectors/`) share the rule.
+
+## Trust root and gate specification (CPO, 9 Nov)
+
+**Requirement.** The workflow definition that judges a candidate, and the identity of the required check it reports, must come from a source the candidate cannot change. `ref: main` for the checker's code is necessary but not sufficient.
+
+**Candidate trust roots, to be demonstrated live before any existing context is removed:**
+1. A repository ruleset "Require workflows to pass", pinned to `refs/heads/main`, so the workflow that produces the required check is the one `main` holds, whatever the candidate contains. Unverified for this repository: whether the rule is available, whether it applies on a `merge_group` event, whether it works on the `kaal/*` pattern ruleset, and how it names the check.
+2. Otherwise, the existing `pull_request_target` checks stay (they run the default branch's definition) and the 2 Dec 2026 default block is met by the Owner's policy decision, not by this PLAN.
+If neither is demonstrated, the PLAN's migration stops at "add new, remove nothing".
+
+**Gate specification (applies to `gate (main)` and `gate (collectors)`, whichever mechanism):**
+- **Binding.** The gate judges the exact `pull_request` head SHA, or on `merge_group` the group's head SHA (`github.sha`), and it prints that SHA and the SHA of the `main` checkout it ran (which must equal `main`'s tip read at run start). `bind-group.sh` binds the group to the queued pull request.
+- **Expected identities.** The gate lists the controls it requires by name and by check-run app (the GitHub Actions app) and workflow path; a check of the right name from another app or workflow is not accepted.
+- **Fail closed.** Absent, skipped, neutral, stale (another SHA), cancelled, timed-out or unreadable runs of a required control fail the gate. Success only when every required control completed successfully on that SHA.
+- **Retries and timeouts.** A bounded wait (the merge queue's `check_response_timeout_minutes` is 60 today); a re-run is judged afresh against the SHA; a flaky read is a failure, not a pass.
+- **Spoofing.** The gate does not read a candidate-supplied result; it reads check runs by API with the workflow's own token.
+
+**Negative Cases (live, T10):** (a) a `.github`-only candidate that deletes or edits the gate or a control job; (b) a candidate workflow that emits a job named like a required context; (c) a candidate that skips a required control (condition, path filter, `if: false`). Each must leave the required context failed or absent. T7 and T8 stay as additional guards, not as the trust root.
+
+## Evidence status (what is verified and what is not)
+
+| Item | Status |
+| --- | --- |
+| Rulesets `main` and `lineage`: pull request settings, required contexts (GitHub Actions app), merge queue rule on `main` (SQUASH, 1/1/1, ALLGREEN, 60 min), `lineage` has no queue | Verified, read from the GitHub API on 9 Nov |
+| CODEOWNERS on `main` | Verified, read from the repository |
+| Workflows using `pull_request_target` (four), `merge_group` triggers in `ci.yml`, `codeql.yml`, `merge-group*.yml` | Verified, read from the repository |
+| A merge queue rule is refused on a pattern ruleset | Owner trial, 9 Nov, evidenced by the refusal message |
+| Collector and control decisions (names, layout, Branching split, FAR use, pin) | Owner decisions of 9 Nov, recorded in the project record, not repository-verifiable |
+| `npm` environment and its reviewer, npmjs trusted publisher, the temporary repository Actions policy, "Require workflows to pass" availability and semantics, reusable-workflow check identity | Unverified, prerequisites of the proof |

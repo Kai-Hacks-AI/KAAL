@@ -17,7 +17,7 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 | scan Dependencies | pipeline | `dependency-review.yml`; `Dependency Review` | `Dependency Review` (a rename) |
 | approve Change | collectors | native settings of the `kaal/*` ruleset (below) | none (nothing on `kaal/*` requires `Change Isolation (review)` today) |
 | test Integration | collectors | `engineering/lanes/`; `Hosting`, `Workspaces`, `Acceptance`, `Engineering`, `Guard` x3 (`Guard` as a job is meant, not the workflow) | the lane names, as they become jobs of the control |
-| accept Capability | main | `engineering/github/promotion-source.sh`; `Promotion Source` | `Promotion Source` |
+| accept Capability | main | `engineering/github/promotion-source.sh` on `main` today (the approved `.mjs` port, #1317, is pending promotion; whichever `main` holds when the Change runs is moved, and the `.sh` is not reintroduced); `Promotion Source` | `Promotion Source` |
 | bind Merge | main | `.github/scripts/bind-group.sh`, merge queue; plus the merge-method half of `Branching` (`lineage.ts` `auto-merge`) | `Branching` (last of the three halves to move) |
 | approve Promotion | main | native settings of the `main` ruleset (below); today also `Change Isolation (review)` | `Change Isolation (review)`, retired per the sequence below |
 | test Candidate | main | the lanes on `kaal/*` to `main` | the lane names |
