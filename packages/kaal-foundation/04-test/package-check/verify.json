@@ -1,0 +1,104 @@
+{
+  "files": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "3f5fc84f755b468f97090d810e7df2014caea149e5143c9ace616b57b8b57051",
+    "dist/AGENTS.md": "b2e97131713a9d429cfb9092890a9ab84b512e72a64c5ba0bdef59c29ee9e907",
+    "dist/docs/architecture/architecture.md": "1d80bb0e330e48f18ac2db771434d857938e57757f4c923a75a685e7d276c490",
+    "dist/docs/architecture/architecture.test.mjs": "065431da235bf61e05b4ca3ec01c66a9f99f1ffaea6939a5e5e33b0a29334994",
+    "dist/docs/intent/intent.md": "fea535687772747451c801711c53277bcfa201502820d3a1555b488f8eba461f",
+    "dist/docs/requirements/functional/declaration.test.mjs": "4eb33bc1d12800158d140f612a0b7136227b8e8af1ccd259fbabcf3ecd7a3855",
+    "dist/docs/requirements/functional/requirements.md": "14c1d8c0fb8ffe482f9fcd3b3195e64614cbce376b775efb13bdebbb80c7871a",
+    "dist/docs/requirements/functional/requirements.test.mjs": "a07722fccf855d2d0a3ca5f4804d162d5d04e3d6b5e573178eaa764f7092f382",
+    "dist/docs/requirements/non-functional/requirements.md": "72480dae6c327a87101e8ac92fd8ae61ec20ba51a165df62c6b4320cb352fb25",
+    "dist/kaal/Foundation.md": "649fbafb81a8d976b65a4e8c0db7228a194ec515385820d489e4a74041dc27c5",
+    "dist/skills/kaal-foundation/SKILL.md": "d6b3ed4a299e10f7672bd34b5d19a9bc494d9e43d4d523ba6bb8f0796b6a0602",
+    "dist/skills/kaal-foundation/references/limitations.md": "da77a331b433d6deca0f0c1d32d0eb1cbcbee22bdecf0ca6f1e84dc533f731f5",
+    "dist/skills/kaal-foundation/references/operations.md": "53a21c3da908e497826c53397f20d0c4c151a45370c7f1c91cd764402c68ce88",
+    "dist/skills/kaal-foundation/scripts/kaal-foundation.mjs": "9db634c6ef05aef936361eb513b5c2cb2334dba34051bf091682809c545f883a",
+    "dist/skills/kaal-foundation/scripts/kaal-foundation.test.mjs": "b8b857d7f95bd338426700b8fbf41062a60c3975c2491b53fcb43349bf5f3e34",
+    "dist/skills/kaal-foundation/scripts/sha256.d.ts": "e0b71d43eb02726e7ed9fa05cf1c60c4b88224f99a5120de56bb54b3da303a16",
+    "dist/skills/kaal-foundation/scripts/sha256.mjs": "c504c09d231c8a58f2ae2dbf346edbdf4dd544bdbdba1161515875d051df5ee0",
+    "dist/test/package-check/collect.mjs": "79c87164ccea905b6306cf92344b3fc1c9252ea382cb0e47ad3aaf85303e7365",
+    "dist/test/package-check/testing.md": "78f572a21dbd52e5932ba14164f1ce793d448f2e81197e74ea47004e916f1563",
+    "dist/test/package-check/verify.mjs": "d54b1471f59abfa85f7e1c4947db0001ad7cdc5d8d149e6d9cc5fbf32facf223",
+    "package.json": "5d1b1c03054e1e15595fa3ec2a87d9c0fd79ca739f63103125ffe082bb3301af"
+  },
+  "cases": [
+    "foundation/T27",
+    "foundation/T28",
+    "foundation/T31",
+    "foundation/T50",
+    "foundation/T23",
+    "foundation/T24",
+    "foundation/T25",
+    "foundation/T26",
+    "foundation/T29",
+    "foundation/T30"
+  ],
+  "model": {
+    "cases": [
+      {
+        "id": "foundation/T27",
+        "tests": [
+          "foundation/N1",
+          "foundation/N2"
+        ]
+      },
+      {
+        "id": "foundation/T28",
+        "tests": [
+          "foundation/N4"
+        ]
+      },
+      {
+        "id": "foundation/T31",
+        "tests": [
+          "foundation/F15"
+        ]
+      },
+      {
+        "id": "foundation/T50",
+        "tests": [
+          "foundation/F25",
+          "foundation/F26"
+        ]
+      },
+      {
+        "id": "foundation/T23",
+        "tests": [
+          "foundation/F1"
+        ]
+      },
+      {
+        "id": "foundation/T24",
+        "tests": [
+          "foundation/F1"
+        ]
+      },
+      {
+        "id": "foundation/T25",
+        "tests": [
+          "foundation/F2"
+        ]
+      },
+      {
+        "id": "foundation/T26",
+        "tests": [
+          "foundation/F3"
+        ]
+      },
+      {
+        "id": "foundation/T29",
+        "tests": [
+          "foundation/F14"
+        ]
+      },
+      {
+        "id": "foundation/T30",
+        "tests": [
+          "foundation/F14"
+        ]
+      }
+    ]
+  }
+}
