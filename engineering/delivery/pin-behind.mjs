@@ -7,6 +7,12 @@
 // each host holds) and turns exactly those findings, and no others, from a verified failure into a visible pin-behind:
 // the held entry is nested (more than one node_modules/ segment), and its version and the packed version are plain
 // x.y.z with the held one strictly below. Top-level, same, newer, odd or missing versions stay verified failures.
+//
+// Identity: Testing's findings carry no installed path, and a top-level and a nested copy can print the same text. So
+// no finding is ever matched to an entry by its text or position. For each recorded host this takes Testing's whole
+// "holds ... not the packed tarball" class out and regenerates it from the held entries themselves, one finding per
+// mismatched entry, each naming its installed path. Before it does, the class must agree with the held entries (same
+// count, same texts); if it does not, nothing is excused and a verified failure says so.
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { compare } from "../acceptance/pin-ratchet/classify.mjs";
@@ -26,38 +32,65 @@ export async function readHolds(records) {
   return holds;
 }
 
+const HOLDS = (host) => (f, scenario) => f.kind === "verified failure" && f.subject === scenario && f.evidence.startsWith(`${host} holds `) && f.evidence.endsWith(", not the packed tarball");
+
+/** The held entries of one host that differ from the packed tarball, in the shape Testing judges them. */
+function mismatches({ manifest, host, held }) {
+  const out = [];
+  for (const [at, entry] of Object.entries(held)) {
+    const name = entry.name ?? at.split("node_modules/").pop();
+    const packed = manifest[name];
+    if (!packed || entry.integrity === packed.integrity) continue;
+    const nested = at.split("node_modules/").length > 2;
+    const behind = nested && PLAIN.test(String(entry.version)) && PLAIN.test(String(packed.version)) && compare(entry.version, packed.version) < 0;
+    const testing = `${host} holds ${name} from ${entry.resolved ?? "elsewhere"}, not the packed tarball`;
+    const consumer = at.slice(0, at.lastIndexOf("/node_modules/")).split("node_modules/").pop();
+    out.push({
+      testing,
+      kind: behind ? "pin-behind" : "verified failure",
+      evidence: behind
+        ? `pin-behind: ${consumer} in ${host} stays on ${name}@${entry.version}, packed ${packed.version} [at ${at}] (fix soon; interim Engineering rule, foundation/C19)`
+        : `${testing} [at ${at}]`,
+    });
+  }
+  return out;
+}
+
 /**
  * @param {{ manifest: Record<string, { integrity: string, version?: string }>, records: { scenario: string, host: string }[],
  *           findings: { kind: string, subject: string, evidence: string }[], holds: Record<string, object> }} input
- * @returns the findings, with each nested strictly-older mismatch turned into { kind: "pin-behind", ... }.
+ * @returns the findings, with each mismatched held entry judged on its own installed path: a nested, strictly older
+ *          copy is { kind: "pin-behind" }, every other mismatch is a verified failure naming its path.
  */
 export function reclassify({ manifest, records, findings, holds }) {
-  // The pin-behind entries per (scenario, Testing's exact evidence text): identical texts are matched by count, so a
-  // top-level copy with the same registry URL is never excused by a nested one.
-  const budget = new Map();
-  const detail = new Map();
+  let out = findings;
   for (const { scenario, host } of records) {
     const held = holds[host];
     if (!held || held.unreadable) continue;
-    for (const [at, entry] of Object.entries(held)) {
-      const name = entry.name ?? at.split("node_modules/").pop();
-      const packed = manifest[name];
-      if (!packed || entry.integrity === packed.integrity) continue;
-      const nested = at.split("node_modules/").length > 2;
-      if (!nested || !PLAIN.test(String(entry.version)) || !PLAIN.test(String(packed.version)) || compare(entry.version, packed.version) >= 0) continue;
-      const evidence = `${host} holds ${name} from ${entry.resolved ?? "elsewhere"}, not the packed tarball`;
-      const key = `${scenario}\0${evidence}`;
-      budget.set(key, (budget.get(key) ?? 0) + 1);
-      const consumer = at.slice(0, at.lastIndexOf("/node_modules/")).split("node_modules/").pop();
-      if (!detail.has(key)) detail.set(key, `pin-behind: ${consumer} in ${host} stays on ${name}@${entry.version}, packed ${packed.version} (fix soon; interim Engineering rule, foundation/C19)`);
+    const mine = HOLDS(host);
+    const theirs = out.filter((f) => mine(f, scenario));
+    const ours = mismatches({ manifest, host, held });
+    const agree = theirs.length === ours.length && JSON.stringify(theirs.map((f) => f.evidence).sort()) === JSON.stringify(ours.map((m) => m.testing).sort());
+    if (ours.length === 0 && theirs.length === 0) continue;
+    if (!agree) {
+      out = [...out, { kind: "verified failure", subject: scenario, evidence: `pin-behind attribution failed: Testing reported ${theirs.length} holds findings for ${host}, the install record shows ${ours.length}; no finding was excused` }];
+      continue;
     }
+    const first = out.findIndex((f) => mine(f, scenario));
+    const rest = out.filter((f) => !mine(f, scenario));
+    const before = out.slice(0, first).filter((f) => !mine(f, scenario)).length;
+    rest.splice(before, 0, ...ours.map((m) => ({ kind: m.kind, subject: scenario, evidence: m.evidence })));
+    out = rest;
   }
-  return findings.map((f) => {
-    if (f.kind !== "verified failure") return f;
-    const key = `${f.subject}\0${f.evidence}`;
-    const left = budget.get(key) ?? 0;
-    if (left === 0) return f;
-    budget.set(key, left - 1);
-    return { kind: "pin-behind", subject: f.subject, evidence: detail.get(key) };
-  });
+  return out;
+}
+
+/**
+ * The settled findings of one acceptance run and whether it passed: Testing's findings after the pin-behind rule, plus
+ * `packaging`'s. It passes only when no finding is a verified failure; Testing's runner and ledger failures are
+ * findings of that kind, so none of them can be turned into success here.
+ */
+export function settle({ manifest, records, findings, holds, packaging }) {
+  const settled = [...reclassify({ manifest, records, findings, holds }), ...packaging];
+  return { findings: settled, passed: !settled.some((f) => f.kind === "verified failure") };
 }
