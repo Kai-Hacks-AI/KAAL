@@ -57,6 +57,23 @@ Note: `merge-group-admission.yml` is a `pull_request_target` workflow, so it is 
 
 So three of the original seven controls are implemented by GitHub scripts and workflows, plus Change Isolation (own checker folder) and Required tests (the lanes), and the new Merge queue. Two controls have no code at all.
 
+## Naming the controls by business concern
+
+The Owner's direction: a control is named by the concern it protects, not by its mechanism. The names below are proposals, taken from each control's Intent. Folder names would follow (`engineering/controls/<concern>/`). Renaming a control is a re-id of its Nodes, so it needs the incoming-edge impact list first and is its own Change.
+
+| Today (mechanism) | Intent in one line | Proposed concern name |
+| --- | --- | --- |
+| `change-isolation` | a Change to Core and one to `.github/` can each be reviewed, reverted and promoted on its own | **Changes stand alone** |
+| `lineage` | work reaches `main` only through its Capability's collector | **Work comes through its owner** |
+| `promotion-source` | only a Capability's own collector changes `main`, validated against the `main` it lands on | **Only owners release** |
+| `lineage-audit` | a pull request or collector that has fallen out of policy is found even when nothing is pushed | **Drift is found** |
+| `required-tests` | no Change lands while KAAL's own tests fail | **Tested before landing** |
+| `review-before-merge` | a Change lands only after its review is complete | **Reviewed before landing** |
+| `one-promotion` | promotions go up one at a time, each validated against the `main` it lands on | **Validated against current main** |
+| `merge-queue` (proposed) | what lands is exactly what was reviewed and judged, judged again at merge time | **What lands is what was judged** |
+
+Observation, not a decision: three of these overlap. `lineage`, `promotion-source` and `one-promotion` all speak of promotions into `main` through a Capability's collector, validated against the `main` they land on. Naming them by concern may show that they are one or two concerns, not three. That is for the Owner and the CPO to judge.
+
 ## Where the port Cases live
 
 `engineering/github/ports/` is not a good home: it is named for a mechanism, and it holds three different kinds of thing. The rule is that a Case sits next to what motivated it.
@@ -76,7 +93,8 @@ Moving them changes only paths (and the `test:engineering` list); the Cases' byt
 3. **Brackets or typed edges.** Today `[F1]` brackets are the traces. Keep them now; typed edges follow when Requirements and Architecture define them.
 4. **Case homes.** Parity Cases beside their script, the inventory and byte-pin Cases and the ports PLAN in `engineering/shell/`. Recommendation: yes.
 5. **Where the chain folders live: `engineering/controls/` or `engineering/github/controls/`.** A control is an enduring concern, kept apart from any mechanism (a Control carries `Has` edges and nothing else), and not all seven are about GitHub: Change Isolation's checker is `engineering/change-isolation/`, Required tests belongs to the lanes. Under `github/controls/` those would have no home, and every control would be tied to one provider. Recommendation: chain folders stay in `engineering/controls/<control>/`; the scripts and their parity Cases stay in `engineering/github/`, where the mechanism is. If the Owner prefers `github/controls/`, only the controls whose mechanism is a GitHub workflow (at least Lineage, Promotion source and Lineage audit; the others are to be checked one by one) would move there, and the rest stay behind.
-6. **Migration.** One control first (promotion-source, the pilot), bytes of each section unchanged, as its own Change. The other six follow once it is reviewed. The ports' Architecture edits then land in the new place, once.
+6. **Names.** Name each control by business concern, using the table above (or the Owner's own words), and decide whether the overlapping three stay separate.
+7. **Migration.** One control first (promotion-source, the pilot), bytes of each section unchanged, as its own Change. The other six follow once it is reviewed. The ports' Architecture edits then land in the new place, once.
 
 ## Not in this PLAN
 
