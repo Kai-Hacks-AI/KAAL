@@ -5,7 +5,7 @@ import { dirname, resolve } from "node:path";
 import { parse } from "yaml";
 import { DETECTORS } from "./detectors/index.mjs";
 
-const COMMON = new Set(["id", "detector", "looks-for", "tests", "ships"]);
+const COMMON = new Set(["id", "detector", "looks-for", "tests"]);
 const NAME = /^[A-Za-z_$][\w$]*$/;
 const text = (v) => typeof v === "string" && v.trim() !== "";
 const list = (v, ok) => Array.isArray(v) && v.length > 0 && v.every(ok);
@@ -30,7 +30,7 @@ export function problems(front) {
     else if (ids.has(test.id)) out.push(`${at}: duplicate id ${test.id}`);
     else ids.add(test.id);
     for (const field of ["looks-for", "tests"]) if (!text(test[field])) out.push(`${at}: ${field} must be text`);
-    if (typeof test.ships !== "boolean") out.push(`${at}: ships must be true or false`);
+    if ("ships" in test) out.push(`${at}: ships is computed from the Architecture and never written in a definition`);
     const detector = DETECTORS.get(test.detector);
     if (!detector) return out.push(`${at}: unknown detector ${JSON.stringify(test.detector)}`);
     for (const key of Object.keys(test)) if (!COMMON.has(key) && !(key in detector.params)) out.push(`${at}: unknown parameter ${key}`);

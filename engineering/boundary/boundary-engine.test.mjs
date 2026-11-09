@@ -19,7 +19,7 @@ after(() => rmSync(dir, { recursive: true, force: true }));
 const put = (p, text) => { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), text); return join(dir, p); };
 const sha = (text) => createHash("sha256").update(text).digest("hex");
 const def = (provider, tests) => `---\nprovider: ${provider}\ntests:\n${tests}---\nWhy: the provider owns this. An empty list is no compliance.\n`;
-const CRYPTO = `  - id: crypto\n    detector: call-with-literal\n    callee: [createHash, digest]\n    literal: [sha256, sha-256]\n    tests: demo/I1\n    ships: true\n    looks-for: the platform asked for SHA-256\n`;
+const CRYPTO = `  - id: crypto\n    detector: call-with-literal\n    callee: [createHash, digest]\n    literal: [sha256, sha-256]\n    tests: demo/I1\n    looks-for: the platform asked for SHA-256\n`;
 const run = (...args) => {
   const r = spawnSync(process.execPath, [ENGINE, ...args], { encoding: "utf8" });
   const last = r.stdout.trim().split("\n").pop() ?? "";
@@ -44,7 +44,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
       ["missing", base.replace("    literal: [sha256, sha-256]\n", "")],
       ["type", base.replace("callee: [createHash, digest]", "callee: createHash")],
       ["edge", base.replace("    tests: demo/I1\n", "")],
-      ["ships", base.replace("    ships: true\n", "")],
+      ["ships", base.replace("    looks-for", "    ships: true\n    looks-for")],
     ]) assert.equal(run("--tests", put(`t2/${name}.md`, text), "--target", dir).status, 2, name);
   });
   it("T3 [R3]: a missing target is unknown, exit 2, and the last line is kaal-boundary-scan", () => {
@@ -79,8 +79,8 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     const ref = "export const ref = 1;\n";
     put("t6/def/ref/lib.mjs", ref);
     const tests = put("t6/def/tests.md", def("demo",
-      `  - id: copy\n    detector: file-identity\n    equals: [ref/lib.mjs]\n    tests: demo/I1\n    ships: true\n    looks-for: a file whose bytes equal the provider's library\n` +
-      `  - id: implementation\n    detector: token-sequence\n    tokens: ["0x428a2f98", "0x71374491"]\n    window: 3\n    tests: demo/I1\n    ships: true\n    looks-for: the constants written out\n` + CRYPTO));
+      `  - id: copy\n    detector: file-identity\n    equals: [ref/lib.mjs]\n    tests: demo/I1\n    looks-for: a file whose bytes equal the provider's library\n` +
+      `  - id: implementation\n    detector: token-sequence\n    tokens: ["0x428a2f98", "0x71374491"]\n    window: 3\n    tests: demo/I1\n    looks-for: the constants written out\n` + CRYPTO));
     put("t6/t/copy.mjs", ref);
     put("t6/t/noncopy.mjs", ref + "// x\n");
     put("t6/t/impl-near.mjs", "a\nconst K = [0x428a2f98,\n  0x71374491];\n");
@@ -122,7 +122,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     const find = (file) => run("--tests", file, "--target", join(dir, "t8/t"), "--base", join(dir, "t8")).summary.findings.map((f) => f.id);
     const one = find(put("t8/one.md", def("demo", CRYPTO)));
     const changed = find(put("t8/two.md", def("demo", CRYPTO.replace("[sha256, sha-256]", "[md5]").replace("[createHash, digest]", "[createHash, digest, open]"))));
-    const other = find(put("t8/other.md", def("other", `  - id: pair\n    detector: token-sequence\n    tokens: [alpha, beta]\n    window: 0\n    tests: other/I1\n    ships: false\n    looks-for: two words together\n`)));
+    const other = find(put("t8/other.md", def("other", `  - id: pair\n    detector: token-sequence\n    tokens: [alpha, beta]\n    window: 0\n    tests: other/I1\n    looks-for: two words together\n`)));
     assert.deepEqual(one, ["demo/t/a.mjs:1"]);
     assert.notDeepEqual(changed, one);
     assert.deepEqual(other, ["other/t/a.mjs:3"]);
@@ -133,7 +133,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     const marker = join(dir, "t9/ran.txt");
     put("t9/hook.mjs", `import { writeFileSync } from "node:fs"; writeFileSync(${JSON.stringify(marker)}, "ran");\n`);
     for (const [name, tests] of [
-      ["detector", `  - id: x\n    detector: semantic-clone\n    tests: demo/I1\n    ships: true\n    looks-for: anything\n`],
+      ["detector", `  - id: x\n    detector: semantic-clone\n    tests: demo/I1\n    looks-for: anything\n`],
       ["script", CRYPTO + `    script: ../hook.mjs\n`],
       ["regex", CRYPTO + `    pattern: 'createHash'\n`],
     ]) {
@@ -142,13 +142,13 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     }
     assert.throws(() => readFileSync(marker), "nothing from a definition is executed");
   });
-  it("T10 [R1, R2]: the provisional adapter gives one descriptor per test, suite boundary, with the definition's tests edge and ships flag", async () => {
-    const tests = put("t10/tests.md", def("demo", CRYPTO + CRYPTO.replace("id: crypto", "id: crypto2").replace("tests: demo/I1", "tests: demo/I2").replace("ships: true", "ships: false")));
+  it("T10 [R1, R2]: the provisional adapter gives one descriptor per test, suite boundary, with the definition's tests edge and no ships flag", async () => {
+    const tests = put("t10/tests.md", def("demo", CRYPTO + CRYPTO.replace("id: crypto", "id: crypto2").replace("tests: demo/I1", "tests: demo/I2")));
     const { boundaryCases } = await import(pathToFileURL(CASES).href);
     const cases = boundaryCases([tests]);
-    assert.deepEqual(cases.map((c) => [c.id, c.suite, c.tests, c.ships]), [
-      ["demo/crypto", "boundary", "demo/I1", true],
-      ["demo/crypto2", "boundary", "demo/I2", false],
+    assert.deepEqual(cases.map((c) => [c.id, c.suite, c.tests]), [
+      ["demo/crypto", "boundary", "demo/I1"],
+      ["demo/crypto2", "boundary", "demo/I2"],
     ]);
     assert.ok(cases.every((c) => typeof c.run === "function"));
   });
@@ -213,8 +213,8 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
     assert.ok(first > 1, "the library writes the round constants out");
     put("t15/def/ref/sha256.mjs", lib);
     const tests = put("t15/def/boundary-check.md", def("kaal-foundation",
-      `  - id: copy\n    detector: file-identity\n    equals: [ref/sha256.mjs]\n    tests: foundation/I1\n    ships: true\n    looks-for: a file whose bytes equal Foundation's library\n` +
-      `  - id: implementation\n    detector: token-sequence\n    tokens: ["0x428a2f98", "0x71374491"]\n    window: 3\n    tests: foundation/I1\n    ships: true\n    looks-for: the round constants written out\n` +
+      `  - id: copy\n    detector: file-identity\n    equals: [ref/sha256.mjs]\n    tests: foundation/I1\n    looks-for: a file whose bytes equal Foundation's library\n` +
+      `  - id: implementation\n    detector: token-sequence\n    tokens: ["0x428a2f98", "0x71374491"]\n    window: 3\n    tests: foundation/I1\n    looks-for: the round constants written out\n` +
       CRYPTO.replace("demo/I1", "foundation/I1")));
     put("t15/t/copy.mjs", lib);
     put("t15/t/noncopy.mjs", Buffer.concat([lib, Buffer.from("\n// x\n")]));
@@ -251,7 +251,7 @@ describe("one Boundary Engine, capability-owned Boundary Tests", () => {
   it("T17 [R1, R2]: one test's unreadable reference makes only its own Case unknown and does not mask another Case's evidence", async () => {
     put("t17/def/ref/here.mjs", "export const ref = 1;\n");
     const tests = put("t17/def/tests.md", def("demo",
-      `  - id: lost\n    detector: file-identity\n    equals: [ref/missing.mjs]\n    tests: demo/I1\n    ships: true\n    looks-for: a copy\n` + CRYPTO));
+      `  - id: lost\n    detector: file-identity\n    equals: [ref/missing.mjs]\n    tests: demo/I1\n    looks-for: a copy\n` + CRYPTO));
     put("t17/t/a.mjs", "createHash(\"sha256\")\n");
     const ctx = { targets: [join(dir, "t17/t")], base: join(dir, "t17"), decisions: [] };
     const [lost, crypto] = (await import(pathToFileURL(CASES).href)).boundaryCases([tests]);
