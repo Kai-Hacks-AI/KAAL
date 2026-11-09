@@ -34,6 +34,16 @@ Packages no longer carry copies of Engineering's release judge (`readiness`, `ve
 
 Everything marked "to verify" is verified first, as the first RED of the Change, by reading what each lane runs with the parsers already in Engineering (YAML for the workflow, the lane plan `lanes/plan.json`), never by reading names. A lane whose Cases another lane already runs is retired; its host dimension survives only if a requirement names it.
 
+## Baseline from the CI ownership assessment (9 Nov)
+
+The assessment of every workflow and job is the baseline against new duplication. It is not a repository-wide redesign; the release-management sequence stays as it is. Its seven findings fall in three categories:
+
+- **Eliminate:** D2 (the "travels alone" rule exists several times; it belongs in Change as one parameterized capability, executed by Guard, with KAAL supplying its path sets), D3 (the mixed Branching check), D7 (hand-written protective judgments outside the runner). Each is handled by its owning Change, not here.
+- **Already covered:** D5 (repeated workflow wiring) and D6 (the temporary approval machinery) by the release-management controls and their retirement sequence.
+- **Evidence first:** D1 (source tests against installed-package verification) and D4 (a possible duplicate run of Guard's own Cases). Both are lanes of this Change: the "to verify" rows below are the RED, and nothing is retired before the evidence shows equivalent coverage.
+
+**Executor is not owner.** Guard owns the protective execution and the verdict mechanism. Hosting owns its tests, CodeQL its scanner, and the Delivery architecture decides which results are required for progression. A lane is claimed by the control that needs its result, never by the tool that runs it.
+
 ## Shape of the controls
 
 - test Integration (F16) and test Candidate (F12) are each one control, realized in `lanes/` with its jobs named by the control (`test Integration`, `test Candidate`), one job per kept lane and host. The two gates `gate (integration)` and `gate (promotion)` need exactly these jobs (F18 reading `far.json`, interim and marked temporary: `interim-states.md`).
