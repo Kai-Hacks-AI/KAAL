@@ -5,7 +5,7 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | File | Holds |
 | --- | --- |
 | `current-state.md` | the present state (A), each entry against the target it differs from |
-| `gaps.md` | the differences between A and B (G1 to G11), each with its target and the Case that closes it |
+| `gaps.md` | the differences between A and B (G1 to G12), each with its target and its closing condition: a Case, or, for an open decision, the Owner's decision (and the Case it may lead to) |
 | `transformation.md` | the route: the per-control Changes, the controls, the landed Changes, the path to `main`, the conditions, the retirement sequence, the build order |
 | `interim-states.md` | mechanisms that stand in for a target element until it exists, each with its end |
 | `change-requirements.md` | temporary requirements of the migration (F20), each with its end |
@@ -14,5 +14,6 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `documentation-architecture-plan.md` | the PLAN of the documentation Change that created this structure |
 | `shim-removal-plan.md` | the PLAN that removes the release shims one by one, as their last caller is rewired |
 | `testing-controls-plan.md` | the PLAN for test Integration and test Candidate, with each present lane argued from intent |
+| `far-authorization-plan.md` | the PLAN for the authorization and lifecycle of Accepts and PLAN/DO integrity, before the FAR gates activate |
 
 An entry of `current-state.md`, `gaps.md`, `transformation.md` and `interim-states.md` is a list item with the members **Target** (the ids it differs from or serves), **Current** or **Difference**, and, where it ends, **Ends when** (a condition a Case judges). The migration is a Delivery architecture element with a beginning and an end; its last step is **terminate** (step 8 of the path in `transformation.md`).
