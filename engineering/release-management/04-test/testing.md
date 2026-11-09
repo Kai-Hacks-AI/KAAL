@@ -1,6 +1,6 @@
 # Cases (planned)
 
-All RED until their DO. Each Case is placed next to its component in its `05-src/` component (`pipeline/`, `npmjs/`, `main/` or `collectors/`) when its Change lands; until then they are listed here. Existing Cases: `engineering/release/release.test.mjs` (engineering/T62-T70).
+All RED until their DO. Each Case is placed next to its component in its component under `05-src/` when its Change lands; until then they are listed here. Existing Cases: `engineering/release/release.test.mjs` (engineering/T62-T70).
 
 | Case | Targets | Checks |
 | --- | --- | --- |

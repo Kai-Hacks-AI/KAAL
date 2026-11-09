@@ -20,22 +20,42 @@
                            +------------------+
 ```
 
-Stations exist only in this drawing: they are not folders, and a control's station is traced by graph edge, not by path. Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move, and the sender owns its **out** check; the same station's out and the next station's in may be different controls. The drawing reads left to right (work moves toward npm) and the receiver pulls. This PLAN designs only the border `11-main` to `10-npmjs`; `the root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies) serve both 11 and 12. Control names are the Owner's; existing checks and files keep their names.
+Stations exist only in this drawing: they are not folders, and a control's station (its control target) is traced by graph edge, not by path. Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move, and the sender owns its **out** check; the same station's out and the next station's in may be different controls. The drawing reads left to right (work moves toward npm) and the receiver pulls. This PLAN designs only the border `11-main` to `10-npmjs`; `the root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies) serve both 11 and 12. Control names are the Owner's; existing checks and files keep their names.
 
 ## Components and requirements allocation
 
 Architecture names the components and allocates each requirement to exactly one of them (requirements allocation). A requirement and its component are linked by a graph edge; the tables are the readable form. Controls are requirements and components realize them, so a component holds several controls, and some controls are realized by a native setting or a tool we use and have no source.
 
-**Four components (Owner, 9 Nov), all peers in `05-src/`:** `pipeline/` (the end-to-end piece that spans the stations and holds the five shared controls) and the stations `npmjs/`, `main/` and `collectors/`. Every folder is a node in the architecture and there are no loose files. Rule: a station may use `pipeline/` but never another station. The name follows Domain-Driven Design, with release-management as the bounded context. A control's Cases sit next to its code in its component. The drawing above shows the stations. `release-management` itself is traced as an element of the Delivery architecture.
+**Controls are matters of concern, components are architecture elements (Owner, 9 Nov, revises the four-component layout).** A control is traced through the root documents: an Intent entry (a sentence on why it exists, under I1 to I4), its requirement (F#), its allocation to a component, its **control target**, its Cases (T#) and, where one exists, its Defect. A Case `tests` a Node and no Node points at a Case. Intent, Requirements, Architecture and Test are managed at this root only. A component is an element of the architecture, chosen for what the code is and what moves together, not for where the control is applied. It does not carry its own Intent, Requirements or Cases while it stays here; **only when a component moves (for example into its own capability) do its Intent, Requirements, Architecture and Cases follow it.** The control target (`npmjs`, `main`, `collectors`, or several) is a separate attribute: a traced edge `applied at` from the control to a Target node, defined once in the drawing above. Components sit in `05-src/`, all peers, named by what the code is; there are no station folders (`pipeline/`, `npmjs/`, `main/`, `collectors/`), and no loose files. One component may realize several controls, and a control may use a setting or tool and have no component. A component uses another only through a declared `uses` edge. Source-code tests (unit and parity Cases) always sit next to the code in its component, whichever way the documents are arranged (test layout rule); the root only traces them to their requirement. Following Domain-Driven Design, release-management stays the bounded context.
 
-| Component | Allocated requirements | Realized by (today's code) |
+| Component (`05-src/`) | Realizes (control, requirement) | Today's code |
 | --- | --- | --- |
-| `05-src/pipeline/` | F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies | `lineage.ts` (establishment, collectors, working-branches, freshness, synchronization, claim) with `holds.json` and `branching-audit.sh`/`branching.sh`; `engineering/change-isolation/` and `change-isolation.sh`; scans are tools, below |
-| `05-src/npmjs/` | F1 approve Publishing, F2 verify Package Promotion | A2, A3: `release.yml` Publish and Accept, `publishable()`, `provenance()` (G5 to G11) |
-| `05-src/main/` | F3 version Package, F10 bind Merge, F11 approve Promotion, F12 test Candidate (FAR: F18), F13 serialize Promotion, F14 accept Capability | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4); `lineage.ts` source and auto-merge, Promotion Source (`promotion-source.sh` on `main` today; the approved `.mjs` port, #1317, sits in `kaal/engineering-gate-ports` pending promotion, and this PLAN moves whichever implementation `main` holds when its Change runs and never reintroduces the `.sh`); `bind-group.sh`; `engineering/lanes/` for test Candidate |
-| `05-src/collectors/` | F15 approve Change, F16 test Integration (FAR: F18) | `engineering/lanes/` for test Integration; approve Change has no source |
+| `lineage/` | audit Lineage F5, verify Ancestry F7, bind Merge F10 (merge-method verdict), isolate Change F6 (synchronization and claim verdicts) | `lineage.ts`, `holds.json`, `branching.sh`, `branching-audit.sh` |
+| `change-isolation/` | isolate Change F6 (the isolation judge) | `engineering/change-isolation/`, `change-isolation.sh` |
+| `release-engine/` | version Package F3, approve Publishing F1 (binding in `publishable()`), verify Package Promotion F2 | `engineering/release/release.mjs` (`readiness()`, `publishable()`, `provenance()`), `release.yml` |
+| `promotion-source/` | accept Capability F14 | `promotion-source.mjs` (#1317, pending promotion; the `.sh` is not reintroduced) |
+| `merge-group/` | bind Merge F10 (queue binding) | `bind-group.sh` |
+| `lanes/` | test Candidate F12, test Integration F16 (FAR: F18) | `engineering/lanes/` |
 
-Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
+| Control | Requirement | Control target (applied at) | Component or other realization |
+| --- | --- | --- | --- |
+| audit Lineage | F5 | scheduled, all | `lineage/` |
+| isolate Change | F6 | main, collectors | `change-isolation/`, `lineage/` |
+| verify Ancestry | F7 | main, collectors | `lineage/` |
+| scan Vulnerabilities | F8 | main, collectors | tool: CodeQL |
+| scan Dependencies | F9 | main, collectors | tool: dependency-review, Dependabot |
+| bind Merge | F10 | main | `lineage/`, `merge-group/`, merge queue |
+| approve Promotion | F11 | main | setting: `main` ruleset |
+| test Candidate | F12 | main | `lanes/` |
+| serialize Promotion | F13 | main | setting: merge queue |
+| accept Capability | F14 | main | `promotion-source/` |
+| approve Change | F15 | collectors | setting: `kaal/*` ruleset |
+| test Integration | F16 | collectors | `lanes/` |
+| version Package | F3 (A1) | main | `release-engine/` |
+| approve Publishing | F1 (A2) | npmjs | setting: `npm` environment, `release-engine/` |
+| verify Package Promotion | F2 (A3) | npmjs | `release-engine/` |
+
+Each of F1 to F3 and F5 to F16 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). A1 = version Package, A2 = approve Publishing, A3 = verify Package Promotion keep their ids.
 
 **Realized by a native setting or a tool, not by source** (recorded here, no folder; the component only holds the requirement and its Case where one can check it):
 
@@ -47,7 +67,7 @@ Each of F1 to F3 and F5 to F16 is allocated to exactly one component above. F4 (
 - scan Vulnerabilities (F8): the CodeQL action (`codeql.yml`), used, not built.
 - scan Dependencies (F9): `dependency-review-action` and Dependabot (`dependency-review.yml`), used, not built.
 
-Shared code lives in `pipeline/`: `main/` uses `lineage.ts` verdicts that live there, so a station never imports a sibling. The lane code (`engineering/lanes/`) serves test Candidate (`main/`) and test Integration (`kaal/`); where it lives is decided in those Changes. The `claim` verdict (one Change Record per squash Change) is allocated to isolate Change (F6), subject to the Owner.
+The `claim` verdict (one Change Record per squash Change) is allocated to isolate Change (F6), subject to the Owner.
 
 Nothing above changes `.github` in this PLAN; `.github` changes travel alone as their own Change.
 
@@ -85,7 +105,7 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 
 ## Naming map (control names across surfaces)
 
-One row per control: the name in the records (this folder), the component path under `05-src/` (`pipeline/`, `npmjs/`, `main/`, `collectors/`), and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/npmjs/` | `release/npmjs / approve Publishing`.
+One row per control: the name in the records (this folder), its component under `05-src/` and its control target, and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/release-engine/` | `release/npmjs / approve Publishing`.
 
 ## Target: into `main` now, without `pull_request_target` (Owner, 9 Nov 2026)
 
@@ -102,8 +122,8 @@ Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and doe
 
 **Order into `main` (each step additive, promotions in flight not blocked, each exact-head reviewed):**
 1. This PLAN lands.
-2. `pipeline/` controls, with the `release/*` workflows on `merge_group` and `pull_request` alongside the old checks (add-new).
-3. `npmjs/`, `main/`, `collectors/` controls in the order of `00-changes`.
+2. The five root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies), with the `release/*` workflows on `merge_group` and `pull_request` alongside the old checks (add-new).
+3. The `npmjs`, `main` and `collectors` controls in the order of `00-changes`.
 4. The Owner adds the new contexts, then removes the old contexts (`Change Isolation (review)` first).
 5. Delete the four `pull_request_target` workflows, then remove the temporary Actions policy before 2 Dec 2026.
 
@@ -126,7 +146,7 @@ Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and doe
 
 Rationale (I4): Delivery architecture changes independently of Solution architecture. The release controls, the workflow wiring and the test machinery are Delivery elements: they change in their own Changes and judge a candidate as `main`'s copy. Product code and the Cases that test it are Solution content and travel in candidates.
 
-Every control of `pipeline/`, `npmjs/` and `main/`, and `collectors/` for its release controls (approve Change), runs the checker **from `main`** on both `pull_request` and `merge_group`: the job checks out `ref: main` (the default branch's tip, read at run start, never the event's base) and runs the logic from `engineering/release-management/05-src/`. The candidate is read as Git data only and never checked out, built or run, as the existing jobs do. `.github` holds only the wiring: which control runs on which event, the checkout of `main` and the call to the checker. The logic lives in `05-src`. The pin is protected because `.github travels alone` (F6, T7): the wiring can change only in a lone `.github` change with human approval, and the checker can change only through a promotion, so a candidate is always judged by the checker `main` already holds.
+Every release control (all but the testing controls, pinned through F18), runs the checker **from `main`** on both `pull_request` and `merge_group`: the job checks out `ref: main` (the default branch's tip, read at run start, never the event's base) and runs the logic from `engineering/release-management/05-src/`. The candidate is read as Git data only and never checked out, built or run, as the existing jobs do. `.github` holds only the wiring: which control runs on which event, the checkout of `main` and the call to the checker. The logic lives in `05-src`. The pin is protected because `.github travels alone` (F6, T7): the wiring can change only in a lone `.github` change with human approval, and the checker can change only through a promotion, so a candidate is always judged by the checker `main` already holds.
 
 Consequence: a change to a control's logic takes effect after it is promoted, not in its own pull request, which is the intended behavior (the same as today's Change Isolation and Branching).
 
