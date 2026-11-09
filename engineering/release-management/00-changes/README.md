@@ -13,5 +13,6 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `id-capture.json`, `id-moves.json` | the ids and decisions captured before the documentation Change, and where each one is now |
 | `documentation-architecture-plan.md` | the PLAN of the documentation Change that created this structure |
 | `shim-removal-plan.md` | the PLAN that removes the release shims one by one, as their last caller is rewired |
+| `ci-cleanup-plan.md` | the PLAN for cleaning the CI setup stepwise: ordered steps, one Change each, nothing removed before its replacement is live |
 
 An entry of `current-state.md`, `gaps.md`, `transformation.md` and `interim-states.md` is a list item with the members **Target** (the ids it differs from or serves), **Current** or **Difference**, and, where it ends, **Ends when** (a condition a Case judges). The migration is a Delivery architecture element with a beginning and an end; its last step is **terminate** (step 8 of the path in `transformation.md`).
