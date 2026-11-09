@@ -11,6 +11,9 @@ KAAL's mnemonics (BASS, KNIFE, ROWING, LOVE, CASE, PLAN, HITMAN and the rest) sh
 - Duplicates and conflicting expansions are visible and decided by their owner.
 - Mnemonics stay guides, never capability names.
 
+## Direction (Kai, 9 Nov, not a final decision)
+Mnemonic learning is driven by kaal-product and kaal-roadmap, so the product pulls: demand for retrievable mnemonics comes from Product and Roadmap, and Learning, Graph and the owning capabilities deliver to it. This is lean pull, which Kai traces to lean management. Product and Roadmap are the proposed drivers; Learning remains the closest owner of the practice (BRAIN, CICERO).
+
 ## Evidence
 `mnemonic-inventory.md` (beside this file): about 34 mnemonics, mostly KAAL Definition Nodes, some prose only, none linked from capability YAML; conflicts (`WE`, `FAR`, `CAN`, `PLAN`); owner gaps (HITMAN, CLAUSE, Review-hosted loops).
 
