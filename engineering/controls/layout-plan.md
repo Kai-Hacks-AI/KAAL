@@ -36,9 +36,26 @@ Measured on `main` from the controls' Architecture lines and the Guard check dec
 | Review before merge | none: GitHub branch protection, outside the repository | none | none (validated by the reviewer) |
 | One promotion at a time | none: directive today | none | none yet |
 
-So only three of the seven are implemented by GitHub scripts and workflows (Lineage, Promotion source, Lineage audit), plus Change Isolation, which has its own checker folder, and Required tests, which are the lanes. Two have no code at all. This is why the chain folders cannot live under `github/`.
+This is why the chain folders cannot live under `github/`: not all controls are GitHub-bound, and two have no code.
 
-The merge queue's gates (`merge-group*.yml`, `bind-group.sh`) are not covered by any of the seven controls today, which is the gap the full-chain item for those scripts has to close.
+## An eighth control: the merge queue (proposed)
+
+The merge queue is a control that has not been named. It enforces rules today, in `merge-group.yml`, `merge-group-review.yml`, `merge-group-admission.yml` and `.github/scripts/bind-group.sh`, with no control, Intent or Requirements above them. Proposed name: **Merge queue** (`merge-queue`).
+
+**Intent (I1).** What lands on a protected branch is exactly what was reviewed and judged: the queued pull request at its current head, on the base it lands on, judged again at merge time and never on an earlier result.
+
+**Requirements the code already enforces** (from the files named; each to be confirmed by the CPO against the code):
+- **F1.** The merge group is exactly the queued pull request at its current head on the group's base, in one of the two shapes GitHub's queue produces: one parent equal to the base with the tree that merging the head into the base gives (squash), or the base as first parent with the head an ancestor of the group (merge). Anything else, or anything that cannot be established, is "cannot judge" (exit 2). Source: `bind-group.sh`.
+- **F2.** Change Isolation, Branching and Promotion Source each judge the merge group itself, with the default branch's checker, never pass the pull request's earlier result through, and run only for a `merge_group` event. Source: `merge-group.yml`.
+- **F3.** A ledger entry a promotion carries is attested at merge time: the job `Change Isolation (review)` is the last required check to finish, reads the approvals, judges, reads them once more, and fails on a different answer. Source: `merge-group-review.yml`.
+- **F4.** A pull request can enter the queue: the admission job gives its head the context `Change Isolation (review)`. It reads and judges nothing and authorizes nothing, so the pull request path and the merge group path never share a token or event. Source: `merge-group-admission.yml`.
+- **N1.** Every one of these fails closed: a fact that cannot be read, a queued pull request that cannot be found or a group that does not contain it is a failure.
+
+**Architecture and Cases (as they stand).** Checker and scripts: `.github/scripts/bind-group.sh` (to port), the three `merge-group*.yml` workflows, and the default branch's checkers. Cases: the RED Cases in `engineering/github/` (`bind-group.red.mjs`, `queue-workflows.red.mjs`, `handler-deferred.red.mjs`, `activation.red.mjs`), which are hand-run today. Whether they are all GREEN and in `test:engineering` is to be checked. **Unresolved:** that the queue is required and was used on a given Change. A ruleset declares it and is not evidence of it. Mechanism level: Program.
+
+Note: `merge-group-admission.yml` is a `pull_request_target` workflow, so it is one of the four gates GitHub's default `pull_request_target` block (from 2 December 2026) would stop.
+
+So three of the original seven controls are implemented by GitHub scripts and workflows, plus Change Isolation (own checker folder) and Required tests (the lanes), and the new Merge queue. Two controls have no code at all.
 
 ## Where the port Cases live
 
