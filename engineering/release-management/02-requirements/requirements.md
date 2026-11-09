@@ -4,17 +4,19 @@ Controls of a station are its requirements, in three kinds: **in** (the receiver
 
 ## Naming is aligned (spans everything) [release-management/F4]
 
+Ids: F1 approve Publishing, F2 verify Package Promotion, F3 version Package, F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies, F10 bind Merge, F11 approve Promotion, F12 test Candidate, F13 serialize Promotion, F14 accept Capability, F15 approve Change, F16 test Integration. Each is allocated to its component in `03-architecture`; F4 is cross-cutting and allocated to the naming map, not to a component.
+
 Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or control appears (Intent, Requirements, Architecture, `05-src` folders, files and scripts, GitHub workflows, jobs and gates), its name is self-explanatory, easy to understand and semantically consistent with the control's name, so a reader and a program can tell which control it is. Each surface may spell it its own way (a folder `approve-publishing`, a job `approve Publishing`); a **mapping** in the Architecture lists, per control, its spelling on each surface, and later its graph id (deferred). A surface name that maps to no control, or a control with no name on a surface where it runs, is a finding (an observation, not a gate). Read by parsers (YAML for workflows, Markdown AST for the records, directory listing for `05-src`), never regex. Use vs build: the YAML parser already in Engineering is used; no new parser.
 
 ## Root (spans stations; the Owner's list, 9 Nov)
 
 Controls that act on more than one station live at the root. All are names only here, except where noted.
 
-- **audit Lineage** (today's `branching-audit`: `lineage.ts` `establishment`, `collector`, `workingBranch`, `holds.json`, `branching-audit.sh`, scheduled check `Branching audit`). Holds the stock of stations 11 and 12.
-- **isolate Change** (today's `Change Isolation`: what may travel together, `engineering/change-isolation/`) and the **synchronization shape** that `Branching` judged on `kaal/*` (a merge of `main`, first-parent shape, each step forward, resolutions adopted or its own Change).
-- **verify Ancestry** (today's freshness: a promotion's head contains `main`'s tip, so merging gives `main` exactly the state validated). One control with two targets, the `kaal/*` collector side and the promotion into `main`; it spans two stations, so it lives at the root.
-- **scan Vulnerabilities** (today's CodeQL, `codeql.yml`: `CodeQL (actions)`, `CodeQL (javascript-typescript)`).
-- **scan Dependencies** (today's `dependency-review.yml`, `Dependency Review`).
+- **audit Lineage [release-management/F5]** (today's `branching-audit`: `lineage.ts` `establishment`, `collector`, `workingBranch`, `holds.json`, `branching-audit.sh`, scheduled check `Branching audit`). Holds the stock of stations 11 and 12.
+- **isolate Change [release-management/F6]** (today's `Change Isolation`: what may travel together, `engineering/change-isolation/`) and the **synchronization shape** that `Branching` judged on `kaal/*` (a merge of `main`, first-parent shape, each step forward, resolutions adopted or its own Change).
+- **verify Ancestry [release-management/F7]** (today's freshness: a promotion's head contains `main`'s tip, so merging gives `main` exactly the state validated). One control with two targets, the `kaal/*` collector side and the promotion into `main`; it spans two stations, so it lives at the root.
+- **scan Vulnerabilities [release-management/F8]** (today's CodeQL, `codeql.yml`: `CodeQL (actions)`, `CodeQL (javascript-typescript)`).
+- **scan Dependencies [release-management/F9]** (today's `dependency-review.yml`, `Dependency Review`).
 
 `Branching` itself is retired by splitting: freshness to verify Ancestry, synchronization shape to isolate Change, merge method to bind Merge (below), add-new before remove-old.
 
@@ -33,10 +35,10 @@ Controls that act on more than one station live at the root. All are names only 
   - Exists: `readiness()` in `engineering/release/release.mjs` rejects a non-semver version and a version already on the registry ("raise the version"); dependencies must be exact and already published.
   - Gaps: G1 no check that the version is greater than the latest published. G2 no tag marks the released commit. G3 no check that the version was set by a recorded Change. G4 no changelog or bump tooling; versions are hand-edited.
 - **stock:** audit Lineage (from the root).
-- **in, backwards from the stock (names only):** bind Merge (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion (native approval settings), test Candidate (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion (one promotion at a time), accept Capability (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
+- **in, backwards from the stock (names only):** bind Merge [F10] (merge queue, `bind-group`, and the merge method that `Branching` judged: squash for a Change or promotion, merge commit for a synchronization), approve Promotion [F11] (native approval settings), test Candidate [F12] (the FAR lanes on `kaal/*` to `main`, separate jobs), serialize Promotion [F13] (one promotion at a time), accept Capability [F14] (promotion source, today's `Promotion Source`). Gate: `gate (main)`.
 
 ## Station 12-kaal (names only)
 
 - **stock:** audit Lineage (from the root).
-- **in:** approve Change (native approval settings of `kaal/*`), test Integration (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (kaal)`.
+- **in:** approve Change [F15] (native approval settings of `kaal/*`), test Integration [F16] (the lanes on `kaal/*` PRs, separate jobs). Gate: `gate (kaal)`.
 - **out:** none of its own; verify Ancestry and isolate Change act here from the root.

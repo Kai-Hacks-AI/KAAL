@@ -22,11 +22,29 @@
 
 Stations exist only in this drawing: they are not folders, and a control's station is traced by graph edge, not by path. Station `13-change-branch` is dropped for now (Owner, 9 Nov). Pull-oriented: each station owns its **in** move, and the sender owns its **out** check; the same station's out and the next station's in may be different controls. The drawing reads left to right (work moves toward npm) and the receiver pulls. This PLAN designs only the border `11-main` to `10-npmjs`; `the root controls (audit Lineage, isolate Change, verify Ancestry, scan Vulnerabilities, scan Dependencies) serve both 11 and 12. Control names are the Owner's; existing checks and files keep their names.
 
-## Elements
+## Components and requirements allocation
 
-- **release-management/A1 [F3]. Version gate (11-main out).** Today `readiness()` (`engineering/release/release.mjs`) inside Pack. Planned additions, each a separate DO with its own RED Case: greater-than-latest (G1), release tag (G2), version-set-by-Change (G3).
-- **release-management/A2 [F1]. Approval gate (10-npmjs in).** `release.yml` Publish job, `environment: npm`; `publishable()`. Planned: the release record names the approving run (G5).
-- **release-management/A3 [F2]. Promotion check (10-npmjs stock).** `provenance()` and Accept. Planned: the record carries the promotion it came from (G9).
+Architecture names the components and allocates each requirement to exactly one of them (requirements allocation); a requirement and its component are linked by a graph edge, and the tables here are the readable form. A component is a folder `05-src/<name>/` with its Cases beside it. Stations are only the drawing above; the station column is a trace, not a path.
+
+| Component (`05-src/…`) | Station (drawing) | Allocated requirement | Elements / today |
+| --- | --- | --- | --- |
+| `audit-lineage` | root | F5 | `lineage.ts` establishment, collector, workingBranch; `holds.json`; `branching-audit.sh` |
+| `isolate-change` | root | F6 | `engineering/change-isolation/`; `lineage.ts` synchronization |
+| `verify-ancestry` | root | F7 | `lineage.ts` freshness |
+| `scan-vulnerabilities` | root | F8 | `codeql.yml` |
+| `scan-dependencies` | root | F9 | `dependency-review.yml` |
+| `approve-publishing` | 10 npmjs | F1 | A2: `release.yml` Publish, `environment: npm`, `publishable()` (G5 to G8) |
+| `verify-package-promotion` | 10 npmjs | F2 | A3: `provenance()` and Accept (G9 to G11) |
+| `version-package` | 11 main | F3 | A1: `readiness()` in `engineering/release/release.mjs` (G1 to G4) |
+| `bind-merge` | 11 main | F10 | `bind-group.sh`, merge queue; `lineage.ts` auto-merge |
+| `approve-promotion` | 11 main | F11 | native settings of the `main` ruleset |
+| `test-candidate` | 11 main | F12 | the FAR lanes on `kaal/*` to `main` (`engineering/lanes/`) |
+| `serialize-promotion` | 11 main | F13 | merge queue, one promotion at a time |
+| `accept-capability` | 11 main | F14 | `promotion-source.sh`; `lineage.ts` source |
+| `approve-change` | 12 kaal | F15 | native settings of the `kaal/*` ruleset |
+| `test-integration` | 12 kaal | F16 | the lanes on `kaal/*` PRs (`engineering/lanes/`) |
+
+Allocation rules: every F1, F2, F3 and F5 to F16 is allocated to exactly one component above, and every component carries exactly one requirement; its gaps (G1 to G11) travel with it. F4 (naming aligned) is cross-cutting and is allocated to the naming map below, not to a component. A requirement that cannot be placed on one component is a signal that the requirement or the component is wrong, and is reported as a finding. Existing A1 to A3 keep their ids (A1 = `version-package`, A2 = `approve-publishing`, A3 = `verify-package-promotion`). The Owner will confirm that the two lane components (`test-candidate`, `test-integration`) share `engineering/lanes/` code without sharing a requirement.
 
 Nothing above changes `.github` in this PLAN; `.github` changes travel alone as their own Change.
 
