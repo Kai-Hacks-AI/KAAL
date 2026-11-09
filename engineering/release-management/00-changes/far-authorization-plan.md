@@ -10,6 +10,8 @@ F18 makes FAR (Regression, Features, Accepts) the content of test Candidate and 
 2. **A DO cannot rewrite its acceptance criteria.** "Planned tests are immutable to DO and CHECK" is stated in Change's own testing document, with no control or Case behind it.
 3. **An Accept has no lifecycle.** It has a reason and a decision, but no end condition, no outstanding count and no ratchet.
 
+4. **The contract as written cannot be satisfied by a PLAN-authorized Accept.** Change's change/F7, F10 and T15 bind an Accept to the source revision and the target's baseline revision. A PLAN lands before the DO exists, so it cannot name the DO's revision, and every push or advance of the target voids the Accept. That is why `far.json` ends up travelling with the candidate. Nothing in Change's Intent or Requirements argues for it: it follows from change/A6, which keeps the record in the Change's own files. The fix is Change's, as Solution: an Accept is keyed to the Change and to the identities of the Cases it excepts, not to a revision.
+
 It is a design gap, not only a documentation gap. The invariant to establish:
 
 > **A DO may consume only Accepts authorized by an accepted PLAN.**
@@ -26,7 +28,9 @@ KAAL-specific enforcement stays in Delivery (this folder). Change's Requirements
 
 ## The trusted baseline per integration boundary
 
-The invariant does not say "read `main`". An accepted PLAN lands on the collector before the promotion, so `main` has not seen it. The authorization of an Accept is the landing of the PLAN Change that introduced it, approved with the designated authority's decision. The gate therefore asks one question of each Accept in `far.json`: **which PLAN Change introduced it, and has that Change landed in the target's history with the authority's decision?**
+The invariant does not say "read `main`". An accepted PLAN lands on the collector before the promotion, so `main` has not seen it. **The trusted baseline is the commit where the PLAN landed**, an ancestor of the candidate on the lineage and not necessarily the target's tip. The authorization of an Accept is that landing, approved with the designated authority's decision. The gate asks of each Accept: **which PLAN Change introduced it, and has that Change landed in the candidate's history with the authority's decision?** It compares the candidate's `far.json` and planned Cases with the PLAN's landing commit.
+
+**How an Accept is keyed (proposed to Change, as Solution; replaces the revision binding of change/F7, F10 and T15):** an Accept names the Change (the DO's identity) and the identities of the Cases it excepts, with each Case's content digest. A Regression Case that changed since is a finding. Its scope stays one Change into one boundary, closed by its end condition, so "no standing waiver" still holds.
 
 | Boundary | Gate | Baseline of authorized Accepts |
 | --- | --- | --- |
@@ -39,7 +43,7 @@ Open for the Owner (recorded in `gaps.md` as G13 when the Change lands): whether
 
 | Concern | Required outcome | Requirement (proposed; id assigned by its owner) | Authoritative capability | Case (proposed; numbered in the RED) | Delivery realization |
 | --- | --- | --- | --- | --- | --- |
-| **Authorization** | a DO uses only PLAN-authorized Accepts | an Accept is authorized by the landing of a PLAN Change decided by the designated authority; a DO relies only on such Accepts | Change (the rule); Release (the gate checks it) | a candidate with an Accept absent from the baseline fails; one traced to a landed PLAN passes; one traced to a PLAN not in the history fails | F18 reads Accepts from the baseline above, not from the candidate alone |
+| **Authorization** | a DO uses only PLAN-authorized Accepts | an Accept is authorized by the landing of a PLAN Change decided by the designated authority; a DO relies only on such Accepts | Change (the rule); Release (the gate checks it) | a candidate with an Accept absent from the PLAN's landing commit fails; one whose excepted Case changed since (digest) fails; one traced to a landed PLAN passes; one traced to a PLAN not in the history fails | F18 reads Accepts from the baseline above, not from the candidate alone |
 | **Integrity** | a DO cannot silently change PLAN-established Cases or Accepts | the Cases and Accepts a PLAN established are immutable to its DO; a correction is a Defect or Change that drives a new PLAN | Change (the rule) | a DO that edits, removes or skips a planned Case, or edits an Accept, fails; a new PLAN that does so passes | the gate compares the planned set at the PLAN's landing with the candidate |
 | **Lifecycle** | every Accept is traceable, visible and has a closure condition | an Accept names its reason, its authority and an end condition a Case can judge; the outstanding count and each end condition are reported; an expired Accept is a finding; the count may not grow without a PLAN decision (a ratchet against unauthorized growth; it need not fall in every DO) | Change (the record and the rule); Release (the report) | an Accept without an end condition is refused; an expired one fails; a count above the authorized baseline fails; a count at or below passes | the job summary lists each Accept with its end condition and the count against the baseline |
 | **Progression** | gates fail closed when authorization cannot be established | no Accept applies, and the gate has no passing outcome, when `far.json` cannot be read, an entry cannot be traced, or the authority cannot be checked | Release | a fixture for each of the three: the gate fails and says which and what to do | the fail-closed rule of the testing controls (`testing-controls-plan.md`): no outcome is not a pass |
@@ -54,7 +58,7 @@ Open for the Owner (recorded in `gaps.md` as G13 when the Change lands): whether
 ## Sequence
 
 1. This PLAN, CPO review, merge into the collector. A landed PLAN is a go for steps 2 to 4; none of them activates a gate.
-2. **Change thread:** the Change-side requirements and Cases (authorization, integrity, end condition, Skill guidance), in the Change capability's own Change. Release management proposes them and does not edit Change's documents.
+2. **Change thread:** the Change-side requirements and Cases (authorization; keying an Accept to the Change and Case identities instead of revisions, which means revising change/F7, F10 and T15; integrity; end condition; Skill guidance), in the Change capability's own Change. Release management proposes them and does not edit Change's documents.
 3. **Release management, RED then DO:** the F18 clauses (baseline per boundary, the report, fail closed) and their Cases, with the interim reading `far.json` carrying change/T9 to T16. Documents and `lanes/` only.
 4. **Documentation correction:** F18 references change/F8 to F11 instead of restating Features-never-excepted and the stale-entry rule.
 5. The FAR-based gates (`gate (integration)`, `gate (promotion)`) are activated only after steps 2 and 3 are done and the Owner has decided the open question above.
