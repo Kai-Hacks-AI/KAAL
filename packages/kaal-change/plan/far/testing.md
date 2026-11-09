@@ -13,8 +13,8 @@ The DO Change turns them GREEN, adds them to `kaal-change`'s `npm test`, and may
 | change/T13: compose reports accepted Cases still RED, and finds an excepted Features evaluation and mismatched Regression exceptions | change/I6, change/F11 | Intent |
 | change/T14: the same input gives the same result, the input is unchanged, and a record without an Accept yields no exceptions | change/N3, change/N4 | Architecture |
 | change/T15: *revised.* exceptions never transfer to another integration whose Change or boundary differs, and a different revision alone neither authorizes nor voids them; a Case whose digest differs gets no exception | change/I7, change/I9, change/F10 | Intent |
-| change/T16: *revised.* each Plan must be the one the record names, read at the PLAN's landing commit, and each Case by identity and digest | change/I5, change/F7, change/F11 | Requirements |
-| change/T17: without an authorization naming the exact PLAN, its landing commit and the designated authority, there are no exceptions and a finding; a cite names all three | change/I9, change/F12 | Intent |
+| change/T16: *revised.* each Plan must be the one the record names: Features read at the PLAN's landing commit, Regression at the protected baseline, and each Case by identity and digest; a Case added to the target after the PLAN landed gets no exception | change/I5, change/F7, change/F11 | Requirements |
+| change/T17: without an authorization naming the exact PLAN and the designated authority, or without a verified landing given as data, there are no exceptions and a finding; a cite names the PLAN, the landing and the authority | change/I9, change/F12 | Intent |
 | change/T18: an authority other than the one given as data, or evidence that is not the decision's landing, authorizes nothing, and the designation is never read from the record | change/I9, change/F12, change/N3 | Requirements |
 | change/T19: a DO that removes, skips, marks or edits a PLAN's Case is a finding naming the Case, and so is an altered Accept or an Accept the PLAN did not establish | change/I10, change/F13 | Intent |
 | change/T20: a PLAN Change decided by the designated authority may change Cases and Accepts, and is judged by authorization, not as a DO | change/I10, change/F13 | Requirements |
@@ -32,4 +32,6 @@ The following are validated by review:
 
 At `change/C2`, T9–T16 are RED and each is **blocked before behavioural assertion**, because `kaal-change` exports no `./far`. They run with `node --test packages/skills/kaal-change/test/plan/far.test.mjs`, outside `kaal-change`'s `npm test` until the DO Change.
 
-T15 and T16 are revised in place; their planned Cases in `far.test.mjs` are immutable and are not edited here. T17–T23 are new and become RED Cases in a separate Change before the DO Change begins, so the DO is judged by them (change/I10).
+T15 and T16 are revised in place, and the existing Cases that assert the superseded contract (T10 expects exceptions from a record without authorization; T15 voids exceptions on a revision change alone; T16 reads the Regression Plan at the wrong revision) can no longer be GREEN with the revised requirements. `far.test.mjs` is immutable to a DO and is not edited here.
+
+The pre-DO test Change is therefore a PLAN-type Change, decided by the designated authority (change/F13), and it both replaces T10, T15 and T16 under their identities with Cases that assert the revised contract, openly traced to this PLAN (no silent change), and adds T17–T23 as RED Cases. The DO is judged by that result and cannot edit it (change/I10).

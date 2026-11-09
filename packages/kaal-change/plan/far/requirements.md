@@ -17,8 +17,8 @@ Each Requirement names, in brackets, the Intents it serves.
     - `change` is the incoming Change's identity, `<namespace>/C<n>`.
     - `boundary` is `{ from, into }`, the one boundary the record serves, such as a Change's branch into a collector, or the collector into `main`. Engineering names it. Change only compares it.
   - **`features`** is `{ plan, cases }`: the Features Plan and the identity and content digest of each of its Cases, as the PLAN established them.
-  - **`regression`** is `{ plan, cases }`: the Regression Plan and the identity and content digest of each Case the Accept names.
-  - **`authorization`** is `{ plan, landed, by, evidence }`: the PLAN Change that established the record, the commit where it landed, the designated authority that decided it, and the evidence of that decision (change/F12).
+  - **`regression`** is `{ plan, cases }`: the Regression Plan and the identity and content digest of each Case the Accept names. The Accept authorizes those Cases only. The complete Regression Plan that the gate evaluates is still the target's, selected at the integration's protected baseline (change/I6), so a Case the target gained after the PLAN landed is evaluated with no exception.
+  - **`authorization`** is `{ plan, by, evidence }`: the PLAN Change that established the record, the designated authority that decided it, and the evidence of that decision (change/F12). It holds no commit: a commit cannot contain its own hash, so the landing commit is resolved by the gate and given as data (change/F12).
   - **`accept`** is optional, and holds `{ proposal, decision }`.
 
   A Plan reference is a Plan identity in its owner's namespace. A missing or malformed member is a finding. Source and target revisions are no longer members: they stay Engineering's evidence of where it read the Plans, and a revision alone neither authorizes nor voids an Accept.
@@ -50,9 +50,9 @@ Each Requirement names, in brackets, the Intents it serves.
 
   `accepted` lists the Cases Testing reports excepted, still RED.
 - **change/F12** [change/I9]: **Authorization by an accepted PLAN.** A record carries `authorization` and `exceptions` produces nothing without it.
-  - **The PLAN.** `plan` is the PLAN Change that established the record and `landed` the commit where it landed. A record is read from that commit, never from the candidate alone: the candidate's copy is compared with it, and a difference is a finding (change/F13).
+  - **The PLAN.** `plan` is the PLAN Change that established the record. The gate resolves the commit where that PLAN landed, as an ancestor of the candidate, and gives it as data (`landing`); the record never states it. A record is read from that commit, never from the candidate alone: the candidate's copy is compared with it, and a difference is a finding (change/F13).
   - **The authority.** `by` must be the repository's designated authority and `evidence` must be the decision's landing. The designation is data given to the function and is never read from the record or the candidate. In KAAL it is the Owner. Where the designation is read from is open (G13, below).
-  - **The evidence names both.** A result of `exceptions` cites the exact PLAN, its landing commit and the authority. An authorization that names none of them is a finding.
+  - **The evidence names both.** A result of `exceptions` cites the exact PLAN, the landing commit the gate resolved and the authority. An authorization that names none of them is a finding.
 - **change/F13** [change/I10]: **A DO cannot change its PLAN.** `integrity` takes the Cases and the Accepts as the PLAN established them (identities and digests, from the landing commit) and as the candidate carries them.
   - A Case the PLAN established that the candidate removes, skips, marks todo or edits is a finding naming it.
   - A change to an Accept entry, its decision or its authorization, or an Accept the PLAN did not establish, is a finding.
