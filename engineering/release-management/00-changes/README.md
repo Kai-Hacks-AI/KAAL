@@ -40,7 +40,7 @@ Order (add-new, settings, remove-old), each step safe before the next:
    - `main` and `kaal/*`: turn **Require approval of the most recent push** on (now off), so the last pusher cannot be the only approver.
    - Already on and kept: 1 approval, dismiss stale approvals on push, thread resolution, extra approval for unattributed changes (both); code owner review on `main`.
    - Keep the existing `CODEOWNERS` as it is. When a second owner exists, add the ledger path as its own line.
-2. **Owner, `main` ruleset:** remove the required context `Change Isolation (review)`. Only after step 1, so there is never a window without an approval rule.
+2. **Owner, `main` ruleset:** remove the required context `Change Isolation (review)`. Only after step 1 is verified (a real pull request into `main` shows the code owner review and last-push approval enforced) and the Owner's decision to give up the ledger-digest attestation is recorded in the repository, so there is never a window without an approval rule.
 3. **Change, `.github` only** (travels alone): delete `merge-group-admission.yml`, `merge-group-review.yml`, `change-isolation-review.yml` and `change-isolation-review-relay.yml` (the jobs named `Change Isolation (review)` and `(review event)`).
 4. **Change, Engineering:** retire the attestation code and documents that only served them (`attest.mjs`, `attesters.json`, `ledger-in-promotion-plan.md`, their Cases), and decide what `change-isolation.sh` does with `KAAL_ATTESTATION` (strict path unused). A ledger entry is then admitted by the ledger match plus the native approval.
 
