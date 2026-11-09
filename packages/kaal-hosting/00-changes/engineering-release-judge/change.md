@@ -17,7 +17,9 @@ Driven by hosting/D21 (`06-defects/D21-engineering-release-judge-duplicated.md`)
 
 ## What is lost
 
-The early signal. Until now a Hosting change that would make the package fail Engineering's readiness rules (a dependency not on the registry, a malformed record) failed in Hosting's own pull request. After this Change it is found by Engineering's Package control when a release is prepared, and not before. Hosting still asserts its own result and evidence record and its exact dependency versions. The registry lookup of dependencies, and the judgment of a record against the declared inventory, are no longer exercised by Hosting's tests. When Engineering's Package control can run on a pull request that touches a package is for Engineering's Release management to decide; it is raised with that thread.
+The early signal. Until now a Hosting change that would make the package fail Engineering's readiness rules (a dependency not on the registry, a malformed record) failed in Hosting's own pull request. After this Change it is found by Engineering's Package control when a release is prepared, and not before. Hosting still asserts its own result and evidence record and its exact dependency versions. The registry lookup of dependencies, and the judgment of a record against the declared inventory, are no longer exercised by Hosting's tests.
+
+This is a known gap, not hidden. Release management's answer (proposed in the testing-controls PLAN #1339, `00-changes/testing-controls-plan.md`, "Where the release judge runs on a package change"): the judge runs once, in Release management, as a Regression Case of test Integration and test Candidate, against every package the candidate touches, on its packed bytes. Readiness runs from the first step; installed verification joins once the Owner decides G12 (optional peers) and is reported as not judged, never passed, until then. Release management owns it and Hosting adds nothing to its own suite. Until #1339 lands and its DO is built, Hosting's pull requests have no early signal for this.
 
 ## Not changed
 
