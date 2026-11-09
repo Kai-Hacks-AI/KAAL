@@ -8,6 +8,10 @@ Ids: F1 approve Publishing, F2 verify Package Promotion, F3 version Package, F5 
 
 Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or control appears (Intent, Requirements, Architecture, `05-src` folders, files and scripts, GitHub workflows, jobs and gates), its name is self-explanatory, easy to understand and semantically consistent with the control's name, so a reader and a program can tell which control it is. Each surface may spell it its own way (a folder `approve-publishing`, a job `approve Publishing`); a **mapping** in the Architecture lists, per control, its spelling on each surface, and later its graph id (deferred). A surface name that maps to no control, or a control with no name on a surface where it runs, is a finding (an observation, not a gate). Read by parsers (YAML for workflows, Markdown AST for the records, directory listing for `05-src`), never regex. Use vs build: the YAML parser already in Engineering is used; no new parser.
 
+## Controls are pinned to `main` [release-management/F17]
+
+A release control judges a candidate with the checker `main` holds (checkout of `main`, on `pull_request` and `merge_group`), with its logic in `05-src` and only wiring in `.github`. Allocated to the architecture's wiring rule (a cross-cutting requirement like F4, checked by T8). Not applied to the testing controls (test Candidate, test Integration), which are open.
+
 ## Root (spans stations; the Owner's list, 9 Nov)
 
 Controls that act on more than one station live at the root. All are names only here, except where noted.
