@@ -18,11 +18,12 @@ Each element names, in brackets, the Requirements it answers.
   - reads the record and the Case definitions and digests of the Features Plan at that commit (definition), and the candidate's copies at its own head, only to compare them;
   - selects the complete Regression Plan at the integration's protected baseline (change/I6), never at the PLAN's landing, and gives the exceptions only for Cases of it that the Accept names with an equal digest;
   - observes the baseline and the head in one process (`testing/N4`);
+  - when the record holds no Accept, skips `authorize`, `lifecycle` and the exceptions, and composes from the two Plans alone (change/N4), still validating both evaluations; otherwise
   - obtains the state each Accept's end condition is judged by (change/F52), and calls `authorize`, `integrity` and `lifecycle`, with the designation and that state as data;
   - calls `exceptions` with their findings, so an unauthorized, altered or expired Accept gives no exception;
   - has Testing execute the Features Plan's planned Cases, exactly as the landing defines them, against the candidate's head with no exceptions and no baseline (execution), never a plan the DO supplied;
   - has Testing evaluate the Regression Plan at the head against the baseline with the exceptions;
-  - calls `compose` with those findings too, so an expired or unjudgeable Accept cannot give a passing outcome, and applies its policy;
+  - calls `compose` with those findings and with the independently resolved revisions (the PLAN's landing and the protected baseline) against which each evaluation's `at` is checked (change/F11), so an expired or unjudgeable Accept cannot give a passing outcome, and applies its policy;
   - treats any finding, and anything unreadable, as no exception and no pass (change/F54).
 - **change/A24** [change/F50, change/F51, change/F52, change/F53, change/F54, change/N3, change/N4]: **Pure judgments.** `kaal-change/far` also exports `authorize`, `integrity` and `lifecycle`. Like the rest, they import no module, take data and return data, change nothing they are given, and give the same result for the same input.
   - **`authorize(record, designation, landing)`** gives the authorization findings (change/F50, change/F54) and the PLAN, commit and authority a cite names. `landing` is the commit the gate resolved and verified; the record holds no commit, since a commit cannot contain its own hash.
