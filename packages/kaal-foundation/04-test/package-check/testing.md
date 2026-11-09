@@ -21,7 +21,7 @@ Each delivered case is titled `foundation/T<n> [<targets>]: <what it checks>`. I
 
 ## What does not ship
 
-The publisher's tests under `04-test/engineering-check/publisher/` are not delivered and never run in an installation. Before release, they do five things:
+The Cases that are not Solution (the publisher's outer checks and the Delivery Cases) sit beside the Nodes they verify, are listed as not shipping in `04-test/engineering-check/cases.json`, are not delivered, and never run in an installation. The collector runs them from that list before release. They do five things:
 - compare every length up to 1024 bytes and seeded inputs up to 1 MiB against the host's SHA-256;
 - hash every Node KAAL ships;
 - check the packed and installed package;
@@ -30,7 +30,7 @@ The publisher's tests under `04-test/engineering-check/publisher/` are not deliv
 - check that the package publishes publicly, names its repository, and that `verify` never crashes on a changed library;
 - check that the owner declaration ships while the ownership claim remains repository-only and claims `packages/kaal-foundation/` alone (foundation/C11, amended by C15);
 - check public declaration resolution, normal pack and exact inventory, isolated installed verification, altered/missing bytes and wrong owner/name/type behind refreshed digests, preserved author Engine/configuration and refusal of an unscoped substitute (foundation/T46–T49);
-- check that the manifest is current: `04-test/engineering-check/publisher/manifest.mjs --check` is part of `test:publisher`.
+- check that the manifest is current: `04-test/engineering-check/publisher/manifest.mjs --check` is part of `test:publisher` (its Case is foundation/T71).
 
 The repository's separate `test/acceptance/declaration-acceptance.test.mjs`
 (foundation/T51) runs through the existing pack-once, ledger-recorded Acceptance

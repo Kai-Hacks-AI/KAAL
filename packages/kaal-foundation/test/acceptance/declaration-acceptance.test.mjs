@@ -1,3 +1,7 @@
+/*---
+tests: [foundation/F25, foundation/F26, foundation/F27, foundation/N15, foundation/A26]
+runs: external
+---*/
 // foundation/C15 planned scenario. DO keeps it in test/acceptance/ until Testing discovery reads the final layout (foundation/C20).
 // Existing Testing discovery and Engineering's pack-once ledger own execution.
 import assert from "node:assert/strict";
@@ -17,7 +21,7 @@ const execute = async (command, args, options) => {
 };
 const kind = async (path) => (await lstat(path).then((s) => (s.isDirectory() ? "directory" : "file"), () => "missing"));
 
-test("foundation/T51 [foundation/F25, foundation/F26, foundation/F27, foundation/N15]: a ledger-recorded clean consumer resolves and verifies the exact Foundation declaration candidate", async () => {
+test("foundation/T51 [foundation/F25, foundation/F26, foundation/F27, foundation/N15, foundation/A26]: a ledger-recorded clean consumer resolves and verifies the exact Foundation declaration candidate", async () => {
   const host = await install(["@kaihacksai/kaal-foundation"], { offline: true });
   const installed = join(host, "node_modules", "@kaihacksai", "kaal-foundation");
   const before = await readFile(join(host, "package.json"));

@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F12, foundation/A28]
+---*/
 // foundation/C5 publisher tests for the shipped verifier (foundation/F8, amended by foundation/F12): the
 // interface it verifies is Foundation's approved one, never the candidate's own export inventory. A
 // candidate that drops, misdirects or breaks ./sha256 cannot be exercised (cannot verify); one that
@@ -13,7 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, it } from "node:test";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const LINE = "kaal-foundation-verification ";
 const MANIFEST = "dist/test/package-check/verify.json";
 const LIB = "dist/skills/kaal-foundation/scripts";
@@ -48,7 +51,7 @@ const exportsTo = (target) => (dir) => {
 };
 
 describe("the shipped verifier's interface (foundation/C5)", () => {
-  it("foundation/T72 [foundation/F12]: verifies the unchanged installed copy", () => {
+  it("foundation/T72 [foundation/F12, foundation/A28]: verifies the unchanged installed copy", () => {
     const r = verifyInstalled(() => {});
     assert.deepEqual([r.status, r.result], [0, "verified"], r.out);
   });
@@ -62,14 +65,14 @@ describe("the shipped verifier's interface (foundation/C5)", () => {
     },
     "sha256.mjs throwing on import": (dir) => writeFileSync(join(dir, LIB, "sha256.mjs"), 'throw new Error("broken");\n'),
   };
-  it("foundation/T73 [foundation/F12]: gives cannot verify, never verified, for each of: ./sha256 removed from exports, misdirected to a missing file, misdirected to a module without sha256, and sha256.mjs throwing on import", () => {
+  it("foundation/T73 [foundation/F12, foundation/A28]: gives cannot verify, never verified, for each of: ./sha256 removed from exports, misdirected to a missing file, misdirected to a module without sha256, and sha256.mjs throwing on import", () => {
     for (const [name, mutate] of Object.entries(unexercisable)) {
       const r = verifyInstalled(mutate);
       assert.deepEqual([r.status, r.result], [2, "cannot verify"], `${name}: ${r.out}`);
     }
   });
 
-  it("foundation/T74 [foundation/F12]: gives failed, never verified, when ./sha256 loads and answers wrongly", () => {
+  it("foundation/T74 [foundation/F12, foundation/A28]: gives failed, never verified, when ./sha256 loads and answers wrongly", () => {
     const r = verifyInstalled((dir) => writeFileSync(join(dir, LIB, "sha256.mjs"), 'export const sha256 = () => "0".repeat(64);\n'));
     assert.deepEqual([r.status, r.result], [1, "failed"], r.out);
   });

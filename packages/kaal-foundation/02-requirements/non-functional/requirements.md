@@ -32,3 +32,8 @@
 - **foundation/N10** [foundation/I7]: **An independent check.** The installed verification checks the manifest with the host's SHA-256 (`node:crypto`), never with Foundation's own library, so a broken library cannot hide itself. Foundation writes the manifest and the host checks it on every installation. The verifier keeps no SHA-256 implementation of its own.
 - **foundation/N11** [foundation/I8]: **Repository data only.** The ownership claim does not ship, and the packed file list, `verify.json` and every digest are unchanged by it.
 - **foundation/N12** [foundation/I8]: **Only its own folder.** No claim of Foundation's names a path outside `packages/kaal-foundation/`. In particular, Foundation does not claim the repository's root `package.json` or `package-lock.json`.
+
+## The Architecture forest and the Cases
+
+- **foundation/N23** [foundation/I15]: **Either/or, with nothing silent.** An orphan Case, an untitled Case, a duplicate Case id, an element in no branch, a Case that verifies leaves in both branches without a listed target, a Case file with no resolvable edge, and a Requirement or Intent answered in both branches but unlisted each fail a check. The `## Cross-cutting` section of the Architecture lists those Requirements and Intents, each with the reason both branches answer it. It lists no Case and no element.
+- **foundation/N24** [foundation/I15]: **No new reach.** The build and the collector use only Node's built-in modules and read only `cases.json`. The YAML parser is Engineering's and not Foundation's: nothing ships beyond what the Solution branch already ships.

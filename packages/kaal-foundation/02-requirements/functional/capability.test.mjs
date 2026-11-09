@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F11, foundation/F12, foundation/F13, foundation/F14, foundation/F16, foundation/F17, foundation/N7, foundation/N8, foundation/N9, foundation/N10, foundation/A26, foundation/A28]
+---*/
 // foundation/C7 planned publisher cases: Foundation as a capability (plan/capability/*.md). Immutable
 // to DO and CHECK; foundation/C8 moves this file unchanged to test/publisher/ and turns it GREEN. Each
 // title names the contracts it checks. npm runs as its CLI script under this Node, named by
@@ -10,9 +13,9 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { collect, DIST_LOOPS } from "../../package-check/collect.mjs";
+import { collect, DIST_LOOPS } from "../../04-test/package-check/collect.mjs";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const NAME = "@kaihacksai/kaal-foundation";
 const LINE = "kaal-foundation-verification ";
@@ -105,7 +108,7 @@ const rewrite = (copy, path) => {
   writeFileSync(file, JSON.stringify(v, null, 2) + "\n");
 };
 
-test("foundation/T15 [foundation/F11, foundation/F13]: the installed manifest lists every other installed file with its SHA-256, its cases are exactly the delivered titles' identifiers, its model is those cases with their targets, every target is defined in the installed documents, and the committed manifest is the packed one", () => {
+test("foundation/T15 [foundation/F11, foundation/F13, foundation/A26]: the installed manifest lists every other installed file with its SHA-256, its cases are exactly the delivered titles' identifiers, its model is those cases with their targets, every target is defined in the installed documents, and the committed manifest is the packed one", () => {
   const file = join(installed, MANIFEST);
   assert.ok(existsSync(file), "the package ships no dist/test/package-check/verify.json");
   const v = JSON.parse(readFileSync(file, "utf8"));
@@ -156,7 +159,7 @@ test("foundation/T17 [foundation/F17]: on an installed copy, a changed document,
   );
 });
 
-test("foundation/T76 [foundation/F12, foundation/N10]: on an installed copy, a wrong library behind a matching manifest is failed", { timeout: 300_000 }, () => {
+test("foundation/T76 [foundation/F12, foundation/N10, foundation/A28]: on an installed copy, a wrong library behind a matching manifest is failed", { timeout: 300_000 }, () => {
   assert.ok(existsSync(join(installed, MANIFEST)), "blocked before behavioural assertion: no manifest ships, so tampering cannot be told");
   const wrong = verifyCopy((c) => {
     writeFileSync(join(c, LIB, "sha256.mjs"), 'export function sha256(bytes) { if (!(bytes instanceof Uint8Array)) throw new TypeError("bytes"); return "0".repeat(64); }\n');
@@ -168,7 +171,7 @@ test("foundation/T76 [foundation/F12, foundation/N10]: on an installed copy, a w
   assert.ok(wrong.summary.causes.length > 0, "failed names a cause");
 });
 
-test("foundation/T18 [foundation/F14, foundation/N8]: the declared bin, run in the consumer through npm exec, prints the host's digest for a file and standard input, exits 2 with a usage line on an unreadable file or an unknown command, and verify ends on the verification line", () => {
+test("foundation/T18 [foundation/F14, foundation/N8, foundation/A26]: the declared bin, run in the consumer through npm exec, prints the host's digest for a file and standard input, exits 2 with a usage line on an unreadable file or an unknown command, and verify ends on the verification line", () => {
   assert.deepEqual(manifest().bin, { "kaal-foundation": `${LIB}/kaal-foundation.mjs` }, "the package declares the kaal-foundation bin");
   const exec = (args, input) => run("npm", ["exec", "--no", "--", "kaal-foundation", ...args], consumer, input);
   writeFileSync(join(consumer, "abc.txt"), "abc");
@@ -190,7 +193,7 @@ test("foundation/T18 [foundation/F14, foundation/N8]: the declared bin, run in t
   assert.equal(summary(verify)?.result, "verified", verify.out);
 });
 
-test("foundation/T19 [foundation/F16]: the repository's AGENTS.md has a Foundation section naming the skill's path and both commands", () => {
+test("foundation/T19 [foundation/F16, foundation/A28]: the repository's AGENTS.md has a Foundation section naming the skill's path and both commands", () => {
   const text = readFileSync(join(REPOSITORY, "AGENTS.md"), "utf8");
   const m = /^(#+)\s+.*\bFoundation\b.*$/m.exec(text);
   assert.ok(m, "AGENTS.md has a Foundation section");
@@ -211,7 +214,7 @@ test("foundation/T20 [foundation/F17]: the source Test Plan is declared; npm tes
   assert.deepEqual(files, ["dist"], "dist/ is the only shipped thing: no plan, no publisher suite");
 });
 
-test("foundation/T21 [foundation/N7]: no file in the package, tests included, reads the platform, names the Windows platform, writes a command-script launcher or passes a shell option", () => {
+test("foundation/T21 [foundation/N7, foundation/A28]: no file in the package, tests included, reads the platform, names the Windows platform, writes a command-script launcher or passes a shell option", () => {
   const forbidden = [new RegExp("process" + "\\.platform"), new RegExp("win" + "32"), new RegExp("\\." + "cmd\\b"), new RegExp("\\bshell" + "\\s*:")];
   const offenders = [];
   for (const p of listed(PACKAGE).filter((p) => /\.(mjs|cjs|js|ts|json)$/.test(p))) {
@@ -221,7 +224,7 @@ test("foundation/T21 [foundation/N7]: no file in the package, tests included, re
   assert.deepEqual(offenders, []);
 });
 
-test("foundation/T22 [foundation/N9]: the library is byte for byte main's, and the package declares no dependency", () => {
+test("foundation/T22 [foundation/N9, foundation/A28]: the library is byte for byte main's, and the package declares no dependency", () => {
   assert.equal(hash(readFileSync(join(PACKAGE, "05-src", "skills", "kaal-foundation", "scripts", "sha256.mjs"))), "c504c09d231c8a58f2ae2dbf346edbdf4dd544bdbdba1161515875d051df5ee0");
   assert.equal(hash(readFileSync(join(PACKAGE, "05-src", "skills", "kaal-foundation", "scripts", "sha256.d.ts"))), "e0b71d43eb02726e7ed9fa05cf1c60c4b88224f99a5120de56bb54b3da303a16");
   const m = manifest();

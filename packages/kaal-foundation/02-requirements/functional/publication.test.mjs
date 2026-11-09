@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/I4, foundation/I6, foundation/F4, foundation/F5, foundation/F6, foundation/F7, foundation/F8, foundation/F9, foundation/N2, foundation/N6, foundation/A6]
+---*/
 // foundation/C3 planned outer tests: publication readiness to Guard's consumer bar, revised by
 // foundation/C6 to run npm with no platform decision, and renamed by foundation/C8 as
 // plan/capability/testing.md states (test/embed/, test:embedded, test:all, test/publisher/, and the
@@ -12,9 +15,9 @@ import { dirname, join, posix } from "node:path";
 import { createHash } from "node:crypto";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { collect, DIST_LOOPS } from "../../package-check/collect.mjs";
+import { collect, DIST_LOOPS } from "../../04-test/package-check/collect.mjs";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const NAME = "@kaihacksai/kaal-foundation";
 const manifest = () => JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
 const MANIFEST = "dist/test/package-check/verify.json";
@@ -67,7 +70,7 @@ const documented = (operations) => {
 };
 
 describe("Foundation publication readiness (foundation/C3)", () => {
-  it("foundation/T9 [foundation/F4, foundation/N2, foundation/N6]: the package is publishable, keeps its name and version, and declares no dependencies", () => {
+  it("foundation/T9 [foundation/F4, foundation/N2, foundation/N6, foundation/A6]: the package is publishable, keeps its name and version, and declares no dependencies", () => {
     const m = manifest();
     assert.notEqual(m.private, true, "the package is private, so it cannot be published");
     assert.equal(m.name, NAME);

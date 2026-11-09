@@ -1,0 +1,746 @@
+{
+  "files": {
+    "02-requirements/functional/acquisition.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T32"
+      ]
+    },
+    "02-requirements/functional/boundary.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T60",
+        "foundation/T61",
+        "foundation/T62"
+      ]
+    },
+    "02-requirements/functional/capability.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T15",
+        "foundation/T16",
+        "foundation/T17",
+        "foundation/T76",
+        "foundation/T18",
+        "foundation/T19",
+        "foundation/T20",
+        "foundation/T21",
+        "foundation/T22"
+      ]
+    },
+    "02-requirements/functional/declaration-consumer.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T47",
+        "foundation/T48",
+        "foundation/T49"
+      ]
+    },
+    "02-requirements/functional/declaration-distribution.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T46"
+      ]
+    },
+    "02-requirements/functional/declaration.test.mjs": {
+      "ships": true,
+      "runs": "shipped",
+      "cases": [
+        "foundation/T50"
+      ]
+    },
+    "02-requirements/functional/manifest.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T71",
+        "foundation/T77"
+      ]
+    },
+    "02-requirements/functional/ownership.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T35",
+        "foundation/T75",
+        "foundation/T36"
+      ]
+    },
+    "02-requirements/functional/publication.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T10",
+        "foundation/T11",
+        "foundation/T12",
+        "foundation/T13"
+      ]
+    },
+    "02-requirements/functional/release.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T33",
+        "foundation/T34"
+      ]
+    },
+    "02-requirements/functional/requirements.test.mjs": {
+      "ships": true,
+      "runs": "shipped",
+      "cases": [
+        "foundation/T23",
+        "foundation/T24",
+        "foundation/T25",
+        "foundation/T26",
+        "foundation/T63"
+      ]
+    },
+    "02-requirements/functional/sha256.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T1",
+        "foundation/T2",
+        "foundation/T3",
+        "foundation/T4",
+        "foundation/T5",
+        "foundation/T6",
+        "foundation/T7",
+        "foundation/T8"
+      ]
+    },
+    "02-requirements/functional/verifier.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T72",
+        "foundation/T73",
+        "foundation/T74"
+      ]
+    },
+    "03-architecture/architecture-tree.test.mjs": {
+      "ships": false,
+      "runs": "collector",
+      "cases": [
+        "foundation/T64",
+        "foundation/T65",
+        "foundation/T66",
+        "foundation/T67",
+        "foundation/T68",
+        "foundation/T69",
+        "foundation/T70"
+      ]
+    },
+    "03-architecture/architecture.test.mjs": {
+      "ships": true,
+      "runs": "shipped",
+      "cases": [
+        "foundation/T27",
+        "foundation/T28",
+        "foundation/T31"
+      ]
+    },
+    "05-src/skills/kaal-foundation/scripts/kaal-foundation.test.mjs": {
+      "ships": true,
+      "runs": "shipped",
+      "cases": [
+        "foundation/T29",
+        "foundation/T30"
+      ]
+    },
+    "test/acceptance/declaration-acceptance.test.mjs": {
+      "ships": false,
+      "runs": "external",
+      "cases": [
+        "foundation/T51"
+      ]
+    }
+  },
+  "cases": [
+    {
+      "id": "foundation/T32",
+      "file": "02-requirements/functional/acquisition.test.mjs",
+      "targets": [
+        "F18",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T60",
+      "file": "02-requirements/functional/boundary.test.mjs",
+      "targets": [
+        "F34",
+        "F37",
+        "N22",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T61",
+      "file": "02-requirements/functional/boundary.test.mjs",
+      "targets": [
+        "F37",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T62",
+      "file": "02-requirements/functional/boundary.test.mjs",
+      "targets": [
+        "N21",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T15",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "F11",
+        "F13",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T16",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "F17"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T17",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "F17"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T76",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "F12",
+        "N10",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T18",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "F14",
+        "N8",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T19",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "F16",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T20",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "F17"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T21",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "N7",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T22",
+      "file": "02-requirements/functional/capability.test.mjs",
+      "targets": [
+        "N9",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T47",
+      "file": "02-requirements/functional/declaration-consumer.test.mjs",
+      "targets": [
+        "F26",
+        "N15",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T48",
+      "file": "02-requirements/functional/declaration-consumer.test.mjs",
+      "targets": [
+        "F26",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T49",
+      "file": "02-requirements/functional/declaration-consumer.test.mjs",
+      "targets": [
+        "F27",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T46",
+      "file": "02-requirements/functional/declaration-distribution.test.mjs",
+      "targets": [
+        "F25",
+        "N16",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T50",
+      "file": "02-requirements/functional/declaration.test.mjs",
+      "targets": [
+        "F25",
+        "F26",
+        "A15"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T71",
+      "file": "02-requirements/functional/manifest.test.mjs",
+      "targets": [
+        "F11",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T77",
+      "file": "02-requirements/functional/manifest.test.mjs",
+      "targets": [
+        "N23"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T35",
+      "file": "02-requirements/functional/ownership.test.mjs",
+      "targets": [
+        "F20",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T75",
+      "file": "02-requirements/functional/ownership.test.mjs",
+      "targets": [
+        "F21",
+        "A27"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T36",
+      "file": "02-requirements/functional/ownership.test.mjs",
+      "targets": [
+        "N11",
+        "N12"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T10",
+      "file": "02-requirements/functional/publication.test.mjs",
+      "targets": [
+        "F5",
+        "F8",
+        "I4",
+        "I6"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T11",
+      "file": "02-requirements/functional/publication.test.mjs",
+      "targets": [
+        "F6"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T12",
+      "file": "02-requirements/functional/publication.test.mjs",
+      "targets": [
+        "F7"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T13",
+      "file": "02-requirements/functional/publication.test.mjs",
+      "targets": [
+        "F9"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T33",
+      "file": "02-requirements/functional/release.test.mjs",
+      "targets": [
+        "F14",
+        "N10",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T34",
+      "file": "02-requirements/functional/release.test.mjs",
+      "targets": [
+        "F19"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T23",
+      "file": "02-requirements/functional/requirements.test.mjs",
+      "targets": [
+        "F1"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T24",
+      "file": "02-requirements/functional/requirements.test.mjs",
+      "targets": [
+        "F1"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T25",
+      "file": "02-requirements/functional/requirements.test.mjs",
+      "targets": [
+        "F2"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T26",
+      "file": "02-requirements/functional/requirements.test.mjs",
+      "targets": [
+        "F3"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T63",
+      "file": "02-requirements/functional/requirements.test.mjs",
+      "targets": [
+        "F34",
+        "F35"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T1",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "F1",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T2",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "F1",
+        "N3",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T3",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "F1",
+        "N3",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T4",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "F2",
+        "N1",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T5",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "F3",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T6",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "N3",
+        "I2",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T7",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "N1",
+        "N2",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T8",
+      "file": "02-requirements/functional/sha256.test.mjs",
+      "targets": [
+        "N4",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T72",
+      "file": "02-requirements/functional/verifier.test.mjs",
+      "targets": [
+        "F12",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T73",
+      "file": "02-requirements/functional/verifier.test.mjs",
+      "targets": [
+        "F12",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T74",
+      "file": "02-requirements/functional/verifier.test.mjs",
+      "targets": [
+        "F12",
+        "A28"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T64",
+      "file": "03-architecture/architecture-tree.test.mjs",
+      "targets": [
+        "F38"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T65",
+      "file": "03-architecture/architecture-tree.test.mjs",
+      "targets": [
+        "F39",
+        "N23"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T66",
+      "file": "03-architecture/architecture-tree.test.mjs",
+      "targets": [
+        "F40"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T67",
+      "file": "03-architecture/architecture-tree.test.mjs",
+      "targets": [
+        "F41"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T68",
+      "file": "03-architecture/architecture-tree.test.mjs",
+      "targets": [
+        "F42"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T69",
+      "file": "03-architecture/architecture-tree.test.mjs",
+      "targets": [
+        "N23"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T70",
+      "file": "03-architecture/architecture-tree.test.mjs",
+      "targets": [
+        "F43"
+      ],
+      "branch": "delivery",
+      "ships": false
+    },
+    {
+      "id": "foundation/T27",
+      "file": "03-architecture/architecture.test.mjs",
+      "targets": [
+        "N1",
+        "N2",
+        "A1"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T28",
+      "file": "03-architecture/architecture.test.mjs",
+      "targets": [
+        "N4"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T31",
+      "file": "03-architecture/architecture.test.mjs",
+      "targets": [
+        "F15"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T29",
+      "file": "05-src/skills/kaal-foundation/scripts/kaal-foundation.test.mjs",
+      "targets": [
+        "F14",
+        "A7"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T30",
+      "file": "05-src/skills/kaal-foundation/scripts/kaal-foundation.test.mjs",
+      "targets": [
+        "F14",
+        "A7"
+      ],
+      "branch": "solution",
+      "ships": true
+    },
+    {
+      "id": "foundation/T51",
+      "file": "test/acceptance/declaration-acceptance.test.mjs",
+      "targets": [
+        "F25",
+        "F26",
+        "F27",
+        "N15",
+        "A26"
+      ],
+      "branch": "delivery",
+      "ships": false
+    }
+  ]
+}

@@ -3,24 +3,24 @@
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
     "README.md": "3f5fc84f755b468f97090d810e7df2014caea149e5143c9ace616b57b8b57051",
     "dist/AGENTS.md": "26283dd5f1e934756f5d8b06e14dfeb2d9572c533d8e869e32c62d1923d00768",
-    "dist/docs/architecture/architecture.md": "9f07f8d89efc4de99f0c45412e80efcea0ff4055e3f6869b94cb8ed7205c3a2a",
-    "dist/docs/architecture/architecture.test.mjs": "065431da235bf61e05b4ca3ec01c66a9f99f1ffaea6939a5e5e33b0a29334994",
+    "dist/docs/architecture/architecture.md": "c47fdb2360afe10f8d83f7f1828e1ce4a1fa146ab8e43dcbd2da35c13bd3b650",
+    "dist/docs/architecture/architecture.test.mjs": "b635329d8fce97d1dfdc3c208685d81db0066c6bdc0f07a8a265db569c10de61",
     "dist/docs/intent/intent.md": "80353c91f1cd4d4d0cd65bad0f9c3c350e63e23aacf2ead1c38e86b7fcd4c3cb",
-    "dist/docs/requirements/functional/declaration.test.mjs": "4eb33bc1d12800158d140f612a0b7136227b8e8af1ccd259fbabcf3ecd7a3855",
-    "dist/docs/requirements/functional/requirements.md": "909cef199131710a3385b9f0f189c724f9e4b62193eb2caf29eb8fe2ad1a6f43",
-    "dist/docs/requirements/functional/requirements.test.mjs": "fc306c6fe6f431a755bb5eef451ef1a484d401936fc7e1234241eb2646ff5b2b",
-    "dist/docs/requirements/non-functional/requirements.md": "7b50afd8b92490d98ce7f132a7ae1e68a9db0249349d4998b91e1d4bd6804a08",
+    "dist/docs/requirements/functional/declaration.test.mjs": "76d85cb50895ea079453e6c6f6d270df46173a8619df13f46b5332dc3097d1f2",
+    "dist/docs/requirements/functional/requirements.md": "57bd55da2fb2b2551174aa46d85653db7bb0f4f6403cf51c3317c5d50194a8ba",
+    "dist/docs/requirements/functional/requirements.test.mjs": "240fff4f5cb002be624f31f20cebc999abc4bc7378f3a392a3662bafb1e555ab",
+    "dist/docs/requirements/non-functional/requirements.md": "dc0f586a74e26f0111f514c4626c4644f42e7b15ebab60bcd102cf5462173040",
     "dist/kaal/Foundation.md": "649fbafb81a8d976b65a4e8c0db7228a194ec515385820d489e4a74041dc27c5",
     "dist/skills/kaal-foundation/SKILL.md": "7310dc65fd2e400ea2894348903261d18c93753f8814f63622bc88fc6a6275b8",
     "dist/skills/kaal-foundation/references/limitations.md": "da77a331b433d6deca0f0c1d32d0eb1cbcbee22bdecf0ca6f1e84dc533f731f5",
     "dist/skills/kaal-foundation/references/operations.md": "d33a76c68197769f7e80db4efbaf31bd299dc23c59d9c2dcb94bd2566aca9a8c",
     "dist/skills/kaal-foundation/scripts/kaal-foundation.mjs": "9db634c6ef05aef936361eb513b5c2cb2334dba34051bf091682809c545f883a",
-    "dist/skills/kaal-foundation/scripts/kaal-foundation.test.mjs": "b8b857d7f95bd338426700b8fbf41062a60c3975c2491b53fcb43349bf5f3e34",
+    "dist/skills/kaal-foundation/scripts/kaal-foundation.test.mjs": "759c5a40a51990deeec6f93874e96c66d9aff75cce62096ff141ed72693e4887",
     "dist/skills/kaal-foundation/scripts/sha256.d.ts": "e0b71d43eb02726e7ed9fa05cf1c60c4b88224f99a5120de56bb54b3da303a16",
     "dist/skills/kaal-foundation/scripts/sha256.mjs": "c504c09d231c8a58f2ae2dbf346edbdf4dd544bdbdba1161515875d051df5ee0",
     "dist/test/boundary-check/boundary-check.md": "e050f0f3f1ec822934cf530be93292eea2fcd7be4ec1c7bbe7e4c5e92d54004f",
     "dist/test/package-check/collect.mjs": "79c87164ccea905b6306cf92344b3fc1c9252ea382cb0e47ad3aaf85303e7365",
-    "dist/test/package-check/testing.md": "78f572a21dbd52e5932ba14164f1ce793d448f2e81197e74ea47004e916f1563",
+    "dist/test/package-check/testing.md": "33c3bc0f7a631dc23b553f339e95e1b0155c7227007e548c7c892bc1c799a03b",
     "dist/test/package-check/verify.mjs": "d54b1471f59abfa85f7e1c4947db0001ad7cdc5d8d149e6d9cc5fbf32facf223",
     "package.json": "2f5b4aa89359d64e532f81269a9b65d2a5e0c483db23a63f38e07d0d54fd0524"
   },
@@ -43,7 +43,8 @@
         "id": "foundation/T27",
         "tests": [
           "foundation/N1",
-          "foundation/N2"
+          "foundation/N2",
+          "foundation/A1"
         ]
       },
       {
@@ -62,7 +63,8 @@
         "id": "foundation/T50",
         "tests": [
           "foundation/F25",
-          "foundation/F26"
+          "foundation/F26",
+          "foundation/A15"
         ]
       },
       {
@@ -99,13 +101,15 @@
       {
         "id": "foundation/T29",
         "tests": [
-          "foundation/F14"
+          "foundation/F14",
+          "foundation/A7"
         ]
       },
       {
         "id": "foundation/T30",
         "tests": [
-          "foundation/F14"
+          "foundation/F14",
+          "foundation/A7"
         ]
       }
     ]

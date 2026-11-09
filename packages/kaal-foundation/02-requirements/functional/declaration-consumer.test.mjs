@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F26, foundation/F27, foundation/N15, foundation/A26]
+---*/
 // foundation/C15 planned publisher acceptance; DO moves unchanged to test/publisher/.
 // No platform choice; npm is its own CLI under this Node, as existing Foundation cases do.
 import assert from "node:assert/strict";
@@ -7,9 +10,9 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, test } from "node:test";
-import { sha256 } from "../../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
+import { sha256 } from "../../05-src/skills/kaal-foundation/scripts/sha256.mjs";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const NAME = "@kaihacksai/kaal-foundation";
 const NODE = "kaal/Foundation.md";
 const PACKED_NODE = `dist/${NODE}`;
@@ -63,7 +66,7 @@ function install(name) {
   return { dir, installed: join(dir, "node_modules", "@kaihacksai", "kaal-foundation") };
 }
 
-test("foundation/T47 [foundation/F26, foundation/N15]: normal pack preserves committed bytes and exact inventory, and an isolated installed consumer resolves the owner Node and verifies every declared Case", { timeout: 300_000 }, () => {
+test("foundation/T47 [foundation/F26, foundation/N15, foundation/A26]: normal pack preserves committed bytes and exact inventory, and an isolated installed consumer resolves the owner Node and verifies every declared Case", { timeout: 300_000 }, () => {
   const beforeManifest = sourceManifest;
   const dry = packed(npm(["pack", "--dry-run", "--json", "--ignore-scripts"], ROOT));
   const paths = pack.files.map(f => f.path).sort();
@@ -93,7 +96,7 @@ test("foundation/T47 [foundation/F26, foundation/N15]: normal pack preserves com
   assert.equal(hash.stdout.trim(), "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
 });
 
-test("foundation/T48 [foundation/F26]: missing or changed declaration cannot verify, and wrong owner/name/type behind refreshed manifest digests fails an executed delivered Case", { timeout: 300_000 }, () => {
+test("foundation/T48 [foundation/F26, foundation/A26]: missing or changed declaration cannot verify, and wrong owner/name/type behind refreshed manifest digests fails an executed delivered Case", { timeout: 300_000 }, () => {
   const { installed } = install("negative");
   const path = join(installed, PACKED_NODE), mf = join(installed, MANIFEST);
   const original = readFileSync(path), originalManifest = readFileSync(mf);
@@ -125,7 +128,7 @@ test("foundation/T48 [foundation/F26]: missing or changed declaration cannot ver
   assert.equal(report(ok(verify())).result, "verified");
 });
 
-test("foundation/T49 [foundation/F27]: install, public read and removal preserve an existing Engine and configuration; an unscoped impostor cannot substitute for an absent scoped export", { timeout: 300_000 }, () => {
+test("foundation/T49 [foundation/F27, foundation/A26]: install, public read and removal preserve an existing Engine and configuration; an unscoped impostor cannot substitute for an absent scoped export", { timeout: 300_000 }, () => {
   const dir = host("lifecycle"), engine = join(dir, ".kaal");
   mkdirSync(engine);
   writeFileSync(join(engine, "author.md"), "author-owned\n");

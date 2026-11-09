@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F1, foundation/F2, foundation/F3, foundation/F34, foundation/F35]
+---*/
 // Delivered cases: the Requirements loop. They run against whichever copy of
 // @kaihacksai/kaal-foundation is installed, imported by its package name. Titles are
 // `foundation/T<n> [<targets>]: <what it checks>`; the manifest's cases and model come from them.

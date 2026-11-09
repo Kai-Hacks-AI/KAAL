@@ -1,3 +1,6 @@
+/*---
+tests: [foundation/F18, foundation/A26]
+---*/
 // foundation/T32, added by the Owner's review of foundation/C8 (#712) and revised by foundation/C10
 // (Codex on #704): the documented way to run the command is the scoped package's own bin by its path,
 // and no other package's kaal-foundation can stand in for it: not an unrelated unscoped package where
@@ -13,7 +16,7 @@ import { dirname, join } from "node:path";
 import { after, before, test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const REPOSITORY = join(PACKAGE, "..", "..");
 const SCOPED = "@kaihacksai/kaal-foundation";
 const DOCUMENTED = `node node_modules/${SCOPED}/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs`;
@@ -47,7 +50,7 @@ before(() => {
 });
 after(() => rmSync(work, { recursive: true, force: true }));
 
-test("foundation/T32 [foundation/F18]: every documented invocation runs the scoped package's own bin by its path and none goes through npx or npm exec; the documented command runs Foundation's bin where it is installed, also beside another package's kaal-foundation, and fails, never running the unscoped package, where only an unrelated kaal-foundation is installed", { timeout: 300_000 }, () => {
+test("foundation/T32 [foundation/F18, foundation/A26]: every documented invocation runs the scoped package's own bin by its path and none goes through npx or npm exec; the documented command runs Foundation's bin where it is installed, also beside another package's kaal-foundation, and fails, never running the unscoped package, where only an unrelated kaal-foundation is installed", { timeout: 300_000 }, () => {
   const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
   assert.equal(`node node_modules/${SCOPED}/${pkg.bin["kaal-foundation"]}`, DOCUMENTED, "the documented path is the package's own bin");
   // What the installed copy and the repository's agent instructions tell a consumer to run.
