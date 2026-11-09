@@ -1,0 +1,3 @@
+# Engineering: name the promotion-source runner and its parity Case in the control's Architecture
+
+Capability: Engineering. Target: `kaal/engineering-gate-ports`. Record number provisional until integration. Follows the pilot port (#1317). In `engineering/controls/README.md`, the "Promotion source" control's A1 now names `code:engineering/github/promotion-source.mjs` as the check's command, and its Assurance names the parity Case `test:engineering/github/ports/promotion-source.parity.test.mjs`, so the full chain Intent, Requirements, Architecture, Test Cases reaches the ported script. No behaviour changes; no promotion, version bump, SYNC, ledger entry, release dispatch or publication.

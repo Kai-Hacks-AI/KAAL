@@ -72,10 +72,11 @@ The bracket traces are the form every PLAN in this repository uses today. When R
 - **I1.** Only a Capability's own collector changes `main`, and only in a state that was validated against the `main` it lands on.
 - **F1** [I1]. A pull request into `main` comes from a `kaal/*` branch of this repository.
 - **F2** [I1]. Its head contains `main`'s tip, and the merge it would make is exactly the head's tree.
-- **A1** [F1, F2]. The rules are decided in `code:engineering/github/lineage.ts#promotionSource` and `#promotionFreshness`. They run through `guard-check:Promotion-Source` in `workflow:promotion-source.yml#promotion-source`. The reasoning is in `branching:Promote`.
+- **A1** [F1, F2]. The rules are decided in `code:engineering/github/lineage.ts#promotionSource` and `#promotionFreshness`. They run through `guard-check:Promotion-Source` in `workflow:promotion-source.yml#promotion-source`, whose command is `code:engineering/github/promotion-source.mjs`, a runner that passes the checker's verdict through. The reasoning is in `branching:Promote`.
 - **Assurance.**
   - I1 is validated by the Owner's review of this PLAN.
   - F1 is verified by `test:engineering/github/lineage.test.ts#promotionSource`, and F2 by `#promotionFreshness`.
+  - That the runner keeps the former shell's output and exit codes is verified by `test:engineering/github/ports/promotion-source.parity.test.mjs`.
   - Operation is unresolved. Mechanism level: Program.
 
 ### Lineage audit (`lineage-audit`)
