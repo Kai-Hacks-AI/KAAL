@@ -86,3 +86,21 @@ GitHub lists a check as `workflow name / job name`, and a ruleset matches the **
 ## Naming map (control names across surfaces)
 
 One row per control: the name in the records (this folder), the component path under `05-src/` (`pipeline/`, `npmjs/`, `main/`, `collectors/`), and the job in the GitHub UI. Spellings may differ if each is self-explanatory; the map is what a parser follows. Graph ids will replace the first column later (deferred). Rows are filled as each Change lands; the pattern is `approve Publishing` | `05-src/npmjs/` | `release/npmjs / approve Publishing`.
+
+## Target: into `main` now, without `pull_request_target` (Owner, 9 Nov 2026)
+
+This work is driven into `main` now, and it is also how the repository gets off `pull_request_target`. GitHub blocks that event by default from 2 Dec 2026; today the gates run only under a temporary repository Actions policy (a workflow-execution exception). The Owner prefers `merge_group` over a policy exception, so the gate design must run without `pull_request_target`, and the `merge_group` move is part of this work, not a separate PLAN.
+
+Today four workflows use `pull_request_target`: `change-isolation.yml` (Change Isolation), `promotion-source.yml` (Promotion Source), `lineage-synchronization.yml` (Branching) and `merge-group-admission.yml` (the pull request side of `Change Isolation (review)`, retired above). They use it so that the **default branch's** definition and checker run, and the candidate's commits are read as Git data only. The merge-group side already has the matching pattern: `merge-group.yml` runs for the group and checks out the default branch's checker.
+
+**What replaces it (to settle with the Owner and prove on a throwaway branch):**
+- The controls run on `merge_group` and on `pull_request` (no `_target`), checking out the default branch's checker and reading the candidate as Git data, as the merge-group jobs do today. The pull-request run supplies the context a pull request needs in order to enter the queue; the merge-group run is the judgment that counts.
+- **Trust gap to close:** on `merge_group` and `pull_request` the workflow definition comes from the candidate's side, so a candidate could change the workflow that judges it. A `.github` change travels alone and needs approval, but the workflow cannot be its own only guard. Candidate fix: a ruleset **"Require workflows to pass"** rule that pins the `release/*` workflows to the default branch (`refs/heads/main`), so the definition that judges a change is the one `main` holds. Availability for this repository and how it names the required checks are unverified.
+- The `gate (main)` and `gate (collectors)` jobs then need no cross-event wait: with the controls on the same events, a gate can `needs:` its controls in one workflow, and `alls-green` becomes an option again (still a new Action: SHA pin and Actions-policy allowance).
+
+**Order into `main` (each step additive, promotions in flight not blocked, each exact-head reviewed):**
+1. This PLAN lands.
+2. `pipeline/` controls, with the `release/*` workflows on `merge_group` and `pull_request` alongside the old checks (add-new).
+3. `npmjs/`, `main/`, `collectors/` controls in the order of `00-changes`.
+4. The Owner adds the new contexts and the pinned-workflow rule, then removes the old contexts (`Change Isolation (review)` first).
+5. Delete the four `pull_request_target` workflows, then remove the temporary Actions policy before 2 Dec 2026.
