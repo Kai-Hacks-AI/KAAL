@@ -23,6 +23,7 @@ Owner, 9 Nov: this goes into `main` ahead of Foundation 0.0.2 and does not wait 
 5. The two gates, `gate (promotion)` and `gate (integration)`, once their controls exist.
 6. Promotion of the collector into `main` in reviewed slices, each with the Owner's explicit go.
 7. Only as verified migration steps (not as part of approving this PLAN), the Owner adds the new contexts to the rulesets, renames the rulesets to match the gates (`kaal/*` ruleset `lineage` to `integration`, the `main` ruleset to `promotion`; checked beforehand that no code, workflow or setting references a ruleset by its name, only comments and these records do, which are updated in the same step), enables the pins and queue settings named in `03-architecture`, and removes the old contexts (`Change Isolation (review)` first, `Branching` last). Then delete the four `pull_request_target` workflows and remove the temporary Actions policy, before 2 Dec 2026.
+8. **Terminate the migration: a final Change that also lands in `main`** (learned 9 Nov). Once the old checks are retired and the new ones are live, an Engineering Change deletes the remaining shims, F20 and T12 (the migration's temporary requirement and Case), and closes the migration record in `00-changes`, as the migration's last step. It is a promotion into `main`, so it keeps its own explicit Owner go, and it comes before `kaal-release 0.0.1`.
 
 ## Later: kaal-release 0.0.1 (out of scope for this PLAN)
 

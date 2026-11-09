@@ -31,7 +31,7 @@ Order of every rename is **add-new, Owner adds the context to the ruleset, remov
 
 ## The migration and its last step
 
-This folder is the migration, a Delivery element of the architecture (`03-architecture`): it owns the temporary change requirements (F20 and its Case T12). Its **last step is terminate**, after the final control Change and the `.github` Changes that remove the old checks: delete the remaining shims, delete F20 and T12, and close this record. Until then, each shim is removed by its own Engineering Change once the `.github` Change has rewired its last caller (F20; `.github` travels alone, so the two are never one Change).
+This folder is the migration, a Delivery element of the architecture (`03-architecture`): it owns the temporary change requirements (F20 and its Case T12). Its **last step is terminate**, a Change of its own that also lands in `main` (step 8 of the path in the README), after the final control Change and the `.github` Changes that remove the old checks: delete the remaining shims, delete F20 and T12, and close this record. Until then, each shim is removed by its own Engineering Change once the `.github` Change has rewired its last caller (F20; `.github` travels alone, so the two are never one Change).
 
 ## Retiring `Change Isolation (review)` (Owner, 9 Nov)
 
