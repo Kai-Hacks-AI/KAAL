@@ -1,6 +1,8 @@
 # Engineering's Release engine
 
-> PLAN engineering/C12 (#719, approved by the Owner in review 5723409257), realized by the engineering/C13 DO in `release.mjs` (the decisions, pure), `run.mjs` (the steps, through Hosting and npm) and `release.test.mjs` (engineering/T62–T70). The workflow, `.github/workflows/publish.yml` (named `release.yml` when engineering/C14 was written), is engineering/C14. The Owner asked, on 2026-10-31 after #717 merged, for "a similar engine than kaal-guard for promotion" to npm, and for "a special download approach" for `0.0.1`. This generalizes Guard Release (`.github/workflows/guard-release.yml`, Guard's R1 on #321/#323, and its later corrections) into one release engine that any KAAL package uses, with Foundation as its first package. It authorizes no synchronization, promotion or publication, and creates no npm credential.
+> PLAN engineering/C12 (#719, approved by the Owner in review 5723409257), realized by the engineering/C13 DO in `release.mjs` (the decisions, pure), `run.mjs` (the steps, through Hosting and npm) and `release.test.mjs` (engineering/T62–T70). The workflow, `.github/workflows/release.yml` (target name `publish.yml`), is engineering/C14. The Owner asked, on 2026-10-31 after #717 merged, for "a similar engine than kaal-guard for promotion" to npm, and for "a special download approach" for `0.0.1`. This generalizes Guard Release (`.github/workflows/guard-release.yml`, Guard's R1 on #321/#323, and its later corrections) into one release engine that any KAAL package uses, with Foundation as its first package. It authorizes no synchronization, promotion or publication, and creates no npm credential.
+
+> **Current and target (9 Nov).** The adapter file is `.github/workflows/release.yml` until the separate `.github`-only Change renames it to `publish.yml` and the workflow to `KAAL / release / publish`. The engine's contract (`SOURCE.workflow`, the Owner's `npm trust ... --file publish.yml` step) already states the target. Nothing is released in between, because the Owner starts every release by hand.
 
 ## What Guard Release already proves, and what it cannot do
 
@@ -61,7 +63,7 @@ The engine owns no package's semantics and adds no assertion to a package's own 
 - **engineering/F35. Registry acceptance is mandatory after every publication.** A release is **accepted** only when F35 gives `verified`. Until then it is published but not accepted, and the release record says so. After F33 it runs as the next job of the same run. After F34 the Owner dispatches it with the Pack run's id, and it reads the release record and artifact from that run, so nobody types a hash. It:
   - downloads the published tarball from the registry (`npm pack <name>@<version>`). Its SHA-256 must equal the tested artifact's, and its sha512 must equal both the release record's `integrity` and the registry's `dist.integrity`;
   - installs `<name>@<version>` from the registry into a fresh consumer, with its own `HOME` and npm cache, and runs F32's installed verification on that installation;
-  - records provenance as it is, never stronger. On the `trusted` path the OIDC provenance attestation (`dist.attestations`) must exist and name this repository, `publish.yml` and the release record's commit, and its absence fails. On the `first` path no OIDC provenance can exist, because the Owner published by hand. The record says **provenance: none (first publication by the Owner, manual bootstrap)**. That is neither claimed nor a failure. The byte-for-byte match above is the evidence that stands in for it, and the record says that too.
+  - records provenance as it is, never stronger. On the `trusted` path the OIDC provenance attestation (`dist.attestations`) must exist and name this repository, the workflow file (target `publish.yml`, the engine's contract; the file is `release.yml` until the `.github` Change) and the release record's commit, and its absence fails. On the `first` path no OIDC provenance can exist, because the Owner published by hand. The record says **provenance: none (first publication by the Owner, manual bootstrap)**. That is neither claimed nor a failure. The byte-for-byte match above is the evidence that stands in for it, and the record says that too.
 
   The result is `verified`, `failed` or `unknown` (Kai's result vocabulary). F35 publishes nothing and needs no approval, so it can also re-check any released version later, Guard's included.
 - **engineering/N15. No credential and no shortcut.** No npm token exists in the repository, its secrets or its environments. Nothing publishes without either the `npm` environment approval or the Owner's own hand. The engine never runs `npm publish` outside F33.
@@ -70,13 +72,13 @@ The engine owns no package's semantics and adds no assertion to a package's own 
 
 ## Design
 
-`engineering/release-management/05-src/release-engine/release.mjs` holds the engine, and `.github/workflows/publish.yml` (renamed from `release.yml` on 9 Nov, before any package was trusted or accepted) is the adapter. The workflow takes the inputs `package` (a string, validated by the engine and not by a choice list that would repeat the workspaces), `publish` (a boolean) and, for `registry`, `run`, the Pack run whose release record and artifact it accepts. It runs `node engineering/release/release.mjs <step> …` in each job and acts on the exit status: 0 verified, 1 failed, 2 cannot judge. Each job keeps Guard Release's settings: actions pinned by SHA, `persist-credentials: false`, `contents: read`, and `id-token: write` only in Publish.
+`engineering/release-management/05-src/release-engine/release.mjs` holds the engine, and `.github/workflows/release.yml` is the adapter today; its target name is `publish.yml` (Owner, 9 Nov, before any package was trusted or accepted), set by the separate `.github` Change. The workflow takes the inputs `package` (a string, validated by the engine and not by a choice list that would repeat the workspaces), `publish` (a boolean) and, for `registry`, `run`, the Pack run whose release record and artifact it accepts. It runs `node engineering/release/release.mjs <step> …` in each job and acts on the exit status: 0 verified, 1 failed, 2 cannot judge. Each job keeps Guard Release's settings: actions pinned by SHA, `persist-credentials: false`, `contents: read`, and `id-token: write` only in Publish.
 
 The registry is reached through `npm` (`view`, `pack <spec>`, `install <spec>`, `publish`), one seam that the tests replace with a fixture registry, so no test needs the network. One read has no npm command: F35's attestation bundle. `run.mjs`'s `attest` fetches it from the URL npm's own `dist.attestations` gives, and refuses any URL outside `https://registry.npmjs.org/-/npm/v1/attestations/`. It is a second seam, also replaced in the tests.
 
 **The steps, as `run.mjs` names them.** `pack` (F28–F32, writes `record/release.json`, `report/summary.md` and the tarball under `artifact/`), `bind` (F31: the uploaded artifact's id and digest into the record), `publish` (F33) and `accept` (F35). Each prints `kaal-release <step>: <result>` and exits 0, 1 or 2.
 
-Trusted publishers are set per package on npm, and each names the workflow file. Every package therefore names `publish.yml`, so one environment, one approval rule and one adapter serve them all.
+Trusted publishers are set per package on npm, and each names the workflow file. Every package therefore names the one workflow file (target `publish.yml`; `release.yml` until the `.github` Change), so one environment, one approval rule and one adapter serve them all.
 
 ## Decisions for the Owner
 
@@ -109,10 +111,10 @@ Run against `main` at 8a5836b, F29 already finds two gaps in `packages/kaal-foun
 
 1. **engineering/C12**, this PLAN, into `kaal/engineering`.
 2. **engineering/C13 DO**: `engineering/release/` with T62–T70 written RED first, then GREEN, into `kaal/engineering`. It reuses `engineering/delivery/pack.mjs`, and engineering/C7's runner once that lands.
-3. **engineering/C14 DO**: `.github/workflows/release.yml` (now `publish.yml`), alone, through its own collector cut from `main`. It only runs once it is on `main`, as every `workflow_dispatch` workflow does.
+3. **engineering/C14 DO**: `.github/workflows/release.yml` (target name `publish.yml`), alone, through its own collector cut from `main`. It only runs once it is on `main`, as every `workflow_dispatch` workflow does.
 4. **Foundation's manifest Change** (repository, publishConfig), in Foundation's collector.
 5. The promotions of 2 to 4, in the queue the Owner keeps.
-6. **The Owner**: run `publish.yml` for `@kaihacksai/kaal-foundation` (Pack), take F34's steps, then dispatch F35 with the Pack run's id.
+6. **The Owner**: run the publish workflow (`release.yml` today, target `publish.yml`) for `@kaihacksai/kaal-foundation` (Pack), take F34's steps, then dispatch F35 with the Pack run's id.
 
 Steps 2, 3 and 4 do not depend on each other and can proceed in parallel. Foundation's `0.0.1` waits for the engine on `main`, so that its first publication is the tested artifact and is accepted by F35.
 
