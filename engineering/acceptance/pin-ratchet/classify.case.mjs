@@ -1,7 +1,10 @@
 // Cases for foundation/C19 PLAN B: classifyNested. Run by hand: node --test engineering/acceptance/pin-ratchet/classify.case.mjs
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { classifyNested, compare } from "./classify.mjs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { classifyNested, compare, listNested } from "./classify.mjs";
 
 const F = "@kaihacksai/kaal-foundation";
 const base = { consumer: "kaal-core", workspace: "0.0.2" };
@@ -40,5 +43,20 @@ describe("foundation/C19 nested Foundation under a consumer", () => {
     assert.equal(compare("0.0.10", "0.0.2"), 1);
     assert.equal(compare("0.0.1", "0.0.2"), -1);
     assert.equal(compare("1.0.0", "1.0.0"), 0);
+  });
+  it("listNested reads scoped and plain packages and ignores dot entries such as .bin", () => {
+    const dir = mkdtempSync(join(tmpdir(), "nested-"));
+    try {
+      mkdirSync(join(dir, ".bin"));
+      writeFileSync(join(dir, ".bin", "kaal-foundation"), "#!/usr/bin/env node\n");
+      mkdirSync(join(dir, "@kaihacksai", "kaal-foundation"), { recursive: true });
+      writeFileSync(join(dir, "@kaihacksai", "kaal-foundation", "package.json"), JSON.stringify({ version: "0.0.1" }));
+      mkdirSync(join(dir, "yaml"));
+      writeFileSync(join(dir, "yaml", "package.json"), JSON.stringify({ version: "2.9.1" }));
+      assert.deepEqual(listNested(dir), { "@kaihacksai/kaal-foundation": "0.0.1", yaml: "2.9.1" });
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  });
+  it("listNested of a missing directory is empty", () => {
+    assert.deepEqual(listNested(join(tmpdir(), "no-such-nested-dir-0")), {});
   });
 });
