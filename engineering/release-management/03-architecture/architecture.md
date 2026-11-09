@@ -124,8 +124,10 @@ Priority (Owner, 9 Nov): this goes into `main` ahead of Foundation 0.0.2 and doe
 
 ## Release controls are hard-pinned (Owner, 9 Nov 2026)
 
+Rationale (I4): Delivery architecture changes independently of Solution architecture. The release controls, the workflow wiring and the test machinery are Delivery elements: they change in their own Changes and judge a candidate as `main`'s copy. Product code and the Cases that test it are Solution content and travel in candidates.
+
 Every control of `pipeline/`, `npmjs/` and `main/`, and `collectors/` for its release controls (approve Change), runs the checker **from `main`** on both `pull_request` and `merge_group`: the job checks out `ref: main` (the default branch's tip, read at run start, never the event's base) and runs the logic from `engineering/release-management/05-src/`. The candidate is read as Git data only and never checked out, built or run, as the existing jobs do. `.github` holds only the wiring: which control runs on which event, the checkout of `main` and the call to the checker. The logic lives in `05-src`. The pin is protected because `.github travels alone` (F6, T7): the wiring can change only in a lone `.github` change with human approval, and the checker can change only through a promotion, so a candidate is always judged by the checker `main` already holds.
 
 Consequence: a change to a control's logic takes effect after it is promoted, not in its own pull request, which is the intended behavior (the same as today's Change Isolation and Branching).
 
-**Not covered by the pin, left open (Owner, in discussion):** the tests collected by the testing control (test Candidate, test Integration). They run candidate code by nature, so a pin to `main` does not apply to them in the same way. How they are collected, where they run and what a pin means for them is a separate question and is not decided in this PLAN.
+**Testing controls, framed by I4 and still open (Owner, in discussion):** test Candidate and test Integration collect and run tests. The test machinery (the lanes that collect and run) is Delivery, so by I4 it is pinned like the other controls. The Cases under test are Solution content in the candidate and run as candidate code. How the collection of those Cases is pinned, and where it runs, is a separate question and is not decided in this PLAN.
