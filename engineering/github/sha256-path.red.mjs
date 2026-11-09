@@ -28,4 +28,8 @@ describe("Foundation's SHA-256 path in the Change Isolation judge", () => {
       assert.ok(s.includes(NEW), `${f} does not know the new layout path`);
     }
   });
+  it("T4 (RED on a tree whose package export points into an unbuilt dist/): the checker falls back to Foundation's source file", () => {
+    const check = read("engineering/change-isolation/check.mjs");
+    assert.ok(check.includes(`../../${NEW}`), "check.mjs has no source-path candidate for Foundation's SHA-256");
+  });
 });

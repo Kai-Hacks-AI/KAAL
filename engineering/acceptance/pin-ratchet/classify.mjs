@@ -3,6 +3,21 @@
 // It stays a hard failure when the nested copy has the same version as the workspace one (a duplicate), a version
 // above it, a version below a floor Foundation itself declares, or when anything other than Foundation is nested.
 
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+/** Packages nested in a node_modules directory, name to version; dot entries such as .bin are not packages. */
+export function listNested(dir) {
+  const nested = {};
+  if (!existsSync(dir)) return nested;
+  for (const entry of readdirSync(dir)) {
+    if (entry.startsWith(".")) continue;
+    const names = entry.startsWith("@") ? readdirSync(join(dir, entry)).map((n) => `${entry}/${n}`) : [entry];
+    for (const name of names) nested[name] = JSON.parse(readFileSync(join(dir, name, "package.json"), "utf8")).version;
+  }
+  return nested;
+}
+
 const parse = (v) => String(v).split(".").map((n) => Number.parseInt(n, 10));
 /** -1, 0 or 1 comparing two plain x.y.z versions. */
 export function compare(a, b) {
