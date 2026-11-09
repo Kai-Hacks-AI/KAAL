@@ -20,7 +20,7 @@ Located in the order Intent, Requirements, Architecture, Code, on main 251e814.
   "expected": "Hosting's tests assert Hosting's own contract (hosting/F15, hosting/F21, hosting/F22) against Hosting. Engineering's readiness and acceptance rules are judged once, by Engineering's Package control, and no Hosting test imports a file of KAAL's engineering directory.",
   "observed": "release-record.test.mjs and dependency-successors.test.mjs import ../../../../../engineering/release/release.mjs and call readiness() (hosting/T83, hosting/T174) and verification() (hosting/T84 to hosting/T86), so Engineering's rules are re-judged inside Hosting and the publisher suite depends on that file to run.",
   "where": "packages/kaal-hosting/04-test/engineering-check/publisher/release-record.test.mjs and dependency-successors.test.mjs",
-  "status": "open",
+  "status": "answered",
   "tests": ["hosting/T270", "hosting/T271"]
 }
 ```
@@ -33,3 +33,5 @@ Located in the order Intent, Requirements, Architecture, Code, on main 251e814.
 | hosting/T271 | passes before and after the fix, behavior that already works and must keep working: the five exact runtime dependency versions of hosting/F15 | same file |
 
 **Confirming Run (9 Nov, Node 24, Linux, 251e814):** the Case in its RED role fails, naming `release-record.test.mjs` and `dependency-successors.test.mjs`, and the other passes. The fix is a separate Change; the Cases are not edited.
+
+**Answered:** hosting/T270 passes, unmodified, with hosting/T271 still passing. The Change is `00-changes/engineering-release-judge/`.
