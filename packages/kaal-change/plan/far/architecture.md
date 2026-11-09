@@ -11,15 +11,16 @@ Each element names, in brackets, the Requirements it answers.
   - **How it lands.** It lands only through a PLAN Change's own integration, which Review's approval and Engineering's Branching govern. Review defines what counts as authorization evidence.
   - **Given as data.** The designation reaches `authorize` as an argument and is never read from the record or the candidate (change/N3).
   - **Open (G13).** Whether the decision is read from the entry or from the approving review of the landing is not chosen here. Either fits this element: only the data given to `authorize` differs.
-- **change/A8** [change/F10, change/F11, change/F13, change/F15, change/F16]: **The integration gate is Engineering's.** *Revised.* It does eight things:
+- **change/A8** [change/F10, change/F11, change/F13, change/F15, change/F16]: **The integration gate is Engineering's.** *Revised.* It does nine things:
   - names the integration, with the Change, the boundary and the source and target revisions as evidence;
   - finds the PLAN's landing commit: an ancestor of the candidate, on the collector for a collector pull request, and on the collector for the promotion that carries it;
   - reads the record and the Features Plan at that commit, and the candidate's copies at its own head;
   - selects the complete Regression Plan at the integration's protected baseline (change/I6), never at the PLAN's landing, and gives the exceptions only for Cases of it that the Accept names with an equal digest;
   - observes the baseline and the head in one process (`testing/N4`);
-  - calls `authorize`, `integrity` and `exceptions`, with the designation as data;
+  - obtains the state each Accept's end condition is judged by (change/F14), and calls `authorize`, `integrity` and `lifecycle`, with the designation and that state as data;
+  - calls `exceptions` with their findings, so an unauthorized, altered or expired Accept gives no exception;
   - has Testing evaluate the Features Plan at the head with no exceptions and no baseline, and the Regression Plan at the head against the baseline with the exceptions;
-  - calls `compose`, and applies its policy;
+  - calls `compose` with those findings too, so an expired or unjudgeable Accept cannot give a passing outcome, and applies its policy;
   - treats any finding, and anything unreadable, as no exception and no pass (change/F16).
 - **change/A9** [change/F12, change/F13, change/F14, change/F15, change/F16, change/N3, change/N4]: **Pure judgments.** `kaal-change/far` also exports `authorize`, `integrity` and `lifecycle`. Like the rest, they import no module, take data and return data, change nothing they are given, and give the same result for the same input.
   - **`authorize(record, designation, landing)`** gives the authorization findings (change/F12, change/F16) and the PLAN, commit and authority a cite names. `landing` is the commit the gate resolved and verified; the record holds no commit, since a commit cannot contain its own hash.
