@@ -59,7 +59,7 @@ Each of F1 to F3 and F5 to F16 is allocated to a component, setting or tool abov
 
 **The migration is an architecture element too (Owner, 9 Nov).** The change process from the current controls to the new ones (`00-changes`) is a Delivery element with a beginning and an end. It owns the temporary requirements (F20 today) and their Cases (T12), and its last step is **terminate**: remove the last shim, delete F20 and T12, then close the migration record. Standing requirements stay with their components.
 
-**Shim rule (F20, owned by the migration).** A shim left at an old path is a full facade of the moved module: it re-exports everything (`export * from` the new path) and, where the module has a command line, calls the new module's `main`. It exists only while a caller still uses the old path, and is deleted with its last caller. T12 compares the old module's export names with the new one's and runs the command line through the old path, for every shim.
+**Shim rule (F20, owned by the migration).** A shim left at an old path is a full facade of the moved module: it re-exports everything (`export * from` the new path) and, where the module has a command line, calls the new module's `main`. It exists only while a caller still uses the old path. Because a caller in `.github` travels alone, the shim is removed in a separate Engineering Change after the `.github` Change has rewired the last caller, never in the same Change. T12 compares the old module's export names with the new one's and runs the command line through the old path, for every shim.
 
 **Realized by a native setting or a tool, not by source** (recorded here, no folder; the component only holds the requirement and its Case where one can check it):
 

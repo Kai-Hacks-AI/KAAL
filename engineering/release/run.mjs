@@ -1,6 +1,6 @@
 // Shim (F20, a temporary Delivery change requirement): see release.mjs in this folder. A full facade of the old interface
-// (every export and the command line); .github/workflows/release.yml still calls this path until its own .github-only Change,
-// which removes this shim.
+// (every export and the command line); .github/workflows/release.yml still calls this path. The .github-only Change rewires it
+// first (.github travels alone), and a later Engineering Change removes this shim.
 import { fileURLToPath } from "node:url";
 import { main } from "../release-management/05-src/release-engine/run.mjs";
 
