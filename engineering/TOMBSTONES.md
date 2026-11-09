@@ -7,7 +7,7 @@ type:
 
 # TOMBSTONES
 
-Test Of Member Boundaries So That Ownership Navigation Enhances.
+Test Of Member Boundaries So That Ownership Navigation Enhances Systematically.
 
 When a Node's owner is found elsewhere, the Node moves and leaves a tombstone, so that every edge that pointed at it still resolves and ownership can be navigated. The rules:
 
