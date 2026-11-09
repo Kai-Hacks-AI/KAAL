@@ -22,6 +22,24 @@ engineering/controls/<control>/
 
 Cases stay next to the code (for example `engineering/github/ports/promotion-source.parity.test.mjs`); `04-test` only refers to them by `test:<path>#<describe>`. Change records stay in `.kaal/changes/engineering/`, as Engineering's own folder holds only what improves Engineering.
 
+## Where the code of each control lives today
+
+Measured on `main` from the controls' Architecture lines and the Guard check declarations (`.kaal/config/guard/`). The control's chain stays in `engineering/controls/`; the implementation stays with its mechanism. "Cases" are the Cases the control cites.
+
+| Control | Decides (checker) | Run by (script via Guard, workflow) | Cases |
+| --- | --- | --- | --- |
+| Change Isolation | `engineering/change-isolation/check.mjs` | `engineering/github/change-isolation.sh` (to port), `change-isolation.yml`; before a push, `push-check.sh` | `engineering/change-isolation/check.test.mjs` |
+| Lineage | `engineering/github/lineage.ts` (`synchronization`, `methodFor`, `autoMerge`, `landing`) | `engineering/github/branching.sh` (to port), `lineage-synchronization.yml`; before a push, `push-check.sh` | `engineering/github/lineage.test.ts` |
+| Promotion source | `engineering/github/lineage.ts` (`promotionSource`, `promotionFreshness`) | `engineering/github/promotion-source.mjs` (ported, #1317), `promotion-source.yml` | `lineage.test.ts`; parity Case `engineering/github/ports/promotion-source.parity.test.mjs` |
+| Lineage audit | `lineage.ts` (`establishment`, `collector`, `workingBranch`), `engineering/github/holds.json` | `engineering/github/branching-audit.sh` (to port), `branching-audit.yml` | `lineage.test.ts` |
+| Required tests | none: the lanes themselves | `npm run test:*` through Guard, `ci.yml`, `guard-acceptance-boundary.yml` | `engineering/lanes/evidence.test.mjs` |
+| Review before merge | none: GitHub branch protection, outside the repository | none | none (validated by the reviewer) |
+| One promotion at a time | none: directive today | none | none yet |
+
+So only three of the seven are implemented by GitHub scripts and workflows (Lineage, Promotion source, Lineage audit), plus Change Isolation, which has its own checker folder, and Required tests, which are the lanes. Two have no code at all. This is why the chain folders cannot live under `github/`.
+
+The merge queue's gates (`merge-group*.yml`, `bind-group.sh`) are not covered by any of the seven controls today, which is the gap the full-chain item for those scripts has to close.
+
 ## Where the port Cases live
 
 `engineering/github/ports/` is not a good home: it is named for a mechanism, and it holds three different kinds of thing. The rule is that a Case sits next to what motivated it.
