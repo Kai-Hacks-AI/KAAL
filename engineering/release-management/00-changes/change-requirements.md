@@ -12,6 +12,6 @@ When a Change moves a module into `05-src`, the old path keeps serving the modul
 
 | release-management/T12 | F20 | for every shim left at an old path: its export names equal the moved module's export names (compared by import, not by text), and its command line behaves as the moved module's (same exit status and message for an unknown step) |
 
-**Case T13** (`../05-src/release-engine/migration-end.test.mjs`): turns RED when the migration is done but this requirement is still here. Callers of the old paths are found with the YAML parser (workflows) and the TypeScript AST (imports); while a caller exists the shim and this file must stay, and once none exists both must be gone. It is deleted with them.
+**Case T13** (`../05-src/release-engine/migration-end.test.mjs`): turns RED when the migration is done but this requirement is still here. "Done" is this requirement's own end condition: the last shim is gone and nothing calls an old path. Callers are found with the YAML parser (workflows) and the TypeScript AST (imports). RED also when a called shim is missing. A shim with no caller left is the normal pending state between the `.github` rewiring Change and the removal Change: it passes and says so. It is deleted with this file.
 
 **Ends when:** the last shim is removed (the terminate Change, step 8 of the path to `main` in `../README.md`). The Case runs from `../05-src/release-engine/placement.test.mjs` while the shim exists and is deleted with it.
