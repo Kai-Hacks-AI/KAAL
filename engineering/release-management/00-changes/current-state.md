@@ -61,3 +61,9 @@ What the repository and its settings hold now, observed on the collector `kaal/e
   Current: the collector and control decisions (names, layout, the Branching split, FAR use, the pin) are the Owner's decisions of 9 Nov, recorded in the project record and not verifiable in the repository.
 
   Target: F4, F17, F18.
+
+- **Names the map does not cover yet.**
+
+  Current: the naming map has no row for `Dependency Review` (to `scan Dependencies`), `CodeQL` (to `scan Vulnerabilities`), the lane names that come from `${{ matrix.check }}` (Workspaces, Engineering) and `Guard Acceptance Boundary`. The map has to say which `Guard` is meant: a workflow, a job and a check all carry that name, and `KAAL` names three workflows. F4 would flag each of these as a finding (an observation, not a gate).
+
+  Target: F4.

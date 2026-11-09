@@ -5,287 +5,509 @@
       "kind": "allocation",
       "provenance": "03-architecture/architecture.md",
       "text": "A1 = version Package, allocated F3 to release-engine/, applied at main.",
+      "codes": [],
       "definedBy": "statement"
     },
     "A2": {
       "kind": "allocation",
       "provenance": "03-architecture/architecture.md",
       "text": "A2 = approve Publishing, allocated F1 to the npm environment and release-engine/, applied at npmjs.",
+      "codes": [],
       "definedBy": "statement"
     },
     "A3": {
       "kind": "allocation",
       "provenance": "03-architecture/architecture.md",
       "text": "A3 = verify Package Promotion, allocated F2 to release-engine/, applied at npmjs.",
+      "codes": [],
       "definedBy": "statement"
     },
     "F1": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "in: approve Publishing [release-management/F1, I2]. A publication runs only when a named person has approved it for this package, this version and these bytes.Exists: release.yml starts by hand (workflow_dispatch) on the default branch only. The Publish job waits for the npm environment (Owner as required reviewer, per the file's header) and publishes the tested tarball through Trusted Publishing, no token, no repack (publishable() binds record, run, commit and digest).Gaps: G5 the approval is a GitHub environment gate and the release record does not say who approved. G6 the environment and trusted-publisher settings are outside the repository and unverified. G7 a first publication of a package is manual (F34) and outside the workflow. G8 the trusted publisher lapses without a workflow publish (observed 10 Nov) and nothing in the repository reminds of it."
+      "text": "in: approve Publishing [release-management/F1, I2]. A publication runs only when a named person has approved it for this package, this version and these bytes.Exists: release.yml starts by hand (workflow_dispatch) on the default branch only. The Publish job waits for the npm environment (Owner as required reviewer, per the file's header) and publishes the tested tarball through Trusted Publishing, no token, no repack (publishable() binds record, run, commit and digest).Gaps: G5 the approval is a GitHub environment gate and the release record does not say who approved. G6 the environment and trusted-publisher settings are outside the repository and unverified. G7 a first publication of a package is manual (F34) and outside the workflow. G8 the trusted publisher lapses without a workflow publish (observed 10 Nov) and nothing in the repository reminds of it.",
+      "codes": [
+        "release.yml",
+        "workflow_dispatch",
+        "npm",
+        "publishable()"
+      ]
     },
     "F2": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "stock: verify Package Promotion [release-management/F2, I2]. For each version in npm, the published bytes are the bytes main promoted: same tarball, same provenance, same commit.Exists: the Accept job (step registry) downloads the published tarball, compares it with the tested one in release.json and checks the OIDC provenance against Kai-Hacks-AI/KAAL, release.yml and the release commit (provenance()); a fresh registry install follows.Target (set by the .github-only Change after #1326, Owner 9 Nov): the file becomes publish.yml and the workflow KAAL / release / publish. The engine already expects publish.yml (SOURCE.workflow, the npm trust step). Until the .github Change lands the file is release.yml and nothing is released, because the Owner starts every release by hand.Gaps: G9 nothing records which promotion put the commit on main (promotion PR, ledger entry), so \"promoted main state\" holds by the dispatch restriction only. G10 acceptance runs once after publication, with no later re-check. G11 for a package published by hand provenance is \"none\" by design."
+      "text": "stock: verify Package Promotion [release-management/F2, I2]. For each version in npm, the published bytes are the bytes main promoted: same tarball, same provenance, same commit.Exists: the Accept job (step registry) downloads the published tarball, compares it with the tested one in release.json and checks the OIDC provenance against Kai-Hacks-AI/KAAL, release.yml and the release commit (provenance()); a fresh registry install follows.Target (set by the .github-only Change after #1326, Owner 9 Nov): the file becomes publish.yml and the workflow KAAL / release / publish. The engine already expects publish.yml (SOURCE.workflow, the npm trust step). Until the .github Change lands the file is release.yml and nothing is released, because the Owner starts every release by hand.Gaps: G9 nothing records which promotion put the commit on main (promotion PR, ledger entry), so \"promoted main state\" holds by the dispatch restriction only. G10 acceptance runs once after publication, with no later re-check. G11 for a package published by hand provenance is \"none\" by design.",
+      "codes": [
+        "main",
+        "registry",
+        "release.json",
+        "Kai-Hacks-AI/KAAL",
+        "release.yml",
+        "provenance()",
+        ".github",
+        "publish.yml",
+        "KAAL / release / publish",
+        "publish.yml",
+        "SOURCE.workflow",
+        "npm trust",
+        ".github",
+        "release.yml",
+        "main"
+      ]
     },
     "F3": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "out: version Package [release-management/F3, I1, I2] (moved here from npmjs's in; the sender names the version). A version leaving main for npm is a semantic version, named once, greater than every version already published, and traceable to the Change that set it. This is built.Exists: readiness() in engineering/release/release.mjs rejects a non-semver version and a version already on the registry (\"raise the version\"); dependencies must be exact and already published.Gaps: G1 no check that the version is greater than the latest published. G2 no tag marks the released commit. G3 no check that the version was set by a recorded Change. G4 no changelog or bump tooling; versions are hand-edited."
+      "text": "out: version Package [release-management/F3, I1, I2] (moved here from npmjs's in; the sender names the version). A version leaving main for npm is a semantic version, named once, greater than every version already published, and traceable to the Change that set it. This is built.Exists: readiness() in engineering/release/release.mjs rejects a non-semver version and a version already on the registry (\"raise the version\"); dependencies must be exact and already published.Gaps: G1 no check that the version is greater than the latest published. G2 no tag marks the released commit. G3 no check that the version was set by a recorded Change. G4 no changelog or bump tooling; versions are hand-edited.",
+      "codes": [
+        "main",
+        "readiness()",
+        "engineering/release/release.mjs"
+      ]
     },
     "F4": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "Naming is aligned (spans everything) [release-management/F4] Ids: F1 approve Publishing, F2 verify Package Promotion, F3 version Package, F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies, F10 bind Merge, F11 approve Promotion, F12 test Candidate, F13 serialize Promotion, F14 accept Capability, F15 approve Change, F16 test Integration. Each is allocated to one control component, setting or tool in 03-architecture, with its control target; F4 is cross-cutting and allocated to the naming map, not to a component. Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or control appears (Intent, Requirements, Architecture, 05-src folders, files and scripts, GitHub workflows, jobs and gates), its name is self-explanatory, easy to understand and semantically consistent with the control's name, so a reader and a program can tell which control it is. Each surface may spell it its own way (a folder approve-publishing, a job approve Publishing); a mapping in the Architecture lists, per control, its spelling on each surface, and later its graph id (deferred). A surface name that maps to no control, or a control with no name on a surface where it runs, is a finding (an observation, not a gate). Read by parsers (YAML for workflows, Markdown AST for the records, directory listing for 05-src), never regex. Use vs build: the YAML parser already in Engineering is used; no new parser."
+      "text": "Naming is aligned (spans everything) [release-management/F4] Ids: F1 approve Publishing, F2 verify Package Promotion, F3 version Package, F5 audit Lineage, F6 isolate Change, F7 verify Ancestry, F8 scan Vulnerabilities, F9 scan Dependencies, F10 bind Merge, F11 approve Promotion, F12 test Candidate, F13 serialize Promotion, F14 accept Capability, F15 approve Change, F16 test Integration. Each is allocated to one control component, setting or tool in 03-architecture, with its control target; F4 is cross-cutting and allocated to the naming map, not to a component. Aligned does not mean identical strings (Owner, 9 Nov). Wherever a station or control appears (Intent, Requirements, Architecture, 05-src folders, files and scripts, GitHub workflows, jobs and gates), its name is self-explanatory, easy to understand and semantically consistent with the control's name, so a reader and a program can tell which control it is. Each surface may spell it its own way (a folder approve-publishing, a job approve Publishing); a mapping in the Architecture lists, per control, its spelling on each surface, and later its graph id (deferred). A surface name that maps to no control, or a control with no name on a surface where it runs, is a finding (an observation, not a gate). Read by parsers (YAML for workflows, Markdown AST for the records, directory listing for 05-src), never regex. Use vs build: the YAML parser already in Engineering is used; no new parser.",
+      "codes": [
+        "03-architecture",
+        "05-src",
+        "approve-publishing",
+        "approve Publishing",
+        "05-src"
+      ]
     },
     "F5": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "audit Lineage [release-management/F5] (today's branching-audit: lineage.ts establishment, collector, workingBranch, holds.json, branching-audit.sh, scheduled check Branching audit). Holds the stock of stations 11 and 12."
+      "text": "audit Lineage [release-management/F5] (today's branching-audit: lineage.ts establishment, collector, workingBranch, holds.json, branching-audit.sh, scheduled check Branching audit). Holds the stock of stations 11 and 12.",
+      "codes": [
+        "branching-audit",
+        "lineage.ts",
+        "establishment",
+        "collector",
+        "workingBranch",
+        "holds.json",
+        "branching-audit.sh",
+        "Branching audit"
+      ]
     },
     "F6": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "isolate Change [release-management/F6] (today's Change Isolation: what may travel together, engineering/change-isolation/) and the synchronization shape that Branching judged on kaal/* (a merge of main, first-parent shape, each step forward, resolutions adopted or its own Change)..github travels alone is a failure, not a warning (Owner, 9 Nov). A change that touches .github/ and any path outside it fails the check (check.mjs exits 1) on a pull request into a kaal/* collector, on a promotion into main, and in the merge queue. So workflow changes cannot ride with feature work; they reach main only as a lone .github change that gets human approval. A lone .github change may land in a collector, but the collector cannot then promote it together with other paths (the aggregate is judged at main); a synchronization that adopts main's own .github content unchanged is exempt (already admitted on main). By I4 (Delivery changes independently of Solution), this is what stops a candidate editing the workflow that judges it, so \"Require workflows to pass\" is an optional extra layer, not a must."
+      "text": "isolate Change [release-management/F6] (today's Change Isolation: what may travel together, engineering/change-isolation/) and the synchronization shape that Branching judged on kaal/* (a merge of main, first-parent shape, each step forward, resolutions adopted or its own Change)..github travels alone is a failure, not a warning (Owner, 9 Nov). A change that touches .github/ and any path outside it fails the check (check.mjs exits 1) on a pull request into a kaal/* collector, on a promotion into main, and in the merge queue. So workflow changes cannot ride with feature work; they reach main only as a lone .github change that gets human approval. A lone .github change may land in a collector, but the collector cannot then promote it together with other paths (the aggregate is judged at main); a synchronization that adopts main's own .github content unchanged is exempt (already admitted on main). By I4 (Delivery changes independently of Solution), this is what stops a candidate editing the workflow that judges it, so \"Require workflows to pass\" is an optional extra layer, not a must.",
+      "codes": [
+        "Change Isolation",
+        "engineering/change-isolation/",
+        "Branching",
+        "kaal/*",
+        "main",
+        ".github/",
+        "check.mjs",
+        "kaal/*",
+        "main",
+        "main",
+        ".github",
+        ".github",
+        "main",
+        "main",
+        ".github",
+        "main"
+      ]
     },
     "F7": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "verify Ancestry [release-management/F7] (today's freshness: a promotion's head contains main's tip, so merging gives main exactly the state validated). One control with two targets, the kaal/* collector side and the promotion into main; it spans two stations, so it lives at the root."
+      "text": "verify Ancestry [release-management/F7] (today's freshness: a promotion's head contains main's tip, so merging gives main exactly the state validated). One control with two targets, the kaal/* collector side and the promotion into main; it spans two stations, so it lives at the root.",
+      "codes": [
+        "main",
+        "main",
+        "kaal/*",
+        "main"
+      ]
     },
     "F8": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "scan Vulnerabilities [release-management/F8] (today's CodeQL, codeql.yml: CodeQL (actions), CodeQL (javascript-typescript))."
+      "text": "scan Vulnerabilities [release-management/F8] (today's CodeQL, codeql.yml: CodeQL (actions), CodeQL (javascript-typescript)).",
+      "codes": [
+        "codeql.yml",
+        "CodeQL (actions)",
+        "CodeQL (javascript-typescript)"
+      ]
     },
     "F9": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "scan Dependencies [release-management/F9] (today's dependency-review.yml, Dependency Review)."
+      "text": "scan Dependencies [release-management/F9] (today's dependency-review.yml, Dependency Review).",
+      "codes": [
+        "dependency-review.yml",
+        "Dependency Review"
+      ]
     },
     "F10": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
       "text": "bind Merge: the merge queue, bind-group, and the merge method that Branching judged: squash for a Change or promotion, merge commit for a synchronization (station 11-main, in).",
+      "codes": [],
       "definedBy": "statement"
     },
     "F11": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
       "text": "approve Promotion: native approval settings of the main ruleset (station 11-main, in).",
+      "codes": [],
       "definedBy": "statement"
     },
     "F12": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
       "text": "test Candidate: the FAR lanes on kaal/* to main, separate jobs (station 11-main, in).",
+      "codes": [],
       "definedBy": "statement"
     },
     "F13": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
       "text": "serialize Promotion: one promotion at a time (station 11-main, in).",
+      "codes": [],
       "definedBy": "statement"
     },
     "F14": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
       "text": "accept Capability: promotion source, today's Promotion Source (station 11-main, in).",
+      "codes": [],
       "definedBy": "statement"
     },
     "F15": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
       "text": "approve Change: native approval settings of kaal/* (station 12-collectors, in).",
+      "codes": [],
       "definedBy": "statement"
     },
     "F16": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
       "text": "test Integration: the lanes on kaal/* PRs, separate jobs (station 12-collectors, in).",
+      "codes": [],
       "definedBy": "statement"
     },
     "F17": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "Controls are pinned to main [release-management/F17] Rationale: I4, Delivery architecture changes independently of Solution architecture. A release control judges a candidate with the checker main holds (checkout of main, on pull_request and merge_group), with its logic in 05-src and only wiring in .github. Allocated to the architecture's wiring rule (a cross-cutting requirement like F4, checked by T8). The testing controls are pinned through F18 (FAR): their machinery and Regression run as main's copy, Features travel with the candidate."
+      "text": "Controls are pinned to main [release-management/F17] Rationale: I4, Delivery architecture changes independently of Solution architecture. A release control judges a candidate with the checker main holds (checkout of main, on pull_request and merge_group), with its logic in 05-src and only wiring in .github. Allocated to the architecture's wiring rule (a cross-cutting requirement like F4, checked by T8). The testing controls are pinned through F18 (FAR): their machinery and Regression run as main's copy, Features travel with the candidate.",
+      "codes": [
+        "main",
+        "main",
+        "main",
+        "pull_request",
+        "merge_group",
+        "05-src",
+        ".github",
+        "main"
+      ]
     },
     "F18": {
       "kind": "requirement",
       "provenance": "02-requirements/requirements.md",
-      "text": "Testing applies FAR [release-management/F18] test Candidate (into main) and test Integration (into a collector) apply FAR (Owner, 9 Nov): Regression protects the target: it is the target's own Cases, run as the target's copy and pinned (F17), never the candidate's version of them.Features test the incoming change: they are the Cases the candidate adds or changes, they travel with the candidate (Solution content) and run as candidate code.Accepts is Change's Accept (change/I7, change/F8 to F10), used as it is and not rebuilt: a short, explicit list, kept as far.json in the Change record (<capability>/00-changes/…, change/A6), that lets one named integration leave named Regression Cases RED. Each entry is { case, justifiedBy, protects } with a reason and an alternative, and a decision (accept, reject, narrow, redesign) by the designated authority (the Owner) with evidence. It applies only to the integration it names and never transfers; there is no standing waiver. It is the only door to weaken Regression, and a change to Accepts is reviewed and approved like any change; a Regression Case missing, edited or skipped without an Accepts entry fails. Each run tests both Features and Regression and communicates what gets weakened: the pinned runner reads far.json, runs main's Regression against the candidate, and reports every Accepts entry it applied (which Regression Case stays RED, justified by which Features Case) visibly in the check output, for example the job summary, so the reviewer sees it at the decision point. A failure that matches an entry is accepted (the Case stays observed RED, the Plan's result succeeds under the exception, and it is reported); a failure without an entry stays red; an entry that matches no Regression Case, names a Features Case, or is listed twice is a finding (change/F8), so a stale entry fails. A run that applied no Accepts entry says so. On promotion the entries are consumed: the Change's Case changes become main's new Regression. Interim (Owner, 9 Nov): kaal-change/far (change/C2) is a PLAN only and its DO (proposal, decide, exceptions, compose) is not built. test Candidate and test Integration do not wait for it. They are built now as a temporary interim, following the Foundation pattern: it reads the same far.json record shape (change/F7 to F10), parses it with a real parser, says \"interim, replaced by kaal-change/far\" in its output, and is replaced when that DO lands. test Candidate and test Integration are the integration gate of change/A8. By I4 the machinery is Delivery and pinned; the Cases under test are Solution content. Allocated to the testing controls (test Candidate at main, test Integration at collectors; both in lanes/), which share the FAR rule."
+      "text": "Testing applies FAR [release-management/F18] test Candidate (into main) and test Integration (into a collector) apply FAR (Owner, 9 Nov): Regression protects the target: it is the target's own Cases, run as the target's copy and pinned (F17), never the candidate's version of them.Features test the incoming change: they are the Cases the candidate adds or changes, they travel with the candidate (Solution content) and run as candidate code.Accepts is Change's Accept (change/I7, change/F8 to F10), used as it is and not rebuilt: a short, explicit list, kept as far.json in the Change record (<capability>/00-changes/…, change/A6), that lets one named integration leave named Regression Cases RED. Each entry is { case, justifiedBy, protects } with a reason and an alternative, and a decision (accept, reject, narrow, redesign) by the designated authority (the Owner) with evidence. It applies only to the integration it names and never transfers; there is no standing waiver. It is the only door to weaken Regression, and a change to Accepts is reviewed and approved like any change; a Regression Case missing, edited or skipped without an Accepts entry fails. Each run tests both Features and Regression and communicates what gets weakened: the pinned runner reads far.json, runs main's Regression against the candidate, and reports every Accepts entry it applied (which Regression Case stays RED, justified by which Features Case) visibly in the check output, for example the job summary, so the reviewer sees it at the decision point. A failure that matches an entry is accepted (the Case stays observed RED, the Plan's result succeeds under the exception, and it is reported); a failure without an entry stays red; an entry that matches no Regression Case, names a Features Case, or is listed twice is a finding (change/F8), so a stale entry fails. A run that applied no Accepts entry says so. On promotion the entries are consumed: the Change's Case changes become main's new Regression. Interim (Owner, 9 Nov): kaal-change/far (change/C2) is a PLAN only and its DO (proposal, decide, exceptions, compose) is not built. test Candidate and test Integration do not wait for it. They are built now as a temporary interim, following the Foundation pattern: it reads the same far.json record shape (change/F7 to F10), parses it with a real parser, says \"interim, replaced by kaal-change/far\" in its output, and is replaced when that DO lands. test Candidate and test Integration are the integration gate of change/A8. By I4 the machinery is Delivery and pinned; the Cases under test are Solution content. Allocated to the testing controls (test Candidate at main, test Integration at collectors; both in lanes/), which share the FAR rule.",
+      "codes": [
+        "main",
+        "change/I7",
+        "change/F8",
+        "F10",
+        "far.json",
+        "<capability>/00-changes/…",
+        "change/A6",
+        "{ case, justifiedBy, protects }",
+        "accept",
+        "reject",
+        "narrow",
+        "redesign",
+        "far.json",
+        "main",
+        "change/F8",
+        "main",
+        "kaal-change/far",
+        "change/C2",
+        "proposal",
+        "decide",
+        "exceptions",
+        "compose",
+        "far.json",
+        "change/F7",
+        "F10",
+        "change/A8",
+        "main",
+        "collectors",
+        "lanes/"
+      ]
     },
     "F20": {
       "kind": "requirement",
       "provenance": "00-changes/change-requirements.md",
-      "text": "A moved module keeps its old interface until its last caller is rewired, then the shim goes [release-management/F20] Rationale: I4, and the control-continuity condition in the README. A change requirement, not a product requirement (Owner, 9 Nov): Delivery, not Solution, and temporary. It is placed by functional placement, like any requirement: allocated in 03-architecture to the migration (the change process from the current controls to the new ones, 00-changes), which owns it and ends it with its terminate step. There is no flag to maintain: temporary means owned by the migration and gone when the migration ends. When a Change moves a module into 05-src, the old path keeps serving the module's whole old interface (every export and the command line) for as long as any caller still uses that path, and is removed afterwards, in its own Engineering Change, once its last caller has been rewired. The two cannot be one Change: the callers that live in .github (the workflow) travel alone (F6), while a shim lives in engineering/, so the rewiring Change comes first and the shim-removal Change follows it. A shim is therefore a full facade (re-export plus the command line), never a partial one. Found by the CPO on #1324 (the first shim exported nothing); the gap was in the requirements and in the architecture's \"one-line shim\" wording, not in the code. Allocated to the shim rule in 03-architecture and checked by T12 for every shim."
+      "text": "A moved module keeps its old interface until its last caller is rewired, then the shim goes [release-management/F20] Rationale: I4, and the control-continuity condition in the README. A change requirement, not a product requirement (Owner, 9 Nov): Delivery, not Solution, and temporary. It is placed by functional placement, like any requirement: allocated in 03-architecture to the migration (the change process from the current controls to the new ones, 00-changes), which owns it and ends it with its terminate step. There is no flag to maintain: temporary means owned by the migration and gone when the migration ends. When a Change moves a module into 05-src, the old path keeps serving the module's whole old interface (every export and the command line) for as long as any caller still uses that path, and is removed afterwards, in its own Engineering Change, once its last caller has been rewired. The two cannot be one Change: the callers that live in .github (the workflow) travel alone (F6), while a shim lives in engineering/, so the rewiring Change comes first and the shim-removal Change follows it. A shim is therefore a full facade (re-export plus the command line), never a partial one. Found by the CPO on #1324 (the first shim exported nothing); the gap was in the requirements and in the architecture's \"one-line shim\" wording, not in the code. Allocated to the shim rule in 03-architecture and checked by T12 for every shim.",
+      "codes": [
+        "03-architecture",
+        "00-changes",
+        "05-src",
+        ".github",
+        "engineering/",
+        "03-architecture"
+      ]
     },
     "G1": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "no check that the version is greater than the latest published (version Package, F3)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G2": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "no tag marks the released commit (version Package, F3)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G3": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "no check that the version was set by a recorded Change (version Package, F3)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G4": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "no changelog or bump tooling; versions are hand-edited (version Package, F3)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G5": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "the approval is a GitHub environment gate and the release record does not say who approved (approve Publishing, F1)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G6": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "the environment and trusted-publisher settings are outside the repository and unverified (approve Publishing, F1)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G7": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "a first publication of a package is manual (F34) and outside the workflow (approve Publishing, F1)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G8": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "the trusted publisher lapses without a workflow publish (observed 10 Nov) and nothing in the repository reminds of it (approve Publishing, F1)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G9": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "nothing records which promotion put the commit on main (promotion PR, ledger entry), so promoted main state holds by the dispatch restriction only (verify Package Promotion, F2)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G10": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "acceptance runs once after publication, with no later re-check (verify Package Promotion, F2)",
+      "codes": [],
       "definedBy": "statement"
     },
     "G11": {
       "kind": "gap",
       "provenance": "02-requirements/requirements.md",
       "text": "for a package published by hand provenance is none by design (verify Package Promotion, F2)",
+      "codes": [],
       "definedBy": "statement"
     },
     "I1": {
       "kind": "intent",
       "provenance": "01-intent/intent.md",
-      "text": "release-management/I1. A package reaches its consumers only through stations, and each station owns the move into it. The flow is pull-oriented: a station is a stock, and what enters a stock is decided and evidenced at that station's border, not by the one before it."
+      "text": "release-management/I1. A package reaches its consumers only through stations, and each station owns the move into it. The flow is pull-oriented: a station is a stock, and what enters a stock is decided and evidenced at that station's border, not by the one before it.",
+      "codes": []
     },
     "I2": {
       "kind": "intent",
       "provenance": "01-intent/intent.md",
-      "text": "release-management/I2. What a consumer installs from npm is exactly what main promoted and Engineering tested, and anyone can tell. The three controls of the npmjs station make that checkable: a version is named once and in order, a publication is approved by a person, and the published bytes are compared with the promoted ones afterwards."
+      "text": "release-management/I2. What a consumer installs from npm is exactly what main promoted and Engineering tested, and anyone can tell. The three controls of the npmjs station make that checkable: a version is named once and in order, a publication is approved by a person, and the published bytes are compared with the promoted ones afterwards.",
+      "codes": [
+        "main",
+        "npmjs"
+      ]
     },
     "I3": {
       "kind": "intent",
       "provenance": "01-intent/intent.md",
-      "text": "release-management/I3. Engineering owns this until a better owner is found (Owner, 9 Nov 2026: engineer KAAL to be able to embed KAAL). When Packaging is installed it takes over what is package acceptance; the mechanics stay reusable."
+      "text": "release-management/I3. Engineering owns this until a better owner is found (Owner, 9 Nov 2026: engineer KAAL to be able to embed KAAL). When Packaging is installed it takes over what is package acceptance; the mechanics stay reusable.",
+      "codes": []
     },
     "I4": {
       "kind": "intent",
       "provenance": "01-intent/intent.md",
-      "text": "release-management/I4. Delivery architecture changes independently of Solution architecture (Owner, 9 Nov 2026). Delivery elements (release controls, workflow wiring, the test machinery) change in their own Changes and judge candidates as main's copy; Solution changes (product code and the Cases that test it) travel in candidates. .github travels alone and the hard pin to main are instances of this rule, and release-management is itself a Delivery element."
+      "text": "release-management/I4. Delivery architecture changes independently of Solution architecture (Owner, 9 Nov 2026). Delivery elements (release controls, workflow wiring, the test machinery) change in their own Changes and judge candidates as main's copy; Solution changes (product code and the Cases that test it) travel in candidates. .github travels alone and the hard pin to main are instances of this rule, and release-management is itself a Delivery element.",
+      "codes": [
+        "main",
+        ".github travels alone",
+        "main",
+        "release-management"
+      ]
     },
     "I5": {
       "kind": "intent",
       "provenance": "01-intent/intent.md",
-      "text": "release-management/I5. A version is named once, in order, and tied to the commit that carries it (control version Package, under I2; applied at main)."
+      "text": "release-management/I5. A version is named once, in order, and tied to the commit that carries it (control version Package, under I2; applied at main).",
+      "codes": [
+        "main"
+      ]
     },
     "I6": {
       "kind": "intent",
       "provenance": "01-intent/intent.md",
-      "text": "release-management/I6. A person approves each publication (control approve Publishing, under I2; applied at npmjs)."
+      "text": "release-management/I6. A person approves each publication (control approve Publishing, under I2; applied at npmjs).",
+      "codes": [
+        "npmjs"
+      ]
     },
     "I7": {
       "kind": "intent",
       "provenance": "01-intent/intent.md",
-      "text": "release-management/I7. Anyone can tell that the published bytes are the promoted bytes (control verify Package Promotion, under I2; applied at npmjs)."
+      "text": "release-management/I7. Anyone can tell that the published bytes are the promoted bytes (control verify Package Promotion, under I2; applied at npmjs).",
+      "codes": [
+        "npmjs"
+      ]
     },
     "T1": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F3, G1 | a version lower than the highest published one is refused by readiness"
+      "text": "F3, G1 | a version lower than the highest published one is refused by readiness",
+      "codes": []
     },
     "T2": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F3, G2 | a release creates or verifies a tag naming the version and commit"
+      "text": "F3, G2 | a release creates or verifies a tag naming the version and commit",
+      "codes": []
     },
     "T3": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F3, G3 | the version in `package.json` is the one a recorded Change set"
+      "text": "F3, G3 | the version in `package.json` is the one a recorded Change set",
+      "codes": [
+        "package.json"
+      ]
     },
     "T4": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F1, G5 | `release.json` names the approving run"
+      "text": "F1, G5 | `release.json` names the approving run",
+      "codes": [
+        "release.json"
+      ]
     },
     "T5": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F2, G9 | `release.json` names the promotion (PR or ledger entry) that put the commit on `main`"
+      "text": "F2, G9 | `release.json` names the promotion (PR or ledger entry) that put the commit on `main`",
+      "codes": [
+        "release.json",
+        "main"
+      ]
     },
     "T6": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F4 | every control in the Architecture mapping has a name on each surface where it runs (record, `05-src`, workflow job), and every workflow job, gate and `05-src` component (`pipeline/`, `npmjs/`, `main/`, `collectors/`) maps to its allocated controls; read by parsers (YAML, Markdown AST, directory listing); an unmapped or missing name is reported, exact string equality is not required"
+      "text": "F4 | every control in the Architecture mapping has a name on each surface where it runs (record, `05-src`, workflow job), and every workflow job, gate and `05-src` component (`pipeline/`, `npmjs/`, `main/`, `collectors/`) maps to its allocated controls; read by parsers (YAML, Markdown AST, directory listing); an unmapped or missing name is reported, exact string equality is not required",
+      "codes": [
+        "05-src",
+        "05-src",
+        "pipeline/",
+        "npmjs/",
+        "main/",
+        "collectors/"
+      ]
     },
     "T7": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F6 | a change touching `.github/` and one path outside it fails (exit 1, not a warning) with base `kaal/*`, and with base `main`; a lone `.github` change passes; an adopted synchronization is exempt; the `.github` test reads paths as a path (split on `/`), not a regex over text"
+      "text": "F6 | a change touching `.github/` and one path outside it fails (exit 1, not a warning) with base `kaal/*`, and with base `main`; a lone `.github` change passes; an adopted synchronization is exempt; the `.github` test reads paths as a path (split on `/`), not a regex over text",
+      "codes": [
+        ".github/",
+        "kaal/*",
+        "main",
+        ".github",
+        ".github",
+        "/"
+      ]
     },
     "T8": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F6 to F14 | each job of the `KAAL / release / *` workflows checks out `main` and runs a script under `engineering/release-management/05-src/`; no job runs a script from the candidate's checkout; read by the YAML parser (job steps: `uses: actions/checkout` with `ref` the default branch, the run target a `05-src` path); the testing controls' machinery is pinned like the others, and their Cases follow F18 (T9)"
+      "text": "F6 to F14 | each job of the `KAAL / release / *` workflows checks out `main` and runs a script under `engineering/release-management/05-src/`; no job runs a script from the candidate's checkout; read by the YAML parser (job steps: `uses: actions/checkout` with `ref` the default branch, the run target a `05-src` path); the testing controls' machinery is pinned like the others, and their Cases follow F18 (T9)",
+      "codes": [
+        "KAAL / release / *",
+        "main",
+        "engineering/release-management/05-src/",
+        "uses: actions/checkout",
+        "ref",
+        "05-src"
+      ]
     },
     "T9": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F18 (interim, marked temporary; replaced when `kaal-change/far` lands) | in a candidate that edits, deletes or skips a Regression Case, test Candidate and test Integration run the target's version of that Case and fail; the same change with a matching Accepts entry passes; a candidate's new Case runs as a Feature; an entry that matches no Regression Case is a finding and fails; accepted Cases stay observed RED while the Plan's result succeeds; a change adding an Accepts entry needs the same approval as any change; the run's output (job summary) lists each applied Accepts entry with the Case and its justification, and says \"no Accepts applied\" when there are none; Features and Regression are both reported"
+      "text": "F18 (interim, marked temporary; replaced when `kaal-change/far` lands) | in a candidate that edits, deletes or skips a Regression Case, test Candidate and test Integration run the target's version of that Case and fail; the same change with a matching Accepts entry passes; a candidate's new Case runs as a Feature; an entry that matches no Regression Case is a finding and fails; accepted Cases stay observed RED while the Plan's result succeeds; a change adding an Accepts entry needs the same approval as any change; the run's output (job summary) lists each applied Accepts entry with the Case and its justification, and says \"no Accepts applied\" when there are none; Features and Regression are both reported",
+      "codes": [
+        "kaal-change/far"
+      ]
     },
     "T10": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F17 | live negative Cases for the trust root: a `.github`-only candidate that removes or edits the gate or a control job, a candidate job named like a required context, and a candidate that skips a required control each leave the required context failed or absent; the gate rejects absent, skipped, stale, cancelled and timed-out runs and prints the head SHA and the `main` checkout SHA"
+      "text": "F17 | live negative Cases for the trust root: a `.github`-only candidate that removes or edits the gate or a control job, a candidate job named like a required context, and a candidate that skips a required control each leave the required context failed or absent; the gate rejects absent, skipped, stale, cancelled and timed-out runs and prints the head SHA and the `main` checkout SHA",
+      "codes": [
+        ".github",
+        "main"
+      ]
     },
     "T11": {
       "kind": "case",
       "provenance": "04-test/testing.md",
-      "text": "F1, F2, F3 | the Release engine lives in `05-src/release-engine/`; the old `engineering/release/` holds only one-line shims (release.mjs re-exports the engine, run.mjs calls its `main`) until `release.yml` is rewired in its own `.github`-only Change; the engine's source Cases (`release.test.mjs`) sit next to it"
+      "text": "F1, F2, F3 | the Release engine lives in `05-src/release-engine/`; the old `engineering/release/` holds only one-line shims (release.mjs re-exports the engine, run.mjs calls its `main`) until `release.yml` is rewired in its own `.github`-only Change; the engine's source Cases (`release.test.mjs`) sit next to it",
+      "codes": [
+        "05-src/release-engine/",
+        "engineering/release/",
+        "main",
+        "release.yml",
+        ".github",
+        "release.test.mjs"
+      ]
     },
     "T12": {
       "kind": "case",
       "provenance": "00-changes/change-requirements.md",
-      "text": "F20 | for every shim left at an old path: its export names equal the moved module's export names (compared by import, not by text), and its command line behaves as the moved module's (same exit status and message for an unknown step)"
+      "text": "F20 | for every shim left at an old path: its export names equal the moved module's export names (compared by import, not by text), and its command line behaves as the moved module's (same exit status and message for an unknown step)",
+      "codes": []
     },
     "T13": {
       "kind": "case",
       "provenance": "00-changes/change-requirements.md",
       "text": "Case T13 (release-engine/migration-end.test.mjs, F20): turns RED when the migration is done but F20 is still there; done is F20's own end condition, the last shim gone and nothing calling an old path; callers found with the YAML parser and the TypeScript AST.",
+      "codes": [],
       "definedBy": "statement"
     }
   },

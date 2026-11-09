@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { AREA, ROOT_DOCUMENTS, definitions, nodes, parseFile, textOf } from "../04-test/records.mjs";
+import { AREA, ROOT_DOCUMENTS, definitions, nodes, parseFile, textOf, tokens } from "../04-test/records.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ENTRY_FILES = ["current-state.md", "gaps.md", "transformation.md", "interim-states.md"];
@@ -84,6 +84,24 @@ describe("release-management/T19 nothing of B was lost", () => {
       else if (!move.reworded && here[0].text !== was.text) problems.push(`${id}: text changed but not listed as reworded`);
     }
     assert.deepEqual(problems, []);
+  });
+  it("every reworded id is classified, and what it dropped or added is declared (equivalence is reviewed, not assumed)", () => {
+    const found = everywhere();
+    const problems = [];
+    for (const [id, move] of Object.entries(moves.ids)) {
+      if (!move.reworded) continue;
+      const here = found.find((d) => d.id === id);
+      if (!["relocation", "clarification", "normative"].includes(move.class)) problems.push(`${id}: class is ${move.class}`);
+      if (!move.note) problems.push(`${id}: no note on what changed`);
+      if (move.class === "normative" && !move.approval) problems.push(`${id}: a normative change needs a recorded approval`);
+      const before = tokens(capture.ids[id]);
+      const after = tokens(here);
+      const dropped = [...before].filter((x) => !after.has(x)).sort();
+      const added = [...after].filter((x) => !before.has(x)).sort();
+      if (JSON.stringify(dropped) !== JSON.stringify([...(move.dropped ?? [])].sort())) problems.push(`${id}: dropped ${JSON.stringify(dropped)} is not what id-moves.json declares`);
+      if (JSON.stringify(added) !== JSON.stringify([...(move.added ?? [])].sort())) problems.push(`${id}: added ${JSON.stringify(added)} is not what id-moves.json declares`);
+    }
+    assert.deepEqual(problems, [], "a reworded statement that drops or adds a name, an id or a number must say so");
   });
   it("every captured decision is still recorded, in the concern id-moves.json names", () => {
     const problems = [];

@@ -15,8 +15,8 @@ export const ROOT_DOCUMENTS = ["README.md", "01-intent/intent.md", "02-requireme
 const ID = /(?:release-management\/)?\b([IFGTA]\d+)\b/g;
 const SCOPE = /^release-management\//;
 
-export function parseFile(relative) {
-  return new Parser().parse(readFileSync(join(AREA, relative), "utf8"));
+export function parseFile(relative, base = AREA) {
+  return new Parser().parse(readFileSync(join(base, relative), "utf8"));
 }
 
 /** All nodes of a type, in document order. */
@@ -75,6 +75,12 @@ function textOfLines(p) {
   return lines;
 }
 
+function siblingsUntil(h) {
+  const out = [];
+  for (let n = h.next; n && !(n.type === "heading" && n.level <= h.level); n = n.next) out.push(n);
+  return out;
+}
+
 const idsIn = (text) => [...text.matchAll(ID)].map((m) => m[1]);
 
 /**
@@ -82,8 +88,8 @@ const idsIn = (text) => [...text.matchAll(ID)].map((m) => m[1]);
  * Kinds: heading (id in a heading, text runs to the next heading of the same or a higher level), lead (leading strong
  * text of a list item, text is the item), row (first cell of a table row naming `release-management/<id>`).
  */
-export function definitions(relative) {
-  const root = parseFile(relative);
+export function definitions(relative, base = AREA) {
+  const root = parseFile(relative, base);
   const found = [];
   for (const h of nodes(root, "heading")) {
     const head = textOf(h);
@@ -91,19 +97,26 @@ export function definitions(relative) {
     if (!mine.length || !/release-management\/|\[[IFTAG]\d+/.test(head)) continue;
     const parts = [head];
     for (let n = h.next; n && !(n.type === "heading" && n.level <= h.level); n = n.next) parts.push(textOf(n));
-    for (const id of mine) found.push({ id, kind: "heading", file: relative, text: parts.join(" ").trim() });
+    const codes = [h, ...siblingsUntil(h)].flatMap((n) => nodes(n, "code").map((c) => c.literal));
+    for (const id of mine) found.push({ id, kind: "heading", file: relative, text: parts.join(" ").trim(), codes });
   }
   for (const item of nodes(root, "item")) {
     const lead = leadingStrong(item);
     if (!lead) continue;
     const m = lead.match(/^release-management\/([IFTAG]\d+)\b/) ?? lead.match(/\[(?:release-management\/)?([IFTAG]\d+)\b[^\]]*\]/);
-    if (m) found.push({ id: m[1], kind: "lead", file: relative, text: textOf(item) });
+    if (m) found.push({ id: m[1], kind: "lead", file: relative, text: textOf(item), codes: nodes(item, "code").map((c) => c.literal) });
   }
   for (const cells of tableRows(root)) {
     const m = cells[0].match(/^release-management\/([IFTAG]\d+)$/);
-    if (m) found.push({ id: m[1], kind: "row", file: relative, text: cells.slice(1).join(" | ") });
+    if (m) found.push({ id: m[1], kind: "row", file: relative, text: cells.slice(1).join(" | "), codes: [...cells.slice(1).join(" | ").matchAll(/`([^`]+)`/g)].map((c) => c[1]) });
   }
   return found;
 }
 
 export const strip = (id) => id.replace(SCOPE, "");
+
+/** The concrete elements of a definition: its code spans, record ids and numbers. A reworded statement that drops or adds one is a change to declare. */
+export function tokens(def) {
+  const text = def.text.replace(/`[^`]*`/g, " ");
+  return new Set([...(def.codes ?? []), ...[...text.matchAll(/\b([IFGTA]\d+)\b|\b(\d+)\b/g)].map((m) => m[1] ?? m[2])]);
+}

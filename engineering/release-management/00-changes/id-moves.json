@@ -3,32 +3,94 @@
     "A1": {
       "to": "03-architecture/architecture.md",
       "reworded": true,
-      "from": "03-architecture/architecture.md"
+      "from": "03-architecture/architecture.md",
+      "class": "relocation",
+      "note": "Defined from the sentence 'A1 = version Package ... keep their ids' and the control table; same allocation, same target.",
+      "dropped": [],
+      "added": [
+        "main",
+        "release-engine/"
+      ]
     },
     "A2": {
       "to": "03-architecture/architecture.md",
       "reworded": true,
-      "from": "03-architecture/architecture.md"
+      "from": "03-architecture/architecture.md",
+      "class": "relocation",
+      "note": "Same, for approve Publishing.",
+      "dropped": [],
+      "added": [
+        "npm",
+        "npmjs",
+        "release-engine/"
+      ]
     },
     "A3": {
       "to": "03-architecture/architecture.md",
       "reworded": true,
-      "from": "03-architecture/architecture.md"
+      "from": "03-architecture/architecture.md",
+      "class": "relocation",
+      "note": "Same, for verify Package Promotion.",
+      "dropped": [],
+      "added": [
+        "npmjs",
+        "release-engine/"
+      ]
     },
     "F1": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Gap lines G5 to G8 left for gaps.md. The sentence that the record names the approving run states what Case T4 already targets (F1); the present-state facts (workflow starts by hand, waits for the npm environment, Trusted Publishing, no token, no repack, binding) stay as the target.",
+      "dropped": [
+        "10",
+        "F34",
+        "G5",
+        "G6",
+        "G7",
+        "G8",
+        "publishable()",
+        "release.yml"
+      ],
+      "added": []
     },
     "F2": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Gap lines G9 to G11 and the transition note left for Change. The sentence that the record names the promotion states what Case T5 already targets (F2); the workflow is named publish.yml as the engine's contract already does (#1326).",
+      "dropped": [
+        ".github",
+        "1326",
+        "9",
+        "G10",
+        "G11",
+        "G9",
+        "SOURCE.workflow",
+        "npm trust",
+        "provenance()",
+        "registry",
+        "release.yml"
+      ],
+      "added": []
     },
     "F3": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Gap lines G1 to G4 left for gaps.md. The tag sentence states what Case T2 already targets (F3); semantic version, named once, greater than every published version and traceable to its Change are unchanged.",
+      "dropped": [
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "engineering/release/release.mjs",
+        "readiness()"
+      ],
+      "added": []
     },
     "F4": {
       "to": "02-requirements/requirements.md",
@@ -38,62 +100,171 @@
     "F5": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "The parenthetical naming the present code and check is removed (it is in current-state.md); the architecture table says the control runs on a schedule.",
+      "dropped": [
+        "Branching audit",
+        "branching-audit",
+        "branching-audit.sh",
+        "collector",
+        "establishment",
+        "holds.json",
+        "lineage.ts",
+        "workingBranch"
+      ],
+      "added": []
     },
     "F6": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "normative",
+      "note": "Two statements about the target are changed: the present names (today's Change Isolation, engineering path) are removed, and the sentence that 'Require workflows to pass' is an optional extra layer is replaced by 'a process guard that does not authenticate the workflow that judges a candidate; that is the trust root'. The original sentence contradicted the trust-root requirement of the same documents.",
+      "approval": "CPO, 9 Nov: the trust root is required and `.github travels alone` plus approval is a process guard (03-architecture, Trust root and gate specification); CPO review of #1329 (8d35713), finding 2, asked for the conflict to be resolved",
+      "dropped": [
+        "1",
+        "Branching",
+        "Change Isolation",
+        "check.mjs",
+        "engineering/change-isolation/"
+      ],
+      "added": [
+        "03",
+        "03-architecture"
+      ]
     },
     "F7": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "The parenthetical 'today's freshness' becomes the sentence 'Freshness: ...'; the contract is the same.",
+      "dropped": [],
+      "added": []
     },
     "F8": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "'today's CodeQL, codeql.yml, two check names' becomes 'scanned for vulnerabilities in the code and the workflows (the CodeQL action, used and not built)', from the architecture's 'tool: CodeQL' and the two CodeQL languages.",
+      "dropped": [
+        "CodeQL (actions)",
+        "CodeQL (javascript-typescript)",
+        "codeql.yml"
+      ],
+      "added": []
     },
     "F9": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "'today's dependency-review.yml, Dependency Review' becomes 'Dependencies are reviewed (the dependency-review action and Dependabot, used and not built)', from the architecture's 'tool: dependency-review, Dependabot'.",
+      "dropped": [
+        "Dependency Review",
+        "dependency-review.yml"
+      ],
+      "added": []
     },
     "F10": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Was named in the station bullet 'bind Merge [F10] (merge queue, bind-group, and the merge method that Branching judged ...)'. Now its own definition: the queue binds the group to the queued pull request; the merge method is judged: squash for a Change or promotion, merge commit for a synchronization. The names of the present script and check are left for Change.",
+      "dropped": [
+        "11"
+      ],
+      "added": [
+        "F10"
+      ]
     },
     "F11": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Was named in the station bullet; now its own definition: native approval settings of the main ruleset.",
+      "dropped": [
+        "11"
+      ],
+      "added": [
+        "F11",
+        "main"
+      ]
     },
     "F12": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Was named in the station bullet; now its own definition: the FAR lanes on kaal/* to main, separate jobs (F18).",
+      "dropped": [
+        "11"
+      ],
+      "added": [
+        "F12",
+        "F18",
+        "kaal/*",
+        "main"
+      ]
     },
     "F13": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Was named in the station bullet; now its own definition: one promotion at a time.",
+      "dropped": [
+        "11"
+      ],
+      "added": [
+        "F13"
+      ]
     },
     "F14": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Was named in the station bullet ('promotion source, today's Promotion Source'); now its own definition: a promotion comes from a capability's collector, taken from the collector-naming decision in 03-architecture.",
+      "dropped": [
+        "11"
+      ],
+      "added": [
+        "F14"
+      ]
     },
     "F15": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Was named in the station-12 bullet; now its own definition: native approval settings of kaal/*.",
+      "dropped": [
+        "12"
+      ],
+      "added": [
+        "F15",
+        "kaal/*"
+      ]
     },
     "F16": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Was named in the station-12 bullet; now its own definition: the FAR lanes (F18) on kaal/* pull requests, separate jobs.",
+      "dropped": [
+        "12"
+      ],
+      "added": [
+        "F16",
+        "F18",
+        "kaal/*"
+      ]
     },
     "F17": {
       "to": "02-requirements/requirements.md",
@@ -103,67 +274,169 @@
     "F18": {
       "to": "02-requirements/requirements.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "relocation",
+      "note": "The Interim paragraph (the temporary version reading far.json, replaced when kaal-change/far lands) moved into interim-states.md, reworded but with the same content (the same-shape reading of far.json, a real parser, the output says it is interim) and with its end; the FAR rule itself (Regression, Features, Accepts, what is communicated) is unchanged.",
+      "dropped": [
+        "F7",
+        "change/C2",
+        "change/F7",
+        "compose",
+        "decide",
+        "exceptions",
+        "kaal-change/far",
+        "proposal"
+      ],
+      "added": []
     },
     "F20": {
       "to": "00-changes/change-requirements.md",
       "reworded": true,
-      "from": "00-changes/change-requirements.md"
+      "from": "00-changes/change-requirements.md",
+      "class": "relocation",
+      "note": "Same rationale and rule; the shim rule paragraph of the architecture is folded into it; 'Allocated to the shim rule in 03-architecture' became 'Checked by T12'.",
+      "dropped": [
+        "03",
+        "03-architecture"
+      ],
+      "added": [
+        "8",
+        "T13",
+        "T14",
+        "export * from",
+        "main",
+        "release-engine/",
+        "transformation.md"
+      ]
     },
     "G1": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "relocation",
+      "note": "Restated as a gap entry (Target F3, Difference, Done when T1).",
+      "dropped": [],
+      "added": [
+        "G1",
+        "T1"
+      ]
     },
     "G2": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "relocation",
+      "note": "Restated as a gap entry (Done when T2).",
+      "dropped": [],
+      "added": [
+        "G2",
+        "T2"
+      ]
     },
     "G3": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "relocation",
+      "note": "Restated as a gap entry (Done when T3).",
+      "dropped": [],
+      "added": [
+        "G3",
+        "T3",
+        "package.json"
+      ]
     },
     "G4": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Restated as a gap entry; the closing condition 'the Owner decides' is new editorial wording, since no Case closes it.",
+      "dropped": [],
+      "added": [
+        "G4"
+      ]
     },
     "G5": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "relocation",
+      "note": "Restated as a gap entry (Done when T4).",
+      "dropped": [],
+      "added": [
+        "G5",
+        "T4"
+      ]
     },
     "G6": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Restated as a gap entry; the closing condition 'the Owner records it as verified' is new editorial wording.",
+      "dropped": [],
+      "added": [
+        "G6",
+        "npm"
+      ]
     },
     "G7": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Restated as a gap entry; the closing condition is new editorial wording.",
+      "dropped": [],
+      "added": [
+        "G7"
+      ]
     },
     "G8": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Restated as a gap entry; the closing condition is new editorial wording.",
+      "dropped": [],
+      "added": [
+        "G8"
+      ]
     },
     "G9": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "relocation",
+      "note": "Restated as a gap entry (Done when T5).",
+      "dropped": [],
+      "added": [
+        "G9",
+        "T5",
+        "main"
+      ]
     },
     "G10": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Restated as a gap entry; the closing condition is new editorial wording.",
+      "dropped": [],
+      "added": [
+        "G10"
+      ]
     },
     "G11": {
       "to": "00-changes/gaps.md",
       "reworded": true,
-      "from": "02-requirements/requirements.md"
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "Restated as a gap entry; the closing condition is new editorial wording.",
+      "dropped": [],
+      "added": [
+        "G11"
+      ]
     },
     "I1": {
       "to": "01-intent/intent.md",
@@ -203,32 +476,79 @@
     "T1": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "relocation",
+      "note": "The gap id left the Targets column; the link is G1's 'Done when' in gaps.md. Checks column word for word.",
+      "dropped": [
+        "G1"
+      ],
+      "added": []
     },
     "T2": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "relocation",
+      "note": "Same, for G2.",
+      "dropped": [
+        "G2"
+      ],
+      "added": []
     },
     "T3": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "relocation",
+      "note": "Same, for G3.",
+      "dropped": [
+        "G3"
+      ],
+      "added": []
     },
     "T4": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "relocation",
+      "note": "Same, for G5.",
+      "dropped": [
+        "G5"
+      ],
+      "added": []
     },
     "T5": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "relocation",
+      "note": "Same, for G9.",
+      "dropped": [
+        "G9"
+      ],
+      "added": []
     },
     "T6": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "normative",
+      "note": "The Case named the station folders pipeline/, npmjs/, main/, collectors/ as components; #1323 abolished them for the functional components. The Case now names the six components of 05-src.",
+      "approval": "CPO review of #1329 (8d35713), finding 1: correct T6 to validate the actual target component set (#1323)",
+      "dropped": [
+        "collectors/",
+        "main/",
+        "npmjs/",
+        "pipeline/"
+      ],
+      "added": [
+        "change-isolation/",
+        "lanes/",
+        "lineage/",
+        "merge-group/",
+        "promotion-source/",
+        "release-engine/"
+      ]
     },
     "T7": {
       "to": "04-test/testing.md",
@@ -243,7 +563,13 @@
     "T9": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "relocation",
+      "note": "The qualifier '(interim, marked temporary; replaced when kaal-change/far lands)' left the Targets column; the interim and its end are in interim-states.md (Ends when: T9). The Checks column is word for word.",
+      "dropped": [
+        "kaal-change/far"
+      ],
+      "added": []
     },
     "T10": {
       "to": "04-test/testing.md",
@@ -253,17 +579,41 @@
     "T11": {
       "to": "04-test/testing.md",
       "reworded": true,
-      "from": "04-test/testing.md"
+      "from": "04-test/testing.md",
+      "class": "relocation",
+      "note": "Split as the CPO asked: this Case keeps the id and the first clause (the engine lives in its component, its Cases next to it); the shim clause is the new Change Case T14.",
+      "dropped": [
+        ".github",
+        "engineering/release/",
+        "main",
+        "release.yml"
+      ],
+      "added": []
     },
     "T12": {
       "to": "00-changes/cases.md",
       "reworded": true,
-      "from": "00-changes/change-requirements.md"
+      "from": "00-changes/change-requirements.md",
+      "class": "relocation",
+      "note": "Moved to cases.md; the test file moved with it. Checks column word for word, plus the file name.",
+      "dropped": [],
+      "added": [
+        "shim-facade.test.mjs"
+      ]
     },
     "T13": {
       "to": "00-changes/cases.md",
       "reworded": true,
-      "from": "00-changes/change-requirements.md"
+      "from": "00-changes/change-requirements.md",
+      "class": "relocation",
+      "note": "Moved to cases.md; the test file moved with it. Same contract in shorter wording.",
+      "dropped": [
+        "T13"
+      ],
+      "added": [
+        ".github",
+        "migration-end.test.mjs"
+      ]
     }
   },
   "decisions": {
