@@ -28,9 +28,9 @@ Measured on `main` from the controls' Architecture lines and the Guard check dec
 
 | Control | Decides (checker) | Run by (script via Guard, workflow) | Cases |
 | --- | --- | --- | --- |
-| Change Isolation | `engineering/change-isolation/check.mjs` | `engineering/github/change-isolation.sh` (to port), `change-isolation.yml`; before a push, `push-check.sh` | `engineering/change-isolation/check.test.mjs` |
-| Lineage | `engineering/github/lineage.ts` (`synchronization`, `methodFor`, `autoMerge`, `landing`) | `engineering/github/branching.sh` (to port), `lineage-synchronization.yml`; before a push, `push-check.sh` | `engineering/github/lineage.test.ts` |
 | Promotion source | `engineering/github/lineage.ts` (`promotionSource`, `promotionFreshness`) | `engineering/github/promotion-source.mjs` (ported, #1317), `promotion-source.yml` | `lineage.test.ts`; parity Case `engineering/github/ports/promotion-source.parity.test.mjs` |
+| Lineage | `engineering/github/lineage.ts` (`synchronization`, `methodFor`, `autoMerge`, `landing`) | `engineering/github/branching.sh` (to port), `lineage-synchronization.yml`; before a push, `push-check.sh` | `engineering/github/lineage.test.ts` |
+| Change Isolation | `engineering/change-isolation/check.mjs` | `engineering/github/change-isolation.sh` (to port), `change-isolation.yml`; before a push, `push-check.sh` | `engineering/change-isolation/check.test.mjs` |
 | Lineage audit | `lineage.ts` (`establishment`, `collector`, `workingBranch`), `engineering/github/holds.json` | `engineering/github/branching-audit.sh` (to port), `branching-audit.yml` | `lineage.test.ts` |
 | Required tests | none: the lanes themselves | `npm run test:*` through Guard, `ci.yml`, `guard-acceptance-boundary.yml` | `engineering/lanes/evidence.test.mjs` |
 | Review before merge | none: GitHub branch protection, outside the repository | none | none (validated by the reviewer) |
@@ -63,14 +63,14 @@ The Owner's direction: a control is named by the concern it protects, not by its
 
 | Today (mechanism) | Intent in one line | Proposed concern name |
 | --- | --- | --- |
-| `change-isolation` | a Change to Core and one to `.github/` can each be reviewed, reverted and promoted on its own | **Changes stand alone** |
-| `lineage` | work reaches `main` only through its Capability's collector | **Work comes through its owner** |
 | `promotion-source` | only a Capability's own collector changes `main`, validated against the `main` it lands on | **Only owners release** |
+| `lineage` | work reaches `main` only through its Capability's collector | **Work comes through its owner** |
+| `change-isolation` | a Change to Core and one to `.github/` can each be reviewed, reverted and promoted on its own | **Changes stand alone** |
 | `lineage-audit` | a pull request or collector that has fallen out of policy is found even when nothing is pushed | **Drift is found** |
+| `merge-queue` (proposed) | what lands is exactly what was reviewed and judged, judged again at merge time | **What lands is what was judged** |
 | `required-tests` | no Change lands while KAAL's own tests fail | **Tested before landing** |
 | `review-before-merge` | a Change lands only after its review is complete | **Reviewed before landing** |
 | `one-promotion` | promotions go up one at a time, each validated against the `main` it lands on | **Validated against current main** |
-| `merge-queue` (proposed) | what lands is exactly what was reviewed and judged, judged again at merge time | **What lands is what was judged** |
 
 Observation, not a decision: three of these overlap. `lineage`, `promotion-source` and `one-promotion` all speak of promotions into `main` through a Capability's collector, validated against the `main` they land on. Naming them by concern may show that they are one or two concerns, not three. That is for the Owner and the CPO to judge.
 
@@ -97,7 +97,9 @@ Owner direction: take the controls one at a time, and use it to learn what the C
 5. **Promotion** of that control's collector, on its own, with the Owner's go and the CPO's exact-head review.
 6. **Lessons:** what the step showed about the Controls capability, written into the log below before the next control starts.
 
-**First control: Promotion source.** Its port has already landed in the collector (#1317), it has one Intent and two Requirements, and its checker (`lineage.ts`) is shared with Lineage, so the first pass also shows how a control relates to a checker it shares. Proposed order after it: Lineage, Lineage audit, Change Isolation, then the controls that have no port (Required tests, Review before merge, One promotion at a time) and the merge queue, last, because its scripts also depend on the `pull_request_target` decision.
+**First control: Promotion source.** Its port has already landed in the collector (#1317), it has one Intent and two Requirements, and its checker (`lineage.ts`) is shared with Lineage, so the first pass also shows how a control relates to a checker it shares. Order of the controls, the same as the agreed port sequence: **Promotion source** (`promotion-source`, ported), **Lineage** (`branching`), **Change Isolation** (`change-isolation`), **Lineage audit** (`branching-audit`), **Merge queue** (`bind-group`, last of the gate ports because it also depends on the `pull_request_target` decision), then the controls with no code: Required tests, Review before merge, One promotion at a time.
+
+The last two ports map to no control today. `push-check.sh` is the local, before-a-push run of Change Isolation and Lineage (both cite `guard-check:push`), so it is ported with whichever of them is taken first, as that control's pre-push facet. `guard.sh` and the Guard pre-push templates belong to the Guard capability, which ships them to consumers, so they are not a control of Engineering's own. They stay in the port sequence (R1 to R8 of the ports PLAN), outside this control-by-control chain, and come after the gate ports.
 
 ### What we learn about kaal-control (log)
 
