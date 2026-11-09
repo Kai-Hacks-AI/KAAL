@@ -52,21 +52,21 @@ Edges are embedded in the outgoing Node and pin the target's exact id. If the ro
 | B. Learning (`kaal-learning`, with BRAIN and CICERO) | Owns retrieval and learning practice. | Collector only, not on main; BRAIN/CICERO are unpromoted; slower. |
 | C. Engineering (`engineering/`, beside TOMBSTONES, RATS!, GLUE) | Engineering owns several mnemonics today and records them as Definitions here. | Not a capability package; Engineering does not own the mnemonic concept. |
 
-Recommendation: **A, Core**, for the root and the `traces` type, as one small Change. Learning keeps the practice (retrieval, BRAIN, CICERO) and the later `guided-by` and report. If the home changes, TOMBSTONES applies: the old place leaves one `moved:` line and Edges still resolve.
+**Decided by the Owner (9 Nov 2026): C, Engineering, "by design"** (Engineer KAAL to be able to Embed KAAL). The root and the `traces` type live in Engineering's home beside TOMBSTONES, and Engineering owns the concept until a better owner is found. The earlier recommendation was A, Core, as one small Change; this is superseded. Learning keeps the practice (retrieval, BRAIN, CICERO) and the later `guided-by` and report. If the home changes, TOMBSTONES applies: the old place leaves one `moved:` line and Edges still resolve.
 
 ## 5. Cost to existing Mnemonics (to verify before step 4)
 A Mnemonic that gains a `traces` Edge gets new bytes and so a new id. Any Edge or Case that already pins its old id goes stale (Graph reports, never repairs). Before migrating, list incoming Edges per mnemonic id on main. Expected to be few, since Edges are new; verify, do not assume. In-place addition vs improvement-by-new-Node (`improves`) is decided per Mnemonic by that list.
 
 ## 6. Order (backwards from the Intent, pull-driven)
 0. **Pull:** Roadmap entry and Product PLAN item launch the increment (Owner direction). Targets `kaal/roadmap`, `kaal/product`.
-1. **Root and `traces` type**, one Change, target the chosen home (recommended `kaal/core`): two small Definition Nodes, no code.
+1. **Root and `traces` type**, one Change, target Engineering's home (Owner decision; not `kaal/core`): two small Definition Nodes, no code.
 2. **Migration, one Change per owning collector:** add `traces` to each existing Mnemonic Definition (on main today: BASS, KNIFE, ROWING, HOW ARE WE DOING?, TOGETHER WE CAN GO FAR, LOVE, CASE, RATS!, PROSE, GLUE, FANATIC, BACCHUS; on collectors: BRAIN, CICERO, WORK, VARISC, HAPTIC, IDEA, I WON, CCCC, URBAN, ORDER, PREACH, NEW, PDCA, PLAN, CHAOS). New ones (TOMBSTONES #1298, ARTIST #1305, 7P) are born with it.
 3. **Missing Nodes** for prose-only mnemonics (HITMAN, CLAUSE, FAR, REAL, TAKE CORE, ESSA candidate), each born with `traces`.
 4. **Conflicts** by their owners, using `improves` where wording changes (WE, FAR, CAN, PLAN).
 5. **`guided-by`** and the coverage report, only when a consumer pulls them.
 
 ## 7. Open questions for the Owner
-1. Placement: Core (recommended), Learning or Engineering?
+1. Placement: **answered, Engineering** (Owner, 9 Nov 2026).
 2. Edge name `traces`: keep? It sits near ARTIST's traceability vocabulary (answered by, traced to, tests). Its Definition Node scopes it as provenance, distinct from those. Alternative: `stated-under`.
 3. Kind: derived from the Edge (A) or `type` pointing at the root (B)?
 4. Is 7P one Mnemonic Node whose seven forces are prose, or does each force that maps to a capability get its own `guided-by` Edge later?
