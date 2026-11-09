@@ -1,6 +1,6 @@
 ---
 type: Guard/Check
-command: bash engineering/github/branching-audit.sh engineering/github/lineage.ts
+command: bash engineering/release-management/05-src/pipeline/audit-lineage/audit-lineage.sh engineering/github/lineage.ts
 runs: [ci]
 facts: [base]
 trusted: engineering/github/lineage.ts
