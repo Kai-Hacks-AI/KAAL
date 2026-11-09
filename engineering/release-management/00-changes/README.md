@@ -36,7 +36,7 @@ Reason: the native ruleset settings (code owner review, approval of the most rec
 Order (add-new, settings, remove-old), each step safe before the next:
 
 1. **Owner, rulesets (settings, nothing breaks):**
-   - `kaal/*` (ruleset `lineage`): turn **Require review from Code Owners** on (now off). Effect to accept: a code owner approves every collector PR.
+   - `kaal/*` (ruleset `lineage` today, renamed `integration`): turn **Require review from Code Owners** on (now off). Effect to accept: a code owner approves every collector PR.
    - `main` and `kaal/*`: turn **Require approval of the most recent push** on (now off), so the last pusher cannot be the only approver.
    - Already on and kept: 1 approval, dismiss stale approvals on push, thread resolution, extra approval for unattributed changes (both); code owner review on `main`.
    - Keep the existing `CODEOWNERS` as it is. When a second owner exists, add the ledger path as its own line.

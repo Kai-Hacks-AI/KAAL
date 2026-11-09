@@ -174,7 +174,7 @@ If neither is demonstrated, the PLAN's migration stops at "add new, remove nothi
 
 | Item | Status |
 | --- | --- |
-| Rulesets `main` and `lineage`: pull request settings, required contexts (GitHub Actions app), merge queue rule on `main` (SQUASH, 1/1/1, ALLGREEN, 60 min), `lineage` has no queue | Verified, read from the GitHub API on 9 Nov |
+| Rulesets `main` (to be renamed `promotion`) and `lineage` (to be renamed `integration`): pull request settings, required contexts (GitHub Actions app), merge queue rule on `main` (SQUASH, 1/1/1, ALLGREEN, 60 min), `lineage` has no queue | Verified, read from the GitHub API on 9 Nov |
 | CODEOWNERS on `main` | Verified, read from the repository |
 | Workflows using `pull_request_target` (four), `merge_group` triggers in `ci.yml`, `codeql.yml`, `merge-group*.yml` | Verified, read from the repository |
 | A merge queue rule is refused on a pattern ruleset | Owner trial, 9 Nov, evidenced by the refusal message |
