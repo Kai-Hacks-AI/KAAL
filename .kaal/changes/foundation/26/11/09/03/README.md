@@ -19,4 +19,4 @@ Delivered by this PLAN: the four PLAN documents in `00-changes/architecture-tree
 not exist (missing-deliverable evidence). The Testing document carries the inventory of today's Cases with a proposed
 branch, the cross-cutting Requirements found so far, and the Cases to split (T15, T17, T18, T46, T47, T62).
 
-Case T70 (F43, front matter with a `tests` edge) is added, RED. T16, T17 and T47 are placed (Owner): generic acceptance is Delivery, governed by kaal-packaging, held by Engineering; T17 and T47 split. Open: the untitled Cases; the `foundation/T999` fixture id.
+Case T70 (F43, front matter with a `tests` edge) is added, RED. T16, T17 and T47 are placed (Owner): generic acceptance is Delivery, governed by kaal-packaging, held by Engineering; T17 and T47 split. The untitled Cases (sha256, publication, verifier, manifest) get the next free T-numbers and `tests` edges in the DO (Owner). Open: the `foundation/T999` fixture id.

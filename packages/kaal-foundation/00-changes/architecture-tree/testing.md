@@ -25,7 +25,7 @@ Measured on `kaal/foundation` at 8ea2ef2 plus the boundary DO #1293. The branch 
 | T47 | F26, N15 | `declaration-consumer.test.mjs` | Delivery (Packaging) **and** Solution | two leaves. Normal pack keeps committed bytes and exact inventory, and an isolated consumer verifies every declared Case: generic, Delivery, Packaging. That the consumer resolves *Foundation's* owner Node (`kaal/Foundation.md`, A15) is Foundation-specific, Solution. **Split** |
 | T48, T49 | F26, F27 | same file | Delivery | one leaf |
 | T51 | F25 to F27, N15 | `test/acceptance/declaration-acceptance.test.mjs` | Requirement-level | F25 to F27 are answered in both branches (A15 Solution, A16 distribution Delivery), so this acceptance Case verifies a cross-cutting Requirement and is listed as such |
-| no id | C1, C3, C5, manifest currency | `sha256.test.mjs`, `publication.test.mjs`, `verifier.test.mjs`, `manifest.test.mjs` | untitled | each needs an id and targets before it can be placed |
+| no id | C1, C3, C5, manifest currency | `sha256.test.mjs`, `publication.test.mjs`, `verifier.test.mjs`, `manifest.test.mjs` | untitled | each gets the next free T-number and a `tests` edge in the tree DO (Owner, 2026-11-09), and is then placed by what it points at |
 
 **Cross-cutting Requirements found so far** (the list the Architecture would carry): F11 and F13 (manifest: Solution reads, Delivery writes), F14 and N8 (command: Solution behaviour, Delivery bin), N2 (no dependency: scan and library imports, and `package.json`), F25 to F27 and N16 (declaration: Solution bytes, Delivery distribution and ownership).
 
