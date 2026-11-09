@@ -26,6 +26,12 @@ Each run tests both Features and Regression and **communicates what gets weakene
 
 By I4 the machinery is Delivery and pinned; the Cases under test are Solution content. Allocated to the testing controls (test Candidate at `main`, test Integration at `collectors`; both in `lanes/`), which share the FAR rule.
 
+## A moved module keeps its old interface until its last caller is rewired [release-management/F20]
+
+Rationale: I4, and the control-continuity condition in the README. **A change requirement, not a product requirement (Owner, 9 Nov): Delivery, not Solution, and temporary.** It binds the migration Changes of this folder and ends when the last shim is removed.
+
+When a Change moves a module into `05-src`, the old path keeps serving the module's **whole** old interface (every export and the command line) for as long as any caller still uses that path, and is removed together with its last caller in the `.github`-only or owner Change that rewires it. A shim is therefore a full facade (re-export plus the command line), never a partial one. Found by the CPO on #1324 (the first shim exported nothing); the gap was in the requirements and in the architecture's "one-line shim" wording, not in the code. Allocated to the shim rule in `03-architecture` and checked by T12 for every shim.
+
 ## Root (spans stations; the Owner's list, 9 Nov)
 
 Controls that act on more than one station live at the root. All are names only here, except where noted.
