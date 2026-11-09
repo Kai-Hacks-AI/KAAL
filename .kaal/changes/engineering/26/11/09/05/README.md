@@ -2,7 +2,7 @@
 
 Capability: Engineering. Target: `kaal/engineering-boundary-engine`, cut from main 251e814 so that the contents of
 `kaal/engineering` are left untouched and do not ride along (Owner, 2026-11-09). Record number is provisional until
-integration. PLAN: `engineering/boundary/PLAN.md` and nine RED Cases T1 to T9 in `engineering/boundary/boundary-engine.red.mjs`, all RED because the engine is not delivered, each asserting behavior. No engine and no definition reader is built here.
+integration. PLAN: `engineering/boundary/PLAN.md` and twelve RED Cases T1 to T12 in `engineering/boundary/boundary-engine.red.mjs`, all RED because the engine is not delivered, each asserting behavior. No engine and no definition reader is built here.
 
 Owner rulings of 2026-11-09 that it states: boundary tests exist in one place only (DRY); Engineering owns the one engine
 and every package uses it; Engineering owns the reusable Boundary Engine with typed detectors (file-identity, token-sequence, call-with-literal), each capability owns its own Boundary Tests as Markdown with YAML front matter, parsed in Engineering only with the
@@ -16,3 +16,5 @@ Consequences, each its own later Change: Foundation drops `scan.mjs` for a Bound
 Cases); Hosting's scan migrates to a definition.
 
 No promotion, version bump on main, SYNC, ledger entry, release dispatch or npm publication is authorized.
+
+Embedding: Testing is embedded into KAAL Engineering. Each Boundary Test is a Boundary Case of its capability (suite B of BEST, with a `tests` edge and a `ships` flag); Testing owns the Case, Suite and result contracts; the engine is an Engineering mechanism that supplies evidence to the common BEST runner through an adapter and creates no second registry or result authority.
