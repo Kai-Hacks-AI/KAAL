@@ -60,10 +60,10 @@ A matching manifest is not provenance. It shows the files are the ones listed, n
 ## Find a second SHA-256 elsewhere
 
 ```sh
-node node_modules/@kaihacksai/kaal-foundation/dist/test/boundary-check/scan.mjs --target <path>... [--base <dir>]
+node engineering/boundary/engine.mjs --tests node_modules/@kaihacksai/kaal-foundation/dist/test/boundary-check/boundary-check.md --target <path>... [--base <dir>]
 ```
 
-Point the scan at a package or a repository you name. It reports each place that copies Foundation's library, writes the algorithm out, or asks the platform for SHA-256, and ends in `kaal-foundation-scan {json}`. A finding is audit: a place to look at, never a fault. Decisions about findings belong to the repository, not to this package, and an empty list is no compliance. Read `dist/test/boundary-check/boundary-check.md` for the rules and the limits.
+Foundation ships its Boundary Tests as a definition; Engineering's Boundary Engine runs it. Point the engine at a package or a repository you name. It reports each place that copies Foundation's library, writes the algorithm out, or asks the platform for SHA-256, and ends in `kaal-boundary-scan {json}`. A finding is audit: a place to look at, never a fault. Decisions about findings belong to the repository, not to this package, and an empty list is no compliance. Read `dist/test/boundary-check/boundary-check.md` for the tests and the limits.
 
 ## Where a new shared concern belongs
 

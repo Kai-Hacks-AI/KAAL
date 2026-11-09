@@ -7,4 +7,4 @@ Foundation (`@kaihacksai/kaal-foundation`) is KAAL's one SHA-256. Read `skills/k
   `node node_modules/@kaihacksai/kaal-foundation/dist/skills/kaal-foundation/scripts/kaal-foundation.mjs sha256 <file>`.
 - `npm test` in the installed package verifies the copy: `verified`, `failed` or `cannot verify`.
 - A new shared helper belongs to the capability whose meaning it carries. Foundation holds only reviewed, provisional concerns.
-- To find a second SHA-256 elsewhere, point the scan at what you name: `node node_modules/@kaihacksai/kaal-foundation/dist/test/boundary-check/scan.mjs --target <path>...`. A finding is audit, a place to look at; decisions about findings belong to the repository.
+- To find a second SHA-256 elsewhere, give Foundation's Boundary Test definition to Engineering's Boundary Engine and name the targets: `node engineering/boundary/engine.mjs --tests node_modules/@kaihacksai/kaal-foundation/dist/test/boundary-check/boundary-check.md --target <path>...`. A finding is audit, a place to look at; decisions about findings belong to the repository.

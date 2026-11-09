@@ -2,10 +2,8 @@
 // @kaihacksai/kaal-foundation is installed, imported by its package name. Titles are
 // `foundation/T<n> [<targets>]: <what it checks>`; the manifest's cases and model come from them.
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
@@ -43,24 +41,17 @@ test("foundation/T26 [foundation/F3]: each refusal is a TypeError", () => {
   for (const bad of ["abc", new ArrayBuffer(3), new DataView(new ArrayBuffer(3)), new Uint16Array(3), [97, 98, 99], undefined]) assert.throws(() => sha256(bad), TypeError);
 });
 
-test("foundation/T63 [foundation/F34, foundation/F35]: the shipped Boundary Check scan finds a platform SHA-256 in a fixture it is pointed at and is complete (exit 0), and for a target that does not exist it is unknown (exit 2)", () => {
+test("foundation/T63 [foundation/F34, foundation/F35]: the shipped Boundary Test definition is well formed: its references resolve to Foundation's own shipped library and its three tests are typed", () => {
   const root = dirname(createRequire(import.meta.url).resolve("@kaihacksai/kaal-foundation/package.json"));
-  const scan = join(root, "dist", "test", "boundary-check", "scan.mjs");
-  const dir = mkdtempSync(join(tmpdir(), "foundation-scan-"));
-  try {
-    mkdirSync(join(dir, "target"));
-    writeFileSync(join(dir, "target", "x.mjs"), `const a = 1;\nconst d = createHash("sha${"256"}");\n`);
-    const run = (...targets) => {
-      const r = spawnSync(process.execPath, [scan, ...targets.flatMap((t) => ["--target", t]), "--base", dir], { encoding: "utf8", env: { ...process.env, NODE_TEST_CONTEXT: undefined } });
-      const line = r.stdout.trim().split(/\r?\n/).at(-1);
-      assert.ok(line.startsWith("kaal-foundation-scan "), `no scan line: ${r.stdout}${r.stderr}`);
-      return { status: r.status, json: JSON.parse(line.slice("kaal-foundation-scan ".length)) };
-    };
-    const found = run("target");
-    assert.deepEqual([found.status, found.json.result, found.json.findings.map((f) => `${f.rule} ${f.id}`)], [0, "complete", ["crypto kaal-foundation/target/x.mjs:2"]]);
-    const missing = run("nowhere");
-    assert.deepEqual([missing.status, missing.json.result], [2, "unknown"]);
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
-  }
+  const file = join(root, "dist", "test", "boundary-check", "boundary-check.md");
+  const text = readFileSync(file, "utf8");
+  const front = text.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1];
+  assert.ok(front, "the definition has front matter");
+  const refs = front.match(/^    equals: \[(.*)\]$/m)?.[1].split(",").map((r) => r.trim());
+  assert.deepEqual(refs, ["../../skills/kaal-foundation/scripts/sha256.mjs", "../../skills/kaal-foundation/scripts/sha256.d.ts"]);
+  for (const ref of refs) assert.ok(existsSync(join(dirname(file), ref)), `${ref} resolves beside the definition`);
+  assert.deepEqual([...front.matchAll(/^    detector: (\S+)$/gm)].map((m) => m[1]), ["file-identity", "token-sequence", "call-with-literal"]);
+  assert.match(front, /^    window: 3$/m);
+  assert.match(front, /^    tokens: \["0x428a2f98", "0x71374491"\]$/m);
+  assert.match(front, /^    literal: \[sha256, sha-256\]$/m);
 });
