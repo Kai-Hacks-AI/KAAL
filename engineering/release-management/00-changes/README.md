@@ -24,5 +24,6 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `verify-envelope-plan.md` | the PLAN for verify Envelope: the pull request body and title are the Change's stable envelope, checked by parsing, with fall forward |
 | `testing-controls-plan.md` | the PLAN for test Integration and test Candidate, with each present lane argued from intent |
 | `far-authorization-plan.md` | the PLAN for the authorization and lifecycle of Accepts and PLAN/DO integrity, before the FAR gates activate |
+| `control-overview-plan.md` | the PLAN for the control overview, the domain language and the verb set per control class, with the existing controls classified |
 
 An entry of `current-state.md`, `gaps.md`, `transformation.md` and `interim-states.md` is a list item with the members **Target** (the ids it differs from or serves), **Current** or **Difference**, and, where it ends, **Ends when** (a condition a Case judges). The migration is a Delivery architecture element with a beginning and an end; its last step is **terminate** (step 8 of the path in `transformation.md`).
