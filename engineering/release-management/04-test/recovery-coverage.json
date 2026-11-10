@@ -1,0 +1,20 @@
+{
+  "_about": "Traceability of the recovery contract (PLAN bind-merge-held-plan.md; T29 in recovery.red.mjs). Every release control is listed. A control is `covered` only by named Cases that exist in 00-changes/cases.md, or `pending` with the step whose RED must add them: a pending control is a mandatory later RED, not an exception. `liveProof` is `pending` until a run shows the recovery action re-triggers the check on GitHub; the YAML trigger Cases (T26) are static evidence only. Covering a control means its own fail and held verdicts, not another control's.",
+  "controls": {
+    "version Package": { "feature": "F3", "status": "pending", "step": "version Package RED (#1348 line)", "liveProof": "pending" },
+    "approve Publishing": { "feature": "F1", "status": "pending", "step": "approve Publishing PLAN, RED, DO", "liveProof": "pending" },
+    "verify Package Promotion": { "feature": "F2", "status": "pending", "step": "early readiness signal (G17) RED", "liveProof": "pending" },
+    "audit Lineage": { "feature": "F5", "status": "pending", "step": "Branching split: audit Lineage RED", "liveProof": "pending" },
+    "isolate Change": { "feature": "F6", "status": "pending", "step": "Branching split: isolate Change RED", "liveProof": "pending" },
+    "verify Ancestry": { "feature": "F7", "status": "pending", "step": "Branching split: verify Ancestry RED", "liveProof": "pending" },
+    "scan Vulnerabilities": { "feature": "F8", "status": "pending", "step": "scan Vulnerabilities control-named job RED", "liveProof": "pending" },
+    "scan Dependencies": { "feature": "F9", "status": "pending", "step": "scan Dependencies control-named job RED", "liveProof": "pending" },
+    "bind Merge": { "feature": "F10", "status": "covered", "cases": ["release-management/T25", "release-management/T26", "release-management/T27", "release-management/T28"], "scope": "the auto-merge verdicts only; its remaining verdicts come with the Branching split", "liveProof": "pending" },
+    "approve Promotion": { "feature": "F11", "status": "pending", "step": "FAR verifier (#1342) integration RED", "liveProof": "pending" },
+    "test Candidate": { "feature": "F12", "status": "pending", "step": "gate activation RED (lanes gate verdicts)", "liveProof": "pending" },
+    "serialize Promotion": { "feature": "F13", "status": "pending", "step": "serialize Promotion PLAN, RED, DO", "liveProof": "pending" },
+    "accept Capability": { "feature": "F14", "status": "pending", "step": "Branching split: accept Capability RED", "liveProof": "pending" },
+    "approve Change": { "feature": "F15", "status": "pending", "step": "FAR verifier (#1342) integration RED", "liveProof": "pending" },
+    "test Integration": { "feature": "F16", "status": "pending", "step": "gate activation RED (lanes gate verdicts)", "liveProof": "pending" }
+  }
+}
