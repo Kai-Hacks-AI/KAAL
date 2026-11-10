@@ -193,6 +193,23 @@ Proven vs not (nothing here is proven live; each line is a RED/proof item before
 - **Risks to settle:** required reviewers on an environment may or may not allow the person who triggered the run to approve it (self-review prevention); with one Owner this decides whether approve Publishing is a real second judgment or only a confirmation. A deployment status that reads success while a later verification fails is the failure mode named above.
 - **Not claimed:** that a deployment proves the registry accepted the package. Only verify Package Promotion proves that, and its result must change the deployment status.
 
+### Tag identity: a GitHub App, and what lives as code (Owner decision, 10 November)
+
+**Decision (Owner):** package tags are created by a GitHub App, which is the `publishing` ruleset's only bypass actor; the App's key is a secret of the `tagging` environment. This closes the open question of who holds tag creation. Nothing about the Owner's own account setup is documented here or anywhere in KAAL; the table says only which artifacts are repository state and which are not.
+
+**A consequence to prove, not to hide.** A bypass actor skips the rules of the ruleset it bypasses. So for the App, the ruleset's required status checks and required deployment (the primary design above) cannot be what makes it wait. What the ruleset then does is the fence: nobody else can create, move or delete a package tag. The ordering (the `gate (promotion)` result, test Candidate, version Package's preflight and the `candidate` deployment, all for the commit) is carried by the tag job itself: it `needs` the earlier jobs, it runs in the `tagging` environment whose deployment branch rule allows `main` only, and it verifies the facts as a script before it mints the token. The live proof list gains one line: how the bypass actor behaves against the two extra rules (already named as to prove) decides whether the ruleset also constrains the App or only everyone else.
+
+| Piece | In the repository as code | Only in GitHub (a human step, or a secret value) |
+| --- | --- | --- |
+| The App's permission set | an App manifest file (name aside, the permissions and events only: `contents: write` as the proposal, nothing else) | registering the App from the manifest and installing it on the repository (a browser confirmation; consent is not scriptable) |
+| The App as bypass actor | the `publishing` ruleset JSON with the App as its only bypass actor (the App's numeric id is a reference, not a secret, and is the one account-specific value in the file; how it is supplied is the Owner's call) | importing or applying the ruleset to the live repository (the Owner's go) |
+| The environments | `tagging`, `candidate` and `npm` as JSON: deployment branch rules, required reviewers, the names of the secrets and variables the workflows read | the secret values, and who the reviewers are as accounts |
+| The key | the secret's **name** referenced by the workflow | generating the private key, storing it as the `tagging` secret, rotating it. Never in code, never in a log |
+| Minting the token | the workflow job: an existing action turns the App id and key into a short-lived installation token, requesting only the permission the step needs (USE, not build) | nothing |
+| Drift | Cases: the live ruleset and environments against the files (structure, names, drift, recovery text), and the token's reported permissions against the manifest | the credential the drift job itself needs to read the live state; whether it can read rulesets and environments with the repository token is to prove |
+
+What cannot be code, in short: registering and installing the App, generating and storing its key, and the approvals of people. What must be: everything that says what the App may do and where it is a bypass actor.
+
 ### Trust between stages and recovery (CTO recommendation)
 
 **Who may do what, as three separate permissions, not one.**
@@ -376,7 +393,7 @@ Owner, one at a time in this order:
 1. Tag before publication under a tag ruleset is the Owner's stated direction (provenance table); implementing it needs the PLAN, RED, DO and the Owner's go. Still open: applying the real ruleset and the identity it names (item 4).
 2. G13 (where Accept authority is read from) before any FAR gate activates.
 3. The ledger-digest decision before the review trio retires.
-4. Who holds tag-creation: the release workflow identity with `contents: write` and the tag ruleset (recommended) or a separate App.
+4. ~~Who holds tag-creation~~ Decided (Owner, 10 November): a GitHub App, the ruleset's only bypass actor, key in the `tagging` environment secret. Open: the App's permission set and the bypass behavior proof.
 5. Prerelease policy (refused until decided) and the `Version:` member convention of the admitted Change Record.
 6. Whether the GitHub Release stage deserves its own control (a 16th, "bind Release") or stays inside version Package and approve Publishing (recommended: inside).
 7. G12 (optional peers for verify Package Promotion), the interim home of the path rule, and the proof rulesets and contexts.
