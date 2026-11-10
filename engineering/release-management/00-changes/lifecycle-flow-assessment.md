@@ -142,6 +142,25 @@ Proven vs not (nothing here is proven live; each line is a RED/proof item before
 - **Risks to settle:** required reviewers on an environment may or may not allow the person who triggered the run to approve it (self-review prevention); with one Owner this decides whether approve Publishing is a real second judgment or only a confirmation. A deployment status that reads success while a later verification fails is the failure mode named above.
 - **Not claimed:** that a deployment proves the registry accepted the package. Only verify Package Promotion proves that, and its result must change the deployment status.
 
+### Rulesets as code (Owner, 10 November)
+
+The JSON form of a ruleset is the code answer that closes the chain **Intent, Requirements, Architecture, Code** for the protected state. The three rulesets (`integration`, `promotion`, `publishing`) are today live settings with exported JSON kept outside the repository; the Owner's principle makes each one a versioned file in the repository whose content is what the requirements say.
+
+| Layer | What it holds for a ruleset |
+| --- | --- |
+| Intent | the protection (for `publishing`: a package tag exists only for a releasable commit, created by one identity) |
+| Requirements | the clauses it satisfies (F10 bind Merge, F11 approve Promotion, F13 serialize Promotion, F17 controls pinned to `main`, the version Package and approve Publishing clauses), each ruleset naming the requirement ids it carries |
+| Architecture | which control each rule realizes and who owns it (the matrix above), and the two required contexts `gate (integration)` and `gate (promotion)` |
+| Code | `05-src/rulesets/<name>.json`, exactly the GitHub ruleset import format, reviewed like code |
+
+Cases (verification, deterministic):
+
+1. **Structure.** The file parses, and each rule it must hold is present for its requirement: `publishing` holds creation, update, deletion and non-fast-forward restrictions, the required status checks and the required deployment; `integration` and `promotion` require the two gates and the pinned workflows; no extra bypass actor. A rule with no requirement, or a requirement with no rule, fails.
+2. **Names.** Every required context a ruleset names is a check the claims list (T22) and the workflows can produce, parsed, so a renamed job cannot leave a ruleset requiring a check that no longer exists.
+3. **Drift.** The live ruleset (read through the GitHub API with a credential the Owner provides; reading some fields needs admin) equals the file. A difference fails with a recovery that names the action: import the file (Owner) or correct the file by a Change. A scheduled run, not a gate, so a settings change outside the process is noticed; it is the check of F17.
+
+What this does not change: applying or editing a live ruleset stays the Owner's explicit go (an import), the proof rulesets stay trial-scoped, and a Change may edit the file but not the live state. The files are the proposal the Owner imports, and the Drift Case is what shows the import happened as written. Home of the drift check is open: audit Lineage's scheduled run or a control of its own (F17); not decided here, so the control count stays at 15.
+
 ## 3. Target CI inventory: 21 current checks to 25 named checks
 
 **Current (my count, from PR check runs and the workflow files):** 21 names = 11 test legs (Hosting x3, Acceptance x3, Guard x3, Workspaces, Engineering) + 10 others (Branching, Change Isolation, Change Isolation (review), Promotion Source, Dependency Review, CodeQL, CodeQL (javascript-typescript), CodeQL (actions), Guard Acceptance Boundary, Branching audit). Branching, Change Isolation, Change Isolation (review) and Promotion Source also exist as separate copies in `merge-group.yml`.
@@ -175,7 +194,7 @@ Proven vs not (nothing here is proven live; each line is a RED/proof item before
 
 ## 5. Implementation sequence (inside the existing sequence)
 
-PLAN (this document) -> RED and DO per control, in this order: bind Merge recovery (#1349 line) -> Branching split -> version Package (after the tag-timing decision) -> tag and draft Release stage -> approve Publishing environment proof -> gates (after G13 and the verifier) -> required contexts -> retirements. Live proof of each GitHub behavior above (tag-triggered workflows, the Release event, the dispatch chain, the environment approval, the queue) is part of its RED, with the proof ruleset the Owner imports.
+PLAN (this document) -> the three rulesets as JSON files with their structure and name Cases (before any import) -> RED and DO per control, in this order: bind Merge recovery (#1349 line) -> Branching split -> version Package (after the tag-timing decision) -> tag and draft Release stage -> approve Publishing environment proof -> gates (after G13 and the verifier) -> required contexts -> retirements. Live proof of each GitHub behavior above (tag-triggered workflows, the Release event, the dispatch chain, the environment approval, the queue) is part of its RED, with the proof ruleset the Owner imports.
 
 ## 6. Open decisions
 
