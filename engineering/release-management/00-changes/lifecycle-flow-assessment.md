@@ -31,7 +31,7 @@ Design points that follow from GitHub's behavior (all **to prove live** before t
 | Token and permissions | `contents: write` is held by the stage before the approval, so it needs the narrowest identity (a release workflow and its tag ruleset) | `contents: write` only after publication |
 | Fits the Owner's flow | yes (`main -> tag -> Release -> npmjs`) | reverses two stages |
 
-**Decision (Owner): tag before publication, with a tag-based ruleset on it.** The tag and the draft Release are created by version Package, and the publish is gated by approve Publishing. The tag ruleset restricts creation of package tags to the release workflow's identity and forbids moving or deleting them; it is a proof file for the Owner to import (`tag-ruleset-proof.json` and `proof-steps.md` in the project files) and is not applied by any PLAN. #1348's tag preflight (no tag at another commit, no tag for an unpublished version of another commit) is kept and extended: preflight before the tag, creation of the tag, then after publication a check that tag, commit and registry agree. #1348's PLAN now follows the decision (tag before publication; the preflight, creation under the ruleset, and the post-publication check), so its RED is unblocked once the PLAN lands.
+**Decision (Owner): tag before publication, with a tag-based ruleset on it.** The tag and the draft Release are created by version Package, and the publish is gated by approve Publishing. The tag ruleset, which the Owner named **publishing** (imported for trial tags `refs/tags/trial-*@*` only, active, no bypass actor, read-only check 10 November 2026), restricts creation of package tags to the release workflow's identity and forbids moving or deleting them; its definition is `tag-ruleset-proof.json` and the proof steps are in `proof-steps.md` in the project files; the real ruleset for `refs/tags/*@*` is a separate change with the Owner's go. #1348's tag preflight (no tag at another commit, no tag for an unpublished version of another commit) is kept and extended: preflight before the tag, creation of the tag, then after publication a check that tag, commit and registry agree. #1348's PLAN now follows the decision (tag before publication; the preflight, creation under the ruleset, and the post-publication check), so its RED is unblocked once the PLAN lands.
 
 ## 2. Transition-to-control matrix (all 15 controls)
 
@@ -104,6 +104,22 @@ The question from the Change thread: Change declares what a change touches, Guar
 5. **Not on the critical path.** None of this blocks the release-management route. It changes who the adapter calls, not whether the verdict exists.
 
 This is a position, not a decision. The Change thread argues the declaration, the Guard thread the protection, and the Owner decides the interim placement. If Change prefers to own both halves, Release's requirement does not change: one implementation, one verdict, invoked at each boundary.
+
+### Thesis: the tag stage prepares, publishing only moves a verified artifact (Owner, 10 November)
+
+The Owner's thesis: the checks and preparation at the tag stage can be what makes npm publication right. Assessment: **yes, and it is the reason to put the controls at the tag and the draft Release.** The irreversible step then has nothing left to decide.
+
+| Stage | Controls run | What is produced and bound |
+| --- | --- | --- |
+| tag (version Package, F3) | version greater than the registry's, tag preflight, version recorded in an admitted Change Record, test Candidate evidence present for that exact commit | the annotated tag `<package>@<version>` at that commit (created under the `publishing` ruleset) |
+| draft GitHub Release (version Package, test Candidate) | **pack once** from the tagged commit; install the packed tarball in fresh repositories on the supported hosts (the installed-artifact verification that is today test Candidate's Acceptance) | the tarball, its digest and the evidence attached to the draft Release |
+| approval (approve Publishing, F1, validation) | the Owner (or the designated authority) validates this draft Release: the tag, the digest and the attached evidence | an approval bound to the digest in the protected `npm` environment |
+| publishing (the step) | one deterministic check, no judgment: the tag, the tarball's digest and the approval agree; then publish **that tarball** (never repack) with trusted-publishing provenance | the version on the registry |
+| after publishing (verify Package Promotion, F2) | the registry holds the same version and integrity as the digest; the tag still names the released commit | the closing record on the Release |
+
+What this assigns: the pre-publication half of what `verify Package Promotion` is called today (installing the exact packed artifact) belongs to **test Candidate** at the draft Release, run before approval, because it verifies what will be moved. `verify Package Promotion` keeps the half that only exists after: that the registry now serves what was verified. approve Publishing stays validation. version Package is the control that creates the identity the others bind to.
+
+Limits to state plainly. A tag ruleset proves who created a tag, not that the checks ran; the claim "a package tag implies its checks passed" holds only because the tag-creating workflow runs the checks first and is itself pinned and trusted (the trust root), so the publishing step re-reads the evidence from the trusted baseline rather than trusting the tag. The digest equality check is what makes "publishing only moves a verified artifact" true; it is a RED Case of version Package. Whether npm's trusted publishing publishes a pre-packed tarball with provenance is to prove live before the stage is required.
 
 ## 3. Target CI inventory: 21 current checks to 25 named checks
 
