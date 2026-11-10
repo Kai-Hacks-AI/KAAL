@@ -1,4 +1,4 @@
-// release-management/T31 to T37, T54 and T55 (failing Cases, carried unwired in the PLAN of C6, freeze Collector; freeze-collector-plan.md).
+// release-management/T31 to T37, T54, T55 and T64 (failing Cases, carried unwired in the PLAN of C6, freeze Collector; freeze-collector-plan.md).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
 //   node --test engineering/release-management/04-test/freeze-collector.red.mjs
@@ -6,7 +6,7 @@
 // The contract: while a promotion of kaal/<X> is open, kaal/<X> is frozen. A promotion of it is held while any open pull request (drafts included, the
 // promotion itself excluded) has kaal/<X> as its base; any pull request that targets a frozen collector fails (GitHub cannot stop it being opened);
 // a promotion of kaal/<X> into main is held while any open pull request (drafts included, the promotion itself excluded) has
-// kaal/<X> as its base; the verdict names them; it offers exactly two recoveries (retarget to another collector that exists now, or wait);
+// kaal/<X> as its base; the verdict names them; it offers exactly two recoveries (retarget to another collector that exists now, or withdraw the promotion, land the dependent pull request and open a fresh one);
 // "deliver, then recreate the collector" is never offered. Do not edit a Case to make it pass.
 import assert from "node:assert/strict";
 import { dirname, join, resolve } from "node:path";
@@ -37,20 +37,20 @@ test("T32: with no pull request on the collector the promotion passes, and an em
   assert.equal((await freezeCollector())(facts({ openPulls: [] })).kind, "pass");
 });
 
-test("T33: exactly two recoveries are offered: retarget to another existing collector, or wait", async () => {
+test("T33: exactly two executable recoveries are offered: retarget to another existing collector, or withdraw the promotion and land the pull request", async () => {
   const v = (await freezeCollector())(facts({ openPulls: [promotion, dependent(1291)] }));
   const r = recoveries(v);
   assert.ok(r.length >= 1);
   for (const line of r) {
     const retarget = /^Recovery: gh pr edit (\d+) --base (kaal\/[A-Za-z0-9._-]+)( \(re-runs on: .+\))?$/.exec(line);
-    const wait = /^Recovery: none \(route: wait until #(\d+) has landed in kaal\/mnemonics\)$/.exec(line);
-    assert.ok(retarget || wait, `a retarget or a wait, nothing else: ${line}`);
+    const wait = /^Recovery: gh pr close 1362 \(re-runs on: closed\), then land #(\d+) in kaal\/mnemonics and open a fresh promotion$/.exec(line);
+    assert.ok(retarget || wait, `a retarget or a withdrawal, nothing else (waiting for a landing that the freeze forbids is a deadlock): ${line}`);
     if (retarget) {
       assert.ok(facts().collectors.includes(retarget[2]), `${retarget[2]} is a collector that exists now`);
       assert.notEqual(retarget[2], PROMOTED, "not the collector being promoted");
     }
   }
-  assert.ok(r.some((l) => /gh pr edit 1291 --base /.test(l)) && r.some((l) => /wait until #1291 /.test(l)), "both routes are offered for the pull request");
+  assert.ok(r.some((l) => /gh pr edit 1291 --base /.test(l)) && r.some((l) => /then land #1291 in kaal\/mnemonics/.test(l)), "both routes are offered for the pull request");
 });
 
 test("T34: deliver, then recreate is never offered: no recovery creates or pushes the collector, retargets to main, or retargets to the collector being promoted", async () => {
@@ -59,8 +59,8 @@ test("T34: deliver, then recreate is never offered: no recovery creates or pushe
   assert.ok(!/--base main\b/.test(text), "no retarget to main");
   assert.ok(!/--base kaal\/mnemonics\b/.test(text), "no retarget to the collector being promoted");
   assert.ok(!/git (push|branch|checkout -b)|gh api|recreate|re-create|create the collector/i.test(text), "no recovery creates the collector");
-  assert.ok(!/gh pr edit 1291 --base/.test(text), "with no other collector there is nothing to retarget to, so only the wait is offered");
-  assert.match(text, /wait until #1291 has landed/);
+  assert.ok(!/gh pr edit 1291 --base/.test(text), "with no other collector there is nothing to retarget to, so only the withdrawal is offered");
+  assert.match(text, /^Recovery: gh pr close 1362 \(re-runs on: closed\), then land #1291 in kaal\/mnemonics and open a fresh promotion$/m);
 });
 
 test("T35: missing facts are no evidence: an open-pull-request list that was not gathered is not a pass", async () => {
@@ -88,13 +88,13 @@ test("T37: a fast promotion points at the hotfix route as information, and no ov
 
 const into = (over) => facts({ baseRef: PROMOTED, headRef: "claude/new", pull: 1400, openPulls: [promotion, dependent(1400, { head: "claude/new" })], ...over });
 
-test("T54: a pull request that targets a frozen collector fails, and its recovery is a retarget to another existing collector or a wait for the promotion to close", async () => {
+test("T54: a pull request that targets a frozen collector fails, and its recovery is a retarget to another existing collector or the withdrawal of the promotion", async () => {
   const v = (await freezeCollector())(into());
   assert.equal(v.kind, "fail", "evidence: the pull request is judged, not merely warned about");
   assert.ok(v.message.includes("#1362"), "names the open promotion that freezes the collector");
   const r = recoveries(v);
   assert.ok(r.some((l) => /^Recovery: gh pr edit 1400 --base kaal\/(hosting|engineering-release-management)$/.test(l)), "retarget to another existing collector");
-  assert.ok(r.some((l) => /^Recovery: none \(route: wait until promotion #1362 is closed without merging\)$/.test(l)), "or wait for the promotion to close");
+  assert.ok(r.some((l) => /^Recovery: gh pr close 1362 \(re-runs on: closed\), then land #1400 in kaal\/mnemonics and open a fresh promotion$/.test(l)), "or withdraw the promotion, land the pull request, and open a fresh promotion");
   assert.ok(!/--base main\b|--base kaal\/mnemonics\b|git (push|branch)|recreate/i.test(r.join("\n")), "never main, never the frozen collector, never recreate");
 });
 
@@ -103,4 +103,16 @@ test("T55: a collector with no open promotion is not frozen, and a closed promot
   assert.equal(f(into({ openPulls: [dependent(1400, { head: "claude/new" })] })).kind, "not-applicable", "no promotion is open for it");
   assert.equal(f(into({ openPulls: [{ ...promotion, state: "closed" }, dependent(1400, { head: "claude/new" })] })).kind, "not-applicable", "a promotion that is closed does not freeze");
   assert.notEqual(f(into({ openPulls: undefined })).kind, "pass", "missing facts are no evidence");
+});
+
+test("T64: a promotion is passed only from a fresh inventory taken in the merge-group run, never from an earlier check's", async () => {
+  const f = await freezeCollector();
+  const base = facts({ openPulls: [promotion] });
+  assert.equal(f({ ...base, stage: "merge-group", inventory: { event: "merge_group", fresh: true } }).kind, "pass");
+  for (const inventory of [undefined, { event: "pull_request", fresh: true }, { event: "merge_group", fresh: false }, { event: "merge_group" }]) {
+    const v = f({ ...base, stage: "merge-group", inventory });
+    assert.notEqual(v.kind, "pass", JSON.stringify(inventory));
+    assert.match(v.message, /fresh inventory/);
+  }
+  assert.equal(f({ ...base, stage: "check" }).kind, "pass", "the earlier check may pass; it is the merge group that decides");
 });

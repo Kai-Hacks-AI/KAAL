@@ -24,12 +24,14 @@ Change `release-management/C6`, control **freeze Collector** (`release-managemen
 
 The judgment is the same pure function at every layer; the layers differ in what they may do with the verdict.
 
-## Recovery: exactly two routes (Owner, 10 November)
+## Recovery: exactly two routes, both executable (Owner, 10 November; CPO review)
 
-For a pull request that targets a frozen collector, the same two routes apply: retarget it, or wait until the promotion is closed without merging (`Recovery: none (route: wait until promotion #<n> is closed without merging)`). Waiting for the promotion to land would leave the pull request retargeted to `main` by GitHub, which is what must not happen.
+A frozen collector admits nothing, so **waiting for the pull requests to land is not a route**: they cannot land while the freeze fails them, and the promotion is held until they have, which would block both for ever (CPO review, #1367). Each route below changes the state:
 
-1. **Retarget** each open pull request to **another collector that exists now**, before the promotion: `gh pr edit <number> --base <kaal/Y>`.
-2. **Wait** until they have landed in `kaal/<X>`: `Recovery: none (route: wait until #<n> has landed in kaal/<X>)`.
+1. **Retarget** each open pull request to **another collector that exists now**: `Recovery: gh pr edit <number> --base <kaal/Y> (re-runs on: edited)`. The event is on the pull request itself, so its check re-runs.
+2. **Withdraw the promotion**: close it, which ends the freeze; then land the dependent pull request in `kaal/<X>`; then open a **fresh** promotion. `Recovery: gh pr close <promotion> (re-runs on: closed), then land #<n> in kaal/<X> and open a fresh promotion`. This is not "deliver, then recreate": the collector is never promoted, deleted and recreated. The promotion is the thing withdrawn and reopened, not the collector.
+
+The same two routes serve both verdicts: the held promotion names them for each dependent pull request, and a pull request that targets a frozen collector (fail) names them for itself.
 
 **Retarget never means: deliver, then recreate.** Promoting, then recreating the collector and pointing the pull requests back at it (what was done for #1291) is not a recovery and is never offered: no recovery line creates or pushes `kaal/<X>`, none retargets to `main`, and none retargets to the collector being promoted. The Cases prove that.
 
@@ -45,7 +47,15 @@ When a promotion cannot wait for the pull requests on its collector, the route i
 
 ## Open for the Owner and CPO
 
-- **When it is re-judged.** Retargeting or landing another pull request emits events on that pull request, not on the promotion. The promotions go through the merge queue on `main`, so the control is judged again in the merge group at merge time, which is also what closes the race (a pull request opened after the first judgment). To be proven in the DO; a scheduled re-evaluation is the fallback.
+- **When it is re-judged, and what is proven.** A fresh inventory of open pull requests is taken at every judgment and is never carried over:
+
+  | Event | Re-judges | Status |
+  | --- | --- | --- |
+  | the promotion is opened, reopened, edited (base) or closed | the promotion itself | GitHub delivers the event to the promotion's check |
+  | the dependent pull request is edited (base changed), reopened or pushed | that pull request | delivered to its own check; the retarget route relies on it |
+  | the promotion is closed or opened | **the dependent pull requests** | **not delivered by GitHub**: events on one pull request do not re-run another's check. The DO must provide it (the promotion's job re-requests the checks of the pull requests whose base is the collector) and prove it live; a scheduled sweep is the fallback. Not claimed here. |
+  | the merge group is formed for the promotion | the promotion, from a **fresh inventory taken in the merge-group run** | the gate does not trust an earlier check (T64) |
+
 - The feature id `F21` goes into the root documents with the DO, not before. A branch lock on a frozen collector, and whether the check becomes required, are the Owner's separate go.
 - Forked pull requests and pull requests into the collector from other repositories: counted (any open pull request with that base).
 
