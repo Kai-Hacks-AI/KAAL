@@ -17,7 +17,7 @@ Change `release-management/C10`. PLAN, nothing is built or retired; the failing 
 
 ## 1. Inventory (read at the collector head `e110a23`, 10 November; `main` at `9033099`)
 
-Read from the tree at those heads, not from the READMEs (the README is historical evidence, not a live proof). `kaal/engineering-release-management` is 29 commits ahead of `main`. Its `.github` differs from `main` by one change: `release.yml` (named `Release`) became `publish.yml` (named `KAAL / release / publish`, jobs `Pack`, `approve Publishing` with `environment: npm`, `verify Package`). No other workflow, script or action differs.
+Read from the tree at those heads, not from the READMEs (the README is historical evidence, not a live proof). `kaal/engineering-release-management` is 29 commits ahead of `main`. Its `.github` differs from `main` by one change: `release.yml` (named `Release`) became `publish.yml` (named `KAAL / release / publish`, jobs `Pack`, `approve Publishing` with `environment: npm`, `verify Package Promotion` as observed on that date; the control is named verify Package since C16). No other workflow, script or action differs.
 
 | Where | What is there |
 | --- | --- |

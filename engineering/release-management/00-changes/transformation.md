@@ -110,7 +110,7 @@ Build order (agreed): audit Lineage first, then the npmjs controls, then main, t
 
   Target: F2, `release-engine/`.
 
-  Difference: the Accept job and `provenance()`, `Accept` on `main` and `verify Package` on the collector. Retires none.
+  Difference: the Accept job and `provenance()`, `Accept` on `main` and `verify Package Promotion` on the collector (the observed job name; the control is verify Package since C16). Retires none.
 
 ## Changes that have landed
 
@@ -148,7 +148,7 @@ Build order (agreed): audit Lineage first, then the npmjs controls, then main, t
 
   Target: F1, F2, A2, A3.
 
-  Difference: the `.github`-only rename of `release.yml` to `publish.yml`, the workflow name `KAAL / release / publish`, the jobs `approve Publishing` and `verify Package`, and the engine's new path in every step.
+  Difference: the `.github`-only rename of `release.yml` to `publish.yml`, the workflow name `KAAL / release / publish`, the jobs `approve Publishing` and `verify Package Promotion` (observed names), and the engine's new path in every step.
 
 ## Path to `main`
 

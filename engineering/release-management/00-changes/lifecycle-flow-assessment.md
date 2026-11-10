@@ -409,7 +409,7 @@ Every one of the 21 current checks and the five helper and release jobs has a di
 | Dependency Review (15) | **keep, rename** | scan Dependencies (F9) | control-named job |
 | CodeQL (12 to 14) | **keep** | scan Vulnerabilities (F8) | the tool's names stay; the control claims them |
 | Branching audit (21) | **keep, rename** | audit Lineage (F5) | scheduled, not a gate |
-| `Pack`, `approve Publishing`, `verify Package` (publish.yml) | **keep, restage** | version Package (F3, preparation), approve Publishing (F1), verify Package (F2) | become the stages of the lifecycle |
+| `Pack`, `approve Publishing`, `verify Package Promotion` (publish.yml, the job name observed; the control is verify Package since C16) | **keep, restage** | version Package (F3, preparation), approve Publishing (F1), verify Package (F2) | become the stages of the lifecycle |
 | (none) | **add** | `gate (integration)`, `gate (promotion)` | the only required contexts in the target |
 
 **Arithmetic.** 21 current checks, minus 2 retired by consolidation (Change Isolation (review), Guard Acceptance Boundary), minus 1 replaced by the split (Branching), plus 2 from the split (verify Ancestry, bind Merge) is 20; plus the two gates is 22; plus the three release-stage names, which exist today only inside `publish.yml` and are not among the 21, is **25**. Each of the 15 controls appears in 3.2 or as a native setting; the local hooks and the invocation counts do not enter the 25.
