@@ -38,6 +38,5 @@ G4 tooling; the `.github` step; running these on package-change pull requests (t
 ## Open for the Owner and CPO
 
 - The `Version:` member of a Change Record as the convention that ties a version to a Change (a new field in the record template), or another binding.
-- Who may create the release tag and with what permission (the publish job's token), since creating a tag is a write the workflow does not have today.
 - Prerelease policy: refused until the Owner decides, before any first prerelease publication.
 - Who holds the tag-write permission and on which step (least privilege; tag after publication only).
