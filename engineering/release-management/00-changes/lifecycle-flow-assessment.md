@@ -55,7 +55,7 @@ Design points that follow from GitHub's behavior (all **to prove live** before t
 | --- | --- | --- |
 | What the tag means | the exact commit the Owner authorized to publish | the commit that was published |
 | Evidence anchor | the draft Release and the tag exist while the approval is given, so the approver sees what is released | the evidence is assembled after the irreversible step |
-| Orphan risk | a tag for a version that never publishes. It is never moved or deleted (the ruleset forbids both): a failed publish is retried on the same tag, and an abandoned tag stays, its version is burned and never reused, and its draft Release is left unpublished with a note | none for tags, but a publish whose tagging step fails leaves a published version without its identity |
+| Orphan risk | a tag for a version that never publishes. It is never moved or deleted by the tag job (create-only, below), and the ruleset forbids both for everyone but the App: a failed publish is retried on the same tag, and an abandoned tag stays, its version is burned and never reused, and its draft Release is left unpublished with a note | none for tags, but a publish whose tagging step fails leaves a published version without its identity |
 | Token and permissions | `contents: write` is held by the stage before the approval, so it needs the narrowest identity (a release workflow and its tag ruleset) | `contents: write` only after publication |
 | Fits the Owner's flow | yes (`main -> tag -> Release -> npmjs`) | reverses two stages |
 
@@ -192,6 +192,63 @@ Proven vs not (nothing here is proven live; each line is a RED/proof item before
 - **Supported (the UI shows both fields), semantics to prove:** the proof is `tag-ruleset-proof-checks.json` and its steps in `proof-steps.md` (not applied; the Owner edits the live ruleset). Still to prove live with the trial ruleset: how GitHub evaluates them for a ref that is being created (the status checks must be reported on the commit the tag names, with contexts the ruleset can name; the required deployment must be to that commit and environment before the tag push), that a refusal gives the creating job a message it can turn into a recovery, and that the bypass actor does not also bypass these two rules.
 - **Risks to settle:** required reviewers on an environment may or may not allow the person who triggered the run to approve it (self-review prevention); with one Owner this decides whether approve Publishing is a real second judgment or only a confirmation. A deployment status that reads success while a later verification fails is the failure mode named above.
 - **Not claimed:** that a deployment proves the registry accepted the package. Only verify Package Promotion proves that, and its result must change the deployment status.
+
+### Tag identity: a GitHub App, and what lives as code (Owner decision, 10 November)
+
+**Decision (Owner):** package tags are created by a GitHub App, which is the `publishing` ruleset's only bypass actor; the App's key is a secret of the `tagging` environment. This closes the open question of who holds tag creation. Nothing about the Owner's own account setup is documented here or anywhere in KAAL; the table says only which artifacts are repository state and which are not.
+
+**A consequence to prove, not to hide.** A bypass actor skips the rules of the ruleset it bypasses. So for the App, the ruleset's required status checks and required deployment (the primary design above) cannot be what makes it wait. What the ruleset then does is the fence: nobody else can create, move or delete a package tag. The ordering (the `gate (promotion)` result, test Candidate, version Package's preflight and the `candidate` deployment, all for the commit) is carried by the tag job itself: it `needs` the earlier jobs, it runs in the `tagging` environment whose deployment branch rule allows `main` only, and it verifies the facts as a script before it mints the token. The live proof list gains one line: how the bypass actor behaves against the two extra rules (already named as to prove) decides whether the ruleset also constrains the App or only everyone else.
+
+| Piece | In the repository as code | Only in GitHub (a human step, or a secret value) |
+| --- | --- | --- |
+| The App's permission set | an App manifest file (name aside, the permissions and events only: `contents: write` as the proposal, nothing else) | registering the App from the manifest and installing it on the repository (a browser confirmation; consent is not scriptable) |
+| The App as bypass actor | the `publishing` ruleset JSON with the App as its only bypass actor, **with the App's numeric id in the file** (Owner decision, 10 November), so the file stays importable through the UI's JSON upload | importing or applying the ruleset to the live repository (the Owner's go) |
+| The environments | `tagging`, `candidate` and `npm` as JSON: deployment branch rules, required reviewers, the names of the secrets and variables the workflows read | the secret values, and who the reviewers are as accounts |
+| The key | the secret's **name** referenced by the workflow | generating the private key, storing it as the `tagging` secret, rotating it. Never in code, never in a log |
+| Minting the token | the workflow job: an existing action turns the App id and key into a short-lived installation token, requesting only the permission the step needs (USE, not build) | nothing |
+| Drift | Cases: the live ruleset and environments against the files (structure, names, drift, recovery text), and the token's reported permissions against the manifest | the credential the drift job itself needs to read the live state; whether it can read rulesets and environments with the repository token is to prove |
+
+What cannot be code, in short: registering and installing the App, generating and storing its key, and the approvals of people. What must be: everything that says what the App may do and where it is a bypass actor.
+
+**The create-only contract, and the residual risk of the App (CPO review of #1356).** The ruleset's restrict-update and restrict-delete rules do not bind the bypass actor, so the App, with `contents: write`, could technically move or delete a package tag. The ruleset therefore cannot be cited as the guarantee for that identity. What holds instead, and what is honestly left:
+
+- **Create-only job contract.** The tag job's only write is creating a ref that does not exist. It fails when the tag already exists, with one exception: a **precisely verified same-tag retry** (the existing tag object points at exactly the commit and annotation the job would create; then it creates nothing and goes on). It never calls an update, force or delete API. This is a Case on the tag step's logic (version Package's `tagVerdict` and the one function that writes), run with fixtures: an existing tag at another commit fails closed; an existing tag at the same commit is a retry that writes nothing; a call set that includes PATCH, DELETE, a forced push or a tag deletion fails the Case. The tag step is one script of the engine, not shell lines scattered over a workflow, so the allowed calls can be read and listed (parsed, not matched as words).
+- **The credential is reachable only by that job.** The key is a secret of the `tagging` environment, whose deployment branch rule allows `main` only; only the tag job names that environment; the token is minted inside that job requesting only the permission it needs, and is not passed to any other job or step as an output. Changing the workflow is itself a reviewed change on `.github`, which CODEOWNERS routes to the CPO. A Case checks that no job other than the tag job names the environment or reads the secret, and that the token is not an output.
+- **The App owns the tag action, not a generic workflow token.** The workflow's default token has no tag permission; no job holds `contents: write` for tags except through the App.
+- **Residual risk, stated.** A compromised or misused App key, or a reviewed change that widens the job, could still move or delete a tag. The mitigation is detection and recovery, not prevention: a scheduled **tag integrity audit** (audit Lineage family) compares every package tag's object with the commit and annotation recorded when it was created (in the draft Release and the attestation) and with the registry's version, and a difference is an incident with its recovery (stop publishing that package, find who used the key, rotate it, re-establish from the record). The live proof must include that an unauthorized actor is rejected by the ruleset, and whether required checks and deployments are skipped for the bypass actor.
+- **Where the audit sits (Owner, 10 November).** The tag integrity audit is a nice concept that needs to be looked at from different viewpoints (Guard's protection, Testing's evidence, Review's validation); for now it sits in Release Management. It runs on a schedule and can also run on each publish, as the last check of the publishing job, against the tag it just used.
+
+**Placement and trace (Owner agreed, 10 November).** Everything for the App lives in `publishing/`, because Tagging sits inside Publishing: the App's manifest, `publishing/ruleset.json` naming the App as its only bypass actor, `publishing/environments/` (`tagging`, `candidate`, `npm`) and the Cases that compare the live settings with these files. The one piece outside it is the tagging workflow, which lives in `.github` like every workflow; `publishing/` lists it (by path, in its README "Serves:" and "Runs in:" members) so a Case can check that it exists and uses the environment and secret names the files declare.
+
+| Level | Holds, for the tag identity |
+| --- | --- |
+| Intent (I1) | only an approved, correctly shaped package reaches npmjs, and a package tag names exactly the released commit and is never moved or deleted by any KAAL job, with independent detection if anything does |
+| Requirements | F3 version Package (tag at the released commit, version set by a recorded Change), F1 approve Publishing (the protected `npm` environment), F2 verify Package Promotion, F17 (the three rulesets as versioned JSON with structure, name and drift Cases) |
+| Architecture | `publishing/` holds the Tagging, Release and Publishing chain: the ruleset, the environments, the App manifest, the Cases, the README; the App is the sole creator; the key is a `tagging` secret, never in the repository |
+| Code | `publishing/ruleset.json`, `publishing/environments/*.json`, the App manifest, the drift Cases, and the `.github` tagging workflow (listed, not owned) |
+
+**The App's id is in the ruleset file (Owner decision, 10 November; reverses the variable idea of the same day).** There is no security risk in the id: it identifies the App, it is not a credential, and knowing it grants nothing, because acting as the bypass actor needs the App's key, which is a `tagging` secret. So the file holds the real id and stays importable as is. The file is KAAL's own (Engineering's implementation, not a capability or package file), so there is nothing for a consumer to replace. If the App changes, the file is edited and re-applied. The drift Case compares the live ruleset's bypass actor with the id in the file and fails with its recovery (edit the file or re-apply the ruleset) until they agree.
+
+The Cases that close the chain, each failing with its recovery (T25 to T29): the ruleset names the App as its only bypass actor and has the creation, update, deletion and non-fast-forward rules; the environments match their files; the manifest asks for the permission set the workflow requests and nothing more; the workflow named by `publishing/` exists, runs in `tagging` and reads only the declared secret name; the live ruleset, environments and token permissions match the files (drift, scheduled). Nothing is created or activated by this section.
+
+### The four control types as a lens (Owner, 10 November)
+
+Directive, preventive, detective and corrective controls are a useful lens, and the tag integrity audit is a good detective control. Classified by what each one does when it acts, not by where it runs:
+
+| Type | What it does | Release management's controls |
+| --- | --- | --- |
+| Directive | tells people and agents what to do, and gives early feedback; can be skipped, so it does not stop anything | the Git hooks (feedback only, bypassable), the READMEs, PLANs and Requirements, the `Earliest:` line, the `Recovery:` lines when read before acting |
+| Preventive | stops the wrong thing from happening | the three rulesets, both gates, bind Merge, verify Ancestry, isolate Change, approve Change, approve Promotion, approve Publishing (the protected `npm` environment), accept Capability, serialize Promotion, version Package (refuses a wrong version or tag), the create-only tag step and the fence on the tag ruleset |
+| Detective | finds what happened or what is wrong, after or beside the act | audit Lineage, the tag integrity audit, verify Package Promotion (after publication), the two scans, the test legs of test Integration and test Candidate (evidence a gate then reads), the drift Cases on rulesets and environments |
+| Corrective | restores a good state or limits the damage | the `Recovery:` line of a verdict (the route out of a stuck pull request), same-tag retry, the incident procedure for a failed post-publish verification (deprecate and supersede, no rollback), key rotation for the App, deprecation of a burned version |
+
+What the lens shows:
+- **A detective control becomes preventive only through a gate.** The scans and the test legs detect; the gate that reads them as required is what prevents. A detective control nobody gates is information (the `Earliest:` line is deliberately of this kind).
+- **Directive controls cannot carry protection.** A hook can be skipped, so nothing relies on one; it is feedback that makes the preventive controls cheaper to meet.
+- **The corrective column is the thinnest.** Today it is recovery text, retry on the same tag, and a documented incident procedure; nothing automated. The tag integrity audit is detective with a corrective procedure behind it (stop publishing, find who used the key, rotate it); the assessment does not claim more.
+- **Each preventive control has a detective counterpart or a reason it needs none.** Preventive controls that the App bypasses (the tag ruleset) are exactly where the detective audit is needed. That is the rule to apply when a control is added: name its type, name the control of the neighbouring type that covers its failure, or say why none is needed.
+
+Classification only; it changes no control, name or count.
 
 ### Trust between stages and recovery (CTO recommendation)
 
@@ -376,7 +433,7 @@ Owner, one at a time in this order:
 1. Tag before publication under a tag ruleset is the Owner's stated direction (provenance table); implementing it needs the PLAN, RED, DO and the Owner's go. Still open: applying the real ruleset and the identity it names (item 4).
 2. G13 (where Accept authority is read from) before any FAR gate activates.
 3. The ledger-digest decision before the review trio retires.
-4. Who holds tag-creation: the release workflow identity with `contents: write` and the tag ruleset (recommended) or a separate App.
+4. ~~Who holds tag-creation~~ Decided (Owner, 10 November): a GitHub App, the ruleset's only bypass actor, key in the `tagging` environment secret. Open: the App's permission set and the bypass behavior proof.
 5. Prerelease policy (refused until decided) and the `Version:` member convention of the admitted Change Record.
 6. Whether the GitHub Release stage deserves its own control (a 16th, "bind Release") or stays inside version Package and approve Publishing (recommended: inside).
 7. G12 (optional peers for verify Package Promotion), the interim home of the path rule, and the proof rulesets and contexts.
