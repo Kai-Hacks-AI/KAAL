@@ -27,11 +27,15 @@ export function versionFindings({ name, version, published }) {
  * T2, before the tag is created; writes nothing. `tags` maps a tag name to the commit it names, `published` maps a published version of
  * this package to the commit it was built from (null when unknown). Passes when no tag `<name>@<version>` exists, or when it exists at
  * this commit for a version not yet published (a retry of the same release). Fails when it names another commit, and when the version is
- * on the registry at another commit.
+ * on the registry at another commit. Missing facts are no evidence: `tags` and `published` must each be an object the caller successfully
+ * gathered (an empty one is a successful query that found nothing); an absent one is a non-passing verdict, never permission to create.
+ * "Retry" claims commit equality only: the peeled commit of the existing tag. That the existing annotated tag object and annotation are
+ * the expected ones is for the tag writer to check before it writes nothing on a retry; this function does not prove it.
  */
 export function tagPreflight({ name, version, commit, tags, published }) {
   const tag = `${name}@${version}`;
-  const f = [];
+  const f = unknown({ tags, published });
+  if (f.length > 0) return { findings: f, create: false, retry: false };
   const at = tags?.[tag];
   if (at !== undefined && at !== commit) f.push(`the tag ${tag} names ${at}, not ${commit}`);
   if (published && Object.hasOwn(published, version)) {
@@ -47,7 +51,8 @@ export function tagPreflight({ name, version, commit, tags, published }) {
  */
 export function tagAfterRelease({ name, version, commit, tags, published }) {
   const tag = `${name}@${version}`;
-  const f = [];
+  const f = unknown({ tags, published });
+  if (f.length > 0) return { findings: f };
   if (!published || !Object.hasOwn(published, version)) f.push(`${tag} is not on the registry`);
   if (tags?.[tag] === undefined) f.push(`the tag ${tag} does not exist`);
   else if (tags[tag] !== commit) f.push(`the tag ${tag} names ${tags[tag]}, not the released commit ${commit}`);
@@ -61,6 +66,7 @@ export function tagAfterRelease({ name, version, commit, tags, published }) {
  */
 export function versionRecorded({ name, version, previous, records }) {
   if (version === previous) return { findings: [] };
+  if (!Array.isArray(records)) return { findings: ["the Change Records were not read from the trusted baseline, so the version cannot be traced"] };
   const wanted = `${name}@${version}`;
   for (const text of records ?? []) {
     const walker = new Parser().parse(String(text)).walker();
@@ -72,6 +78,13 @@ export function versionRecorded({ name, version, previous, records }) {
     }
   }
   return { findings: [`${wanted} changed from ${previous} but no Change Record names it in a Version: member`] };
+}
+
+/** Findings for facts the caller did not gather: a collection that is absent is unknown, an empty one is a successful query. */
+function unknown(facts) {
+  return Object.entries(facts)
+    .filter(([, v]) => v === null || typeof v !== "object" || Array.isArray(v))
+    .map(([k]) => `${k} was not gathered, so the tag cannot be judged`);
 }
 
 /** The text of a node, as one line. */

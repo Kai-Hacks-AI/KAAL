@@ -49,6 +49,21 @@ describe("release-management/T2: a tag names the version and commit", () => {
   it("fails when the version is on the registry from another commit, tag or none", () => {
     assert.ok(tagPreflight({ ...base, tags: {}, published: { "0.0.1": C2 } }).findings.length > 0);
   });
+  it("missing facts are no evidence: an absent or malformed tags/published is a non-passing verdict, an empty one is a successful query", () => {
+    for (const bad of [undefined, null, [], "x"]) {
+      const a = tagPreflight({ ...base, tags: bad, published: {} });
+      assert.deepEqual([a.create, a.retry], [false, false]);
+      assert.ok(a.findings.some((f) => /tags was not gathered/.test(f)));
+      assert.ok(tagPreflight({ ...base, tags: {}, published: bad }).findings.some((f) => /published was not gathered/.test(f)));
+      assert.ok(tagAfterRelease({ ...base, tags: bad, published: { "0.0.1": C1 } }).findings.length > 0);
+    }
+    assert.equal(tagPreflight({ ...base, tags: {}, published: {} }).create, true, "an empty, successfully queried collection permits creation");
+  });
+  it("retry claims commit equality only: it names no annotation or object identity", () => {
+    const r = tagPreflight({ ...base, tags: { [`${NAME}@0.0.1`]: C1 }, published: {} });
+    assert.equal(r.retry, true);
+    assert.ok(!("object" in r) && !("annotation" in r), "the tag writer, not this function, verifies the annotated tag object before a no-write retry");
+  });
   it("after publication the tag must still name exactly the released commit and the version must be on the registry", () => {
     assert.deepEqual(tagAfterRelease({ ...base, tags: { [`${NAME}@0.0.1`]: C1 }, published: { "0.0.1": C1 } }).findings, []);
     assert.ok(tagAfterRelease({ ...base, tags: { [`${NAME}@0.0.1`]: C2 }, published: { "0.0.1": C1 } }).findings.length > 0);
@@ -60,6 +75,9 @@ describe("release-management/T2: a tag names the version and commit", () => {
 describe("release-management/T3: the version in package.json is the one a recorded Change set", () => {
   const input = { name: NAME, version: "0.0.2", previous: "0.0.1" };
   it("an unchanged version needs no record", () => assert.deepEqual(versionRecorded({ ...input, version: "0.0.1", records: [] }).findings, []));
+  it("records that were not read are no evidence", () => {
+    for (const bad of [undefined, null, "x"]) assert.ok(versionRecorded({ ...input, records: bad }).findings.length > 0);
+  });
   it("a changed version with no record naming it is refused", () => assert.ok(versionRecorded({ ...input, records: ["# C\n\nNothing here.\n"] }).findings.length > 0));
   it("a Version: member naming it, read with the parser, records it", () => {
     assert.deepEqual(versionRecorded({ ...input, records: [`# C\n\n- **Version:** ${NAME}@0.0.2\n`.replace("**Version:**", "Version:")] }).findings, []);
