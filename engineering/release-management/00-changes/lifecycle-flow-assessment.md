@@ -188,40 +188,26 @@ Argued: a ruleset and a gate are **conditions**, not actions; "the promotion rul
 
 Each file's name is the live ruleset's name, so the drift Case compares by name, never by position.
 
-#### Folders of `05-src`: control boundaries named for their domain (proposal; Owner: components are control boundaries, domain-driven naming)
+#### Folders of `05-src`: four control boundaries (proposal; Owner: the three steps plus one, which gives the rulesets a home)
 
-Each folder of `05-src` is a **control boundary**: an architecturally distinct part of Release management with its own model, named for its concept in the release language (the ubiquitous language of the lifecycle and the matrix), not for the mechanism that happens to implement it. One authoritative implementation per judgment still holds: a boundary may serve several controls (and run in several contexts), and a control is served by exactly one boundary. Every control has a boundary, including the four that are native settings and the two that are external tools: a boundary holds what is ours about a control (configuration, pinning, records, Cases) even when the mechanism is not. Controls remain named in the root documents, the job names and each folder's README ("Serves:", parsed); tracing stays in the root documents.
+Each folder of `05-src` is a **control boundary** named for its domain concept in the release language, not for a mechanism. The Owner's structure is four: **`integration/`, `promotion/`, `publishing/`** (the three steps, named like their rulesets and gates) and a **fourth that holds what is not one step's**. One authoritative implementation per judgment still holds.
 
-Mechanism names today, and what each is called in the domain:
+**The rule that places a control.** A control that acts at one step is judged in that step's boundary. An implementation used at more than one step lives once, in the fourth boundary, and each step calls it through its verdict and holds only its own data (which checks and lanes it expects, its gate). The fourth also holds the protected state of all three steps as code. Controls and their boundaries stay named in the root documents and in each folder's README ("Serves:", parsed); tracing stays in the root documents.
 
-| Today | Names a mechanism or tool | Domain concept (proposed name) |
-| --- | --- | --- |
-| `lanes/` | CI lanes | **`qualification/`**: qualifying an integration and a candidate by evidence |
-| `merge-group/` | GitHub's merge group | **`landing/`**: how a Change lands (the code already says `landing`, `landedAs`) |
-| `release-engine/` | "engine" | **`publishing/`**: bringing a verified version to the registry (also the lifecycle stage and the ruleset's name) |
-| `rulesets/` (proposed earlier) | GitHub's term | **`protection/`**: the protected state of each transition, in code |
-| `change-isolation/` | "Change" collides with the capability of that name | **`isolation/`** |
-| `promotion-source/` | a rule's input | **`promotion/`**: which lineage may be promoted |
-| `lineage/` | none; it is the domain concept | `lineage/` (kept) |
-| (gate code inside `lanes/gate.mjs`) | two decisions in one place | **`progression/`**: the gates that decide whether a Change may progress; it reads verdicts and never produces them, so it does not belong with the test evidence |
+**The fourth boundary is `protection/`.** Argued: it is a noun like the rulesets and the gates (the rule agreed on 10 November: nouns for protections, verbs for steps); it is the Owner's own sentence ("Guard protects what we have and shall have"), so it names what these controls do for every step; and the rulesets and environments are literally the protected state, so they have a natural home in it. Alternatives considered: `invariants` (DDD's own term, but a ruleset is a protection of a ref, not an invariant of an aggregate), `assurance` (collides with the Testing and Review split), `safeguards` (a synonym with no support in the repository's language). `protection/` here is KAAL's application; Guard stays the reusable executor of protective checks.
 
-Boundaries, with the controls each serves:
+| Boundary | Controls judged here | Why here | Also holds |
+| --- | --- | --- | --- |
+| `integration/` | approve Change (F15, the verified record of the approval), test Integration (F16, which lanes and hosts it expects) | acts only at integration | `gate (integration)`: its expected contexts and job |
+| `promotion/` | accept Capability (F14), approve Promotion (F11, the verified record), serialize Promotion (F13, the queue's expectation), test Candidate (F12, which lanes and hosts it expects) | acts only at promotion | `gate (promotion)`: its expected contexts and job |
+| `publishing/` | version Package (F3), approve Publishing (F1, the verified part: tag, digest and approval agree), verify Package Promotion (F2) | acts only at the tag, Release and npm stages | the stage workflows, the preparation and publish jobs |
+| `protection/` | verify Ancestry (F7), audit Lineage (F5), isolate Change (F6), bind Merge (F10), scan Vulnerabilities (F8), scan Dependencies (F9) | each applies at more than one step (ancestry, isolation, merge method, scans at integration and promotion; lineage audit across all) | the lane implementation that **test Integration and test Candidate share** (`protection/qualification/`, one implementation at two contexts), the fail-closed gate function both gates call (`protection/gate/`), the scan configuration, pinning and accepted-finding records (`protection/scanning/`), `protection/rulesets/integration.json`, `promotion.json`, `publishing.json`, and `protection/environments/tagging.json`, `candidate.json`, `npm.json` |
 
-| Boundary | Controls inside | What is distinct about it |
-| --- | --- | --- |
-| `lineage/` | verify Ancestry (F7), audit Lineage (F5) | the history facts: freshness, ancestry, the account of every lineage |
-| `landing/` | bind Merge (F10) | the method by which a Change lands, bound to the queued pull request |
-| `isolation/` | isolate Change (F6) | what may travel with what; KAAL's path sets as data, one path rule |
-| `promotion/` | accept Capability (F14) | which source may be promoted |
-| `qualification/` | test Integration (F16), test Candidate (F12) | the evidence per lane and host: claims, declared overlaps; verification (Testing's mechanism, each capability's Cases) |
-| `progression/` | `gate (integration)`, `gate (promotion)` (not among the 15: Release's own decision) | reads every verdict fail-closed, performs no judgment of its own |
-| `publishing/` | version Package (F3), verify Package Promotion (F2), approve Publishing (F1, its verified part) | tag, pack, digest and the registry: from a promoted commit to a published version |
-| `protection/` | approve Change (F15), approve Promotion (F11), serialize Promotion (F13), approve Publishing (F1, the setting) and the pinning of controls (F17) | the protected state of each transition as code: `protection/rulesets/integration.json`, `promotion.json`, `publishing.json`, and `protection/environments/tagging.json`, `candidate.json`, `npm.json` (the environments' settings, same principle), with their Cases; the validations themselves are Review's |
-| `scanning/` | scan Vulnerabilities (F8), scan Dependencies (F9) | what is ours about the external tools: configuration (CodeQL languages and queries, dependency-review severity and license policy), the pinning of the tools (actions pinned by commit), the accepted-finding records (a dismissed finding names its reason, its owner and its end, a validation Review made and the script verifies), and the Cases (the configuration is present, the tools are pinned, no dismissal without a record, no record past its end) |
+What is shared stays one: **test Integration and test Candidate are two controls with two inputs (the integration head; the queue's candidate and the packed artifact) and one implementation** in `protection/qualification/`, called by each step with its own expected list. So the folders hold: a step's controls and data; the fourth's implementations, shared kernels and protected state. The two scans keep their external tools but have their configuration, pinning, accepted-finding records (reason, owner, end) and Cases in `protection/scanning/`.
 
-Each of the 15 controls is served by exactly one boundary (approve Publishing has a verified part in `publishing/` and its setting in `protection/`, the one control split by kind, verification and validation). Boundaries may call one another through their verdicts only: `progression/` reads `lineage/`, `landing/`, `isolation/`, `promotion/`, `qualification/` and `publishing/` as data, and none of them reads another's internals. A Case (verification) keeps the boundaries true: every one of the 15 controls is served by exactly one boundary, no boundary serves nothing, and no boundary imports another's implementation except through a verdict. It is a screen over the "Serves:" members and the imports, parsed.
+Boundaries talk through verdicts only: each step's gate reads its own controls and the fourth's verdicts as data; no boundary imports another's internals. A Case (verification) keeps this true: every one of the 15 controls is served by exactly one boundary (a shared implementation counts for the fourth, a step's data for its step), no boundary serves nothing, and no boundary imports another's implementation except through a verdict. It is a screen over the "Serves:" members and the imports, parsed.
 
-Cost: none now. A folder is renamed only when its control's step lands (the Branching split moves `lineage/`, `landing/` and `isolation/`; the lanes step moves `qualification/` and `progression/`), so the names are decided before the first move, and no move is a separate program.
+Cost: none now. A folder is created or renamed only when its control's step lands (the Branching split moves the lineage, landing and isolation code into `protection/`; the lanes step moves the lanes and the gate into `protection/qualification/` and `protection/gate/`; version Package and the stage workflows create `publishing/`), so the names are decided before the first move and no move is a separate program.
 
 ## 3. Target CI inventory: 21 current checks to 25 named checks
 
