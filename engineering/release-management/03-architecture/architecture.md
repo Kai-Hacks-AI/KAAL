@@ -36,6 +36,7 @@ Architecture names the components and allocates each requirement to exactly one 
 | `promotion-source/` | accept Capability F14 |
 | `merge-group/` | bind Merge F10 (queue binding) |
 | `lanes/` | test Candidate F12, test Integration F16 (FAR: F18) |
+| `envelope/` | verify Envelope F19 (the judgment of a pull request's title and body, and the trusted activation policy) |
 
 | Control | Requirement | Control target (applied at) | Component or other realization |
 | --- | --- | --- | --- |
@@ -55,7 +56,7 @@ Architecture names the components and allocates each requirement to exactly one 
 | approve Publishing | F1 (A2) | npmjs | setting: `npm` environment, `release-engine/` |
 | verify Package Promotion | F2 (A3) | npmjs | `release-engine/` |
 
-Each of F1 to F3 and F5 to F16 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). The allocations of the `npmjs` and `main` controls of the release engine keep their ids:
+Each of F1 to F3, F5 to F16 and F19 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). The allocations of the `npmjs` and `main` controls of the release engine keep their ids:
 
 - **release-management/A1.** version Package: F3 is allocated to `release-engine/` and applied at `main`.
 - **release-management/A2.** approve Publishing: F1 is allocated to the `npm` environment and `release-engine/` and applied at `npmjs`.

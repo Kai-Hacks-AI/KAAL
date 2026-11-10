@@ -1,4 +1,4 @@
-// release-management/T46 to T52 (failing Cases, carried unwired in the PLAN of C8, verify Envelope; verify-envelope-plan.md).
+// release-management/T46 to T53 (Cases of C8, carried unwired in the PLAN, wired by the DO, verify Envelope; verify-envelope-plan.md).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
 //   node --test engineering/release-management/04-test/verify-envelope.red.mjs
@@ -74,4 +74,11 @@ test("T51: missing facts are no evidence, and a failure carries a recovery whose
 
 test("T52: the check is named exactly `verify Envelope`, the name track Work reads", async () => {
   assert.equal((await module_()).CHECK_NAME, "verify Envelope");
+});
+
+test("T53: the activation policy is trusted input: missing, malformed or non-UTC policy is refused and never read as a pass", async () => {
+  const { loadPolicy } = await module_();
+  assert.equal(loadPolicy('{"version":1,"cutoff":"2026-11-10T12:00:00Z"}').ok, true);
+  for (const raw of [undefined, "", "not json", "{}", '{"version":1}', '{"version":2,"cutoff":"2026-11-10T12:00:00Z"}', '{"version":1,"cutoff":"2026-11-10T12:00:00+01:00"}', '{"version":1,"cutoff":"soon"}'])
+    assert.equal(loadPolicy(raw).ok, false, String(raw));
 });
