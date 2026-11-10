@@ -55,6 +55,8 @@ Driven-by: release-management/F10
 Driven-by: release-management/T25
 ```
 
+**`Driven-by:` is required on every commit (Owner, 10 November), as a semi hard stop.** The rationale is the Owner's: if you cannot name why, why are you doing it? A commit that cannot cite the piece that drives it (an Intent, a Requirement, an Architecture, a Defect, a Case or a Change) is a commit nobody has argued for, which is the "never do things because it was done" rule applied at the smallest unit. "Semi" because the hook is feedback and can be skipped, while the same `message` check in CI judges the commits of the pull request, so a commit with no reason does not reach `main` unremarked; and because a reason is a real piece of the documentation (looked up), not a formality. It is not a way to block a person who has a reason but has not yet recorded it: the recovery in the verdict is to write the piece first (a PLAN adds the Requirement or the Case it will cite) and then cite it.
+
 **Qualified references (Owner, 10 November: ids need their context; `Driven-by: <capability>/<ID>`).** `T30` or `F10` alone is ambiguous, because the numbers repeat across capabilities. The repository already writes ids as `<scope>/<ID>` where it matters (`hosting/F15`, `hosting/D11`, `change/I7`, `guard/C134`, `release-management/T25`), and the Owner's form is exactly that:
 
 `Driven-by: <scope>/<ID>`, for example `Driven-by: release-management/F10`, `Driven-by: hosting/D11`, `Driven-by: change/I7`, `Driven-by: guard/C134`. One line per driving piece; a commit may carry several.
@@ -79,7 +81,7 @@ Driven-by: release-management/T25
 
 **`prepare-commit-msg` pre-fills it, never decides.** In an empty message it writes the area and the `Driven-by: <scope>/<ID>` line of the Change from the branch's Change, using the same convention the pre-push hook already has for the branch's target (`git config branch.<branch>.kaalTarget`): a `branch.<branch>.kaalChange` setting naming the Change, set once per branch. The phase it takes from the previous commit's subject on the branch, else leaves a placeholder the `message` check then refuses. It does nothing when a message exists (`-m`, merge, squash, amend).
 
-**What stays open for the Owner:** whether a `Driven-by:` is required on every commit or only on the commits of a pull request that has none in its body. The phase list is decided (`PLAN`, `DO`, `ACT`; neither `RED` nor `CHECK`). The squash default is verified, not open: because the squash message is the commits' messages, a check on each commit message is what governs `main`'s history, and the pull request title check covers the multi-commit subject. The check judges only what the Owner confirms.
+**Decided, not open:** `Driven-by:` on every commit and its form `<scope>/<ID>` (Owner, 10 November). The phase list is decided (`PLAN`, `DO`, `ACT`; neither `RED` nor `CHECK`). The squash default is verified, not open: because the squash message is the commits' messages, a check on each commit message is what governs `main`'s history, and the pull request title check covers the multi-commit subject. The check judges only what the Owner confirms.
 
 ## Sequence
 
