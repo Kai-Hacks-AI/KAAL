@@ -8,6 +8,8 @@ Every Change landed in a collector conflicts with the next one on the same lines
 
 This PLAN keeps two things apart. **Target: the rule** (sections 1 to 4) is what stays true once built, written to be read without this Change. **Change: the migration** (section 5) is how release management gets there and ends with it.
 
+**C14 fits the control chain; it does not define a parallel release model.** `station-control-chain-map.md` is the inventory of stations, positions, carriers and controls; section 5 of that map shows where each C14 verdict is invoked, from existing implementations.
+
 ## Hosted by release management, intended owner Engineering
 
 Same pattern as GUARD: born in KAAL, abstracted later. Release management hosts this Change for now and Engineering is the intended owner. To make moving it out cheap:
