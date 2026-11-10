@@ -1,6 +1,6 @@
 # version Package (PLAN)
 
-PLAN, nothing is built. It closes gaps G1, G2 and G3 of the control version Package (F3, Cases T1 to T3) in the order PLAN, RED, DO. G4 (bump and changelog tooling) stays out: versions are hand-edited and this Change makes them checkable, not generated.
+PLAN, nothing is built. It closes gaps G1, G2 and G3 of the control version Package (F3, Cases T1 to T3) in the order PLAN, DO, ACT (the Cases are written inside this PLAN, unwired). G4 (bump and changelog tooling) stays out: versions are hand-edited and this Change makes them checkable, not generated.
 
 ## What the control decides
 
@@ -28,8 +28,8 @@ All judgments are pure functions of data the caller gathers, like `readiness` no
 ## Sequence
 
 1. This PLAN, CPO review.
-2. RED: T1 to T3 as Cases next to the engine, failing for a lower version, a tag at another commit and an unrecorded version bump; each with fixtures for the passing and the failing input.
-3. DO, engine only: the three functions, `semver` as the one new dependency, parity with the existing readiness Cases. No workflow change.
+2. Within this PLAN: T1 to T3 as Cases next to the engine, carried unwired (RED is a test state, not a PR phase), failing for a lower version, a tag at another commit and an unrecorded version bump; each with fixtures for the passing and the failing input.
+3. DO (`release-management/C3 DO`), engine only, wiring the Cases: the three functions, `semver` as the one new dependency, parity with the existing readiness Cases. No workflow change.
 4. Separately, `.github` only: the publish workflow gathers the inputs (registry versions, tags, records), calls the functions, and creates the tag. Next to the existing steps, nothing removed.
 
 ## Not in this Change
