@@ -45,16 +45,28 @@ test("T60: a retirement names its covering control and evidence, a row that stay
 });
 
 // C17/T1: replacement evidence. A retirement also carries
-//   replacement: { realization: "native" | "declarative" | "kaal-judgment", effectiveConfiguration: boolean, enforcement: "exercised" | "not-feasible" | "missing",
+//   replacement: { realization: "native" | "declarative" | "kaal-judgment", effectiveConfiguration: boolean,
+//                  enforcement: "exercised" | "not-feasible" | "missing",
+//                  notFeasible?: { justification: string (names the boundary), acceptedBy: string (not the author) },
 //                  followUp?: { needed: boolean, operational: boolean, assurance: "indirect" | "direct" } }
-test("C17/T1: a retirement fails without a named realization, an active effective configuration, shown enforcement where feasible and an operational detective follow-up", async () => {
-  const good = { realization: "native", effectiveConfiguration: true, enforcement: "exercised", followUp: { needed: true, operational: true, assurance: "indirect" } };
+// "not-feasible" is never self-declared: it needs a justification and an acceptor other than the author, and the operational
+// detective follow-up as compensating evidence. A follow-up never replaces the effective configuration.
+test("C17/T1: a retirement fails without a named realization, an active effective configuration, shown enforcement (or an independently accepted justification with an operational follow-up) and an operational detective follow-up", async () => {
+  const follow = { needed: true, operational: true, assurance: "indirect" };
+  const good = { realization: "native", effectiveConfiguration: true, enforcement: "exercised", followUp: follow };
   assert.equal((await run([ok({ replacement: good })])).kind, "pass");
   assert.equal((await run([ok({ replacement: { ...good, realization: undefined } })])).kind, "fail", "the realization is named");
   assert.equal((await run([ok({ replacement: { ...good, effectiveConfiguration: false } })])).kind, "fail", "a file describing a setting is not an active setting");
   assert.equal((await run([ok({ replacement: { ...good, enforcement: "missing" } })])).kind, "fail", "enforcement is exercised where feasible");
-  assert.equal((await run([ok({ replacement: { ...good, enforcement: "not-feasible" } })])).kind, "pass", "not feasible is a stated reason, not a gap, when a follow-up covers it");
-  assert.equal((await run([ok({ replacement: { ...good, followUp: { needed: true, operational: false, assurance: "indirect" } } })])).kind, "fail", "a defined but not operational follow-up");
-  const claimsProof = await run([ok({ replacement: { ...good, followUp: { needed: true, operational: true, assurance: "direct" } } })]);
+  const nf = { ...good, enforcement: "not-feasible", notFeasible: { justification: "the merge queue cannot be driven without merging to main; boundary: queue order", acceptedBy: "kaihacksai" } };
+  assert.equal((await run([ok({ replacement: nf })])).kind, "pass", "not feasible, justified, independently accepted, with an operational follow-up");
+  assert.equal((await run([ok({ replacement: { ...nf, notFeasible: undefined } })])).kind, "fail", "a self-declared not-feasible bypasses nothing");
+  assert.equal((await run([ok({ replacement: { ...nf, notFeasible: { justification: "", acceptedBy: "kaihacksai" } } })])).kind, "fail", "the justification is recorded and names the boundary");
+  assert.equal((await run([ok({ replacement: { ...nf, notFeasible: { ...nf.notFeasible, acceptedBy: "ChBrain" } } })])).kind, "fail", "accepted by its author is not independent");
+  assert.equal((await run([ok({ replacement: { ...nf, followUp: undefined } })])).kind, "fail", "where direct exercise is unavailable a detective follow-up is required as compensating evidence");
+  assert.equal((await run([ok({ replacement: { ...nf, followUp: { ...follow, operational: false } } })])).kind, "fail", "a defined but not operational follow-up compensates nothing");
+  assert.equal((await run([ok({ replacement: { ...nf, effectiveConfiguration: false } })])).kind, "fail", "a follow-up never substitutes for an inspectable configuration");
+  assert.equal((await run([ok({ replacement: { ...good, followUp: { ...follow, operational: false } } })])).kind, "fail", "a defined but not operational follow-up");
+  const claimsProof = await run([ok({ replacement: { ...good, followUp: { ...follow, assurance: "direct" } } })]);
   assert.equal(claimsProof.kind, "fail", "an outcome inspection is indirect assurance, never proof of configuration");
 });
