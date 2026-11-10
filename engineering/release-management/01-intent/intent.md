@@ -7,3 +7,4 @@
 - **release-management/I5. A version is named once, in order, and tied to the commit that carries it** (control version Package, under I2; applied at `main`).
 - **release-management/I6. A person approves each publication** (control approve Publishing, under I2; applied at `npmjs`).
 - **release-management/I7. Anyone can tell that the published bytes are the promoted bytes** (control verify Package, under I2; applied at `npmjs`).
+- **release-management/I8. Where each Change is on the release is common knowledge** (control track Work, under I1; read across every station). Anyone can ask which stage and station a Change is at and what it waits for, and the answer is the same for every reader because it is derived from facts the controls hold, not from someone's account. Which roles ask, and which stations and controls a repository has, are the consumer's own.

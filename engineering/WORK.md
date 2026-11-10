@@ -9,4 +9,4 @@ type:
 
 Where Ownership Routes Knowledge.
 
-Work is the commits of one Change at a station, whether or not they have been opened: a pull request, a pushed branch with no pull request, or a deployment request. Each piece of Work has one owner at a time (the CTO for about to open and in stock, the CPO for about to close), so what is known about it goes to the one who acts on it.
+Work is the commits of one Change at a station, whether or not they have been opened: a pull request, a pushed branch with no pull request, or a deployment request. Each piece of Work waits for exactly one next step (a pull request to open, a fix, an approval, a merge), so what is known about it goes to whoever takes that step.
