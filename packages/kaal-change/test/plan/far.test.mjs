@@ -49,7 +49,7 @@ const CONTEXT = Object.freeze({
   baseline: "3f2a1c9",
   head: "src-9c1e",
   digests: Object.freeze({ ...Object.fromEntries(range(1, 19).map((c) => [c, dg(c)])), "sample/T20": dg("sample/T20"), "sample/T21": dg("sample/T21") }),
-  state: Object.freeze({ ended: {}, authorizedCount: 5 }),
+  state: Object.freeze({ ended: Object.freeze({ "sample/T50": false }), authorizedCount: 5 }),
 });
 
 /** A well-formed proposal leaving `cases` of the Regression Plan RED, justified by sample/T20. */
@@ -340,9 +340,11 @@ describe("FAR, Features Accepted Regression (change/C2)", () => {
     const unverifiable = exceptions(base, INTEGRATION, PLANS, { ...CONTEXT, designation: undefined });
     assert.deepEqual(unverifiable.exceptions, [], "an authority that cannot be verified gives none");
     assert.ok(naming(unverifiable.findings, "designation").length > 0);
-    const unjudged = exceptions(base, INTEGRATION, PLANS, { ...CONTEXT, state: { authorizedCount: 5 } });
-    assert.deepEqual(unjudged.exceptions, [], "a condition that cannot be judged gives none");
-    assert.ok(naming(unjudged.findings, "sample/T50").length > 0);
+    for (const state of [{ authorizedCount: 5 }, { ended: {}, authorizedCount: 5 }]) {
+      const unjudged = exceptions(base, INTEGRATION, PLANS, { ...CONTEXT, state });
+      assert.deepEqual(unjudged.exceptions, [], `a condition that cannot be judged gives none (${JSON.stringify(state)})`);
+      assert.ok(naming(unjudged.findings, "sample/T50").length > 0);
+    }
     const v = compose(base, INTEGRATION, PLANS, evals(granted), { ...CONTEXT, designation: undefined });
     assert.ok(v.findings.length > 0 && v.regression.pass !== true, "and compose gives no passing outcome");
   });
