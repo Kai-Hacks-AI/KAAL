@@ -14,7 +14,7 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 
 ## The gap and the route
 
-1. This PLAN, approved by exact-head CPO review. Lands in a clean `kaal/release` collector (squash).
+1. This PLAN, approved by exact-head CPO review. Lands in the clean `kaal/release/plan` collector (squash).
 2. DO: create the package shape from architecture.md, write the Cases RED, then GREEN: T1 to T12.
 3. Acceptance on the packed artifact in a clean directory.
 3a. CARGO: a separate Change adds `engineering/CARGO.md` (KAAL Definition) with its Cases; the Skill names it only after that is on `main` (T6).
@@ -22,7 +22,7 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 
 ## Interim and temporary
 
-- The PR currently targets `main` as a draft only because the collector `kaal/release` carries a stray commit of this PLAN. It ends when the collector is recovered without destroying unique commits and the PR retargets it.
+- The collector is `kaal/release/plan` (collector naming `kaal/<capability>/<leaf>`). It replaced a bare `kaal/release` that git could not hold beside it and that carried a stray first copy of this PLAN; that branch was deleted by the Owner. The interim ended when #1334 was retargeted.
 - T5 reads forbidden identities from the Delivery target, which is not on `main` yet. Until it lands, T5 is written against the collector's copy and is marked as interim.
 
 ## Out of scope
