@@ -5,11 +5,20 @@
   "bypass_actors": [],
   "conditions": {
     "ref_name": {
-      "include": ["refs/heads/kaal/**", "refs/heads/kaal/**/*"],
+      "include": [
+        "refs/heads/kaal/**",
+        "refs/heads/kaal/**/*"
+      ],
       "exclude": []
     }
   },
   "rules": [
+    {
+      "type": "deletion"
+    },
+    {
+      "type": "non_fast_forward"
+    },
     {
       "type": "pull_request",
       "parameters": {
@@ -18,7 +27,10 @@
         "require_code_owner_review": false,
         "require_last_push_approval": true,
         "required_review_thread_resolution": true,
-        "allowed_merge_methods": ["squash", "merge"],
+        "allowed_merge_methods": [
+          "squash",
+          "merge"
+        ],
         "required_reviewers": []
       }
     }
