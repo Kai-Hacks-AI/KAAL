@@ -29,3 +29,6 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T50 | I1 | RED: pull requests opened before the activation boundary are not applicable, and the boundary is the trusted one, not the candidate's |
 | release-management/T51 | I1 | RED: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check |
 | release-management/T52 | I1 | RED: the check is named exactly `verify Envelope`, the name track Work reads |
+| release-management/T56 | I1 | RED: every control the architecture defines is in the overview with station, class and applied-at; a missing one fails (control overview, `04-test/control-overview.red.mjs`) |
+| release-management/T57 | I1 | RED: the verb of a control belongs to the verb set of its class; an unknown class or applied-at is refused |
+| release-management/T58 | I1 | RED: each preventive control names a counterpart or a stated reason, and a counterpart is a control of another class that exists |
