@@ -151,7 +151,7 @@ The JSON form of a ruleset is the code answer that closes the chain **Intent, Re
 | Intent | the protection (for `publishing`: a package tag exists only for a releasable commit, created by one identity) |
 | Requirements | the clauses it satisfies (F10 bind Merge, F11 approve Promotion, F13 serialize Promotion, F17 controls pinned to `main`, the version Package and approve Publishing clauses), each ruleset naming the requirement ids it carries |
 | Architecture | which control each rule realizes and who owns it (the matrix above), and the two required contexts `gate (integration)` and `gate (promotion)` |
-| Code | `05-src/rulesets/<name>.json`, exactly the GitHub ruleset import format, reviewed like code |
+| Code | `05-src/protection/rulesets/<name>.json`, exactly the GitHub ruleset import format, reviewed like code |
 
 Cases (verification, deterministic):
 
@@ -180,9 +180,9 @@ Argued: a ruleset and a gate are **conditions**, not actions; "the promotion rul
 
 | What | Where | Why |
 | --- | --- | --- |
-| the three rulesets | `05-src/protection/integration.json`, `promotion.json`, `publishing.json` (the folder name follows the boundaries table below) | they are Delivery's code, next to `lanes/` and `release-engine/`; the file name is the ruleset name |
+| the three rulesets | `05-src/protection/rulesets/integration.json`, `promotion.json`, `publishing.json` (the folder name follows the boundaries table below) | they are Delivery's code, next to `lanes/` and `release-engine/`; the file name is the ruleset name |
 | their requirement and architecture entries | the root documents 02 and 03 of release-management (the clauses and the control each rule realizes, with the ids) | tracing stays in the root documents, not beside the files |
-| structure and name Cases | `04-test/rulesets.test.mjs` | Cases live in `04-test` |
+| structure and name Cases | `04-test/protection.test.mjs` | Cases live in `04-test` |
 | drift check | beside the Cases, run as the scheduled audit (home open) | verification, not a gate |
 | the proof rulesets (trial-scoped, deleted after) | `00-changes/proof/` | they are the migration's temporary material (Change), they end at termination, and no live protection depends on them; today they sit in the project files |
 
@@ -190,7 +190,7 @@ Each file's name is the live ruleset's name, so the drift Case compares by name,
 
 #### Folders of `05-src`: control boundaries named for their domain (proposal; Owner: components are control boundaries, domain-driven naming)
 
-Each folder of `05-src` is a **control boundary**: an architecturally distinct part of Release management with its own model, named for its concept in the release language (the ubiquitous language of the lifecycle and the matrix), not for the mechanism that happens to implement it. One authoritative implementation per judgment still holds: a boundary may serve several controls (and run in several contexts), and a control is served by exactly one boundary. Four controls are native settings and two are tools; they appear below as what they are. Controls remain named in the root documents, the job names and each folder's README ("Serves:", parsed); tracing stays in the root documents.
+Each folder of `05-src` is a **control boundary**: an architecturally distinct part of Release management with its own model, named for its concept in the release language (the ubiquitous language of the lifecycle and the matrix), not for the mechanism that happens to implement it. One authoritative implementation per judgment still holds: a boundary may serve several controls (and run in several contexts), and a control is served by exactly one boundary. Every control has a boundary, including the four that are native settings and the two that are external tools: a boundary holds what is ours about a control (configuration, pinning, records, Cases) even when the mechanism is not. Controls remain named in the root documents, the job names and each folder's README ("Serves:", parsed); tracing stays in the root documents.
 
 Mechanism names today, and what each is called in the domain:
 
@@ -216,10 +216,10 @@ Boundaries, with the controls each serves:
 | `qualification/` | test Integration (F16), test Candidate (F12) | the evidence per lane and host: claims, declared overlaps; verification (Testing's mechanism, each capability's Cases) |
 | `progression/` | `gate (integration)`, `gate (promotion)` (not among the 15: Release's own decision) | reads every verdict fail-closed, performs no judgment of its own |
 | `publishing/` | version Package (F3), verify Package Promotion (F2), approve Publishing (F1, its verified part) | tag, pack, digest and the registry: from a promoted commit to a published version |
-| `protection/` | approve Change (F15), approve Promotion (F11), serialize Promotion (F13), approve Publishing (F1, the setting) and the pinning of controls (F17) | the three rulesets `integration.json`, `promotion.json`, `publishing.json` and their Cases; the validations themselves are Review's |
-| no boundary | scan Vulnerabilities (F8), scan Dependencies (F9) | tools; claimed in `qualification/claims.json` |
+| `protection/` | approve Change (F15), approve Promotion (F11), serialize Promotion (F13), approve Publishing (F1, the setting) and the pinning of controls (F17) | the protected state of each transition as code: `protection/rulesets/integration.json`, `promotion.json`, `publishing.json`, and `protection/environments/tagging.json`, `candidate.json`, `npm.json` (the environments' settings, same principle), with their Cases; the validations themselves are Review's |
+| `scanning/` | scan Vulnerabilities (F8), scan Dependencies (F9) | what is ours about the external tools: configuration (CodeQL languages and queries, dependency-review severity and license policy), the pinning of the tools (actions pinned by commit), the accepted-finding records (a dismissed finding names its reason, its owner and its end, a validation Review made and the script verifies), and the Cases (the configuration is present, the tools are pinned, no dismissal without a record, no record past its end) |
 
-Each control is served by exactly one boundary (approve Publishing has a verified part in `publishing/` and its setting in `protection/`, the one control split by kind, verification and validation). Boundaries may call one another through their verdicts only: `progression/` reads `lineage/`, `landing/`, `isolation/`, `promotion/`, `qualification/` and `publishing/` as data, and none of them reads another's internals. A Case (verification) keeps the boundaries true: every one of the 15 controls is served by a boundary or declared a tool or a setting, no boundary serves nothing, and no boundary imports another's implementation except through a verdict. It is a screen over the "Serves:" members and the imports, parsed.
+Each of the 15 controls is served by exactly one boundary (approve Publishing has a verified part in `publishing/` and its setting in `protection/`, the one control split by kind, verification and validation). Boundaries may call one another through their verdicts only: `progression/` reads `lineage/`, `landing/`, `isolation/`, `promotion/`, `qualification/` and `publishing/` as data, and none of them reads another's internals. A Case (verification) keeps the boundaries true: every one of the 15 controls is served by exactly one boundary, no boundary serves nothing, and no boundary imports another's implementation except through a verdict. It is a screen over the "Serves:" members and the imports, parsed.
 
 Cost: none now. A folder is renamed only when its control's step lands (the Branching split moves `lineage/`, `landing/` and `isolation/`; the lanes step moves `qualification/` and `progression/`), so the names are decided before the first move, and no move is a separate program.
 
