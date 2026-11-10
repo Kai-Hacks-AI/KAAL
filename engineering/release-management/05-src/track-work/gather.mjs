@@ -7,7 +7,7 @@ const QUERY = `query($owner:String!,$name:String!){repository(owner:$owner,name:
   pullRequests(states:OPEN,first:100){pageInfo{hasNextPage} nodes{number title headRefName headRefOid baseRefName mergeStateStatus autoMergeRequest{enabledAt}
     files(first:100){pageInfo{hasNextPage} nodes{path}}
     reviewThreads(first:100){pageInfo{hasNextPage} nodes{isResolved}}
-    latestReviews(first:20){nodes{state commit{oid}}}
+    latestReviews(first:20){pageInfo{hasNextPage} nodes{state commit{oid}}}
     commits(last:1){nodes{commit{oid statusCheckRollup{state contexts(first:100){pageInfo{hasNextPage} nodes{__typename ... on CheckRun{name conclusion status startedAt} ... on StatusContext{context state}}}}}}}}}
   refs(refPrefix:"refs/heads/",first:100){pageInfo{hasNextPage} nodes{name target{oid} associatedPullRequests(first:1){totalCount}}}}}`;
 
@@ -19,8 +19,7 @@ export async function gather(gh, repo, model) {
   if (data.pullRequests.pageInfo.hasNextPage) gaps.push("more than 100 open pull requests: the rest are not read");
   if (data.refs.pageInfo.hasNextPage) gaps.push("more than 100 branches: the rest are not read");
   const prs = data.pullRequests.nodes.map((n) => {
-    if (n.reviewThreads.pageInfo.hasNextPage) gaps.push(`#${n.number}: more than 100 review threads, unresolved count may be low`);
-    if (n.files?.pageInfo.hasNextPage) gaps.push(`#${n.number}: more than 100 changed files, the record folder may be missed`);
+    // The truncated lists are handled per pull request in fromGraphql: what a cut list cannot show is unknown, never counted as absent.
     return fromGraphql(n, model);
   });
   const branches = [];

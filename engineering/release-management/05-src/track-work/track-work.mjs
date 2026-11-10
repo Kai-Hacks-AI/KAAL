@@ -89,6 +89,8 @@ export function trackWork(facts, { model } = {}) {
       changeId: idRe?.exec(p.title ?? "")?.[1] ?? null,
       record: p.paths?.map((x) => recRe?.exec(x)?.[1]).find(Boolean) ?? null, headSha: p.headSha,
     });
+    const last = pieces.at(-1);
+    last.unread = !last.record && recRe && p.pathsComplete === false ? ["record"] : [];
   }
   for (const b of facts.branches ?? []) pieces.push({ ref: b.name, position: "branch", collector: null, changeId: null, record: null, headSha: b.headSha });
   for (const c of facts.collectors ?? []) {
@@ -101,6 +103,7 @@ export function trackWork(facts, { model } = {}) {
   const sources = sourcesOf(model);
   const work = pieces.map((x) => {
     const { pr, ...rest } = x;
+    rest.unread ??= [];
     const wait = waitOf(model, conditionsOf(x));
     const pos = model.positions[x.position];
     return {
@@ -156,6 +159,7 @@ export function render(result) {
   });
   if (!lines.length) lines.push("nothing matches what was read");
   for (const w of result.work) if (w.waitingFor === "unknown") lines.push(`incomplete: ${w.ref} is unknown, could not read ${w.missing.join(", ")}`);
+  for (const w of result.work) if (w.unread.length) lines.push(`incomplete: ${w.ref} ${w.unread.join(", ")} not fully read, the list of changed files was cut`);
   for (const g of result.gaps) lines.push(`incomplete: ${g}`);
   return lines.join("\n");
 }
@@ -186,10 +190,23 @@ export function fromGraphql(node, model) {
     number: node.number, title: node.title, head: node.headRefName, headSha: node.headRefOid, base: node.baseRefName,
     behind: node.mergeStateStatus === undefined ? undefined : node.mergeStateStatus === "BEHIND",
     ci: ciOf(rollup),
-    unresolved: node.reviewThreads ? node.reviewThreads.nodes.filter((t) => !t.isResolved).length : undefined,
-    approvedAtHead: node.latestReviews ? node.latestReviews.nodes.some((r) => r.state === "APPROVED" && r.commit?.oid === node.headRefOid) : undefined,
+    unresolved: countUnresolved(node.reviewThreads),
+    approvedAtHead: approvedAt(node.latestReviews, node.headRefOid),
     autoMerge: Boolean(node.autoMergeRequest),
     envelope: verdict === "SUCCESS" ? "pass" : verdict && verdict !== "PENDING" ? "fail" : "unknown",
     paths: (node.files?.nodes ?? []).map((f) => f.path),
+    pathsComplete: !node.files?.pageInfo?.hasNextPage,
   };
+}
+
+// A list that GitHub cut at one page is complete only for what it already shows: a thread still open on the page is a fact, no open thread is not.
+function countUnresolved(threads) {
+  if (!threads) return undefined;
+  const open = threads.nodes.filter((t) => !t.isResolved).length;
+  return open === 0 && threads.pageInfo?.hasNextPage ? undefined : open;
+}
+function approvedAt(reviews, head) {
+  if (!reviews) return undefined;
+  if (reviews.nodes.some((r) => r.state === "APPROVED" && r.commit?.oid === head)) return true;
+  return reviews.pageInfo?.hasNextPage ? undefined : false;
 }

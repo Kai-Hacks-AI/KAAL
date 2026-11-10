@@ -106,3 +106,46 @@ describe("release-management/T44 the GraphQL answer maps to the facts, by the ch
     assert.deepEqual([p.unresolved, p.approvedAtHead], [undefined, undefined]);
   });
 });
+
+describe("release-management/T44 a list GitHub cut at one page is never taken as complete", () => {
+  const HEAD = "d".repeat(40);
+  const cut = (over) => ({
+    number: 5, title: "T-5 x", headRefName: "w/x", headRefOid: HEAD, baseRefName: "int/x", mergeStateStatus: "CLEAN", autoMergeRequest: { enabledAt: "t" },
+    files: { pageInfo: { hasNextPage: false }, nodes: [{ path: "rec/26/11/10/01/change.md" }] },
+    reviewThreads: { pageInfo: { hasNextPage: false }, nodes: [] },
+    latestReviews: { pageInfo: { hasNextPage: false }, nodes: [{ state: "APPROVED", commit: { oid: HEAD } }] },
+    commits: { nodes: [{ commit: { oid: HEAD, statusCheckRollup: { state: "SUCCESS", contexts: { nodes: [{ name: "lint Pull Request", conclusion: "SUCCESS" }] } } } }] },
+    ...over,
+  });
+  const MODEL2 = { ...MODEL, record: "^(rec/\\d{2}/\\d{2}/\\d{2}/\\d{2})/" };
+  const run = (node) => trackWork({ prs: [fromGraphql(node, MODEL2)] }, { model: MODEL2 });
+  it("a complete read is classified with confidence", () => {
+    const [w] = run(cut()).work;
+    assert.deepEqual([w.waitingFor, w.record, w.unread], ["merge", "rec/26/11/10/01", []]);
+  });
+  it("review threads cut with none open on the page: the unresolved count is unknown, so the piece is unknown, never merge or approval", () => {
+    const [w] = run(cut({ reviewThreads: { pageInfo: { hasNextPage: true }, nodes: [{ isResolved: true }] } })).work;
+    assert.deepEqual([w.waitingFor, w.missing], ["unknown", ["unresolved"]]);
+  });
+  it("review threads cut with one open on the page: that is a fact, the piece waits for a fix", () => {
+    const [w] = run(cut({ reviewThreads: { pageInfo: { hasNextPage: true }, nodes: [{ isResolved: false }] } })).work;
+    assert.equal(w.waitingFor, "fix");
+  });
+  it("reviews cut with no approval of the head on the page: the approval is unknown", () => {
+    const [w] = run(cut({ latestReviews: { pageInfo: { hasNextPage: true }, nodes: [{ state: "COMMENTED", commit: { oid: HEAD } }] } })).work;
+    assert.deepEqual([w.waitingFor, w.missing], ["unknown", ["approval"]]);
+  });
+  it("reviews cut with the head approved on the page: approved is a fact", () => {
+    const [w] = run(cut({ latestReviews: { pageInfo: { hasNextPage: true }, nodes: [{ state: "APPROVED", commit: { oid: HEAD } }] } })).work;
+    assert.equal(w.waitingFor, "merge");
+  });
+  it("changed files cut with no record folder on the page: the record is unread and the report says so, it is not reported as none", () => {
+    const r = run(cut({ files: { pageInfo: { hasNextPage: true }, nodes: [{ path: "docs/x.md" }] } }));
+    assert.deepEqual([r.work[0].record, r.work[0].unread], [null, ["record"]]);
+    assert.match(render(r), /incomplete: #5 record not fully read/);
+  });
+  it("changed files cut with the record folder on the page: the record is known", () => {
+    const [w] = run(cut({ files: { pageInfo: { hasNextPage: true }, nodes: [{ path: "rec/26/11/10/01/a.md" }] } })).work;
+    assert.deepEqual([w.record, w.unread], ["rec/26/11/10/01", []]);
+  });
+});
