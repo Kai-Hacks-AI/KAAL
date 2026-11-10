@@ -1,4 +1,4 @@
-// release-management/T59 and T60 (failing Cases, carried unwired in the PLAN of C10, delivery and retirement; delivery-and-retirement-plan.md).
+// release-management/T59, T60 and C17/T1 (failing Cases, carried unwired in the PLAN of C10, delivery and retirement; delivery-and-retirement-plan.md).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
 //   node --test engineering/release-management/04-test/retirement.red.mjs
@@ -42,4 +42,19 @@ test("T60: a retirement names its covering control and evidence, a row that stay
   for (const bad of [undefined, null, "x"]) assert.notEqual((await judge())({ retirements: bad, trustRoots: LIVE }).kind, "pass");
   assert.notEqual((await judge())({ retirements: [ok()], trustRoots: undefined }).kind, "pass", "an unknown trust root state is not live");
   assert.notEqual((await judge())({ retirements: [ok()], trustRoots: { ci: "yes" } }).kind, "pass", "only a boolean true is live");
+});
+
+// C17/T1: replacement evidence. A retirement also carries
+//   replacement: { realization: "native" | "declarative" | "kaal-judgment", effectiveConfiguration: boolean, enforcement: "exercised" | "not-feasible" | "missing",
+//                  followUp?: { needed: boolean, operational: boolean, assurance: "indirect" | "direct" } }
+test("C17/T1: a retirement fails without a named realization, an active effective configuration, shown enforcement where feasible and an operational detective follow-up", async () => {
+  const good = { realization: "native", effectiveConfiguration: true, enforcement: "exercised", followUp: { needed: true, operational: true, assurance: "indirect" } };
+  assert.equal((await run([ok({ replacement: good })])).kind, "pass");
+  assert.equal((await run([ok({ replacement: { ...good, realization: undefined } })])).kind, "fail", "the realization is named");
+  assert.equal((await run([ok({ replacement: { ...good, effectiveConfiguration: false } })])).kind, "fail", "a file describing a setting is not an active setting");
+  assert.equal((await run([ok({ replacement: { ...good, enforcement: "missing" } })])).kind, "fail", "enforcement is exercised where feasible");
+  assert.equal((await run([ok({ replacement: { ...good, enforcement: "not-feasible" } })])).kind, "pass", "not feasible is a stated reason, not a gap, when a follow-up covers it");
+  assert.equal((await run([ok({ replacement: { ...good, followUp: { needed: true, operational: false, assurance: "indirect" } } })])).kind, "fail", "a defined but not operational follow-up");
+  const claimsProof = await run([ok({ replacement: { ...good, followUp: { needed: true, operational: true, assurance: "direct" } } })]);
+  assert.equal(claimsProof.kind, "fail", "an outcome inspection is indirect assurance, never proof of configuration");
 });
