@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 export const id = 'F1/T5';
 export const tests = ['F1'];
 export const title = 'a Case placed away from the nearest shared ancestor of its targets fails with a Recovery that names the place';
-export async function run() {
-  const { judge } = await import('../../05-src/plan/judge.mjs');
+export async function run({ judge }) {
   const result = await judge({
     intents: [{ id: 'I1' }],
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }, { id: 'F2', kind: 'F', serves: ['I1'] }],

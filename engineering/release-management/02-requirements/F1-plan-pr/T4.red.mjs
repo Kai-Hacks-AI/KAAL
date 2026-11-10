@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 export const id = 'F1/T4';
 export const tests = ['F1'];
 export const title = 'a Case with no valid target, an unresolved link, a duplicate identity, or a required element with no outer-loop Case fails, and one Case covering several targets passes';
-export async function run() {
-  const { judge } = await import('../../05-src/plan/judge.mjs');
+export async function run({ judge }) {
   const result = await judge({
     intents: [{ id: 'I1' }],
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }, { id: 'F2', kind: 'F', serves: ['I1'] }, { id: 'F3', kind: 'F', serves: ['I1'] }],

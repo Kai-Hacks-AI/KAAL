@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 export const id = 'F1/T6';
 export const tests = ['F1'];
 export const title = 'a PLAN with no meaningful observed RED fails, and an unconditional failure alone does not count';
-export async function run() {
-  const { judge } = await import('../../05-src/plan/judge.mjs');
+export async function run({ judge }) {
   const green = await judge({ evidence: [{ case: 'F1/T1', result: 'passed' }] });
   const unconditional = await judge({ evidence: [{ case: 'F1/T1', result: 'failed', reason: 'unconditional' }] });
   const observed = await judge({ evidence: [{ case: 'F1/T1', result: 'failed', reason: 'assertion', target: 'F1' }] });

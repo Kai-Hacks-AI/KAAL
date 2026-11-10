@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 export const id = 'F1/T8';
 export const tests = ['F1'];
 export const title = 'unreadable input and missing evidence yield UNKNOWN, UNKNOWN never passes, and every failure carries a Recovery';
-export async function run() {
-  const { judge } = await import('../../05-src/plan/judge.mjs');
+export async function run({ judge }) {
   const unreadable = await judge({ unreadable: 'plan.md' });
   assert.equal(unreadable.verdict, 'UNKNOWN');
   assert.notEqual(unreadable.verdict, 'PASS');

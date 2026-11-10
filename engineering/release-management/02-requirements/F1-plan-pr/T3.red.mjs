@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 export const id = 'F1/T3';
 export const tests = ['F1'];
 export const title = 'an Architecture element that addresses nothing, or a parent link with a missing, wrong-kind or cyclic target, fails, and parent confers no coverage';
-export async function run() {
-  const { judge } = await import('../../05-src/plan/judge.mjs');
+export async function run({ judge }) {
   const result = await judge({
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }],
     architecture: [

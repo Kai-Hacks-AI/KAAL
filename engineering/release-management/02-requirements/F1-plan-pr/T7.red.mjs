@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 export const id = 'F1/T7';
 export const tests = ['F1'];
 export const title = 'a target-oriented Case that tests a Change gap fails, a Change-oriented Case that covers several gaps passes';
-export async function run() {
-  const { judge } = await import('../../05-src/plan/judge.mjs');
+export async function run({ judge }) {
   const result = await judge({
     intents: [{ id: 'I1' }],
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }],
