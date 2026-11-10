@@ -30,3 +30,6 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T51 | F19 | RED: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check |
 | release-management/T52 | F19 | RED: the check is named exactly `verify Envelope`, the name track Work reads |
 | release-management/T53 | F19 | RED: the activation policy is trusted input: missing, malformed or non-UTC policy is refused and never read as a pass |
+| release-management/T61 | F19 | RED: every fact is validated before any verdict, so a malformed kind, register, number or title never hides behind the activation cutoff |
+| release-management/T62 | F19 | RED: timestamps are strict UTC for `opened`, the activation and the policy; prose, a missing Z and an offset are refused |
+| release-management/T63 | F19 | RED: the trust contract is explicit (the kind from the lineage, the registers and the activation from the base, asserted as provenance and refused otherwise) and `parseChangeTitle` is the one title parser |
