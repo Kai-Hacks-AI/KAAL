@@ -32,6 +32,7 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T54 | I1 | RED: a pull request that targets a frozen collector fails, naming the promotion, with a retarget to another existing collector or the withdrawal of the promotion as its only recoveries |
 | release-management/T55 | I1 | RED: a collector with no open promotion is not frozen, a closed promotion does not freeze, and missing facts are no evidence |
 | release-management/T64 | I1 | RED: a promotion passes only from a fresh inventory taken in the merge-group run, never from an earlier check's |
+| release-management/T65 | I1 | RED: the recoveries are ranked, retarget first and withdraw second, each followed by a `Why first:` or `Why second:` line (`Why only:` when one route is possible) naming when it applies and its argument; the hotfix is not ranked |
 | release-management/T46 | I1 | RED: the body has Intent, Design (optional), Verified by and Validated by as headings, once each, in order, found by parsing; a heading inside a code block does not count (verify Envelope, `04-test/verify-envelope.red.mjs`) |
 | release-management/T47 | I1 | RED: an Intent that holds only the template's comment is empty and fails |
 | release-management/T48 | I1 | RED: a Change title is `<capability>/<C-ID> <PHASE>: <concern>` with a known capability, a defined C id and a PHASE from PLAN, DO, ACT |

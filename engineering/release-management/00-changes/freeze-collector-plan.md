@@ -33,6 +33,16 @@ A frozen collector admits nothing, so **waiting for the pull requests to land is
 
 The same two routes serve both verdicts: the held promotion names them for each dependent pull request, and a pull request that targets a frozen collector (fail) names them for itself.
 
+### The recoveries are ranked (Owner, 10 November: "we should rank them, so the different options have a value and argument support")
+
+| Rank | Route | Value | Argument | Applies when |
+| --- | --- | --- | --- | --- |
+| **First choice** | **Retarget** to another existing collector | the promotion is kept and nothing is undone: the promotion already reviewed proceeds, the pull request keeps its branch, review and history | the least state change for the most progress; one command, and the event (`edited`) is on the pull request itself, so the check re-runs by GitHub's own delivery | the work belongs in another collector that exists now |
+| **Second choice** | **Withdraw the promotion, land the pull request, open a fresh promotion** | the pull request's work is kept where it belongs, but the promotion cycle (review, queue, freshness) is redone | the work belongs in `kaal/<X>` and cannot wait for a later promotion, so the cost of redoing the promotion is the price of keeping the work where it belongs; the collector is never recreated | no other collector fits the work |
+| Information only | the hotfix route (`branching.md#hotfix`) | an urgent correction without waiting | named by anchor, not by branch; not a third recovery and no override | the promotion cannot wait for the pull requests |
+
+The verdict emits the ranking in its message: recovery lines in rank order, each followed by a `Why first:` or `Why second:` line that names when the route applies and the argument. When only one route is possible (no other collector exists) the line is `Why only:`. A reader who skips the arguments still gets the order; a reader who wants them has them.
+
 **Retarget never means: deliver, then recreate.** Promoting, then recreating the collector and pointing the pull requests back at it (what was done for #1291) is not a recovery and is never offered: no recovery line creates or pushes `kaal/<X>`, none retargets to `main`, and none retargets to the collector being promoted. The Cases prove that.
 
 ## Fast promotion is the hotfix route, never a bypass (Owner, 10 November)

@@ -1,4 +1,4 @@
-// release-management/T31 to T37, T54, T55 and T64 (failing Cases, carried unwired in the PLAN of C6, freeze Collector; freeze-collector-plan.md).
+// release-management/T31 to T37, T54, T55, T64 and T65 (failing Cases, carried unwired in the PLAN of C6, freeze Collector; freeze-collector-plan.md).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
 //   node --test engineering/release-management/04-test/freeze-collector.red.mjs
@@ -115,4 +115,22 @@ test("T64: a promotion is passed only from a fresh inventory taken in the merge-
     assert.match(v.message, /fresh inventory/);
   }
   assert.equal(f({ ...base, stage: "check" }).kind, "pass", "the earlier check may pass; it is the merge group that decides");
+});
+
+test("T65: the recoveries are ranked: retarget first, withdraw second, each followed by a Why line with when it applies and its argument", async () => {
+  const f = await freezeCollector();
+  const v = f(facts({ openPulls: [promotion, dependent(1291)] }));
+  const ls = lines(v);
+  const at = (re) => ls.findIndex((l) => re.test(l));
+  const retarget = at(/^Recovery: gh pr edit 1291 --base /);
+  const withdraw = at(/^Recovery: gh pr close 1362 /);
+  assert.ok(retarget >= 0 && withdraw > retarget, "retarget is listed before withdraw");
+  assert.match(ls[retarget + 1], /^Why first: .*(applies when|when) .+/, "first choice: when it applies, and the argument");
+  assert.match(ls[withdraw + 1], /^Why second: .*(applies when|when) .+/, "second choice: when it applies, and the argument");
+  assert.ok(ls[retarget + 1].length <= 240 && ls[withdraw + 1].length <= 240, "a Why line is one readable sentence");
+  const only = f(facts({ openPulls: [promotion, dependent(1291)], collectors: [PROMOTED] }));
+  const ol = lines(only);
+  assert.match(ol[ol.findIndex((l) => /^Recovery: gh pr close 1362 /.test(l)) + 1], /^Why only: /, "with one possible route it is the only one, not the second");
+  assert.ok(!ol.some((l) => /^Why first:/.test(l)), "no first choice is claimed when retarget is impossible");
+  assert.ok(!ls.some((l) => /^Why (first|second|only):/.test(l) && /hotfix/i.test(l)), "the hotfix is not ranked among the recoveries");
 });
