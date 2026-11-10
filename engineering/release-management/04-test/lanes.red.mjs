@@ -4,8 +4,13 @@
 //   node --test engineering/release-management/04-test/lanes.red.mjs
 //
 // Three Cases: (1) every job of the workflow `KAAL` is claimed by a control; (2) a lane or host that is missing, skipped or
-// conditional fails the gate unless a FAR Accept names it; (3) a Case file that two lanes both run is declared, with its reason,
-// or the lanes are not equivalent duplicates. Do not edit a Case to make it pass.
+// conditional fails the gate unless a verified authorization (never a candidate-carried Accept alone) names it; (3) a Case file
+// that two lanes both run on one host is declared with its reason.
+//
+// Limitation of (3): it finds overlapping TEST FILES from the `node --test` arguments it can parse, which is not the same as
+// overlapping Cases. Indirect invocation (an npm script that runs a suite, a helper that spawns one) is not seen. It is a
+// screen. The DO's equivalence analysis, before any lane retires, compares Case identity, host, installed artifact, environment
+// and execution context, including indirect invocation, as the approved PLAN requires. Do not edit a Case to make it pass.
 import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -40,18 +45,28 @@ test("T22 (a) every job of the workflow KAAL is claimed by a control", () => {
   assert.deepEqual(unclaimed, [], `jobs of ci.yml no control claims (05-src/lanes/claims.json): ${unclaimed.join(", ")}`);
 });
 
-test("T23 (b) a lane or host that is missing, skipped or conditional fails the gate unless a FAR Accept names it", async () => {
+test("T23 (b) a lane or host that is missing, skipped or conditional fails the gate unless a verified authorization names it", async () => {
   const gateFile = join(LANES, "gate.mjs");
   assert.ok(existsSync(gateFile), "05-src/lanes/gate.mjs does not exist: no gate reads the expected lanes and hosts");
   const { judgeLanes } = await import(pathToFileURL(gateFile).href);
+  // Contract (PLAN far-authorization-plan.md): `accepts` are what the candidate carries and are never authority. `authorized`
+  // is the output of the verifier (an accepted PLAN, its landing commit, the designated authority) for ONE boundary; the gate
+  // consumes it and never verifies it. Anything unknown, unverifiable or for another boundary fails closed.
   const expected = [{ lane: "Hosting", host: "Windows" }, { lane: "Hosting", host: "Linux" }];
   const ok = { lane: "Hosting", host: "Linux", outcome: "passed" };
-  for (const bad of ["skipped", "cancelled", undefined]) {
-    const verdict = judgeLanes({ expected, results: [ok, ...(bad ? [{ lane: "Hosting", host: "Windows", outcome: bad }] : [])], accepts: [] });
+  const boundary = "integration";
+  const accept = { lane: "Hosting", host: "Windows", reason: "x", decision: "y" };
+  const authorization = { change: "C1", boundary, lane: "Hosting", host: "Windows" };
+  const judge = (over) => judgeLanes({ expected, results: [ok], accepts: [], authorized: [], boundary, ...over });
+  for (const bad of ["skipped", "cancelled", "conditional", undefined]) {
+    const verdict = judge({ results: [ok, ...(bad ? [{ lane: "Hosting", host: "Windows", outcome: bad }] : [])] });
     assert.equal(verdict.passed, false, `a Windows outcome of ${bad ?? "missing"} must fail`);
   }
-  const accepted = judgeLanes({ expected, results: [ok], accepts: [{ lane: "Hosting", host: "Windows", reason: "x", decision: "y" }] });
-  assert.equal(accepted.passed, true, "a FAR Accept naming the lane and host is the only door");
+  assert.equal(judge({ accepts: [accept] }).passed, false, "a self-declared, candidate-carried Accept is not authority");
+  assert.equal(judge({ accepts: [accept], authorized: [{ ...authorization, boundary: "promotion" }] }).passed, false, "an authorization for another boundary does not apply");
+  assert.equal(judge({ accepts: [accept], authorized: [{ ...authorization, host: "macOS" }] }).passed, false, "an authorization for another host does not apply");
+  assert.equal(judge({ accepts: [accept], authorized: undefined }).passed, false, "an unverifiable authorization input fails closed");
+  assert.equal(judge({ accepts: [accept], authorized: [authorization] }).passed, true, "an Accept with a verified authorization for this boundary, lane and host is the only door");
 });
 
 /** The hosts a job runs on: its literal `runs-on`, or the `os` of each matrix entry. */
