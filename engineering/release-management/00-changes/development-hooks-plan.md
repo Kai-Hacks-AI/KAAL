@@ -41,25 +41,34 @@ Summary: `pre-push` exists; `pre-commit` has an argument for the path rule once 
 
 The Owner's direction: a commit message carries **the concern the commit drives**, from the improvement cycle (plan; do and check; act), and **a reason**, the piece that drove it (a Change, an Intent, a Requirement and so on) with its reference, depending on which piece drove the commit. The history already half-says this: titles such as `Engineering: PLAN for version Package`, `guard/C134 PLAN: ...`, `Testing DO: ...`, `Engineering: RED for ...` carry a phase word, and the pull request template's Intent section is the reason. The proposal makes it one form and one check.
 
-**Subject:** `<Area> <PHASE>: <concern>`, for example `Engineering RED: recovery text names a route out of a stuck pull request`.
+**Subject:** `<Area> <PHASE>: <concern>`, for example `Engineering DO: recovery text names a route out of a stuck pull request`.
 - `<Area>`: as today (`Engineering`, `Hosting`, `Guard`, or a capability/change id such as `guard/C134`).
-- `<PHASE>`: one of `PLAN`, `RED`, `DO`, `ACT`. Plan is `PLAN`; do is `RED` (the check written first, so the red-to-green game starts) and `DO` (the build that makes it pass); act is `ACT` (the closing step: a finding fixed after review, a retirement, a promotion, a termination). **There is no `CHECK` word (Owner, 10 November): checking is automatic.** It is where the hooks, CI and the other controls protect the red-to-green game, so no commit is ever authored as CHECK.
+- `<PHASE>`: one of `PLAN`, `DO`, `ACT` (Owner, 10 November: **RED is not a phase word**). RED and GREEN are the state the automatic check produces, never authored. `PLAN`, then the check, makes it RED; `DO`, then the check, keeps it RED, makes it GREEN, or keeps it GREEN for a refactor; `ACT` is the learning step afterwards. There is no `CHECK` word either: checking is automatic, and it is where the hooks, CI and the other controls protect the red-to-green game. Writing the failing Cases belongs to `PLAN`.
 - `<concern>`: what this commit drives, in a few words; not what the diff contains.
 
 **Reason trailer (required, one line):** `Driven-by: <Kind> <reference>` where `<Kind>` is one of `Intent`, `Requirement`, `Architecture`, `Change`, `Defect`, `Case`, matching where the driving piece lives, and `<reference>` is its id in the repository (`Intent I1`, `Requirement F10`, `Change guard/C134`, `Defect D21`, `Case T25`). A commit may carry more than one `Driven-by:` line when more than one piece drove it. This is the reason in a form a parser can read, so the check is a parser, not a pattern over free text.
 
 ```
-Engineering RED: recovery text names a route out of a stuck pull request
+Engineering DO: recovery text names a route out of a stuck pull request
 
 Driven-by: Requirement F10
 Driven-by: Change release-management/00-changes/bind-merge-held-plan.md
 ```
 
+**Where the other commits fit under PLAN, DO and ACT (my reading, for the Owner to confirm).**
+- **A fix after review** carries the phase of what was reviewed: a revision of a plan or of its failing Cases is `PLAN`; a fix to the build that keeps it GREEN is `DO`.
+- **A retirement** (removing an old check once the new one covers it) is a change like any other: planned (`PLAN`), then removed (`DO`) with the check proving the coverage stays GREEN.
+- **A termination** (the cleanup Change at the end of a change's life) is `DO`, with its own `PLAN`.
+- **A promotion or a synchronization** is not authored work. It is a merge of what is already checked, in the form the lineage controls judge, and carries no phase word; the `message` check leaves it to them.
+- **`ACT`** is only the learning step after the check: a Defect found and its Case, a check moved earlier because of its `Earliest:` line, a rule or Requirement corrected because of what the run taught. It is not the place for review fixes, retirements or promotions.
+
+**Flag, not changed here.** The project's pull request sequence PLAN, RED, DO uses RED as a separate pull request. Under this model the failing Cases are part of `PLAN` and RED is the state the check reports, so a "RED pull request" is a `PLAN` commit whose check is red, and the sequence reads PLAN, DO, ACT. This PLAN does not change that sequence or any existing pull request title; whether and when to rename it is the Owner's call.
+
 **One `message` check, three places.** The shared Guard check judges this form: subject shape, the phase word from the closed list, at least one `Driven-by:` whose kind is in the list and whose reference **exists** in the repository (looked up, not guessed). `commit-msg` runs it on the commit message; CI runs the same check on the pull request title and body, because of how this repository squashes (read from the repository settings on 10 November: squash title `COMMIT_OR_PR_TITLE`, squash message `COMMIT_MESSAGES`): the squash subject is the commit's title when the pull request has one commit and the pull request title when it has several, and the squash message is the concatenation of the commits' messages, so every `Driven-by:` trailer of every commit reaches `main`; the pull request template's Intent section is where the reason is written out in full. A merge commit or a synchronization has its own form (the lineage controls already judge it) and is not judged by this check.
 
 **`prepare-commit-msg` pre-fills it, never decides.** In an empty message it writes the area and the `Driven-by: Change ...` line from the branch's Change, using the same convention the pre-push hook already has for the branch's target (`git config branch.<branch>.kaalTarget`): a `branch.<branch>.kaalChange` setting naming the Change, set once per branch. The phase it takes from the previous commit's subject on the branch, else leaves a placeholder the `message` check then refuses. It does nothing when a message exists (`-m`, merge, squash, amend).
 
-**What stays open for the Owner:** the kinds list, and whether a `Driven-by:` is required on every commit or only on the commits of a pull request that has none in its body. The phase list is decided (`PLAN`, `RED`, `DO`, `ACT`; no `CHECK`). The squash default is verified, not open: because the squash message is the commits' messages, a check on each commit message is what governs `main`'s history, and the pull request title check covers the multi-commit subject. The check judges only what the Owner confirms.
+**What stays open for the Owner:** the kinds list, and whether a `Driven-by:` is required on every commit or only on the commits of a pull request that has none in its body. The phase list is decided (`PLAN`, `DO`, `ACT`; neither `RED` nor `CHECK`). The squash default is verified, not open: because the squash message is the commits' messages, a check on each commit message is what governs `main`'s history, and the pull request title check covers the multi-commit subject. The check judges only what the Owner confirms.
 
 ## Sequence
 
