@@ -15,3 +15,4 @@ The numbered Changes of this area, `release-management/C<n>` (Owner, 10 November
 | release-management/C4 | The lifecycle assessment: the stages including Development, the names and placement of the folders and rulesets, the tag identity as a GitHub App, the control types | #1353, #1354, #1356 |
 | release-management/C5 | Development hooks: one thin entry per Git hook, the commit message form, the pull request title form | #1355 |
 | release-management/C7 | track Work: a read-only report of each piece of Work's state per station (about to open, in stock, about to close) for the CTO and the CPO | this pull request (PLAN); the DO is to come |
+| release-management/C8 | verify Envelope: the pull request body follows the template and the title says which Change and phase, checked by parsing; the check name is read by track Work (C7); C6 is reserved for clear Collector | the PLAN |
