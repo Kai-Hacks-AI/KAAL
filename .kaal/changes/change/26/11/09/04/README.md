@@ -10,7 +10,7 @@ The CI ownership assessment (D2) found the rule "a Change that touches this set 
 
 ## Change
 
-`packages/kaal-change/plan/travel/`: Intent (I26–I29), Requirements (F55–F59, G14, G15), Architecture (A25–A29, ownership, graph), Testing (T67–T73). Docs only.
+`packages/kaal-change/plan/travel/`: Intent (I26–I29), Requirements (F55–F61, G14, G15), Architecture (A25–A29, ownership, graph), Testing (T67–T74). Docs only.
 
 ## Note
 
