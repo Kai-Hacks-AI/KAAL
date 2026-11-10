@@ -22,7 +22,8 @@ const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 function expand(pattern) {
   if (!pattern.includes("*")) return existsSync(join(ROOT, pattern)) ? [pattern] : [];
   const dir = dirname(pattern);
-  const re = new RegExp(`^${pattern.slice(dir.length + 1).replace(/[.]/g, "\\.").replace(/\*/g, "[^/]*")}$`);
+  const escaped = pattern.slice(dir.length + 1).replace(/[\\^$.*+?()[\]{}|]/g, (c) => (c === "*" ? "[^/]*" : `\\${c}`));
+  const re = new RegExp(`^${escaped}$`);
   const abs = join(ROOT, dir);
   if (!existsSync(abs) || !statSync(abs).isDirectory()) return [];
   return readdirSync(abs).filter((f) => re.test(f)).map((f) => `${dir}/${f}`);
