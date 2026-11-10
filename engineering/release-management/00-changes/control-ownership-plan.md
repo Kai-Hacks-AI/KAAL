@@ -28,7 +28,7 @@ Each row of the matrix below is read with two owners, and the word is never used
 
 | Control (F#) | Rule owned by | Executed by | Consumed by Release as | KAAL realization today | Disposition |
 | --- | --- | --- | --- | --- | --- |
-| isolate Change (F6), KAAL's control: Core and `.github` travel alone | **Change**, as the proposed `kaal-change/travel` (declared path sets: a Change that touches X touches only X). This is not `kaal-change` `isolate`, which assesses a proposal against a model and is not a path checker | Guard | a verdict at integrate and promote | `change-isolation/` (Core and `.github`), `guard-acceptance-boundary.yml` (Guard boundary) | **One authoritative rule.** Until `travel` exists, `change-isolation/` is a KAAL Delivery adapter. Once it exists, `change-isolation/` may only supply KAAL's path sets and call `travel`; it may never remain a second authoritative rule (D2, D7). Interim placement is the Owner's decision |
+| isolate Change (F6), KAAL's control: Core and `.github` travel alone | **Change**, as a possible Change path-based rule (name undecided; not Change's graph-based `isolate`) (declared path sets: a Change that touches X touches only X). This is not `kaal-change` `isolate`, which assesses a proposal against a model and is not a path checker | Guard | a verdict at integrate and promote | `change-isolation/` (Core and `.github`), `guard-acceptance-boundary.yml` (Guard boundary) | **One authoritative rule.** Until then, `change-isolation/` is a KAAL Delivery adapter. Once such a rule exists in Change, `change-isolation/` may only supply KAAL's path sets and call `travel`; it may never remain a second authoritative rule (D2, D7). Interim placement is the Owner's decision |
 | PLAN/DO integrity, FAR Accepts authorization (F18 clauses) | **Change** (PLAN #1342, our PLAN #1340) | Guard (target's own copy) | fail-closed reading in test gates | hand-rolled boundary workflow | with the isolation row; gates wait for G13 |
 | verify Ancestry (F7), audit Lineage (F5) | **Release** (promotion freshness, lineage) | Guard | a verdict | `lineage/` (`lineage.ts`) | split out of Branching (D3) |
 | bind Merge (F10) | **Release** | the merge queue, `merge-group/` | a verdict | `bind-group.sh`, Branching's merge-method verdict | split out of Branching (D3) |
@@ -38,7 +38,7 @@ Each row of the matrix below is read with two owners, and the word is never used
 | approve Change (F15), approve Promotion (F11), serialize Promotion (F13) | **Release** (what must be approved); **Change** for the authority behind an approval | native ruleset and queue settings | a setting | ledger-attestation trio | retire the trio for native settings after the Owner's ledger-digest decision (D6) |
 | version Package (F3), verify Package Promotion (F2), approve Publishing (F1) | **Release** | `release-engine/` | a verdict | `release.yml`, the engine | keep; F2 optional-peer scope open (G12); readiness evidence D1 |
 
-Two consequences for what is documented as Release management's today: `change-isolation/` is a Delivery adapter during the transition and not an authoritative rule (the rule is Change's, as `travel`, distinct from Change's `isolate`), and `lineage/` is two rules, ancestry and merge method (Release's), plus the synchronization-shape verdict that belongs with the isolation control. Both need Requirements and Architecture entries stating this when their per-control Changes are planned.
+Two consequences for what is documented as Release management's today: `change-isolation/` is a Delivery adapter during the transition and not an authoritative rule (the reusable rule, if generalized, is Change's as a path-based rule distinct from Change's `isolate`), and `lineage/` is two rules, ancestry and merge method (Release's), plus the synchronization-shape verdict that belongs with the isolation control. Both need Requirements and Architecture entries stating this when their per-control Changes are planned.
 
 ## CI disposition (per workflow and job, by the five decisions)
 
@@ -48,7 +48,7 @@ Decisions: 1 one authoritative implementation per control; 2 separate mixed judg
 | --- | --- | --- | --- |
 | `ci.yml` Hosting x3, Acceptance per host, Workspaces, Engineering | keep; claimed by the testing controls. Guard and Guard x3 judged first | 4 | #1339 |
 | `codeql.yml`, `dependency-review.yml` | keep as used tools | 1 | per-control Change |
-| `change-isolation.yml`, `merge-group.yml` isolation job, `guard-acceptance-boundary.yml` | one Core-and-`.github` travel check (Change's `travel` rule, Guard executes, KAAL path sets); not the same as Change's `isolate` | 1 | per-control Change, with the Change thread |
+| `change-isolation.yml`, `merge-group.yml` isolation job, `guard-acceptance-boundary.yml` | one Core-and-`.github` travel check (path sets as data; the rule's reusable home is undecided, see the control-chain assessment); not the same as Change's `isolate` | 1 | per-control Change, with the Change thread |
 | `lineage-synchronization.yml`, `branching-audit.yml`, `merge-group.yml` Branching job | split into verify Ancestry, isolate Change, bind Merge | 2 | per-control Change |
 | `promotion-source.yml`, `merge-group.yml` Promotion Source job | accept Capability | 1, 3 | per-control Change |
 | the three `pull_request_target` workflows and each per-event copy | one reusable workflow per control, used by pull request, merge group and audit events, composed in `KAAL / release / <step>` | 3 | per-control Changes |
@@ -89,6 +89,6 @@ No new program. The per-control Changes of `transformation.md` carry every row a
 
 ## Open for the Owner
 
-- Interim placement of the travel check: `change-isolation/` stays KAAL's Delivery adapter until `kaal-change/travel` exists, or the Change thread builds `travel` first. This is the Owner's decision; the adapter never becomes a second authoritative rule.
+- Interim placement of the travel check: `change-isolation/` stays KAAL's Delivery adapter until a Change path rule exists. The control-chain assessment argues that generalizing it is not on the release-management critical path. This is the Owner's decision; the adapter never becomes a second authoritative rule.
 - G13 (the source of designated authority) before any FAR gate activates.
 - The ledger-digest decision before the review trio retires; the ruleset contexts.
