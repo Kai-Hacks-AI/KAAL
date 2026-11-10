@@ -12,8 +12,9 @@ Each element names, in brackets, the Requirements it answers.
   - **How it lands.** It lands only through a PLAN Change's own integration, which Review's approval and Engineering's Branching govern. Review defines what counts as authorization evidence.
   - **Given as data.** The designation reaches `authorize` as an argument and is never read from the record or the candidate (change/N3).
   - **Open (G13).** Whether the decision is read from the entry or from the approving review of the landing is not chosen here. Either fits this element: only the data given to `authorize` differs.
-- **change/A8** [change/F10, change/F11, change/F51, change/F53, change/F54]: **The integration gate is Engineering's.** *Revised.* It does ten things:
+- **change/A8** [change/F10, change/F11, change/F51, change/F53, change/F54]: **The integration gate is Engineering's.** *Revised.* It does eleven things:
   - names the integration, with the Change, the boundary and the source and target revisions as evidence;
+  - first decides the candidate's kind. A candidate that is itself a PLAN Change establishing or replacing Cases and Accepts has no landing yet. It takes the **PLAN-integration path**: it is judged by `authorize` alone, with the designation as data, so the decision must be verified against the designated authority (change/F51), and it is exempt from the DO integrity rules. It is never read against a landing it does not have, and never against an older one. Everything below is the **DO path**;
   - finds the PLAN's landing commit: an ancestor of the candidate, on the collector for a collector pull request, and on the collector for the promotion that carries it;
   - reads the record and the Case definitions and digests of the Features Plan at that commit (definition), and the candidate's copies at its own head, only to compare them;
   - selects the complete Regression Plan at the integration's protected baseline (change/I6), never at the PLAN's landing, and gives the exceptions only for Cases of it that the Accept names with an equal digest;
