@@ -1,4 +1,4 @@
-// release-management/C14 (failing Cases C14/T1 to C14/T7, carried unwired in the PLAN of "one fragment per Change, and the identity of a Case";
+// release-management/C14 (failing Cases C14/T1 to C14/T8, carried unwired in the PLAN of "one fragment per Change, and the identity of a Case";
 // fragments-and-case-identity-plan.md). Hosted by release management, intended owner Engineering.
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
@@ -37,11 +37,16 @@ test("C14/T2: two fragments with one C-ID are refused and the next free C-ID is 
   assert.equal(v.nextFree, "C6");
 });
 
-test("C14/T3: a pull request outside its own fragment folder and declared targets is flagged, and a view is never an input", async () => {
+test("C14/T3: every changed path outside the Change folder resolves to a declared target, the declaration never overrides Change Isolation, and a view is never an input", async () => {
   const { judgeFragments } = await load("view");
-  const ok = judgeFragments({ fragments: [fragment("C7")], files: ["engineering/release-management/00-changes/C7/change.md"], declared: [] });
+  const targetMap = { "release-management/F6": "engineering/release-management/05-src/isolation" };
+  const ok = judgeFragments({ fragments: [fragment("C7", { targets: ["release-management/F6"] })], files: ["engineering/release-management/00-changes/C7/change.md", "engineering/release-management/05-src/isolation/isolate.mjs"], targetMap });
   assert.equal(ok.kind, "pass");
-  const shared = judgeFragments({ fragments: [fragment("C7")], files: ["engineering/release-management/00-changes/C7/change.md", "engineering/release-management/00-changes/change-register.md"], declared: [] });
+  const undeclared = judgeFragments({ fragments: [fragment("C7", { targets: [] })], files: ["engineering/release-management/00-changes/C7/change.md", "engineering/release-management/05-src/isolation/isolate.mjs"], targetMap });
+  assert.equal(undeclared.kind, "fail", "a path no declared target covers");
+  const untouched = judgeFragments({ fragments: [fragment("C7", { targets: ["release-management/F6"] })], files: ["engineering/release-management/00-changes/C7/change.md"], targetMap });
+  assert.equal(untouched.kind, "fail", "a declared target no path touches");
+  const shared = judgeFragments({ fragments: [fragment("C7")], files: ["engineering/release-management/00-changes/C7/change.md", "engineering/release-management/00-changes/change-register.md"], targetMap });
   assert.equal(shared.kind, "fail");
   assert.ok(shared.findings.some((x) => /change-register\.md/.test(x) && /view/.test(x)));
 });
@@ -81,4 +86,13 @@ test("C14/T7: requirements and architecture nodes follow the same single-owner r
   const node = { identity: "release-management/F21", owner: "release-management", tests: [], temporary: false, kind: "requirement", refines: ["release-management/I1"], path: "engineering/release-management/02-requirements/requirements.md" };
   assert.equal(judgeCases({ cases: [node], tree }).kind, "pass");
   assert.equal(judgeCases({ cases: [{ ...node, owner: undefined }], tree }).kind, "fail", "a node without an owner stands alone");
+});
+
+test("C14/T8: the promotion body is recomputed from the promotion head's tree and a body that differs is refused", async () => {
+  const { judgePromotionBody } = await load("view");
+  const fragments = [fragment("C1"), fragment("C2")];
+  const { computePromotionBody } = await load("view");
+  const body = computePromotionBody(fragments);
+  assert.equal(judgePromotionBody({ fragments, body }).kind, "pass");
+  assert.equal(judgePromotionBody({ fragments, body: `${body}\nextra line` }).kind, "fail", "the body is a claim, the tree is the evidence");
 });
