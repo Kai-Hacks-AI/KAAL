@@ -38,6 +38,14 @@ The Owner's addition: recovery is an important message, and so is where the fail
 
 `git push origin <head>` of an unchanged head is a no-op: it emits no `synchronize` and cannot give a pull request a merge method. So the contract has two forms only: an executable command whose event is shown to re-run the check, or an explicit **non-self-recoverable** verdict, `Recovery: none (route: <who acts and what>)`, which fails closed and routes to the human or Change action that changes the state (here: give the pull request a base whose flow the lineage knows). T26 and T27 assert both forms; the live proof that each command's event re-runs the check stays tracked per control in `recovery-coverage.json`.
 
+## What the C2 DO delivers and what follows it (CPO, #1358)
+
+The DO delivers the verdict text (`Recovery:` lines, qualified by the pull request number or, when the job supplies none, its source branch from `KAAL_HEAD_REF`; with neither, a named route and no command), and `earliestStage` as a tested pure function. It does not yet deliver three things, each with its own follow-up and none authorized by the DO:
+
+1. **The user-visible `Earliest:` line.** Printing it beside the Recovery lines of a failing check needs the caller to name the check's declaration and its `needs`; it is a `.github`/Guard-output step, a separate Change after the Branching split, with its own Case that the failing output carries the line.
+2. **Wiring the GREEN Cases into a lane or suite.** A `.github` step, like the earlier hand-run files, taken with the Branching split, so that no required context changes inside the DO.
+3. **The live proof** that the recovery command is executable from the failing state and starts a fresh Branching run on the correct head without weakening a required check. It needs a separate explicit Owner go; until then `liveProof` stays `pending` in `recovery-coverage.json`.
+
 ## Design
 
 - **Requirement (F10, a clause) and Case.** The clause above, with Cases on the verdict function: no method yet gives `held`, a wrong method gives `fail`, the right method gives `pass`, and `held` is never converted to `pass` by a consumer.
