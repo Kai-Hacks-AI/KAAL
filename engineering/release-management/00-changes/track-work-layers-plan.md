@@ -25,6 +25,8 @@ Owner direction (Kai, 10 November): the purpose of `track Work` stands, that we 
 | a verdict inferred from the checks, envelope unknown shown as text | conditions true, false or unknown; unknown is named and listed, provisional conditions are marked |
 | one directory | `track-work/` (capability) and `track-work-kaal/` (consumer and configuration) |
 
+KAAL's two views are configured as waits across all stations: the CPO's is `waitingFor: approval`, the CTO's is `waitingFor: fix, pull-request`, neither with a station or stage selector (T72).
+
 This Change openly replaces Cases of C7, traced here: T43 (role filtering) is replaced by T69 and T73; T38 to T42, T44 and T45 keep their intent and receive the model as an argument (KAAL's model for the consumer's Cases, a fixture model for the capability's). `WORK.md` is reworded so that the definition names no role.
 
 ## Sequence

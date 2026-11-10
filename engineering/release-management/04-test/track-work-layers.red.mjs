@@ -148,6 +148,11 @@ describe("release-management/T72 the consumer holds KAAL's configuration in one 
     assert.ok(c.model.defaultBranch && c.model.integrationPrefix && c.model.positions && c.model.changeId && c.model.checks?.envelope);
     assert.ok(Object.keys(c.views).length >= 1);
   });
+  it("KAAL's views wait on what is waited for at every station: no station, stage or collector restriction", () => {
+    const v = config().views;
+    assert.deepEqual(v.cpo, { waitingFor: ["approval"] });
+    assert.deepEqual(v.cto, { waitingFor: ["fix", "pull-request"] });
+  });
   it("a view is a set of selectors over the capability's vocabulary", () => {
     for (const v of Object.values(config().views)) for (const k of Object.keys(v)) assert.ok(["stage", "station", "collector", "waitingFor"].includes(k), k);
   });

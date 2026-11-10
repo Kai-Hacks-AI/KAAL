@@ -66,7 +66,7 @@ Controls that act on more than one station live at the root. All are names only 
 
 ## Across the stations: track Work [release-management/F23, I8, C15]
 
-A detective control: it detects what is in flight and reports it. It reads and writes nothing, authorizes nothing and gates nothing; the controls of the stations decide, this one tells where each Change stands. It has three layers, and each requirement below belongs to one of them.
+A detective control: it detects what is in flight and reports it. It reads facts, writes nothing, authorizes nothing and gates nothing; the controls of the stations decide, this one tells where each Change stands. It has three layers, and each requirement below belongs to one of them.
 
 - **Capability.**
   - **Facts and classifications are kept apart.** It reads observable facts, each with the source it was read from and the head it was read at: a branch has no pull request, the checks of a head are red or still running, the branch is behind its base, some number of conversations are unresolved, the head has an approval, auto-merge is on, the verdict of the envelope check. It derives classifications from them: what a piece of Work waits for, its position, stage and station, and a Change's roll-up. A classification is a judgment by the consumer's policy, reported as derived.
@@ -79,7 +79,7 @@ A detective control: it detects what is in flight and reports it. It reads and w
   - **Selectors** by stage, station, collector and what is waited for, each a list: any of within one, all of between them, none lists everything; an unknown value is refused naming the known ones.
   - **It knows no role and nothing of any one repository,** in its interface, output or usage, and it imports only itself and Node built-ins.
 - **Consumer.** It binds the capability to one repository's configuration, expands the configured views into selectors and runs it. KAAL's consumer is `track-work-kaal/`.
-- **Configuration.** The consumer's own data: its model and its views (a named set of selectors, for example what a reviewer asks and what an implementer asks). Roles, responsibilities, stations and controls differ by consumer and live with it.
+- **Configuration.** The consumer's own data: its model and its views (a named set of selectors, for example what a reviewer asks and what an implementer asks). KAAL's reviewer view is whatever waits for approval at every station, with no station restriction, and its implementer view is whatever waits for a fix or a pull request at every station. Roles, responsibilities, stations and controls differ by consumer and live with it.
 
 The envelope verdict it reads is the one of verify Envelope (F19); until that control reports a verdict, the envelope is unknown and provisional.
 
