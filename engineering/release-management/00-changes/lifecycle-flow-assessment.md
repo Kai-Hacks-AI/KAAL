@@ -71,6 +71,28 @@ Release drives a change from intent to delivery. Change implements a given chang
 
 No other control has an owner that the split contradicts. The split also confirms the allocation of the gates: `gate (integration)` and `gate (promotion)` are Release's (they sequence progression) and only read the others' verdicts.
 
+### Verification and validation (Owner, 10 November)
+
+Every capability has a deterministic element (the Script of BASS) and non-deterministic ones (Bare, Agent, Skill). On top of that: **verification is deterministic and is Testing's; validation is non-deterministic and is Review's; QA needs both.** Read against the controls, each one splits into the part that can be verified by a script and the part that only a judgment can validate. The gates may read the verifiable part; the validation must have happened, and its record is verified.
+
+| Control | Kind | Verified (Script, deterministic) | Validated (judgment, Review) |
+| --- | --- | --- | --- |
+| verify Ancestry (F7), bind Merge (F10), accept Capability (F14), audit Lineage (F5), isolate Change (F6) | verification | the verdict itself, from Git and GitHub facts | none; the Skill/Agent element is guidance only: the recovery text of the verdict (T25 to T29) |
+| serialize Promotion (F13) | verification | the queue's behavior, a native deterministic setting | none |
+| test Integration (F16), test Candidate (F12) | verification (Testing proper) | the Cases' results per host | whether the Cases are the right ones is validation, argued at their PLAN and RED review |
+| scan Vulnerabilities (F8), scan Dependencies (F9) | verification, with validation in the follow-up | the tool's findings at the head | accepting or dismissing a finding is a judgment (Review), recorded, not decided by the tool |
+| version Package (F3) | verification, with validation upstream | ordering, tag preflight, record present (T1 to T3) | which version a change deserves (breaking or not) is a judgment made in the Change and reviewed |
+| verify Package Promotion (F2) | verification | the registry accepted the version and the installed package works | none |
+| approve Change (F15), approve Promotion (F11), approve Publishing (F1) | **validation** | that an approval exists, is bound to the exact head or run, comes from the designated authority, and is not stale (a script, fail-closed) | the approval itself: a person or a review agent judging that the result is what was intended. This is Review's, not Release's, Change's or Guard's |
+| FAR Accept (F18) | validation | the Accept's authorization chain (G13, Change's verifier) | the Accept is a human judgment that a RED may stand |
+
+Consequences argued in the PR:
+
+1. **Approvals are validation, Review's.** What I wrote as a native setting (required reviewers, the `npm` environment) is the deterministic carrier of a non-deterministic judgment. Release says where one is required; Review makes it; the script verifies its record. The matrix's "rule owner" for these three is therefore Review for the judgment, with Change's authority chain as the verified part.
+2. **A gate reads verifications; it never performs or replaces a validation.** `gate (integration)` and `gate (promotion)` pass only on verified results and verified records of validations. A validation that an agent produces counts only where the authority behind it is verified (G13), the same rule as an Accept.
+3. **QA needs both, per transition.** At each transition the matrix should show the verification that can fail the build and the validation that can still decline it. Today the validation is mostly implicit (the CPO's exact-head review, the Owner's go); the assessment names it so the gates can verify its record.
+4. **Nothing is lost by the split.** No control changes name, number or implementation; the table only says which part of each is Testing's and which is Review's, so the Review thread can argue its half from its own position.
+
 ### Release's position on path isolation (`travel`)
 
 The question from the Change thread: Change declares what a change touches, Guard protects; which half is which? Release's argument, from its own position:
