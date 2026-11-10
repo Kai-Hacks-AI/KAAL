@@ -23,7 +23,7 @@ Design points that follow from GitHub's behavior (all **to prove live** before t
 
 ### Tag before npm, or after (Owner decision; PLAN #1348 chose after)
 
-| | Tag before publication (recommended) | Tag after publication (#1348 as written) |
+| | Tag before publication (decided) | Tag after publication (#1348 as written) |
 | --- | --- | --- |
 | What the tag means | the exact commit the Owner authorized to publish | the commit that was published |
 | Evidence anchor | the draft Release and the tag exist while the approval is given, so the approver sees what is released | the evidence is assembled after the irreversible step |
@@ -31,7 +31,7 @@ Design points that follow from GitHub's behavior (all **to prove live** before t
 | Token and permissions | `contents: write` is held by the stage before the approval, so it needs the narrowest identity (a release workflow and its tag ruleset) | `contents: write` only after publication |
 | Fits the Owner's flow | yes (`main -> tag -> Release -> npmjs`) | reverses two stages |
 
-Recommendation: **tag before**, as a draft-Release pair created by version Package, with the publish gated by approve Publishing. #1348's tag preflight (no tag at another commit, no tag for an unpublished version of another commit) is kept and extended: preflight before the tag, creation of the tag, then after publication a check that tag, commit and registry agree. #1348's RED and DO stay frozen until the Owner chooses.
+**Decision (Owner): tag before publication, with a tag-based ruleset on it.** The tag and the draft Release are created by version Package, and the publish is gated by approve Publishing. The tag ruleset restricts creation of package tags to the release workflow's identity and forbids moving or deleting them; it is a proof file for the Owner to import (`tag-ruleset-proof.json` and `proof-steps.md` in the project files) and is not applied by any PLAN. #1348's tag preflight (no tag at another commit, no tag for an unpublished version of another commit) is kept and extended: preflight before the tag, creation of the tag, then after publication a check that tag, commit and registry agree. #1348's PLAN now follows the decision (tag before publication; the preflight, creation under the ruleset, and the post-publication check), so its RED is unblocked once the PLAN lands.
 
 ## 2. Transition-to-control matrix (all 15 controls)
 
@@ -121,7 +121,7 @@ PLAN (this document) -> RED and DO per control, in this order: bind Merge recove
 ## 6. Open decisions
 
 Owner, one at a time in this order:
-1. **Tag before or after publication** (section 1). Recommendation: before, as a draft Release pair; #1348's RED and DO wait.
+1. ~~Tag before or after publication~~ decided: before, under a tag ruleset (section 1). Still open: applying the real ruleset and the identity it names (item 4).
 2. G13 (where Accept authority is read from) before any FAR gate activates.
 3. The ledger-digest decision before the review trio retires.
 4. Who holds tag-creation: the release workflow identity with `contents: write` and the tag ruleset (recommended) or a separate App.
