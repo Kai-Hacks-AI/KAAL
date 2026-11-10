@@ -1,6 +1,6 @@
 # Graph: Operations (how)
 
-How to install `kaal-graph`, use it and verify it. What each export and command promises is in the [README](../README.md) and [Requirements](requirements.md).
+How to install `@kaihacksai/kaal-graph`, use it and verify it. What each export and command promises is in the [README](../README.md) and [Requirements](requirements.md).
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ How to install `kaal-graph`, use it and verify it. What each export and command 
 ## Install
 
 ```sh
-npm install kaal-graph
+npm install @kaihacksai/kaal-graph
 ```
 
 The installation holds exactly these files:
@@ -46,7 +46,7 @@ The installation holds exactly these files:
 
 ## Use
 
-From code, import the API from `kaal-graph`, or only the Form from `kaal-graph/form`, which imports no host module. The [README](../README.md) states each export.
+From code, import the API from `@kaihacksai/kaal-graph`, or only the Form from `@kaihacksai/kaal-graph/form`, which imports no host module. The [README](../README.md) states each export.
 
 The package name is scoped; the CLI command and Agent Skill identifier remain `kaal-graph`.
 
@@ -62,20 +62,20 @@ npx --no kaal-graph resolve <name> <id> <dir>...
 
 `check` exits 0 when there is nothing to report and 1 when there is. Misuse, and a lookup that finds nothing, exit 2.
 
-An Agent loads the Skill from `node_modules/kaal-graph/skills/kaal-graph/SKILL.md`.
+An Agent loads the Skill from `node_modules/@kaihacksai/kaal-graph/skills/kaal-graph/SKILL.md`.
 
 ## Register the Node
 
 The Skill Node joins an Engine through Core alone:
 
 ```sh
-npx kaal register skill kaal-graph node_modules/kaal-graph/payload
+npx kaal register skill kaal-graph node_modules/@kaihacksai/kaal-graph/payload
 ```
 
 ## Verify the installation
 
 ```sh
-npm explore kaal-graph -- npm test
+npm explore @kaihacksai/kaal-graph -- npm test
 ```
 
 This runs `test/verify.mjs` against the installed copy (graph/F6). It checks the shipped files against `test/verify.json`, runs every embedded case in a scratch directory it removes, checks that your project is unchanged, and ends in exactly one result:
@@ -86,4 +86,4 @@ This runs `test/verify.mjs` against the installed copy (graph/F6). It checks the
 
 Its last line is the summary, `kaal-graph-verification ` followed by JSON, for a program to read: the result, its cause, evidence and next step, the package's name, version and location, the platform and Node version, the digest of the installed files, and every declared case with its outcome.
 
-`node node_modules/kaal-graph/test/verify.mjs` runs the same verification directly. It needs no network and no KAAL source checkout, and it builds nothing.
+`node node_modules/@kaihacksai/kaal-graph/test/verify.mjs` runs the same verification directly. It needs no network and no KAAL source checkout, and it builds nothing.

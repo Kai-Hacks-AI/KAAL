@@ -6,8 +6,8 @@ import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { execute } from "@kaihacksai/kaal-hosting";
-import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, readFrontmatter, sha256 } from "kaal-graph";
-import * as form from "kaal-graph/form";
+import { claimsForm, createNode, edgesOf, FormError, Graph, identify, identifyRoot, isId, isName, readFrontmatter, sha256 } from "@kaihacksai/kaal-graph";
+import * as form from "@kaihacksai/kaal-graph/form";
 
 // The copy of the package these cases ship in: the installed one, or the source in the repository.
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -162,7 +162,7 @@ describe("reading frontmatter", () => {
     assert.throws(() => readFrontmatter(Buffer.from([0x2d, 0x2d, 0x2d, 0x0a, 0xff])), (e) => e instanceof FormError && /^not UTF-8/.test(e.message));
   });
 
-  it("is offered alone as kaal-graph/form, which imports no host module", () => {
+  it("is offered alone as @kaihacksai/kaal-graph/form, which imports no host module", () => {
     assert.equal(form.readFrontmatter, readFrontmatter);
     assert.equal(form.FormError, FormError);
     const source = readFileSync(join(SKILL, "scripts", "form.mjs"), "utf8");

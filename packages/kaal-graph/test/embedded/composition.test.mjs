@@ -2,7 +2,7 @@
 // Immutable to DO and CHECK; graph/C9 turns it GREEN. It uses kaal-graph's public interface only.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { cycles, reach, reverse } from "kaal-graph";
+import { cycles, reach, reverse } from "@kaihacksai/kaal-graph";
 
 /** A caller's own read-only Map: Map's reading interface over a private Map, and nothing that writes. */
 class Readonly {

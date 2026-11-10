@@ -1,5 +1,5 @@
 {
-  "name": "kaal-graph",
+  "name": "@kaihacksai/kaal-graph",
   "version": "0.0.1",
   "description": "KAAL Graph: a Node's Form and identity, the Edges embedded in Nodes, their checks, derived indexes, lookup and traversal.",
   "license": "MIT",
@@ -28,7 +28,7 @@
   ],
   "scripts": {
     "test": "node test/verify.mjs",
-    "test:publisher": "node --test \"test/publisher/*.test.mjs\" && node --test --test-name-pattern=\"^graph/T(8|9|1[024-5]) \" test/plan/release.test.mjs && node test/verify.mjs",
+    "test:publisher": "node --test \"test/publisher/*.test.mjs\" && node --test --test-name-pattern=\"^graph/T(8|9|1[0-24-5]) \" test/plan/release.test.mjs && node test/verify.mjs",
     "manifest": "node test/publisher/manifest.mjs"
   },
   "engines": {

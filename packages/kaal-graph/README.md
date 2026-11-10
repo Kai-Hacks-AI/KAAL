@@ -1,4 +1,4 @@
-# kaal-graph
+# @kaihacksai/kaal-graph
 
 KAAL Graph: the capability for the general mechanics of Nodes, their Form and identity, construction and lookup, and the Edges that relate them, with derived indexes and traversal. It is not part of Core. Graph implements the Node Form and identity that the Kernel in Core's payload states, and interprets the `edges` in a Node's frontmatter. Core owns the initial foundation and the CASE lifecycle, decides which Nodes an Engine admits, while Graph supplies general Node mechanics independently. Graph's only KAAL runtime dependency is Hosting.
 
@@ -60,13 +60,13 @@ Files are read through `@kaihacksai/kaal-hosting`. Each Markdown file that begin
 ## Register the Node
 
 ```sh
-npx kaal register skill kaal-graph node_modules/kaal-graph/payload    # Core decides
+npx kaal register skill kaal-graph node_modules/@kaihacksai/kaal-graph/payload    # Core decides
 ```
 
 ## Verify
 
 ```sh
-npm explore kaal-graph -- npm test
+npm explore @kaihacksai/kaal-graph -- npm test
 ```
 
 It checks the installed files against the shipped manifest, runs every embedded case against the installed copy, and ends verified (0), failed (1) or cannot verify (2). See [Operations](docs/operations.md).

@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { identify, sha256 } from "kaal-graph";
+import { identify, sha256 } from "@kaihacksai/kaal-graph";
 
 const SCRIPTS = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "skills", "kaal-graph", "scripts");
 const FOUNDATION = "@kaihacksai/kaal-foundation/sha256";

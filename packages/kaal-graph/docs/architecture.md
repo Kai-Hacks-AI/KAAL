@@ -3,9 +3,9 @@
 Each element names, in brackets, the Requirements it answers ([Requirements](requirements.md)). graph/A4 and graph/A7 record how the publisher made its Changes, and are not repeated here.
 
 - **graph/A1** [graph/F1–graph/F4, graph/N3]: The layout of the code, all under `skills/kaal-graph/scripts/`:
-  - `form.mjs` reads frontmatter and the Form, and is offered alone as `kaal-graph/form`.
+  - `form.mjs` reads frontmatter and the Form, and is offered alone as `@kaihacksai/kaal-graph/form`.
   - `node.mjs` gives a Node its identity.
-  - `edges.mjs` reads Edges and holds `Graph`. It is the package's API, `kaal-graph`, and re-exports the rest.
+  - `edges.mjs` reads Edges and holds `Graph`. It is the package's API, `@kaihacksai/kaal-graph`, and re-exports the rest.
   - `structure.mjs` holds `cycles`, `reach` and `reverse`, and imports nothing, not even another Graph module.
   - `graph.mjs` is the `kaal-graph` command.
   - `form.d.ts`, `node.d.ts` and `edges.d.ts` declare their types.

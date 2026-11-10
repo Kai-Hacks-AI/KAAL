@@ -19,7 +19,7 @@ Each Requirement names, in brackets, the Intents it serves ([Intent](intent.md))
 
   Its last line is the summary: `kaal-graph-verification ` followed by JSON with `result`; when not verified, `cause`, `evidence` and `next { kind, step }`; `package { name, version, location }`; `platform`; `node`; `digest`, the SHA-256 of one line `<path>\0<sha256>\n` per installed file other than the manifest, in path order; and `cases`, each `{ name, outcome }` with outcome `pass`, `fail`, `skipped`, `todo` or `not run`.
 - **graph/F7** [graph/I4]: The embedded cases verify shipped behaviour, ship in `test/embedded/`, and import only `node:` built-ins, the package by its own name, and its runtime dependencies. The publisher's tests of its repository, packaging and integration with other packages do not ship. Each case runs from exactly one place.
-- **graph/F8** [graph/I5]: The package is `kaal-graph@0.0.1`. Its runtime dependencies are `@kaihacksai/kaal-hosting@0.0.1` and `yaml@2.9.1`; public registry installation requires both KAAL packages to have been published.
+- **graph/F8** [graph/I5]: The package is `@kaihacksai/kaal-graph@0.0.1`. Its runtime dependencies are `@kaihacksai/kaal-hosting@0.0.1` and `yaml@2.9.1`; public registry installation requires both KAAL packages to have been published.
 
 ## Nonfunctional
 

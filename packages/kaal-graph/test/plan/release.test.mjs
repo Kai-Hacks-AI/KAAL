@@ -41,7 +41,7 @@ const EMBEDDED = [
   "refuses an Edge reference whose name no Node can have",
   "reads the frontmatter of any file in Form, a Node or not, and never the body",
   "refuses what the Form refuses, with a FormError",
-  "is offered alone as kaal-graph/form, which imports no host module",
+  "is offered alone as @kaihacksai/kaal-graph/form, which imports no host module",
   "are grouped by type, one Edge per target, sorted",
   "are none without an edges key",
   "are refused, never ignored: ${label}",

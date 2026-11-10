@@ -1,6 +1,6 @@
 # Graph: Testing
 
-This is the Product Verification Test Plan of `kaal-graph`: the one that ships, and that your installation runs. A case that checks a numbered obligation names it in its title, for example `graph/T1 [graph/F1, graph/F4]`. The identifiers are the trace, and each is defined in [Intent](intent.md), [Requirements](requirements.md), [Architecture](architecture.md) or here.
+This is the Product Verification Test Plan of `@kaihacksai/kaal-graph`: the one that ships, and that your installation runs. A case that checks a numbered obligation names it in its title, for example `graph/T1 [graph/F1, graph/F4]`. The identifiers are the trace, and each is defined in [Intent](intent.md), [Requirements](requirements.md), [Architecture](architecture.md) or here.
 
 ## Where they run
 
