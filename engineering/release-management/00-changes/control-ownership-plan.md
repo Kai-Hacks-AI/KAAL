@@ -15,6 +15,15 @@ PLAN, nothing is built, moved or removed. It answers the Owner's direction of 9 
 
 Release owns when evidence is required and whether progression is allowed. It does not become the owner of every control it invokes. Executor is not owner. `kaal-release` is the reusable product; this folder is KAAL's implementation of its principles, and none of the KAAL-specific machinery below is exported as part of that product.
 
+## Two meanings of "owner" (KAAL's control, the reusable rule)
+
+Each row of the matrix below is read with two owners, and the word is never used for both at once.
+
+- **The KAAL control** (its application, placement, matrix, context and release use) is **Engineering Release Management's** (Delivery). It may incubate behavior locally, as the travel adapter does.
+- **The reusable rule and mechanism** (semantics, declaration form, verdict vocabulary, execution) is **Change's, Guard's or Testing's**. When a capability productizes the behavior, KAAL adopts it and keeps no competing local implementation: the local copy shrinks to KAAL's data (path sets, lists) and a call.
+
+"Owner" in the matrix means the owner of the reusable rule. The KAAL control is always Engineering's.
+
 ## Control-ownership matrix (one authoritative owner of the rule per control)
 
 | Control (F#) | Rule owned by | Executed by | Consumed by Release as | KAAL realization today | Disposition |
@@ -46,6 +55,22 @@ Decisions: 1 one authoritative implementation per control; 2 separate mixed judg
 | `change-isolation-review*.yml`, `merge-group-admission.yml`, `merge-group-review.yml` | retire for native approval settings | 1 | after the Owner's decision |
 | `release.yml` | keep as the realization of version Package and approve Publishing | 3 | version Package Change |
 | `actions/setup-env`, `scripts/bind-group.sh` | keep while used; `bind-group.sh` becomes bind Merge | 1 | bind Merge Change |
+
+## Case-to-context allocation (hook, pull request, merge group, release)
+
+The goal is the right Case in the right execution context, not identical suites everywhere. Rules:
+
+- A Case used in more than one context (pre-push hook, pull request, merge group, release) has **one authoritative definition and one judgment**; each context runs it, none rewrites it (one place).
+- The allocation is recorded as data, per Case: the contexts it runs in and why. **CI-only coverage** (for example a host the developer does not have, installed-artifact verification) is marked as intentional and argued. Local contexts stay fast: the hook runs the cheap, relevant subset, never the whole CI matrix.
+- The allocation is built with the lanes in #1339 (its Cases, hosts and fail-closed gate), which is where the Cases that parse it live. This PLAN fixes the rule; #1339's RED carries the table and its Case: every Case of a control has a recorded allocation, and a Case judged in two contexts resolves to one definition.
+
+## Performance as a measured outcome
+
+Cleanliness is not paid for with slower or weaker CI.
+
+- **Baseline first, before any change:** the critical path, elapsed time and runner time per workflow, and the repeated executions of the same work (the same suite in more than one job, `npm ci` per job, the per-event copies). Taken from real recent runs, recorded in the testing control's Change record.
+- **Avoidable expensive work** is identified from the baseline and argued like any duplicate: removed only with the equivalence proof below.
+- **After consolidation** the same measures are compared with the baseline. A regression in the critical path needs an argument or a fix, and no required protection is dropped for speed.
 
 ## Proof before retirement (decision 5)
 
