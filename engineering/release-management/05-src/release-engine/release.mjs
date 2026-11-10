@@ -1,6 +1,7 @@
 // Engineering's Release engine, its decisions (engineering/C12, engineering/release/README.md).
 // Everything here is pure: it judges facts that run.mjs gathers through npm and Hosting, and
 // touches no host, registry or file. Results use KAAL's vocabulary: verified, failed, unknown.
+import { versionFindings } from "./version.mjs";
 
 /** The repository every released package must name, for npm's provenance check. */
 export const REPOSITORY = "git+https://github.com/Kai-Hacks-AI/KAAL.git";
@@ -47,6 +48,7 @@ export function readiness({ manifest, directory, registry }) {
   const own = registry[name];
   if (own === undefined) f.push(`the registry was not asked about ${name}`);
   else if (own?.includes(version)) f.push(`${name}@${version} is already on the registry; raise the version`);
+  else if (typeof version === "string" && EXACT.test(version)) f.push(...versionFindings({ name, version, published: own ?? [] }));
   for (const [dep, spec] of Object.entries(manifest.dependencies ?? {}).sort(([a], [b]) => (a < b ? -1 : 1))) {
     if (!EXACT.test(spec)) f.push(`dependency ${dep} is "${spec}", not an exact version`);
     else if (!registry[dep]?.includes(spec)) f.push(`dependency ${dep}@${spec} is not on the registry; release it first`);
