@@ -37,6 +37,8 @@ Architecture names the components and allocates each requirement to exactly one 
 | `merge-group/` | bind Merge F10 (queue binding) |
 | `lanes/` | test Candidate F12, test Integration F16 (FAR: F18) |
 | `envelope/` | verify Envelope F19 (the judgment of a pull request's title and body, and the trusted activation policy) |
+| `track-work/` | track Work F23 (the capability: facts, classification, roll-up, selection, report; no repository's names) |
+| `track-work-kaal/` | track Work F23 (KAAL's consumer and its configuration: model and views) |
 
 | Control | Requirement | Control target (applied at) | Component or other realization |
 | --- | --- | --- | --- |
@@ -55,8 +57,9 @@ Architecture names the components and allocates each requirement to exactly one 
 | version Package | F3 (A1) | main | `release-engine/` |
 | approve Publishing | F1 (A2) | npmjs | setting: `npm` environment, `release-engine/` |
 | verify Package | F2 (A3) | npmjs | `release-engine/` |
+| track Work | F23 | all stations (read-only) | `track-work/`, `track-work-kaal/` |
 
-Each of F1 to F3, F5 to F16 and F19 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). The allocations of the `npmjs` and `main` controls of the release engine keep their ids:
+Each of F1 to F3, F5 to F16, F19 and F23 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). The allocations of the `npmjs` and `main` controls of the release engine keep their ids:
 
 - **release-management/A1.** version Package: F3 is allocated to `release-engine/` and applied at `main`.
 - **release-management/A2.** approve Publishing: F1 is allocated to the `npm` environment and `release-engine/` and applied at `npmjs`.
@@ -170,3 +173,13 @@ Consequence: a change to a control's logic takes effect after it is promoted, no
 - **Spoofing.** The gate does not read a candidate-supplied result; it reads check runs by API with the workflow's own token.
 
 **Negative Cases (live, T10):** (a) a `.github`-only candidate that deletes or edits the gate or a control job; (b) a candidate workflow that emits a job named like a required context; (c) a candidate that skips a required control (condition, path filter, `if: false`). Each must leave the required context failed or absent. T7 and T8 stay as additional guards, not as the trust root.
+
+## track Work: three layers (F23)
+
+| Layer | Knows about | Component |
+| --- | --- | --- |
+| Capability | observable facts and the model it is handed; no role, no repository's names | `track-work/` |
+| Consumer | the capability and one configuration | `track-work-kaal/` |
+| Configuration | its own model and views; nothing else | `track-work-kaal/`, one data file |
+
+The consumer uses the capability, never the reverse. The capability is one directory with no dependency on KAAL, so that it can be packaged for other consumers as it is; each consumer brings its own stations, controls, roles and views.
