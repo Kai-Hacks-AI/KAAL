@@ -46,6 +46,9 @@ The DO delivers the verdict text (`Recovery:` lines, qualified by the pull reque
 2. **Wiring the GREEN Cases into a lane or suite.** A `.github` step, like the earlier hand-run files, taken with the Branching split, so that no required context changes inside the DO.
 3. **The live proof** that the recovery command is executable from the failing state and starts a fresh Branching run on the correct head without weakening a required check. It needs a separate explicit Owner go; until then `liveProof` stays `pending` in `recovery-coverage.json`.
 
+**Live proof, recorded (Owner go, 10 November).** A throwaway pull request (#1360, closed unmerged) was in the trap state (run 42790218534 failed: auto-merge disabled); enabling auto-merge started a fresh Branching run on the same head (run 42790288623, event `auto_merge_enabled`) that passed, with no change to required checks, rulesets or gates. The evidence is in `recovery-coverage.json`. **The recovery depends on the `auto_merge_enabled` and `auto_merge_disabled` activity types of the workflow that issues the verdict, today on `pull_request_target`.** The Owner has disabled `pull_request_target` as a policy and GitHub blocks it on 2 December 2026: the Branching split moves Branching to a design that does not need it, carries the same activity types (the `pull_request` event has them) and T26 reads them from the new trigger block; the live proof is repeated there. Until then it holds for the current workflow only.
+
+
 ## Design
 
 - **Requirement (F10, a clause) and Case.** The clause above, with Cases on the verdict function: no method yet gives `held`, a wrong method gives `fail`, the right method gives `pass`, and `held` is never converted to `pass` by a consumer.

@@ -1,20 +1,127 @@
 {
   "_about": "Traceability of the recovery contract (PLAN bind-merge-held-plan.md; T29 in recovery.red.mjs). Every release control is listed. A control is `covered` only by named Cases that exist in 00-changes/cases.md, or `pending` with the step whose RED must add them: a pending control is a mandatory later RED, not an exception. `liveProof` is `pending` until a run shows the recovery action re-triggers the check on GitHub; the YAML trigger Cases (T26) are static evidence only. Covering a control means its own fail and held verdicts, not another control's.",
   "controls": {
-    "version Package": { "feature": "F3", "status": "pending", "step": "version Package RED (#1348 line)", "liveProof": "pending" },
-    "approve Publishing": { "feature": "F1", "status": "pending", "step": "approve Publishing PLAN, RED, DO", "liveProof": "pending" },
-    "verify Package Promotion": { "feature": "F2", "status": "pending", "step": "early readiness signal (G17) RED", "liveProof": "pending" },
-    "audit Lineage": { "feature": "F5", "status": "pending", "step": "Branching split: audit Lineage RED", "liveProof": "pending" },
-    "isolate Change": { "feature": "F6", "status": "pending", "step": "Branching split: isolate Change RED", "liveProof": "pending" },
-    "verify Ancestry": { "feature": "F7", "status": "pending", "step": "Branching split: verify Ancestry RED", "liveProof": "pending" },
-    "scan Vulnerabilities": { "feature": "F8", "status": "pending", "step": "scan Vulnerabilities control-named job RED", "liveProof": "pending" },
-    "scan Dependencies": { "feature": "F9", "status": "pending", "step": "scan Dependencies control-named job RED", "liveProof": "pending" },
-    "bind Merge": { "feature": "F10", "status": "covered", "cases": ["release-management/T25", "release-management/T26", "release-management/T27", "release-management/T28"], "scope": "the auto-merge verdicts only; its remaining verdicts come with the Branching split", "liveProof": "pending" },
-    "approve Promotion": { "feature": "F11", "status": "pending", "step": "FAR verifier (#1342) integration RED", "liveProof": "pending" },
-    "test Candidate": { "feature": "F12", "status": "pending", "step": "gate activation RED (lanes gate verdicts)", "liveProof": "pending" },
-    "serialize Promotion": { "feature": "F13", "status": "pending", "step": "serialize Promotion PLAN, RED, DO", "liveProof": "pending" },
-    "accept Capability": { "feature": "F14", "status": "pending", "step": "Branching split: accept Capability RED", "liveProof": "pending" },
-    "approve Change": { "feature": "F15", "status": "pending", "step": "FAR verifier (#1342) integration RED", "liveProof": "pending" },
-    "test Integration": { "feature": "F16", "status": "pending", "step": "gate activation RED (lanes gate verdicts)", "liveProof": "pending" }
+    "version Package": {
+      "feature": "F3",
+      "status": "pending",
+      "step": "version Package RED (#1348 line)",
+      "liveProof": "pending"
+    },
+    "approve Publishing": {
+      "feature": "F1",
+      "status": "pending",
+      "step": "approve Publishing PLAN, RED, DO",
+      "liveProof": "pending"
+    },
+    "verify Package Promotion": {
+      "feature": "F2",
+      "status": "pending",
+      "step": "early readiness signal (G17) RED",
+      "liveProof": "pending"
+    },
+    "audit Lineage": {
+      "feature": "F5",
+      "status": "pending",
+      "step": "Branching split: audit Lineage RED",
+      "liveProof": "pending"
+    },
+    "isolate Change": {
+      "feature": "F6",
+      "status": "pending",
+      "step": "Branching split: isolate Change RED",
+      "liveProof": "pending"
+    },
+    "verify Ancestry": {
+      "feature": "F7",
+      "status": "pending",
+      "step": "Branching split: verify Ancestry RED",
+      "liveProof": "pending"
+    },
+    "scan Vulnerabilities": {
+      "feature": "F8",
+      "status": "pending",
+      "step": "scan Vulnerabilities control-named job RED",
+      "liveProof": "pending"
+    },
+    "scan Dependencies": {
+      "feature": "F9",
+      "status": "pending",
+      "step": "scan Dependencies control-named job RED",
+      "liveProof": "pending"
+    },
+    "bind Merge": {
+      "feature": "F10",
+      "status": "covered",
+      "cases": [
+        "release-management/T25",
+        "release-management/T26",
+        "release-management/T27",
+        "release-management/T28"
+      ],
+      "scope": "the auto-merge verdicts only; its remaining verdicts come with the Branching split",
+      "liveProof": "proven",
+      "evidence": {
+        "trial": "throwaway pull request #1360 into kaal/engineering-release-management, closed unmerged; Owner go 10 November 2026 (scoped: existing protections, no admin override, no change to required checks, rulesets or gates)",
+        "head": "01eaf1ddce6e43ec5e44ce10ff36cb4fd79b2f28",
+        "failing": {
+          "run": 42790218534,
+          "job": 129741431331,
+          "event": "pull_request_target (opened)",
+          "startedAt": "2026-11-10T09:22:52Z",
+          "conclusion": "failure",
+          "reason": "Auto-merge is disabled for this pull request into kaal/engineering-release-management (KAAL_AUTO_MERGE empty)"
+        },
+        "recovery": {
+          "action": "enable auto-merge with squash (the same enablePullRequestAutoMerge mutation `gh pr merge <branch> --auto --squash` calls; performed through the GitHub MCP tool because the session's gh CLI is not authenticated)",
+          "at": "2026-11-10T09:23:18Z"
+        },
+        "rerun": {
+          "run": 42790288623,
+          "event": "pull_request_target (auto_merge_enabled)",
+          "startedAt": "2026-11-10T09:23:20Z",
+          "head": "01eaf1ddce6e43ec5e44ce10ff36cb4fd79b2f28",
+          "conclusion": "success"
+        },
+        "unchanged": "required checks, rulesets and gates were not touched; the pull request was closed unmerged and auto-merge disabled",
+        "limits": "proves the enable action starts a fresh Branching run on the same head and that it passes; the verdict text with Recovery lines runs from the base once #1358 lands. The disable-then-enable path (wrong method) is not covered by this trial."
+      },
+      "dependency": "The recovery event is `auto_merge_enabled`/`auto_merge_disabled` on the workflow that issues the verdict, today lineage-synchronization.yml on `pull_request_target`. The Owner has disabled `pull_request_target` as a policy and GitHub blocks it on 2 December 2026, so the Branching split (the Change that moves Branching to a design that does not need it) must carry the same events (the `pull_request` event has the same activity types) and T26 must read them from the new trigger block, then the live proof is repeated there; until then this proof holds for the current workflow only."
+    },
+    "approve Promotion": {
+      "feature": "F11",
+      "status": "pending",
+      "step": "FAR verifier (#1342) integration RED",
+      "liveProof": "pending"
+    },
+    "test Candidate": {
+      "feature": "F12",
+      "status": "pending",
+      "step": "gate activation RED (lanes gate verdicts)",
+      "liveProof": "pending"
+    },
+    "serialize Promotion": {
+      "feature": "F13",
+      "status": "pending",
+      "step": "serialize Promotion PLAN, RED, DO",
+      "liveProof": "pending"
+    },
+    "accept Capability": {
+      "feature": "F14",
+      "status": "pending",
+      "step": "Branching split: accept Capability RED",
+      "liveProof": "pending"
+    },
+    "approve Change": {
+      "feature": "F15",
+      "status": "pending",
+      "step": "FAR verifier (#1342) integration RED",
+      "liveProof": "pending"
+    },
+    "test Integration": {
+      "feature": "F16",
+      "status": "pending",
+      "step": "gate activation RED (lanes gate verdicts)",
+      "liveProof": "pending"
+    }
   }
 }
