@@ -42,6 +42,8 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T56 | I1 | RED: every control the architecture defines is in the overview with station, class and applied-at; a missing one fails (control overview, `04-test/control-overview.red.mjs`) |
 | release-management/T57 | I1 | RED: the verb of a control belongs to the verb set of its class; an unknown class or applied-at is refused |
 | release-management/T58 | I1 | RED: each preventive control names a counterpart or a stated reason, and a counterpart is a control of another class that exists |
+| release-management/T59 | I1 | RED: a retirement fails while the replacement is not observed, not independently verified, or the trust root it needs is not live, CI for a pull request or merge-group check and publishing for the publish path (retirement, `04-test/retirement.red.mjs`) |
+| release-management/T60 | I1 | RED: a retirement names its covering control and evidence, a row that stays is never retired, and a missing fact is no evidence |
 | release-management/T61 | F19 | RED: every fact is validated before any verdict, so a malformed kind, register, number or title never hides behind the activation cutoff |
 | release-management/T62 | F19 | RED: timestamps are strict UTC for `opened`, the activation and the policy; prose, a missing Z and an offset are refused |
 | release-management/T63 | F19 | RED: the trust contract is explicit (the kind from the lineage, the registers and the activation from the base, asserted as provenance and refused otherwise) and `parseChangeTitle` is the one title parser |
