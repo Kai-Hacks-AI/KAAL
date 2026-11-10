@@ -1,4 +1,4 @@
-// release-management/T46 to T52 (failing Cases, carried unwired in the PLAN of C8, verify Envelope; verify-envelope-plan.md).
+// release-management/T46 to T53 and T61 to T63 (Cases of C8, carried unwired in the PLAN, wired by the DO, verify Envelope; verify-envelope-plan.md).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
 //   node --test engineering/release-management/04-test/verify-envelope.red.mjs
@@ -18,7 +18,7 @@ const BODY = "<!-- This pull request is a stable Change envelope. -->\n\n## Inte
 const facts = (over) => ({
   number: 7, kind: "change", title: "release-management/C8 PLAN: verify Envelope", body: BODY,
   capabilities: ["release-management", "engineering"], changeIds: { "release-management": ["C1", "C8"] },
-  opened: "2026-11-11T08:00:00Z", activation: "2026-11-10T00:00:00Z", ...over,
+  opened: "2026-11-11T08:00:00Z", activation: "2026-11-10T00:00:00Z", provenance: { kind: "lineage", registers: "base", activation: "base" }, ...over,
 });
 const lines = (v) => v.message.split("\n");
 
@@ -74,4 +74,37 @@ test("T51: missing facts are no evidence, and a failure carries a recovery whose
 
 test("T52: the check is named exactly `verify Envelope`, the name track Work reads", async () => {
   assert.equal((await module_()).CHECK_NAME, "verify Envelope");
+});
+
+test("T53: the activation policy is trusted input: missing, malformed or non-UTC policy is refused and never read as a pass", async () => {
+  const { loadPolicy } = await module_();
+  assert.equal(loadPolicy('{"version":1,"cutoff":"2026-11-10T12:00:00Z"}').ok, true);
+  for (const raw of [undefined, "", "not json", "{}", '{"version":1}', '{"version":2,"cutoff":"2026-11-10T12:00:00Z"}', '{"version":1,"cutoff":"2026-11-10T12:00:00+01:00"}', '{"version":1,"cutoff":"soon"}'])
+    assert.equal(loadPolicy(raw).ok, false, String(raw));
+});
+
+test("T61: every fact is validated before any verdict, so a malformed fact never hides behind the activation cutoff", async () => {
+  const old = { opened: "2026-11-09T08:00:00Z" };
+  for (const over of [{ kind: undefined }, { kind: "release" }, { capabilities: "release-management" }, { capabilities: [1] }, { changeIds: null }, { changeIds: { "release-management": "C1" } }, { number: 0 }, { title: 7 }])
+    for (const age of [{}, old]) assert.equal((await verify(facts({ ...age, ...over }))).kind, "fail", JSON.stringify({ ...age, ...over }));
+  assert.equal((await verify(facts(old))).kind, "not-applicable", "well-formed facts before the cutoff stay not-applicable");
+});
+
+test("T62: timestamps are strict UTC: prose, a missing Z and an offset are refused for opened, the activation and the policy", async () => {
+  for (const bad of ["yesterday", "Nov 10 2026 12:00:00Z", "2026-11-10", "2026-11-10T12:00:00+01:00", "2026-02-31T00:00:00Z"]) {
+    assert.equal((await verify(facts({ opened: bad }))).kind, "fail", `opened ${bad}`);
+    assert.equal((await verify(facts({ activation: bad }))).kind, "fail", `activation ${bad}`);
+    assert.equal((await module_()).loadPolicy(JSON.stringify({ version: 1, cutoff: bad })).ok, false, `policy ${bad}`);
+  }
+});
+
+test("T63: the trust contract is explicit: kind, registers and activation must be asserted as the lineage's and the base's, and the title parser is the one place", async () => {
+  const m = await module_();
+  for (const provenance of [undefined, {}, { kind: "title", registers: "base", activation: "base" }, { kind: "lineage", registers: "candidate", activation: "base" }, { kind: "lineage", registers: "base", activation: "candidate" }]) {
+    const v = await verify(facts({ provenance }));
+    assert.equal(v.kind, "fail", JSON.stringify(provenance));
+    assert.match(v.message, /provenance/);
+  }
+  assert.deepEqual(m.parseChangeTitle("release-management/C8 DO: verify Envelope"), { capability: "release-management", id: "C8", phase: "DO", concern: "verify Envelope" });
+  for (const t of ["release-management/C8 RED: x", "C8 DO: x", "release-management/C0 DO: x", 7, undefined]) assert.equal(m.parseChangeTitle(t), null, String(t));
 });

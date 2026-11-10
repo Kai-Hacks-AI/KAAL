@@ -4,7 +4,7 @@ Change `release-management/C8`, control **verify Envelope** (the exact check nam
 
 ## Traceability (corrected after the CPO review)
 
-`release-management/F11` is **approve Promotion**; this control is not F11 and is not assigned to it. `verify Envelope` has no requirement id yet. This PLAN **proposes `release-management/F18`** for it (F17 is proposed for clear Collector); it is added to `02-requirements/requirements.md`, with the Owner's approval, in the DO, not before. Until then the Cases trace to the intent they serve, `release-management/I1` (release management gets a Change from intent to delivery with every step traceable), as the `track Work` Cases do; the Cases move to F18 when it exists.
+`release-management/F11` is **approve Promotion**; this control is not F11 and is not assigned to it. `verify Envelope` has no requirement id yet. **Correction (C8 DO):** F17 and F18 already exist (pinned to `main`, FAR), so the DO adds this control as `release-management/F19`; the PLAN's proposal of F18 is withdrawn. clear Collector will take a later free id (not F17); it is added to `02-requirements/requirements.md`, with the Owner's approval, in the DO, not before. Until then the Cases trace to the intent they serve, `release-management/I1` (release management gets a Change from intent to delivery with every step traceable), as the `track Work` Cases do; the Cases move to F19 with the DO.
 
 ## Intent
 
@@ -30,7 +30,7 @@ Station: **Integration** (the pull request into a collector), a preventive contr
 
 Use the commonmark parser (`records.mjs` and the commit/title id parser from the hooks Change); use the lineage controls for what a promotion or a synchronization is. Build only the judgment over title, body and kind.
 
-## Cases (T46 to T52, unwired)
+## Cases (T46 to T53; T53 added by the DO for the policy loader)
 
 T46 the body headings by parsing. T47 an empty Intent fails. T48 the title form. T49 the kind comes from the lineage, not the title. T50 fall forward by a trusted activation boundary. T51 missing facts are not a pass and failures carry a recovery with an event that re-runs the check. T52 the exact check name `verify Envelope` (which `track Work` reads).
 
