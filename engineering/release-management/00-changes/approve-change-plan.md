@@ -4,7 +4,11 @@ The target documents of this control are built in the target layout of Release m
 
 Capability: Release management (hosted in `engineering/`). Collector: `kaal/release/approve-change`.
 
+Serves: I1 (through F15), see [Intent](../01-intent/intent.md) and [Requirements](../02-requirements/requirements.md). Triggered by: release-management/D1 ([Defect](../06-defects/D1-two-level-collector-unprotected.md)).
+
 ## Why
+
+Intent of this Change: reach F15 as native GitHub configuration, so that only an approved push reaches a collector (I1).
 
 The Owner (10 November 2026) asked to bring the release controls into production one at a time, each in its own collector, each judged and then used to retire the legacy control it covers. The stations are intended to be controlled where they live: local is Development, GitHub is Integration and Promotion, npmjs is Publishing. Integration is first, and its first control is **approve Change (F15)**.
 

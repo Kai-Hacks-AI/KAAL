@@ -1,3 +1,4 @@
+// Traces: I1, F15, the control row F15 (rulesets/), defect release-management/D1.
 // release-management/F15/T1 (permanent, moves next to its code in 05-src/rulesets with the DO) and C19/T2, C19/T3 (migration): RED and unwired (not listed in `test:engineering`).
 // T1 is the drift Case: the effective configuration GitHub reports for a collector branch must show the
 //    new `integration` ruleset supplying a pull_request rule with approval of the most recent push.
