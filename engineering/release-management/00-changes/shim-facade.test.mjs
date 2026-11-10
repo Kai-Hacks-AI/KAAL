@@ -11,8 +11,9 @@ const OLD = join(HERE, "../../release");
 const MOVED = join(HERE, "../05-src/release-engine");
 
 describe("release-management/T14 the old folder holds only the shims", () => {
-  it("the old folder holds only release.mjs, which points at the moved module (run.mjs had no caller and is gone)", () => {
-    assert.deepEqual(readdirSync(OLD).sort(), ["release.mjs"], "engineering/release/run.mjs has no caller left: delete it (shim-removal-plan.md, step 2)");
+  it("the old folder holds only release.mjs and run.mjs, which point at the moved modules (run.mjs is main's release.yml caller until the workflow rename)", () => {
+    assert.deepEqual(readdirSync(OLD).sort(), ["release.mjs", "run.mjs"], "engineering/release/ holds exactly the two shims");
+    assert.match(readFileSync(join(OLD, "run.mjs"), "utf8"), /import \{ main \} from "\.\.\/release-management\/05-src\/release-engine\/run\.mjs"/);
     assert.match(readFileSync(join(OLD, "release.mjs"), "utf8"), /export \* from "\.\.\/release-management\/05-src\/release-engine\/release\.mjs"/);
   });
 });
