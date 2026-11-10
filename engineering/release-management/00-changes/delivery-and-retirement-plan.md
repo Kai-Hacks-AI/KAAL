@@ -55,6 +55,17 @@ One row per existing job, workflow, script or setting. The covering control come
 | `engineering/release/release.mjs` shim, `change-requirements.md` (F20), the migration record | nothing (the migration ends) | `migration-end.test.mjs` and `shim-facade.test.mjs` Cases |
 | **Stays:** `guard-acceptance-boundary.yml` (the PLAN/DO integrity of `kaal/guard`, D2 and D7), `ci.yml` itself, `setup-env` | not covered by a release control; the Change capability owns the PLAN/DO integrity rule | listed as open: the owner of that rule is Change, not this plan |
 
+## 2a. Replacement evidence: realization, enforcement and detective follow-up
+
+Added at the CPO's and Owner's request (10 November 2026, on #1377), using the realization patterns of `station-control-chain-map.md` section 3b. A legacy control is not removed on the word of a file. Before a retirement Change may be proposed, its record must show, for the replacement:
+
+1. **Which realization it is**: native GitHub configuration, declarative configuration applied to GitHub, or a KAAL judgment enforced through a required check. The smallest sufficient one; a native judgment is not duplicated in KAAL code to look implemented.
+2. **Effective configuration**: what GitHub reports as active (the ruleset, queue or environment settings as read from the API, or the required status as listed in the active ruleset). A file that describes a setting is not evidence that it is active.
+3. **Actual enforcement behavior**, where technically feasible: the boundary exercised (a refused merge, a wrong method rejected, an unapproved push blocked), in proportion; no elaborate replica of GitHub's mechanism. **"Not feasible" is never self-declared.** It needs a recorded **justification** that names the boundary and why it cannot be exercised, and a **reviewer other than the author** who accepts it; the **compensating evidence** (the detective follow-up of item 4, operational) is required because the enforcement is not shown. A bare "not feasible" bypasses nothing.
+4. **Detective follow-up**, required wherever direct exercise is unavailable (item 3), and wherever the replacement is a preventive control that cannot be inspected or exercised directly. **It never substitutes for item 2:** when the configuration is inspectable, the effective configuration is shown active whatever the follow-up says; its failure signature, evidence source, cadence, accountable owner and response are defined, it is **operational** (it has run and recognized the signature, tested where feasible), and the record says its evidence is **indirect assurance**, not proof of configuration.
+
+The retirement fails while any of these is missing for the replacement or for a detective follow-up the replacement needs (and a follow-up does not excuse a missing effective configuration); "operational" means observed running, not merely defined. The parity and observation evidence of section 2 still applies; this adds the layers it did not name. Nothing here activates a ruleset, imports a configuration or retires a control.
+
 ## 3. Two trust roots, two conditions
 
 The fail-closed proof for pull requests and merge groups is separate from the privileged tag and publish activation (CPO review of #1369), so the second cannot deadlock the first.
@@ -91,9 +102,11 @@ Each retirement is its own Change (add-new, settings, remove-old), with Kai's go
 
 Ruleset imports (`integration`, `promotion`, `publishing`), the GitHub App creation and its permission set, the Envelope cutoff (`05-src/envelope/policy.json`) and whether `verify Envelope` becomes required, the native approval settings on `kaal/*` and `main`, G13 and the ledger-digest decision, the interim home of the path rule, the `Version:` convention and the prerelease policy, the name question Process or Processing, and the possible `hotfix/<name>` rename. Each is one question at a time in the project chat.
 
-## Cases (T59, T60, unwired)
+## Cases (T59, T60 and C17/T1, unwired)
 
 T59: a retirement is judged against the evidence: it fails while the replacement is not observed or not independently verified, and it fails while the trust root it needs is not live: a pull request or merge-group check needs only the CI trust root, the publish path needs the publishing one, and neither is a stand-in for the other. T60: a retirement row names its covering control and evidence, a row without a covering control is `stays` and is never retired, and a missing fact is no evidence. The module is `05-src/retirement/judge-retirement.mjs` (`judgeRetirement({ retirements, trustRoots: { ci, publishing } })`), a pure function.
+
+`C17/T1` (a temporary Case of Change C17, in the identity C14 proposes): a retirement fails while the replacement's realization is not named, its effective configuration is not shown active (a follow-up never replaces it when the configuration is inspectable), or its enforcement behavior is neither shown nor covered by a recorded, independently accepted justification plus an operational detective follow-up as compensating evidence; a detective follow-up it needs must be operational; indirect assurance is never recorded as proof of configuration. T59 and T60 stay as they are.
 
 ## Open for the Owner and CPO
 
