@@ -2,6 +2,10 @@
 
 Change `release-management/C8`, control **verify Envelope** (the exact check name `track Work` already reads, #1363 and #1364; keep it). PLAN, nothing is built. The failing Cases T46 to T52 are in `04-test/verify-envelope.red.mjs`, carried unwired. This PLAN makes the proposal in `development-hooks-plan.md` ("CI check: the existing envelope control, extended") a numbered Change of the overarching plan to get release management into `main`, for the CTO and the CPO to align on (Owner, 10 November 2026).
 
+## Traceability (corrected after the CPO review)
+
+`release-management/F11` is **approve Promotion**; this control is not F11 and is not assigned to it. `verify Envelope` has no requirement id yet. This PLAN **proposes `release-management/F18`** for it (F17 is proposed for clear Collector); it is added to `02-requirements/requirements.md`, with the Owner's approval, in the DO, not before. Until then the Cases trace to the intent they serve, `release-management/I1` (release management gets a Change from intent to delivery with every step traceable), as the `track Work` Cases do; the Cases move to F18 when it exists.
+
 ## Intent
 
 Every pull request carries the Change it belongs to in a **stable envelope**: its body follows `.github/pull_request_template.md` (Intent, Design, Verified by, Validated by) and its title says which Change and which phase (`<capability>/<C-ID> <PHASE>: <concern>`). Execution history lives in comments, reviews and checks, never in the envelope. A control that reads the envelope as a fact is what lets `track Work` report each piece of Work, Review judge the right Change, and the squash message carry its reason to `main`.
@@ -29,6 +33,10 @@ Use the commonmark parser (`records.mjs` and the commit/title id parser from the
 ## Cases (T46 to T52, unwired)
 
 T46 the body headings by parsing. T47 an empty Intent fails. T48 the title form. T49 the kind comes from the lineage, not the title. T50 fall forward by a trusted activation boundary. T51 missing facts are not a pass and failures carry a recovery with an event that re-runs the check. T52 the exact check name `verify Envelope` (which `track Work` reads).
+
+## Activation contract (a DO decision, recorded here)
+
+The Owner chooses a **UTC cutoff immediately before activation**. It is versioned in a **trusted, base-owned Envelope policy** (for example `05-src/envelope/policy.json`), read from the base and never from the candidate. A **missing or invalid policy is refused** (the control does not run as a pass). Publishing the check as a **non-required, informational** check is not making it **required**; the required context is a separate gate Change with its own Owner go. The `edited` recovery is proven on the actual `pull_request` event when the `.github` step is proposed, as the live proof of the recovery Cases requires.
 
 ## Open for the Owner and CPO
 
