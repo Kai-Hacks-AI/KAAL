@@ -379,8 +379,8 @@ describe("engineering/T70 [engineering/N15]: no path publishes but F33's, and no
 describe("release-management/F1 the engine names the publish workflow file", () => {
   it("until the .github rename (P2) the expected workflow and the Owner's trusted-publisher step name release.yml, the workflow main runs", () => {
     assert.equal(SOURCE.workflow, ".github/workflows/release.yml");
+    const steps = firstSteps({ package: "@kaihacksai/kaal-x", version: "0.0.1", run: "1", sha256: "a".repeat(64), tarball: "x.tgz" });
     assert.match(steps, /--file release\.yml/);
     assert.doesNotMatch(steps, /publish\.yml/);
-    assert.doesNotMatch(steps, /release\.yml/);
   });
 });
