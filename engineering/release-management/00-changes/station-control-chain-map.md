@@ -71,8 +71,45 @@ Traceability runs **Defect → RED evidence → hotfix pull request(s) → GREEN
 
 **Open, for the Owner and the investigation below.** The envelope of a hotfix pull request: what its title and body carry in place of a Change's `<capability>/<C-ID> <PHASE>` (proposal: `<capability>/<D-ID> Hotfix: <concern>`, with the carrier as the marker and no phase); and the exact Hotfix verdict (a new verdict of verify Envelope, no new control). The identity and documentation shape is part of the kaal-change structured-documentation investigation: whether the Defect is the node, with the pull requests as computed edges, as proposed here.
 
+## 3b. Realization and assurance of each control
+
+**Use the smallest sufficient realization** (CPO and Owner, 10 November 2026). A station-boundary control is realized as **(1) native GitHub configuration**, **(2) declarative configuration applied to GitHub** (for example ruleset JSON), or **(3) a KAAL judgment enforced through a required check**. KAAL code does not duplicate a judgment Git or GitHub already makes natively merely to make a control appear implemented: approvals, queue order, required status, environment protection and tag protection are native; shape, ancestry, isolation, envelope, freeze and package judgments exist only because GitHub does not make them.
+
+For every control the map records the **semantic owner**, the **enforcing mechanism**, its **configuration or implementation reference**, the **boundary** and the **evidence**. Two kinds of evidence are kept apart:
+
+- **Effective configuration**: what GitHub reports as active (the ruleset, the queue and environment settings as read from the API). A file that describes a setting is not evidence that the setting is active.
+- **Actual enforcement behavior**: what happens when the boundary is exercised (a refused merge, a wrong method rejected). Verification is proportionate: it exercises the setting where that is feasible; it does not rebuild GitHub's mechanisms.
+
+| Control | Realization | Semantic owner | Mechanism and reference | Boundary | Effective configuration | Enforcement behavior |
+| --- | --- | --- | --- | --- | --- | --- |
+| approve Change F15, approve Promotion F11 | native (1), declarative (2) planned | Release (Change for who may approve) | `kaal/*` and `main` rulesets (code owner review, approval of the most recent push); ruleset JSON planned, import awaits the Owner | collector IN, main IN | planned: read the active ruleset and compare it to the JSON | planned: a canary pull request that must be refused without an approval of its latest push |
+| serialize Promotion F13, bind Merge F10 (queue) | native (1) | Release | merge queue settings (one at a time, method); `merge-group/` binds the group to the admitted pull request | main IN | planned: read the queue settings | the group is the admitted pull request (`merge-group/`, T8) |
+| tag before publication | declarative (2), planned | Release | tag ruleset via the GitHub App; proof awaits the Owner's import | main OUT | planned: read the tag ruleset | planned |
+| approve Publishing F1 | native (1) plus KAAL binding (3) | Release | `npm` environment (required reviewer) and `release-engine/` (binds record, run, commit, digest) | npmjs IN | planned: read the environment's protection | the workflow waits for approval (T4, T11); the binding is KAAL's |
+| scan Vulnerabilities F8, scan Dependencies F9 | native tools | the tools | CodeQL, dependency review, Dependabot | collector IN, main IN | the workflow runs and its required status is in the ruleset (planned read) | the scanner's own verdict |
+| isolate Change F6, verify Ancestry F7, accept Capability F14, verify Envelope F19, freeze Collector F21, verify Package F2, version Package F3 | KAAL judgment (3) | named in 3 | the components of the architecture | per section 3 | the required check is in the ruleset (planned read) | the Cases of the component (T7, T8, T46 to T53, T31 to T37 and the others) |
+| test Candidate F12, test Integration F16 | KAAL lanes (3) | owning capabilities, Testing | `lanes/` and the CI workflow | per section 3 | the required status is in the ruleset (planned read) | the lanes' own results |
+
+**Which are required checks.** A KAAL judgment protects only when its check is a required status in an active ruleset (native), so every KAAL row also has the effective configuration "its check is required"; today that is read by hand, and the planned read automates it.
+
+### Detective follow-up where a preventive control cannot be exercised directly
+
+Some preventive controls cannot be inspected or exercised directly, but their failure has a predictable, observable consequence. For each, the map defines a follow-up **detective control**: the **failure signature** to look for, the **evidence source**, **when and how often** it runs, the **accountable owner**, and the **response or escalation**. A detective control is a first-class option and is itself tested where feasible: a Case shows it recognizes the failure signature. Inspecting an outcome is **indirect assurance**; it does not prove that the preventive control's configuration is right, which is **direct verification** (read the effective configuration, or exercise the boundary). The map keeps the two apart and claims only the one it has.
+
+| Preventive control | Failure signature | Evidence source | Cadence | Owner | Response | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| approve Change F15, approve Promotion F11 | a pull request merged into `kaal/*` or `main` with no approval of its latest push | pull request, review and merge data | scheduled (audit Lineage F5 is the existing scheduled run to extend) | Release | report to the Owner, hold promotions until explained | planned |
+| serialize Promotion F13 | two promotions merged at the same time, or a promotion merged outside the queue | merge and queue data on `main` | scheduled | Release | report to the Owner | planned |
+| approve Publishing F1 | a version on npm with no approved deployment of the `npm` environment for its commit and run | registry data against deployment records | after each publication (verify Package F2) and scheduled | Release | report to the Owner, deprecate the burned version | planned (partly in verify Package) |
+| tag before publication | a published version whose tag is absent or names another commit | registry and tag data | after each publication | Release | report to the Owner | planned |
+| scan Vulnerabilities F8, scan Dependencies F9 | the scanner not running on a head that reached `main` | workflow run records for the head | scheduled | Release | report to the Owner | planned |
+| isolate Change F6 (the path rule) | a promotion that carries Core and `.github` together | the promotion's changed paths | scheduled (audit Lineage F5 already judges landed lineage) | Release | report to the Owner | partly live in audit Lineage |
+
+None of these claims to prove a preventive control's configuration. Each row says what its evidence shows: the failure has or has not happened.
+
 ## 4. Rules the map states
 
+- **Smallest sufficient realization.** A control uses a native setting where GitHub makes the judgment itself (3b); a KAAL judgment exists only where GitHub does not. Where a preventive control cannot be exercised, a detective follow-up is defined (3b) and its limits stated.
 - **One authoritative implementation per control.** A control invoked at several positions (isolate Change, verify Ancestry, the scans, the lanes) is one implementation called from several contexts, never reimplemented per position. Known duplicates the assessment lists (the path matcher in the boundary workflow, the release judge in Hosting and Change, the approval trio against native settings) are retirements, not designs.
 - **Template and hook guidance is not trusted inbound verification.** The pull request template, the hooks and the PR body tell the author what is expected (feedback, **H**). The trusted inbound verification is what the base controls judge from Git, from the base-controlled code: verify Envelope, Branching, Change Isolation, Promotion Source. The exit authorization is the gate, which only an active ruleset or environment application makes protection (`gate`, `setting`). A guidance that is skipped is a directive; a verdict that is not required protects nothing.
 - **A Hotfix is defect-driven (Owner and CPO, 10 November 2026).** Its prerequisites are an existing **Defect Record** and one or more **RED Cases** that reproducibly prove the defect; both come first. RED and GREEN are **evidence states, not a lifecycle stage**. This answers the open question: a Hotfix owes a prior RED (yes). It does not authorize a new gate, a hotfix execution, a promotion or the retirement of a legacy control. Still open: the rename `kaal/hotfix` to `hotfix/<name>`.
