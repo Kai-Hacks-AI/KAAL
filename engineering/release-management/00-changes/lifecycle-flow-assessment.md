@@ -210,6 +210,17 @@ Proven vs not (nothing here is proven live; each line is a RED/proof item before
 
 What cannot be code, in short: registering and installing the App, generating and storing its key, and the approvals of people. What must be: everything that says what the App may do and where it is a bypass actor.
 
+**Placement and trace (Owner agreed, 10 November).** Everything for the App lives in `publishing/`, because Tagging sits inside Publishing: the App's manifest, `publishing/ruleset.json` naming the App as its only bypass actor, `publishing/environments/` (`tagging`, `candidate`, `npm`) and the Cases that compare the live settings with these files. The one piece outside it is the tagging workflow, which lives in `.github` like every workflow; `publishing/` lists it (by path, in its README "Serves:" and "Runs in:" members) so a Case can check that it exists and uses the environment and secret names the files declare.
+
+| Level | Holds, for the tag identity |
+| --- | --- |
+| Intent (I1) | only an approved, correctly shaped package reaches npmjs, and a package tag names exactly the released commit and cannot be moved or deleted |
+| Requirements | F3 version Package (tag at the released commit, version set by a recorded Change), F1 approve Publishing (the protected `npm` environment), F2 verify Package Promotion, F17 (the three rulesets as versioned JSON with structure, name and drift Cases) |
+| Architecture | `publishing/` holds the Tagging, Release and Publishing chain: the ruleset, the environments, the App manifest, the Cases, the README; the App is the sole creator; the key is a `tagging` secret, never in the repository |
+| Code | `publishing/ruleset.json`, `publishing/environments/*.json`, the App manifest, the drift Cases, and the `.github` tagging workflow (listed, not owned) |
+
+The Cases that close the chain, each failing with its recovery (T25 to T29): the ruleset names the App as its only bypass actor and has the creation, update, deletion and non-fast-forward rules; the environments match their files; the manifest asks for the permission set the workflow requests and nothing more; the workflow named by `publishing/` exists, runs in `tagging` and reads only the declared secret name; the live ruleset, environments and token permissions match the files (drift, scheduled). Nothing is created or activated by this section.
+
 ### Trust between stages and recovery (CTO recommendation)
 
 **Who may do what, as three separate permissions, not one.**
