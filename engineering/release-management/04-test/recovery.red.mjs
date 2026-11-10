@@ -170,3 +170,10 @@ test("T30: a check that could run in development but is registered for ci only i
   const only = earliestStage({ runs: ["ci"], facts: ["head", "pull-request"] });
   assert.deepEqual([only.registered, only.possible, only.gap], ["integration", "integration", false], "a fact the hook cannot supply keeps it at integration");
 });
+
+test("T30: the abstract part carries product language only, no KAAL repository names", async () => {
+  const { earliestStage } = await earliestModule();
+  const e = earliestStage({ runs: ["ci"], facts: ["head", "base"] });
+  for (const word of ["kaal/", "engineering/", "Branching", "workflow", ".github"]) assert.ok(!e.line.includes(word), `the line does not carry repository language: ${word}`);
+  assert.match(e.line, /\b(development|integration)\b/, "it speaks the product's stages");
+});
