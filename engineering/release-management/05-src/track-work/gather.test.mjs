@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { gather } from "./gather.mjs";
-import { render, trackWork } from "./track-work.mjs";
+import { ciOf, render, trackWork } from "./track-work.mjs";
 
 const SHA = "c".repeat(40);
 const node = (number, base) => ({
@@ -44,5 +44,22 @@ describe("release-management/T44 gathering is read-only and shows what it could 
     const out = render(trackWork(await gather(fake(), "O/R"), { role: "cto" }), { role: "cto" });
     assert.match(out, /claude\/lonely/);
     assert.match(out, /incomplete: 10-npmjs/);
+  });
+});
+
+describe("release-management/T45 CI is read per check from its newest run", () => {
+  const run = (name, conclusion, startedAt, status = "COMPLETED") => ({ name, conclusion, startedAt, status });
+  it("an older failed run superseded by a later success of the same check is not red", () => {
+    const nodes = [run("Branching", "FAILURE", "2026-11-10T10:55:57Z"), run("Branching", "SUCCESS", "2026-11-10T10:56:14Z"), run("Engineering", "SUCCESS", "2026-11-10T10:55:57Z")];
+    assert.equal(ciOf({ state: "FAILURE", contexts: { nodes } }), "SUCCESS");
+  });
+  it("a failure that is the newest run of its check is red, and a run still going is pending", () => {
+    assert.equal(ciOf({ state: "SUCCESS", contexts: { nodes: [run("Branching", "SUCCESS", "a"), run("Branching", "FAILURE", "b")] } }), "FAILURE");
+    assert.equal(ciOf({ state: "SUCCESS", contexts: { nodes: [run("Engineering", null, "a", "IN_PROGRESS")] } }), "PENDING");
+  });
+  it("without contexts, or with more than one page of them, GitHub's own rollup state is used", () => {
+    assert.equal(ciOf({ state: "FAILURE" }), "FAILURE");
+    assert.equal(ciOf({ state: "FAILURE", contexts: { pageInfo: { hasNextPage: true }, nodes: [run("A", "SUCCESS", "a")] } }), "FAILURE");
+    assert.equal(ciOf(null), "PENDING");
   });
 });

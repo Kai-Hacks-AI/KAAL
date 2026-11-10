@@ -6,4 +6,4 @@ Work is a Change's commits at a station (`12-collectors`, `11-main`, `10-npmjs`,
 
 It judges nothing and writes nothing. The Envelope is the verdict of the `verify Envelope` check, read as a fact; no verdict is `unknown (provisional)`. What could not be read is printed as `incomplete:` lines, so a short list is never mistaken for a complete one.
 
-`track-work.mjs` is the pure sorting (`trackWork`, `fromGraphql`, `render`), `gather.mjs` reads through an injected `gh`, `run.mjs` is the entry. Cases: `track-work.test.mjs` (T38 to T43) and `gather.test.mjs` (T44).
+`track-work.mjs` is the pure sorting (`trackWork`, `fromGraphql`, `render`), `gather.mjs` reads through an injected `gh`, `run.mjs` is the entry. Cases: `track-work.test.mjs` (T38 to T43) and `gather.test.mjs` (T44, T45).

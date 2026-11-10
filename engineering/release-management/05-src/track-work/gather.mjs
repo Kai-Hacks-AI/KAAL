@@ -6,7 +6,7 @@ const QUERY = `query($owner:String!,$name:String!){repository(owner:$owner,name:
   pullRequests(states:OPEN,first:100){pageInfo{hasNextPage} nodes{number title headRefName headRefOid baseRefName mergeStateStatus autoMergeRequest{enabledAt}
     reviewThreads(first:100){pageInfo{hasNextPage} nodes{isResolved}}
     latestReviews(first:20){nodes{state commit{oid}}}
-    commits(last:1){nodes{commit{oid statusCheckRollup{state contexts(first:100){nodes{__typename ... on CheckRun{name conclusion} ... on StatusContext{context state}}}}}}}}}
+    commits(last:1){nodes{commit{oid statusCheckRollup{state contexts(first:100){pageInfo{hasNextPage} nodes{__typename ... on CheckRun{name conclusion status startedAt} ... on StatusContext{context state}}}}}}}}}
   refs(refPrefix:"refs/heads/",first:100){pageInfo{hasNextPage} nodes{name target{oid} associatedPullRequests(first:1){totalCount}}}}}`;
 
 export async function gather(gh, repo, defaultBranch = "main") {

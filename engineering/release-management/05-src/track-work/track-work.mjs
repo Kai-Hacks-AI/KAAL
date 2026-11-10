@@ -54,6 +54,24 @@ export function render(result, { role } = {}) {
   return lines.join("\n");
 }
 
+// CI is read per check, newest run of each name: an older failed run that a later run of the same check superseded is not red.
+// Falls back to GitHub's rollup state when the contexts are absent.
+const BAD = new Set(["FAILURE", "TIMED_OUT", "CANCELLED", "STARTUP_FAILURE", "ACTION_REQUIRED", "ERROR"]);
+const OK = new Set(["SUCCESS", "NEUTRAL", "SKIPPED"]);
+export function ciOf(rollup) {
+  const nodes = rollup?.contexts?.nodes;
+  if (!nodes?.length || rollup.contexts.pageInfo?.hasNextPage) return rollup?.state ?? "PENDING";
+  const newest = new Map();
+  for (const c of nodes) {
+    const key = c.name ?? c.context;
+    const seen = newest.get(key);
+    if (!seen || (c.startedAt ?? "") >= (seen.startedAt ?? "")) newest.set(key, c);
+  }
+  const verdicts = [...newest.values()].map((c) => (c.name ? (c.status && c.status !== "COMPLETED" ? "PENDING" : c.conclusion ?? "PENDING") : c.state));
+  if (verdicts.some((v) => BAD.has(v))) return "FAILURE";
+  return verdicts.every((v) => OK.has(v)) ? "SUCCESS" : "PENDING";
+}
+
 // One open pull request as GraphQL gives it (see run.mjs) to the input of trackWork.
 export function fromGraphql(node) {
   const last = node.commits?.nodes?.at(-1)?.commit;
@@ -63,7 +81,7 @@ export function fromGraphql(node) {
   return {
     number: node.number, title: node.title, head: node.headRefName, headSha: node.headRefOid, base: node.baseRefName,
     behind: node.mergeStateStatus === "BEHIND",
-    ci: rollup?.state ?? "PENDING",
+    ci: ciOf(rollup),
     unresolved: (node.reviewThreads?.nodes ?? []).filter((t) => !t.isResolved).length,
     approvedAtHead: (node.latestReviews?.nodes ?? []).some((r) => r.state === "APPROVED" && r.commit?.oid === node.headRefOid),
     autoMerge: Boolean(node.autoMergeRequest),
