@@ -20,6 +20,7 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `development-hooks-plan.md` | the PLAN for the common Git hooks as thin Development entries, each argued from Intent, with the ones that have no argument named |
 | `version-package-plan.md` | the PLAN that closes G1 to G3 of version Package: greater than the published, a tag at the released commit, a version set by a recorded Change |
 | `change-register.md` | the numbered Changes of this area, `release-management/C<n>`, with the pull requests of each |
+| `freeze-collector-plan.md` | the PLAN for freeze Collector: while a promotion is open its collector is frozen; the promotion waits for pull requests and pull requests into it fail, with exactly two executable recoveries and the hotfix as the fast path |
 | `verify-envelope-plan.md` | the PLAN for verify Envelope: the pull request body and title are the Change's stable envelope, checked by parsing, with fall forward |
 | `testing-controls-plan.md` | the PLAN for test Integration and test Candidate, with each present lane argued from intent |
 | `far-authorization-plan.md` | the PLAN for the authorization and lifecycle of Accepts and PLAN/DO integrity, before the FAR gates activate |
