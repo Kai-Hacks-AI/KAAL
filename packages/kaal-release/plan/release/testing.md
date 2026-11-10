@@ -37,4 +37,4 @@ The judgment in (a) and (b) is read by a reviewer from recorded outputs; (c) and
 - **Both directions are shown by fixtures.** A positive fixture: a generic paragraph ("a person approves the publication; a gate may block promotion") passes. A negative fixture: the same paragraph with a KAAL control name or context fails, naming the term and the file.
 - **The one pointer** to `engineering/release-management/` names the folder and nothing from inside it.
 
-T6 keeps its condition: a mnemonic is named only if it exists as a Node on `main`.
+T6 keeps its condition: a mnemonic is named only if it exists as a Node on `main`. Fixtures: CARGO named while no `CARGO` Node is on `main` fails; the same sentence passes once the Node exists, and a plain-words statement of the same division passes in both states. T6 also fails if a shipped file defines a mnemonic or uses CARGO as a gate or control name.

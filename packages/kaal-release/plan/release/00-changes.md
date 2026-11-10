@@ -17,6 +17,7 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 1. This PLAN, approved by exact-head CPO review. Lands in a clean `kaal/release` collector (squash).
 2. DO: create the package shape from architecture.md, write the Cases RED, then GREEN: T1 to T12.
 3. Acceptance on the packed artifact in a clean directory.
+3a. CARGO: a separate Change adds `engineering/CARGO.md` (KAAL Definition) with its Cases; the Skill names it only after that is on `main` (T6).
 4. Release of `kaal-release` itself is the final step, after release management is on `main`, with its own explicit Owner go.
 
 ## Interim and temporary
@@ -28,7 +29,7 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 
 - Releasing `kaal-release`.
 - The Release engine (`engineering/release-management/05-src/release-engine/`), owned by Engineering.
-- Any new mnemonic; existing ones are reused (see architecture.md).
+- Writing or landing the CARGO Node. It lands through its own Change (see architecture.md); no other new mnemonic is added.
 
 ## USE vs BUILD
 

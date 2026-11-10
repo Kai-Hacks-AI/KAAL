@@ -55,12 +55,17 @@ The Delivery target that holds KAAL's own identities is `engineering/release-man
 
 ## Mnemonics
 
-Existing ones that bear on release work are reused by reference. None is added.
+Existing ones that bear on release work are reused by reference. This PLAN adds none. One new mnemonic, CARGO, was agreed by the Owner during review and is reconciled below.
 
 - **BASS** shapes this package (the table above). On `main`.
 - **MOVE** (Main Offers Valuable Experience): a release is what `main` offers onward. On `main`.
 - **DISCO** (Deliver Intended Solution Change Outcome): a release delivers the intended Solution as a Change outcome with evidence. Not on `main` yet (PR #1330). The Skill may cite it only after it lands.
 - **DRUMS** (Drive Requirements Under Measured Steering): Cases measure, the Owner steers. It fits the approval step. Same condition as DISCO.
+- **CARGO** (Change Authorization Releases Guarded Outcomes), agreed by the Owner on #1334. It names the collaboration, not a capability, control or gate: **Change** owns authorization and the PLAN/DO integrity of the transformation; **Release** owns the progression of authorized changes to an outcome; **Guard** protects declared invariants and provides trusted checks and verdicts; and the outcome is **verified**, not merely published. Release may consume Guard's evidence without duplicating its judgments.
+  - **Is a new mnemonic.** It is the one addition to the "none added" rule above, made by the Owner, not by this PLAN. It is not on `main` and no Engine Node exists for it.
+  - **Where its Node would live:** `engineering/CARGO.md`, a `KAAL Definition` beside BASS, MOVE and the others (Engineering owns the mnemonics root). It lands through its own Change, a separate pull request with its own Cases, like #1330 for DISCO and the others. This PLAN does not add the file.
+  - **Where it is used:** in this PLAN and in the Delivery documents that explain the division of roles. In the shipped Skill it may appear only under F6/T6: if, when the Skill is written, CARGO exists as a Node on `main`, and then only by name where the Skill describes the roles of I8. The Skill never defines it, and never uses it as a KAAL-specific gate or control. If CARGO has not landed, the Skill states the same division in plain words and does not name it.
+  - **Not KAAL Delivery:** CARGO says nothing about collectors, rulesets, workflows or npm, so it is safe to name in a generic Skill once it has landed.
 
 ## Relationship to release management
 
