@@ -6,8 +6,9 @@
 //
 // The contract, asserted by parsing and by running the checker, never by matching words:
 //   - every verdict that is not a pass carries one or more lines `Recovery: <command> (re-runs on: <event>[, <event>])`;
-//   - each action is one of two executable kinds: a `gh pr merge` invocation for the pull request the verdict is about (a number, not a
-//     placeholder), or `git push origin <head branch>` (a new head, for a verdict only a change of the candidate can fix);
+//   - each action is an executable `gh pr merge` invocation for the pull request the verdict is about (a number, not a placeholder), OR
+//     the verdict is labelled non-self-recoverable: `Recovery: none (route: <who acts and what>)`. A `git push` of an unchanged head is a
+//     no-op that emits no `synchronize` and cannot cure a missing method, so it is never offered as a recovery (CPO review of #1352);
 //   - each event is one the workflow that issues the verdict is triggered by, read from its YAML, so the recovery re-runs the check.
 //     That is static evidence: the live proof that the action re-triggers the check on GitHub is tracked per control in
 //     recovery-coverage.json (T29) and is pending until a run shows it.
@@ -32,9 +33,11 @@ const triggers = workflow.on ?? workflow[true];
 const events = new Set(triggers.pull_request_target.types);
 
 const RECOVERY = /^Recovery: (.+) \(re-runs on: ([a-z_]+(?:, [a-z_]+)*)\)$/;
+/** A verdict no command can cure: fail closed and name who acts. */
+const NONE = /^Recovery: none \(route: (.+)\)$/;
 /** The recovery steps of a verdict message: { command, events }[]. */
 const recoveries = (message) =>
-  message.split("\n").filter((l) => l.startsWith("Recovery:")).map((l) => {
+  message.split("\n").filter((l) => l.startsWith("Recovery:") && !NONE.test(l)).map((l) => {
     const m = RECOVERY.exec(l);
     assert.ok(m, `a recovery line has the form "Recovery: <command> (re-runs on: <event>)": ${JSON.stringify(l)}`);
     return { command: m[1], events: m[2].split(", ") };
@@ -57,6 +60,8 @@ function parseGh(command) {
   return { pull: Number(numbers[0]), flags };
 }
 
+/** The route of a non-self-recoverable verdict, or null. */
+const route = (message) => message.split("\n").map((l) => NONE.exec(l)).filter(Boolean).map((m) => m[1])[0] ?? null;
 const facts = (over) => ({ baseRef: "kaal/hosting", head: "0123456789abcdef0123456789abcdef01234567", headRef: "claude/pr", expected: "squash", enabled: null, pull: 7, ...over });
 
 test("T25: the auto-merge trap names the command that enables auto-merge and an event that re-runs the check", () => {
@@ -89,21 +94,20 @@ test("T26: every recovery event is one the workflow that issues the verdict runs
   }
 });
 
-test("T26: a verdict that no method can fix names a new head as its route, a push whose event re-runs the check", () => {
+test("T26: a verdict that no method can fix is non-self-recoverable: fail closed, no command that cannot change the state, a named route", () => {
   const v = autoMerge(facts({ expected: null, enabled: null }));
-  assert.equal(v.kind, "fail");
-  const steps = recoveries(v.message);
-  assert.equal(steps.length, 1, "one recovery step");
-  assert.equal(parsePush(steps[0].command), "claude/pr", "a push of the head branch the verdict is about");
-  assert.ok(!/--auto\b/.test(steps[0].command), "no method is right, so enabling auto-merge is no recovery");
-  assert.deepEqual(steps[0].events, ["synchronize"], "a new head runs the check again");
-  assert.ok(events.has("synchronize"));
+  assert.equal(v.kind, "fail", "fail closed");
+  assert.deepEqual(recoveries(v.message), [], "no command is offered: a git push of an unchanged head is a no-op and cannot name a merge method");
+  assert.ok(!/git push/.test(v.message), "and the message does not claim git push works");
+  const r = route(v.message);
+  assert.ok(r && r.length > 0, "it names who acts and what: a human or Change action that gives the pull request a flow (base) the lineage knows");
 });
 
 test("T27: every non-pass verdict of the auto-merge judgment carries a recovery", () => {
   const all = [];
   for (const expected of [null, "squash", "merge"]) for (const enabled of [null, "squash", "merge"]) all.push(autoMerge(facts({ expected, enabled })));
   const bare = all.filter((v) => v.kind !== "pass" && !v.message.includes("Recovery: "));
+  for (const v of all.filter((x) => x.kind !== "pass")) assert.ok(recoveries(v.message).length > 0 || route(v.message), `a command or a named route: ${v.message}`);
   assert.deepEqual(bare.map((v) => v.message), [], "verdicts that fail or hold without a recovery");
 });
 
@@ -162,6 +166,18 @@ test("T30: the earliest stage is read from the Guard declaration (runs and facts
   }
 });
 
+test("T30: a check whose actual inputs include pull-request state is not movable to development, whatever its declaration omits", async () => {
+  // CPO review of #1352: Branching declares only head, base, base-ref, but its auto-merge verdict also needs the pull request's merge
+  // state, which a hook cannot have. The caller names the verdict's actual inputs as `needs`; the declaration alone is not enough.
+  const { earliestStage } = await earliestModule();
+  const e = earliestStage({ runs: ["ci"], facts: ["head", "base", "base-ref"] }, { needs: ["pull-request"] });
+  assert.deepEqual([e.registered, e.possible, e.gap], ["integration", "integration", false], "CI-only: no gap is reported");
+  assert.match(e.line, /^Earliest: integration \(.+\)$/);
+  assert.ok(/pull request/.test(e.line) === false || e.line.length <= 100);
+  const none = earliestStage({ runs: ["ci"], facts: ["head", "base", "base-ref"] }, { needs: [] });
+  assert.equal(none.gap, true, "with no further inputs the gap is real");
+});
+
 test("T30: a check that could run in development but is registered for ci only is reported as a gap, with the move named", async () => {
   const { earliestStage } = await earliestModule();
   const e = earliestStage({ runs: ["ci"], facts: ["head", "base", "base-ref"] });
@@ -181,4 +197,11 @@ test("T30: the abstract part carries product language only, no KAAL repository n
 test("T30: the abstract stage vocabulary holds only the product names the Owner cleared", async () => {
   const mod = await earliestModule();
   assert.deepEqual([...mod.STAGES], ["development", "integration", "promotion", "publishing"], "tagging and release are not cleared as product language");
+});
+
+test("T30: the line is information only: a verdict's kind and exit status do not depend on it", async () => {
+  const { earliestStage } = await earliestModule();
+  const before = autoMerge(facts({ enabled: "merge", expected: "squash" })).kind;
+  earliestStage({ runs: ["ci"], facts: ["head"] });
+  assert.equal(autoMerge(facts({ enabled: "merge", expected: "squash" })).kind, before, "computing the line changes nothing");
 });
