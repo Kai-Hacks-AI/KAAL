@@ -149,8 +149,8 @@ const declaration = (name) => parse(readFileSync(join(GUARD, `${name}.md`), "utf
 const earliestModule = () => import(pathToFileURL(join(ROOT, "engineering", "github", "earliest.ts")).href); // lazy, so each Case fails on its own
 
 test("T30: the earliest stage is read from the Guard declaration (runs and facts), for every registered check", async () => {
-  const { earliestStage, HOOK_FACTS } = await earliestModule();
-  assert.deepEqual([...HOOK_FACTS].sort(), ["base", "base-ref", "changed", "head"], "the facts the hook supplies, as Guard documents them");
+  const { earliestStage, DEVELOPMENT_FACTS } = await earliestModule();
+  assert.deepEqual([...DEVELOPMENT_FACTS].sort(), ["base", "base-ref", "changed", "head"], "the facts the hook supplies, as Guard documents them");
   const push = earliestStage(declaration("push"));
   assert.deepEqual([push.registered, push.possible], ["development", "development"], "push runs in the hook and needs only hook facts");
   const branching = earliestStage(declaration("Branching"));
