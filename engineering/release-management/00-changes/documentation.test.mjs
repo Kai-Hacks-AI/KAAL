@@ -9,7 +9,7 @@ import { AREA, ROOT_DOCUMENTS, definitions, nodes, parseFile, textOf, tokens } f
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ENTRY_FILES = ["current-state.md", "gaps.md", "transformation.md", "interim-states.md"];
-const CHANGE_IDS = /^(G\d+|F20|T12|T13|T14|T1[6-9]|T2[0-9]|T30)$/;
+const CHANGE_IDS = /^(G\d+|F20|T12|T13|T14|T1[6-9]|T2[0-9]|T3[0-7]|T4[5-9]|T5[0-8]|T59|T60|T6[4-6])$/;
 const NORMATIVE = /\b(must|shall|should)\b|\b(is|are|be) required\b/i; // "required context" is the name of a ruleset's status check, not a requirement
 const PULL_REQUESTS = ["#1323", "#1324", "#1325", "#1326", "#1327"];
 

@@ -17,9 +17,14 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `control-chain-assessment.md` | the control-by-control assessment of owners, implementations, Cases, contexts, duplicates and the revised critical path |
 | `lifecycle-flow-assessment.md` | the CTO assessment for the CPO's lifecycle handovers: `kaal/* -> main -> tag -> draft GitHub Release -> npmjs`, tag before or after publication, the 15 controls per transition, the 21 current checks reconciled to the target, retirement and open decisions |
 | `bind-merge-held-plan.md` | the PLAN that gives every failing or held release verdict a reachable recovery path, and makes a merge method not yet knowable a held verdict read as not passed by the gates, inside the Branching split |
+| `development-hooks-plan.md` | the PLAN for the common Git hooks as thin Development entries, each argued from Intent, with the ones that have no argument named |
 | `version-package-plan.md` | the PLAN that closes G1 to G3 of version Package: greater than the published, a tag at the released commit, a version set by a recorded Change |
 | `change-register.md` | the numbered Changes of this area, `release-management/C<n>`, with the pull requests of each |
+| `freeze-collector-plan.md` | the PLAN for freeze Collector: while a promotion is open its collector is frozen; the promotion waits for pull requests and pull requests into it fail, with exactly two executable recoveries and the hotfix as the fast path |
+| `verify-envelope-plan.md` | the PLAN for verify Envelope: the pull request body and title are the Change's stable envelope, checked by parsing, with fall forward |
 | `testing-controls-plan.md` | the PLAN for test Integration and test Candidate, with each present lane argued from intent |
 | `far-authorization-plan.md` | the PLAN for the authorization and lifecycle of Accepts and PLAN/DO integrity, before the FAR gates activate |
+| `control-overview-plan.md` | the PLAN for the control overview, the domain language and the verb set per control class, with the existing controls classified |
+| `delivery-and-retirement-plan.md` | the PLAN to deliver the controls to `main` and retire the existing setup: inventory, retirement list with coverage and evidence, trust root, promotion and retirement order, pending Owner actions |
 
 An entry of `current-state.md`, `gaps.md`, `transformation.md` and `interim-states.md` is a list item with the members **Target** (the ids it differs from or serves), **Current** or **Difference**, and, where it ends, **Ends when** (a condition a Case judges). The migration is a Delivery architecture element with a beginning and an end; its last step is **terminate** (step 8 of the path in `transformation.md`).
