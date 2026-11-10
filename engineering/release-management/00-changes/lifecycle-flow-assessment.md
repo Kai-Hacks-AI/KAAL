@@ -180,7 +180,7 @@ Argued: a ruleset and a gate are **conditions**, not actions; "the promotion rul
 
 | What | Where | Why |
 | --- | --- | --- |
-| the three rulesets | `05-src/rulesets/integration.json`, `promotion.json`, `publishing.json` | they are Delivery's code, next to `lanes/` and `release-engine/`; the file name is the ruleset name |
+| the three rulesets | `05-src/protection/integration.json`, `promotion.json`, `publishing.json` (the folder name follows the boundaries table below) | they are Delivery's code, next to `lanes/` and `release-engine/`; the file name is the ruleset name |
 | their requirement and architecture entries | the root documents 02 and 03 of release-management (the clauses and the control each rule realizes, with the ids) | tracing stays in the root documents, not beside the files |
 | structure and name Cases | `04-test/rulesets.test.mjs` | Cases live in `04-test` |
 | drift check | beside the Cases, run as the scheduled audit (home open) | verification, not a gate |
@@ -188,30 +188,40 @@ Argued: a ruleset and a gate are **conditions**, not actions; "the promotion rul
 
 Each file's name is the live ruleset's name, so the drift Case compares by name, never by position.
 
-#### Folders of `05-src`: components that serve controls, not one folder per control (proposal)
+#### Folders of `05-src`: control boundaries named for their domain (proposal; Owner: components are control boundaries, domain-driven naming)
 
-The folders today are named for components (`lanes/`, `release-engine/`), not for the 15 controls. Argued from **one authoritative implementation per judgment**: a folder is the home of an implementation, and a control is a judgment. The two are not one to one, so naming folders after controls would force a choice the principle forbids.
+Each folder of `05-src` is a **control boundary**: an architecturally distinct part of Release management with its own model, named for its concept in the release language (the ubiquitous language of the lifecycle and the matrix), not for the mechanism that happens to implement it. One authoritative implementation per judgment still holds: a boundary may serve several controls (and run in several contexts), and a control is served by exactly one boundary. Four controls are native settings and two are tools; they appear below as what they are. Controls remain named in the root documents, the job names and each folder's README ("Serves:", parsed); tracing stays in the root documents.
 
-- Four controls have **no implementation of their own**: approve Change, approve Promotion, serialize Promotion and approve Publishing are native settings, whose code is the ruleset JSON.
-- Two controls are **tools**, not code of ours: scan Vulnerabilities and scan Dependencies. They are claimed in `lanes/claims.json` and by the workflow, and need no folder.
-- test Integration and test Candidate are **one implementation at two contexts**; a folder per control would hold two copies of it.
-- version Package, verify Package Promotion and approve Publishing's verified part (digest, tag and approval agree) share **one engine** and its data types.
-- It also matches the Owner's earlier rule: tracing per control lives in the root documents, not in per-control folders.
+Mechanism names today, and what each is called in the domain:
 
-So: **one folder per implementation; each folder's README lists the controls it serves** (a "Serves:" member, parsed), and the control names stay in the root documents, the job names and the matrix.
-
-| Folder in `05-src` | Controls it serves | Note |
+| Today | Names a mechanism or tool | Domain concept (proposed name) |
 | --- | --- | --- |
-| `lanes/` | test Integration (F16), test Candidate (F12) | the claims, the fail-closed gates, the declared overlaps; one implementation at both transitions |
-| `lineage/` | verify Ancestry (F7), audit Lineage (F5) | after the Branching split; today `engineering/github/lineage.ts` |
-| `merge-group/` | bind Merge (F10) | binds the queued pull request to the group and judges the merge method (the method verdict moves here from `lineage.ts` with the split) |
-| `change-isolation/` | isolate Change (F6) | KAAL's path sets as data and the call to the one path rule; the Guard boundary check joins it |
-| `promotion-source/` | accept Capability (F14) | |
-| `release-engine/` | version Package (F3), verify Package Promotion (F2), approve Publishing (F1, verified part) | one engine, three judgments |
-| `rulesets/` | approve Change (F15), approve Promotion (F11), serialize Promotion (F13), approve Publishing (F1) and the pinning of controls (F17) | the JSON is the code; the validations themselves are Review's |
-| no folder | scan Vulnerabilities (F8), scan Dependencies (F9) | tools, claimed by the control |
+| `lanes/` | CI lanes | **`qualification/`**: qualifying an integration and a candidate by evidence |
+| `merge-group/` | GitHub's merge group | **`landing/`**: how a Change lands (the code already says `landing`, `landedAs`) |
+| `release-engine/` | "engine" | **`publishing/`**: bringing a verified version to the registry (also the lifecycle stage and the ruleset's name) |
+| `rulesets/` (proposed earlier) | GitHub's term | **`protection/`**: the protected state of each transition, in code |
+| `change-isolation/` | "Change" collides with the capability of that name | **`isolation/`** |
+| `promotion-source/` | a rule's input | **`promotion/`**: which lineage may be promoted |
+| `lineage/` | none; it is the domain concept | `lineage/` (kept) |
+| (gate code inside `lanes/gate.mjs`) | two decisions in one place | **`progression/`**: the gates that decide whether a Change may progress; it reads verdicts and never produces them, so it does not belong with the test evidence |
 
-A Case (verification) keeps this true: every one of the 15 controls is served by at least one folder or declared as a tool, no folder serves no control, and no control is served by two folders as its judgment (the one-implementation check). It is a screen over the "Serves:" members, parsed, not a reading of the code.
+Boundaries, with the controls each serves:
+
+| Boundary | Controls inside | What is distinct about it |
+| --- | --- | --- |
+| `lineage/` | verify Ancestry (F7), audit Lineage (F5) | the history facts: freshness, ancestry, the account of every lineage |
+| `landing/` | bind Merge (F10) | the method by which a Change lands, bound to the queued pull request |
+| `isolation/` | isolate Change (F6) | what may travel with what; KAAL's path sets as data, one path rule |
+| `promotion/` | accept Capability (F14) | which source may be promoted |
+| `qualification/` | test Integration (F16), test Candidate (F12) | the evidence per lane and host: claims, declared overlaps; verification (Testing's mechanism, each capability's Cases) |
+| `progression/` | `gate (integration)`, `gate (promotion)` (not among the 15: Release's own decision) | reads every verdict fail-closed, performs no judgment of its own |
+| `publishing/` | version Package (F3), verify Package Promotion (F2), approve Publishing (F1, its verified part) | tag, pack, digest and the registry: from a promoted commit to a published version |
+| `protection/` | approve Change (F15), approve Promotion (F11), serialize Promotion (F13), approve Publishing (F1, the setting) and the pinning of controls (F17) | the three rulesets `integration.json`, `promotion.json`, `publishing.json` and their Cases; the validations themselves are Review's |
+| no boundary | scan Vulnerabilities (F8), scan Dependencies (F9) | tools; claimed in `qualification/claims.json` |
+
+Each control is served by exactly one boundary (approve Publishing has a verified part in `publishing/` and its setting in `protection/`, the one control split by kind, verification and validation). Boundaries may call one another through their verdicts only: `progression/` reads `lineage/`, `landing/`, `isolation/`, `promotion/`, `qualification/` and `publishing/` as data, and none of them reads another's internals. A Case (verification) keeps the boundaries true: every one of the 15 controls is served by a boundary or declared a tool or a setting, no boundary serves nothing, and no boundary imports another's implementation except through a verdict. It is a screen over the "Serves:" members and the imports, parsed.
+
+Cost: none now. A folder is renamed only when its control's step lands (the Branching split moves `lineage/`, `landing/` and `isolation/`; the lanes step moves `qualification/` and `progression/`), so the names are decided before the first move, and no move is a separate program.
 
 ## 3. Target CI inventory: 21 current checks to 25 named checks
 
