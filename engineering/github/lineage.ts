@@ -270,21 +270,39 @@ export interface AutoMergeFacts {
   expected: "squash" | "merge" | null;
   /** The method auto-merge is enabled with, or null when auto-merge is off. */
   enabled: Method | null;
+  /** The pull request this verdict is about, when the caller knows it; the recovery names it. Without it `gh` infers the pull request from the checked-out branch. */
+  pull?: number | null;
 }
+
+/** One recovery line: `Recovery: <command> (re-runs on: <event>)`. A failed check hides GitHub's "enable auto-merge", so the verdict names the
+ *  command and the event the check runs on (lineage-synchronization.yml: auto_merge_enabled, auto_merge_disabled). */
+const recovery = (command: string, event: string): string => `Recovery: ${command} (re-runs on: ${event})`;
+const ghMerge = (f: AutoMergeFacts, flags: string): string => `gh pr merge${f.pull ? ` ${f.pull}` : ""} ${flags}`;
 
 export function autoMerge(f: AutoMergeFacts): Verdict {
   if (f.expected === null) {
-    return { kind: "fail", message: `${short(f.head)} must not land into ${f.baseRef}: its Branching verdict fails, so no method is right. See ${TELLING}` };
+    return {
+      kind: "fail",
+      message:
+        `${short(f.head)} must not land into ${f.baseRef}: its Branching verdict fails, so no method is right.\n` +
+        `Recovery: none (route: the author gives the pull request a base the lineage knows, by a Change that retargets it; no merge method can fix this)\nSee ${TELLING}`,
+    };
   }
   if (f.enabled === null) {
-    return { kind: "fail", message: `Auto-merge is disabled for this pull request into ${f.baseRef}. Enable auto-merge with ${METHOD_NAME[f.expected]} before integration. See ${TELLING}` };
+    return {
+      kind: "fail",
+      message:
+        `Auto-merge is disabled for this pull request into ${f.baseRef}. Enable auto-merge with ${METHOD_NAME[f.expected]} before integration.\n` +
+        `${recovery(ghMerge(f, `--auto --${f.expected}`), "auto_merge_enabled")}\nSee ${TELLING}`,
+    };
   }
   if (f.enabled === f.expected) return { kind: "pass", message: `Auto-merge lands this pull request into ${f.baseRef} by ${METHOD_NAME[f.expected]}, as its flow names.` };
   return {
     kind: "fail",
     message:
       `Auto-merge would land this pull request into ${f.baseRef} by ${METHOD_NAME[f.enabled]}, but its flow lands by ${METHOD_NAME[f.expected]}. ` +
-      `Disable auto-merge and enable it again with ${METHOD_NAME[f.expected]}. See ${TELLING}`,
+      `Disable auto-merge and enable it again with ${METHOD_NAME[f.expected]}.\n` +
+      `${recovery(ghMerge(f, "--disable-auto"), "auto_merge_disabled")}\n${recovery(ghMerge(f, `--auto --${f.expected}`), "auto_merge_enabled")}\nSee ${TELLING}`,
   };
 }
 
@@ -838,6 +856,7 @@ async function main(argv: string[]): Promise<number> {
     const h = rev(cwd, head);
     v = autoMerge({
       baseRef, head: h,
+      pull: /^[1-9][0-9]*$/.test(process.env.KAAL_PULL ?? "") ? Number(process.env.KAAL_PULL) : null,
       enabled: effectiveMethod(enabled === "none" ? null : (enabled as Method), rulesFile === undefined ? undefined : json(rulesFile), baseRef, def),
       expected: readExpected(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), h),
     });
