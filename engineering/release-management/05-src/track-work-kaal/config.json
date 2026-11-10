@@ -1,0 +1,28 @@
+{
+  "model": {
+    "defaultBranch": "main",
+    "integrationPrefix": "kaal/",
+    "checks": { "envelope": "verify Envelope" },
+    "order": ["branch", "change", "promotion", "release"],
+    "waits": [
+      { "name": "pull-request", "any": ["noPullRequest"] },
+      { "name": "fix", "any": ["ciRed", "ciPending", "behind", "unresolved", "envelopeFails"] },
+      { "name": "approval", "any": ["notApprovedAtHead"] },
+      { "name": "fix", "any": ["autoMergeOff"] },
+      { "name": "merge", "any": [] }
+    ],
+    "provisional": ["envelopeFails"],
+    "changeId": "/(C\\d+) ",
+    "record": "^(\\.kaal/changes/change/\\d{2}/\\d{2}/\\d{2}/\\d{2})/",
+    "positions": {
+      "branch": { "stage": "Development", "station": null },
+      "change": { "stage": "Integration", "station": "12-collectors" },
+      "promotion": { "stage": "Promotion", "station": "11-main" },
+      "release": { "stage": "Publishing", "station": "10-npmjs" }
+    }
+  },
+  "views": {
+    "cpo": { "waitingFor": ["approval"] },
+    "cto": { "waitingFor": ["fix", "pull-request"] }
+  }
+}
