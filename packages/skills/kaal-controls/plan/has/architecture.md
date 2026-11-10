@@ -2,12 +2,14 @@
 
 Each element names, in brackets, the Requirements it answers.
 
+**Scope of 0.0.1 (Owner decision A).** `controls/C7` realizes controls/A5 and controls/A7 only. controls/A6 (the suite) is **deferred to 0.0.2** and ships nothing in 0.0.1: no `lib/`, no `conformance` export, and `package.json` carries no Core, Graph or Testing dependency for it.
+
 - **controls/A5** [controls/F10–controls/F13, controls/F15]: Payload.
   - `controls/C7` adds `payload/Has.md`, a `KAAL Definition` named `Has`. It states controls/F10–controls/F13 and refers to Intent's `Intent` Definition by name, as an optional complement.
   - `payload/Realized-by.md` is removed.
   - `payload/Control.md` is revised: a Control has one or more Intents through `Has`, carries no other outgoing Edge, and shows realization only through the chain.
   - The paragraph of `payload/Controls.md` on documenting a control is revised to match, so the ids of `Control` and `Controls` change. `ownership.kaal.json` follows `Controls`' new id.
-- **controls/A6** [controls/F14, controls/F16, controls/F17, controls/N4–controls/N6]: The suite, in a `lib/` beside the payload, as Testing ships its own.
+- **controls/A6 (deferred to 0.0.2)** [controls/F14, controls/F16, controls/F17, controls/N4–controls/N6]: The suite, in a `lib/` beside the payload, as Testing ships its own.
   - **`kaal-controls/conformance`** exports `assess(contexts)`, a pure function over controls/F17's plain-data contexts. It imports nothing from Core, Graph, Testing or Intent.
     - It holds, as data, the ids of `Control` and `Has`, and Intent's `Intent` Definition id (decision 2A). It treats Intent as present in a context only when that id resolves there.
     - It returns one outcome per Control with its reason and owner, one result per owner with its exit status, and states whether the Nodes were admitted or supplied.
@@ -53,7 +55,7 @@ Controls does not settle these. They are listed so that nothing contradictory is
 | Change | Owner | Depends on |
 | --- | --- | --- |
 | `controls/C6` PLAN, this Change | Controls | none |
-| `controls/C7` DO: controls/A5–controls/A7 | Controls | `controls/C6` merged with the Owner's alignment |
+| `controls/C7` DO: controls/A5 and controls/A7 (controls/A6 is 0.0.2) | Controls | `controls/C6` merged with the Owner's alignment |
 | engineering/C3 DO | Engineering | `controls/C7` on `main`, and Engineering's revision for item 1 |
 
 `controls/C7` lands on `kaal/controls` and travels with Controls' promotion. Neither it nor the promotion waits for Intent.

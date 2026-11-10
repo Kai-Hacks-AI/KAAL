@@ -1,5 +1,7 @@
 # A Control has its Intents: Testing
 
+**Scope of 0.0.1 (Owner decision A).** `controls/C7` writes controls/T8, controls/T3 (revised) and controls/T16 (installed package, without the `assess` and Intent-present clauses). controls/T9–controls/T15 and controls/T17–controls/T22 exercise the suite and are **deferred to 0.0.2** with it; they stay listed as the 0.0.2 plan. A Control's detection, where it has any, cites an ordinary Test Case by its T-number; these tables add no Control-specific Test Case kind, numbering or lifecycle.
+
 `controls/C7` writes these Test Cases first. Each sits at the level where its claim is made, and decides one thing.
 
 ## Package: Controls' own rules (`test/controls.test.mjs`)
@@ -28,7 +30,7 @@ controls/T12 and controls/T13 need Intent's Definition admitted. Under decision 
 
 | Test | Checks |
 | --- | --- |
-| controls/T16: the packed package installs into a fresh project with no Intent package, and `assess` runs there with no Core installed. It holds `payload/Has.md` and no `Realized-by.md`, and `kaal-controls/conformance` imports and returns unresolved for a Control with an Intent target. The installed Engineer Skill finds the Agent Skill conformant. With Intent's package also installed, the same Control is conforming. That half is **blocked** until Intent can be installed, and is reported as blocked, not counted | controls/N4, controls/N5, controls/F14 |
+| controls/T16: the packed package installs into a fresh project with no Intent and no Core. It holds `payload/Has.md` and no `Realized-by.md`, and the installed Engineer Skill finds the Agent Skill conformant. (0.0.2 adds: `assess` imports and returns unresolved for an Intent target; with Intent installed the Control is conforming, blocked until Intent can be installed.) | controls/N4, controls/N5, controls/F14 |
 
 ## Engineering and end to end: Engineering's, not Controls'
 
