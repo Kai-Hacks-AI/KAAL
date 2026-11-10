@@ -29,13 +29,14 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T35 | I1 | RED: missing facts are no evidence: an open-pull-request list that was not gathered is not a pass |
 | release-management/T36 | I1 | RED: it judges only a promotion of a collector into `main` and a pull request into a frozen collector |
 | release-management/T37 | I1 | RED: a fast promotion points at the hotfix route (`engineering/github/branching.md#hotfix`) as a `Fast path:` line that is not a third recovery, and no override is offered |
-| release-management/T46 | I1 | RED: the body has Intent, Design (optional), Verified by and Validated by as headings, once each, in order, found by parsing; a heading inside a code block does not count (verify Envelope, `04-test/verify-envelope.red.mjs`) |
-| release-management/T47 | I1 | RED: an Intent that holds only the template's comment is empty and fails |
-| release-management/T48 | I1 | RED: a Change title is `<capability>/<C-ID> <PHASE>: <concern>` with a known capability, a defined C id and a PHASE from PLAN, DO, ACT |
-| release-management/T49 | I1 | RED: whether a pull request is a Change, a promotion or a synchronization comes from the lineage, not from the title |
-| release-management/T50 | I1 | RED: pull requests opened before the activation boundary are not applicable, and the boundary is the trusted one, not the candidate's |
-| release-management/T51 | I1 | RED: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check |
-| release-management/T52 | I1 | RED: the check is named exactly `verify Envelope`, the name track Work reads |
+| release-management/T46 | F19 | RED: the body has Intent, Design (optional), Verified by and Validated by as headings, once each, in order, found by parsing; a heading inside a code block does not count (verify Envelope, `04-test/verify-envelope.red.mjs`) |
+| release-management/T47 | F19 | RED: an Intent that holds only the template's comment is empty and fails |
+| release-management/T48 | F19 | RED: a Change title is `<capability>/<C-ID> <PHASE>: <concern>` with a known capability, a defined C id and a PHASE from PLAN, DO, ACT |
+| release-management/T49 | F19 | RED: whether a pull request is a Change, a promotion or a synchronization comes from the lineage, not from the title |
+| release-management/T50 | F19 | RED: pull requests opened before the activation boundary are not applicable, and the boundary is the trusted one, not the candidate's |
+| release-management/T51 | F19 | RED: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check |
+| release-management/T52 | F19 | RED: the check is named exactly `verify Envelope`, the name track Work reads |
+| release-management/T53 | F19 | RED: the activation policy is trusted input: missing, malformed or non-UTC policy is refused and never read as a pass |
 | release-management/T54 | I1 | RED: a pull request that targets a frozen collector fails, naming the promotion, with a retarget to another existing collector or the withdrawal of the promotion as its only recoveries |
 | release-management/T55 | I1 | RED: a collector with no open promotion is not frozen, a closed promotion does not freeze, and missing facts are no evidence |
 | release-management/T56 | I1 | RED: every control the architecture defines is in the overview with station, class and applied-at; a missing one fails (control overview, `04-test/control-overview.red.mjs`) |
@@ -43,6 +44,9 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T58 | I1 | RED: each preventive control names a counterpart or a stated reason, and a counterpart is a control of another class that exists |
 | release-management/T59 | I1 | RED: a retirement fails while the replacement is not observed, not independently verified, or the trust root it needs is not live, CI for a pull request or merge-group check and publishing for the publish path (retirement, `04-test/retirement.red.mjs`) |
 | release-management/T60 | I1 | RED: a retirement names its covering control and evidence, a row that stays is never retired, and a missing fact is no evidence |
+| release-management/T61 | F19 | RED: every fact is validated before any verdict, so a malformed kind, register, number or title never hides behind the activation cutoff |
+| release-management/T62 | F19 | RED: timestamps are strict UTC for `opened`, the activation and the policy; prose, a missing Z and an offset are refused |
+| release-management/T63 | F19 | RED: the trust contract is explicit (the kind from the lineage, the registers and the activation from the base, asserted as provenance and refused otherwise) and `parseChangeTitle` is the one title parser |
 | release-management/T64 | I1 | RED: a promotion passes only from a fresh inventory taken in the merge-group run, never from an earlier check's |
 | release-management/T65 | I1 | RED: the recoveries are ranked, retarget first and withdraw second, each followed by a `Why first:` or `Why second:` line (`Why only:` when one route is possible) naming when it applies and its argument; the hotfix is not ranked |
 | release-management/T66 | I1 | RED: each application is planned or active, a control with only planned applications claims no protection, and a report (track Work) is not a control row |

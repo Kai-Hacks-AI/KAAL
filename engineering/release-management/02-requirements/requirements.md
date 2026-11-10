@@ -60,5 +60,6 @@ Controls that act on more than one station live at the root. All are names only 
 - **in:**
   - **approve Change [release-management/F15].** The native approval settings of `kaal/*` carry the approval.
   - **test Integration [release-management/F16].** The FAR lanes (F18) on `kaal/*` pull requests, separate jobs.
+  - **verify Envelope [release-management/F19, C8].** A pull request's title and body follow the envelope: the title is `<capability>/<C-ID> <PHASE>: <concern>` (promotion and synchronization have their own forms, decided by the lineage and not by the title), and the body, read by the Markdown parser, has Intent, optional Design, Verified by and Validated by once each in that order, with a non-empty Intent. Pull requests opened before a trusted, base-owned activation boundary are not applicable (fall forward). Missing facts are no evidence. A failure names a recovery that edits the title or body and re-runs the check on `edited`. The check is named exactly `verify Envelope`.
   - Gate: `gate (integration)`.
 - **out:** none of its own; verify Ancestry and isolate Change act here from the root.
