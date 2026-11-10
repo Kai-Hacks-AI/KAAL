@@ -161,7 +161,7 @@ Cases (verification, deterministic):
 
 What this does not change: applying or editing a live ruleset stays the Owner's explicit go (an import), the proof rulesets stay trial-scoped, and a Change may edit the file but not the live state. The files are the proposal the Owner imports, and the Drift Case is what shows the import happened as written. Home of the drift check is open: audit Lineage's scheduled run or a control of its own (F17); not decided here, so the control count stays at 15.
 
-#### Names and placement of the rulesets (names decided, placement for the Owner to confirm)
+#### Names and placement of the rulesets (decided by the Owner, 10 November)
 
 **Names.** One ruleset per protected ref type, named by the lifecycle transition it protects, in the industry's own terms: `integration` (the collector branches `kaal/*`: a Change is integrated), `promotion` (`main`: a lineage is promoted), `publishing` (the package tags `*@*`: a version is published). They are the names already live (`integration` and `promotion` since the rename, `publishing` imported on 10 November), so nothing is renamed, and each name matches its gate (`gate (integration)`, `gate (promotion)`) and its transition in the lifecycle table. Rejected: `release` (a Release is a stage of this lifecycle, not one ref type), and `main` or `collector` (they name a branch, not the protection, and `collector` is KAAL's own term).
 
@@ -176,7 +176,7 @@ What this does not change: applying or editing a live ruleset stays the Owner's 
 
 Argued: a ruleset and a gate are **conditions**, not actions; "the promotion ruleset" reads as a protection, while a ruleset named `promote` reads as an instruction. The control names already use the nouns as objects (`approve Promotion`), so a noun ruleset and a noun gate sit naturally beside them, and the verbs stay with the workflow steps, where they already are. One rule results: **verbs name steps (workflows), nouns name protections (rulesets and gates)**. Renaming to verbs would also cost: two live rulesets renamed again right after their last rename, the two gate names (which are the required contexts, so every ruleset and proof that names them changes), and every document and Case that names them, for no gain in meaning. **Decided (Owner, 10 November): nouns for rulesets and gates, verbs for workflow steps; no rename.** If the Owner prefers verbs throughout, the cost above is the price and the drift Case makes the rename checkable.
 
-**Placement.** Functional placement, Delivery, inside `engineering/release-management/`:
+**Placement (Owner: "sounds about right").** Functional placement, Delivery, inside `engineering/release-management/`:
 
 | What | Where | Why |
 | --- | --- | --- |
