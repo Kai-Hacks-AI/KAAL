@@ -177,3 +177,8 @@ test("T30: the abstract part carries product language only, no KAAL repository n
   for (const word of ["kaal/", "engineering/", "Branching", "workflow", ".github"]) assert.ok(!e.line.includes(word), `the line does not carry repository language: ${word}`);
   assert.match(e.line, /\b(development|integration)\b/, "it speaks the product's stages");
 });
+
+test("T30: the abstract stage vocabulary holds only the product names the Owner cleared", async () => {
+  const mod = await earliestModule();
+  assert.deepEqual([...mod.STAGES], ["development", "integration", "promotion", "publishing"], "tagging and release are not cleared as product language");
+});
