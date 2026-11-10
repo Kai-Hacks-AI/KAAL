@@ -16,3 +16,4 @@ The numbered Changes of this area, `release-management/C<n>` (Owner, 10 November
 | release-management/C5 | Development hooks: one thin entry per Git hook, the commit message form, the pull request title form | #1355 |
 | release-management/C7 | track Work: a read-only report of each piece of Work's state per station (about to open, in stock, about to close) for the CTO and the CPO | #1363 (PLAN); the DO is this pull request |
 | release-management/C8 | verify Envelope: the pull request body follows the template and the title says which Change and phase, checked by parsing; the check name is read by track Work (C7); C6 is reserved for clear Collector | the PLAN |
+| release-management/C10 | Delivery and retirement: the order of promotions of the controls into `main`, the retirement list with the covering control and the evidence for each, and the conditions (coverage proven, trust root live) | the PLAN |

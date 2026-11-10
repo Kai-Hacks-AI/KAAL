@@ -29,3 +29,5 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T50 | I1 | RED: pull requests opened before the activation boundary are not applicable, and the boundary is the trusted one, not the candidate's |
 | release-management/T51 | I1 | RED: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check |
 | release-management/T52 | I1 | RED: the check is named exactly `verify Envelope`, the name track Work reads |
+| release-management/T59 | I1 | RED: a retirement fails while the replacement is not observed, not independently verified, or the trust root is not live (retirement, `04-test/retirement.red.mjs`) |
+| release-management/T60 | I1 | RED: a retirement names its covering control and evidence, a row that stays is never retired, and a missing fact is no evidence |
