@@ -13,6 +13,8 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `id-capture.json`, `id-moves.json` | the ids and decisions captured before the documentation Change, and where each one is now |
 | `documentation-architecture-plan.md` | the PLAN of the documentation Change that created this structure |
 | `shim-removal-plan.md` | the PLAN that removes the release shims one by one, as their last caller is rewired |
+| `control-ownership-plan.md` | the PLAN assigning every control to one authoritative capability, with the CI disposition per workflow and job and the proof required before any retirement |
+| `control-chain-assessment.md` | the control-by-control assessment of owners, implementations, Cases, contexts, duplicates and the revised critical path |
 | `testing-controls-plan.md` | the PLAN for test Integration and test Candidate, with each present lane argued from intent |
 | `far-authorization-plan.md` | the PLAN for the authorization and lifecycle of Accepts and PLAN/DO integrity, before the FAR gates activate |
 
