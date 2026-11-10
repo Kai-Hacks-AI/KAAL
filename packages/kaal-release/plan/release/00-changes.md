@@ -24,6 +24,7 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 
 - The collector is `kaal/release/plan` (collector naming `kaal/<capability>/<leaf>`). It replaced a bare `kaal/release` that git could not hold beside it and that carried a stray first copy of this PLAN; that branch was deleted by the Owner. The interim ended when #1334 was retargeted.
 - T5 reads forbidden identities from the Delivery target, which is not on `main` yet. Until it lands, T5 is written against the collector's copy and is marked as interim.
+- Auto-merge must be enabled within seconds of a push: today's `Branching` check fails (not holds) while auto-merge is off, and GitHub then refuses to enable it. Release management takes the fix (report "held" instead of fail). This item ends when that fix lands.
 
 ## Out of scope
 
