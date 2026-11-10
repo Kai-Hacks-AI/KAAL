@@ -126,7 +126,7 @@ test("T28: a held bind Merge, which Guard reports as a succeeding job with a war
 test("T29: every release control is listed in the recovery coverage; a pending control names the RED that must add its Cases", () => {
   const cov = JSON.parse(readFileSync(join(ROOT, "engineering", "release-management", "04-test", "recovery-coverage.json"), "utf8")).controls;
   const cases = readFileSync(join(ROOT, "engineering", "release-management", "00-changes", "cases.md"), "utf8");
-  const CONTROLS = ["version Package", "approve Publishing", "verify Package Promotion", "audit Lineage", "isolate Change", "verify Ancestry",
+  const CONTROLS = ["version Package", "approve Publishing", "verify Package", "audit Lineage", "isolate Change", "verify Ancestry",
     "scan Vulnerabilities", "scan Dependencies", "bind Merge", "approve Promotion", "test Candidate", "serialize Promotion",
     "accept Capability", "approve Change", "test Integration"];
   assert.deepEqual(Object.keys(cov).sort(), [...CONTROLS].sort(), "all 15 controls, no other");

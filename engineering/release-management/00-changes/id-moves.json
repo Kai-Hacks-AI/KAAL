@@ -30,7 +30,7 @@
       "reworded": true,
       "from": "03-architecture/architecture.md",
       "class": "relocation",
-      "note": "Same, for verify Package Promotion.",
+      "note": "Same, for verify Package (formerly verify Package Promotion, renamed in C16).",
       "dropped": [],
       "added": [
         "npmjs",
@@ -94,8 +94,12 @@
     },
     "F4": {
       "to": "02-requirements/requirements.md",
-      "reworded": false,
-      "from": "02-requirements/requirements.md"
+      "reworded": true,
+      "from": "02-requirements/requirements.md",
+      "class": "clarification",
+      "note": "C16 naming: verify Package Promotion is renamed verify Package, because Promotion means a collector moving to main (Owner, 10 November 2026). No statement changes.",
+      "dropped": [],
+      "added": []
     },
     "F5": {
       "to": "02-requirements/requirements.md",
@@ -470,8 +474,12 @@
     },
     "I7": {
       "to": "01-intent/intent.md",
-      "reworded": false,
-      "from": "01-intent/intent.md"
+      "reworded": true,
+      "from": "01-intent/intent.md",
+      "class": "clarification",
+      "note": "C16 naming: verify Package Promotion is renamed verify Package, because Promotion means a collector moving to main (Owner, 10 November 2026). No statement changes.",
+      "dropped": [],
+      "added": []
     },
     "T1": {
       "to": "04-test/testing.md",

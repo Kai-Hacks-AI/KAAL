@@ -13,7 +13,7 @@
       "step": "approve Publishing PLAN, RED, DO",
       "liveProof": "pending"
     },
-    "verify Package Promotion": {
+    "verify Package": {
       "feature": "F2",
       "status": "pending",
       "step": "early readiness signal (G17) RED",
