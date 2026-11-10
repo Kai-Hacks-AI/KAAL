@@ -12,14 +12,15 @@ Each element names, in brackets, the Requirements it answers.
   - **How it lands.** It lands only through a PLAN Change's own integration, which Review's approval and Engineering's Branching govern. Review defines what counts as authorization evidence.
   - **Given as data.** The designation reaches `authorize` as an argument and is never read from the record or the candidate (change/N3).
   - **Open (G13).** Whether the decision is read from the entry or from the approving review of the landing is not chosen here. Either fits this element: only the data given to `authorize` differs.
-- **change/A8** [change/F10, change/F11, change/F51, change/F53, change/F54]: **The integration gate is Engineering's.** *Revised.* It does nine things:
+- **change/A8** [change/F10, change/F11, change/F51, change/F53, change/F54]: **The integration gate is Engineering's.** *Revised.* It does ten things:
   - names the integration, with the Change, the boundary and the source and target revisions as evidence;
   - finds the PLAN's landing commit: an ancestor of the candidate, on the collector for a collector pull request, and on the collector for the promotion that carries it;
   - reads the record and the Case definitions and digests of the Features Plan at that commit (definition), and the candidate's copies at its own head, only to compare them;
   - selects the complete Regression Plan at the integration's protected baseline (change/I6), never at the PLAN's landing, and gives the exceptions only for Cases of it that the Accept names with an equal digest;
   - observes the baseline and the head in one process (`testing/N4`);
-  - when the record holds no Accept, skips `authorize`, `lifecycle` and the exceptions, and composes from the two Plans alone (change/N4), still validating both evaluations; otherwise
-  - obtains the state each Accept's end condition is judged by (change/F52), and calls `authorize`, `integrity` and `lifecycle`, with the designation and that state as data;
+  - always calls `integrity` on the candidate's planned Cases and its record, with or without an Accept, and feeds its findings to `compose` (change/F51);
+  - when the record holds no Accept, skips `authorize`, `lifecycle` and the exceptions, and composes from the two Plans alone (change/N4), still validating both evaluations and the integrity findings; otherwise
+  - obtains the state each Accept's end condition is judged by (change/F52), and calls `authorize` and `lifecycle`, with the designation and that state as data;
   - calls `exceptions` with their findings, so an unauthorized, altered or expired Accept gives no exception;
   - has Testing execute the Features Plan's planned Cases, exactly as the landing defines them, against the candidate's head with no exceptions and no baseline (execution), never a plan the DO supplied;
   - has Testing evaluate the Regression Plan at the head against the baseline with the exceptions;
