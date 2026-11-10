@@ -1,12 +1,13 @@
-// Publisher-only release interoperability: drive Hosting's real verifier and Engineering's
-// accepted release judge. The fixture controls prerequisites and cases, never either verdict.
+// Publisher-only release interoperability: drive Hosting's real verifier and assert Hosting's own
+// result and evidence record (hosting/F21, hosting/F22). The fixture controls prerequisites and cases,
+// never the verdict. Engineering's Release judge is not imported here (hosting/D21): Engineering judges
+// readiness and acceptance once, for every package that leaves main.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { readiness, verification } from "../../../../../engineering/release/release.mjs";
 import { hashes, LOOPS, PACKAGE, PREFIX } from "../../package-check/verify.mjs";
 
 const NAME = "@kaihacksai/kaal-hosting";
@@ -80,35 +81,18 @@ function record(run) {
 }
 
 describe("Hosting release interoperability", () => {
-  it("hosting/T83 [hosting/F15]: the real package passes unchanged Release readiness with exact runtime versions, and withholding each required version refuses release", () => {
-    const manifest = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
-    const required = {
-      "cross-spawn": "7.0.6", "es-module-lexer": "3.0.3",
-      "graceful-fs": "4.2.11", "proper-lockfile": "4.1.2",
-    };
-    assert.deepEqual(manifest.dependencies, required);
-    const registry = { [NAME]: null, ...Object.fromEntries(Object.entries(required).map(([n, v]) => [n, [v]])) };
-    const judge = (facts) => readiness({ manifest, directory: "packages/kaal-hosting", registry: facts });
-    assert.deepEqual(judge(registry), { findings: [], path: "first" });
-    for (const [name, version] of Object.entries(required)) {
-      assert.deepEqual(judge({ ...registry, [name]: [] }).findings,
-        [`dependency ${name}@${version} is not on the registry; release it first`]);
-    }
-  });
-
-  it("hosting/T84 [hosting/F21, hosting/F22]: real installed verification records every passing case once and the unchanged Release judge accepts it", (t) => {
+  it("hosting/T84 [hosting/F21, hosting/F22]: real installed verification records every passing case once", (t) => {
     const pkg = fixture(t);
-    const declared = inventory(pkg).cases;
+    inventory(pkg); // writes the manifest the run verifies
     const run = node(pkg, ENTRY);
     const summary = record(run);
     assert.equal(summary.result, "verified");
     assert.equal(run.status, 0);
     assert.deepEqual(summary.causes, []);
     assert.equal(summary.cases.length, 4);
-    assert.deepEqual(verification(run.stdout, NAME, { status: run.status, declared }), { result: "verified", cases: 4 });
   });
 
-  it("hosting/T85 [hosting/F21, hosting/F22]: a real failed delivered case retains failed/1 and its causes through the unchanged Release judge", (t) => {
+  it("hosting/T85 [hosting/F21, hosting/F22]: a real failed delivered case retains failed/1 and its causes", (t) => {
     const pkg = fixture(t);
     const manifest = inventory(pkg);
     writeFileSync(join(pkg, CHECK, "code.test.mjs"),
@@ -123,7 +107,6 @@ describe("Hosting release interoperability", () => {
     assert.ok(summary.cases.some((c) => c.outcome === "fail"));
     assert.ok(summary.causes.some((c) => c.includes("delivered case failed")));
     assert.match(summary.cause, /delivered case failed/); // retain the existing field for consumers
-    assert.equal(verification(run.stdout, NAME, { status: run.status, declared: manifest.cases }).result, "failed");
   });
 
   it("hosting/T86 [hosting/F21, hosting/F22]: missing prerequisites retain cannot verify/2, explicit causes and no fabricated case execution", (t) => {
@@ -134,9 +117,6 @@ describe("Hosting release interoperability", () => {
     assert.equal(run.status, 2);
     assert.ok(summary.causes.length > 0);
     assert.deepEqual(summary.cases, []);
-    const judged = verification(run.stdout, NAME, { status: run.status, declared: [] });
-    assert.equal(judged.result, "unknown");
-    assert.match(judged.cause, /reported cannot verify/);
   });
 
   it("hosting/T87 [hosting/F21]: an unexpected verifier failure uses the same complete cannot verify/2 record", (t) => {
