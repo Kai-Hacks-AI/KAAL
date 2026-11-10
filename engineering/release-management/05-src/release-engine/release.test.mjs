@@ -346,7 +346,7 @@ describe("engineering/T69 [engineering/F35]: provenance is recorded as observed,
     predicate: { buildDefinition: { externalParameters: { workflow: { repository: SOURCE.repository, path: SOURCE.workflow, ...over } }, resolvedDependencies: [{ digest: { gitCommit: over.commit ?? "c9" } }] } },
   });
   const trusted = { path: "trusted", commit: "c9" };
-  it("trusted: an attestation naming this repository, publish.yml and the commit verifies", () => assert.equal(provenance(trusted, [statement()]).result, "verified"));
+  it("trusted: an attestation naming this repository, release.yml and the commit verifies", () => assert.equal(provenance(trusted, [statement()]).result, "verified"));
   it("trusted: a missing attestation, or one naming another repository, workflow or commit, fails", () => {
     for (const s of [null, [], [statement({ repository: "https://github.com/x/y" })], [statement({ path: ".github/workflows/guard-release.yml" })], [statement({ commit: "other" })]])
       assert.equal(provenance(trusted, s).result, "failed");
@@ -377,10 +377,10 @@ describe("engineering/T70 [engineering/N15]: no path publishes but F33's, and no
 });
 
 describe("release-management/F1 the engine names the publish workflow file", () => {
-  it("the expected workflow and the Owner's trusted-publisher step name publish.yml, not the old release.yml", () => {
-    assert.equal(SOURCE.workflow, ".github/workflows/publish.yml");
+  it("until the .github rename (P2) the expected workflow and the Owner's trusted-publisher step name release.yml, the workflow main runs", () => {
+    assert.equal(SOURCE.workflow, ".github/workflows/release.yml");
     const steps = firstSteps({ package: "@kaihacksai/kaal-x", version: "0.0.1", run: "1", sha256: "a".repeat(64), tarball: "x.tgz" });
-    assert.match(steps, /--file publish\.yml/);
-    assert.doesNotMatch(steps, /release\.yml/);
+    assert.match(steps, /--file release\.yml/);
+    assert.doesNotMatch(steps, /publish\.yml/);
   });
 });

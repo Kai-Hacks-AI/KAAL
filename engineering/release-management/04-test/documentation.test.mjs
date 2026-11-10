@@ -43,7 +43,7 @@ describe("release-management/T15 the root documents describe the target only", (
 // Semantic guard (CPO, 9 Nov): the target does not name the present implementation either. The present artifacts are read from the Change
 // documents: every file the present state, the gaps or the transformation name in code is an artifact of A. A file the target legitimately
 // names (the publish workflow, the release record, FAR's record, a manifest, a component's own Case file) is listed and nothing else.
-const TARGET_FILES = new Set(["publish.yml", "release.json", "far.json", "package.json", "release.test.mjs"]);
+const TARGET_FILES = new Set(["publish.yml", "release.yml", "release.json", "far.json", "package.json", "release.test.mjs"]);
 const WORKFLOW_FUNCTIONS = new Set(["always()", "success()", "failure()", "cancelled()"]); // GitHub expression functions of the gate specification, not functions of the code
 const OLD_CHECKS = [/\bBranching( audit)?\b/, /\bChange Isolation\b/, /\bPromotion Source\b/, /\bDependency Review\b/];
 const artifactsOfA = () => {

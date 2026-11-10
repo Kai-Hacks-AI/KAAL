@@ -6,7 +6,7 @@ import { versionFindings } from "./version.mjs";
 /** The repository every released package must name, for npm's provenance check. */
 export const REPOSITORY = "git+https://github.com/Kai-Hacks-AI/KAAL.git";
 /** The repository and workflow an OIDC provenance attestation must name (F35). */
-export const SOURCE = { repository: "https://github.com/Kai-Hacks-AI/KAAL", workflow: ".github/workflows/publish.yml" };
+export const SOURCE = { repository: "https://github.com/Kai-Hacks-AI/KAAL", workflow: ".github/workflows/release.yml" };
 export const SCOPE = "@kaihacksai/";
 /** Exit statuses, as the workflow acts on them. */
 export const EXIT = { verified: 0, failed: 1, unknown: 2 };
@@ -174,7 +174,7 @@ export function firstSteps(rec) {
     `1. Download the tested tarball: \`gh run download ${rec.run} --repo Kai-Hacks-AI/KAAL --name ${rec.tarball}\`, or from this run's page.`,
     `2. Verify it: \`sha256sum ${rec.tarball}\` must print \`${rec.sha256}\`. Stop if it does not.`,
     `3. Publish those bytes, with 2FA: \`${npm} publish ./${rec.tarball} --access public\`. Never run npm publish in a package directory, which packs again.`,
-    `4. Bind Trusted Publishing: \`${npm} trust github ${rec.package} --file publish.yml --repo Kai-Hacks-AI/KAAL --env npm --allow-publish\`, or the same setting on npmjs.com.`,
+    `4. Bind Trusted Publishing: \`${npm} trust github ${rec.package} --file release.yml --repo Kai-Hacks-AI/KAAL --env npm --allow-publish\`, or the same setting on npmjs.com.`,
     `5. On npmjs.com, set ${rec.package}'s publishing access to "Require two-factor authentication and disallow tokens".`,
     `6. Accept it: run Release with step \`registry\`, package \`${rec.package}\` and run \`${rec.run}\`.`,
   ].join("\n");
