@@ -13,7 +13,8 @@ Cases trace one requirement each. Which are written in which Change is in [00-ch
 | release/T7 | N1 | `kaal-engineer-skill`'s checker reports no `standard` or `kaal` finding |
 | release/T8 | N2 | `package.json` has no KAAL runtime dependency; every file the Skill names resolves inside the skill directory |
 | release/T10 | F7 | acceptance demonstration with two consumers: see below |
-| release/T11 | F8, I9 | the Skill names each delegated role (authorization, protection, evidence, execution) as a step and contains no protective rule, check, runner, verdict vocabulary or gate; positive fixture: a sentence requiring "evidence that change isolation holds" passes; negative fixture: a sentence defining how to run or pin that check fails |
+| release/T11 | F8, I9 | the Skill names each delegated role (implementation, protection, verification, validation, execution) as a step and contains no protective rule, check, runner, verdict vocabulary or gate; positive fixture: a sentence requiring "evidence that change isolation holds" passes; negative fixture: a sentence defining how to run or pin that check fails |
+| release/T13 | I10, F10 | readiness and outcome verification are stated as requirements on both verification and validation; the Skill defines no coverage measure and no acceptance criterion; positive fixture: "require verification evidence and a validation of the result" passes; negative fixture: a sentence defining how coverage is measured, or that Release itself judges the result, fails |
 | release/T12 | F9 | the Skill covers single owner per control, one orchestration layer, distinct execution contexts, and proof of replacement coverage before retirement |
 | release/T9 | N3 | the README states Skill-level, no Script, no verification |
 

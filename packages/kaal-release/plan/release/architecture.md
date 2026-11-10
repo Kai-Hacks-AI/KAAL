@@ -44,6 +44,17 @@ The shape follows `kaal-engineer-skill`, the smallest existing Skill package.
 
 The Delivery target that holds KAAL's own identities is `engineering/release-management/03-architecture/architecture.md` (landing through its own collector). It is the single source of what counts as KAAL-specific.
 
+## Verification and validation
+
+Every capability has a deterministic element (Script) and non-deterministic elements (Bare, Agent, Skill). On top of that, verification is deterministic and validation is not (Owner, 10 Nov 2026): Testing is verification, Review is validation, and quality assurance needs both. Applied here:
+
+| Element | Deterministic (Script) | Non-deterministic (Bare, Agent, Skill) |
+| --- | --- | --- |
+| kaal-release 0.0.1 | none shipped; KAAL's release engine is a KAAL realization, not part of the product | the Skill: how to design and drive a release process, and the decision whether progression is allowed |
+| What Release requires of others | verification evidence (Testing, executed through the consumer's protection runner) | validation of the result (Review) |
+
+0.0.1 ships the non-deterministic element only. A deterministic element for the reusable product is a later Change with its own USE vs BUILD (see 00-changes.md); the Owner's default is Skill-only.
+
 ## BASS allocation
 
 | Behaviour | Level |
@@ -61,7 +72,8 @@ Existing ones that bear on release work are reused by reference. This PLAN adds 
 - **MOVE** (Main Offers Valuable Experience): a release is what `main` offers onward. On `main`.
 - **DISCO** (Deliver Intended Solution Change Outcome): a release delivers the intended Solution as a Change outcome with evidence. Not on `main` yet (PR #1330). The Skill may cite it only after it lands.
 - **DRUMS** (Drive Requirements Under Measured Steering): Cases measure, the Owner steers. It fits the approval step. Same condition as DISCO.
-- **CARGO** (Change Authorization Releases Guarded Outcomes), agreed by the Owner on #1334. It names the collaboration, not a capability, control or gate: **Change** owns authorization and the PLAN/DO integrity of the transformation; **Release** owns the progression of authorized changes to an outcome; **Guard** protects declared invariants and provides trusted checks and verdicts; and the outcome is **verified**, not merely published. Release may consume Guard's evidence without duplicating its judgments.
+- **CARGO** (Change Authorization Releases Guarded Outcomes), agreed by the Owner on #1334. It names the collaboration, not a capability, control or gate. Read under the role split (Release drives, Change implements, Guard protects, Testing verifies, Review judges): the **Change** is authorized and implemented under its record; **Release** drives the authorized change to an outcome; **Guard** protects declared invariants and provides trusted checks and verdicts; and the outcome is **verified** (Testing) and **validated** (Review), not merely published. Release may consume Guard's and Testing's evidence without duplicating their judgments.
+  - **Open for the Owner (wording, not mechanism):** "Authorization" in CARGO can be read as the authorized-ness of the change (its record and PLAN/DO integrity, Change's) while the decision to authorize is a validation (Review, or the designated authority). The PLAN keeps the Owner's wording and does not choose between the readings.
   - **Is a new mnemonic.** It is the one addition to the "none added" rule above, made by the Owner, not by this PLAN. It is not on `main` and no Engine Node exists for it.
   - **Where its Node would live:** `engineering/CARGO.md`, a `KAAL Definition` beside BASS, MOVE and the others (Engineering owns the mnemonics root). It lands through its own Change, a separate pull request with its own Cases, like #1330 for DISCO and the others. This PLAN does not add the file.
   - **Where it is used:** in this PLAN and in the Delivery documents that explain the division of roles. In the shipped Skill it may appear only under F6/T6: if, when the Skill is written, CARGO exists as a Node on `main`, and then only by name where the Skill describes the roles of I8. The Skill never defines it, and never uses it as a KAAL-specific gate or control. If CARGO has not landed, the Skill states the same division in plain words and does not name it.
