@@ -188,6 +188,31 @@ Argued: a ruleset and a gate are **conditions**, not actions; "the promotion rul
 
 Each file's name is the live ruleset's name, so the drift Case compares by name, never by position.
 
+#### Folders of `05-src`: components that serve controls, not one folder per control (proposal)
+
+The folders today are named for components (`lanes/`, `release-engine/`), not for the 15 controls. Argued from **one authoritative implementation per judgment**: a folder is the home of an implementation, and a control is a judgment. The two are not one to one, so naming folders after controls would force a choice the principle forbids.
+
+- Four controls have **no implementation of their own**: approve Change, approve Promotion, serialize Promotion and approve Publishing are native settings, whose code is the ruleset JSON.
+- Two controls are **tools**, not code of ours: scan Vulnerabilities and scan Dependencies. They are claimed in `lanes/claims.json` and by the workflow, and need no folder.
+- test Integration and test Candidate are **one implementation at two contexts**; a folder per control would hold two copies of it.
+- version Package, verify Package Promotion and approve Publishing's verified part (digest, tag and approval agree) share **one engine** and its data types.
+- It also matches the Owner's earlier rule: tracing per control lives in the root documents, not in per-control folders.
+
+So: **one folder per implementation; each folder's README lists the controls it serves** (a "Serves:" member, parsed), and the control names stay in the root documents, the job names and the matrix.
+
+| Folder in `05-src` | Controls it serves | Note |
+| --- | --- | --- |
+| `lanes/` | test Integration (F16), test Candidate (F12) | the claims, the fail-closed gates, the declared overlaps; one implementation at both transitions |
+| `lineage/` | verify Ancestry (F7), audit Lineage (F5) | after the Branching split; today `engineering/github/lineage.ts` |
+| `merge-group/` | bind Merge (F10) | binds the queued pull request to the group and judges the merge method (the method verdict moves here from `lineage.ts` with the split) |
+| `change-isolation/` | isolate Change (F6) | KAAL's path sets as data and the call to the one path rule; the Guard boundary check joins it |
+| `promotion-source/` | accept Capability (F14) | |
+| `release-engine/` | version Package (F3), verify Package Promotion (F2), approve Publishing (F1, verified part) | one engine, three judgments |
+| `rulesets/` | approve Change (F15), approve Promotion (F11), serialize Promotion (F13), approve Publishing (F1) and the pinning of controls (F17) | the JSON is the code; the validations themselves are Review's |
+| no folder | scan Vulnerabilities (F8), scan Dependencies (F9) | tools, claimed by the control |
+
+A Case (verification) keeps this true: every one of the 15 controls is served by at least one folder or declared as a tool, no folder serves no control, and no control is served by two folders as its judgment (the one-implementation check). It is a screen over the "Serves:" members, parsed, not a reading of the code.
+
 ## 3. Target CI inventory: 21 current checks to 25 named checks
 
 **Current (my count, from PR check runs and the workflow files):** 21 names = 11 test legs (Hosting x3, Acceptance x3, Guard x3, Workspaces, Engineering) + 10 others (Branching, Change Isolation, Change Isolation (review), Promotion Source, Dependency Review, CodeQL, CodeQL (javascript-typescript), CodeQL (actions), Guard Acceptance Boundary, Branching audit). Branching, Change Isolation, Change Isolation (review) and Promotion Source also exist as separate copies in `merge-group.yml`.
