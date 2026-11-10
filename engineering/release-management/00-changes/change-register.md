@@ -5,7 +5,7 @@ The numbered Changes of this area, `release-management/C<n>` (Owner, 10 November
 - **Assigned at PLAN.** A Change gets the next number when it is planned. The number is written into the Change Record as `Change: release-management/C<n>`, into the title of every pull request of the Change (`release-management/C<n> <PHASE>: <concern>`, PHASE one of PLAN, DO, ACT) and into this register.
 - **A pull request is driven by one Change**; a commit is driven by one piece of any kind (`Driven-by: <scope>/<ID>`). Both forms are proposed in `development-hooks-plan.md`; until its checks exist this register is by hand.
 - **In-flight and landed pull requests keep their titles.** The register lists them against their Change; it renames nothing.
-- **Earlier Changes of this area** (the pull requests before this register, #1323 to #1347) are not numbered here. Registering them retroactively is the Owner's call.
+- **Earlier Changes of this area** (the pull requests before this register, #1323 to #1347) are not numbered here. Owner direction (Kai, 10 Nov 08:05): "We fall forward, CI / hooks might teach us." They stay unnumbered and are not registered retroactively; a past Change gets a number only if a check later shows it needs one.
 
 | Change | What | Pull requests |
 | --- | --- | --- |
