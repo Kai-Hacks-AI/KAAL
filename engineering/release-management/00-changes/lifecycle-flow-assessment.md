@@ -57,6 +57,32 @@ Placement check against the objective ("executes before the risk it protects can
 
 **Hook and CI.** The pre-push hook and CI already call the same judgments (`lineage.ts`, `check.mjs`) through Guard; the competing parts are the path matchers (`check.mjs` regexes against the boundary workflow's grep) and the fact-resolution wrappers (`control-chain-assessment.md`). Equivalence is proved by a shared Case, and the hook runs the cheap subset, not the CI matrix.
 
+### Check against the Owner's role split (10 November)
+
+Release drives a change from intent to delivery. Change implements a given change. Guard protects what we have and shall have. Testing verifies quality. Review judges the result. The matrix above was written with "rule owner" columns; read against the split, the owner column holds except for the points below, which I flag for the Change, Guard and Review threads to argue from their own position.
+
+| Control | Reads as | Flag |
+| --- | --- | --- |
+| verify Ancestry, bind Merge, accept Capability, audit Lineage, version Package, serialize Promotion, verify Package Promotion | the flow itself (which source may progress, by which method, in which order, with which version) | none: Release |
+| test Integration, test Candidate | quality evidence | none: Testing's mechanism and each capability's Cases. Release decides **when** the evidence is required, not what it judges |
+| scan Vulnerabilities, scan Dependencies | quality and protection evidence from tools | none: the scanner owns the judgment; Release requires it |
+| approve Change, approve Promotion, approve Publishing | a judgment of the result by a person or a bound review | **conflict with how the matrix wrote them.** Under the split these are Review's judgments. Release owns the point at which an approval is required (the stage), Change owns what an approval attaches to (the PLAN/DO and the head), and Review owns the judgment. The matrix named Change for authority only; it should name Review for the judgment and the native setting as its mechanism |
+| isolate Change | protection of an invariant about what a change may contain | **open, see below** |
+
+No other control has an owner that the split contradicts. The split also confirms the allocation of the gates: `gate (integration)` and `gate (promotion)` are Release's (they sequence progression) and only read the others' verdicts.
+
+### Release's position on path isolation (`travel`)
+
+The question from the Change thread: Change declares what a change touches, Guard protects; which half is which? Release's argument, from its own position:
+
+1. **Release needs a verdict, not a rule.** At integration and at promotion it requires one answer, "this change keeps Core and `.github` apart", from one implementation. It does not own the answer and does not want a second copy of it in a workflow.
+2. **The invariant is protection.** "Core and `.github` never travel together" is a statement about what must remain true of every change that reaches `main`. By the split that is Guard's kind of rule: it protects what we have, and the rule evolves only through an authorized Change.
+3. **What a change touches is declaration.** The declared scope of a given change (which paths it concerns, which Change Record it belongs to, what it carries) is Change's: Change implements the change and knows its own scope. Change should expose the declared scope as data a check can read.
+4. **Therefore:** Change owns the declaration of a change's scope; Guard owns the protective judgment that the declared and actual scope respect the invariants (Core and `.github` apart is the first invariant); KAAL's path sets are data in the repository; Release only orders and requires the verdict. `engineering/change-isolation/` stays KAAL's adapter during incubation and never remains a second authoritative judgment once Guard (or Change) offers the rule, as the earlier condition already says.
+5. **Not on the critical path.** None of this blocks the release-management route. It changes who the adapter calls, not whether the verdict exists.
+
+This is a position, not a decision. The Change thread argues the declaration, the Guard thread the protection, and the Owner decides the interim placement. If Change prefers to own both halves, Release's requirement does not change: one implementation, one verdict, invoked at each boundary.
+
 ## 3. Target CI inventory: 21 current checks to 25 named checks
 
 **Current (my count, from PR check runs and the workflow files):** 21 names = 11 test legs (Hosting x3, Acceptance x3, Guard x3, Workspaces, Engineering) + 10 others (Branching, Change Isolation, Change Isolation (review), Promotion Source, Dependency Review, CodeQL, CodeQL (javascript-typescript), CodeQL (actions), Guard Acceptance Boundary, Branching audit). Branching, Change Isolation, Change Isolation (review) and Promotion Source also exist as separate copies in `merge-group.yml`.
