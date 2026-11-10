@@ -17,7 +17,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const judge = async () => (await import(pathToFileURL(join(ROOT, "engineering", "release-management", "05-src", "overview", "judge-overview.mjs")).href)).judgeOverview;
 
-const vocabulary = { preventive: ["freeze", "approve", "bind"], detective: ["audit", "scan", "verify"], corrective: ["clear", "retarget"] };
+const vocabulary = { preventive: ["freeze", "approve", "bind"], detective: ["audit", "scan", "track", "verify"], corrective: ["clear", "retarget"] };
 const STAGES = ["Development", "Integration", "Promotion", "Publishing", "Operations"];
 const row = (name, over = {}) => ({ name, id: "F1", stage: "Integration", station: "11-main", class: "preventive", appliedAt: [{ at: "gate", status: "active" }], counterpart: "audit Lineage", ...over });
 const overview = [
@@ -64,7 +64,7 @@ test("T66: each application is planned or active, a control with only planned ap
   assert.ok(planned.findings.some((x) => /bind Merge/.test(x) && /planned/.test(x) && /no protection/.test(x)), "a preventive control whose gate is only planned says it protects nothing yet (a finding, reported)");
   assert.equal(f(facts({ controls: [row("bind Merge", { id: "F10", appliedAt: [{ at: "gate", status: "wired" }] }), overview[1]] })).kind, "fail", "the status is planned or active");
   assert.equal(f(facts({ controls: [row("bind Merge", { id: "F10", appliedAt: ["gate"] }), overview[1]] })).kind, "fail", "a bare place without a status is no evidence");
-  const withReport = f(facts({ controls: [...overview, row("track Work", { id: "C7", class: "detective" })], reports: [{ name: "track Work", reader: "CTO, CPO" }] }));
+  const withReport = f(facts({ controls: [...overview, row("show Stock", { id: "R1", class: "detective" })], reports: [{ name: "show Stock", reader: "CTO, CPO" }] }));
   assert.equal(withReport.kind, "fail", "a report listed as a control is refused");
-  assert.ok(withReport.findings.some((x) => /track Work/.test(x) && /report/.test(x)));
+  assert.ok(withReport.findings.some((x) => /show Stock/.test(x) && /report/.test(x)));
 });

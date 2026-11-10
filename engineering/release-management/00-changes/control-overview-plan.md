@@ -36,16 +36,18 @@ Each class has its own verb set; a control's verb must come from the set of its 
 | --- | --- | --- |
 | Directive | tells people and agents what to do; can be skipped | in intent, requirements and architecture; hooks warn |
 | Preventive | stops the wrong thing before it happens | freeze, approve, accept, bind, serialize, isolate, version |
-| Detective | finds what is wrong, after or beside the act | audit, scan, test, verify |
+| Detective | finds what is wrong, after or beside the act | audit, scan, test, track, verify |
 | Corrective | restores a good state or limits the damage | clear, drain, retarget, retry, rotate, deprecate |
 
 **The verb is a naming discipline, not proof of effect.** A control's class is what it does when it acts, recorded in the overview with its active applications; the verb must be consistent with that class (a Case checks it), but a verb never proves a control protects. `verify Ancestry` and `verify Envelope` are detective; they protect only through an active gate.
 
 The existing classification (lifecycle assessment, "The four control types as a lens") stands: a detective control becomes preventive only through a gate, and each preventive control names its detective counterpart or why it needs none.
 
-### Reports are not controls
+### Reports are not controls, and track Work is a detective control
 
-`track Work` (C7) is a read-only report: it judges nothing and has no authority (C7). It is therefore **outside the control list**: it has no row in the overview, no class and no verb set. The overview keeps a short separate list, **Reports**, with the report, its reader (the CTO, the CPO) and the checks it reads (it reads `verify Envelope` by name). Promoting a report to a control would need its own PLAN, an owner and an authority, with Cases; this PLAN proposes none.
+A read-only view that judges nothing and has no authority is a **report**, not a control: it has no row, class or verb, and the overview keeps a short **Reports** list (the report, its reader, the checks it reads). Promoting a report to a control needs a PLAN, an owner and an authority, with Cases.
+
+`track Work` (C7) was listed here as a report. The Owner (10 November 2026, 13:29) reads it as **potentially a detective control, because it detects what is in flight**. This PLAN therefore classes it as the detective control **`track Work`, proposed F23** (the next free id; F22 is the overview, F21 freeze Collector, F20 the migration), stage Operations, station root. Its verb `track` joins the detective set. It is detective because it finds the state of Work in flight, per station, for the CTO and the CPO; its application is a run by hand (`run.mjs --role cto|cpo`) with no wired check or gate, so it records `check:planned` and claims no protection. It has no counterpart yet (`none: it only reports; the corrective act is the retarget or withdraw of freeze Collector`). Whether it stays a control or goes back to Reports is the Owner's call ("potentially"); the Reports rule above stays for any future view.
 
 ### Grouping by stage
 
@@ -55,7 +57,7 @@ The existing classification (lifecycle assessment, "The four control types as a 
 | Integration | bind Merge F10, verify Ancestry F7, approve Change F15, test Candidate F12, scan Vulnerabilities F8, scan Dependencies F9, freeze Collector F21 |
 | Promotion | accept Capability F14, approve Promotion F11, serialize Promotion F13, test Integration F16 |
 | Publishing | version Package F3, approve Publishing F1, verify Package Promotion F2 |
-| Operations | audit Lineage F5, and the corrective gap (no control is named with a corrective verb yet) |
+| Operations | audit Lineage F5, track Work F23, and the corrective gap (no control is named with a corrective verb yet) |
 
 The stage says where in the lifecycle a control acts; the class says what it does. Both are columns, neither replaces the other. The stages are the Owner's domain language and the DO adds each to the Definitions.
 
@@ -64,7 +66,7 @@ The stage says where in the lifecycle a control acts; the class says what it doe
 | Class | Controls |
 | --- | --- |
 | Preventive | isolate Change F6, bind Merge F10, approve Promotion F11, serialize Promotion F13, accept Capability F14, approve Change F15, approve Publishing F1, version Package F3, freeze Collector F21 |
-| Detective | audit Lineage F5, scan Vulnerabilities F8, scan Dependencies F9, test Candidate F12, test Integration F16, verify Package Promotion F2, verify Ancestry F7, verify Envelope F19 |
+| Detective | audit Lineage F5, scan Vulnerabilities F8, scan Dependencies F9, test Candidate F12, test Integration F16, verify Package Promotion F2, verify Ancestry F7, verify Envelope F19, track Work F23 |
 | Corrective | the `Recovery:` lines of the verdicts, same-tag retry, the incident procedure, key rotation, deprecation of a burned version |
 
 Mismatches the vocabulary shows, for the Owner (nothing is renamed by this PLAN):
