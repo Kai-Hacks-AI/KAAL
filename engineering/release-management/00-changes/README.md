@@ -9,7 +9,7 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `transformation.md` | the route: the per-control Changes, the controls, the landed Changes, the path to `main`, the conditions, the retirement sequence, the build order |
 | `interim-states.md` | mechanisms that stand in for a target element until it exists, each with its end |
 | `change-requirements.md` | temporary requirements of the migration (F20), each with its end |
-| `cases.md` | the Cases of the migration (T12 to T14, T16 to T21) |
+| `cases.md` | the Cases of the migration (T12 to T14, T16 to T24) |
 | `id-capture.json`, `id-moves.json` | the ids and decisions captured before the documentation Change, and where each one is now |
 | `documentation-architecture-plan.md` | the PLAN of the documentation Change that created this structure |
 | `shim-removal-plan.md` | the PLAN that removes the release shims one by one, as their last caller is rewired |
