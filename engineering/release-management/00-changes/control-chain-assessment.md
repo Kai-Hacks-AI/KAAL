@@ -36,7 +36,7 @@ Contexts: H hook, PR pull request, MG merge group, P promotion, B publication, S
 
 ## Finding that corrects D4
 
-D4 supposed that the `Workspaces` lane might run Guard's own Cases a second time. Static reading does not support that: `kaal-guard` is **not** a root workspace (the root `workspaces` list omits it; it is a `file:` dev dependency) and `workspaces.mjs` runs `npm test` per workspace. The Guard job is therefore the only runner of Guard's package tests, per host. The overlap that may exist is the Engineering-lane one above. #1339's RED should test this and not the Workspaces hypothesis. A second correction: the map's `release.yml` is `publish.yml` on `main`.
+D4 supposed that the `Workspaces` lane might run Guard's own Cases a second time. Static reading does not support that: `kaal-guard` is **not** a root workspace (the root `workspaces` list omits it; it is a `file:` dev dependency) and `workspaces.mjs` runs `npm test` per workspace. The Guard job is therefore the only runner of Guard's package tests, per host. The overlap that may exist is the Engineering-lane one above. #1339's RED should test this and not the Workspaces hypothesis. A second correction: the map's `release.yml` is `publish.yml` at this head (the collector renamed it; not checked on `main`).
 
 ## Revisited questions
 
