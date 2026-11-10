@@ -1,4 +1,4 @@
-// release-management/C14 (failing Cases C14/T1 to C14/T8, carried unwired in the PLAN of "one fragment per Change, and the identity of a Case";
+// release-management/C14 (failing Cases C14/T1 to C14/T9, carried unwired in the PLAN of "one fragment per Change, and the identity of a Case";
 // fragments-and-case-identity-plan.md). Hosted by release management, intended owner Engineering.
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
@@ -95,4 +95,15 @@ test("C14/T8: the promotion body is recomputed from the promotion head's tree an
   const body = computePromotionBody(fragments);
   assert.equal(judgePromotionBody({ fragments, body }).kind, "pass");
   assert.equal(judgePromotionBody({ fragments, body: `${body}\nextra line` }).kind, "fail", "the body is a claim, the tree is the evidence");
+});
+
+test("C14/T9: a Hotfix pull request is judged by its Defect Record and RED Cases, never forced into the fragment schema", async () => {
+  const { judgeCarrier } = await load("view");
+  const defect = { id: "hosting/D7", status: "confirmed", where: ["packages/kaal-hosting/skills"], tests: ["hosting/D7/T1"], red: ["hosting/D7/T1"] };
+  const hotfix = { carrier: "hotfix", defect: "hosting/D7", files: ["packages/kaal-hosting/skills/kaal-hosting-boundary/HOSTS.md"] };
+  assert.equal(judgeCarrier({ pr: hotfix, defects: [defect], fragments: [] }).kind, "pass", "no C-ID, folder or Change intent is required");
+  assert.equal(judgeCarrier({ pr: { ...hotfix, defect: "hosting/D99" }, defects: [defect], fragments: [] }).kind, "fail", "the Defect Record must exist on the base");
+  assert.equal(judgeCarrier({ pr: hotfix, defects: [{ ...defect, red: [] }], fragments: [] }).kind, "fail", "a defect with no RED Case is no ground for a hotfix");
+  assert.equal(judgeCarrier({ pr: { ...hotfix, files: ["engineering/elsewhere.md"] }, defects: [defect], fragments: [] }).kind, "fail", "paths stay within the record's where");
+  assert.equal(judgeCarrier({ pr: { carrier: "do", files: [] }, defects: [], fragments: [] }).kind, "fail", "a Change carrier without a fragment is refused");
 });

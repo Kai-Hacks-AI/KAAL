@@ -26,7 +26,7 @@ A **carrier** is the pull request (or, for npm, the workflow run) that moves wor
 | ACT | a corrective or cleanup Change into a collector | yes | squash | same carrier shape as DO; the phase says the intent |
 | SYNC | `main` into a collector | none | merge commit, nothing after it | carries work main already accepted; Branching decides it is a synchronization |
 | Promotion | the whole collector into `main` | none (carries the collector's Changes) | per the merge-method verdict of Branching (`branching.md#promote`) | only `kaal/*` into `main`; fresh; `.github` and Core travel alone; one at a time |
-| Hotfix | one urgent correction of an existing capability, through `kaal/hotfix` (established at main's tip, one correction at a time) | per its Change | squash for the Change into `kaal/hotfix`, squash for the promotion into main (`branching.md#hotfix`); then `main` is synchronized into every collector that owns the corrected behavior | the same controls at the same positions as any carrier; the rename to `hotfix/<name>` and the **RED classification are open** (whether a Hotfix owes a failing Case first is not settled) |
+| Hotfix | one urgent correction of an existing capability, through `kaal/hotfix` (established at main's tip, one correction at a time) | **none: a Hotfix is defect-driven, not Change-driven.** It references an existing Defect Record and its RED Cases; it has no C-ID, no Change folder and no Change intent | squash for each pull request into `kaal/hotfix`, squash for the promotion into main (`branching.md#hotfix`); then `main` is synchronized into every collector that owns the corrected behavior | a distinct carrier, not PLAN, DO or ACT relabeled; subject to the applicable trusted controls and approvals; one defect may have several pull requests (see 3a) |
 | Publication (npm, different transport) | a version on `main` to npmjs | none | a workflow run, not a pull request: Pack, approve Publishing (environment `npm`), publish, accept | a controlled transition like the others, carried by `workflow_dispatch` and the registry, not by a pull request |
 
 ## 3. The chain: required control, owner, implementation, context, evidence, decision
@@ -55,16 +55,32 @@ One row per control at each position it is invoked. **Owner** is the semantic ow
 | npmjs STOCK | verify Package (F2) | Release | `release-engine/` (Accept) | B | T5, T11 | the published bytes equal the packed ones; provenance as recorded |
 | npmjs OUT | none yet | | | | | open |
 
+## 3a. The Hotfix chain: Defect to promotion
+
+Traceability runs **Defect → RED evidence → hotfix pull request(s) → GREEN evidence → integration and promotion**. Each link is read from Git and from records on the base, never from text a pull request wrote about itself.
+
+| Link | What it is | Owned by | How a control verifies it |
+| --- | --- | --- | --- |
+| Defect | a **Defect Record** in the owning capability (`<capability>/06-defects/D<n>-<slug>.md`, id `<capability>/D<n>`, with its `expected`, `observed`, `where`, `status` and `tests`), in force on the base before the first hotfix pull request | the owning capability (the capability corrected keeps ownership of the behavior) | the Hotfix verdict reads the record **from the base**: it exists, its status is `confirmed`, and it lists RED Cases |
+| RED evidence | the Cases the record lists, each with a Confirming Run recorded in the record | the Defect (their identity is owned by it) | the listed Cases exist on the base and are recorded RED at the recorded Case version; a record with no RED Case, or one that is not reproducible, refuses the carrier |
+| hotfix pull request(s) | one or more pull requests, each referencing **exactly one** defect (`Driven-by: <capability>/D<n>`) and no Change; they do not add a C-ID, a Change folder or a Change intent | the Defect | the changed paths (from Git) stay within the record's `where` and the owning capability; Change Isolation stays the authority on what may travel together |
+| GREEN evidence | the same Cases turned GREEN by the fix, in the lanes at the integration and promotion boundaries, and the Run that answers the record | the Defect | test Candidate and test Integration run the Cases the record lists; the record is **answered** only by a Run in which they pass at their Case version |
+| integration and promotion | the carriers of section 2, unchanged | Release | the controls of section 3, unchanged |
+
+**Several pull requests for one defect.** Each pull request names the same defect. The defect's pull requests are **computed from Git** (the `Driven-by:` trailers and the pull requests that carry them), never listed by hand in the record, so a second pull request collides with nothing. Which pull request answers the record is the one whose Run has the Cases GREEN.
+
+**Open, for the Owner and the investigation below.** The envelope of a hotfix pull request: what its title and body carry in place of a Change's `<capability>/<C-ID> <PHASE>` (proposal: `<capability>/<D-ID> Hotfix: <concern>`, with the carrier as the marker and no phase); and the exact Hotfix verdict (a new verdict of verify Envelope, no new control). The identity and documentation shape is part of the kaal-change structured-documentation investigation: whether the Defect is the node, with the pull requests as computed edges, as proposed here.
+
 ## 4. Rules the map states
 
 - **One authoritative implementation per control.** A control invoked at several positions (isolate Change, verify Ancestry, the scans, the lanes) is one implementation called from several contexts, never reimplemented per position. Known duplicates the assessment lists (the path matcher in the boundary workflow, the release judge in Hosting and Change, the approval trio against native settings) are retirements, not designs.
 - **Template and hook guidance is not trusted inbound verification.** The pull request template, the hooks and the PR body tell the author what is expected (feedback, **H**). The trusted inbound verification is what the base controls judge from Git, from the base-controlled code: verify Envelope, Branching, Change Isolation, Promotion Source. The exit authorization is the gate, which only an active ruleset or environment application makes protection (`gate`, `setting`). A guidance that is skipped is a directive; a verdict that is not required protects nothing.
-- **Hotfix and its RED classification are open.** Neither this map nor C14 settles whether a Hotfix owes a failing Case before its fix, or what a hotfix's collector is called; both stay with the Owner.
+- **A Hotfix is defect-driven (Owner and CPO, 10 November 2026).** Its prerequisites are an existing **Defect Record** and one or more **RED Cases** that reproducibly prove the defect; both come first. RED and GREEN are **evidence states, not a lifecycle stage**. This answers the open question: a Hotfix owes a prior RED (yes). It does not authorize a new gate, a hotfix execution, a promotion or the retirement of a legacy control. Still open: the rename `kaal/hotfix` to `hotfix/<name>`.
 - **npm publication is a transition like the others, with a different transport.** Its IN is approve Publishing, its STOCK is verify Package, its OUT is open. It has no pull request, so the carriers' template and envelope controls do not apply; the workflow run and the `npm` environment carry the same decisions.
 
 ## 5. How C14 fits this map
 
-C14 defines no station, control or carrier. It changes only the **form in which a Change and a Case are recorded** and feeds the controls above:
+C14 defines no station, control or carrier, and its fragment applies to **Change carriers only** (PLAN, DO, ACT). A Hotfix carries no fragment: its documentation is the Defect Record and the Cases it owns (3a). It changes only the **form in which a Change and a Case are recorded** and feeds the controls above:
 
 | C14 element | Feeds | Position |
 | --- | --- | --- |
@@ -79,4 +95,4 @@ Each C14 verdict is invoked from an existing authoritative implementation (the e
 
 - **Release management control ownership work** (`control-ownership-plan.md`, `control-chain-assessment.md`): this map reads them; where they say "open", so does this map. No ownership is moved here.
 - **kaal-change structured-documentation investigation**: the identity and ownership model of C14 is its subject; this map names only the ids and edges it already uses (`tests`, `refines`, `traces`) and moves no implementation.
-- **Open for the Owner:** Hotfix (rename, RED classification); the OUT of npmjs; the tag before publication; which of verify Envelope and freeze Collector become required (active gate applications).
+- **Open for the Owner:** the Hotfix envelope and the rename `kaal/hotfix` to `hotfix/<name>`; the OUT of npmjs; the tag before publication; which of verify Envelope and freeze Collector become required (active gate applications).

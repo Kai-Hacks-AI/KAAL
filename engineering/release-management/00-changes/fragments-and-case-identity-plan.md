@@ -1,6 +1,6 @@
 # One fragment per Change, and the identity of a Case (PLAN)
 
-Change `release-management/C14`. PLAN, nothing is built; the failing Cases (`C14/T1` to `C14/T8`) are in `04-test/fragments.red.mjs`, carried unwired. The Cases of this Change already use the identity this PLAN proposes.
+Change `release-management/C14`. PLAN, nothing is built; the failing Cases (`C14/T1` to `C14/T9`) are in `04-test/fragments.red.mjs`, carried unwired. The Cases of this Change already use the identity this PLAN proposes.
 
 ## Intent (Owner, 10 November 2026)
 
@@ -19,6 +19,8 @@ Same pattern as GUARD: born in KAAL, abstracted later. Release management hosts 
 - **Release management's application** (section 5: its own Cases and Changes under the rule, and the migration of its own T numbers) stays in release management and moves nothing out. When Engineering takes the rule, the document and the script move, and release management keeps only its application.
 
 ## 1. One fragment per Change
+
+**Scope: Change carriers only.** The fragment is the record of a **Change**, carried by a PLAN, DO or ACT. A **Hotfix is defect-driven, not Change-driven** (Owner and CPO, 10 November 2026): it has no C-ID, no `00-changes/<C-ID>/` folder and no Change intent, and nothing in this section applies to it. Its reason for existing is an existing **Defect Record** and the **RED Cases** that prove it; each hotfix pull request references that defect and its Cases. RED and GREEN are evidence states, not phases, and a Hotfix is not PLAN, DO or ACT relabeled. See `station-control-chain-map.md` section 3a for the chain (Defect → RED → hotfix pull request(s) → GREEN → promotion). For identity, the same ownership rule applies: the Cases of a defect are `<capability>/D<n>/T<n>`, owned by the Defect node, never by a Change.
 
 A Change is a folder, `00-changes/<C-ID>/`, and a pull request touches only that folder (plus the target files its DO changes). Its entry is `change.md`, with a front matter the script reads:
 
@@ -81,9 +83,9 @@ Because the fragment folder is named by the C-ID, two pull requests that pick th
 - The register, the README rows, the Cases list and the Change-id pattern become views; the committed copies are replaced by the script and deleted by the DO in one Change, which is the only Change that edits those shared lines.
 - Release management's own Cases sit next to their targets or Changes under the rule; moving them is the work of the DO and its ACTs, one capability folder at a time, never one large rename.
 
-## Cases (`C14/T1` to `C14/T8`, unwired)
+## Cases (`C14/T1` to `C14/T9`, unwired)
 
-`C14/T1` the view is a pure, order-independent function of the fragments (the same fragments in any order give the same bytes). `C14/T2` two fragments with the same C-ID are refused and the next free C-ID is named. `C14/T3` every changed path outside the Change folder resolves through the base target map to a declared target, an undeclared path and an untouched declared target are findings, the declaration never overrides Change Isolation, and a view is never an input a pull request edits. `C14/T4` a Case's owner is the nearest shared parent of what it tests, `tests:` lists everything covered, and a Case whose targets share no parent is reported as a smell. `C14/T5` a permanent Case sits next to its target, a temporary Case sits in its Change's folder, and a temporary Case outlives its Change only as a finding. `C14/T6` every old T number resolves through the map to exactly one new identity and none is reused. `C14/T7` requirements and architecture nodes follow the same single-owner rule with their edges. `C14/T8` the promotion body is recomputed from the promotion head's tree and a body that differs is refused, whatever the pull request's own text says.
+`C14/T1` the view is a pure, order-independent function of the fragments (the same fragments in any order give the same bytes). `C14/T2` two fragments with the same C-ID are refused and the next free C-ID is named. `C14/T3` every changed path outside the Change folder resolves through the base target map to a declared target, an undeclared path and an untouched declared target are findings, the declaration never overrides Change Isolation, and a view is never an input a pull request edits. `C14/T4` a Case's owner is the nearest shared parent of what it tests, `tests:` lists everything covered, and a Case whose targets share no parent is reported as a smell. `C14/T5` a permanent Case sits next to its target, a temporary Case sits in its Change's folder, and a temporary Case outlives its Change only as a finding. `C14/T6` every old T number resolves through the map to exactly one new identity and none is reused. `C14/T7` requirements and architecture nodes follow the same single-owner rule with their edges. `C14/T9` a Hotfix pull request is never forced into the fragment schema: it needs no C-ID, folder or Change intent, and it is judged by its Defect Record and RED Cases read from the base instead; a Change carrier is never excused from the fragment. `C14/T8` the promotion body is recomputed from the promotion head's tree and a body that differs is refused, whatever the pull request's own text says.
 
 ## Open for the Owner
 
