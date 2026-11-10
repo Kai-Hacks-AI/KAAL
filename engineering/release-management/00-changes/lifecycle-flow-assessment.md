@@ -231,6 +231,25 @@ What cannot be code, in short: registering and installing the App, generating an
 
 The Cases that close the chain, each failing with its recovery (T25 to T29): the ruleset names the App as its only bypass actor and has the creation, update, deletion and non-fast-forward rules; the environments match their files; the manifest asks for the permission set the workflow requests and nothing more; the workflow named by `publishing/` exists, runs in `tagging` and reads only the declared secret name; the live ruleset, environments and token permissions match the files (drift, scheduled). Nothing is created or activated by this section.
 
+### The four control types as a lens (Owner, 10 November)
+
+Directive, preventive, detective and corrective controls are a useful lens, and the tag integrity audit is a good detective control. Classified by what each one does when it acts, not by where it runs:
+
+| Type | What it does | Release management's controls |
+| --- | --- | --- |
+| Directive | tells people and agents what to do, and gives early feedback; can be skipped, so it does not stop anything | the Git hooks (feedback only, bypassable), the READMEs, PLANs and Requirements, the `Earliest:` line, the `Recovery:` lines when read before acting |
+| Preventive | stops the wrong thing from happening | the three rulesets, both gates, bind Merge, verify Ancestry, isolate Change, approve Change, approve Promotion, approve Publishing (the protected `npm` environment), accept Capability, serialize Promotion, version Package (refuses a wrong version or tag), the create-only tag step and the fence on the tag ruleset |
+| Detective | finds what happened or what is wrong, after or beside the act | audit Lineage, the tag integrity audit, verify Package Promotion (after publication), the two scans, the test legs of test Integration and test Candidate (evidence a gate then reads), the drift Cases on rulesets and environments |
+| Corrective | restores a good state or limits the damage | the `Recovery:` line of a verdict (the route out of a stuck pull request), same-tag retry, the incident procedure for a failed post-publish verification (deprecate and supersede, no rollback), key rotation for the App, deprecation of a burned version |
+
+What the lens shows:
+- **A detective control becomes preventive only through a gate.** The scans and the test legs detect; the gate that reads them as required is what prevents. A detective control nobody gates is information (the `Earliest:` line is deliberately of this kind).
+- **Directive controls cannot carry protection.** A hook can be skipped, so nothing relies on one; it is feedback that makes the preventive controls cheaper to meet.
+- **The corrective column is the thinnest.** Today it is recovery text, retry on the same tag, and a documented incident procedure; nothing automated. The tag integrity audit is detective with a corrective procedure behind it (stop publishing, find who used the key, rotate it); the assessment does not claim more.
+- **Each preventive control has a detective counterpart or a reason it needs none.** Preventive controls that the App bypasses (the tag ruleset) are exactly where the detective audit is needed. That is the rule to apply when a control is added: name its type, name the control of the neighbouring type that covers its failure, or say why none is needed.
+
+Classification only; it changes no control, name or count.
+
 ### Trust between stages and recovery (CTO recommendation)
 
 **Who may do what, as three separate permissions, not one.**
