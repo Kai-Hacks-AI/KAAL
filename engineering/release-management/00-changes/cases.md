@@ -29,10 +29,6 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T35 | I1 | RED: missing facts are no evidence: an open-pull-request list that was not gathered is not a pass |
 | release-management/T36 | I1 | RED: it judges only a promotion of a collector into `main` and a pull request into a frozen collector |
 | release-management/T37 | I1 | RED: a fast promotion points at the hotfix route (`engineering/github/branching.md#hotfix`) as a `Fast path:` line that is not a third recovery, and no override is offered |
-| release-management/T54 | I1 | RED: a pull request that targets a frozen collector fails, naming the promotion, with a retarget to another existing collector or the withdrawal of the promotion as its only recoveries |
-| release-management/T55 | I1 | RED: a collector with no open promotion is not frozen, a closed promotion does not freeze, and missing facts are no evidence |
-| release-management/T64 | I1 | RED: a promotion passes only from a fresh inventory taken in the merge-group run, never from an earlier check's |
-| release-management/T65 | I1 | RED: the recoveries are ranked, retarget first and withdraw second, each followed by a `Why first:` or `Why second:` line (`Why only:` when one route is possible) naming when it applies and its argument; the hotfix is not ranked |
 | release-management/T46 | I1 | RED: the body has Intent, Design (optional), Verified by and Validated by as headings, once each, in order, found by parsing; a heading inside a code block does not count (verify Envelope, `04-test/verify-envelope.red.mjs`) |
 | release-management/T47 | I1 | RED: an Intent that holds only the template's comment is empty and fails |
 | release-management/T48 | I1 | RED: a Change title is `<capability>/<C-ID> <PHASE>: <concern>` with a known capability, a defined C id and a PHASE from PLAN, DO, ACT |
@@ -40,7 +36,13 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T50 | I1 | RED: pull requests opened before the activation boundary are not applicable, and the boundary is the trusted one, not the candidate's |
 | release-management/T51 | I1 | RED: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check |
 | release-management/T52 | I1 | RED: the check is named exactly `verify Envelope`, the name track Work reads |
+| release-management/T54 | I1 | RED: a pull request that targets a frozen collector fails, naming the promotion, with a retarget to another existing collector or the withdrawal of the promotion as its only recoveries |
+| release-management/T55 | I1 | RED: a collector with no open promotion is not frozen, a closed promotion does not freeze, and missing facts are no evidence |
 | release-management/T56 | I1 | RED: every control the architecture defines is in the overview with station, class and applied-at; a missing one fails (control overview, `04-test/control-overview.red.mjs`) |
 | release-management/T57 | I1 | RED: the verb of a control belongs to the verb set of its class; an unknown class or applied-at is refused |
 | release-management/T58 | I1 | RED: each preventive control names a counterpart or a stated reason, and a counterpart is a control of another class that exists |
+| release-management/T59 | I1 | RED: a retirement fails while the replacement is not observed, not independently verified, or the trust root it needs is not live, CI for a pull request or merge-group check and publishing for the publish path (retirement, `04-test/retirement.red.mjs`) |
+| release-management/T60 | I1 | RED: a retirement names its covering control and evidence, a row that stays is never retired, and a missing fact is no evidence |
+| release-management/T64 | I1 | RED: a promotion passes only from a fresh inventory taken in the merge-group run, never from an earlier check's |
+| release-management/T65 | I1 | RED: the recoveries are ranked, retarget first and withdraw second, each followed by a `Why first:` or `Why second:` line (`Why only:` when one route is possible) naming when it applies and its argument; the hotfix is not ranked |
 | release-management/T66 | I1 | RED: each application is planned or active, a control with only planned applications claims no protection, and a report (track Work) is not a control row |
