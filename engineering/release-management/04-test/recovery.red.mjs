@@ -1,4 +1,4 @@
-// release-management/T25 to T28 (RED): a failing or held verdict carries its route to recovery (PLAN bind-merge-held-plan.md,
+// release-management/T25 to T29 (RED): a failing or held verdict carries its route to recovery (PLAN bind-merge-held-plan.md,
 // "Recovery is part of the verdict"; Owner, 10 November 2026: tests are deterministic, but when they fail they point at the route to fix).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
@@ -6,8 +6,11 @@
 //
 // The contract, asserted by parsing and by running the checker, never by matching words:
 //   - every verdict that is not a pass carries one or more lines `Recovery: <command> (re-runs on: <event>[, <event>])`;
-//   - each command is a real `gh pr merge` invocation for the pull request the verdict is about (a number, not a placeholder);
+//   - each action is one of two executable kinds: a `gh pr merge` invocation for the pull request the verdict is about (a number, not a
+//     placeholder), or `git push origin <head branch>` (a new head, for a verdict only a change of the candidate can fix);
 //   - each event is one the workflow that issues the verdict is triggered by, read from its YAML, so the recovery re-runs the check.
+//     That is static evidence: the live proof that the action re-triggers the check on GitHub is tracked per control in
+//     recovery-coverage.json (T29) and is pending until a run shows it.
 // The Case that fails today is the auto-merge trap: once the check fails, GitHub hides "enable auto-merge", and the verdict says
 // "Enable auto-merge" without naming a command or an event that re-runs the check. Do not edit a Case to make it pass.
 //
@@ -36,6 +39,13 @@ const recoveries = (message) =>
     assert.ok(m, `a recovery line has the form "Recovery: <command> (re-runs on: <event>)": ${JSON.stringify(l)}`);
     return { command: m[1], events: m[2].split(", ") };
   });
+/** A new head: `git push origin <head branch>`; returns the branch. */
+function parsePush(command) {
+  const words = command.split(" ");
+  assert.deepEqual(words.slice(0, 3), ["git", "push", "origin"], `a new-head recovery is a git push to origin: ${command}`);
+  assert.equal(words.length, 4, `exactly one branch: ${command}`);
+  return words[3];
+}
 /** A gh invocation, parsed into its words: `gh pr merge <number> [--auto] [--squash|--merge|--rebase] [--disable-auto]`. */
 function parseGh(command) {
   const words = command.split(" ");
@@ -47,7 +57,7 @@ function parseGh(command) {
   return { pull: Number(numbers[0]), flags };
 }
 
-const facts = (over) => ({ baseRef: "kaal/hosting", head: "0123456789abcdef0123456789abcdef01234567", expected: "squash", enabled: null, pull: 7, ...over });
+const facts = (over) => ({ baseRef: "kaal/hosting", head: "0123456789abcdef0123456789abcdef01234567", headRef: "claude/pr", expected: "squash", enabled: null, pull: 7, ...over });
 
 test("T25: the auto-merge trap names the command that enables auto-merge and an event that re-runs the check", () => {
   const v = autoMerge(facts({ enabled: null }));
@@ -79,11 +89,15 @@ test("T26: every recovery event is one the workflow that issues the verdict runs
   }
 });
 
-test("T26: a verdict that no method can fix says so and gives no command that cannot help", () => {
+test("T26: a verdict that no method can fix names a new head as its route, a push whose event re-runs the check", () => {
   const v = autoMerge(facts({ expected: null, enabled: null }));
   assert.equal(v.kind, "fail");
-  for (const s of recoveries(v.message)) assert.ok(!/--auto\b/.test(s.command), "no method is right, so enabling auto-merge is no recovery");
-  assert.match(v.message, /Recovery: /, "the route is a new head that makes the Branching verdict pass, named in a Recovery line");
+  const steps = recoveries(v.message);
+  assert.equal(steps.length, 1, "one recovery step");
+  assert.equal(parsePush(steps[0].command), "claude/pr", "a push of the head branch the verdict is about");
+  assert.ok(!/--auto\b/.test(steps[0].command), "no method is right, so enabling auto-merge is no recovery");
+  assert.deepEqual(steps[0].events, ["synchronize"], "a new head runs the check again");
+  assert.ok(events.has("synchronize"));
 });
 
 test("T27: every non-pass verdict of the auto-merge judgment carries a recovery", () => {
@@ -103,4 +117,23 @@ test("T28: a held bind Merge, which Guard reports as a succeeding job with a war
   }
   const passed = judgeLanes({ expected, results: [{ lane: "bind Merge", host: "ubuntu", outcome: "passed" }], accepts: [], authorized: [], boundary: "integration" });
   assert.equal(passed.passed, true, "only a pass passes");
+});
+
+test("T29: every release control is listed in the recovery coverage; a pending control names the RED that must add its Cases", () => {
+  const cov = JSON.parse(readFileSync(join(ROOT, "engineering", "release-management", "04-test", "recovery-coverage.json"), "utf8")).controls;
+  const cases = readFileSync(join(ROOT, "engineering", "release-management", "00-changes", "cases.md"), "utf8");
+  const CONTROLS = ["version Package", "approve Publishing", "verify Package Promotion", "audit Lineage", "isolate Change", "verify Ancestry",
+    "scan Vulnerabilities", "scan Dependencies", "bind Merge", "approve Promotion", "test Candidate", "serialize Promotion",
+    "accept Capability", "approve Change", "test Integration"];
+  assert.deepEqual(Object.keys(cov).sort(), [...CONTROLS].sort(), "all 15 controls, no other");
+  for (const [name, c] of Object.entries(cov)) {
+    if (c.status === "covered") {
+      assert.ok(c.cases?.length > 0, `${name}: covered by named Cases`);
+      for (const id of c.cases) assert.ok(cases.includes(`| ${id} |`), `${name}: ${id} is registered in cases.md`);
+    } else {
+      assert.equal(c.status, "pending", `${name}: covered or pending`);
+      assert.ok(c.step, `${name}: pending names the step whose RED adds its recovery Cases`);
+    }
+    assert.ok(["pending", "proven"].includes(c.liveProof), `${name}: live proof is tracked`);
+  }
 });
