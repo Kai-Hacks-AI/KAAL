@@ -37,6 +37,30 @@ The Owner's point is that the project history already justifies the hooks. What 
 
 Summary: `pre-push` exists; `pre-commit` has an argument for the path rule once the facts exist; `pre-rebase` is advisory until a blocking form is proven; `post-checkout` and `post-merge` are a report once an install baseline is proven. **`commit-msg` and `prepare-commit-msg` are set up on the Owner's direction (10 November)** as thin entries over one shared `message` check, feedback only, with no judgment of their own; they replace the earlier recommendation to leave them uninstalled, which the CPO asked for "absent an actual control": the control is now the shared message rules.
 
+## The commit message form (Owner direction, 10 November; a proposal for the Owner to confirm)
+
+The Owner's direction: a commit message carries **the concern the commit drives**, from the improvement cycle (plan; do and check; act), and **a reason**, the piece that drove it (a Change, an Intent, a Requirement and so on) with its reference, depending on which piece drove the commit. The history already half-says this: titles such as `Engineering: PLAN for version Package`, `guard/C134 PLAN: ...`, `Testing DO: ...`, `Engineering: RED for ...` carry a phase word, and the pull request template's Intent section is the reason. The proposal makes it one form and one check.
+
+**Subject:** `<Area> <PHASE>: <concern>`, for example `Engineering RED: recovery text names a route out of a stuck pull request`.
+- `<Area>`: as today (`Engineering`, `Hosting`, `Guard`, or a capability/change id such as `guard/C134`).
+- `<PHASE>`: one of `PLAN`, `RED`, `DO`, `ACT`. Plan is `PLAN`; do and check are `RED` (the check written first) and `DO` (the build that makes it pass); act is `ACT` (the closing step: a finding fixed after review, a retirement, a promotion, a termination). The Owner's "do/check" maps to the two words the history already uses.
+- `<concern>`: what this commit drives, in a few words; not what the diff contains.
+
+**Reason trailer (required, one line):** `Driven-by: <Kind> <reference>` where `<Kind>` is one of `Intent`, `Requirement`, `Architecture`, `Change`, `Defect`, `Case`, matching where the driving piece lives, and `<reference>` is its id in the repository (`Intent I1`, `Requirement F10`, `Change guard/C134`, `Defect D21`, `Case T25`). A commit may carry more than one `Driven-by:` line when more than one piece drove it. This is the reason in a form a parser can read, so the check is a parser, not a pattern over free text.
+
+```
+Engineering RED: recovery text names a route out of a stuck pull request
+
+Driven-by: Requirement F10
+Driven-by: Change release-management/00-changes/bind-merge-held-plan.md
+```
+
+**One `message` check, three places.** The shared Guard check judges this form: subject shape, the phase word from the closed list, at least one `Driven-by:` whose kind is in the list and whose reference **exists** in the repository (looked up, not guessed). `commit-msg` runs it on the commit message; CI runs the same check on the pull request title and body, because a squash makes the title the commit subject and the body its message (to confirm: the repository's squash default uses the title and the description); the pull request template's Intent section is where the reason is written out in full. A merge commit or a synchronization has its own form (the lineage controls already judge it) and is not judged by this check.
+
+**`prepare-commit-msg` pre-fills it, never decides.** In an empty message it writes the area and the `Driven-by: Change ...` line from the branch's Change, using the same convention the pre-push hook already has for the branch's target (`git config branch.<branch>.kaalTarget`): a `branch.<branch>.kaalChange` setting naming the Change, set once per branch. The phase it takes from the previous commit's subject on the branch, else leaves a placeholder the `message` check then refuses. It does nothing when a message exists (`-m`, merge, squash, amend).
+
+**What stays open for the Owner:** the phase list (is `ACT` right as the fourth word, or is `CHECK` wanted as its own), the kinds list, whether a `Driven-by:` is required on every commit or only on the commits of a pull request that has none in its body, and the squash default. The check judges only what the Owner confirms.
+
 ## Sequence
 
 1. This PLAN, CPO review.
