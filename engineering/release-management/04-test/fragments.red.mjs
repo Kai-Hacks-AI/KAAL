@@ -97,13 +97,14 @@ test("C14/T8: the promotion body is recomputed from the promotion head's tree an
   assert.equal(judgePromotionBody({ fragments, body: `${body}\nextra line` }).kind, "fail", "the body is a claim, the tree is the evidence");
 });
 
-test("C14/T9: a Hotfix pull request is judged by its Defect Record and RED Cases, never forced into the fragment schema", async () => {
+test("C14/T9: whichever documentation shape the Owner chooses, a Hotfix keeps its Defect Record and RED Cases and is a distinct carrier", async () => {
   const { judgeCarrier } = await load("view");
   const defect = { id: "hosting/D7", status: "confirmed", where: ["packages/kaal-hosting/skills"], tests: ["hosting/D7/T1"], red: ["hosting/D7/T1"] };
   const hotfix = { carrier: "hotfix", defect: "hosting/D7", files: ["packages/kaal-hosting/skills/kaal-hosting-boundary/HOSTS.md"] };
-  assert.equal(judgeCarrier({ pr: hotfix, defects: [defect], fragments: [] }).kind, "pass", "no C-ID, folder or Change intent is required");
+  assert.equal(judgeCarrier({ pr: hotfix, defects: [defect], fragments: [] }).kind, "pass", "no assertion about a Change record while the Owner's decision is open");
+  assert.equal(judgeCarrier({ pr: hotfix, defects: [defect], fragments: [fragment("C9")] }).kind, "pass", "a linked Change record is not refused either");
   assert.equal(judgeCarrier({ pr: { ...hotfix, defect: "hosting/D99" }, defects: [defect], fragments: [] }).kind, "fail", "the Defect Record must exist on the base");
   assert.equal(judgeCarrier({ pr: hotfix, defects: [{ ...defect, red: [] }], fragments: [] }).kind, "fail", "a defect with no RED Case is no ground for a hotfix");
   assert.equal(judgeCarrier({ pr: { ...hotfix, files: ["engineering/elsewhere.md"] }, defects: [defect], fragments: [] }).kind, "fail", "paths stay within the record's where");
-  assert.equal(judgeCarrier({ pr: { carrier: "do", files: [] }, defects: [], fragments: [] }).kind, "fail", "a Change carrier without a fragment is refused");
+  assert.equal(judgeCarrier({ pr: { ...hotfix, carrier: "do" }, defects: [defect], fragments: [] }).kind, "fail", "a hotfix is not a DO relabeled: a DO needs its Change fragment");
 });
