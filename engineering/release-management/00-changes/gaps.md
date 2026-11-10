@@ -66,7 +66,7 @@ Where the present state differs from a target requirement. Each gap names its ta
 
   Done when: the Owner decides (a Case, a decision or a documented limit).
 
-- **release-management/G9.** verify Package Promotion: nothing records which promotion put the commit on `main` (promotion PR, ledger entry), so promoted `main` state holds by the dispatch restriction only.
+- **release-management/G9.** verify Package: nothing records which promotion put the commit on `main` (promotion PR, ledger entry), so promoted `main` state holds by the dispatch restriction only.
 
   Target: F2.
 
@@ -74,7 +74,7 @@ Where the present state differs from a target requirement. Each gap names its ta
 
   Done when: Case T5 is green.
 
-- **release-management/G10.** verify Package Promotion: acceptance runs once after publication, with no later re-check.
+- **release-management/G10.** verify Package: acceptance runs once after publication, with no later re-check.
 
   Target: F2.
 
@@ -82,7 +82,7 @@ Where the present state differs from a target requirement. Each gap names its ta
 
   Done when: the Owner decides whether a later re-check is wanted.
 
-- **release-management/G11.** verify Package Promotion: for a package published by hand, provenance is "none" by design.
+- **release-management/G11.** verify Package: for a package published by hand, provenance is "none" by design.
 
   Target: F2.
 
@@ -90,7 +90,7 @@ Where the present state differs from a target requirement. Each gap names its ta
 
   Done when: the Owner confirms this as a documented limit.
 
-- **release-management/G12.** verify Package Promotion: the installed verification cannot judge a package whose peer dependencies are optional.
+- **release-management/G12.** verify Package: the installed verification cannot judge a package whose peer dependencies are optional.
 
   Target: F2.
 
