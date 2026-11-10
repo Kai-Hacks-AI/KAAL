@@ -18,6 +18,16 @@ The Owner's direction: the recovery path belongs to the failing or held CI verdi
 - **Generalizes.** The same two Cases run over every control of the release chain (the verdict functions and the `KAAL / release / <step>` jobs), so a new control cannot ship a failing verdict without a reachable recovery.
 - **Interim fix, no change of semantics.** With this, the existing single required Branching check needs no weakening: it keeps failing without auto-merge, but now says how to leave the state (enable auto-merge by API or CLI, which re-runs the check). That removes the race without making the check pass while the method is unknown.
 
+## Earliest place it could have been found (Owner, 10 Nov)
+
+The Owner's addition: recovery is an important message, and so is where the failure could have been found earliest, so the team learns to move the check there; short, if possible. The Owner also pointed out that Guard already has this concept, because checks are registered with Guard.
+
+- **Use, not build.** Guard's declaration (`.kaal/config/guard/<name>.md`) already holds both inputs: `runs` says where the check is registered (`hook` is Development, `ci` is Integration) and `facts` says what it needs, while the hook supplies `head`, `base`, `base-ref` and `changed`. So no new mechanism and no stage text written by hand in each verdict. One function, `earliestStage`, reads the declaration and returns the **registered** stage, the earliest **possible** stage (Development when every declared fact is one the hook supplies) and whether they differ.
+- **Form.** One line next to the `Recovery:` lines, at most 100 characters: `Earliest: <stage> (<where>)`, for example `Earliest: development (Branching can run in the hook: add hook to runs)`. A gap between registered and possible is the learning: the check could have run earlier and does not.
+- **What the registry cannot say.** Guard's fact set is closed and has no pull request facts. The auto-merge state exists only on the pull request, yet Branching declares only `head`, `base`, `base-ref`. So for the auto-merge trap the registry reports a gap that is not real: the declaration under-declares what the verdict needs. That is a finding for the Owner and CPO (either the judgment of the merge method is a CI-only fact and the declaration must say so, or Guard needs a fact for it), not something this line should paper over. Until decided, the auto-merge verdict names Integration, with the practice that avoids it (open the pull request with auto-merge on).
+- **Cases first.** T30 (RED) fails today because `earliest.ts` does not exist: it checks the function against every declaration in `.kaal/config/guard/`, the line shape and length, a ci-only check with hook facts as a reported gap, and a check with a fact the hook cannot supply staying at Integration.
+- **Learning loop, not a gate.** The line is information; it never changes a verdict. The `Earliest:` stages of failing runs show which checks should move toward Development, input to the hook-to-CI equivalence work of the lifecycle assessment (#1353).
+
 ## Design
 
 - **Requirement (F10, a clause) and Case.** The clause above, with Cases on the verdict function: no method yet gives `held`, a wrong method gives `fail`, the right method gives `pass`, and `held` is never converted to `pass` by a consumer.

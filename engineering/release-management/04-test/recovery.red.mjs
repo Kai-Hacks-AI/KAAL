@@ -1,4 +1,4 @@
-// release-management/T25 to T29 (RED): a failing or held verdict carries its route to recovery (PLAN bind-merge-held-plan.md,
+// release-management/T25 to T30 (RED): a failing or held verdict carries its route to recovery (PLAN bind-merge-held-plan.md,
 // "Recovery is part of the verdict"; Owner, 10 November 2026: tests are deterministic, but when they fail they point at the route to fix).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
@@ -136,4 +136,37 @@ test("T29: every release control is listed in the recovery coverage; a pending c
     }
     assert.ok(["pending", "proven"].includes(c.liveProof), `${name}: live proof is tracked`);
   }
+});
+
+// T30: where a failure could have been found earliest comes from Guard's registry, not from a new mechanism (Owner, 10 November 2026:
+// "checks are registered to guard"). A check declares `runs` (hook, ci) and `facts`; the hook supplies head, base, base-ref and changed.
+// So the earliest registered stage is development when `runs` has hook, else integration; the earliest possible stage is development when
+// every declared fact is one the hook supplies. A gap between them is where the team learns to move a check. The line is made from the
+// declaration by one function, `earliestStage` in engineering/github/earliest.ts, and printed beside the Recovery lines.
+import { readdirSync } from "node:fs";
+const GUARD = join(ROOT, ".kaal", "config", "guard");
+const declaration = (name) => parse(readFileSync(join(GUARD, `${name}.md`), "utf8").split("---")[1]);
+const earliestModule = () => import(pathToFileURL(join(ROOT, "engineering", "github", "earliest.ts")).href); // lazy, so each Case fails on its own
+
+test("T30: the earliest stage is read from the Guard declaration (runs and facts), for every registered check", async () => {
+  const { earliestStage, HOOK_FACTS } = await earliestModule();
+  assert.deepEqual([...HOOK_FACTS].sort(), ["base", "base-ref", "changed", "head"], "the facts the hook supplies, as Guard documents them");
+  const push = earliestStage(declaration("push"));
+  assert.deepEqual([push.registered, push.possible], ["development", "development"], "push runs in the hook and needs only hook facts");
+  const branching = earliestStage(declaration("Branching"));
+  assert.equal(branching.registered, "integration", "Branching is registered for ci only");
+  for (const f of readdirSync(GUARD).filter((n) => n.endsWith(".md"))) {
+    const e = earliestStage(declaration(f.slice(0, -3)));
+    assert.ok(["development", "integration"].includes(e.registered) && ["development", "integration"].includes(e.possible), `${f}: stages from the registry`);
+    assert.ok(e.line.length <= 100 && /^Earliest: (development|integration) \(.+\)$/.test(e.line), `${f}: one short line: ${e.line}`);
+  }
+});
+
+test("T30: a check that could run in development but is registered for ci only is reported as a gap, with the move named", async () => {
+  const { earliestStage } = await earliestModule();
+  const e = earliestStage({ runs: ["ci"], facts: ["head", "base", "base-ref"] });
+  assert.deepEqual([e.registered, e.possible, e.gap], ["integration", "development", true]);
+  assert.match(e.line, /^Earliest: development \(.*runs: \[hook\].*\)$/, "names the declaration change that moves it");
+  const only = earliestStage({ runs: ["ci"], facts: ["head", "pull-request"] });
+  assert.deepEqual([only.registered, only.possible, only.gap], ["integration", "integration", false], "a fact the hook cannot supply keeps it at integration");
 });
