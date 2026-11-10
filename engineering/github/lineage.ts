@@ -270,21 +270,48 @@ export interface AutoMergeFacts {
   expected: "squash" | "merge" | null;
   /** The method auto-merge is enabled with, or null when auto-merge is off. */
   enabled: Method | null;
+  /** The pull request this verdict is about, when the caller knows it; the recovery names it. */
+  pull?: number | null;
+  /** Its source branch (the job's KAAL_HEAD_REF): `gh pr merge` accepts a branch name, so the recovery stays qualified when no number is supplied. */
+  headRef?: string | null;
 }
+
+/** One recovery line: `Recovery: <command> (re-runs on: <event>)`. A failed check hides GitHub's "enable auto-merge", so the verdict names the
+ *  command and the event the check runs on (lineage-synchronization.yml: auto_merge_enabled, auto_merge_disabled). */
+const recovery = (command: string, event: string): string => `Recovery: ${command} (re-runs on: ${event})`;
+/** The pull request a recovery command names: its number, else its source branch. Never left to `gh` to infer from a checkout. */
+const target = (f: AutoMergeFacts): string | null => (f.pull ? String(f.pull) : f.headRef || null);
+const ghMerge = (f: AutoMergeFacts, flags: string): string => `gh pr merge ${target(f)} ${flags}`;
+/** The recovery lines of an auto-merge failure: the commands when the pull request is named, else a named route (no unqualified command is offered). */
+const steps = (f: AutoMergeFacts, commands: [string, string][]): string =>
+  target(f) === null
+    ? "Recovery: none (route: the author runs gh pr merge for this pull request, by number, with the flags its flow names)"
+    : commands.map(([flags, event]) => recovery(ghMerge(f, flags), event)).join("\n");
 
 export function autoMerge(f: AutoMergeFacts): Verdict {
   if (f.expected === null) {
-    return { kind: "fail", message: `${short(f.head)} must not land into ${f.baseRef}: its Branching verdict fails, so no method is right. See ${TELLING}` };
+    return {
+      kind: "fail",
+      message:
+        `${short(f.head)} must not land into ${f.baseRef}: its Branching verdict fails, so no method is right.\n` +
+        `Recovery: none (route: the author gives the pull request a base the lineage knows, by a Change that retargets it; no merge method can fix this)\nSee ${TELLING}`,
+    };
   }
   if (f.enabled === null) {
-    return { kind: "fail", message: `Auto-merge is disabled for this pull request into ${f.baseRef}. Enable auto-merge with ${METHOD_NAME[f.expected]} before integration. See ${TELLING}` };
+    return {
+      kind: "fail",
+      message:
+        `Auto-merge is disabled for this pull request into ${f.baseRef}. Enable auto-merge with ${METHOD_NAME[f.expected]} before integration.\n` +
+        `${steps(f, [[`--auto --${f.expected}`, "auto_merge_enabled"]])}\nSee ${TELLING}`,
+    };
   }
   if (f.enabled === f.expected) return { kind: "pass", message: `Auto-merge lands this pull request into ${f.baseRef} by ${METHOD_NAME[f.expected]}, as its flow names.` };
   return {
     kind: "fail",
     message:
       `Auto-merge would land this pull request into ${f.baseRef} by ${METHOD_NAME[f.enabled]}, but its flow lands by ${METHOD_NAME[f.expected]}. ` +
-      `Disable auto-merge and enable it again with ${METHOD_NAME[f.expected]}. See ${TELLING}`,
+      `Disable auto-merge and enable it again with ${METHOD_NAME[f.expected]}.\n` +
+      `${steps(f, [["--disable-auto", "auto_merge_disabled"], [`--auto --${f.expected}`, "auto_merge_enabled"]])}\nSee ${TELLING}`,
   };
 }
 
@@ -838,6 +865,8 @@ async function main(argv: string[]): Promise<number> {
     const h = rev(cwd, head);
     v = autoMerge({
       baseRef, head: h,
+      pull: /^[1-9][0-9]*$/.test(process.env.KAAL_PULL ?? "") ? Number(process.env.KAAL_PULL) : null,
+      headRef: process.env.KAAL_HEAD_REF || null,
       enabled: effectiveMethod(enabled === "none" ? null : (enabled as Method), rulesFile === undefined ? undefined : json(rulesFile), baseRef, def),
       expected: readExpected(cwd, def, baseRef, rev(cwd, defaultTip), rev(cwd, baseTip), h),
     });
