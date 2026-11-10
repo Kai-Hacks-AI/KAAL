@@ -161,6 +161,22 @@ Cases (verification, deterministic):
 
 What this does not change: applying or editing a live ruleset stays the Owner's explicit go (an import), the proof rulesets stay trial-scoped, and a Change may edit the file but not the live state. The files are the proposal the Owner imports, and the Drift Case is what shows the import happened as written. Home of the drift check is open: audit Lineage's scheduled run or a control of its own (F17); not decided here, so the control count stays at 15.
 
+#### Names and placement of the rulesets (proposal, for the Owner to confirm)
+
+**Names.** One ruleset per protected ref type, named by the lifecycle transition it protects, in the industry's own terms: `integration` (the collector branches `kaal/*`: a Change is integrated), `promotion` (`main`: a lineage is promoted), `publishing` (the package tags `*@*`: a version is published). They are the names already live (`integration` and `promotion` since the rename, `publishing` imported on 10 November), so nothing is renamed, and each name matches its gate (`gate (integration)`, `gate (promotion)`) and its transition in the lifecycle table. Rejected: `release` (a Release is a stage of this lifecycle, not one ref type), and `main` or `collector` (they name a branch, not the protection, and `collector` is KAAL's own term).
+
+**Placement.** Functional placement, Delivery, inside `engineering/release-management/`:
+
+| What | Where | Why |
+| --- | --- | --- |
+| the three rulesets | `05-src/rulesets/integration.json`, `promotion.json`, `publishing.json` | they are Delivery's code, next to `lanes/` and `release-engine/`; the file name is the ruleset name |
+| their requirement and architecture entries | the root documents 02 and 03 of release-management (the clauses and the control each rule realizes, with the ids) | tracing stays in the root documents, not beside the files |
+| structure and name Cases | `04-test/rulesets.test.mjs` | Cases live in `04-test` |
+| drift check | beside the Cases, run as the scheduled audit (home open) | verification, not a gate |
+| the proof rulesets (trial-scoped, deleted after) | `00-changes/proof/` | they are the migration's temporary material (Change), they end at termination, and no live protection depends on them; today they sit in the project files |
+
+Each file's name is the live ruleset's name, so the drift Case compares by name, never by position.
+
 ## 3. Target CI inventory: 21 current checks to 25 named checks
 
 **Current (my count, from PR check runs and the workflow files):** 21 names = 11 test legs (Hosting x3, Acceptance x3, Guard x3, Workspaces, Engineering) + 10 others (Branching, Change Isolation, Change Isolation (review), Promotion Source, Dependency Review, CodeQL, CodeQL (javascript-typescript), CodeQL (actions), Guard Acceptance Boundary, Branching audit). Branching, Change Isolation, Change Isolation (review) and Promotion Source also exist as separate copies in `merge-group.yml`.
