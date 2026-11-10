@@ -16,6 +16,7 @@ One table, in `03-architecture/control-overview.md`, the single place that lists
 | --- | --- |
 | Control | the name, `verb Object` |
 | Id | the F-id (or the Change id for a control that is a read-only report) |
+| Stage | the domain stage the control belongs to (Owner, 10 November 2026, 13:28): `Development`, `Integration`, `Promotion`, `Publishing` or `Operations`. The overview is grouped by stage, in that order, one heading per stage |
 | Station | 10-npmjs, 11-main, 12-collectors, or root (spans stations), with in, out or stock |
 | Class | `preventive`, `detective` or `corrective` (directive things are not controls with a row: they are the intent, requirements and architecture themselves, and the hooks' feedback) |
 | Applied at | one or more applications, each `<where>:<status>`: where is `hook` (feedback), `check` (evidence), `gate` (authorization) or `setting` (a ruleset or environment setting); status is `planned` (designed, not wired) or `active` (wired and observed running on a real pull request or merge group). An overview never claims protection through a `planned` application |
@@ -46,6 +47,18 @@ The existing classification (lifecycle assessment, "The four control types as a 
 
 `track Work` (C7) is a read-only report: it judges nothing and has no authority (C7). It is therefore **outside the control list**: it has no row in the overview, no class and no verb set. The overview keeps a short separate list, **Reports**, with the report, its reader (the CTO, the CPO) and the checks it reads (it reads `verify Envelope` by name). Promoting a report to a control would need its own PLAN, an owner and an authority, with Cases; this PLAN proposes none.
 
+### Grouping by stage
+
+| Stage | Controls |
+| --- | --- |
+| Development | isolate Change F6, verify Envelope F19 |
+| Integration | bind Merge F10, verify Ancestry F7, approve Change F15, test Candidate F12, scan Vulnerabilities F8, scan Dependencies F9, freeze Collector F21 |
+| Promotion | accept Capability F14, approve Promotion F11, serialize Promotion F13, test Integration F16 |
+| Publishing | version Package F3, approve Publishing F1, verify Package Promotion F2 |
+| Operations | audit Lineage F5, and the corrective gap (no control is named with a corrective verb yet) |
+
+The stage says where in the lifecycle a control acts; the class says what it does. Both are columns, neither replaces the other. The stages are the Owner's domain language and the DO adds each to the Definitions.
+
 ### Classifying the existing controls
 
 | Class | Controls |
@@ -61,7 +74,7 @@ Mismatches the vocabulary shows, for the Owner (nothing is renamed by this PLAN)
 
 ## Cases (T56 to T58 and T66, unwired)
 
-T56 every control in the architecture's table appears in the overview with station, class and applied-at, and a control missing from it fails. T57 the verb of each control belongs to the verb set of its class, and an unknown class or applied-at is refused. T58 each preventive control names a counterpart or a stated reason, and a counterpart is a control of another class that exists in the overview. T66 each application is `planned` or `active`, a control with only planned applications claims no protection, and a report is not a control row.
+T56 every control in the architecture's table appears in the overview with stage, station, class and applied-at, and a control missing from it fails; a stage outside Development, Integration, Promotion, Publishing and Operations is refused. T57 the verb of each control belongs to the verb set of its class, and an unknown class or applied-at is refused. T58 each preventive control names a counterpart or a stated reason, and a counterpart is a control of another class that exists in the overview. T66 each application is `planned` or `active`, a control with only planned applications claims no protection, and a report is not a control row.
 
 ## Use or build
 
