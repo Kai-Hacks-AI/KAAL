@@ -17,6 +17,7 @@ The Change documentation of Release management. Solution and Delivery (the root 
 | `control-chain-assessment.md` | the control-by-control assessment of owners, implementations, Cases, contexts, duplicates and the revised critical path |
 | `lifecycle-flow-assessment.md` | the CTO assessment for the CPO's lifecycle handovers: `kaal/* -> main -> tag -> draft GitHub Release -> npmjs`, tag before or after publication, the 15 controls per transition, the 21 current checks reconciled to the target, retirement and open decisions |
 | `bind-merge-held-plan.md` | the PLAN that gives every failing or held release verdict a reachable recovery path, and makes a merge method not yet knowable a held verdict read as not passed by the gates, inside the Branching split |
+| `development-hooks-plan.md` | the PLAN for the common Git hooks as thin Development entries, each argued from Intent, with the ones that have no argument named |
 | `testing-controls-plan.md` | the PLAN for test Integration and test Candidate, with each present lane argued from intent |
 | `far-authorization-plan.md` | the PLAN for the authorization and lifecycle of Accepts and PLAN/DO integrity, before the FAR gates activate |
 
