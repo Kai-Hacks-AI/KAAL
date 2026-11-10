@@ -4,7 +4,7 @@ What the repository and its settings hold now, observed on the collector `kaal/e
 
 - **The publish workflow.**
 
-  Current: on the collector the workflow file is `.github/workflows/publish.yml`, named `KAAL / release / publish`, with the jobs `Pack`, `approve Publishing` (`environment: npm`) and `verify Package Promotion`, calling the engine at its new path (#1327). On `main` the file is still `release.yml`, named `Release`, with the jobs `Pack`, `Publish` and `Accept`, until the collector is promoted. Nothing is released in between, because the Owner starts every release by hand.
+  Current: on the collector the workflow file is `.github/workflows/publish.yml`, named `KAAL / release / publish`, with the jobs `Pack`, `approve Publishing` (`environment: npm`) and `verify Package`, calling the engine at its new path (#1327). On `main` the file is still `release.yml`, named `Release`, with the jobs `Pack`, `Publish` and `Accept`, until the collector is promoted. Nothing is released in between, because the Owner starts every release by hand.
 
   Target: F1, F2, `release-engine/`.
 

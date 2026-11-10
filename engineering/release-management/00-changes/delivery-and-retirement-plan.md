@@ -17,7 +17,7 @@ Change `release-management/C10`. PLAN, nothing is built or retired; the failing 
 
 ## 1. Inventory (read at the collector head `e110a23`, 10 November; `main` at `9033099`)
 
-Read from the tree at those heads, not from the READMEs (the README is historical evidence, not a live proof). `kaal/engineering-release-management` is 29 commits ahead of `main`. Its `.github` differs from `main` by one change: `release.yml` (named `Release`) became `publish.yml` (named `KAAL / release / publish`, jobs `Pack`, `approve Publishing` with `environment: npm`, `verify Package Promotion`). No other workflow, script or action differs.
+Read from the tree at those heads, not from the READMEs (the README is historical evidence, not a live proof). `kaal/engineering-release-management` is 29 commits ahead of `main`. Its `.github` differs from `main` by one change: `release.yml` (named `Release`) became `publish.yml` (named `KAAL / release / publish`, jobs `Pack`, `approve Publishing` with `environment: npm`, `verify Package`). No other workflow, script or action differs.
 
 | Where | What is there |
 | --- | --- |
@@ -48,7 +48,7 @@ One row per existing job, workflow, script or setting. The covering control come
 | `Branching audit` (`branching-audit.yml`) | audit Lineage F5 | the scheduled run observed, same findings on the same stock |
 | `CodeQL (actions)`, `CodeQL (javascript-typescript)`, `Dependency Review` as direct required contexts | scan Vulnerabilities F8 and scan Dependencies F9, the same tools called from `KAAL / release / *` | the new contexts observed required and green on a real pull request |
 | The lane contexts `Hosting`, `Workspaces`, `Acceptance`, `Engineering`, `Guard` as required contexts | test Candidate F12 and test Integration F16 (FAR lanes), read by `gate (promotion)` and `gate (integration)` | the gates reading the lanes, with the interim FAR marked temporary; the lanes' results identical on the same commit |
-| `release.yml` (named `Release` on `main`) | `publish.yml`, `KAAL / release / publish`, with approve Publishing F1, verify Package Promotion F2, version Package F3 | the npmjs trusted-publisher binding (the Owner reports it is already on `publish.yml`) confirmed; a dry run of Pack and the approval wait |
+| `release.yml` (named `Release` on `main`) | `publish.yml`, `KAAL / release / publish`, with approve Publishing F1, verify Package F2, version Package F3 | the npmjs trusted-publisher binding (the Owner reports it is already on `publish.yml`) confirmed; a dry run of Pack and the approval wait |
 | The four `pull_request_target` workflows and the temporary Actions policy | the same controls on `pull_request` and `merge_group` (F17: pinned to `main`) | the CI trust root (section 3) and its live negative Cases (T10); checkpoints in section 5 |
 | `bind-group.sh`, `branching.sh`, `branching-audit.sh` | `lineage/` (`bind Merge`, `verify Ancestry`, `audit Lineage`) | covered by the rows above; deleted with their workflows |
 | The `Branching` required context (last), the old contexts on the rulesets `lineage` and `main` | the three rulesets as versioned JSON, imported by the Owner, drift-checked | the drift Case green; the old context removed only after the new one is required and green |

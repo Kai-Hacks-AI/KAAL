@@ -6,4 +6,4 @@
 - **release-management/I4. Delivery architecture changes independently of Solution architecture** (Owner, 9 Nov 2026). Delivery elements (release controls, workflow wiring, the test machinery) change in their own Changes and judge candidates as `main`'s copy; Solution changes (product code and the Cases that test it) travel in candidates. `.github travels alone` and the hard pin to `main` are instances of this rule, and `release-management` is itself a Delivery element.
 - **release-management/I5. A version is named once, in order, and tied to the commit that carries it** (control version Package, under I2; applied at `main`).
 - **release-management/I6. A person approves each publication** (control approve Publishing, under I2; applied at `npmjs`).
-- **release-management/I7. Anyone can tell that the published bytes are the promoted bytes** (control verify Package Promotion, under I2; applied at `npmjs`).
+- **release-management/I7. Anyone can tell that the published bytes are the promoted bytes** (control verify Package, under I2; applied at `npmjs`).
