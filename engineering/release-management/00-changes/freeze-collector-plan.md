@@ -1,6 +1,6 @@
 # freeze Collector: a promotion waits while open pull requests still target its collector (PLAN)
 
-Change `release-management/C6`, control **freeze Collector** (`release-management/F21`; F11 is approve Promotion, F17 and F18 are taken, F19 is verify Envelope, F20 is a Change feature id; name chosen by the Owner, 10 November 2026: the verb matches the class of the control, and "clear" and "drain" are corrective, so they are out). PLAN, nothing is built; the failing Cases (T31 to T39) are in `04-test/clear-collector.red.mjs`, carried unwired.
+Change `release-management/C6`, control **freeze Collector** (`release-management/F21`; F11 is approve Promotion, F17 and F18 are taken, F19 is verify Envelope, F20 is a Change feature id; name chosen by the Owner, 10 November 2026: the verb matches the class of the control, and "clear" and "drain" are corrective, so they are out). PLAN, nothing is built; the failing Cases (T31 to T37, T54 and T55) are in `04-test/clear-collector.red.mjs`, carried unwired.
 
 ## Intent (Owner, 10 November 2026)
 
@@ -10,7 +10,7 @@ Change `release-management/C6`, control **freeze Collector** (`release-managemen
 
 - **Station: Promotion**, beside serialize Promotion (F13). A **preventive** control (before the promotion lands, not after).
 - **The invariant.** While a promotion of `kaal/<X>` is open, `kaal/<X>` is **frozen**: no pull request may target it, and the promotion proceeds only once no pull request targets it. GitHub cannot stop a pull request being opened, so this does not claim to: it makes opening one visible, failing and unmergeable.
-- **Judges** two things with one function. A promotion of `kaal/<X>` into `main` (**held** while pull requests target `kaal/<X>`), and any pull request whose base is a frozen collector (**fail**, T38). Not applicable to anything else, including a pull request into a collector with no open promotion (T39).
+- **Judges** two things with one function. A promotion of `kaal/<X>` into `main` (**held** while pull requests target `kaal/<X>`), and any pull request whose base is a frozen collector (**fail**, T54). Not applicable to anything else, including a pull request into a collector with no open promotion (T55).
 - **Verdict.** **Held** (it waits, it does not fail the lineage and it is not a pass) while any open pull request, drafts included, has `kaal/<X>` as its base, other than the promotion itself. The verdict names each pull request. Held never satisfies a gate (T28's rule, applied here; the gates read held as not passed once the Branching split lands, and the lanes gate already does).
 - **Missing facts are no evidence.** If the list of open pull requests was not gathered, the verdict is not a pass; an empty list that was successfully gathered passes.
 

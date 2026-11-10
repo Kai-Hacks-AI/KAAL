@@ -1,4 +1,4 @@
-// release-management/T31 to T39 (failing Cases, carried unwired in the PLAN of C6, freeze Collector; freeze-collector-plan.md).
+// release-management/T31 to T37, T54 and T55 (failing Cases, carried unwired in the PLAN of C6, freeze Collector; freeze-collector-plan.md).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
 //   node --test engineering/release-management/04-test/freeze-collector.red.mjs
@@ -88,7 +88,7 @@ test("T37: a fast promotion points at the hotfix route as information, and no ov
 
 const into = (over) => facts({ baseRef: PROMOTED, headRef: "claude/new", pull: 1400, openPulls: [promotion, dependent(1400, { head: "claude/new" })], ...over });
 
-test("T38: a pull request that targets a frozen collector fails, and its recovery is a retarget to another existing collector or a wait for the promotion to close", async () => {
+test("T54: a pull request that targets a frozen collector fails, and its recovery is a retarget to another existing collector or a wait for the promotion to close", async () => {
   const v = (await freezeCollector())(into());
   assert.equal(v.kind, "fail", "evidence: the pull request is judged, not merely warned about");
   assert.ok(v.message.includes("#1362"), "names the open promotion that freezes the collector");
@@ -98,7 +98,7 @@ test("T38: a pull request that targets a frozen collector fails, and its recover
   assert.ok(!/--base main\b|--base kaal\/mnemonics\b|git (push|branch)|recreate/i.test(r.join("\n")), "never main, never the frozen collector, never recreate");
 });
 
-test("T39: a collector with no open promotion is not frozen, and a closed promotion does not freeze", async () => {
+test("T55: a collector with no open promotion is not frozen, and a closed promotion does not freeze", async () => {
   const f = await freezeCollector();
   assert.equal(f(into({ openPulls: [dependent(1400, { head: "claude/new" })] })).kind, "not-applicable", "no promotion is open for it");
   assert.equal(f(into({ openPulls: [{ ...promotion, state: "closed" }, dependent(1400, { head: "claude/new" })] })).kind, "not-applicable", "a promotion that is closed does not freeze");

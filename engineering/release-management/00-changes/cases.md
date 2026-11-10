@@ -29,8 +29,8 @@ The Cases that judge the migration. They are Change Cases: they turn red or gree
 | release-management/T35 | I1 | RED: missing facts are no evidence: an open-pull-request list that was not gathered is not a pass |
 | release-management/T36 | I1 | RED: it judges only a promotion of a collector into `main` and a pull request into a frozen collector |
 | release-management/T37 | I1 | RED: a fast promotion points at the hotfix route (`engineering/github/branching.md#hotfix`) as a `Fast path:` line that is not a third recovery, and no override is offered |
-| release-management/T38 | I1 | RED: a pull request that targets a frozen collector fails, naming the promotion, with a retarget to another existing collector or a wait for the promotion to close as its only recoveries |
-| release-management/T39 | I1 | RED: a collector with no open promotion is not frozen, a closed promotion does not freeze, and missing facts are no evidence |
+| release-management/T54 | I1 | RED: a pull request that targets a frozen collector fails, naming the promotion, with a retarget to another existing collector or a wait for the promotion to close as its only recoveries |
+| release-management/T55 | I1 | RED: a collector with no open promotion is not frozen, a closed promotion does not freeze, and missing facts are no evidence |
 | release-management/T46 | I1 | RED: the body has Intent, Design (optional), Verified by and Validated by as headings, once each, in order, found by parsing; a heading inside a code block does not count (verify Envelope, `04-test/verify-envelope.red.mjs`) |
 | release-management/T47 | I1 | RED: an Intent that holds only the template's comment is empty and fails |
 | release-management/T48 | I1 | RED: a Change title is `<capability>/<C-ID> <PHASE>: <concern>` with a known capability, a defined C id and a PHASE from PLAN, DO, ACT |
