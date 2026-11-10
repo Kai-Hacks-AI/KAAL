@@ -29,6 +29,7 @@ const clean = () => {
 
 /** Today's cases that verify shipped behaviour: Embedded Tests, delivered once in test/embedded/ (graph/F7). */
 const EMBEDDED = [
+  "graph/T16 [graph/F4, graph/I7, graph/F1, graph/F2, graph/F3]: the relation reverse returns, and a caller's own read-only Map, compose with reach, cycles and reverse with every edge kept; a plain object still works",
   "gives a Node the SHA-256 of its exact bytes as its id, changing with any byte",
   "reads a root, the Node that declares no type, only through identifyRoot",
   "reads the Form strictly",
@@ -82,7 +83,7 @@ const EMBEDDED = [
 const ENGINEERING = [
   "has an Agent Skill that conforms",
   "names Graph's Skill Node by its kind and exact name and id, and claims Graph's tree",
-  "depends at runtime on kaal-hosting and its pinned YAML parser, and not on kaal-core",
+  "depends at runtime on Foundation, kaal-hosting and its pinned YAML parser, and not on kaal-core",
   "has a Skill Node, and KNIFE beside it, admitted by Core alone",
   "reads Core's genesis Node, the one Node that declares no type, as a root, and refuses every typed Node as one",
 ];
@@ -222,6 +223,8 @@ describe("Graph 0.0.1 consumer contract", () => {
     }
     const unplaced = readdirSync(join(PACKAGE, "test")).filter((f) => f.endsWith(".test.mjs"));
     assert.deepEqual(unplaced, [], "test files outside embedded/, publisher/, acceptance/ and plan/");
+    assert.ok(!existsSync(join(PACKAGE, "test", "plan", "composition.test.mjs")), "graph/T16 still runs from test/plan/ as well as test/embedded/");
+    assert.ok(!existsSync(join(PACKAGE, "test", "plan", "cycles.test.mjs")), "graph/T1–graph/T7 still run from test/plan/ as well as test/embedded/");
     assert.ok(!existsSync(join(PACKAGE, "test", "plan", "cycles.test.mjs")), "graph/T1–graph/T7 still run from test/plan/ as well as test/embedded/");
   });
 });
