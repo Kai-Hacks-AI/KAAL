@@ -1,13 +1,8 @@
-// release-management/T38 to T43 (RED): `track Work` sorts each piece of Work into about to open, in stock or about to close per station.
-// Carried unwired by the PLAN (00-changes/track-work-plan.md); the DO moves it next to the component, wires it into test:engineering
-// and makes it GREEN. Run by hand from the repository root:
-//
-//   node --test engineering/release-management/04-test/track-work.red.mjs
-//
-// The Cases fail today because the component does not exist. Do not edit a Case to make it pass.
+// release-management/T38 to T43 (C7): `track Work` sorts each piece of Work into about to open, in stock or about to close per station.
+// Moved here unchanged from the PLAN (04-test/track-work.red.mjs, approved at 25b9a2a); the DO wires them. Only the import path differs.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { fromGraphql, render, trackWork } from "../05-src/track-work/track-work.mjs";
+import { fromGraphql, render, trackWork } from "./track-work.mjs";
 
 const HEAD = "a".repeat(40);
 const pr = (change = {}) => ({

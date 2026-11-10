@@ -1,6 +1,6 @@
 # verify Envelope: the pull request body and title are the Change's stable envelope (PLAN)
 
-Change `release-management/C8`, control **verify Envelope** (the exact check name `track Work` already reads, #1363 and #1364; keep it). PLAN, nothing is built. The failing Cases T45 to T51 are in `04-test/verify-envelope.red.mjs`, carried unwired. This PLAN makes the proposal in `development-hooks-plan.md` ("CI check: the existing envelope control, extended") a numbered Change of the overarching plan to get release management into `main`, for the CTO and the CPO to align on (Owner, 10 November 2026).
+Change `release-management/C8`, control **verify Envelope** (the exact check name `track Work` already reads, #1363 and #1364; keep it). PLAN, nothing is built. The failing Cases T46 to T52 are in `04-test/verify-envelope.red.mjs`, carried unwired. This PLAN makes the proposal in `development-hooks-plan.md` ("CI check: the existing envelope control, extended") a numbered Change of the overarching plan to get release management into `main`, for the CTO and the CPO to align on (Owner, 10 November 2026).
 
 ## Intent
 
@@ -26,9 +26,9 @@ Station: **Integration** (the pull request into a collector), a preventive contr
 
 Use the commonmark parser (`records.mjs` and the commit/title id parser from the hooks Change); use the lineage controls for what a promotion or a synchronization is. Build only the judgment over title, body and kind.
 
-## Cases (T45 to T51, unwired)
+## Cases (T46 to T52, unwired)
 
-T45 the body headings by parsing. T46 an empty Intent fails. T47 the title form. T48 the kind comes from the lineage, not the title. T49 fall forward by a trusted activation boundary. T50 missing facts are not a pass and failures carry a recovery with an event that re-runs the check. T51 the exact check name `verify Envelope` (which `track Work` reads).
+T46 the body headings by parsing. T47 an empty Intent fails. T48 the title form. T49 the kind comes from the lineage, not the title. T50 fall forward by a trusted activation boundary. T51 missing facts are not a pass and failures carry a recovery with an event that re-runs the check. T52 the exact check name `verify Envelope` (which `track Work` reads).
 
 ## Open for the Owner and CPO
 

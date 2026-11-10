@@ -1,4 +1,4 @@
-// release-management/T45 to T51 (failing Cases, carried unwired in the PLAN of C8, verify Envelope; verify-envelope-plan.md).
+// release-management/T46 to T52 (failing Cases, carried unwired in the PLAN of C8, verify Envelope; verify-envelope-plan.md).
 // Run by hand from the repository root; no suite or lane names this file until the DO makes it GREEN:
 //
 //   node --test engineering/release-management/04-test/verify-envelope.red.mjs
@@ -22,7 +22,7 @@ const facts = (over) => ({
 });
 const lines = (v) => v.message.split("\n");
 
-test("T45: the body has Intent, Design (optional), Verified by and Validated by as headings, once each, in order, found by parsing", async () => {
+test("T46: the body has Intent, Design (optional), Verified by and Validated by as headings, once each, in order, found by parsing", async () => {
   assert.equal((await verify(facts())).kind, "pass");
   assert.equal((await verify(facts({ body: BODY.replace("## Design\n\nHow.\n\n", "") }))).kind, "pass", "Design is optional");
   for (const bad of [BODY.replace("## Verified by", "## Checked by"), BODY.replace("## Validated by\n\nReview.\n", ""), BODY.replace("## Intent", "## Intent\n\nA.\n\n## Intent")]) {
@@ -35,20 +35,20 @@ test("T45: the body has Intent, Design (optional), Verified by and Validated by 
   assert.equal((await verify(facts({ body: fenced }))).kind, "fail", "a heading inside a code block is not a heading");
 });
 
-test("T46: an Intent that holds only the template's comment is empty and fails", async () => {
+test("T47: an Intent that holds only the template's comment is empty and fails", async () => {
   const empty = BODY.replace("Why this Change exists.", "<!-- What this Change must achieve. -->");
   const v = await verify(facts({ body: empty }));
   assert.equal(v.kind, "fail");
   assert.match(v.message, /Intent/);
 });
 
-test("T47: a Change title is <capability>/<C-ID> <PHASE>: <concern> with a known capability, a defined C id and a PHASE from PLAN, DO, ACT", async () => {
+test("T48: a Change title is <capability>/<C-ID> <PHASE>: <concern> with a known capability, a defined C id and a PHASE from PLAN, DO, ACT", async () => {
   for (const t of ["release-management/C8 DO: wire it", "release-management/C1 ACT: what we learned"]) assert.equal((await verify(facts({ title: t }))).kind, "pass", t);
   for (const t of ["Engineering: PLAN for something", "unknown/C8 PLAN: x", "release-management/C99 PLAN: x", "release-management/C8 RED: x", "release-management/C8 CHECK: x", "release-management/C8 PLAN:", "release-management/C8 PLAN x"])
     assert.equal((await verify(facts({ title: t }))).kind, "fail", t);
 });
 
-test("T48: whether a pull request is a Change, a promotion or a synchronization comes from the lineage, not from the title", async () => {
+test("T49: whether a pull request is a Change, a promotion or a synchronization comes from the lineage, not from the title", async () => {
   const promo = { kind: "promotion", title: "PROMOTION kaal/x -> main: ship x" };
   const sync = { kind: "synchronization", title: "Synchronize kaal/x with main" };
   assert.equal((await verify(facts(promo))).kind, "pass");
@@ -57,14 +57,14 @@ test("T48: whether a pull request is a Change, a promotion or a synchronization 
   assert.equal((await verify(facts({ kind: "change", title: "PROMOTION kaal/x -> main: ship x" }))).kind, "fail", "a promotion form on a Change");
 });
 
-test("T49: pull requests opened before the activation boundary are not applicable, and the boundary is the trusted one, not the candidate's", async () => {
+test("T50: pull requests opened before the activation boundary are not applicable, and the boundary is the trusted one, not the candidate's", async () => {
   const old = await verify(facts({ title: "Engineering: PLAN old", opened: "2026-11-09T08:00:00Z" }));
   assert.equal(old.kind, "not-applicable", "fall forward: nothing is blocked retroactively");
   const forged = await verify(facts({ title: "Engineering: PLAN new", opened: "2026-11-11T08:00:00Z", candidateActivation: "2099-01-01T00:00:00Z" }));
   assert.equal(forged.kind, "fail", "a boundary the candidate supplies is ignored");
 });
 
-test("T50: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check", async () => {
+test("T51: missing facts are no evidence, and a failure carries a recovery whose event re-runs the check", async () => {
   for (const over of [{ title: undefined }, { body: null }, { kind: undefined }]) assert.notEqual((await verify(facts(over))).kind, "pass");
   const v = await verify(facts({ title: "nonsense" }));
   const r = lines(v).filter((l) => l.startsWith("Recovery:"));
@@ -72,6 +72,6 @@ test("T50: missing facts are no evidence, and a failure carries a recovery whose
   for (const l of r) assert.match(l, /^Recovery: gh pr edit 7 --(title|body-file) .+ \(re-runs on: edited\)$/, l);
 });
 
-test("T51: the check is named exactly `verify Envelope`, the name track Work reads", async () => {
+test("T52: the check is named exactly `verify Envelope`, the name track Work reads", async () => {
   assert.equal((await module_()).CHECK_NAME, "verify Envelope");
 });
