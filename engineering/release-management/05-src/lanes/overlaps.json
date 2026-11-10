@@ -1,0 +1,8 @@
+{
+  "_about": "A Case file run by two lanes on one host is declared here with its reason (T24). A declared overlap is not an accepted duplicate: it is the screen's finding, kept visible until the equivalence analysis (Case identity, host, installed artifact, environment, execution context, indirect invocation) and the Owner's separate decision say whether one run retires.",
+  "engineering/guard/acceptance/authority.test.mjs": {
+    "lanes": ["guard", "lane (Engineering)"],
+    "host": "Linux",
+    "reason": "run by the Guard job (the glob engineering/guard/acceptance/*.test.mjs) and by the Engineering lane (the file is named in test:engineering). Same file, same host, same source tree, same pull request context: a candidate duplicate. Neither run is removed here; the equivalence analysis and the Owner's decision are open (gap G16)."
+  }
+}

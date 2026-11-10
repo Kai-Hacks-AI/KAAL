@@ -1,0 +1,3 @@
+# Engineering: DO for the testing controls' lanes
+
+Capability: Engineering. Target: `kaal/engineering-release-management`. Record number provisional until integration. DO of the approved PLAN and RED (T22 to T24): the positive list of claimed jobs (`05-src/lanes/claims.json`), the declared overlap (`overlaps.json`, the screen's one finding), the fail-closed gate consuming verified authorizations only (`gate.mjs`, interim: no producer yet), parity Cases (`gate.test.mjs`), gaps G16 and G17, one interim-state entry, and the RED file and the new Cases named in `test:engineering`. The RED Cases are unchanged. No lane is retired or moved, no workflow or ruleset is changed, the gate is not activated.

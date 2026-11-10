@@ -1,0 +1,33 @@
+{
+  "_about": "The positive list of the testing controls (PLAN testing-controls-plan.md): every job of the workflow `KAAL` (.github/workflows/ci.yml) is claimed by a control, with the reason it is kept. A job that is not listed is not claimed (T22). Listing a job is not a retirement decision; a retirement needs the equivalence analysis and the Owner's separate decision.",
+  "hosting": {
+    "control": "test Integration and test Candidate",
+    "judges": "Hosting's own Cases, on each supported host (Windows, Linux, macOS)",
+    "needed_by": "F12, F16; hosting/I10 (a Case is the same on every host)",
+    "verdict": "keep"
+  },
+  "acceptance": {
+    "control": "test Integration and test Candidate",
+    "judges": "a fresh install of the packed packages into new repositories, per host",
+    "needed_by": "F12, F16; the one place where the packed bytes are installed",
+    "verdict": "keep, one definition run per host"
+  },
+  "lane": {
+    "control": "test Integration and test Candidate",
+    "judges": "the matrix lanes Workspaces (every workspace's own Cases but Hosting's), Acceptance (Linux) and Engineering (Engineering's own Cases)",
+    "needed_by": "F12, F16",
+    "verdict": "keep"
+  },
+  "guard": {
+    "control": "test Integration and test Candidate",
+    "judges": "kaal-guard's package suites and shipped acceptance, and `kaal-guard verify`, on Linux. kaal-guard is not a root workspace, so the Workspaces lane does not run these",
+    "needed_by": "F12, F16",
+    "verdict": "keep; one file is also run by the Engineering lane (overlaps.json)"
+  },
+  "guard-hosts": {
+    "control": "test Integration and test Candidate",
+    "judges": "the same suites on Windows and macOS",
+    "needed_by": "F12, F16 for a shipped package (Guard); the host dimension",
+    "verdict": "keep until Guard's requirements are shown not to name the host dimension; to verify"
+  }
+}
