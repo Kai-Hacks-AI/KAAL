@@ -21,3 +21,14 @@ Mechanisms that stand in for a target element until it exists. Each is marked te
   Difference: the target has no `pull_request_target` and a trust root that the candidate cannot change.
 
   Ends when: the trust root is demonstrated and the old contexts and workflows are removed, which T10 judges live.
+
+- **The testing gate consumes verified authorizations and verifies none.**
+
+  Interim: `05-src/lanes/gate.mjs` reads an `authorized` input for one boundary and treats a candidate-carried Accept as no authority. Nothing produces that input yet: the verifier belongs to Change (PLAN #1342, `kaal-change/far`) and is not built. With no verifier, every missing, skipped or conditional lane fails the gate.
+
+  Target: F18, F12, F16.
+
+  Difference: the target gate receives the output of Change's verifier; the interim has the contract and the fail-closed behavior, and no producer.
+
+  Ends when: `kaal-change/far` produces the authorization input and the gate consumes it, which T23 judges.
+
