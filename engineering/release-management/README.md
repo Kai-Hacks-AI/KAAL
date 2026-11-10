@@ -14,12 +14,23 @@ Every artefact lives in a folder named `<ID>-<slug>/`. Ids are flat, and a `pare
 | `03-architecture/` | Architecture nodes (`A<n>`): where and how a control is applied, as deployment target, feature and component. |
 | `06-defects/` | Defects (`D<n>`): enduring conditions a control prevents or detects. |
 
-## Traces
+## Relationships
 
-- A Change implements an Intent.
-- A Requirement serves an Intent.
-- An Architecture node traces to a Requirement and to a Defect, directly or through its parent.
-- A Case tests exactly one artefact. Its identity is `<artefact-id>/T<n>`, it names that artefact in `tests:`, and it sits in that artefact's folder.
+Each relationship has its own verb. Direction and meaning are fixed, and no generic link stands in for them.
+
+| Link | Meaning |
+| --- | --- |
+| Change `implements` Intent | The Change carries out the Intent. |
+| Requirement `serves` Intent | The Requirement provides what the Intent asks. |
+| Architecture `fulfills` Requirement | The Architecture states the obligation it is designed to fulfill. Code `realizes` Architecture, and Code is not required in a PLAN. |
+| Architecture `addresses` Defect | The root Architecture node names the Defect it prevents or detects. |
+| Case `tests` its own element | The Case checks exactly the element it names. |
+| any element `parent` same-kind element | Decomposition of one element into smaller elements of the same kind. |
+
+- The relationship is the same in every phase. Only the evidence changes: a PLAN states what the Architecture fulfills, and implementation with verification supplies evidence that it does.
+- `parent` is decomposition only. It carries no fulfillment and no inheritance.
+- Each Architecture node declares its own `fulfills`. A child's `fulfills` is a subset of its parent's.
+- A Case's identity is `<artefact-id>/T<n>`, it names that artefact in `tests:`, and it sits in that artefact's folder.
 
 ## Cases
 
