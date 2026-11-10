@@ -32,7 +32,7 @@ Architecture names the components and allocates each requirement to exactly one 
 | --- | --- |
 | `lineage/` | audit Lineage F5, verify Ancestry F7, bind Merge F10 (merge-method verdict), isolate Change F6 (synchronization and claim verdicts) |
 | `change-isolation/` | isolate Change F6 (the isolation judge) |
-| `release-engine/` | version Package F3, approve Publishing F1 (the binding of record, run, commit and digest), verify Package Promotion F2 |
+| `release-engine/` | version Package F3, approve Publishing F1 (the binding of record, run, commit and digest), verify Package F2 |
 | `promotion-source/` | accept Capability F14 |
 | `merge-group/` | bind Merge F10 (queue binding) |
 | `lanes/` | test Candidate F12, test Integration F16 (FAR: F18) |
@@ -54,13 +54,13 @@ Architecture names the components and allocates each requirement to exactly one 
 | test Integration | F16 | collectors | `lanes/` |
 | version Package | F3 (A1) | main | `release-engine/` |
 | approve Publishing | F1 (A2) | npmjs | setting: `npm` environment, `release-engine/` |
-| verify Package Promotion | F2 (A3) | npmjs | `release-engine/` |
+| verify Package | F2 (A3) | npmjs | `release-engine/` |
 
 Each of F1 to F3, F5 to F16 and F19 is allocated to a component, setting or tool above and has one or more control targets. F4 (naming aligned) is cross-cutting and allocated to the naming map below, not to a component; F17 (pinned to `main`) is cross-cutting and allocated to the wiring rule (T8). The allocations of the `npmjs` and `main` controls of the release engine keep their ids:
 
 - **release-management/A1.** version Package: F3 is allocated to `release-engine/` and applied at `main`.
 - **release-management/A2.** approve Publishing: F1 is allocated to the `npm` environment and `release-engine/` and applied at `npmjs`.
-- **release-management/A3.** verify Package Promotion: F2 is allocated to `release-engine/` and applied at `npmjs`.
+- **release-management/A3.** verify Package: F2 is allocated to `release-engine/` and applied at `npmjs`.
 
 **Realized by a native setting or a tool, not by source** (recorded here, no folder; the component only holds the requirement and its Case where one can check it):
 
@@ -109,7 +109,7 @@ One row per control: the name in the records (this folder), its component under 
 | --- | --- | --- | --- | --- | --- | --- |
 | version Package | I5 | F3 | main | `release-engine/` | `KAAL / release / promote / version Package` | T1, T2, T3, T11 |
 | approve Publishing | I6 | F1 | npmjs | `release-engine/` | `KAAL / release / publish / approve Publishing` | T4, T11 |
-| verify Package Promotion | I7 | F2 | npmjs | `release-engine/` | `KAAL / release / publish / verify Package Promotion` | T5, T11 |
+| verify Package | I7 | F2 | npmjs | `release-engine/` | `KAAL / release / publish / verify Package` | T5, T11 |
 | audit Lineage | I1 | F5 | scheduled, all | `lineage/` | `audit Lineage` (its own scheduled workflow) | T8 |
 | isolate Change | I1, I4 | F6 | main, collectors | `change-isolation/`, `lineage/` | `KAAL / release / integrate / isolate Change`, `KAAL / release / promote / isolate Change` | T7, T8 |
 | verify Ancestry | I1 | F7 | main, collectors | `lineage/` | `KAAL / release / integrate / verify Ancestry`, `KAAL / release / promote / verify Ancestry` | T8 |

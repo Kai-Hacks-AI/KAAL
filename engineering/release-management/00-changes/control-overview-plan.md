@@ -56,7 +56,7 @@ A read-only view that judges nothing and has no authority is a **report**, not a
 | Development | isolate Change F6, verify Envelope F19 |
 | Integration | bind Merge F10, verify Ancestry F7, approve Change F15, test Candidate F12, scan Vulnerabilities F8, scan Dependencies F9, freeze Collector F21 |
 | Promotion | accept Capability F14, approve Promotion F11, serialize Promotion F13, test Integration F16 |
-| Publishing | version Package F3, approve Publishing F1, verify Package Promotion F2 |
+| Publishing | version Package F3, approve Publishing F1, verify Package F2 |
 | Operations | audit Lineage F5, track Work F23, and the corrective gap (no control is named with a corrective verb yet) |
 
 The stage says where in the lifecycle a control acts; the class says what it does. Both are columns, neither replaces the other. The stages are the Owner's domain language and the DO adds each to the Definitions.
@@ -66,7 +66,7 @@ The stage says where in the lifecycle a control acts; the class says what it doe
 | Class | Controls |
 | --- | --- |
 | Preventive | isolate Change F6, bind Merge F10, approve Promotion F11, serialize Promotion F13, accept Capability F14, approve Change F15, approve Publishing F1, version Package F3, freeze Collector F21 |
-| Detective | audit Lineage F5, scan Vulnerabilities F8, scan Dependencies F9, test Candidate F12, test Integration F16, verify Package Promotion F2, verify Ancestry F7, verify Envelope F19, track Work F23 |
+| Detective | audit Lineage F5, scan Vulnerabilities F8, scan Dependencies F9, test Candidate F12, test Integration F16, verify Package F2, verify Ancestry F7, verify Envelope F19, track Work F23 |
 | Corrective | the `Recovery:` lines of the verdicts, same-tag retry, the incident procedure, key rotation, deprecation of a burned version |
 
 Mismatches the vocabulary shows, for the Owner (nothing is renamed by this PLAN):
