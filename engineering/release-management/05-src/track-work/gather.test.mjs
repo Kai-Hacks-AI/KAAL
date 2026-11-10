@@ -20,15 +20,14 @@ const node = (number, base) => ({
 });
 const fake = (more = false) => async (a) => {
   if (a[0] === "graphql") {
-    return { data: { repository: {
-      pullRequests: { pageInfo: { hasNextPage: more }, nodes: [node(1, "int/x")] },
-      refs: { pageInfo: { hasNextPage: false }, nodes: [
-        { name: "trunk", target: { oid: SHA }, associatedPullRequests: { totalCount: 0 } },
-        { name: "int/x", target: { oid: SHA }, associatedPullRequests: { totalCount: 5 } },
-        { name: "claude/lonely", target: { oid: SHA }, associatedPullRequests: { totalCount: 0 } },
-        { name: "claude/done", target: { oid: SHA }, associatedPullRequests: { totalCount: 1 } },
-      ] },
-    } } };
+    const q = a.find((x) => x.startsWith("query="));
+    if (q.includes("pullRequests(")) return { data: { repository: { pullRequests: { pageInfo: { hasNextPage: more }, nodes: [node(1, "int/x")] } } } };
+    return { data: { repository: { refs: { pageInfo: { hasNextPage: false }, nodes: [
+      { name: "trunk", target: { oid: SHA }, associatedPullRequests: { totalCount: 0 } },
+      { name: "int/x", target: { oid: SHA }, associatedPullRequests: { totalCount: 5 } },
+      { name: "claude/lonely", target: { oid: SHA }, associatedPullRequests: { totalCount: 0 } },
+      { name: "claude/done", target: { oid: SHA }, associatedPullRequests: { totalCount: 1 } },
+    ] } } } };
   }
   assert.ok(!a.includes("-X") && !a.includes("--method"), "gathering writes nothing");
   if (a[0].includes("/compare/trunk...int/x")) return { ahead_by: 2 };
@@ -46,7 +45,7 @@ describe("release-management/T44 gathering is read-only and shows what it could 
     const f = await gather(fake(true), "O/R", MODEL);
     assert.ok(f.gaps.some((g) => /deployment request/.test(g)));
     assert.ok(f.gaps.some((g) => /no Release/.test(g)));
-    assert.ok(f.gaps.some((g) => /more than 100 open pull requests/.test(g)));
+    assert.ok(f.gaps.some((g) => /more open pull requests than were read/.test(g)));
   });
   it("the report prints the gaps after the lines, never an empty report that looks complete", async () => {
     const out = render(trackWork(await gather(fake(), "O/R", MODEL), { model: MODEL }));
@@ -147,5 +146,33 @@ describe("release-management/T44 a list GitHub cut at one page is never taken as
   it("changed files cut with the record folder on the page: the record is known", () => {
     const [w] = run(cut({ files: { pageInfo: { hasNextPage: true }, nodes: [{ path: "rec/26/11/10/01/a.md" }] } })).work;
     assert.deepEqual([w.record, w.unread], ["rec/26/11/10/01", []]);
+  });
+});
+
+describe("release-management/T44 gathering reads page by page and never as one heavy call", () => {
+  it("follows the cursor through every page of pull requests and of branches", async () => {
+    const seen = [];
+    const paged = async (a) => {
+      if (a[0] !== "graphql") return fake()(a);
+      const q = a.find((x) => x.startsWith("query="));
+      const after = a.includes("-F") ? a.find((x) => x.startsWith("after="))?.slice(6) : undefined;
+      seen.push([q.includes("pullRequests(") ? "pr" : "ref", after ?? null]);
+      if (!q.includes("pullRequests(")) return fake()(a);
+      const second = after === "c1";
+      return { data: { repository: { pullRequests: { pageInfo: { hasNextPage: !second, endCursor: second ? null : "c1" }, nodes: [node(second ? 2 : 1, "int/x")] } } } };
+    };
+    const f = await gather(paged, "O/R", MODEL);
+    assert.deepEqual(f.prs.map((p) => p.number), [1, 2]);
+    assert.deepEqual(seen.filter(([k]) => k === "pr").map(([, c]) => c), [null, "c1"]);
+    assert.ok(!f.gaps.some((g) => /more open pull requests/.test(g)));
+  });
+  it("a page without a cursor, or more pages than the limit, is a gap, not a complete list", async () => {
+    const f = await gather(fake(true), "O/R", MODEL);
+    assert.ok(f.gaps.some((g) => /more open pull requests than were read/.test(g)));
+  });
+  it("one page asks for few pull requests, so the call stays light", async () => {
+    let query = "";
+    await gather(async (a) => { if (a[0] === "graphql" && a.find((x) => x.startsWith("query=")).includes("pullRequests(")) query = a.find((x) => x.startsWith("query=")); return fake()(a); }, "O/R", MODEL);
+    assert.match(query, /pullRequests\(states:OPEN,first:20/);
   });
 });
