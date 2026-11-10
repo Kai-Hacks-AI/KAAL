@@ -55,6 +55,17 @@ Driven-by: Requirement F10
 Driven-by: Change release-management/00-changes/bind-merge-held-plan.md
 ```
 
+**Qualified references (Owner, 10 November: ids need their context, or they are not unique).** `T30` or `F10` alone is ambiguous, because the numbers repeat across capabilities. The repository already qualifies ids as `<scope>/<ID>` where it matters: `hosting/F15`, `hosting/D11`, `change/I7`, `change/F8`, `guard/C134`, and the Case table of this folder (`release-management/T25`). The trailer uses that form, nothing new:
+
+`Driven-by: <Kind> <scope>/<ID>`, for example `Driven-by: Requirement release-management/F10`, `Driven-by: Case release-management/T30`, `Driven-by: Defect hosting/D11`, `Driven-by: Intent change/I7`, `Driven-by: Change guard/C134`.
+
+- **`<scope>`** is the capability or Engineering area name as the repository already spells it (`hosting`, `guard`, `change`, `release-management`, ...). It is never omitted, even inside the scope's own documents, where the ids are written bare today (`F10`); the trailer is the one place that must be unique across the repository.
+- **`<Kind>` must agree with the id's letter** (Intent `I`, Requirement `F`, Architecture `A`, Defect `D`, Case `T`, Change `C`), so a mismatch such as `Requirement release-management/T30` fails. Kind stays in the line because it is the Owner's wording and makes the reason readable without knowing the letters.
+- **A Change can also be named by its record**, the path id under `.kaal/changes/` (for example `Driven-by: Change engineering/26/11/10/04`), since a Change Record is a document with a stable place, not an id in a table.
+- **Resolution, which the `message` check does by parsing, never by matching words:** one table (born in KAAL, in the Development domain) maps each `<scope>` to the documents that define its ids (for example `release-management` to `engineering/release-management/0[1-4]*` and the Case tables of `00-changes`; `hosting` to the package's source documents, not its `dist/` copy). The check reads the ids those documents define with the same id parser `00-changes/documentation.test.mjs` already uses (one place) and fails when the reference is not defined, when the scope is unknown, or when the kind disagrees with the letter. Its message names the nearest defined ids, the recovery.
+- **Tree used:** the commit's own tree (staged, in the hook; the head, in CI), so a commit that introduces the id it cites (a PLAN that adds `F10`) resolves.
+- **A pull request number or a URL is not a reference.** A reason is a piece of the solution, delivery or change documentation, not a place where it was discussed.
+
 **Where the other commits fit under PLAN, DO and ACT (my reading, for the Owner to confirm).**
 - **A fix after review** carries the phase of what was reviewed: a revision of a plan or of its failing Cases is `PLAN`; a fix to the build that keeps it GREEN is `DO`.
 - **A retirement** (removing an old check once the new one covers it) is a change like any other: planned (`PLAN`), then removed (`DO`) with the check proving the coverage stays GREEN.
