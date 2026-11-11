@@ -95,8 +95,15 @@ export function evaluate(plan, byId) {
   // F1/6: at least one meaningful observed RED condition (A9 reads the evidence).
   if (!Array.isArray(plan.evidence)) {
     findings.push(unknown('F1/6', 'evidence', 'No current evaluation evidence is available', 'Supply the current evaluation evidence of the outer-loop Cases.'));
-  } else if (!plan.evidence.some((entry) => entry.result === 'failed' && entry.reason === 'assertion' && typeof entry.target === 'string')) {
-    findings.push(fail('F1/6', 'evidence', 'The PLAN has no meaningful observed RED condition', 'Execute an outer-loop Case that fails on an assertion about an unfulfilled target. A pass, an unconditional failure and a missing import do not count.'));
+  } else {
+    // A RED condition counts only when it belongs to this plan: a declared Case, and one of that Case's resolved targets.
+    const declared = new Map(list(plan.cases).map((entry) => [entry.id, list(entry.tests)]));
+    const meaningful = plan.evidence.some((entry) => entry.result === 'failed' && entry.reason === 'assertion'
+      && declared.has(entry.case) && declared.get(entry.case).includes(entry.target) && kindOf(byId, entry.target) !== undefined);
+    if (!meaningful) {
+      const names = [...declared.keys()];
+      findings.push(fail('F1/6', 'evidence', 'The PLAN has no meaningful observed RED condition', `Execute a Case of this plan (${names.length > 0 ? names.join(', ') : 'none declared yet'}) so that it fails on an assertion about one of its own unfulfilled targets. A pass, an unconditional failure, a missing import and a result for a Case or target outside this plan do not count.`));
+    }
   }
   return findings;
 }
