@@ -6,7 +6,7 @@ verify Plan is a detective control. It judges whether a PLAN is valid and return
 
 ## Layout
 
-Every artefact lives in a folder named `<ID>-<slug>/`. Ids are flat, and a `parent:` link places an artefact in its hierarchy.
+Every artefact lives in a folder named `<kind><n>-<slug>/`. A `parent:` link places an artefact in its hierarchy.
 
 | Folder | Holds |
 | --- | --- |
@@ -15,6 +15,14 @@ Every artefact lives in a folder named `<ID>-<slug>/`. Ids are flat, and a `pare
 | `02-requirements/` | Functional (`F<n>`) and nonfunctional (`N<n>`) Requirements: what a control provides. |
 | `03-architecture/` | Architecture elements (`A<n>`): where and how a control is applied, as deployment target, feature and component. |
 | `06-defects/` | Defects (`D<n>`): independent, requirement-like negative expectations that a control prevents or detects. |
+
+## Identity
+
+Every node has the same stable id grammar: `<capability>/<kind><n>`. The kind is `I`, `F`, `N`, `A`, `D`, `C` or `T`, so `release/F1` is a Requirement and `release/T13` is a Case. Ids are globally unique.
+
+Identity is not placement. No id encodes where a node sits, in either direction: a Case is `release/T13` wherever it sits, and it keeps that id when it moves.
+
+The capability names the owner of the node, not the folder it sits in, so a folder name does not repeat it. A node that is owned elsewhere moves to its owner and takes the owner's capability in its id. Every link (`parent`, `serves`, `addresses`, `implements`, `resolves`, `tests`) names the full id. Testing owns the design of Cases. This grammar only fixes how a Case is named in this layout.
 
 ## Relationships
 
@@ -34,8 +42,9 @@ Each relationship has its own verb. Direction and meaning are fixed, and no gene
 
 ## Cases
 
-- A Case is identified as `<placement-id>/T<n>`, and the identity is unique.
-- A Case sits beside the nearest shared semantic or decomposition ancestor of its targets, then beside the common Intent, then at the owning Capability. A Case with one target sits beside that target.
+- A Case id is `<capability>/T<n>`, like every node, and is unique.
+- The `tests` list states what the Case covers. The place of the Case is derived from it: the nearest shared semantic or decomposition ancestor of its targets, then the common Intent, then the capability itself. A Case with one target sits beside that target.
+- Placement is validated separately from identity. When `tests` changes and the derived place changes, the Case moves and its id stays.
 - One Case may cover several targets or gaps.
 - Change-oriented Cases prove identified gaps closed and sit under `00-changes/`. Target-oriented Cases prove the target.
 - `T<n>.red.mjs` is a Case that is expected to fail while its target is unfulfilled and is wired into no lane.
