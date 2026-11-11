@@ -17,7 +17,3 @@ A way to open a pull request without the footer, and a way to see a template as 
 ## Longed For
 
 A body check at the moment a pull request is created, so a contaminated body never exists. A check that a Case declares only what it uses. One place where the next free id of a capability can be read.
-
-## Sentence
-
-Priorities Lead Agents Next Development, Optimising Code Health, Enabling Clear Knowledge About Collected Testing.
