@@ -6,7 +6,7 @@ verify Plan is a detective control. It judges whether a PLAN is valid and return
 
 ## Layout
 
-Every artefact lives in a folder named `<ID>-<slug>/`. Ids are flat, and a `parent:` link places an artefact in its hierarchy.
+Every artefact lives in a folder named `<kind><n>-<slug>/`. A `parent:` link places an artefact in its hierarchy.
 
 | Folder | Holds |
 | --- | --- |
@@ -15,6 +15,10 @@ Every artefact lives in a folder named `<ID>-<slug>/`. Ids are flat, and a `pare
 | `02-requirements/` | Functional (`F<n>`) and nonfunctional (`N<n>`) Requirements: what a control provides. |
 | `03-architecture/` | Architecture elements (`A<n>`): where and how a control is applied, as deployment target, feature and component. |
 | `06-defects/` | Defects (`D<n>`): independent, requirement-like negative expectations that a control prevents or detects. |
+
+## Identity
+
+Every id is globally unique and starts with its capability: `<capability>/<kind><n>`, for example `release/F1`. The capability is the folder the artefacts sit in, so a folder name does not repeat it. Every link (`parent`, `serves`, `addresses`, `implements`, `resolves`, `tests`) and every Case names the full id.
 
 ## Relationships
 
@@ -34,8 +38,8 @@ Each relationship has its own verb. Direction and meaning are fixed, and no gene
 
 ## Cases
 
-- A Case is identified as `<placement-id>/T<n>`, and the identity is unique.
-- A Case sits beside the nearest shared semantic or decomposition ancestor of its targets, then beside the common Intent, then at the owning Capability. A Case with one target sits beside that target.
+- A Case is identified as `<placement id>/T<n>`, for example `release/F1/T3`, and the identity is unique. The identity is the only statement of where the Case sits.
+- A Case sits beside the nearest shared semantic or decomposition ancestor of its targets, then beside the common Intent, then at the capability itself, as `<capability>/T<n>`. A Case with one target sits beside that target.
 - One Case may cover several targets or gaps.
 - Change-oriented Cases prove identified gaps closed and sit under `00-changes/`. Target-oriented Cases prove the target.
 - `T<n>.red.mjs` is a Case that is expected to fail while its target is unfulfilled and is wired into no lane.
