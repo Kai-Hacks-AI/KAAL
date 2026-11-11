@@ -3,12 +3,12 @@
 ## PLAN
 
 1. Add I9, F15, A35 and A38 with their Cases T130 to T133, and C10 with its Cases T134 to T136 (one per gap) and T137, T138 for F15. The expected RED is observed against `main` (`evidence.md`).
-2. The promotion template has three chapters, Collector, Delivers and Order, as F15 states. It reuses no heading of the PLAN template. It carries no PLAN, status, approval, merge method or attribution, because the evidence shows each of them written into promotion bodies (`evidence.md`).
+2. The promotion template has two chapters, Change and Why now, as F15 states. Change shares only its name with the PLAN and DO interfaces, because it carries the same stable identity. It carries no source or destination, PLAN, status, approval, merge method or attribution, because the evidence shows each of them written into promotion bodies (`evidence.md`). The CPO's candidate of Change, Value and Priority was tested against that evidence, and `evidence.md` records why Value and Priority became one chapter.
 3. The PLAN delivers no template, no checker and no enforcement, changes no workflow, ruleset or required check, redesigns neither Branching nor the promotion queue, and cites no document that is not on `main`.
 
 ## DO
 
-1. Deliver `.github/PULL_REQUEST_TEMPLATE/promotion.md` with the three chapters of F15, as its own `.github` change on its own collector, because Change Isolation keeps `.github` apart from engineering.
+1. Deliver `.github/PULL_REQUEST_TEMPLATE/promotion.md` with the two chapters of F15, as its own `.github` change on its own collector, because Change Isolation keeps `.github` apart from engineering.
 2. Rename the Cases from `T<n>.red.mjs` to `T<n>.test.mjs` when they are green, and wire them where the other release management Cases run.
 
 ## ACT

@@ -11,12 +11,12 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const headings = (text) => text.split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T131';
 export const tests = ['release/F15'];
-export const title = 'the promotion template has three chapters, Collector, Delivers and Order, each with a hint, and reuses no PLAN heading';
+export const title = 'the promotion template has two chapters, Change and Why now, each with a hint, and reuses no other PLAN heading';
 export function run() {
   const text = read(template, 'the promotion template');
-  assert.deepEqual(headings(text), ['Collector', 'Delivers', 'Order']);
+  assert.deepEqual(headings(text), ['Change', 'Why now']);
   const plan = headings(read(planTemplate, 'the PLAN template'));
-  assert.ok(!headings(text).some((h) => plan.includes(h)), 'the promotion template reuses a PLAN heading');
+  assert.ok(!headings(text).some((h) => plan.includes(h) && h !== 'Change'), 'the promotion template reuses a PLAN heading');
   const hints = text.split(/^## .*$/m).slice(1).map((part) => /<!--[\s\S]*?-->/.test(part));
-  assert.deepEqual(hints, [true, true, true], 'every chapter carries a hint');
+  assert.deepEqual(hints, [true, true], 'every chapter carries a hint');
 }
