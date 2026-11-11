@@ -6,10 +6,23 @@ const CHANGE_LINE = /^(\S+\/C\d+) (.+?): (.+)$/;
 
 const normalise = (text) => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
+// Removes HTML comments until none is left, so that a comment nested in another cannot rebuild one.
+// A body that needs more than one pass hides text inside nested comments and is not accepted.
+function withoutComments(body) {
+  let text = body;
+  let passes = 0;
+  for (let previous = ''; previous !== text; ) {
+    previous = text;
+    text = text.replace(/<!--[\s\S]*?-->/g, '');
+    if (previous !== text) passes += 1;
+  }
+  return { text, nested: passes > 1 };
+}
+
 // Chapters of the body: the headings in order and the text under each level-2 heading.
 // HTML comments (the hints of the template) and fenced code are not read as headings.
 function read(body) {
-  const lines = body.replace(/<!--[\s\S]*?-->/g, '').split('\n');
+  const lines = body.split('\n');
   const headings = [];
   const text = new Map();
   let fenced = false;
@@ -31,7 +44,9 @@ function read(body) {
 export function checkPlanBody(body) {
   const problems = [];
   if (typeof body !== 'string') return { ok: false, problems: ['the body is not text'] };
-  const { headings, chapter } = read(body);
+  const stripped = withoutComments(body);
+  if (stripped.nested || /<!--|-->/.test(stripped.text)) return { ok: false, problems: ['an HTML comment is nested or not closed'] };
+  const { headings, chapter } = read(stripped.text);
   if (JSON.stringify(headings) !== JSON.stringify(CHAPTERS.map((name) => `## ${name}`))) {
     problems.push(`the body must have exactly the chapters ${CHAPTERS.join(', ')} in this order and no other heading (found: ${headings.join(', ') || 'none'})`);
     return { ok: false, problems };
