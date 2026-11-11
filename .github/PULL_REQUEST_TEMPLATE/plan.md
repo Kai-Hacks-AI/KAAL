@@ -1,3 +1,17 @@
-<!-- A PLAN pull request. Select this template with ?template=plan.md. One sentence, written once and not changed: A is the current state, B the target state and X what started the work, each in a few words. The files of the Change hold the detail. -->
+<!-- A PLAN pull request. Write it once and never edit it. Short phrases only: the files of the Change hold the detail. -->
 
-<Change id>: the plan to go from <A> to <B>, because of <X>.
+## Change
+
+<!-- Id and name of the Change, as in its C<n>.md, for example `release/C3 create Plan`. -->
+
+## From
+
+<!-- A, the current state, in one phrase a newcomer understands. Not a list of gaps. -->
+
+## To
+
+<!-- B, the target state, in one phrase. -->
+
+## Because
+
+<!-- X, what started the work: an Owner request, a Defect report or a Finding. A phrase or a reference. -->
