@@ -1,6 +1,8 @@
 // Interim expected-RED runner for C1. Temporary migration work: removed when Testing provides expected-RED execution.
 // Usage: node run-red.mjs [--complete] [--judge <module>] [--evidence <file>] [<case-file>...]
-// With --evidence, every T<n>.red.mjs under the capability runs and one evidence row per Case and target is written to <file> for the verify Plan check.
+// With --evidence, every T<n>.red.mjs under the capability runs and one execution is recorded per Case and written to <file> for the verify Plan check.
+// A failure is attributed to a target only when the Case declares exactly one target or its assertion error names the failed target (error.target). Otherwise one row without a target is written, which the judge cannot count as observed RED for any target.
+// A passing run executed every assertion, so it is recorded as passed for each declared target.
 // Executes outer-loop Cases against a judge and reports what each execution shows.
 //   RED-observed       the Case failed on an assertion about the intended behaviour
 //   RED-unconditional  the Case failed through an unconditional failure, which is not meaningful evidence
@@ -55,6 +57,7 @@ for (const file of files.sort()) {
   let targets = [];
   let kind;
   let detail = '';
+  let failedTarget;
   try {
     const mod = await import(pathToFileURL(file).href);
     id = mod.id ?? file;
@@ -63,6 +66,7 @@ for (const file of files.sort()) {
     kind = 'GREEN';
   } catch (error) {
     if (error?.code === 'ERR_ASSERTION') {
+      failedTarget = typeof error.target === 'string' ? error.target : undefined;
       kind = error.operator === 'fail' ? 'RED-unconditional' : 'RED-observed';
       detail = `${stoppedAt(error, file)}: ${String(error.message).split('\n')[0]}`;
     } else {
@@ -70,12 +74,14 @@ for (const file of files.sort()) {
       detail = String(error?.message ?? error).split('\n')[0];
     }
   }
-  rows.push({ id, kind, detail, targets });
+  rows.push({ id, kind, detail, targets, failedTarget });
 }
 
 if (evidenceFile) {
   const reason = { 'RED-observed': 'assertion', 'RED-unconditional': 'unconditional', ERROR: 'error' };
-  const evidence = rows.flatMap((row) => row.targets.map((target) => (row.kind === 'GREEN' ? { case: row.id, target, result: 'passed' } : { case: row.id, target, result: 'failed', reason: reason[row.kind] })));
+  const failure = (row, target) => ({ case: row.id, ...(target === undefined ? {} : { target }), result: 'failed', reason: reason[row.kind] });
+  const attributed = (row) => (row.targets.length === 1 ? row.targets[0] : row.targets.includes(row.failedTarget) ? row.failedTarget : undefined);
+  const evidence = rows.flatMap((row) => (row.kind === 'GREEN' ? row.targets.map((target) => ({ case: row.id, target, result: 'passed' })) : [failure(row, attributed(row))]));
   await writeFile(evidenceFile, `${JSON.stringify(evidence, null, 1)}
 `);
 }

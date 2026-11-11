@@ -30,15 +30,27 @@ test(`${id} ${title}`, async () => {
     assert.ok(result.findings.some((f) => f.rule === 'F1/6' && f.status === 'unknown'));
   }
 
-  // The runner that Testing stands in for writes one row per Case and target, and the reader takes it as evidence.
+  // The runner that Testing stands in for records what one execution shows. A failure is attributed to a target only when the Case names it or declares just one.
   const scratch = mkdtempSync(join(tmpdir(), 'verify-plan-evidence-'));
-  const caseFile = (name, id, body) => { const file = join(scratch, name); writeFileSync(file, `export const id = '${id}';\nexport const tests = ['release/I1', 'release/I2'];\nexport function run() { ${body} }\n`); return file; };
-  const observed = caseFile('T1.red.mjs', 'release/T1', "throw Object.assign(new Error('the intended behaviour is absent'), { code: 'ERR_ASSERTION', operator: 'strictEqual' });");
-  const stub = caseFile('T2.red.mjs', 'release/T2', "throw Object.assign(new Error('red'), { code: 'ERR_ASSERTION', operator: 'fail' });");
+  const caseFile = (name, id, body, targets = "['release/I1', 'release/I2']") => { const file = join(scratch, name); writeFileSync(file, `export const id = '${id}';\nexport const tests = ${targets};\nexport function run() { ${body} }\n`); return file; };
+  const fail = (extra = '', operator = 'strictEqual') => `throw Object.assign(new Error('the intended behaviour is absent'), { code: 'ERR_ASSERTION', operator: '${operator}'${extra} });`;
+  const unnamed = caseFile('T1.red.mjs', 'release/T1', fail());
+  const named = caseFile('T2.red.mjs', 'release/T2', fail(", target: 'release/I2'"));
+  const single = caseFile('T3.red.mjs', 'release/T3', fail(), "['release/I1']");
+  const stub = caseFile('T4.red.mjs', 'release/T4', fail('', 'fail'), "['release/I1']");
+  const green = caseFile('T5.red.mjs', 'release/T5', '');
   const runner = join(dirname(fileURLToPath(import.meta.url)), '../../../../../../00-changes/C1-verify-plan/run-red.mjs');
   const out = join(scratch, 'evidence.json');
-  spawnSync('node', [runner, '--evidence', out, observed, stub], { encoding: 'utf8' });
+  spawnSync('node', [runner, '--evidence', out, unnamed, named, single, stub, green], { encoding: 'utf8' });
   const rows = readEvidence(readFileSync(out, 'utf8'));
-  assert.deepEqual(rows.filter((r) => r.case === 'release/T1').map((r) => [r.target, r.result, r.reason]), [['release/I1', 'failed', 'assertion'], ['release/I2', 'failed', 'assertion']]);
-  assert.deepEqual(rows.filter((r) => r.case === 'release/T2').map((r) => r.reason), ['unconditional', 'unconditional']);
+  const of = (c) => rows.filter((r) => r.case === c).map((r) => [r.target, r.result, r.reason]);
+  assert.deepEqual(of('release/T1'), [[undefined, 'failed', 'assertion']], 'a multi-target failure that names no target invents no per-target evidence');
+  assert.deepEqual(of('release/T2'), [['release/I2', 'failed', 'assertion']], 'a failure that names its target is attributed to that target only');
+  assert.deepEqual(of('release/T3'), [['release/I1', 'failed', 'assertion']]);
+  assert.deepEqual(of('release/T4'), [['release/I1', 'failed', 'unconditional']]);
+  assert.deepEqual(of('release/T5'), [['release/I1', 'passed', undefined], ['release/I2', 'passed', undefined]]);
+  // The judge cannot take the unattributed row as observed RED for any target.
+  const twoTargets = { intents: [{ id: 'release/I1' }, { id: 'release/I2' }], cases: [{ id: 'release/T1', found: 'release/I1', tests: ['release/I1', 'release/I2'] }] };
+  const unattributed = await judge({ ...twoTargets, evidence: rows.filter((r) => r.case === 'release/T1') });
+  assert.ok(unattributed.findings.some((f) => f.rule === 'F1/6' && f.status === 'fail'));
 });
