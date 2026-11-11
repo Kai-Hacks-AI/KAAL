@@ -11,8 +11,9 @@ test(`${id} ${title}`, async () => {
     intents: [{ id: 'release/I1' }],
     requirements: [{ id: 'release/F1', kind: 'F', serves: ['release/I1'] }, { id: 'release/F9', kind: 'F', serves: [] }],
     architecture: [{ id: 'release/A1', addresses: [] }],
-    changes: [{ id: 'release/C1', implements: [], resolves: [], gaps: ['release/C1/G1'] }],
-    cases: [{ id: 'release/T1', tests: ['release/F1', 'release/C1/G1'] }, { id: 'release/T2', tests: ['release/F1', 'release/F9'] }],
+    changes: [{ id: 'release/C1', implements: [], resolves: [], closes: ['release/G1'] }],
+  gaps: [{ id: 'release/G1' }],
+    cases: [{ id: 'release/T1', tests: ['release/F1', 'release/G1'] }, { id: 'release/T2', tests: ['release/F1', 'release/F9'] }],
     evidence: [{ case: 'release/T1', result: 'passed' }],
   };
   const findings = evaluate(plan, index(plan));

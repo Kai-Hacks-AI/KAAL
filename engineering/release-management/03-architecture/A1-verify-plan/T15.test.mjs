@@ -10,13 +10,14 @@ const valid = {
   defects: [{ id: 'release/D1' }],
   requirements: [{ id: 'release/F1', kind: 'F', serves: ['release/I1'] }],
   architecture: [{ id: 'release/A1', addresses: ['release/F1', 'release/D1'] }],
-  changes: [{ id: 'release/C1', implements: ['release/I1'], resolves: ['release/D1'], gaps: ['release/C1/G1'] }],
+  changes: [{ id: 'release/C1', implements: ['release/I1'], resolves: ['release/D1'], closes: ['release/G1'] }],
+  gaps: [{ id: 'release/G1' }],
   cases: [
     { id: 'release/T1', at: 'release/I1', tests: ['release/I1'] },
     { id: 'release/T2', at: 'release/F1', tests: ['release/F1'] },
     { id: 'release/T3', at: 'release/A1', tests: ['release/A1'] },
     { id: 'release/T4', at: 'release/D1', tests: ['release/D1'] },
-    { id: 'release/T5', at: 'release/C1', tests: ['release/C1/G1'] },
+    { id: 'release/T5', at: 'release/C1', tests: ['release/G1'] },
   ],
   evidence: [{ case: 'release/T2', result: 'failed', reason: 'assertion', target: 'release/F1' }],
 };

@@ -18,11 +18,11 @@ Every artefact lives in a folder named `<kind><n>-<slug>/`. A `parent:` link pla
 
 ## Identity
 
-Every node has the same stable id grammar: `<capability>/<kind><n>`. The kind is `I`, `F`, `N`, `A`, `D`, `C` or `T`, so `release/F1` is a Requirement and `release/T13` is a Case. Ids are globally unique.
+Every node has the same stable id grammar: `<capability>/<kind><n>`. The kind is `I`, `F`, `N`, `A`, `D`, `G`, `C` or `T`, so `release/F1` is a Requirement, `release/G1` is a Gap and `release/T13` is a Case. A Gap id never names the Change that closes it. Ids are globally unique.
 
 Identity is not placement. No id encodes where a node sits, in either direction: a Case is `release/T13` wherever it sits, and it keeps that id when it moves.
 
-The capability names the owner of the node, not the folder it sits in, so a folder name does not repeat it. A node that is owned elsewhere moves to its owner and takes the owner's capability in its id. Every link (`parent`, `serves`, `addresses`, `implements`, `resolves`, `tests`) names the full id. Testing owns the design of Cases. This grammar only fixes how a Case is named in this layout.
+The capability names the owner of the node, not the folder it sits in, so a folder name does not repeat it. A node that is owned elsewhere moves to its owner and takes the owner's capability in its id. Every link (`parent`, `serves`, `addresses`, `implements`, `resolves`, `closes`, `tests`) names the full id. Testing owns the design of Cases. This grammar only fixes how a Case is named in this layout.
 
 ## Relationships
 
@@ -32,9 +32,11 @@ Each relationship has its own verb. Direction and meaning are fixed, and no gene
 | --- | --- |
 | Change `implements` Intent | The Change carries out the Intent. |
 | Change `resolves` Defect | The Change removes the Defect. A Change has at least one of the two drivers. A Defect needs no Intent. |
+| Change `closes` Gap | The Change closes the Gap, a Change-oriented delta between the baseline and the intended state. A Change closes at least one Gap, and a Gap has exactly one directly closing Change. A Defect is not a Gap: it is `resolved`. |
+| Gap `parent` Gap | A Gap that needs several Changes is decomposed into child Gaps, each closed by one Change. The closure of the parent Gap is derived from its child Gaps and is not a direct closure. |
 | Requirement `serves` Intent | The Requirement provides what the Intent asks. |
 | Architecture `addresses` Requirement or Defect | The Architecture element exists for at least one functional Requirement, nonfunctional Requirement or Defect. Code `realizes` Architecture, and Code is not required in a PLAN. |
-| Case `tests` one or more targets | The Case checks the elements it names. A target never references a Case. |
+| Case `tests` one or more targets | The Case checks the elements or Gaps it names. A target never references a Case. |
 | any element `parent` same-kind element | Decomposition of one element into smaller elements of the same kind, from child to parent. It carries no coverage. |
 
 - The relationship is the same in every phase. Only the evidence changes: a PLAN states what an element addresses, and implementation with verification supplies evidence.

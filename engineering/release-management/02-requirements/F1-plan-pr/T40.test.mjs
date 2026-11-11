@@ -11,7 +11,7 @@ test(`${id} ${title}`, async () => {
     [{ changes: [null] }, 'changes'],
     [{ evidence: [null] }, 'evidence'],
     [{ cases: 'none' }, 'cases'],
-    [{ changes: [{ id: 'release/C1', gaps: 'G1' }] }, 'changes.gaps'],
+    [{ changes: [{ id: 'release/C1', closes: 'G1' }] }, 'changes.closes'],
   ];
   for (const [plan, name] of malformed) {
     const result = await judge(plan);

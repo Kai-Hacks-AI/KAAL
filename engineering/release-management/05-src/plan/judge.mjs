@@ -4,7 +4,7 @@ import { evaluate } from './rules.mjs';
 import { index } from './resolve.mjs';
 
 // The plan model is readable when every collection is a list of objects. Anything else is unavailable input, not a crash.
-const COLLECTIONS = ['intents', 'requirements', 'architecture', 'defects', 'changes', 'cases', 'evidence'];
+const COLLECTIONS = ['intents', 'requirements', 'architecture', 'defects', 'gaps', 'changes', 'cases', 'evidence'];
 function unreadableParts(plan) {
   const parts = [];
   const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -12,7 +12,7 @@ function unreadableParts(plan) {
     if (plan[name] === undefined) continue;
     if (!Array.isArray(plan[name]) || !plan[name].every(isObject)) parts.push(name);
   }
-  if (Array.isArray(plan.changes) && plan.changes.every(isObject) && plan.changes.some((change) => change.gaps !== undefined && !Array.isArray(change.gaps))) parts.push('changes.gaps');
+  if (Array.isArray(plan.changes) && plan.changes.every(isObject) && plan.changes.some((change) => change.closes !== undefined && !Array.isArray(change.closes))) parts.push('changes.closes');
   return parts;
 }
 

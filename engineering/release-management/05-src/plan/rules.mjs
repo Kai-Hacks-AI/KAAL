@@ -1,5 +1,5 @@
 // A10 plan-rules: evaluates the eight rules of F1 over a resolved plan model.
-import { capabilityOf, cycleMembers, decomposed, kindOf, nearestShared } from './resolve.mjs';
+import { capabilityOf, childGaps, closersOf, cycleMembers, decomposed, kindOf, nearestShared } from './resolve.mjs';
 
 const fail = (rule, id, message, recovery) => ({ rule, id, status: 'fail', message, recovery });
 const unknown = (rule, id, message, recovery) => ({ rule, id, status: 'unknown', message, recovery });
@@ -14,13 +14,14 @@ function checkLinks(plan, byId, findings) {
   for (const change of list(plan.changes)) {
     for (const target of list(change.implements)) link(change.id, 'implements', target, ['intent']);
     for (const target of list(change.resolves)) link(change.id, 'resolves', target, ['defect']);
+    for (const target of list(change.closes)) link(change.id, 'closes', target, ['gap']);
   }
   for (const requirement of list(plan.requirements)) for (const target of list(requirement.serves)) link(requirement.id, 'serves', target, ['intent']);
   for (const element of list(plan.architecture)) for (const target of list(element.addresses)) link(element.id, 'addresses', target, ['requirement', 'defect']);
 }
 
 // Every node has one id grammar, <capability>/<kind><n>, and ids are unique. No id encodes a place.
-const KINDS = { intent: ['I'], requirement: ['F', 'N'], architecture: ['A'], defect: ['D'], change: ['C'], case: ['T'] };
+const KINDS = { intent: ['I'], requirement: ['F', 'N'], architecture: ['A'], defect: ['D'], change: ['C'], gap: ['G'], case: ['T'] };
 function checkIds(plan, byId, findings) {
   const form = (id, letters) => {
     const match = typeof id === 'string' ? /^([a-z][a-z0-9-]*)\/([A-Z])(\d+)$/.exec(id) : null;
@@ -29,20 +30,13 @@ function checkIds(plan, byId, findings) {
   const bad = (id, letters) => findings.push(fail('F1/4', id, `${id} is not an id of the form <capability>/<kind><n>`, `Write the id of ${id} as <capability>/<kind><n> with kind ${letters.join(' or ')}, for example release/${letters[0]}1, and use that id in every link.`));
   const seen = new Set();
   const nodes = [];
-  for (const [kind, items] of [['intent', plan.intents], ['requirement', plan.requirements], ['architecture', plan.architecture], ['defect', plan.defects], ['change', plan.changes], ['case', plan.cases]]) {
+  for (const [kind, items] of [['intent', plan.intents], ['requirement', plan.requirements], ['architecture', plan.architecture], ['defect', plan.defects], ['change', plan.changes], ['gap', plan.gaps], ['case', plan.cases]]) {
     for (const item of list(items)) nodes.push([kind, item]);
   }
   for (const [kind, item] of nodes) {
     if (!form(item.id, KINDS[kind])) bad(item.id, KINDS[kind]);
     else if (seen.has(item.id)) findings.push(fail('F1/4', item.id, `${item.id} is not unique`, `Give each node its own id, or remove the duplicate ${item.id}.`));
     seen.add(item.id);
-  }
-  for (const change of list(plan.changes)) {
-    for (const gap of list(change.gaps)) {
-      if (typeof gap !== 'string' || !gap.startsWith(`${change.id}/`) || !/^[a-z][a-z0-9-]*\/C\d+\/G\d+$/.test(gap)) {
-        findings.push(fail('F1/4', gap, `${gap} is not a gap id of the form <change id>/G<n>`, `Write the gap id as ${change.id}/G<n>.`));
-      }
-    }
   }
 }
 
@@ -51,11 +45,21 @@ export function evaluate(plan, byId) {
   checkLinks(plan, byId, findings);
   checkIds(plan, byId, findings);
 
-  // F1/1: a Change has at least one driver.
+  // F1/1: a Change has at least one driver and closes at least one Gap. A Gap has exactly one directly closing Change; a parent Gap is closed through its child Gaps.
   for (const change of list(plan.changes)) {
     if (list(change.implements).length + list(change.resolves).length === 0) {
       findings.push(fail('F1/1', change.id, `${change.id} implements no Intent and resolves no Defect`, `Add an implements link to an Intent or a resolves link to a Defect on ${change.id}.`));
     }
+    if (list(change.closes).length === 0) {
+      findings.push(fail('F1/1', change.id, `${change.id} closes no Gap`, `Add a closes link from ${change.id} to the Gap it closes, or remove ${change.id}.`));
+    }
+  }
+  for (const gap of list(plan.gaps)) {
+    const closers = closersOf(byId, gap.id);
+    const children = childGaps(byId, gap.id);
+    if (children.length > 0 && closers.length > 0) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} has child Gaps and is closed directly by ${closers.join(', ')}`, `Close the child Gaps of ${gap.id} instead. A parent Gap is closed through its child Gaps.`));
+    else if (children.length === 0 && closers.length === 0) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} is closed by no Change`, `Add a closes link to ${gap.id} on the Change that closes it.`));
+    else if (closers.length > 1) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} is closed directly by ${closers.length} Changes: ${closers.join(', ')}`, `Decompose ${gap.id} into child Gaps through parent links and let each Change close one child Gap.`));
   }
 
   // F1/2: a Requirement serves an Intent.
