@@ -1,5 +1,5 @@
 // Interim expected-RED runner for C1. Temporary migration work: removed when Testing provides expected-RED execution.
-// Usage: node run-red.mjs [--complete] [--judge <module>] [--evidence <file>] [<case-file>...]
+// Usage: node run-red.mjs [--root <capability folder>] [--complete] [--judge <module>] [--evidence <file>] [<case-file>...]
 // With --evidence, every T<n>.red.mjs under the capability runs and one execution is recorded per Case and written to <file> for the verify Plan check.
 // A failure is attributed to a target only when the Case declares exactly one target or its assertion error names the failed target (error.target). Otherwise one row without a target is written, which the judge cannot count as observed RED for any target.
 // A passing run executed every assertion, so it is recorded as passed for each declared target.
@@ -16,7 +16,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = resolve(here, '../..');
+let root = resolve(here, '../..');
 const args = process.argv.slice(2);
 let judgePath = join(here, 'baseline-judge.mjs');
 let complete = false;
@@ -25,6 +25,7 @@ const files = [];
 for (let i = 0; i < args.length; i += 1) {
   if (args[i] === '--judge') judgePath = resolve(args[++i]);
   else if (args[i] === '--complete') complete = true;
+  else if (args[i] === '--root') root = resolve(args[++i]);
   else if (args[i] === '--evidence') evidenceFile = resolve(args[++i]);
   else files.push(resolve(args[i]));
 }

@@ -9,7 +9,7 @@ export function readPullRequest(pr) {
   return {
     title: pr.title,
     body: pr.body,
-    commits: pr.commits.map((commit) => ({ sha: commit.sha, message: commit.message })),
+    commits: pr.commits.map((commit) => ({ sha: commit.sha, message: commit.message, parents: Array.isArray(commit.parents) ? commit.parents : undefined })),
     files: pr.files.map((file) => ({ filename: file.filename, status: file.status })),
   };
 }
