@@ -34,6 +34,10 @@ Four corrections used the Hotfix route (`evidence.md`). All merged, none is open
 - **`main`** is the promoted state, and it is not production. Guard's `main` still says 0.0.4 but declares a dependency on Hosting 0.0.1 that the published 0.0.4 does not. A correction published from `main` carries everything promoted since the last release. That is why Approach says what else a new version would carry, when production is affected.
 - **Collector work** is neither. `kaal/guard-release` holds unfinished 0.0.5 work. A correction must not drag it in.
 
+## Shared formatting contract
+
+Every PR interface shares one formatting contract, separate from its meaning (see F16). F16 states only the chapters and their meaning. The Hotfix interface needs no Change chapter: the identity is stable in the title and trailer, and the Owner decided that interfaces do not reuse chapters for uniformity. The contract needs no logic of its own here. Whether and how a reusable body checker covers the Hotfix interface, as `check PR Body` does for the PLAN, is separate planning and authorization.
+
 ## Current practice and the target
 
 **Current practice** (observed, not approved as the target): Hotfixes travel through the collector `kaal/hotfix` under `engineering/github/branching.md`, which passes the ordinary `kaal/**` integration controls and then the controls at `main`.
