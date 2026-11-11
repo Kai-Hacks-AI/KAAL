@@ -1,6 +1,6 @@
 # C5 naming
 
-Undecided. The Owner rejected the first proposal, which put the words IN and OUT into names. `IN`, `OUT` and the place are the Owner's locator for where a control applies, and they stay inside the declarations as that locator. They are not the name of a ruleset, an aggregate, a workflow or a job. Nothing in this PLAN renames anything, and no name below is applied before the Owner picks.
+Undecided. The Owner rejected the first proposal, which put the words IN and OUT into names. `IN`, `OUT` and the place are the Owner's locator for where a control applies, and they stay inside the declarations as that locator. They are not the name of a ruleset, an aggregate, a workflow or a job. Nothing in this PLAN renames anything, and no name below is applied before the Owner picks. The Cases of this PLAN do not decide a name: they look for a dependency check by what it does, not by what it is called.
 
 ## Frame
 

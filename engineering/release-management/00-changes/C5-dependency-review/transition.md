@@ -2,12 +2,16 @@
 
 How the new realization is introduced, and the old one retired, without a moment of less protection. Every step is additive until S5. The old workflow keeps running until the new one is observed. Each step is its own Change into the collector, reviewed before the next. The workflow steps carry a `.github` path and so travel alone.
 
+## Status of the control: detective
+
+Dependency Review is a detective control, and this Change does not make it preventive. It stays detective until the separately owned guard aggregates are operational and actually bind its verdict, and until then it reports itself as not bound. C5 alone prevents no admission and no promotion. The real merge-group observation (A4) is mandatory before Promotion IN is declared.
+
 ## Sequence
 
 | Step | Change | Class | Turns green |
 | --- | --- | --- | --- |
 | S0 | The judge `05-src/dependency-verdict/judge.mjs` (A25) and its Cases. | Improve | T87, T88, T89, T90 |
-| S1 | The control is declared for its places (`.kaal/config/guard/Verify-Dependencies.md`, `runs: [ci]`). Observation of whether Guard can bind an action-run check comes first. | Improve | T82 |
+| S1 | The control is declared for its places (a file in `.kaal/config/guard/`, `runs: [ci]`, named as the Owner picks in `naming.md`). Observation of whether Guard can bind an action-run check comes first. | Improve | T82 |
 | S2 | The new realization: a workflow with the job of F9 on `pull_request` and `merge_group`, explicit severity, no skip. It runs beside the old one. | Improve | T83 |
 | S3 | Observation: the stable name on real pull requests into a collector and into `main`, a merge group on a scratch target, one FAIL on a throwaway pull request that adds a known-vulnerable dependency. The replay compares the new verdicts with the old job's last runs. | Evidence | T86 |
 | S4 | Not this Change: the aggregates `guard Integration` and `guard Promotion` exist, with the Owner's go, and fan in the declaration. This Change then shows the verdict of Dependency Review inside the aggregate, or reports that it is not bound yet. No ruleset line is added for the control. | Evidence | T84 |

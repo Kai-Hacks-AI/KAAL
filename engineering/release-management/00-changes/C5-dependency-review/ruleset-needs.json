@@ -1,5 +1,5 @@
 {
-  "naming": "illustrative until the Owner picks (naming.md)",
+  "naming": "illustrative until the Owner picks (naming.md); T84 asserts the shape, not the names",
   "note": "What this control needs from the existing rulesets: nothing of its own. The rulesets stay as they are and this Change applies nothing.",
   "per_control_contexts": [],
   "bound_through": [
