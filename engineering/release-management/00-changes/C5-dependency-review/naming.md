@@ -11,7 +11,7 @@ A check is named `control (target)`: the control as `<verb> <Subject>`, and the 
 | Ruleset | the step as a noun | `Integration` (now `integration`), `Promotion` (now `promotion`), `Publishing` (now `publishing`) |
 | Check of a control | `control (target)`, as the job `name:` | `verify Dependencies (Integration)`, `verify Dependencies (Promotion)` |
 | Aggregate check, preventive | `guard (target)`, as the job `name:` | `guard (Integration)`, `guard (Promotion)` |
-| Workflow | `KAAL <owning capability>`, so every KAAL check sorts together and the owner is visible | `KAAL release` for verify Dependencies and for the aggregates |
+| Workflow | `KAAL <owning capability>`, so every KAAL check sorts together and the owner is visible | `KAAL release` for the checks of the release capability, such as verify Dependencies, and `KAAL` alone for the aggregates, which KAAL itself owns |
 | Locator, internal to the declaration | SIPOC side of a step | for example `at: integration/input`; never part of a name |
 
 ## How the UI shows it
