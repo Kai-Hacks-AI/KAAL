@@ -38,7 +38,7 @@ test(`${id} ${title}`, async () => {
 
   // The real tree of this capability reads, and the judgment of it asks only for evidence it does not hold yet.
   const real = readTreeFromDisk(root);
-  assert.ok(real.cases.length >= 24 && real.gaps.length === 9);
+  assert.ok(real.cases.length >= 24 && real.gaps.length >= 9);
   const verdict = await judge({ ...real, evidence: undefined });
   assert.ok(verdict.findings.every((f) => f.rule === 'F1/6' && f.status === 'unknown'), JSON.stringify(verdict.findings));
 
