@@ -18,7 +18,7 @@ Every artefact lives in a folder named `<kind><n>-<slug>/`. A `parent:` link pla
 
 ## Identity
 
-Every id is globally unique and starts with its capability: `<capability>/<kind><n>`, for example `release/F1`. The capability is the folder the artefacts sit in, so a folder name does not repeat it. Every link (`parent`, `serves`, `addresses`, `implements`, `resolves`, `tests`) and every Case names the full id.
+Every id is globally unique and starts with its owning capability: `<capability>/<kind><n>`, for example `release/F1`. The capability names the owner of the artefact, not the folder it sits in, so a folder name does not repeat it. An artefact that is owned elsewhere moves to its owner and takes the owner's capability in its id. Every link (`parent`, `serves`, `addresses`, `implements`, `resolves`, `tests`) and every Case names the full id.
 
 ## Relationships
 
