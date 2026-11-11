@@ -1,5 +1,10 @@
 // Case release/T23 tests: release/A9
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { judge } from '../../../../../../05-src/plan/judge.mjs';
 import { readEvidence } from '../../../../../../05-src/plan/evidence.mjs';
@@ -24,4 +29,16 @@ test(`${id} ${title}`, async () => {
     assert.equal(result.verdict, 'UNKNOWN', `evidence ${JSON.stringify(missing)}`);
     assert.ok(result.findings.some((f) => f.rule === 'F1/6' && f.status === 'unknown'));
   }
+
+  // The runner that Testing stands in for writes one row per Case and target, and the reader takes it as evidence.
+  const scratch = mkdtempSync(join(tmpdir(), 'verify-plan-evidence-'));
+  const caseFile = (name, id, body) => { const file = join(scratch, name); writeFileSync(file, `export const id = '${id}';\nexport const tests = ['release/I1', 'release/I2'];\nexport function run() { ${body} }\n`); return file; };
+  const observed = caseFile('T1.red.mjs', 'release/T1', "throw Object.assign(new Error('the intended behaviour is absent'), { code: 'ERR_ASSERTION', operator: 'strictEqual' });");
+  const stub = caseFile('T2.red.mjs', 'release/T2', "throw Object.assign(new Error('red'), { code: 'ERR_ASSERTION', operator: 'fail' });");
+  const runner = join(dirname(fileURLToPath(import.meta.url)), '../../../../../../00-changes/C1-verify-plan/run-red.mjs');
+  const out = join(scratch, 'evidence.json');
+  spawnSync('node', [runner, '--evidence', out, observed, stub], { encoding: 'utf8' });
+  const rows = readEvidence(readFileSync(out, 'utf8'));
+  assert.deepEqual(rows.filter((r) => r.case === 'release/T1').map((r) => [r.target, r.result, r.reason]), [['release/I1', 'failed', 'assertion'], ['release/I2', 'failed', 'assertion']]);
+  assert.deepEqual(rows.filter((r) => r.case === 'release/T2').map((r) => r.reason), ['unconditional', 'unconditional']);
 });
