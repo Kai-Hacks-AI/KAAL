@@ -10,8 +10,8 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const headings = (text) => text.split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T119';
 export const tests = ['release/G36'];
-export const title = 'gap release/G36 is closed: F14 is present and the SYNC template has its three chapters';
+export const title = 'gap release/G36 is closed: F14 is present and the SYNC template has its two chapters';
 export function run() {
   read(join(cap, '02-requirements/F14-sync-interface/F14.md'), 'F14');
-  assert.deepEqual(headings(read(template, 'the SYNC template')), ['Sync', 'Needed by', 'Resolutions']);
+  assert.deepEqual(headings(read(template, 'the SYNC template')), ['Change', 'Reason']);
 }

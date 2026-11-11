@@ -10,7 +10,7 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const headings = (text) => text.split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T112';
 export const tests = ['release/F14'];
-export const title = 'the SYNC template has three chapters, Sync, Needed by and Resolutions, in this order';
+export const title = 'the SYNC template has two chapters, Change and Reason, in this order';
 export function run() {
-  assert.deepEqual(headings(read(template, 'the SYNC template')), ['Sync', 'Needed by', 'Resolutions']);
+  assert.deepEqual(headings(read(template, 'the SYNC template')), ['Change', 'Reason']);
 }

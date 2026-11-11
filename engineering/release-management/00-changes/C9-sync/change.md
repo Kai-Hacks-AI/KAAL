@@ -4,12 +4,12 @@
 
 1. Add I8, F14, A34 and A37 with their Cases T110 to T117, a worked body for F14, and C9 with its Cases T118 to T120, one per gap.
 2. The expected RED is observed against `main` (`evidence.md`).
-3. The SYNC template has three chapters, Sync, Needed by and Resolutions, as F14 states. It reuses no heading of the PLAN, DO or ACT templates, and has no Change chapter: a synchronization claims no Change Record. The body states what a reviewer cannot read from Git and nothing the diff, the checks or `branching.md` already show.
+3. The SYNC template has two chapters, Change and Reason, as F14 states. The CPO directed the driver and the reason; the evidence confirms them (`evidence.md`) and adds two refinements. The Change line is the identity of the driving Change and nothing more, and a decision the synchronization takes itself at a conflict is stated in Reason, not in a chapter of its own. Source and target are not chapters: Git and the pull request hold them. The body states what a reviewer cannot read elsewhere and nothing the diff, the checks or `branching.md` already show.
 4. The PLAN delivers no template, no checker and no enforcement, changes no rule of Branching, and cites no document that is not on `main`.
 
 ## DO
 
-1. Deliver `.github/PULL_REQUEST_TEMPLATE/sync.md` with the three chapters of F14, as its own `.github` change on its own collector, because Change Isolation keeps `.github` apart from engineering.
+1. Deliver `.github/PULL_REQUEST_TEMPLATE/sync.md` with the two chapters of F14, as its own `.github` change on its own collector, because Change Isolation keeps `.github` apart from engineering.
 2. Rename the Cases from `T<n>.red.mjs` to `T<n>.test.mjs` when they are green, and wire them where the other release management Cases run.
 
 ## ACT

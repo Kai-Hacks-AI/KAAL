@@ -10,8 +10,8 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const headings = (text) => text.split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T113';
 export const tests = ['release/F14'];
-export const title = 'the SYNC template reuses no heading of the PLAN, DO or ACT template, and has no Change chapter';
-const others = ['Change', 'From', 'To', 'Because', 'Implement', 'Refactor', 'Records'];
+export const title = 'the SYNC template restates no source or target and borrows no chapter of the PLAN, DO or ACT template except Change';
+const others = ['From', 'To', 'Because', 'Implement', 'Refactor', 'Records', 'Sync', 'Source', 'Target', 'Into'];
 export function run() {
   const own = headings(read(template, 'the SYNC template'));
   assert.ok(!own.some((h) => others.includes(h)), 'the SYNC template reuses a heading of another template');

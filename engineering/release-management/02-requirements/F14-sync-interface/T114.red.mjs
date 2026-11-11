@@ -10,11 +10,12 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const headings = (text) => text.split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T114';
 export const tests = ['release/F14'];
-export const title = 'every chapter of the SYNC template carries a hint, Resolutions allows none, and the template holds no attribution, link or footer';
+export const title = 'each chapter of the SYNC template carries a hint, the Reason hint names promotion, development and a decision at a conflict, and the template holds no attribution, link or footer';
 export function run() {
   const text = read(template, 'the SYNC template');
   const hints = text.split(/^## .*$/m).slice(1).map((part) => /<!--[\s\S]*?-->/.test(part));
-  assert.deepEqual(hints, [true, true, true], 'every chapter carries a hint');
-  assert.ok(/none/i.test(text.split(/^## Resolutions$/m)[1] ?? ''), 'the Resolutions hint does not allow saying none');
+  assert.deepEqual(hints, [true, true], 'every chapter carries a hint');
+  const reason = text.split(/^## Reason$/m)[1] ?? '';
+  assert.ok(/promotion/i.test(reason) && /development/i.test(reason) && /resolution|conflict/i.test(reason), 'the Reason hint does not name the observed purposes and a decision at a conflict');
   assert.ok(!/Generated with|claude\.ai|Requested by|attribution|https?:\/\/|^---$/mi.test(text), 'the template carries attribution, a link or a footer');
 }

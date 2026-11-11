@@ -1,11 +1,7 @@
-## Sync
+## Change
 
-main d19abef into kaal/release/do-template
+release/C7 do template
 
-## Needed by
+## Reason
 
-The promotion #1427 is not fresh until the collector contains this commit.
-
-## Resolutions
-
-none
+The promotion of the collector is not fresh until it contains the current state of main.
