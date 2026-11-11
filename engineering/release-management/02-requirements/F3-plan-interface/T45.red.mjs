@@ -10,7 +10,7 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const headings = () => read(template, 'the PLAN template').split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T45';
 export const tests = ['release/F3'];
-export const title = 'the PLAN interface presents one section each for Change, Intent, Requirements, Architecture and Cases';
+export const title = 'the PLAN interface has four short chapters: Change, From, To and Because';
 export function run() {
-  assert.deepEqual(headings(), ['Change', 'Intent', 'Requirements', 'Architecture', 'Cases']);
+  assert.deepEqual(headings(), ['Change', 'From', 'To', 'Because']);
 }
