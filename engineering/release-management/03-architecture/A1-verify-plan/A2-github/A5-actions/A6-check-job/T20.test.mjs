@@ -1,0 +1,32 @@
+// Case release/T20 tests: release/A6
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import test from 'node:test';
+import { fileURLToPath } from 'node:url';
+export const id = 'release/T20';
+export const tests = ['release/A6'];
+export const title = 'the job named verify Plan reports a green status for PASS, including accepted RED, and a red status for FAIL and UNKNOWN';
+const root = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
+const check = join(root, '05-src/plan/check.mjs');
+const scratch = mkdtempSync(join(tmpdir(), 'verify-plan-'));
+const pr = (title) => { const file = join(scratch, `pr-${Math.random()}.json`); writeFileSync(file, JSON.stringify({ title, body: '', commits: [], files: [] })); return file; };
+const evidence = (rows) => { const file = join(scratch, `ev-${Math.random()}.json`); writeFileSync(file, JSON.stringify(rows)); return file; };
+const run = (...args) => spawnSync('node', [check, ...args], { encoding: 'utf8' });
+const red = [{ case: 'release/T29', target: 'release/G1', result: 'failed', reason: 'assertion' }];
+test(`${id} ${title}`, () => {
+  const plan = ['--pr', pr('release/C1 PLAN: x'), '--tree', root];
+  const green = run(...plan, '--evidence', evidence(red));
+  assert.equal(green.status, 0, green.stdout);
+  assert.match(green.stdout, /^PASS/);
+  const failing = run(...plan, '--evidence', evidence([{ ...red[0], reason: 'unconditional' }]));
+  assert.equal(failing.status, 1, failing.stdout);
+  assert.match(failing.stdout, /Recovery:/);
+  const unknown = run(...plan);
+  assert.equal(unknown.status, 2, unknown.stdout);
+  assert.match(unknown.stdout, /^UNKNOWN/);
+  assert.equal(run('--pr', pr('release/C1 DO: x'), '--tree', root).status, 3);
+  assert.equal(run('--pr', join(scratch, 'missing.json'), '--tree', root).status, 2);
+});
