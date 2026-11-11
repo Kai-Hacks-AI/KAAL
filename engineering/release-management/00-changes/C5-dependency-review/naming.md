@@ -15,7 +15,7 @@ A check is named `control (target)`: the control as `<verb> <Subject>`, and the 
 
 ## How the UI shows it
 
-GitHub shows a check as `<workflow name> / <job name>`, and a ruleset matches the check by its job name alone. So a job `name:` alone produces the part Kai wants, `analyze Dependencies (Integration)`, and it is exactly what a ruleset would require. It cannot remove the workflow prefix, which is always shown. The result is `KAAL release / analyze Dependencies (Integration)`. Every KAAL check sorts together, apart from CodeQL and others, and its owner is the second word. A workflow with no `name:` would show its file path instead, which is worse.
+GitHub shows a check as `<workflow name> / <job name>`, and a ruleset matches the check by its job name alone. So a job `name:` alone produces the part the Owner wants, `analyze Dependencies (Integration)`, and it is exactly what a ruleset would require. It cannot remove the workflow prefix, which is always shown. The result is `KAAL release / analyze Dependencies (Integration)`. Every KAAL check sorts together, apart from CodeQL and others, and its owner is the second word. A workflow with no `name:` would show its file path instead, which is worse.
 
 Each target is its own workflow with its own triggers, so the job `name:` is a plain literal and nothing is skipped: the workflow for Integration runs on pull requests into `kaal/**`, and the workflow for Promotion runs on pull requests into `main` and on merge groups. A matrix would also print `(Integration)`, but it cannot vary the target by event and would leave skipped results, so it is not used. Both statements about GitHub are to be observed in A6, not assumed.
 

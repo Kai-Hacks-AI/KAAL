@@ -4,7 +4,7 @@
 // advisory lookup; this function only reads its result. `passes` is true only for PASS, the only clean go. passes:false means no automatic clearance, not a final rejection.
 //
 // Input: { conclusion, outputs: { vulnerableChanges } }
-//   conclusion        'success' or 'failure', the outcome of the mechanism's step
+//   conclusion        'success' or 'failure', the conclusion of the mechanism's step
 //   vulnerableChanges the mechanism's `vulnerable-changes` output, a JSON list, set only when the
 //                     comparison itself succeeded
 // Output: { control, outcome, passes, findings, reason }

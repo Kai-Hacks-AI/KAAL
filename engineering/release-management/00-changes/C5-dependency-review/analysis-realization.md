@@ -11,12 +11,12 @@ How the retained mechanism, the pinned `actions/dependency-review-action` (v5.0.
 | UNKNOWN | Any error of the comparison (404 dependency graph unavailable, 403, anything unexpected) fails the job and sets no output. The job's exit status is therefore the same as for FAIL | Read; not observed |
 | Distinguishing FAIL from UNKNOWN | The action does not. A FAIL has a `vulnerable-changes` output and an UNKNOWN has none | Read |
 | Result name | The check result carries the job's name | Observed on GitHub |
-| `merge_group` | The pinned source takes the base and head from `merge_group.base_sha` and `head_sha` when no refs are given, so it can interpreter a merge group | Read; **not observed** on a merge group |
+| `merge_group` | The pinned source takes the base and head from `merge_group.base_sha` and `head_sha` when no refs are given, so it can analyze a merge group | Read; **not observed** on a merge group |
 | Snapshot warnings | The action can report an incomplete dependency snapshot and can retry; whether a warning is an outcome of its own is not established | Read; open |
 
 ## What the DO must realize (proposed)
 
-- The job runs the action with the retained policy, records its outcome and its `vulnerable-changes` output even when the action fails, and passes both to the interpreter A25.
-- The interpreter returns FAIL naming each dependency, version, advisory and severity when the output lists changes. It returns UNKNOWN when the action failed and gave no output, and when the output cannot be read. It returns PASS only for a successful outcome with an empty list.
+- The job runs the action with the retained policy, records the conclusion of its step and its `vulnerable-changes` output even when the action fails, and passes both to the interpreter A25.
+- The interpreter returns FAIL naming each dependency, version, advisory and severity when the output lists changes. It returns UNKNOWN when the action failed and gave no output, and when the output cannot be read. It returns PASS only for a successful conclusion with an empty list.
 - Both FAIL and UNKNOWN fail the job. The check result is the same either way and the record distinguishes them.
-- Until a merge group has been observed to be analyzed (`acceptance.md` A4), Promotion IN is not declared for the control and no promotion binding is proposed.
+- Until the action has been observed analyzing a merge group (`acceptance.md` A4), Promotion IN is not declared for the control and no promotion binding is proposed.

@@ -10,7 +10,7 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const interpreterModule = () => { assert.ok(existsSync(interpreterFile), 'the interpreter is absent'); return import(pathToFileURL(interpreterFile).href); };
 export const id = 'release/T87';
 export const tests = ['release/F7'];
-export const title = 'a vulnerable addition is analyzed FAIL and names what is vulnerable';
+export const title = 'a vulnerable addition is classified FAIL and names what is vulnerable';
 export async function run() {
   const m = await interpreterModule();
   
