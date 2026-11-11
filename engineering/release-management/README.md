@@ -33,7 +33,7 @@ Each relationship has its own verb. Direction and meaning are fixed, and no gene
 | Change `implements` Intent | The Change carries out the Intent. |
 | Change `resolves` Defect | The Change removes the Defect. A Change has at least one of the two drivers. A Defect needs no Intent. |
 | Change `closes` Gap | The Change closes the Gap, a Change-oriented delta between the baseline and the intended state. A Change closes at least one Gap and may close several, and every Gap has exactly one closing Change. A Defect is not a Gap: it is `resolved`. |
-| Gap `parent` Gap | A Gap that needs several Changes is decomposed into child Gaps. A parent Gap closes only when all its child Gaps are closed, which may happen in the same Change. |
+| Gap `parent` Gap | A Gap that needs several Changes is decomposed into child Gaps. A parent is done only when its children are done, which may happen in the same Change. The judge fails a parent Gap whose Case passes while a child Gap's does not. |
 | Requirement `serves` Intent | The Requirement provides what the Intent asks. |
 | Architecture `addresses` Requirement or Defect | The Architecture element exists for at least one functional Requirement, nonfunctional Requirement or Defect. Code `realizes` Architecture, and Code is not required in a PLAN. |
 | Case `tests` one or more targets | The Case checks the elements or Gaps it names. A target never references a Case. |

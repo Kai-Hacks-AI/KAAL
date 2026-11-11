@@ -52,6 +52,18 @@ test(`${id} ${title}`, async () => {
   const open = await judge(plan({ gaps: family, changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G2', 'release/G3'] }], cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G2', 'release/G3'] }, { id: 'release/T3', found: 'release/I1', tests: ['release/G1'] }, intent], evidence }));
   assert.ok(has(open, 'F1/1', 'release/G1'));
 
+  // A parent Gap is done only when its children are done: a passing Case on the parent needs passing Cases on every child.
+  const together3 = { gaps: family, changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1', 'release/G2', 'release/G3'] }], cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G1'] }, { id: 'release/T2', found: 'release/C1', tests: ['release/G2'] }, { id: 'release/T3', found: 'release/C1', tests: ['release/G3'] }, intent] };
+  const red = { case: 'release/T3', result: 'failed', reason: 'assertion', target: 'release/G3' };
+  const green = (caseId, target) => ({ case: caseId, result: 'passed', target });
+  const early = await judge(plan({ ...together3, evidence: [green('release/T1', 'release/G1'), green('release/T2', 'release/G2'), red] }));
+  assert.ok(has(early, 'F1/1', 'release/G1'));
+  assert.ok(early.findings.some((f) => f.id === 'release/G1' && /child/i.test(f.message) && /release\/G3/.test(f.message)));
+  const done = await judge(plan({ ...together3, evidence: [green('release/T1', 'release/G1'), green('release/T2', 'release/G2'), green('release/T3', 'release/G3'), { case: 'release/T9', result: 'failed', reason: 'assertion', target: 'release/I1' }] }));
+  assert.ok(!done.findings.some((f) => f.rule === 'F1/1'));
+  const underway = await judge(plan({ ...together3, evidence: [green('release/T2', 'release/G2'), red] }));
+  assert.ok(!underway.findings.some((f) => f.rule === 'F1/1'));
+
   const multi = await judge(plan({
     gaps: [{ id: 'release/G1' }, { id: 'release/G2' }],
     changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1'] }, { id: 'release/C2', implements: ['release/I1'], closes: ['release/G2'] }],

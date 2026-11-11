@@ -1,5 +1,5 @@
 // A10 plan-rules: evaluates the eight rules of F1 over a resolved plan model.
-import { capabilityOf, closersOf, cycleMembers, decomposed, kindOf, nearestShared } from './resolve.mjs';
+import { capabilityOf, childGaps, closersOf, cycleMembers, decomposed, kindOf, nearestShared } from './resolve.mjs';
 
 const fail = (rule, id, message, recovery) => ({ rule, id, status: 'fail', message, recovery });
 const unknown = (rule, id, message, recovery) => ({ rule, id, status: 'unknown', message, recovery });
@@ -131,6 +131,17 @@ export function evaluate(plan, byId) {
     if (!meaningful) {
       const names = [...declared.keys()];
       findings.push(fail('F1/6', 'evidence', 'The PLAN has no meaningful observed RED condition', `Execute a Case of this plan (${names.length > 0 ? names.join(', ') : 'none declared yet'}) so that it fails on an assertion about one of its own unfulfilled targets. A pass, an unconditional failure, a missing import and a result for a Case or target outside this plan do not count.`));
+    }
+  }
+  // F1/1: a parent Gap is done only when its child Gaps are done. A Gap is done when a Case that tests it passed and all its children are done.
+  if (Array.isArray(plan.evidence)) {
+    const testsOf = new Map(list(plan.cases).map((entry) => [entry.id, list(entry.tests)]));
+    const passed = new Set(plan.evidence.filter((entry) => entry && entry.result === 'passed' && testsOf.has(entry.case)).flatMap((entry) => testsOf.get(entry.case)));
+    const done = (gap, seen = new Set()) => passed.has(gap) && !seen.has(gap) && childGaps(byId, gap).every((child) => done(child, new Set([...seen, gap])));
+    for (const gap of list(plan.gaps)) {
+      if (!passed.has(gap.id)) continue;
+      const open = childGaps(byId, gap.id).filter((child) => !done(child));
+      if (open.length > 0) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} has a passing Case, and its child Gaps ${open.join(', ')} are not done`, `Close ${open.join(', ')} first or in the same Change. A parent Gap is done only when its child Gaps are done.`));
     }
   }
   return findings;
