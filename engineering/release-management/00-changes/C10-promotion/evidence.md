@@ -16,7 +16,7 @@ The promotion pull requests below were written without a template, each from the
 | The collector was split into a promotion of engineering and one of `.github` that must travel as a pair, and the pair was stated only in a comment. The second half has no value on `main` without the first. | #1427, #1428 and #1416, #1417 | Why now names the other half and the reason: it completes the Change. |
 | The collector was not fresh, so a synchronization (#1429) had to land first. Branching reports it, and the promotion queue is a check. | #1427 | Not in the body. A check result is reported by its check. |
 | The comment on both promotions said "Merge commit". Branching lands a promotion into `main` by squash, and auto-merge into `main` reads back as a merge commit whatever is requested. | #1427, #1428 | The body states no merge method. Branching owns it, and a second statement in a body can disagree with it. |
-| The title of every promotion already names the collector and `main`: "Promote kaal/... into main". | all seven | The body repeats no source or destination. |
+| Every title of these promotions read "Promote kaal/... into main: ...". The head and base of the pull request already show that, and the title convention `<TYPE>: <meaningful description>` keeps internal names out of the list. | all seven | The body repeats no source or destination, and the title is `PROMOTION: <meaningful description>`. |
 | The comment that carried attribution also carried the Owner's go and a statement of the merge method. | #1427, #1428 | Attribution stays out of the body, as it is for the PLAN. |
 
 ## The CPO's candidate
@@ -33,8 +33,8 @@ The CPO proposed three chapters for challenge: Change, Value and Priority. Teste
 ## Provenance
 
 - Baseline: `main` at `d19abeff8225c578416138e9def950d952ba898b`. `main` holds the PLAN template and no promotion template.
-- Method: the nine Cases of this PLAN (T130 to T138) are copied over a tree of `main` that holds none of this PLAN's documents, and each Case's `run()` is called. A second execution in the tree of this PLAN shows which Cases stay red with the documents of this PLAN present.
-- A throwaway reference template, outside the repository, was used once to show that the Cases can pass: all nine were green with it. It carries the two chapters of F15 with a hint each and implies no wording of the delivered template.
+- Method: the ten Cases of this PLAN (T130 to T139) are copied over a tree of `main` that holds none of this PLAN's documents, and each Case's `run()` is called. A second execution in the tree of this PLAN shows which Cases stay red with the documents of this PLAN present.
+- A throwaway reference template, outside the repository, was used once to show that the Cases can pass: all ten were green with it. It carries the two chapters of F15 with a hint each and implies no wording of the delivered template.
 
 ## Result
 
@@ -49,9 +49,10 @@ The CPO proposed three chapters for challenge: Change, Value and Priority. Teste
 | release/T136 | G40 | A35 is absent | the promotion template is absent |
 | release/T137 | F15 | the promotion template is absent, after the judgement of the observed bodies held | the promotion template is absent |
 | release/T138 | F15 | the promotion template is absent | the promotion template is absent |
+| release/T139 | F15 | F15 is absent, after the judgement of the observed old titles held | green |
 
-On `main`: 9 RED-observed, 0 error, 0 green. In the tree of this PLAN: 6 RED-observed and 3 green, about documents this PLAN adds. The red Cases wait for the promotion template, a `.github` change that the DO delivers.
+On `main`: 10 RED-observed, 0 error, 0 green. In the tree of this PLAN: 6 RED-observed and 4 green, about documents this PLAN adds. The red Cases wait for the promotion template, a `.github` change that the DO delivers.
 
 ## Reproduce
 
-Run from a checkout of this branch, with Node 22 and no dependencies. For each `T130` to `T138` `.red.mjs` file import it, call `run()` and report RED-observed when it throws an assertion error.
+Run from a checkout of this branch, with Node 22 and no dependencies. For each `T130` to `T139` `.red.mjs` file import it, call `run()` and report RED-observed when it throws an assertion error.
