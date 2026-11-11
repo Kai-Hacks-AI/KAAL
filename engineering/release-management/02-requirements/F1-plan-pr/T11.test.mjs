@@ -12,7 +12,7 @@ const plan = (at) => ({
     { id: 'release/F2', kind: 'F', serves: ['release/I1'], parent: 'release/F1' },
     { id: 'release/F3', kind: 'F', serves: ['release/I1'], parent: 'release/F1' },
   ],
-  cases: [{ id: 'release/T1', at, tests: ['release/F2', 'release/F3'] }, { id: 'release/T2', at: 'release/F1', tests: ['release/F1'] }, { id: 'release/T3', at: 'release/I1', tests: ['release/I1'] }],
+  cases: [{ id: 'release/T1', found: at, tests: ['release/F2', 'release/F3'] }, { id: 'release/T2', found: 'release/F1', tests: ['release/F1'] }, { id: 'release/T3', found: 'release/I1', tests: ['release/I1'] }],
 });
 test(`${id} ${title}`, async () => {
   const placed = await judge(plan('release/F1'));

@@ -10,10 +10,10 @@ test(`${id} ${title}`, async () => {
     intents: [{ id: 'release/I1' }],
     requirements: [{ id: 'release/F1', kind: 'F', serves: ['release/I1'] }, { id: 'release/F2', kind: 'F', serves: ['release/I1'] }, { id: 'release/F3', kind: 'F', serves: ['release/I1'] }],
     cases: [
-      { id: 'release/T1', at: 'release/I1', tests: ['release/F1', 'release/F2'] },
-      { id: 'release/T1', at: 'release/I1', tests: ['release/I1'] },
-      { id: 'release/T2', at: 'release/I1', tests: [] },
-      { id: 'release/T3', at: 'release/I1', tests: ['X99'] },
+      { id: 'release/T1', found: 'release/I1', tests: ['release/F1', 'release/F2'] },
+      { id: 'release/T1', found: 'release/I1', tests: ['release/I1'] },
+      { id: 'release/T2', found: 'release/I1', tests: [] },
+      { id: 'release/T3', found: 'release/I1', tests: ['X99'] },
     ],
   });
   assert.equal(result.verdict, 'FAIL');

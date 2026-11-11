@@ -13,9 +13,9 @@ const plan = (at) => ({
     { id: 'release/F3', kind: 'F', serves: ['release/I1'], parent: 'release/F2' },
   ],
   cases: [
-    { id: 'release/T1', at, tests: ['release/F1', 'release/F3'] },
-    { id: 'release/T2', at: 'release/F2', tests: ['release/F2'] },
-    { id: 'release/T3', at: 'release/I1', tests: ['release/I1'] },
+    { id: 'release/T1', found: at, tests: ['release/F1', 'release/F3'] },
+    { id: 'release/T2', found: 'release/F2', tests: ['release/F2'] },
+    { id: 'release/T3', found: 'release/I1', tests: ['release/I1'] },
   ],
   evidence: [{ case: 'release/T2', result: 'failed', reason: 'assertion', target: 'release/F2' }],
 });

@@ -4,12 +4,12 @@ import test from 'node:test';
 import { judge } from '../../05-src/plan/judge.mjs';
 export const id = 'release/T42';
 export const tests = ['release/F1'];
-export const title = 'a Gap is closed by exactly one Change, every Change closes a Gap, and a parent Gap is closed through its child Gaps';
+export const title = 'a Case that tests Gaps sits where its targets sit, and a Gap is closed by exactly one Change, every Change closes a Gap, and a parent Gap is closed through its child Gaps';
 const plan = (over = {}) => ({
   intents: [{ id: 'release/I1' }],
   gaps: [{ id: 'release/G1' }],
   changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1'] }],
-  cases: [{ id: 'release/T1', at: 'release/C1', tests: ['release/G1'] }, { id: 'release/T2', at: 'release/I1', tests: ['release/I1'] }],
+  cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G1'] }, { id: 'release/T2', found: 'release/I1', tests: ['release/I1'] }],
   evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G1' }],
   ...over,
 });
@@ -33,7 +33,7 @@ test(`${id} ${title}`, async () => {
   const parent = {
     gaps: [{ id: 'release/G1' }, { id: 'release/G2', parent: 'release/G1' }, { id: 'release/G3', parent: 'release/G1' }],
     changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G2'] }, { id: 'release/C2', implements: ['release/I1'], closes: ['release/G3'] }],
-    cases: [{ id: 'release/T1', at: 'release/C1', tests: ['release/G2'] }, { id: 'release/T2', at: 'release/C2', tests: ['release/G3'] }, { id: 'release/T3', at: 'release/I1', tests: ['release/I1'] }, { id: 'release/T4', at: 'release/I1', tests: ['release/G1'] }],
+    cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G2'] }, { id: 'release/T2', found: 'release/C2', tests: ['release/G3'] }, { id: 'release/T3', found: 'release/I1', tests: ['release/I1'] }, { id: 'release/T4', found: 'release/I1', tests: ['release/G1'] }],
     evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G2' }],
   };
   const derived = await judge(plan(parent));
@@ -43,6 +43,14 @@ test(`${id} ${title}`, async () => {
   const direct = await judge(plan({ ...parent, changes: [...parent.changes, { id: 'release/C3', implements: ['release/I1'], closes: ['release/G1'] }] }));
   assert.ok(has(direct, 'F1/1', 'release/G1'));
 
-  const cycle = await judge(plan({ gaps: [{ id: 'release/G1', parent: 'release/G1' }], cases: [{ id: 'release/T1', at: 'release', tests: ['release/G1'] }, { id: 'release/T2', at: 'release/I1', tests: ['release/I1'] }] }));
+  const multi = await judge(plan({
+    gaps: [{ id: 'release/G1' }, { id: 'release/G2' }],
+    changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1'] }, { id: 'release/C2', implements: ['release/I1'], closes: ['release/G2'] }],
+    cases: [{ id: 'release/T1', found: 'release/I1', tests: ['release/G1', 'release/G2'] }, { id: 'release/T2', found: 'release/I1', tests: ['release/I1'] }],
+    evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G1' }],
+  }));
+  assert.equal(multi.verdict, 'PASS');
+
+  const cycle = await judge(plan({ gaps: [{ id: 'release/G1', parent: 'release/G1' }], cases: [{ id: 'release/T1', found: 'release', tests: ['release/G1'] }, { id: 'release/T2', found: 'release/I1', tests: ['release/I1'] }] }));
   assert.ok(has(cycle, 'F1/3', 'release/G1'));
 });

@@ -10,7 +10,7 @@
 ## DO
 
 1. Write every node id of verify Plan as `<capability>/<kind><n>`, and number the Cases across the capability instead of under each element. Update every link and every Case.
-2. Change the judgment so that it checks the id grammar, derives the place of a Case from its `tests` list, treats the capability as a place and validates the stated place separately from the id.
+2. Change the judgment so that it checks the id grammar, derives the place of a Case from its `tests` list (the Case declares none), treats the capability as a place and validates the stated place separately from the id.
 3. Rename release/T14 from `T14.red.mjs` to `T14.test.mjs` and wire it into its lane.
 
 ## ACT

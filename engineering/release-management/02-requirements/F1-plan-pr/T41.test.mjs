@@ -7,7 +7,7 @@ export const tests = ['release/F1'];
 export const title = 'a Case obeys the parent rules like every element, and a Case never tests a Case';
 const plan = (extra) => ({
   intents: [{ id: 'release/I1' }],
-  cases: [{ id: 'release/T1', at: 'release/I1', tests: ['release/I1'], ...extra }],
+  cases: [{ id: 'release/T1', found: 'release/I1', tests: ['release/I1'], ...extra }],
   evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/I1' }],
 });
 test(`${id} ${title}`, async () => {
@@ -22,7 +22,7 @@ test(`${id} ${title}`, async () => {
   assert.ok(wrongKind.findings.some((f) => f.rule === 'F1/3' && f.id === 'release/T1'));
   const caseTarget = await judge({
     intents: [{ id: 'release/I1' }],
-    cases: [{ id: 'release/T1', at: 'release/I1', tests: ['release/I1'] }, { id: 'release/T2', at: 'release/T1', tests: ['release/T1'] }],
+    cases: [{ id: 'release/T1', found: 'release/I1', tests: ['release/I1'] }, { id: 'release/T2', found: 'release/T1', tests: ['release/T1'] }],
     evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/I1' }],
   });
   assert.equal(caseTarget.verdict, 'FAIL');

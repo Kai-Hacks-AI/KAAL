@@ -45,7 +45,7 @@ Each relationship has its own verb. Direction and meaning are fixed, and no gene
 ## Cases
 
 - A Case id is `<capability>/T<n>`, like every node, and is unique.
-- The `tests` list states what the Case covers. The place of the Case is derived from it: the nearest shared semantic or decomposition ancestor of its targets, then the common Intent, then the capability itself. A Case with one target sits beside that target.
+- The `tests` list states what the Case covers. A Case declares no place. Its place is derived from `tests`, and the reader observes the folder it sits in: the nearest shared semantic or decomposition ancestor of its targets, then the common Intent, then the capability itself. A Case with one target sits beside that target.
 - Placement is validated separately from identity. When `tests` changes and the derived place changes, the Case moves and its id stays.
 - One Case may cover several targets or gaps.
 - Change-oriented Cases prove identified gaps closed and sit under `00-changes/`. Target-oriented Cases prove the target.

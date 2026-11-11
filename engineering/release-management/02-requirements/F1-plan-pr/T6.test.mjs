@@ -10,7 +10,7 @@ test(`${id} ${title}`, async () => {
     intents: [{ id: 'release/I1' }],
     requirements: [{ id: 'release/F1', kind: 'F', serves: ['release/I1'] }, { id: 'release/F2', kind: 'F', serves: ['release/I1'] }],
     architecture: [{ id: 'release/A3', addresses: ['release/F1'] }],
-    cases: [{ id: 'release/T1', at: 'release/A3', tests: ['release/F1', 'release/F2'] }],
+    cases: [{ id: 'release/T1', found: 'release/A3', tests: ['release/F1', 'release/F2'] }],
   });
   assert.equal(result.verdict, 'FAIL');
   const finding = result.findings.find((f) => f.rule === 'F1/5' && f.id === 'release/T1');

@@ -9,7 +9,7 @@ test(`${id} ${title}`, async () => {
   const unqualified = await judge({
     intents: [{ id: 'I1' }],
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }],
-    cases: [{ id: 'T1', at: 'I1', tests: ['I1'] }, { id: 'T2', at: 'F1', tests: ['F1'] }],
+    cases: [{ id: 'T1', found: 'I1', tests: ['I1'] }, { id: 'T2', found: 'F1', tests: ['F1'] }],
     evidence: [{ case: 'T2', result: 'failed', reason: 'assertion', target: 'F1' }],
   });
   assert.equal(unqualified.verdict, 'FAIL');
@@ -19,7 +19,7 @@ test(`${id} ${title}`, async () => {
 
   const encoded = await judge({
     intents: [{ id: 'release/I1' }],
-    cases: [{ id: 'release/I1/T1', at: 'release/I1', tests: ['release/I1'] }],
+    cases: [{ id: 'release/I1/T1', found: 'release/I1', tests: ['release/I1'] }],
     evidence: [{ case: 'release/I1/T1', result: 'failed', reason: 'assertion', target: 'release/I1' }],
   });
   assert.ok(encoded.findings.some((f) => f.rule === 'F1/4' && f.id === 'release/I1/T1'));
@@ -27,7 +27,7 @@ test(`${id} ${title}`, async () => {
   const qualified = await judge({
     intents: [{ id: 'release/I1' }],
     requirements: [{ id: 'release/F1', kind: 'F', serves: ['release/I1'] }],
-    cases: [{ id: 'release/T1', at: 'release/I1', tests: ['release/I1'] }, { id: 'release/T2', at: 'release/F1', tests: ['release/F1'] }],
+    cases: [{ id: 'release/T1', found: 'release/I1', tests: ['release/I1'] }, { id: 'release/T2', found: 'release/F1', tests: ['release/F1'] }],
     evidence: [{ case: 'release/T2', result: 'failed', reason: 'assertion', target: 'release/F1' }],
   });
   assert.equal(qualified.verdict, 'PASS');

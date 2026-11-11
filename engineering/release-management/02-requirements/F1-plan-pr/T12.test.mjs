@@ -9,7 +9,7 @@ const plan = (evidence) => ({
   intents: [{ id: 'release/I1' }],
   changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1'] }],
   gaps: [{ id: 'release/G1' }],
-  cases: [{ id: 'release/T1', at: 'release/I1', tests: ['release/I1'] }, { id: 'release/T2', at: 'release/C1', tests: ['release/G1'] }],
+  cases: [{ id: 'release/T1', found: 'release/I1', tests: ['release/I1'] }, { id: 'release/T2', found: 'release/C1', tests: ['release/G1'] }],
   evidence,
 });
 const red = (caseId, target) => ({ case: caseId, result: 'failed', reason: 'assertion', target });

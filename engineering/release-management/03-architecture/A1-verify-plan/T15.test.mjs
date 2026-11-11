@@ -13,11 +13,11 @@ const valid = {
   changes: [{ id: 'release/C1', implements: ['release/I1'], resolves: ['release/D1'], closes: ['release/G1'] }],
   gaps: [{ id: 'release/G1' }],
   cases: [
-    { id: 'release/T1', at: 'release/I1', tests: ['release/I1'] },
-    { id: 'release/T2', at: 'release/F1', tests: ['release/F1'] },
-    { id: 'release/T3', at: 'release/A1', tests: ['release/A1'] },
-    { id: 'release/T4', at: 'release/D1', tests: ['release/D1'] },
-    { id: 'release/T5', at: 'release/C1', tests: ['release/G1'] },
+    { id: 'release/T1', found: 'release/I1', tests: ['release/I1'] },
+    { id: 'release/T2', found: 'release/F1', tests: ['release/F1'] },
+    { id: 'release/T3', found: 'release/A1', tests: ['release/A1'] },
+    { id: 'release/T4', found: 'release/D1', tests: ['release/D1'] },
+    { id: 'release/T5', found: 'release/C1', tests: ['release/G1'] },
   ],
   evidence: [{ case: 'release/T2', result: 'failed', reason: 'assertion', target: 'release/F1' }],
 };

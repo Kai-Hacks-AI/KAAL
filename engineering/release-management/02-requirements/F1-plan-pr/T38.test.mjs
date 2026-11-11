@@ -8,7 +8,7 @@ export const title = 'a Case whose targets share no ancestor sits at the capabil
 const plan = (at) => ({
   intents: [{ id: 'release/I1' }, { id: 'release/I2' }],
   cases: [
-    { id: 'release/T1', at, tests: ['release/I1', 'release/I2'] },
+    { id: 'release/T1', found: at, tests: ['release/I1', 'release/I2'] },
   ],
   evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/I1' }],
 });
