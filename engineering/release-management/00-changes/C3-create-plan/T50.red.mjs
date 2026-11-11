@@ -7,11 +7,11 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const cap = join(repo, 'engineering/release-management');
 const template = join(repo, '.github/PULL_REQUEST_TEMPLATE/plan.md');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
-const headings = () => read(template, 'the PLAN template').split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
+const sentence = () => read(template, 'the PLAN template').split('\n').filter((line) => line.startsWith('Plans '));
 export const id = 'release/T50';
 export const tests = ['release/G12'];
-export const title = 'gap release/G12 is closed: F3 is present and the template names the origin and points to the Change';
+export const title = 'gap release/G12 is closed: F3 is present and the template holds the one-sentence body';
 export function run() {
   read(join(cap, '02-requirements/F3-plan-interface/F3.md'), 'F3');
-  assert.deepEqual(headings(), ['Origin', 'Change']);
+  assert.deepEqual(sentence(), ['Plans <Change id>: from <A> to <B>, because of <X>.']);
 }
