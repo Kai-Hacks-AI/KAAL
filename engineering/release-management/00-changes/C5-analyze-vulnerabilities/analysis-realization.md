@@ -14,6 +14,17 @@ How the retained mechanism, the pinned `actions/dependency-review-action` (v5.0.
 | `merge_group` | The pinned source takes the base and head from `merge_group.base_sha` and `head_sha` when no refs are given, so it can analyze a merge group | Read; **not observed** on a merge group |
 | Snapshot warnings | The action can report an incomplete dependency snapshot and can retry; whether a warning is an outcome of its own is not established | Read; open |
 
+## Coverage
+
+The control's contract is placement-independent: a defined input, a record of what was and was not analyzed, and PASS, FAIL or UNKNOWN. This realization covers less than the control could.
+
+| Analyzed today | Not analyzed today |
+| --- | --- |
+| Dependencies added or changed between a base and a head | The full inventory of dependencies already present |
+| Advisories known at the time of the analysis | Advisories published later against unchanged dependencies |
+
+The not-analyzed column is an open coverage gap of the realization. C5 does not close it, and it needs a Change of its own with its own mechanism. It does not change the PASS, FAIL and UNKNOWN meanings. Where the control runs (pull request, Integration, Promotion, a schedule) is a separate decision in `transition.md` and `ruleset-needs.json`.
+
 ## What the DO must realize (proposed)
 
 - The job runs the action with the retained policy, records the conclusion of its step and its `vulnerable-changes` output even when the action fails, and passes both to the interpreter A25.
