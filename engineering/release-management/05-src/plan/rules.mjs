@@ -136,7 +136,8 @@ export function evaluate(plan, byId) {
   // F1/3: a parent is done only when its children are done, for every kind that is tested. An element is done when a Case that tests it passed and all its children are done.
   if (Array.isArray(plan.evidence)) {
     const testsOf = new Map(list(plan.cases).map((entry) => [entry.id, list(entry.tests)]));
-    const passed = new Set(plan.evidence.filter((entry) => entry && entry.result === 'passed' && testsOf.has(entry.case)).flatMap((entry) => testsOf.get(entry.case)));
+    // Passing evidence counts for the one target it names, and only when that target is declared by the Case and resolves in the plan.
+    const passed = new Set(plan.evidence.filter((entry) => entry && entry.result === 'passed' && testsOf.has(entry.case) && testsOf.get(entry.case).includes(entry.target) && byId.has(entry.target)).map((entry) => entry.target));
     const done = (id, seen = new Set()) => passed.has(id) && !seen.has(id) && childrenOf(byId, id).every((child) => done(child, new Set([...seen, id])));
     for (const id of passed) {
       if (!byId.has(id)) continue;

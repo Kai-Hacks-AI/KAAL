@@ -78,6 +78,21 @@ test(`${id} ${title}`, async () => {
   const reqDone = await judge(plan(reqs([green('release/T2', 'release/F1'), green('release/T3', 'release/F2'), { case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G1' }])));
   assert.ok(!reqDone.findings.some((f) => f.rule === 'F1/3'));
 
+  // Passing evidence is bound to the target it names, never to every target its Case declares.
+  const shared = (evidence) => plan({
+    gaps: [{ id: 'release/G1' }],
+    changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1'] }],
+    requirements: [{ id: 'release/F1', serves: ['release/I1'] }, { id: 'release/F2', serves: ['release/I1'], parent: 'release/F1' }],
+    cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G1'] }, { id: 'release/T2', found: 'release/F1', tests: ['release/F1', 'release/F2'] }, intent],
+    evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G1' }, ...evidence],
+  });
+  const onlyParent = await judge(shared([green('release/T2', 'release/F1')]));
+  assert.ok(has(onlyParent, 'F1/3', 'release/F1'));
+  const both = await judge(shared([green('release/T2', 'release/F1'), green('release/T2', 'release/F2')]));
+  assert.ok(!both.findings.some((f) => f.rule === 'F1/3'));
+  const undeclared = await judge(shared([green('release/T2', 'release/F1'), green('release/T2', 'release/F9'), green('release/T9', 'release/F2')]));
+  assert.ok(has(undeclared, 'F1/3', 'release/F1'));
+
   const multi = await judge(plan({
     gaps: [{ id: 'release/G1' }, { id: 'release/G2' }],
     changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1'] }, { id: 'release/C2', implements: ['release/I1'], closes: ['release/G2'] }],
