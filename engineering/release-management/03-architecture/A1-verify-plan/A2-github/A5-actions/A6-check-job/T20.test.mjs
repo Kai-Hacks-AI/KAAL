@@ -67,9 +67,8 @@ test(`${id} ${title}`, () => {
   const stand = run('--pr', demo(), '--repo', join(scratch, 'repo'), '--execute');
   assert.match(stand.stdout, /F1\/6[^\n]*no meaningful observed RED/, stand.stdout);
   // The check can execute the Cases of the located folder itself.
-  const executed = run('--pr', pr('release/C1 PLAN: x'), '--repo', repo, '--execute');
-  assert.equal(executed.status, 1, executed.stdout);
-  assert.match(executed.stdout, /F1\/6/);
+  // The scratch plan holds a Case that is not red, so the executed evidence cannot qualify it; the real tree is not used because its own Cases change with every PLAN.
+  assert.equal(stand.status, 1, stand.stdout);
   // Input that exists but cannot be read gives UNKNOWN with a Recovery, never a crash.
   const notAFolder = join(scratch, 'file.txt');
   writeFileSync(notAFolder, 'x');
