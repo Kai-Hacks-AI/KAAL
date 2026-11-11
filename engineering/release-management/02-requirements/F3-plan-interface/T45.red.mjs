@@ -10,7 +10,7 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const headings = () => read(template, 'the PLAN template').split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T45';
 export const tests = ['release/F3'];
-export const title = 'the PLAN interface names the Change and repeats nothing the files hold';
+export const title = 'the PLAN interface names the origin and points to the Change, repeating nothing the files hold';
 export function run() {
-  assert.deepEqual(headings(), ['Change']);
+  assert.deepEqual(headings(), ['Origin', 'Change']);
 }
