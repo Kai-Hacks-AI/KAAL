@@ -1,21 +1,17 @@
-<!-- A PLAN pull request. Select this template with ?template=plan.md. A PLAN is produced already traced and with a red plan: at least one Case is expected to fail while its target is unfulfilled. -->
+<!-- A PLAN pull request. Exactly four chapters in this order and nothing else: no extra headings, commentary, test output or status reports. The files of the Change hold the detail; discussion goes into comments. -->
 
 ## Change
 
-<!-- The Change this PLAN belongs to, for example release/C3, and the Gaps it closes. -->
+<!-- One line, `<id> <name>: <short description>`: the stable id, the name and what the Change is about. Do not repeat From, To or Because here. -->
 
-## Intent
+## From
 
-<!-- The Intent the Change implements, or the Defect it resolves. -->
+<!-- A, the current state, briefly. -->
 
-## Requirements
+## To
 
-<!-- The Requirements that serve the Intent, by id. -->
+<!-- B, the target state, briefly. -->
 
-## Architecture
+## Because
 
-<!-- The Architecture elements that address the Requirements or the Defect, by id. -->
-
-## Cases
-
-<!-- The Cases that test the Intent, Requirements, Architecture, Defect and Gaps, by id. Name the baseline the red is observed against. -->
+<!-- X, the value delivered, briefly. The value, not who asked for it. -->
