@@ -5,7 +5,8 @@ The PLAN of C3 observes its RED against `main`. Work that is not on `main` is no
 ## Provenance
 
 - Baseline: `main` at `9033099e9234d4059c841c155abc9c309a7aa6fb`. `main` holds no `engineering/release-management/` and no `.github/PULL_REQUEST_TEMPLATE/`.
-- Method: the nine Cases of this PLAN (T43 to T51) are copied over a tree that holds nothing of this PLAN's documents, and each Case's `run()` is called. The Cases read only repository files and assert the target state after the DO. A second execution in the tree of this PLAN shows which Cases stay red with the documents of this PLAN present.
+- Method: the twelve Cases of this PLAN (T43 to T54) are copied over a tree that holds none of this PLAN's documents, and each Case's `run()` is called. The Cases read only repository files and assert the target state after the DO. A second execution in the tree of this PLAN shows which Cases stay red with the documents of this PLAN present.
+- T52 was also run once against a throwaway reference checker, outside the repository, to show that the Case can pass: T52, T53 and T54 were green with it.
 
 ## Result
 
@@ -20,14 +21,15 @@ The PLAN of C3 observes its RED against `main`. Work that is not on `main` is no
 | release/T49 | G11 | F2 is absent | green |
 | release/T50 | G12 | F3 is absent | the PLAN template is absent |
 | release/T51 | G13 | A14 is absent | green |
+| release/T52 | F3 | the body checker is absent | the body checker is absent |
+| release/T53 | A16 | A16 is absent | the body checker is absent |
+| release/T54 | G14 | A16 is absent | the body checker is absent |
 
-On `main`: 9 RED-observed, 0 unconditional, 0 error, 0 green. In the tree of this PLAN: 5 RED-observed, 4 green. The four green Cases are the ones about documents this PLAN adds; the five red Cases wait for the PLAN template, which the DO delivers as its own `.github` change.
+On `main`: 12 RED-observed, 0 unconditional, 0 error, 0 green. In the tree of this PLAN: 8 RED-observed, 4 green. The four green Cases are about documents this PLAN adds. The red Cases wait for the PLAN template (a `.github` change) and the body checker (an engineering change), which the DO delivers.
 
 ## What the RED asks the Change to add relative to `main`
 
-I2, F2, F3, A14 and A15 (this PLAN), and the PLAN template that with its four chapters (the DO).
-
-The body of a PLAN pull request is not a second copy of the PLAN: F3 keeps it to four short chapters, so Cases T45 and T50 assert those chapters in the template.
+I2, F2, F3, A14, A15 and A16 (this PLAN), the PLAN template with the four chapters of F3 (the DO), and the body checker of A16 (the DO).
 
 ## Reproduce
 
@@ -39,7 +41,7 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 for (const f of process.argv.slice(2)) {
   const m = await import(pathToFileURL(resolve(f)).href);
-  try { m.run(); console.log('GREEN       ', m.id); }
+  try { await m.run(); console.log('GREEN       ', m.id); }
   catch (x) { console.log(x?.code === 'ERR_ASSERTION' ? 'RED-observed' : 'ERROR       ', m.id, String(x.message).split('\n')[0]); }
 }
 JS
@@ -58,10 +60,12 @@ RED-observed  release/T48 : I2 is absent
 RED-observed  release/T49 : F2 is absent
 RED-observed  release/T50 : F3 is absent
 RED-observed  release/T51 : A14 is absent
+RED-observed  release/T54 : A16 is absent
 RED-observed  release/T43 : the PLAN template is absent
 RED-observed  release/T44 : F2 is absent
 RED-observed  release/T45 : the PLAN template is absent
+RED-observed  release/T52 : the body checker is absent
+RED-observed  release/T53 : A16 is absent
 RED-observed  release/T47 : A15 is absent
 RED-observed  release/T46 : A14 is absent
-9 RED-observed, 0 GREEN, 0 ERROR
 ```

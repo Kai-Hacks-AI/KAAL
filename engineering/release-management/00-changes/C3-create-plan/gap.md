@@ -8,3 +8,4 @@ One row per target artefact. Each gap is a Gap with a global id that a Change-or
 | release/G11 | F2 plan-structure | `main` states no structure of a PLAN | F2 is absent |
 | release/G12 | F3 plan-interface | `main` holds no PLAN interface | F3 and a template with its four chapters are absent |
 | release/G13 | A14 create Plan and A15 github | `main` has no control that produces a PLAN | A14 and its deployment target A15 are absent |
+| release/G14 | A16 body-contract | `main` has no check of a PLAN body | A16 and its checker are absent |
