@@ -11,13 +11,18 @@ Dependency Review is a detective control, and this PLAN does not make it prevent
 | Step | Change | Class | Turns green |
 | --- | --- | --- | --- |
 | S0 | The interpreter `05-src/dependency-analysis/interpreter.mjs` (A25) and its Cases. | Improve | T87, T88, T89, T90 |
-| S1 | The control is declared for its places (a file in `.kaal/config/guard/`, `runs: [ci]`, named as the Owner picks in `naming.md`). Observation of whether Guard can bind an action-run check comes first. | Improve | T82 |
-| S2 | The new realization: a workflow with the job of F9 on `pull_request` and `merge_group`, explicit severity, no skip. It runs beside the old one. | Improve | T83 |
+| S1 | The adapter `05-src/dependency-analysis/analyze.mjs` (A26): the command Guard runs after the analysis step. It reads the mechanism's result from the environment, prints the record and ends with 0 for PASS, 1 for FAIL and 2 for UNKNOWN. | Improve | T91 |
+| S2 | The new realization, in `.github` alone: a workflow per target on `pull_request`, and `merge_group` for Promotion, with the analysis step and a step `npx --no kaal-guard run --check <name> --github`, no skip. It runs beside the old one. It is not required anywhere, so its job fails harmlessly until S2b lands. | Improve | T83 |
+| S2b | The declaration `.kaal/config/guard/<name>.md` (`command` the adapter, `runs: [ci]`), named as `naming.md` settles. It lands only after S2 (see the order finding below). | Improve | T82 |
 | S3 | Observation: the stable name on real pull requests into a collector and into `main`, a merge group on a scratch target, one FAIL on a throwaway pull request that adds a known-vulnerable dependency. The replay compares the new outcomes with the old job's last runs. | Evidence | T86 |
 | S4 | The Owner's go, then the ruleset of Integration requires `analyze Dependencies (Integration)`, after A1, A2, A3 and A5. The ruleset of Promotion requires `analyze Dependencies (Promotion)` only after A4. Only the context is added, and exports before and after differ by that one line each (`ruleset-needs.json`). | Enhance | T84 |
 | S5 | `dependency-review.yml` is removed, once S3 holds. It does not wait for S4: the old job is bound nowhere, so removing it reduces nothing. The uncovered-gate line of `engineering/controls/README.md` is edited. | Terminate | T85 |
 
 The Cases are renamed to `.test.mjs` and listed in Engineering CI in the Change that makes them green, which is also the known wiring gap of create Plan.
+
+## Order finding
+
+Observed locally on 11 Nov 2026 with `kaal-guard verify` of this repository. A `runs: [ci]` declaration that no workflow job runs fails `verify` (`no workflow job declares it in Guard's declared form`), and `verify` is what the required `Guard` job runs. So the declaration cannot land first: it would fail the required `Guard` check on every pull request into the collector. It cannot land in the same Change as the workflow either, because `.github` travels alone. So the workflow lands first, and its job, which runs the check before the declaration exists, is not required and fails harmlessly until the declaration lands. A workflow whose job runs a check Guard does not know does not make `verify` fail.
 
 ## Equivalence and acceptance evidence
 
