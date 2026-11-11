@@ -11,5 +11,5 @@ Observed on 11 Nov 2026 against `main` 8720c40 and the live repository.
 | O5 | `integration` has `strict_required_status_checks_policy`, so the new context must be reported for every pull request into a collector, with no path filter and no skip. The existing workflow has neither. |
 | O6 | No Guard declaration names the check, no hook runs it, and no Case covers it. `engineering/controls/README.md` and `engineering/guard/architecture.md` both leave it outside. |
 | O7 | Dependabot version updates reach `kaal/ci` and `kaal/dependencies` as pull requests, so those are the pull requests the check will judge most. A security update that removes an advisory passes, because only the added version is judged. |
-| O9 | Ruleset contexts are matched by check name, which is the job name, so a job name that two workflows share is ambiguous. That is why only an aggregate, with a unique name, is bound. To be observed in S3. |
+| O9 | Ruleset contexts are matched by check name, which is the job name, so a job name that two workflows share is ambiguous. That is why the name carries its target. To be observed in S3. |
 | O8 | No ruleset named `legacy-integration` is in the live list. The rulesets are `integration`, `promotion` and `publishing`. |

@@ -8,10 +8,10 @@ const cap = join(repo, 'engineering/release-management');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
 export const id = 'release/T75';
 export const tests = ['release/F9'];
-export const title = 'the aggregate binding and its limits are stated by dependency-wiring';
+export const title = 'the per-target check and its limits are stated by dependency-wiring';
 export function run() {
   const d = read(join(cap, '02-requirements/F9-dependency-wiring/F9.md'), 'F9');
-  assert.ok(d.includes('aggregate'), 'F9 does not state aggregate');
+  assert.ok(d.includes('required context'), 'F9 does not state required context');
   assert.ok(d.includes('merge group'), 'F9 does not state merge group');
-  assert.ok(d.includes('guard Integration'), 'F9 does not state guard Integration');
+  assert.ok(d.includes('Promotion'), 'F9 does not state guard Integration');
 }

@@ -8,12 +8,15 @@ const cap = join(repo, 'engineering/release-management');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
 export const id = 'release/T84';
 export const tests = ['release/G24'];
-export const title = 'gap release/G24 is closed: the control asks for no ruleset line and is bound through the aggregates';
+export const title = 'gap release/G24 is closed: the context each ruleset needs is recorded, one per target';
 export function run() {
   const needs = JSON.parse(read(join(cap, '00-changes/C5-dependency-review/ruleset-needs.json'), 'ruleset-needs.json'));
-  assert.deepEqual(needs.per_control_contexts, [], 'the control asks for a ruleset line of its own');
-  const aggregates = (needs.bound_through ?? []).map((b) => b.aggregate);
-  assert.equal(aggregates.length, 2, 'the aggregates of the two places are not named');
-  assert.equal(new Set(aggregates).size, 2, 'the two aggregates share a name');
-  for (const a of aggregates) assert.match(a, /^guard /, 'an aggregate is not a guard check');
+  const entries = needs.per_control_contexts ?? [];
+  assert.equal(entries.length, 2, 'a context is not recorded for each of the two targets');
+  assert.equal(new Set(entries.map((e) => e.context)).size, 2, 'the two contexts share a name');
+  for (const e of entries) {
+    assert.match(e.context, /\([^)]+\)$/, 'a context does not name its target in brackets');
+    assert.ok(e.precondition, `no precondition is stated for ${e.context}`);
+  }
+  assert.match(entries.find((e) => /Promotion/.test(e.context))?.precondition ?? '', /A4/, 'the Promotion context does not wait for A4');
 }
