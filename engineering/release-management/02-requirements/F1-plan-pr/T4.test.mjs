@@ -10,10 +10,10 @@ test(`${id} ${title}`, async () => {
     intents: [{ id: 'I1' }],
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }, { id: 'F2', kind: 'F', serves: ['I1'] }, { id: 'F3', kind: 'F', serves: ['I1'] }],
     cases: [
-      { id: 'I1/T1', at: 'I1', tests: ['F1', 'F2'] },
-      { id: 'I1/T1', at: 'I1', tests: ['I1'] },
-      { id: 'I1/T2', at: 'I1', tests: [] },
-      { id: 'I1/T3', at: 'I1', tests: ['X99'] },
+      { id: 'I1/T1', tests: ['F1', 'F2'] },
+      { id: 'I1/T1', tests: ['I1'] },
+      { id: 'I1/T2', tests: [] },
+      { id: 'I1/T3', tests: ['X99'] },
     ],
   });
   assert.equal(result.verdict, 'FAIL');

@@ -12,7 +12,7 @@ test(`${id} ${title}`, async () => {
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }, { id: 'F9', kind: 'F', serves: [] }],
     architecture: [{ id: 'A1', addresses: [] }],
     changes: [{ id: 'C1', implements: [], resolves: [], gaps: ['C1/G1'] }],
-    cases: [{ id: 'X/T1', at: 'F1', tests: ['F1', 'C1/G1'] }, { id: 'X/T2', at: 'A1', tests: ['F1', 'F9'] }],
+    cases: [{ id: 'X/T1', tests: ['F1', 'C1/G1'] }, { id: 'X/T2', tests: ['F1', 'F9'] }],
     evidence: [{ case: 'X/T1', result: 'passed' }],
   };
   const findings = evaluate(plan, index(plan));

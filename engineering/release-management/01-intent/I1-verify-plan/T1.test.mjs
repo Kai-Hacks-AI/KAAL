@@ -12,11 +12,11 @@ const valid = {
   architecture: [{ id: 'A1', addresses: ['F1', 'D1'] }],
   changes: [{ id: 'C1', implements: ['I1'], resolves: ['D1'], gaps: ['C1/G1'] }],
   cases: [
-    { id: 'I1/T1', at: 'I1', tests: ['I1'] },
-    { id: 'F1/T1', at: 'F1', tests: ['F1'] },
-    { id: 'A1/T1', at: 'A1', tests: ['A1'] },
-    { id: 'D1/T1', at: 'D1', tests: ['D1'] },
-    { id: 'C1/T1', at: 'C1', tests: ['C1/G1'] },
+    { id: 'I1/T1', tests: ['I1'] },
+    { id: 'F1/T1', tests: ['F1'] },
+    { id: 'A1/T1', tests: ['A1'] },
+    { id: 'D1/T1', tests: ['D1'] },
+    { id: 'C1/T1', tests: ['C1/G1'] },
   ],
   evidence: [{ case: 'F1/T1', result: 'failed', reason: 'assertion', target: 'F1' }],
 };

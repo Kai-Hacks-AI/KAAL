@@ -75,16 +75,20 @@ export function evaluate(plan, byId) {
     for (const entry of cases) {
       const tests = list(entry.tests).filter((target) => kindOf(byId, target) !== undefined);
       if (tests.length === 0) continue;
-      // F1/5: placement at the nearest shared ancestor.
-      if (entry.at !== undefined) {
+      // F1/5: a Case sits where its identity says, at the nearest shared ancestor of its targets.
+      const place = String(entry.id).split('/')[0];
+      const placeKind = kindOf(byId, place);
+      if (placeKind === undefined) findings.push(unknown('F1/5', entry.id, `Case ${entry.id} is placed at ${place}, which the plan does not declare`, `Place Case ${entry.id} under an element or Change of this plan, and name it by that identity.`));
+      else {
         const expected = nearestShared(byId, tests);
-        if (entry.at !== expected) findings.push(fail('F1/5', entry.id, `Case ${entry.id} sits at ${entry.at}, and the nearest shared ancestor of its targets is ${expected}`, `Move Case ${entry.id} beside ${expected}.`));
+        if (place !== expected) findings.push(fail('F1/5', entry.id, `Case ${entry.id} sits at ${place}, and the nearest shared ancestor of its targets is ${expected}`, `Move Case ${entry.id} beside ${expected}.`));
       }
       // F1/7: Change-oriented and target-oriented Cases stay apart.
       const gaps = tests.filter((target) => kindOf(byId, target) === 'gap');
       if (gaps.length > 0 && gaps.length < tests.length) findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and targets together`, `Split ${entry.id} into a Change-oriented Case and a target-oriented Case.`));
-      else if (gaps.length > 0 && entry.at !== undefined && kindOf(byId, entry.at) !== 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and sits at ${entry.at}, which is not a Change`, `Move ${entry.id} beside its Change.`));
-      else if (gaps.length === 0 && entry.at !== undefined && kindOf(byId, entry.at) === 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests targets and sits beside a Change`, `Move ${entry.id} beside the target it tests.`));
+      else if (placeKind === undefined) findings.push(unknown('F1/7', entry.id, `Case ${entry.id} has no resolvable location, so it cannot be told apart as Change-oriented or target-oriented`, `Place Case ${entry.id} under an element or Change of this plan.`));
+      else if (gaps.length > 0 && placeKind !== 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and sits at ${place}, which is not a Change`, `Move ${entry.id} beside its Change.`));
+      else if (gaps.length === 0 && placeKind === 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests targets and sits beside a Change`, `Move ${entry.id} beside the target it tests.`));
     }
   }
 
