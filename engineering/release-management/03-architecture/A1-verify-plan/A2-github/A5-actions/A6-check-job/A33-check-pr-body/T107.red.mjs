@@ -1,4 +1,4 @@
-// Case release/T107 tests: A16
+// Case release/T107 tests: A33
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const runner = join(repo, 'engineering/release-management/05-src/plan-body/verify.mjs');
 export const id = 'release/T107';
-export const tests = ['release/A16'];
-export const title = 'A16 runs by hand on a body file: exit 0 for a clean body, exit 1 with a finding for a contaminated one';
+export const tests = ['release/A33'];
+export const title = 'A33 runs by hand on a body file: exit 0 for a clean body, exit 1 with a finding for a contaminated one';
 export function run() {
   const dir = mkdtempSync(join(tmpdir(), 'body-'));
   const clean = '## Change\n\nrelease/C8 check PR Body: find contamination.\n\n## From\n\nOnly text is required.\n\n## To\n\nContamination is named.\n\n## Because\n\nNobody corrects bodies by hand.\n';
