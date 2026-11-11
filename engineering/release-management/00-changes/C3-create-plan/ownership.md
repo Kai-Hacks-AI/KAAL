@@ -30,7 +30,7 @@ A control consumes MM, TS and CC and never restates them. The control contracts 
 | F1 plan-pr | eight rules | VP and CP | see the per-rule table | narrowed in the DO, not duplicated |
 | F2 plan-structure | new | CP | `02-requirements/F2-plan-structure/` | the structure that VP evaluates |
 | F3 plan-interface | new | CP | `02-requirements/F3-plan-interface/` | the five sections; VP's reader depends on them |
-| D1 untraced-plan | `06-defects/` | VP | stays | CP also prevents it: open question 2 |
+| D1 untraced-plan | `06-defects/` | VP and CP | stays, one Defect | decided by the CPO: addressed by both A1 and A14, so each control traces its own contribution |
 | A1 verify Plan | root of VP | VP | stays | |
 | A14 create Plan | new | CP | `03-architecture/A14-create-plan/` | |
 | A2 github | VP's deployment target | VP | stays | |
@@ -38,8 +38,7 @@ A control consumes MM, TS and CC and never restates them. The control contracts 
 | A3 pr-templates, A4 plan-template | under A2 | CP | under A15, ids kept | the template is the interface of CP, an adapter |
 | A5 actions, A6 check-job | under A2 | VP | stay | GitHub adapter of VP |
 | A7 pr-reader | under A6 | VP | stays | GitHub adapter; parses the five headings of F3 |
-| A8 trace-resolver | under A6 | MM, consumed by VP | stays for now | the vocabulary is not VP's: open question 1 |
-| A9 evidence-reader, A10 plan-rules, A11 reporter | under A6 | VP | stay for now | portable judgment sitting under a GitHub element: open question 1 |
+| A8 trace-resolver, A9 evidence-reader, A10 plan-rules, A11 reporter | under A6 | VP, portable | move in the DO to a portable branch of A1, beside A2 github, ids kept | decided by the CPO: resolver, evidence interpretation, rules and reporting carry no GitHub semantics; only PR reading and orchestration stay in the adapter |
 | A12 rulesets, A13 integration | under A2 | RP | stay for now | a separate preventive control; depends on the status name `verify Plan` |
 | `05-src/plan/check.mjs` | check body | VP | stays | GitHub adapter of A6 |
 | `05-src/plan/reader.mjs` | PR reader and tree reader | VP | stays | adapter (A7) |
@@ -68,14 +67,26 @@ A Case belongs to the owner of its target. T1, T15 to T16, T19 to T25 and T28 st
 
 ## Proposed file tree
 
+The destination only. Nothing moves in this Change. A8 to A11 are shown under a portable branch of A1 that has no GitHub semantics; A2 github keeps only the adapter elements.
+
 ```
 engineering/release-management/
-  00-changes/C1-verify-plan/  C2-verify-plan-ids/  C3-create-plan/
+  00-changes/      C1-verify-plan/  C2-verify-plan-ids/  C3-create-plan/
   01-intent/       I1-verify-plan/   I2-create-plan/
-  02-requirements/ F1-plan-pr/ (judgment)   F2-plan-structure/   F3-plan-interface/
-  03-architecture/ A1-verify-plan/ ...        A14-create-plan/ A15-github/ A3-pr-templates/ A4-plan-template/
-  05-src/plan/
-  06-defects/      D1-untraced-plan/
+  02-requirements/ F1-plan-pr/ (judgment)   F2-plan-structure/ (one requirement, includes the existence of a red plan)   F3-plan-interface/
+  03-architecture/
+    A1-verify-plan/
+      A8-trace-resolver/  A9-evidence-reader/  A10-plan-rules/  A11-reporter/      portable, no GitHub semantics
+      A2-github/
+        A3-pr-templates/ A4-plan-template/   -> move to A15 (create Plan)
+        A5-actions/ A6-check-job/ A7-pr-reader/                                    GitHub adapter: PR reading and orchestration
+        A12-rulesets/ A13-integration/                                             stay, belong to the later ruleset control
+    A14-create-plan/
+      A15-github/
+        A3-pr-templates/ A4-plan-template/
+  05-src/plan/     portable: judge.mjs rules.mjs evidence.mjs report.mjs resolve.mjs
+                   adapter:  check.mjs reader.mjs
+  06-defects/      D1-untraced-plan/   (addressed by A1 and A14)
 ```
 
 ## Dependencies between the controls
@@ -86,9 +97,13 @@ engineering/release-management/
 - RP consumes the status that VP reports.
 - CP does not depend on VP, so the template is delivered first and alone.
 
-## Open questions for the Owner and the CPO
+## Decisions of the CPO on the earlier open questions
 
-1. A8 to A11 are portable but sit under the GitHub element A6. Do they stay there, or does VP get a portable feature of its own beside its deployment target?
-2. D1 is both prevented by CP and detected by VP. Does D1 stay with VP and is it addressed by A14 as well?
-3. Is F2 one requirement, or does the red plan (item 4) become its own requirement?
-4. What is the name of the control RP?
+1. A8 to A11 get a home under the portable verify Plan architecture, not beneath A6. PR reading and orchestration stay in the GitHub adapter. Source and the generic contract stay free of GitHub semantics. The move is a later DO.
+2. D1 stays one Defect. Both controls trace their contribution, so A14 addresses D1 as A1 does.
+3. F2 stays one requirement for now and includes the existence of a meaningful red plan. verify Plan owns the assessment of whether the observed RED is valid, and Testing owns execution and evidence conventions.
+4. The name of the preventive ruleset control is deferred until its own PLAN. A12 and A13 do not move into create Plan.
+
+## Scope of the Cases
+
+T43 to T53 assert the existence and shape of documents and the template: headings, placement and the narrowed F1. They show that the structure is absent now and prove nothing about production behaviour. The behaviour of the template in a pull request is not claimed by this PLAN.

@@ -35,3 +35,40 @@ All eleven fail on an assertion about intended behaviour: 11 RED-observed, 0 unc
 ## What the RED asks the Change to add relative to `main`
 
 I2, F2, F3, A14 and A15 with their interface, the PLAN template, A3 and A4 under A15, and a narrowed F1 that cites F2.
+
+## Reproduce
+
+Environment: Node v22.23.4 on Linux, no dependencies. Run from a checkout of this branch (head after this commit) with `main` fetched; `$PLAN` is the directory `engineering/release-management`.
+
+```
+W=$(mktemp -d)
+git archive 9033099e9234d4059c841c155abc9c309a7aa6fb .github | tar -x -C "$W"
+mkdir "$W/runner"
+cp "$PLAN/00-changes/C1-verify-plan/run-red.mjs" "$PLAN/00-changes/C1-verify-plan/baseline-judge.mjs" "$W/runner/"
+for f in $(git ls-files "$PLAN" | grep -E 'T(4[3-9]|5[0-3])\.red\.mjs'); do
+  mkdir -p "$W/$(dirname "$f")"; cp "$f" "$W/$f"
+done
+cd "$W"
+node runner/run-red.mjs --evidence ev.json $(find engineering -name 'T4[3-9].red.mjs' -o -name 'T5[0-3].red.mjs' | sort -V)
+```
+
+The runner of C1 reads only the Case files it is given. The tree it runs in is `main`'s `.github` plus the eleven Case files and nothing else, so no document of the collector or of an open pull request is visible to the Cases. Observed transcript on 11 Nov 2026 (the order of the lines follows the order the shell lists the files):
+
+```
+RED-observed       release/T48  stopped at line 9: I2 is absent
+RED-observed       release/T49  stopped at line 9: F2 is absent
+RED-observed       release/T50  stopped at line 9: F3 is absent
+RED-observed       release/T51  stopped at line 9: A14 is absent
+RED-observed       release/T52  stopped at line 16: A4 does not sit under A15
+RED-observed       release/T53  stopped at line 9: F1 is absent
+RED-observed       release/T43  stopped at line 16: the PLAN template is absent
+RED-observed       release/T44  stopped at line 9: F2 is absent
+RED-observed       release/T45  stopped at line 9: the PLAN template is absent
+RED-observed       release/T47  stopped at line 16: A4 does not sit under A15
+RED-observed       release/T46  stopped at line 9: A14 is absent
+
+11 executed: 11 RED-observed, 0 RED-unconditional, 0 ERROR, 0 GREEN.
+Each Case stops at its first failing assertion; later assertions and scenarios in a Case are not executed.
+Accepted RED: at least one meaningful observed RED.
+All executed Cases produced observed RED. This does not mean every assertion or scenario inside them was executed.
+```
