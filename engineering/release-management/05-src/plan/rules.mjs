@@ -118,7 +118,7 @@ export function evaluate(plan, byId) {
     const gaps = tests.filter((target) => kindOf(byId, target) === 'gap');
     if (gaps.length > 0 && gaps.length < tests.length) findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and targets together`, `Split ${entry.id} into a Change-oriented Case and a target-oriented Case.`));
     else if (placeKind === undefined) findings.push(unknown('F1/7', entry.id, `Case ${entry.id} has no resolvable place, so it cannot be told apart as Change-oriented or target-oriented`, `State the place of Case ${entry.id}.`));
-    else if (gaps.length > 0 && placeKind !== 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and sits at ${place}, which is not a Change`, `Move ${entry.id} beside its Change.`));
+    else if (gaps.length > 0 && placeKind !== 'change' && !gaps.some((gap) => childGaps(byId, gap).length > 0)) findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and sits at ${place}, which is not a Change`, `Move ${entry.id} beside its Change.`));
     else if (gaps.length === 0 && placeKind === 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests targets and sits beside a Change`, `Move ${entry.id} beside the target it tests.`));
   }
 

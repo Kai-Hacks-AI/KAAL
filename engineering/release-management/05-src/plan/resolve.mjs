@@ -74,15 +74,17 @@ function placeOf(byId, id, seen = new Set()) {
   const closers = closersOf(byId, id);
   if (closers.length > 0) return closers[0];
   const children = childGaps(byId, id).map((child) => placeOf(byId, child, seen));
-  return children.length === 0 ? id : nearestShared(byId, children);
+  return children.length === 0 ? id : sharedAmong(byId, [...new Set(children)]);
 }
 
 // The nearest shared ancestor of the targets, or the owning capability when they share none.
 // With no shared ancestor, the place is the owning capability, named by the prefix of the targets.
 export const capabilityOf = (id) => (typeof id === 'string' && id.includes('/') ? id.split('/')[0] : undefined);
 
-export function nearestShared(byId, targetIds) {
-  const targets = [...new Set(targetIds.map((id) => placeOf(byId, id)))];
+export const nearestShared = (byId, targetIds) => sharedAmong(byId, [...new Set(targetIds.map((id) => placeOf(byId, id)))]);
+
+// The nearest shared ancestor of places that are already resolved. It never resolves a gap again, so a gap cycle cannot recurse.
+function sharedAmong(byId, targets) {
   if (targets.length === 1) return targets[0];
   const reaches = targets.map((target) => reach(byId, target));
   const common = [...reaches[0].keys()].filter((id) => reaches.every((distance) => distance.has(id)));

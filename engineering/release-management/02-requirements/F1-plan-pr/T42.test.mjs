@@ -33,15 +33,16 @@ test(`${id} ${title}`, async () => {
   const parent = {
     gaps: [{ id: 'release/G1' }, { id: 'release/G2', parent: 'release/G1' }, { id: 'release/G3', parent: 'release/G1' }],
     changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G2'] }, { id: 'release/C2', implements: ['release/I1'], closes: ['release/G3'] }],
-    cases: [{ id: 'release/T1', at: 'release/C1', tests: ['release/G2'] }, { id: 'release/T2', at: 'release/C2', tests: ['release/G3'] }, { id: 'release/T3', at: 'release/I1', tests: ['release/I1'] }],
+    cases: [{ id: 'release/T1', at: 'release/C1', tests: ['release/G2'] }, { id: 'release/T2', at: 'release/C2', tests: ['release/G3'] }, { id: 'release/T3', at: 'release/I1', tests: ['release/I1'] }, { id: 'release/T4', at: 'release/I1', tests: ['release/G1'] }],
     evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G2' }],
   };
   const derived = await judge(plan(parent));
   assert.ok(!derived.findings.some((f) => f.rule === 'F1/1'));
+  assert.deepEqual(derived.findings.filter((f) => ['F1/5', 'F1/7'].includes(f.rule)), []);
 
   const direct = await judge(plan({ ...parent, changes: [...parent.changes, { id: 'release/C3', implements: ['release/I1'], closes: ['release/G1'] }] }));
   assert.ok(has(direct, 'F1/1', 'release/G1'));
 
-  const cycle = await judge(plan({ gaps: [{ id: 'release/G1', parent: 'release/G1' }] }));
+  const cycle = await judge(plan({ gaps: [{ id: 'release/G1', parent: 'release/G1' }], cases: [{ id: 'release/T1', at: 'release', tests: ['release/G1'] }, { id: 'release/T2', at: 'release/I1', tests: ['release/I1'] }] }));
   assert.ok(has(cycle, 'F1/3', 'release/G1'));
 });
