@@ -24,7 +24,7 @@ The control's verb is its class: guard preventive, verify detective, clear or dr
 
 ## Prefix `KAAL` and the owning capability
 
-- **Owner (proposal).** release-management owns verify Dependencies, which is Intent I4 of its own, and the guard aggregates of the steps Integration and Promotion, because those steps are its own. If the Owner places the aggregates with Guard instead, their workflow is named `KAAL guard` and nothing else changes.
+- **Owner (proposal).** The capability is `release`. It owns verify Dependencies, which is Intent I4 of its own, and the guard aggregates of the steps Integration and Promotion, because those steps are its own, so the aggregates read `KAAL release / guard (Integration)`. If the Owner places the aggregates with Guard instead, their workflow is named `KAAL guard` and nothing else changes.
 - **One name across files.** Each target is still its own workflow file. Several files may carry the same workflow `name:`, which is observed in A6, not assumed.
 - **Trade-off, length.** The line is about 50 characters and GitHub's checks list truncates long names, so the job name may be cut first on a very narrow screen.
 - **Trade-off, a mixed list.** Existing checks (Branching, Engineering, Hosting and others) carry no prefix until each is migrated, so for a while the list mixes prefixed and unprefixed names.
