@@ -78,6 +78,10 @@ export function nearestShared(byId, targetIds) {
   const reaches = targets.map((target) => reach(byId, target));
   const common = [...reaches[0].keys()].filter((id) => reaches.every((distance) => distance.has(id)));
   if (common.length === 0) return capabilityOf(targets[0]) ?? 'capability';
+  // A shared candidate that another shared candidate reaches is further up the hierarchy: the lowest ones win before distance breaks ties.
+  const reachOf = new Map(common.map((id) => [id, reach(byId, id)]));
+  const lowest = common.filter((id) => !common.some((other) => other !== id && reachOf.get(other).has(id) && !reachOf.get(id).has(other)));
+  if (lowest.length > 0) common.splice(0, common.length, ...lowest);
   const score = (id) => [Math.max(...reaches.map((distance) => distance.get(id))), reaches.reduce((sum, distance) => sum + distance.get(id), 0), id];
   common.sort((a, b) => {
     const [a1, a2, a3] = score(a);
