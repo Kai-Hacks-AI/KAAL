@@ -19,5 +19,5 @@ test(`${id} ${title}`, async () => {
   });
   assert.equal(result.verdict, 'FAIL');
   for (const aid of ['A9', 'A10', 'A12', 'A13']) assert.ok(result.findings.some((f) => f.rule === 'F1/3' && f.id === aid), aid);
-  assert.ok(!result.findings.some((f) => f.id === 'A1'));
+  assert.ok(!result.findings.some((f) => f.rule === 'F1/3' && f.id === 'A1'));
 });

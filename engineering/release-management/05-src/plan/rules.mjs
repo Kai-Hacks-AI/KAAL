@@ -51,45 +51,44 @@ export function evaluate(plan, byId) {
     else if (cyclic.has(id)) findings.push(fail('F1/3', id, `${id} sits on a parent cycle`, `Break the parent cycle at ${id}.`));
   }
 
-  const cases = Array.isArray(plan.cases) ? plan.cases : undefined;
-  if (cases) {
-    // F1/4: Case validity and coverage.
-    const seen = new Set();
-    const tested = new Set();
-    for (const entry of cases) {
-      if (seen.has(entry.id)) findings.push(fail('F1/4', entry.id, `Case ${entry.id} is not unique`, `Give each Case its own identity, or remove the duplicate ${entry.id}.`));
-      seen.add(entry.id);
-      const tests = list(entry.tests);
-      if (tests.length === 0) findings.push(fail('F1/4', entry.id, `Case ${entry.id} tests no target`, `Name at least one target in the tests list of ${entry.id}.`));
-      for (const target of tests) {
-        if (kindOf(byId, target) === undefined) findings.push(fail('F1/4', entry.id, `Case ${entry.id} tests ${target}, which does not resolve`, `Correct the target ${target} of ${entry.id}.`));
-        else tested.add(target);
-      }
+  // A plan without a cases field has no Cases: every required element is then reported as uncovered.
+  const cases = list(plan.cases);
+  // F1/4: Case validity and coverage.
+  const seen = new Set();
+  const tested = new Set();
+  for (const entry of cases) {
+    if (seen.has(entry.id)) findings.push(fail('F1/4', entry.id, `Case ${entry.id} is not unique`, `Give each Case its own identity, or remove the duplicate ${entry.id}.`));
+    seen.add(entry.id);
+    const tests = list(entry.tests);
+    if (tests.length === 0) findings.push(fail('F1/4', entry.id, `Case ${entry.id} tests no target`, `Name at least one target in the tests list of ${entry.id}.`));
+    for (const target of tests) {
+      if (kindOf(byId, target) === undefined) findings.push(fail('F1/4', entry.id, `Case ${entry.id} tests ${target}, which does not resolve`, `Correct the target ${target} of ${entry.id}.`));
+      else tested.add(target);
     }
-    for (const [id, { kind }] of byId) {
-      if (!tested.has(id) && ['intent', 'requirement', 'architecture', 'defect', 'gap'].includes(kind)) {
-        findings.push(fail('F1/4', id, `${kind} ${id} has no outer-loop Case`, `Add a Case that tests ${id}.`));
-      }
+  }
+  for (const [id, { kind }] of byId) {
+    if (!tested.has(id) && ['intent', 'requirement', 'architecture', 'defect', 'gap'].includes(kind)) {
+      findings.push(fail('F1/4', id, `${kind} ${id} has no outer-loop Case`, `Add a Case that tests ${id}.`));
     }
+  }
 
-    for (const entry of cases) {
-      const tests = list(entry.tests).filter((target) => kindOf(byId, target) !== undefined);
-      if (tests.length === 0) continue;
-      // F1/5: a Case sits where its identity says, at the nearest shared ancestor of its targets.
-      const place = String(entry.id).split('/')[0];
-      const placeKind = kindOf(byId, place);
-      if (placeKind === undefined) findings.push(unknown('F1/5', entry.id, `Case ${entry.id} is placed at ${place}, which the plan does not declare`, `Place Case ${entry.id} under an element or Change of this plan, and name it by that identity.`));
-      else {
-        const expected = nearestShared(byId, tests);
-        if (place !== expected) findings.push(fail('F1/5', entry.id, `Case ${entry.id} sits at ${place}, and the nearest shared ancestor of its targets is ${expected}`, `Move Case ${entry.id} beside ${expected}.`));
-      }
-      // F1/7: Change-oriented and target-oriented Cases stay apart.
-      const gaps = tests.filter((target) => kindOf(byId, target) === 'gap');
-      if (gaps.length > 0 && gaps.length < tests.length) findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and targets together`, `Split ${entry.id} into a Change-oriented Case and a target-oriented Case.`));
-      else if (placeKind === undefined) findings.push(unknown('F1/7', entry.id, `Case ${entry.id} has no resolvable location, so it cannot be told apart as Change-oriented or target-oriented`, `Place Case ${entry.id} under an element or Change of this plan.`));
-      else if (gaps.length > 0 && placeKind !== 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and sits at ${place}, which is not a Change`, `Move ${entry.id} beside its Change.`));
-      else if (gaps.length === 0 && placeKind === 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests targets and sits beside a Change`, `Move ${entry.id} beside the target it tests.`));
+  for (const entry of cases) {
+    const tests = list(entry.tests).filter((target) => kindOf(byId, target) !== undefined);
+    if (tests.length === 0) continue;
+    // F1/5: a Case sits where its identity says, at the nearest shared ancestor of its targets.
+    const place = String(entry.id).split('/')[0];
+    const placeKind = kindOf(byId, place);
+    if (placeKind === undefined) findings.push(unknown('F1/5', entry.id, `Case ${entry.id} is placed at ${place}, which the plan does not declare`, `Place Case ${entry.id} under an element or Change of this plan, and name it by that identity.`));
+    else {
+      const expected = nearestShared(byId, tests);
+      if (place !== expected) findings.push(fail('F1/5', entry.id, `Case ${entry.id} sits at ${place}, and the nearest shared ancestor of its targets is ${expected}`, `Move Case ${entry.id} beside ${expected}.`));
     }
+    // F1/7: Change-oriented and target-oriented Cases stay apart.
+    const gaps = tests.filter((target) => kindOf(byId, target) === 'gap');
+    if (gaps.length > 0 && gaps.length < tests.length) findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and targets together`, `Split ${entry.id} into a Change-oriented Case and a target-oriented Case.`));
+    else if (placeKind === undefined) findings.push(unknown('F1/7', entry.id, `Case ${entry.id} has no resolvable location, so it cannot be told apart as Change-oriented or target-oriented`, `Place Case ${entry.id} under an element or Change of this plan.`));
+    else if (gaps.length > 0 && placeKind !== 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests Change gaps and sits at ${place}, which is not a Change`, `Move ${entry.id} beside its Change.`));
+    else if (gaps.length === 0 && placeKind === 'change') findings.push(fail('F1/7', entry.id, `Case ${entry.id} tests targets and sits beside a Change`, `Move ${entry.id} beside the target it tests.`));
   }
 
   // F1/6: at least one meaningful observed RED condition (A9 reads the evidence).
