@@ -7,10 +7,10 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const cap = join(repo, 'engineering/release-management');
 const template = join(repo, '.github/PULL_REQUEST_TEMPLATE/plan.md');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
-const sentence = () => read(template, 'the PLAN template').split('\n').filter((line) => line.includes('the plan to go from'));
+const headings = () => read(template, 'the PLAN template').split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
 export const id = 'release/T45';
 export const tests = ['release/F3'];
-export const title = 'the PLAN interface is one sentence: the plan to go from A to B because of X';
+export const title = 'the PLAN interface has four short chapters: Change, From, To and Because';
 export function run() {
-  assert.deepEqual(sentence(), ['<Change id>: the plan to go from <A> to <B>, because of <X>.']);
+  assert.deepEqual(headings(), ['Change', 'From', 'To', 'Because']);
 }

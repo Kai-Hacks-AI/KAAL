@@ -25,9 +25,9 @@ On `main`: 9 RED-observed, 0 unconditional, 0 error, 0 green. In the tree of thi
 
 ## What the RED asks the Change to add relative to `main`
 
-I2, F2, F3, A14 and A15 (this PLAN), and the PLAN template that with the one-sentence body (the DO).
+I2, F2, F3, A14 and A15 (this PLAN), and the PLAN template that with its four chapters (the DO).
 
-The body of a PLAN pull request is not a second copy of the PLAN: F3 keeps it to one sentence, so Cases T45 and T50 assert that sentence in the template.
+The body of a PLAN pull request is not a second copy of the PLAN: F3 keeps it to four short chapters, so Cases T45 and T50 assert those chapters in the template.
 
 ## Reproduce
 
