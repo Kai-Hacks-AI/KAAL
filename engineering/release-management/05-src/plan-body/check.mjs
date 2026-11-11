@@ -4,6 +4,10 @@
 const CHAPTERS = ['Change', 'From', 'To', 'Because'];
 const CHANGE_LINE = /^(\S+\/C\d+) (.+?): (.+)$/;
 
+// "Short": at most this many characters per chapter, and no link, URL or attribution wording, so a footer cannot ride along inside a paragraph.
+export const MAX_CHAPTER_LENGTH = 200;
+const PROVENANCE = /https?:\/\/|\]\(|\p{Extended_Pictographic}|\b(generated (with|by)|co-authored-by|claude-session|requested by)\b/iu;
+
 const normalise = (text) => text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
 // Removes HTML comments until none is left, so that a comment nested in another cannot rebuild one.
@@ -58,6 +62,8 @@ export function checkPlanBody(body) {
   for (const name of CHAPTERS) {
     const text = chapter(name);
     if (text === '') problems.push(`the chapter ${name} is empty`);
+    else if (text.length > MAX_CHAPTER_LENGTH) problems.push(`the chapter ${name} is longer than ${MAX_CHAPTER_LENGTH} characters`);
+    else if (PROVENANCE.test(text)) problems.push(`the chapter ${name} carries a link, an emoji or attribution wording`);
     else if (/\n\s*\n/.test(text) || /^\s*([-*_]{3,}|[-*+]\s|\d+[.)]\s|>)/m.test(text)) problems.push(`the chapter ${name} must be one short paragraph, with no footer, rule, list or quote`);
   }
   const change = CHANGE_LINE.exec(chapter('Change'));

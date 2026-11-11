@@ -29,4 +29,7 @@ export async function run() {
   assert.equal(checkPlanBody(good + footer).ok, false, 'a generated footer after the last chapter is accepted');
   assert.equal(checkPlanBody('_Requested by Kai_\n\n' + good).ok, false, 'text before the first chapter is accepted');
   assert.equal(checkPlanBody(good.replace('Reviewers judge a PLAN sooner.', 'Reviewers judge a PLAN sooner.\n\nSecond paragraph.')).ok, false, 'a second paragraph in a chapter is accepted');
+  assert.equal(checkPlanBody(good.replace('Reviewers judge a PLAN sooner.', 'Reviewers judge a PLAN sooner. ' + 'More words. '.repeat(30))).ok, false, 'an overlong chapter is accepted');
+  assert.equal(checkPlanBody(good.replace('Reviewers judge a PLAN sooner.', 'Reviewers judge a PLAN sooner. Generated with Claude Code')).ok, false, 'an appended attribution without a separator is accepted');
+  assert.equal(checkPlanBody(good.replace('Reviewers judge a PLAN sooner.', 'Reviewers judge a PLAN sooner. https://claude.ai/code/session_1')).ok, false, 'an appended link is accepted');
 }
