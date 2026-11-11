@@ -12,12 +12,14 @@ export const title = 'the job named verify Plan reports a green status for PASS,
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../../../..');
 const check = join(root, '05-src/plan/check.mjs');
 const scratch = mkdtempSync(join(tmpdir(), 'verify-plan-'));
-const pr = (title) => { const file = join(scratch, `pr-${Math.random()}.json`); writeFileSync(file, JSON.stringify({ title, body: '', commits: [], files: [] })); return file; };
+const scope = 'engineering/release-management/';
+const own = { commits: [{ sha: 'a1', message: 'release/C1 PLAN: x\n\nDriven-by: release/C1' }], files: [{ filename: `${scope}00-changes/C1-verify-plan/C1.md`, status: 'modified' }] };
+const pr = (title, over = {}) => { const file = join(scratch, `pr-${Math.random()}.json`); writeFileSync(file, JSON.stringify({ title, body: '', ...own, ...over })); return file; };
 const evidence = (rows) => { const file = join(scratch, `ev-${Math.random()}.json`); writeFileSync(file, JSON.stringify(rows)); return file; };
 const run = (...args) => spawnSync('node', [check, ...args], { encoding: 'utf8' });
 const red = [{ case: 'release/T29', target: 'release/G1', result: 'failed', reason: 'assertion' }];
 test(`${id} ${title}`, () => {
-  const plan = ['--pr', pr('release/C1 PLAN: x'), '--tree', root];
+  const plan = ['--pr', pr('release/C1 PLAN: x'), '--tree', root, '--scope', scope];
   const green = run(...plan, '--evidence', evidence(red));
   assert.equal(green.status, 0, green.stdout);
   assert.match(green.stdout, /^PASS/);
@@ -29,10 +31,24 @@ test(`${id} ${title}`, () => {
   assert.match(unknown.stdout, /^UNKNOWN/);
   assert.equal(run('--pr', pr('release/C1 DO: x'), '--tree', root).status, 3);
   assert.equal(run('--pr', join(scratch, 'missing.json'), '--tree', root).status, 2);
+  // The adapter hands the judge only the PLAN the pull request names: a valid tree of another change, or files outside the capability, is UNKNOWN.
+  const evidenceFile = evidence(red);
+  for (const [what, args] of [
+    ['a title that names a change the tree does not hold', ['--pr', pr('release/C99 PLAN: x', { commits: [{ sha: 'a1', message: 'x\n\nDriven-by: release/C99' }] })]],
+    ['a commit driven by another change', ['--pr', pr('release/C1 PLAN: x', { commits: [{ sha: 'a1', message: 'x\n\nDriven-by: release/C2' }] })]],
+    ['no commit trailer', ['--pr', pr('release/C1 PLAN: x', { commits: [] })]],
+    ['a changed file outside the capability', ['--pr', pr('release/C1 PLAN: x', { files: [{ filename: 'packages/other/index.mjs', status: 'modified' }] })]],
+  ]) {
+    const result = run(...args, '--tree', root, '--scope', scope, '--evidence', evidenceFile);
+    assert.equal(result.status, 2, `${what}: ${result.stdout}`);
+    assert.match(result.stdout, /^UNKNOWN/, what);
+    assert.match(result.stdout, /Recovery/, what);
+  }
+  assert.equal(run('--pr', pr('release/C1 PLAN: x'), '--tree', root, '--evidence', evidenceFile).status, 2, 'no scope given');
   // Input that exists but cannot be read gives UNKNOWN with a Recovery, never a crash.
   const notAFolder = join(scratch, 'file.txt');
   writeFileSync(notAFolder, 'x');
-  for (const [what, args] of [['a tree that is a file', ['--pr', pr('release/C1 PLAN: x'), '--tree', notAFolder]], ['evidence that is a folder', [...plan, '--evidence', scratch]]]) {
+  for (const [what, args] of [['a tree that is a file', ['--pr', pr('release/C1 PLAN: x'), '--tree', notAFolder, '--scope', scope]], ['evidence that is a folder', [...plan, '--evidence', scratch]]]) {
     const result = run(...args);
     assert.equal(result.status, 2, `${what}: ${result.stdout}${result.stderr}`);
     assert.match(result.stdout, /^UNKNOWN/, what);
