@@ -65,7 +65,8 @@ export function reach(byId, id) {
 
 // The Change that closes a gap. A gap sits in the folder of its closing Change, and no Change reaches a gap as an ancestor.
 export const closersOf = (byId, gap) => [...byId.values()].filter((entry) => entry.kind === 'change' && Array.isArray(entry.item.closes) && entry.item.closes.includes(gap)).map((entry) => entry.item.id);
-export const childGaps = (byId, gap) => [...byId.entries()].filter(([, entry]) => entry.kind === 'gap' && entry.item.parent === gap).map(([id]) => id);
+// The children of an element: same-kind elements that name it as parent.
+export const childrenOf = (byId, id) => [...byId.entries()].filter(([, entry]) => entry.kind === byId.get(id)?.kind && entry.item.parent === id).map(([child]) => child);
 const placeOf = (byId, id) => (byId.get(id)?.kind === 'gap' ? closersOf(byId, id)[0] ?? id : id);
 
 // The nearest shared ancestor of the targets, or the owning capability when they share none.

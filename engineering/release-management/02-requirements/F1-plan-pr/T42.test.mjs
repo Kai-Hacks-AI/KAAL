@@ -4,7 +4,7 @@ import test from 'node:test';
 import { judge } from '../../05-src/plan/judge.mjs';
 export const id = 'release/T42';
 export const tests = ['release/F1'];
-export const title = 'a Case that tests Gaps sits where its targets sit, and a Change may close several Gaps, every Gap, parents included, has exactly one closing Change';
+export const title = 'a Case that tests Gaps sits where its targets sit, and a Change may close several Gaps, every Gap, parents included, has exactly one closing Change, and any parent is done only when its children are done';
 const plan = (over = {}) => ({
   intents: [{ id: 'release/I1' }],
   gaps: [{ id: 'release/G1' }],
@@ -57,12 +57,26 @@ test(`${id} ${title}`, async () => {
   const red = { case: 'release/T3', result: 'failed', reason: 'assertion', target: 'release/G3' };
   const green = (caseId, target) => ({ case: caseId, result: 'passed', target });
   const early = await judge(plan({ ...together3, evidence: [green('release/T1', 'release/G1'), green('release/T2', 'release/G2'), red] }));
-  assert.ok(has(early, 'F1/1', 'release/G1'));
+  assert.ok(has(early, 'F1/3', 'release/G1'));
   assert.ok(early.findings.some((f) => f.id === 'release/G1' && /child/i.test(f.message) && /release\/G3/.test(f.message)));
   const done = await judge(plan({ ...together3, evidence: [green('release/T1', 'release/G1'), green('release/T2', 'release/G2'), green('release/T3', 'release/G3'), { case: 'release/T9', result: 'failed', reason: 'assertion', target: 'release/I1' }] }));
-  assert.ok(!done.findings.some((f) => f.rule === 'F1/1'));
+  assert.ok(!done.findings.some((f) => f.rule === 'F1/3'));
   const underway = await judge(plan({ ...together3, evidence: [green('release/T2', 'release/G2'), red] }));
-  assert.ok(!underway.findings.some((f) => f.rule === 'F1/1'));
+  assert.ok(!underway.findings.some((f) => f.rule === 'F1/3'));
+
+  // Every tested kind behaves the same way: a Requirement parent is done only when its child Requirements are done.
+  const reqs = (evidence) => ({
+    gaps: [{ id: 'release/G1' }],
+    changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1'] }],
+    requirements: [{ id: 'release/F1', serves: ['release/I1'] }, { id: 'release/F2', serves: ['release/I1'], parent: 'release/F1' }],
+    cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G1'] }, { id: 'release/T2', found: 'release/F1', tests: ['release/F1'] }, { id: 'release/T3', found: 'release/F2', tests: ['release/F2'] }, intent],
+    evidence,
+  });
+  const reqRed = { case: 'release/T3', result: 'failed', reason: 'assertion', target: 'release/F2' };
+  const reqEarly = await judge(plan(reqs([green('release/T2', 'release/F1'), reqRed])));
+  assert.ok(has(reqEarly, 'F1/3', 'release/F1'));
+  const reqDone = await judge(plan(reqs([green('release/T2', 'release/F1'), green('release/T3', 'release/F2'), { case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G1' }])));
+  assert.ok(!reqDone.findings.some((f) => f.rule === 'F1/3'));
 
   const multi = await judge(plan({
     gaps: [{ id: 'release/G1' }, { id: 'release/G2' }],
