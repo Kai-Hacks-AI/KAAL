@@ -6,7 +6,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const judge = join(repo, 'engineering/release-management/05-src/plan-body/envelope.mjs');
 export const id = 'release/T161';
 export const tests = ['release/F17'];
-export const title = 'a clean envelope passes and a wrong title, a contaminated title, a wrong route and a disagreeing or doubled Driven-by are each rejected';
+export const title = 'a clean envelope passes; a wrong title, a contaminated title, a wrong route, a disagreeing or doubled Driven-by and a contaminated body are each rejected; the PLAN contract is not applied to a DO, whose chapters are reported as not judged; HOTFIX route and SYNC id are not judged';
 export async function run() {
   const { verifyEnvelope } = await import(pathToFileURL(judge).href);
   const body = '## Change\n\nrelease/C99 sample: a sample Change.\n\n## From\n\nNothing.\n\n## To\n\nSomething.\n\n## Because\n\nIt helps.\n';
@@ -26,4 +26,13 @@ export async function run() {
   assert.equal(bad({ commits: [commit('release/C99', 'release/C99')] }), false, 'two Driven-by trailers are accepted');
   assert.equal(bad({ commits: [{ subject: 'x', message: 'x\n' }] }), false, 'a commit without Driven-by is accepted');
   assert.equal(bad({ body: body + '\n---\nGenerated with Claude Code\n' }), false, 'a contaminated body is accepted');
+  assert.equal(bad({ body: '<!-- claude-projects-attribution: {} -->\n' + body }), false, 'a hidden attribution comment is accepted');
+  const doBody = '## Change\n\nrelease/C99 sample: a sample Change.\n\n## Implement\n\nBuilt it.\n\n## Refactor\n\nNothing.\n';
+  const doFacts = { ...good, title: 'DO: Deliver a sample', body: doBody };
+  const done = verifyEnvelope(doFacts);
+  assert.equal(done.ok, true, 'a DO body with its own chapters is rejected by the PLAN contract');
+  assert.ok(done.notJudged?.length > 0, 'the chapters of a DO are not reported as not judged');
+  assert.equal(verifyEnvelope({ ...doFacts, body: doBody + '\n---\nGenerated with Claude Code\n' }).ok, false, 'a footer on a DO body is accepted');
+  assert.equal(verifyEnvelope({ ...good, title: 'HOTFIX: Restore a sample', base: 'main', head: 'claude/x', body: doBody }).ok, true, 'a HOTFIX route is judged');
+  assert.equal(verifyEnvelope({ ...good, title: 'SYNC: Prepare a sample', body: '## Change\n\nrelease/C99 sample: a sample Change.\n\n## Reason\n\nMain moved.\n', commits: [commit('release/C1', 'release/C2')] }).ok, true, 'Driven-by agreement is judged for a SYNC');
 }
