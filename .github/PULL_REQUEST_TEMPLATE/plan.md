@@ -14,4 +14,4 @@
 
 ## Because
 
-<!-- X, what started the work: an Owner request, a Defect report or a Finding. A phrase or a reference. -->
+<!-- X, the value this change brings, in one phrase. The value, not who asked for it. -->
