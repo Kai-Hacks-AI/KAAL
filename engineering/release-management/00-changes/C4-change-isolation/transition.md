@@ -1,6 +1,6 @@
 # C4 transition
 
-How the new realization is introduced without interrupting the existing protection. Every step is additive until S6. The existing checks keep running, and the required contexts Change Isolation and Change Isolation (review) are never renamed, moved or made optional, so no ruleset changes. Each step is its own Change into the collector, reviewed before the next. The numbers below are proposed for the CPO's review.
+How the new realization is introduced without interrupting the existing protection. Every step is additive until S6. The existing checks keep running, and the required contexts Change Isolation and Change Isolation (review) are never renamed, moved or made optional, so no ruleset changes. Each step is its own Change into the collector, reviewed before the next. 
 
 ## Sequence
 
@@ -26,9 +26,11 @@ A realization is equivalent to the legacy one when it gives the same verdict for
 
 ## Observed evidence required (S4)
 
-- At Integration IN, at least 10 pull requests with a record whose verdict equals the check result on GitHub, and one FAIL on a throwaway pull request into a scratch collector.
-- At Promotion IN, the record of the group run for at least 3 promotions.
-- At Development OUT, at least 10 hook runs with a record, one of them on a ledger-admitted change.
+Enough to show equivalence, not a quota. This is a lab, so no legacy realization is kept alive for its own sake: once the evidence below is recorded once, the legacy part is retired.
+
+- At Integration IN, a record whose verdict equals the check result on GitHub for a real pull request, and one FAIL on a throwaway pull request into a scratch collector.
+- At Promotion IN, the record of one group run.
+- At Development OUT, a hook run with a record on a ledger-admitted change.
 - That a FAIL holds a merge group back is observed once on a scratch target, or is reported as not observed. It is not claimed.
 
 ## Fallback
@@ -41,4 +43,4 @@ T55 to T71 green, E1 to E4 passing, S4 evidence recorded, the rulesets exported 
 
 ## Retirement of the legacy machinery
 
-Only the Change Isolation block of `push-check.sh` and its mention in `push.md` are retired. They are retired when E3 passes over the whole corpus, the S4 hook runs are recorded, and the CPO has accepted both. The ledger, the attestation machinery, the workflows and the rulesets are retained. The section of `engineering/controls/README.md` is retired when the DO closes.
+Only the Change Isolation block of `push-check.sh` and its mention in `push.md` are retired. They are retired when E3 passes over the whole corpus, the S4 evidence is recorded, and the CPO has accepted both. Retirement waits for that evidence and for nothing else. The ledger, the attestation machinery, the workflows and the rulesets are retained. The section of `engineering/controls/README.md` is retired when the DO closes.
