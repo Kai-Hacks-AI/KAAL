@@ -23,7 +23,7 @@ The interface of a SYNC is derived from the SYNC pull requests that exist. Work 
 4. Source and target are restated in every body: the `main` commit, the collector, the parents of the merge commit. Git already holds them: the second parent of the merge commit, the `Synchronized-with` trailer of #1262, the base of the pull request and the verdict of `lineage.ts` quoted in #1262 and #1235. A restatement can only diverge. #1429 even holds the commit only in its comment.
 5. Resolutions recur where `main` and the collector conflict (#965, #1026, #1235, #1277), and they are what the reviewer checks ("the one resolution above is the point to check", #1277). But the Branching verdict already lists the explicit resolutions and the paths adopted unchanged from `main` (#1262, #1235). What only the author can add is why a decision at a conflict was taken, and that exists in only some syncs.
 6. Content leaks into the body: a bot request and a generated footer (#1091, #1262, #1235, #1026, #1023), attribution at the top (#1277, #965), and the verdicts and test results that the checks show.
-7. Three styles name the same operation (`SYNC main into ...`, `Synchronize ... with main`, the merge subject `Sync main into ...`). This is outside C9.
+7. Three styles name the same operation (`SYNC main into ...`, `Synchronize ... with main`, the merge subject `Sync main into ...`). The Owner has since set the standing title convention `<TYPE>: <meaningful description>` with no Change id; F14 states it for SYNC, and the Change hint of the template keeps the id out of the title.
 
 ## Assessment of the CPO candidate, `## Change` and `## Reason`
 

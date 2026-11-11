@@ -19,7 +19,7 @@
 ## Not in this Change
 
 - Hooks, workflows, required checks, ruleset changes, a checker of SYNC bodies and any other enforcement. Checking a body and admitting a pull request are separate concerns.
-- The title of a SYNC pull request and the subject of its merge commit, which differ today (`evidence.md`), and the comments on it.
+- The comments on a SYNC pull request, and the subject of its merge commit. The title is the standing convention `SYNC: <meaningful description>`, which F14 states and which this Change does not define.
 - The merge method, the procedure and the verdicts of `branching.md`.
 - The open synchronizations #1429 and #1430. They keep their bodies and are judged as they are; no template that does not exist is imposed on them.
 
