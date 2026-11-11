@@ -9,15 +9,21 @@
 
 ## DO
 
-1. Implement the judgment so that the F1 Cases pass, and the A7 to A11 Cases pass beside their elements.
-2. Run the runner with `--judge` set to the implemented judgment. Remove the runner and the baseline stand-in when Testing provides expected-RED execution on main.
-3. Rename each passing Case from `T<n>.red.mjs` to `T<n>.test.mjs` and wire it into its lane. Promotion out of the collector carries no outstanding RED for the promoted scope.
-4. Add `.github/PULL_REQUEST_TEMPLATE/plan.md` in its own pull request (A4).
+The Change is the whole lot. It reaches `main` in two promotions, because Change Isolation keeps `.github` and engineering apart, and it closes only when everything is on `main` and wired.
+
+1. Implement the judgment so that the F1 Cases pass, and the A7 to A11 Cases pass beside their elements (#1384).
+2. Add the readers and the check body, and let the interim runner write the evidence rows: A7, A9 and the A6 body (#1386). The runner attributes a failure to a target only where the Case names it.
+3. Make the check cover every PLAN pull request: the adapter finds the capability folder from the Change named in the title, skips merge commits when it checks the `Driven-by` trailers, and the runner takes a `--root`.
+4. Add `.github/PULL_REQUEST_TEMPLATE/plan.md` (A4) and the `verify Plan` workflow (A5) in a `.github`-only pull request on its own collector, `kaal/release/wire-verify-plan`. The workflow takes the judge and the runner from the target branch and the plan from the pull request.
+5. Promote the engineering collector `kaal/release/verify-plan` to `main`, then the `.github` collector. The engineering code must be on `main` first, because the workflow runs it. With the Owner's go for each.
+6. On `main`, rename T18 and T19 from `.red.mjs` to `.test.mjs` and wire them, in an engineering pull request on a new collector.
+7. Require the check named `verify Plan` in the `integration` ruleset (A13) and rename T26 and T27 when they are green. The ruleset change needs the Owner's go.
+8. Rename each passing Case from `T<n>.red.mjs` to `T<n>.test.mjs` and wire it into its lane. A promotion carries red markers only for Cases whose target lies outside the promoted paths, and the pull request names each of them. Remove the runner and the baseline stand-in when Testing provides expected-RED execution on main.
 
 ## ACT
 
-1. Require the check named `verify Plan` in the `integration` ruleset (A13). The ruleset change needs the Owner's go.
-2. Record what the first enforced PLAN shows, and adjust F1 through a new Change.
+1. Record what the first enforced PLAN shows, and adjust F1 through a new Change.
+2. Close C1 and its Gaps once every step of DO is on `main` and wired.
 
 ## Dependencies
 
