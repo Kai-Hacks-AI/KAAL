@@ -12,12 +12,12 @@ const headings = (text) => text.split('\n').filter((line) => line.startsWith('##
 export const id = 'release/T137';
 export const tests = ['release/F15'];
 export const title = 'a promotion body of the three chapters passes, and the bodies seen on promotions (PLAN headings, test and approval status, a merge method, a footer) are rejected';
-// The judgement of F15 on a body, written as the Case's own reading of the requirement.
+// The judgement of F15 on a body, written as the Case's own reading of the requirement. It reads a body as written, so a hidden comment before the first chapter counts as text before it.
 function judge(body) {
   const found = [];
-  const chapters = headings(body.replace(/<!--[\s\S]*?-->/g, ''));
+  const chapters = headings(body);
   if (chapters.join('|') !== 'Collector|Delivers|Order') found.push('chapters');
-  if (/^\s*[^#\s]/.test(body.split(/^## /m)[0].replace(/<!--[\s\S]*?-->/g, ''))) found.push('text before the first chapter');
+  if (body.split(/^## /m)[0].trim() !== '') found.push('text before the first chapter');
   if (/^---$|Generated with|claude\.ai\/code|Requested by|claude-projects-attribution/m.test(body)) found.push('attribution or footer');
   if (/\b(squash|merge commit|rebase)\b/i.test(body)) found.push('merge method');
   if (/\b(approv|CPO|green|passed|verified)/i.test(body)) found.push('approval or check status');
