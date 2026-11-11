@@ -11,7 +11,7 @@ The control is a detective control, and this PLAN does not make it preventive. I
 | Step | Change | Class | Turns green |
 | --- | --- | --- | --- |
 | S0 | The interpreter `05-src/vulnerability-analysis/interpreter.mjs` (A25) and its Cases. | Improve | T87, T88, T89, T90 |
-| S1 | The adapter `05-src/vulnerability-analysis/analyze.mjs` (A26): the command Guard runs after the analysis step. It reads the mechanism's result from the environment, prints the record and ends with 0 for PASS, 1 for FAIL and 2 for UNKNOWN. | Improve | T91 |
+| S1 | The adapter `05-src/vulnerability-analysis/analyze.mjs` (A26): the command Guard runs after the analysis step. It reads the mechanism's result from the environment, prints the record and ends with 0 for PASS, 1 for FAIL and 2 for UNKNOWN. | Improve | T109 |
 | S2 | The new realization, in `.github` alone: a workflow per target on `pull_request`, and `merge_group` for Promotion, with the analysis step and a step `npx --no kaal-guard run --check <name> --github`, no skip. It runs beside the old one. It is not required anywhere, so its job fails harmlessly until S2b lands. | Improve | T83 |
 | S2b | The declaration `.kaal/config/guard/<name>.md` (`command` the adapter, `runs: [ci]`), named as `naming.md` settles. It lands only after S2 (see the order finding below). | Improve | T82 |
 | S3 | Observation: the stable name on real pull requests into a collector and into `main`, a merge group on a scratch target, one FAIL on a throwaway pull request that adds a known-vulnerable dependency. The replay compares the new outcomes with the old job's last runs. | Evidence | T86 |

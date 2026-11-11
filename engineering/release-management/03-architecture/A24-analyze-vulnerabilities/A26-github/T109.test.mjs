@@ -1,4 +1,4 @@
-// Case release/T91 tests: release/A26
+// Case release/T109 tests: release/A26
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const adapter = join(repo, 'engineering/release-management/05-src/vulnerability-analysis/analyze.mjs');
-export const id = 'release/T91';
+export const id = 'release/T109';
 export const tests = ['release/A26'];
 export const title = 'the command Guard runs ends with 0 for PASS, 1 for FAIL and 2 for UNKNOWN, and prints the record';
 export function run() {
