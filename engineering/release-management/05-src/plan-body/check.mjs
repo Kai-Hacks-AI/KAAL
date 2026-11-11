@@ -1,5 +1,5 @@
 // A16 body-contract: checks the body of a PLAN pull request against release/F3.
-// Exactly four level-2 chapters in order (Change, From, To, Because), and nothing else as a heading.
+// Exactly four level-2 chapters in order (Change, From, To, Because), nothing before the first and nothing but one paragraph in each.
 // The Change chapter is one line `<id> <name>: <short description>`, and the description repeats none of the other chapters.
 const CHAPTERS = ['Change', 'From', 'To', 'Because'];
 const CHANGE_LINE = /^(\S+\/C\d+) (.+?): (.+)$/;
@@ -26,6 +26,7 @@ function read(body) {
   const headings = [];
   const text = new Map();
   let fenced = false;
+  const before = [];
   let current;
   for (const line of lines) {
     if (/^\s*(```|~~~)/.test(line)) fenced = !fenced;
@@ -36,9 +37,11 @@ function read(body) {
       if (current !== undefined && !text.has(current)) text.set(current, []);
     } else if (current !== undefined) {
       text.get(current).push(line);
+    } else if (headings.length === 0) {
+      before.push(line);
     }
   }
-  return { headings, chapter: (name) => (text.get(name) ?? []).join('\n').trim() };
+  return { headings, before: before.join('\n').trim(), chapter: (name) => (text.get(name) ?? []).join('\n').trim() };
 }
 
 export function checkPlanBody(body) {
@@ -46,12 +49,17 @@ export function checkPlanBody(body) {
   if (typeof body !== 'string') return { ok: false, problems: ['the body is not text'] };
   const stripped = withoutComments(body);
   if (stripped.nested || stripped.text.includes('<!--')) return { ok: false, problems: ['an HTML comment is nested or not closed'] };
-  const { headings, chapter } = read(stripped.text);
+  const { headings, before, chapter } = read(stripped.text);
   if (JSON.stringify(headings) !== JSON.stringify(CHAPTERS.map((name) => `## ${name}`))) {
     problems.push(`the body must have exactly the chapters ${CHAPTERS.join(', ')} in this order and no other heading (found: ${headings.join(', ') || 'none'})`);
     return { ok: false, problems };
   }
-  for (const name of CHAPTERS) if (chapter(name) === '') problems.push(`the chapter ${name} is empty`);
+  if (before !== '') problems.push('the body has text before the first chapter');
+  for (const name of CHAPTERS) {
+    const text = chapter(name);
+    if (text === '') problems.push(`the chapter ${name} is empty`);
+    else if (/\n\s*\n/.test(text) || /^\s*([-*_]{3,}|[-*+]\s|\d+[.)]\s|>)/m.test(text)) problems.push(`the chapter ${name} must be one short paragraph, with no footer, rule, list or quote`);
+  }
   const change = CHANGE_LINE.exec(chapter('Change'));
   if (!change) {
     if (chapter('Change') !== '') problems.push('the Change chapter must be one line `<id> <name>: <short description>` with an id such as release/C3, a name and a description');
