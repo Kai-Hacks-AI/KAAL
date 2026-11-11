@@ -6,6 +6,7 @@ export function index(plan) {
   for (const item of plan.requirements ?? []) add('requirement', item);
   for (const item of plan.architecture ?? []) add('architecture', item);
   for (const item of plan.defects ?? []) add('defect', item);
+  for (const item of plan.cases ?? []) add('case', item);
   for (const change of plan.changes ?? []) {
     add('change', change);
     for (const gap of change.gaps ?? []) byId.set(gap, { kind: 'gap', item: { id: gap, change: change.id } });

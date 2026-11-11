@@ -88,6 +88,7 @@ export function evaluate(plan, byId) {
     if (tests.length === 0) findings.push(fail('F1/4', entry.id, `Case ${entry.id} tests no target`, `Name at least one target in the tests list of ${entry.id}.`));
     for (const target of tests) {
       if (kindOf(byId, target) === undefined) findings.push(fail('F1/4', entry.id, `Case ${entry.id} tests ${target}, which does not resolve`, `Correct the target ${target} of ${entry.id}.`));
+      else if (kindOf(byId, target) === 'case') findings.push(fail('F1/4', entry.id, `Case ${entry.id} tests ${target}, which is a Case`, `Name an element or a gap as the target of ${entry.id}. A target never references a Case.`));
       else tested.add(target);
     }
   }
