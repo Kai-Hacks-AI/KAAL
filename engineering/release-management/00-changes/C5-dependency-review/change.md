@@ -6,12 +6,12 @@
 2. Observe the expected RED against `main` (`evidence.md`).
 3. Inventory the control across the workflow, the declarations and both rulesets (`inventory.md`).
 4. Assess each realization with MERIT (`merit.md`).
-5. State what the rulesets need and nothing more (`ruleset-needs.json`) and the sequence, equivalence, fallback and retirement (`transition.md`).
+5. State the naming (`naming.md`), what the rulesets need, which is nothing of this control's own (`ruleset-needs.json`), and the sequence, equivalence, fallback and retirement (`transition.md`).
 6. The PLAN moves nothing, changes no workflow, declaration or ruleset, and cites no document that is not on `main`.
 
 ## DO
 
-Not authorized by this PLAN. S1 to S5 of `transition.md` is the proposal, each step its own Change. S4 is the Owner's go.
+Not authorized by this PLAN. S1 to S5 of `transition.md` is the proposal, each step its own Change. The aggregates are `guard Integration`'s Change and the Owner's go, not this Change's.
 
 ## ACT
 

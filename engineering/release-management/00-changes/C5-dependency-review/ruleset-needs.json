@@ -1,23 +1,14 @@
 {
-  "note": "What the control needs from the existing rulesets. Nothing else is asked, and nothing is applied by the PLAN. Applied only on the Owner's go, in the order of transition.md.",
-  "context": { "name": "Dependency Review", "integration_id": 15368, "decided_in": "merit.md, Not decided here" },
-  "rulesets": [
-    {
-      "id": 24952357,
-      "name": "integration",
-      "place": "Integration IN",
-      "change": "add the context to required_status_checks.required_status_checks",
-      "keep": "every other rule and every other context, unchanged",
-      "precondition": "the context is reported for every pull request into kaal/**, observed on real pull requests"
-    },
-    {
-      "id": 24951062,
-      "name": "promotion",
-      "place": "Promotion IN",
-      "change": "add the context to required_status_checks.required_status_checks",
-      "keep": "every other rule, the merge queue and every other context, unchanged",
-      "precondition": "the context is reported for a merge group, observed once on a scratch target"
-    }
+  "note": "What this control needs from the existing rulesets: nothing of its own. The rulesets stay as they are and this Change applies nothing.",
+  "per_control_contexts": [],
+  "bound_through": [
+    { "place": "Integration IN", "aggregate": "guard Integration", "ruleset": "integration", "id": 24952357 },
+    { "place": "Promotion IN", "aggregate": "guard Promotion", "ruleset": "promotion", "id": 24951062 }
   ],
-  "after_export": "rulesets-after/<id>.json, exported with gh api repos/<repo>/rulesets/<id> after the change, kept beside this file as evidence"
+  "owner_of_the_aggregates": "guard Integration, its own Change and the Owner's go. Each ruleset gets one line for its aggregate once, and never one per control.",
+  "until_then": "Dependency Review stays detective and reports itself as not bound",
+  "preconditions_for_the_aggregates": [
+    "the declared control reports for every pull request into kaal/**, observed on real pull requests",
+    "the declared control reports for a merge group, observed once on a scratch target, because promotion has a merge queue"
+  ]
 }

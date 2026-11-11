@@ -16,11 +16,11 @@ The PLAN of C5 observes its RED against `main`. Work that is not on `main` is no
 | T81 | G21 | RED: I4 is absent | green |
 | T82 | G22 | RED: no declaration | RED: no declaration |
 | T83 | G23 | RED: no merge group reports the name | RED: the same |
-| T84 | G24 | RED: `ruleset-needs.json` is absent | RED: the export after the change is absent |
+| T84 | G24 | RED: `ruleset-needs.json` is absent | green |
 | T85 | G25 | RED: the old workflow is present | RED: the same |
 | T86 | G26 | RED: the replay is absent | RED: the same |
 
-On `main`: 15 RED-observed. In the tree of this PLAN: 10 green (documents this PLAN adds), 5 RED-observed, which wait for the DO: the declaration (S1), the merge-group reporting (S2), the ruleset exports (S4), the retirement (S5) and the replay (S3).
+On `main`: 15 RED-observed. In the tree of this PLAN: 11 green (documents this PLAN adds), 4 RED-observed, which wait for the DO: the declaration (S1), the merge-group reporting (S2), the replay (S3) and the retirement (S5).
 
 ## Reproduce
 
