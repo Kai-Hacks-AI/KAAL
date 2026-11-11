@@ -2,10 +2,11 @@
 
 ## PLAN
 
-1. Add I4, F7 to F9 and A24 to A28 with their Cases T72 to T80, and C5 with its own Cases T81 to T86, one per gap.
+1. Add I4, F7 to F9 and A24 to A28 with their Cases T72 to T80 and the behavioral Cases T87 to T89, and C5 with its own Cases T81 to T86 and T90, one per gap.
 2. Observe the expected RED against `main` (`evidence.md`).
 3. Inventory the control across the workflow, the declarations and both rulesets (`inventory.md`).
-4. Assess each realization with MERIT (`merit.md`).
+4. Assess each realization with MERIT (`merit.md`) and establish how the retained mechanism realizes the verdicts (`judge-realization.md`).
+   Specify the operational acceptance evidence, observed apart from proposed (`acceptance.md`).
 5. State the naming (`naming.md`), what the rulesets need, which is nothing of this control's own (`ruleset-needs.json`), and the sequence, equivalence, fallback and retirement (`transition.md`).
 6. The PLAN moves nothing, changes no workflow, declaration or ruleset, and cites no document that is not on `main`.
 

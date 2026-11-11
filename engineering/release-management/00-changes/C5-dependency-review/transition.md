@@ -6,6 +6,7 @@ How the new realization is introduced, and the old one retired, without a moment
 
 | Step | Change | Class | Turns green |
 | --- | --- | --- | --- |
+| S0 | The judge `05-src/dependency-verdict/judge.mjs` (A25) and its Cases. | Improve | T87, T88, T89, T90 |
 | S1 | The control is declared for its places (`.kaal/config/guard/Verify-Dependencies.md`, `runs: [ci]`). Observation of whether Guard can bind an action-run check comes first. | Improve | T82 |
 | S2 | The new realization: a workflow with the job of F9 on `pull_request` and `merge_group`, explicit severity, no skip. It runs beside the old one. | Improve | T83 |
 | S3 | Observation: the stable name on real pull requests into a collector and into `main`, a merge group on a scratch target, one FAIL on a throwaway pull request that adds a known-vulnerable dependency. The replay compares the new verdicts with the old job's last runs. | Evidence | T86 |
@@ -14,12 +15,17 @@ How the new realization is introduced, and the old one retired, without a moment
 
 The Cases are renamed to `.test.mjs` and listed in Engineering CI in the Change that makes them green, which is also the known wiring gap of create Plan.
 
-## Equivalence tests
+## Equivalence and acceptance evidence
 
-- **E1, history.** The last 30 pull requests the old job judged, all success: the new job gives the same verdict for the same base and head.
-- **E2, failure.** A throwaway pull request that adds a dependency with a known advisory fails in both jobs and the verdict names dependency, version, advisory and severity (F7).
-- **E3, fail closed.** With the dependency data unavailable the new job does not pass (UNKNOWN). The old job's behavior in that case is recorded, not assumed.
-- **E4, queue.** The merge group of a scratch promotion reports the control. If it does not, Promotion IN is not declared for it and it is reported as not observed.
+The observations of `acceptance.md` (A1 to A6) are the equivalence and operational evidence. The judge's behaviors are Cases (T87 to T89). Observed results and proposed tests are kept apart there, and nothing in this PLAN is observed beyond what it states.
+
+## Scope by place
+
+| Place | Declared when |
+| --- | --- |
+| Integration IN | A1, A2, A3 and A5 are observed |
+| Promotion IN | A4 is also observed. If it is not, the control is not declared there, no promotion binding is proposed, and the scope is Integration IN alone, stated as such |
+| Development OUT | not realized by this Change |
 
 ## Fallback
 
@@ -27,8 +33,8 @@ Until S5 a step is undone by reverting its Change and the old job has not stoppe
 
 ## Acceptance of the DO
 
-T72 to T86 green, E1 to E4 passing or E4 reported as not observed, no ruleset changed, and Engineering CI running the Cases.
+T72 to T90 green, A1 to A5 observed (A4 may be reported as not observed, with the scope above), no ruleset changed, and Engineering CI running the Cases.
 
 ## Retirement of the old realization
 
-`dependency-review.yml` is removed when the new job has been observed (S3) and the Owner has accepted the evidence. It waits for that and for nothing else (the binding is not a condition), so no control that was never required is kept alive for its own sake.
+`dependency-review.yml` is removed only when all of these hold: the new job has been observed reporting for the old job's whole scope, pull requests into `main` and into `kaal/**` (A3, A5); a vulnerable addition and an UNKNOWN have been observed (A1, A2); the DO acceptance above holds; and the Owner has accepted the evidence. A binding at any place is declared and validated for that place separately and is not a condition of the retirement, because the old job is bound nowhere.

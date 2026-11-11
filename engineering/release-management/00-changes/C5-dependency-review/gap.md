@@ -9,4 +9,5 @@ One row per target artefact. Each gap is a Gap with a global id that a Change-or
 | release/G23 | F9 and A28 merge-group | the workflow reports for pull requests only | no merge group reports the control, so Promotion IN cannot bind it |
 | release/G24 | F9 wiring | no ruleset requires the check, and a per-control line would not scale | the control's need from the rulesets is not stated as none, with the aggregates named as the way it is bound |
 | release/G25 | retirement of the old realization | `dependency-review.yml` is the only realization | the old workflow is still present after the new one reports |
+| release/G27 | F7 and A25 judge | the old job gives an exit status; a failure to compare looks like a finding | no judge maps the mechanism's result to PASS, FAIL or UNKNOWN with findings |
 | release/G26 | equivalence evidence | nothing compares the new job's verdicts with the old job's | the replay of `transition.md` is absent |

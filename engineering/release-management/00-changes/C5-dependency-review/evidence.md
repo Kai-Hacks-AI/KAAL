@@ -5,7 +5,7 @@ The PLAN of C5 observes its RED against `main`. Work that is not on `main` is no
 ## Provenance
 
 - Baseline: `main` at `8720c401fd6aa3ea8f78f1d2f1f3e5d8d7c2a6af`.
-- Method: the fifteen Cases of this PLAN (T72 to T86) are copied over a checkout of `main` and each Case's `run()` is called, then run again in the tree of this PLAN. No job executes them yet; Engineering CI lists its files explicitly.
+- Method: the nineteen Cases of this PLAN (T72 to T90) are copied over a checkout of `main` and each Case's `run()` is called, then run again in the tree of this PLAN. No job executes them yet; Engineering CI lists its files explicitly.
 - Observed 11 Nov 2026, Node 24 on Linux.
 
 ## Result
@@ -18,9 +18,11 @@ The PLAN of C5 observes its RED against `main`. Work that is not on `main` is no
 | T83 | G23 | RED: no merge group reports the name | RED: the same |
 | T84 | G24 | RED: `ruleset-needs.json` is absent | green |
 | T85 | G25 | RED: the old workflow is present | RED: the same |
+| T87 to T89 | F7 behaviors | RED: the judge is absent | RED: the judge is absent |
+| T90 | G27 | RED: the judge is absent | RED: the judge is absent |
 | T86 | G26 | RED: the replay is absent | RED: the same |
 
-On `main`: 15 RED-observed. In the tree of this PLAN: 11 green (documents this PLAN adds), 4 RED-observed, which wait for the DO: the declaration (S1), the merge-group reporting (S2), the replay (S3) and the retirement (S5).
+On `main` and in the tree of this PLAN the judge is absent, so the behavioral Cases T87 to T89 and T90 are RED in both ("the judge is absent"). On `main`: all 19 RED-observed. In the tree of this PLAN: 11 green (documents this PLAN adds) and 8 RED-observed, which wait for the DO: the judge (S0), the declaration (S1), the merge-group reporting (S2), the replay (S3) and the retirement (S5). The operational observations are not Cases and none is observed yet (`acceptance.md`).
 
 ## Reproduce
 
