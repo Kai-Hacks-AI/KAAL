@@ -11,7 +11,7 @@ A check is named `control (target)`: the control as `<verb> <Subject>`, and the 
 | Ruleset | the step as a noun | `Integration` (now `integration`), `Promotion` (now `promotion`), `Publishing` (now `publishing`) |
 | Check of a control | `control (target)`, as the job `name:` | `verify Dependencies (Integration)`, `verify Dependencies (Promotion)` |
 | Aggregate check, preventive | `guard (target)`, as the job `name:` | `guard (Integration)`, `guard (Promotion)` |
-| Workflow | `KAAL <owning capability>`, so every KAAL check sorts together and the owner is visible | `KAAL release` for the checks of the release capability, such as verify Dependencies, and `KAAL` alone for the aggregates, which KAAL itself owns |
+| Workflow | `KAAL <owning capability>` for a capability's checks, and `KAAL` alone for what KAAL itself owns, so every KAAL check sorts together | `KAAL release` for the checks of the release capability, such as verify Dependencies, and `KAAL` alone for the aggregates, which KAAL itself owns |
 | Locator, internal to the declaration | SIPOC side of a step | for example `at: integration/input`; never part of a name |
 
 ## How the UI shows it
@@ -24,7 +24,7 @@ The control's verb is its class: guard preventive, verify detective, clear or dr
 
 ## Prefix `KAAL` and the owning capability
 
-- **Owner (proposal).** The capability is `release`. It owns verify Dependencies, which is Intent I4 of its own, and the guard aggregates of the steps Integration and Promotion, because those steps are its own, so the aggregates read `KAAL release / guard (Integration)`. If the Owner places the aggregates with Guard instead, their workflow is named `KAAL guard` and nothing else changes.
+- **Owner.** The capability is `release`. It owns verify Dependencies, which is Intent I4 of its own. The guard aggregates are owned by KAAL itself, not by a capability, so they read `KAAL / guard (Integration)` and `KAAL / guard (Promotion)`.
 - **One name across files.** Each target is still its own workflow file. Several files may carry the same workflow `name:`, which is observed in A6, not assumed.
 - **Trade-off, length.** The line is about 50 characters and GitHub's checks list truncates long names, so the job name may be cut first on a very narrow screen.
 - **Trade-off, a mixed list.** Existing checks (Branching, Engineering, Hosting and others) carry no prefix until each is migrated, so for a while the list mixes prefixed and unprefixed names.
