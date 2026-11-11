@@ -16,7 +16,8 @@ async function main() {
   const tree = option('--tree');
   if (tree === undefined || !existsSync(tree)) { console.log('UNKNOWN: the plan tree is unreadable. Provide the capability folder and run verify Plan again.'); return 2; }
   const evidenceFile = option('--evidence');
-  const evidence = evidenceFile !== undefined && existsSync(evidenceFile) ? readEvidence(readFileSync(evidenceFile, 'utf8')) : undefined;
+  let evidence;
+  try { evidence = evidenceFile !== undefined && existsSync(evidenceFile) ? readEvidence(readFileSync(evidenceFile, 'utf8')) : undefined; } catch { evidence = undefined; }
   const result = await judge({ ...readTreeFromDisk(tree), evidence });
   console.log(`${result.verdict}`);
   for (const finding of result.findings) console.log(`  ${finding.status.toUpperCase()} ${finding.rule} ${finding.id}: ${finding.message}\n    Recovery: ${finding.recovery}`);

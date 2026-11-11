@@ -29,4 +29,13 @@ test(`${id} ${title}`, () => {
   assert.match(unknown.stdout, /^UNKNOWN/);
   assert.equal(run('--pr', pr('release/C1 DO: x'), '--tree', root).status, 3);
   assert.equal(run('--pr', join(scratch, 'missing.json'), '--tree', root).status, 2);
+  // Input that exists but cannot be read gives UNKNOWN with a Recovery, never a crash.
+  const notAFolder = join(scratch, 'file.txt');
+  writeFileSync(notAFolder, 'x');
+  for (const [what, args] of [['a tree that is a file', ['--pr', pr('release/C1 PLAN: x'), '--tree', notAFolder]], ['evidence that is a folder', [...plan, '--evidence', scratch]]]) {
+    const result = run(...args);
+    assert.equal(result.status, 2, `${what}: ${result.stdout}${result.stderr}`);
+    assert.match(result.stdout, /^UNKNOWN/, what);
+    assert.match(result.stdout, /Recovery|again/, what);
+  }
 });

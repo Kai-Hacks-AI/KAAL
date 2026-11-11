@@ -22,8 +22,9 @@ function frontMatter(text) {
   if (match === null) return undefined;
   const fields = {};
   for (const line of match[1].split('\n')) {
+    if (line.trim() === '') continue;
     const pair = /^([a-z]+):\s*(.*)$/.exec(line);
-    if (pair === null) continue;
+    if (pair === null) return null;
     const value = pair[2].trim();
     fields[pair[1]] = value.startsWith('[') ? value.slice(1, -1).split(',').map((part) => part.trim()).filter(Boolean) : value;
   }
@@ -41,9 +42,11 @@ function placeOf(path, capability) {
 }
 
 // files: [{ path, text }] with paths relative to the capability folder.
+// Input that cannot be read is never dropped: the result is { unreadable } and the judgment answers UNKNOWN.
 export function readTree(files) {
   const plan = { intents: [], requirements: [], architecture: [], defects: [], gaps: [], changes: [], cases: [] };
   const caseFiles = [];
+  const problems = [];
   let capability;
   for (const { path, text } of files) {
     if (path.endsWith('gap.md')) {
@@ -55,13 +58,14 @@ export function readTree(files) {
       }
     } else if (path.endsWith('.md')) {
       const fields = frontMatter(text);
-      const match = fields?.id !== undefined ? /^([a-z][a-z0-9-]*)\/([A-Z])\d+$/.exec(fields.id) : null;
-      if (match !== null && match !== undefined && COLLECTION[match[2]] !== undefined) {
-        capability ??= match[1];
-        const node = { id: fields.id };
-        for (const link of LINKS) if (fields[link] !== undefined) node[link] = fields[link];
-        plan[COLLECTION[match[2]]].push(node);
-      }
+      if (fields === null) { problems.push(`${path} has front matter that cannot be parsed`); continue; }
+      if (fields?.id === undefined) continue;
+      const match = /^([a-z][a-z0-9-]*)\/([A-Z])\d+$/.exec(fields.id);
+      if (match === null || COLLECTION[match[2]] === undefined) { problems.push(`${path} declares the id ${fields.id}, which is not <capability>/<kind><n> of a known kind`); continue; }
+      capability ??= match[1];
+      const node = { id: fields.id };
+      for (const link of LINKS) if (fields[link] !== undefined) node[link] = fields[link];
+      plan[COLLECTION[match[2]]].push(node);
     } else if (/\/T\d+\.(red|test)\.mjs$/.test(`/${path}`)) {
       caseFiles.push({ path, text });
     }
@@ -69,9 +73,10 @@ export function readTree(files) {
   for (const { path, text } of caseFiles) {
     const id = /export const id = '([^']+)'/.exec(text)?.[1];
     const tests = /export const tests = \[([^\]]*)\]/.exec(text)?.[1];
-    if (id === undefined || tests === undefined) continue;
+    if (id === undefined || tests === undefined) { problems.push(`${path} declares no Case id or no tests`); continue; }
     plan.cases.push({ id, tests: [...tests.matchAll(/'([^']+)'/g)].map((match) => match[1]), found: placeOf(path, capability ?? id.split('/')[0]) });
   }
+  if (problems.length > 0) return { unreadable: `the plan tree (${problems.join('; ')})` };
   return plan;
 }
 
@@ -80,5 +85,9 @@ function walk(dir) {
 }
 
 export function readTreeFromDisk(root) {
-  return readTree(walk(root).map((file) => ({ path: relative(root, file).split(sep).join('/'), text: readFileSync(file, 'utf8') })));
+  try {
+    return readTree(walk(root).map((file) => ({ path: relative(root, file).split(sep).join('/'), text: readFileSync(file, 'utf8') })));
+  } catch {
+    return { unreadable: 'the plan tree' };
+  }
 }

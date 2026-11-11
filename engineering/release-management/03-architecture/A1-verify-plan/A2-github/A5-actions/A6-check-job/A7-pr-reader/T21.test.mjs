@@ -1,5 +1,7 @@
 // Case release/T21 tests: release/A7
 import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -39,4 +41,25 @@ test(`${id} ${title}`, async () => {
   assert.ok(real.cases.length >= 24 && real.gaps.length === 9);
   const verdict = await judge({ ...real, evidence: undefined });
   assert.ok(verdict.findings.every((f) => f.rule === 'F1/6' && f.status === 'unknown'), JSON.stringify(verdict.findings));
+
+  // Input the reader cannot read is reported as unreadable, never dropped: the judgment then answers UNKNOWN with a Recovery.
+  const good = { path: '01-intent/I1-x/I1.md', text: '---\nid: release/I1\n---\n# x' };
+  const broken = {
+    'a malformed node id': { path: '02-requirements/F9-x/F9.md', text: '---\nid: F999\nserves: []\n---\n' },
+    'a node of an unknown kind': { path: '02-requirements/Z1-x/Z1.md', text: '---\nid: release/Z1\n---\n' },
+    'front matter that cannot be parsed': { path: '02-requirements/F9-x/F9.md', text: '---\nid: release/F9\n  - broken\n---\n' },
+    'a Case without an id': { path: '02-requirements/F1-y/T3.red.mjs', text: "export const tests = ['release/F1'];" },
+    'a Case without tests': { path: '02-requirements/F1-y/T3.red.mjs', text: "export const id = 'release/T3';" },
+  };
+  for (const [what, file] of Object.entries(broken)) {
+    const unreadable = readTree([good, file]);
+    assert.ok(unreadable.unreadable, `${what} is unreadable`);
+    const result = await judge(unreadable);
+    assert.equal(result.verdict, 'UNKNOWN', what);
+    assert.ok(result.findings.every((f) => f.status === 'unknown' && f.recovery), what);
+  }
+  const scratch = mkdtempSync(join(tmpdir(), 'verify-plan-reader-'));
+  writeFileSync(join(scratch, 'file.md'), 'x');
+  assert.ok(readTreeFromDisk(join(scratch, 'file.md')).unreadable, 'a path that is not a folder is unreadable');
+  assert.ok(readTreeFromDisk(join(scratch, 'missing')).unreadable, 'a missing folder is unreadable');
 });
