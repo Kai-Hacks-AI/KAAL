@@ -65,16 +65,19 @@ export function reach(byId, id) {
   return distance;
 }
 
-// The nearest shared ancestor of the targets, or 'capability' when they share none.
+// The nearest shared ancestor of the targets, or the owning capability when they share none.
 // A gap has no folder, so a Case that tests it sits beside its Change.
 const placeOf = (byId, id) => (byId.get(id)?.kind === 'gap' ? byId.get(id).item.change : id);
+
+// With no shared ancestor, the place is the owning capability, named by the prefix of the targets.
+export const capabilityOf = (id) => (typeof id === 'string' && id.includes('/') ? id.split('/')[0] : undefined);
 
 export function nearestShared(byId, targetIds) {
   const targets = [...new Set(targetIds.map((id) => placeOf(byId, id)))];
   if (targets.length === 1) return targets[0];
   const reaches = targets.map((target) => reach(byId, target));
   const common = [...reaches[0].keys()].filter((id) => reaches.every((distance) => distance.has(id)));
-  if (common.length === 0) return 'capability';
+  if (common.length === 0) return capabilityOf(targets[0]) ?? 'capability';
   const score = (id) => [Math.max(...reaches.map((distance) => distance.get(id))), reaches.reduce((sum, distance) => sum + distance.get(id), 0), id];
   common.sort((a, b) => {
     const [a1, a2, a3] = score(a);

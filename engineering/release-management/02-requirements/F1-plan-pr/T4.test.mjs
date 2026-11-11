@@ -1,22 +1,23 @@
-// Case F1/T4 tests: F1
+// Case release/T4 tests: release/F1
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { judge } from '../../05-src/plan/judge.mjs';
-export const id = 'F1/T4';
-export const tests = ['F1'];
-export const title = 'a Case with no valid target, an unresolved link, a duplicate identity, or a required element with no outer-loop Case fails, and one Case covering several targets passes';
+export const id = 'release/T4';
+export const tests = ['release/F1'];
+export const title = 'an Architecture element that addresses nothing, or a parent link with a missing, wrong-kind or cyclic target, fails, and parent confers no coverage';
 test(`${id} ${title}`, async () => {
   const result = await judge({
-    intents: [{ id: 'I1' }],
-    requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }, { id: 'F2', kind: 'F', serves: ['I1'] }, { id: 'F3', kind: 'F', serves: ['I1'] }],
-    cases: [
-      { id: 'I1/T1', tests: ['F1', 'F2'] },
-      { id: 'I1/T1', tests: ['I1'] },
-      { id: 'I1/T2', tests: [] },
-      { id: 'I1/T3', tests: ['X99'] },
+    requirements: [{ id: 'release/F1', kind: 'F', serves: ['release/I1'] }],
+    architecture: [
+      { id: 'release/A1', addresses: ['release/F1'] },
+      { id: 'release/A9', parent: 'release/A1', addresses: [] },
+      { id: 'release/A10', parent: 'release/A11', addresses: ['release/F1'] },
+      { id: 'release/A11', parent: 'release/A10', addresses: ['release/F1'] },
+      { id: 'release/A12', parent: 'release/F1', addresses: ['release/F1'] },
+      { id: 'release/A13', parent: 'release/A99', addresses: ['release/F1'] },
     ],
   });
   assert.equal(result.verdict, 'FAIL');
-  for (const f of [{ id: 'I1/T1' }, { id: 'I1/T2' }, { id: 'I1/T3' }, { id: 'F3' }]) assert.ok(result.findings.some((x) => x.rule === 'F1/4' && x.id === f.id), f.id);
-  assert.ok(!result.findings.some((x) => x.rule === 'F1/4' && x.id === 'F2'));
+  for (const aid of ['release/A9', 'release/A10', 'release/A12', 'release/A13']) assert.ok(result.findings.some((f) => f.rule === 'F1/3' && f.id === aid), aid);
+  assert.ok(!result.findings.some((f) => f.rule === 'F1/3' && f.id === 'release/A1'));
 });

@@ -1,16 +1,16 @@
-// Case D1/T1 tests: D1
+// Case release/T28 tests: release/D1
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { judge } from '../../05-src/plan/judge.mjs';
-export const id = 'D1/T1';
-export const tests = ['D1'];
+export const id = 'release/T28';
+export const tests = ['release/D1'];
 export const title = 'an untraced PLAN is caught';
 const untraced = {
-  changes: [{ id: 'C9', implements: [], resolves: [] }],
-  requirements: [{ id: 'F9', kind: 'F', serves: [] }],
-  architecture: [{ id: 'A9', addresses: [] }],
+  changes: [{ id: 'release/C9', implements: [], resolves: [] }],
+  requirements: [{ id: 'release/F9', kind: 'F', serves: [] }],
+  architecture: [{ id: 'release/A9', addresses: [] }],
   cases: [],
-  evidence: [{ case: 'F9/T1', result: 'failed', reason: 'assertion', target: 'F9' }],
+  evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/F9' }],
 };
 test(`${id} ${title}`, async () => {
   const result = await judge(untraced);

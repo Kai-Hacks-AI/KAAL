@@ -1,31 +1,31 @@
-// Case I1/T1 tests: I1
+// Case release/T1 tests: release/I1
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { judge } from '../../05-src/plan/judge.mjs';
-export const id = 'I1/T1';
-export const tests = ['I1'];
+export const id = 'release/T1';
+export const tests = ['release/I1'];
 export const title = 'a PLAN without a traced red plan is not accepted';
 const valid = {
-  intents: [{ id: 'I1' }],
-  defects: [{ id: 'D1' }],
-  requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }],
-  architecture: [{ id: 'A1', addresses: ['F1', 'D1'] }],
-  changes: [{ id: 'C1', implements: ['I1'], resolves: ['D1'], gaps: ['C1/G1'] }],
+  intents: [{ id: 'release/I1' }],
+  defects: [{ id: 'release/D1' }],
+  requirements: [{ id: 'release/F1', kind: 'F', serves: ['release/I1'] }],
+  architecture: [{ id: 'release/A1', addresses: ['release/F1', 'release/D1'] }],
+  changes: [{ id: 'release/C1', implements: ['release/I1'], resolves: ['release/D1'], gaps: ['release/C1/G1'] }],
   cases: [
-    { id: 'I1/T1', tests: ['I1'] },
-    { id: 'F1/T1', tests: ['F1'] },
-    { id: 'A1/T1', tests: ['A1'] },
-    { id: 'D1/T1', tests: ['D1'] },
-    { id: 'C1/T1', tests: ['C1/G1'] },
+    { id: 'release/T1', at: 'release/I1', tests: ['release/I1'] },
+    { id: 'release/T2', at: 'release/F1', tests: ['release/F1'] },
+    { id: 'release/T3', at: 'release/A1', tests: ['release/A1'] },
+    { id: 'release/T4', at: 'release/D1', tests: ['release/D1'] },
+    { id: 'release/T5', at: 'release/C1', tests: ['release/C1/G1'] },
   ],
-  evidence: [{ case: 'F1/T1', result: 'failed', reason: 'assertion', target: 'F1' }],
+  evidence: [{ case: 'release/T2', result: 'failed', reason: 'assertion', target: 'release/F1' }],
 };
 const untraced = {
-  changes: [{ id: 'C9', implements: [], resolves: [] }],
-  requirements: [{ id: 'F9', kind: 'F', serves: [] }],
-  architecture: [{ id: 'A9', addresses: [] }],
+  changes: [{ id: 'release/C9', implements: [], resolves: [] }],
+  requirements: [{ id: 'release/F9', kind: 'F', serves: [] }],
+  architecture: [{ id: 'release/A9', addresses: [] }],
   cases: [],
-  evidence: [{ case: 'F9/T1', result: 'failed', reason: 'assertion', target: 'F9' }],
+  evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/F9' }],
 };
 test(`${id} ${title}`, async () => {
   assert.equal((await judge(valid)).verdict, 'PASS');

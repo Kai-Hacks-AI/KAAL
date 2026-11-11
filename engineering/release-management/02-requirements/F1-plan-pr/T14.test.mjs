@@ -1,14 +1,16 @@
-// Case F1/T13 tests: F1
+// Case release/T14 tests: release/F1
 import assert from 'node:assert/strict';
-export const id = 'F1/T13';
-export const tests = ['F1'];
-export const title = 'an id without its capability, or a Case id that encodes a place, fails with a Recovery that names the form, and a plan with capability-qualified ids is accepted';
-export async function run({ judge }) {
+import test from 'node:test';
+import { judge } from '../../05-src/plan/judge.mjs';
+export const id = 'release/T14';
+export const tests = ['release/F1'];
+export const title = 'an element id without its capability, or a Case id that encodes a place, fails with a Recovery that names the form, and a plan with capability-qualified ids is accepted';
+test(`${id} ${title}`, async () => {
   const unqualified = await judge({
     intents: [{ id: 'I1' }],
     requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }],
-    cases: [{ id: 'I1/T1', at: 'I1', tests: ['I1'] }, { id: 'F1/T1', at: 'F1', tests: ['F1'] }],
-    evidence: [{ case: 'F1/T1', result: 'failed', reason: 'assertion', target: 'F1' }],
+    cases: [{ id: 'T1', at: 'I1', tests: ['I1'] }, { id: 'T2', at: 'F1', tests: ['F1'] }],
+    evidence: [{ case: 'T2', result: 'failed', reason: 'assertion', target: 'F1' }],
   });
   assert.equal(unqualified.verdict, 'FAIL');
   const finding = unqualified.findings.find((f) => f.rule === 'F1/4' && f.id === 'F1');
@@ -29,4 +31,4 @@ export async function run({ judge }) {
     evidence: [{ case: 'release/T2', result: 'failed', reason: 'assertion', target: 'release/F1' }],
   });
   assert.equal(qualified.verdict, 'PASS');
-}
+});

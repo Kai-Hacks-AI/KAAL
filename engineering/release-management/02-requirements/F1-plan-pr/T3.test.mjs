@@ -1,23 +1,13 @@
-// Case F1/T3 tests: F1
+// Case release/T3 tests: release/F1
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { judge } from '../../05-src/plan/judge.mjs';
-export const id = 'F1/T3';
-export const tests = ['F1'];
-export const title = 'an Architecture element that addresses nothing, or a parent link with a missing, wrong-kind or cyclic target, fails, and parent confers no coverage';
+export const id = 'release/T3';
+export const tests = ['release/F1'];
+export const title = 'a functional or nonfunctional Requirement that serves no Intent fails';
 test(`${id} ${title}`, async () => {
-  const result = await judge({
-    requirements: [{ id: 'F1', kind: 'F', serves: ['I1'] }],
-    architecture: [
-      { id: 'A1', addresses: ['F1'] },
-      { id: 'A9', parent: 'A1', addresses: [] },
-      { id: 'A10', parent: 'A11', addresses: ['F1'] },
-      { id: 'A11', parent: 'A10', addresses: ['F1'] },
-      { id: 'A12', parent: 'F1', addresses: ['F1'] },
-      { id: 'A13', parent: 'A99', addresses: ['F1'] },
-    ],
-  });
+  const result = await judge({ intents: [{ id: 'release/I1' }], requirements: [{ id: 'release/F9', kind: 'F', serves: [] }, { id: 'release/N9', kind: 'N', serves: [] }] });
   assert.equal(result.verdict, 'FAIL');
-  for (const aid of ['A9', 'A10', 'A12', 'A13']) assert.ok(result.findings.some((f) => f.rule === 'F1/3' && f.id === aid), aid);
-  assert.ok(!result.findings.some((f) => f.rule === 'F1/3' && f.id === 'A1'));
+  assert.ok(['release/F9', 'release/N9'].every((rid) => result.findings.some((f) => f.rule === 'F1/2' && f.id === rid)));
+  assert.ok(result.findings.every((f) => f.recovery));
 });
