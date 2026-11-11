@@ -13,6 +13,6 @@ export function run() {
   const text = read(template, 'the promotion template');
   const [lead, change, why] = text.split(/^## .*$/m);
   assert.ok(/<id> <name>: <phases/.test(change) && /stable id/i.test(change) && /describe/i.test(change), 'the Change hint does not ask for the stable id, the phases and no description');
-  assert.ok(/now/i.test(why) && /(unblock|enable)/i.test(why) && /reason/i.test(why), 'the Why now hint does not ask for what delivering now makes possible and a reason for every named Change');
+  assert.ok(/now/i.test(why) && /later/i.test(why) && /(unblock|enable)/i.test(why) && /reason/i.test(why), 'the Why now hint does not ask for what delivering now makes possible and a reason for every named Change');
   assert.ok(/source|destination/i.test(lead) && /approval/i.test(lead) && /merge method/i.test(lead) && /attribution/i.test(lead), 'the opening hint does not exclude source, destination, approvals, merge method and attribution');
 }
