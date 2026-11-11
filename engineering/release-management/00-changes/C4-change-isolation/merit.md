@@ -16,6 +16,10 @@ The initial hypothesis of the Owner is Migrate + Improve. The assessment below c
 | `engineering/controls/README.md`, section Change Isolation | Terminate, after the DO | It describes a planned Control and is stale (H6). It is superseded by I3, F4 to F6 and A17 to A23 and is removed or redirected when the DO closes, not before. |
 | `first-use-acceptance.md`, the ledger plans and the trial note | Retain | They are the record of how the ledger came to be. |
 
+## Guard
+
+Guard stays the concept that connects the control's declared check to the hook, CI and the queue. The findings H1 to H3 are defects of the current machinery (a hook that skips the ledger, one declaration for three controls, a handler that fails ordinary Changes), not of the concept. The control demonstrates the way of working and replaces nothing of Guard. The improvements are made to the machinery so that Guard consumes the control as declared.
+
 ## Not decided here
 
 - Whether `check.mjs` moves into release management. Nothing observed asks for it.
