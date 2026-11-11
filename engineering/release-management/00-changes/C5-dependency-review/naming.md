@@ -1,25 +1,24 @@
 # C5 naming
 
-Undecided. The Owner rejected the first proposal, which put the words IN and OUT into names. `IN`, `OUT` and the place are the Owner's locator for where a control applies, and they stay inside the declarations as that locator. They are not the name of a ruleset, an aggregate, a workflow or a job. Nothing in this PLAN renames anything, and no name below is applied before the Owner picks. The Cases of this PLAN do not decide a name: they look for a dependency check by what it does, not by what it is called.
+Proposed on the Owner's choice of ruleset names. The rulesets are named by the noun of the step they protect: `Integration` (branch based, the collectors `kaal/**`), `Promotion` (branch based, `main`) and `Publishing` (tag based). The rest of the set follows from them. Nothing in this PLAN renames anything live, and the Cases of this PLAN do not decide a name: they look for a dependency check by what it does, not by what it is called.
 
-## Frame
+## The set
 
-SIPOC: a process step has Suppliers, Inputs, Process, Outputs and Customers. A step is named by what it does (Develop, Integrate, Promote, Publish), and a control is located at the Input or Output of a step. The locator is written once, in the declaration, for example `at: integrate/input`.
+| Kind | Name | For this control |
+| --- | --- | --- |
+| Ruleset | the step as a noun | `Integration` (now `integration`), `Promotion` (now `promotion`), `Publishing` (now `publishing`) |
+| Aggregate check, preventive | `guard <Step>`, as workflow and as job | `guard Integration`, `guard Promotion` |
+| Workflow of a control | the control, `<verb> <Subject>` | `verify Dependencies` |
+| Job of a control | the step | `Integration`, `Promotion` |
+| Declaration | the control's subject in `.kaal/config/guard/` | a file for the control, at its Change |
+| Locator, internal to the declaration | SIPOC side of a step | for example `at: integration/input`; never part of a name |
 
-## Options, per kind
+What a person sees: `verify Dependencies / Integration` for the control's own view, and `guard Integration` for the one check that admits. The control's verb is its class: guard preventive, verify detective, clear or drain corrective, direct directive. The words Station, Gate, Hook, IN and OUT name no check or ruleset.
 
-| Kind | Option 1 | Option 2 | Option 3 (SIPOC) |
-| --- | --- | --- | --- |
-| Ruleset | by step: `Integrate`, `Promote`, `Publish` | by line it protects: `Collectors`, `Main`, `Releases` | by input: `Integrate input`, `Promote input`, `Publish input` |
-| Aggregate check | `guard Integrate`, `guard Promote` | `guard Collectors`, `guard Main` | `guard Integrate input`, `guard Promote input` |
-| Workflow of a control | the control: `verify Dependencies` | the subject only: `Dependencies` | prefixed so all controls group: `Control: verify Dependencies` |
-| Job of a control | the step: `Integrate`, `Promote` | the step and its side: `Integrate input`, `Promote input` | the SIPOC side only where a step has both: `input`, `output` |
+## What stays true
 
-Control names stay `<verb> <Subject>` with the verb its class: guard preventive, verify detective, clear or drain corrective, direct directive. The words Station, Gate and Hook name no check.
-
-## What stays true whatever is picked
-
-- Only the aggregate of a step is ever a context in a ruleset; its name must be unique. The jobs of controls are never bound, so they need not be unique.
-- Renaming a required context is a ruleset change and is made with its control. Renaming a ruleset is free, because nothing in the repository matches it by name.
+- Only the aggregate of a step is ever a context in a ruleset, so only its name must be unique. A control's job is never bound.
+- Publishing is tag based and has no dependency control here. It keeps its name and is not touched.
+- Renaming a ruleset is free, because nothing in the repository matches it by name. It is applied on the Owner's go and is not part of this PLAN. Renaming a required context is a ruleset change and is made with its control.
 - The old context `Dependency Review` disappears with its workflow.
 - That GitHub sorts the list by "workflow / job" is not verified (`acceptance.md` A6).
