@@ -41,10 +41,12 @@ function edges(byId, id) {
   if (!entry) return [];
   const { kind, item } = entry;
   if (kind === 'gap') return [item.change];
+  // Decomposition applies to every kind that has a parent; it places Cases and carries no coverage.
+  const parent = typeof item.parent === 'string' ? [item.parent] : [];
   if (kind === 'change') return [...(item.implements ?? []), ...(item.resolves ?? [])];
-  if (kind === 'requirement') return item.serves ?? [];
-  if (kind === 'architecture') return [...(item.parent ? [item.parent] : []), ...(item.addresses ?? [])];
-  return [];
+  if (kind === 'requirement') return [...parent, ...(item.serves ?? [])];
+  if (kind === 'architecture') return [...parent, ...(item.addresses ?? [])];
+  return parent;
 }
 
 // Distance to every semantic or decomposition ancestor of an element, itself at 0.
