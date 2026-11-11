@@ -13,7 +13,7 @@ function withoutComments(body) {
   let passes = 0;
   for (let previous = ''; previous !== text; ) {
     previous = text;
-    text = text.replace(/<!--[\s\S]*?-->/g, '');
+    text = text.replace(/<!--[\s\S]*?--!?>/g, '');
     if (previous !== text) passes += 1;
   }
   return { text, nested: passes > 1 };
@@ -45,7 +45,7 @@ export function checkPlanBody(body) {
   const problems = [];
   if (typeof body !== 'string') return { ok: false, problems: ['the body is not text'] };
   const stripped = withoutComments(body);
-  if (stripped.nested || /<!--|-->/.test(stripped.text)) return { ok: false, problems: ['an HTML comment is nested or not closed'] };
+  if (stripped.nested || stripped.text.includes('<!--')) return { ok: false, problems: ['an HTML comment is nested or not closed'] };
   const { headings, chapter } = read(stripped.text);
   if (JSON.stringify(headings) !== JSON.stringify(CHAPTERS.map((name) => `## ${name}`))) {
     problems.push(`the body must have exactly the chapters ${CHAPTERS.join(', ')} in this order and no other heading (found: ${headings.join(', ') || 'none'})`);
