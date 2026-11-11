@@ -14,8 +14,8 @@
 
 This Change is not promoted to `main` before create Hotfix (release/C11) has defined the HOTFIX route. The route rule of F17 for HOTFIX is stated from that route before promotion, and the PLAN does not cite C11 because it is not on `main`.
 
-## Open question for review
+## Decision on the commit subject
 
-The commit subject. A squash merge takes the PR title as the subject, so the old rule `<Area> <PHASE>: <concern>` can only apply to unsquashed commits. Recommendation: drop it and let the title be the subject. This Change does not check commit subjects, so the answer changes no Case.
+The PR title is the commit subject (Kai, 11 Nov). A squash merge takes it, so the old rule `<Area> <PHASE>: <concern>` is dropped and replaced by the title rule of F17. This Change does not check commit subjects separately.
 
 Not in this Change: wiring, hooks, CI, merge blocking, id agreement for SYNC, PROMOTION and HOTFIX, a GitHub adapter.
