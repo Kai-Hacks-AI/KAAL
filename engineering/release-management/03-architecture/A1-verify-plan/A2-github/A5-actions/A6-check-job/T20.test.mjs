@@ -36,6 +36,8 @@ test(`${id} ${title}`, () => {
   for (const [what, args] of [
     ['a title that names a change the tree does not hold', ['--pr', pr('release/C99 PLAN: x', { commits: [{ sha: 'a1', message: 'x\n\nDriven-by: release/C99' }] })]],
     ['a commit driven by another change', ['--pr', pr('release/C1 PLAN: x', { commits: [{ sha: 'a1', message: 'x\n\nDriven-by: release/C2' }] })]],
+    ['one commit with the trailer and one without', ['--pr', pr('release/C1 PLAN: x', { commits: [own.commits[0], { sha: 'b2', message: 'release/C1 DO: y' }] })]],
+    ['a commit with two trailers', ['--pr', pr('release/C1 PLAN: x', { commits: [{ sha: 'a1', message: 'x\n\nDriven-by: release/C1\nDriven-by: release/C1' }] })]],
     ['no commit trailer', ['--pr', pr('release/C1 PLAN: x', { commits: [] })]],
     ['a changed file outside the capability', ['--pr', pr('release/C1 PLAN: x', { files: [{ filename: 'packages/other/index.mjs', status: 'modified' }] })]],
   ]) {

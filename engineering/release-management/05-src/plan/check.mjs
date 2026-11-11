@@ -22,8 +22,9 @@ async function main() {
   if (scope === undefined) return unknown('the capability folder of the pull request is not given', 'Run verify Plan with the repository path of the capability folder.');
   const outside = pr.files.find((file) => typeof file.filename !== 'string' || !file.filename.startsWith(scope));
   if (outside !== undefined) return unknown(`the pull request changes ${outside.filename}, outside ${scope}`, 'Split the pull request so a PLAN changes only its own capability folder, then run verify Plan again.');
-  const trailers = pr.commits.flatMap((commit) => [...String(commit.message).matchAll(/^Driven-by:\s*(\S+)\s*$/gm)].map((match) => match[1]));
-  if (trailers.length === 0 || trailers.some((id) => id !== changeId)) return unknown(`the commits do not all carry Driven-by: ${changeId}`, `Give every commit exactly the trailer Driven-by: ${changeId}, then run verify Plan again.`);
+  const exactlyOne = (commit) => { const ids = [...String(commit.message).matchAll(/^Driven-by:\s*(\S+)\s*$/gm)].map((match) => match[1]); return ids.length === 1 && ids[0] === changeId; };
+  const untagged = pr.commits.find((commit) => !exactlyOne(commit));
+  if (pr.commits.length === 0 || untagged !== undefined) return unknown(`${untagged === undefined ? 'the pull request has no commits' : `commit ${untagged.sha}`} does not carry exactly one Driven-by: ${changeId}`, `Give every commit exactly one trailer Driven-by: ${changeId}, then run verify Plan again.`);
   const evidenceFile = option('--evidence');
   let evidence;
   try { evidence = evidenceFile !== undefined && existsSync(evidenceFile) ? readEvidence(readFileSync(evidenceFile, 'utf8')) : undefined; } catch { evidence = undefined; }
