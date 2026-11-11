@@ -3,10 +3,10 @@
   "note": "What this control needs from the existing rulesets: nothing of its own. The rulesets stay as they are and this Change applies nothing.",
   "per_control_contexts": [],
   "bound_through": [
-    { "step": "Integration", "aggregate": "guard Integration", "ruleset": "integration", "proposed_name": "Integration", "id": 24952357 },
-    { "step": "Promotion", "aggregate": "guard Promotion", "ruleset": "promotion", "proposed_name": "Promotion", "id": 24951062 }
+    { "step": "Integration", "aggregate": "guard (Integration)", "ruleset": "integration", "proposed_name": "Integration", "id": 24952357 },
+    { "step": "Promotion", "aggregate": "guard (Promotion)", "ruleset": "promotion", "proposed_name": "Promotion", "id": 24951062 }
   ],
-  "owner_of_the_aggregates": "guard Integration, its own Change and the Owner's go. Each ruleset gets one line for its aggregate once, and never one per control.",
+  "owner_of_the_aggregates": "guard (Integration), its own Change and the Owner's go. Each ruleset gets one line for its aggregate once, and never one per control.",
   "until_then": "Dependency Review stays detective and reports itself as not bound",
   "preconditions_for_the_aggregates": [
     "the declared control reports for every pull request into kaal/**, observed on real pull requests",
