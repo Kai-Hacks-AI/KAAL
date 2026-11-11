@@ -12,15 +12,15 @@ const headings = (text) => text.split('\n').filter((line) => line.startsWith('##
 const chapter = (text, name) => (text.split(new RegExp(`^## ${name}$`, 'm'))[1] ?? '').split(/^## /m)[0];
 export const id = 'release/T151';
 export const tests = ['release/F16'];
-export const title = 'the Hotfix template has five chapters, Change, Defect, Correction, Route and Recovery, each with a hint, and reuses no PLAN or DO heading but Change';
+export const title = 'the Hotfix template has three chapters, Defect, Urgency and Approach, each with a hint, and reuses no heading of another pull request template';
 export function run() {
   const text = read(hotfix, 'the Hotfix template');
-  assert.deepEqual(headings(text), ['Change', 'Defect', 'Correction', 'Route', 'Recovery']);
+  assert.deepEqual(headings(text), ['Defect', 'Urgency', 'Approach']);
   const hints = text.split(/^## .*$/m).slice(1).map((part) => /<!--[\s\S]*?-->/.test(part));
-  assert.deepEqual(hints, [true, true, true, true, true], 'every chapter carries a hint');
+  assert.deepEqual(hints, [true, true, true], 'every chapter carries a hint');
   for (const file of readdirSync(dir).filter((f) => f.endsWith('.md') && f !== 'hotfix.md')) {
     const other = headings(read(join(dir, file), file));
-    const reused = headings(text).filter((h) => h !== 'Change' && other.includes(h));
+    const reused = headings(text).filter((h) => other.includes(h));
     assert.deepEqual(reused, [], `the Hotfix template reuses a heading of ${file}`);
   }
 }

@@ -7,7 +7,7 @@ The PLAN of C11 observes its RED against `main`. Work that is not on `main` is n
 - Baseline: `main` at `d19abeff8225c578416138e9def950d952ba898b`. `main` holds the PLAN template and no Hotfix template.
 - Method: the eleven Cases of this PLAN (T150 to T160) are copied over a checkout of `main` and each Case's `run()` is called. A second execution in the tree of this PLAN shows which Cases stay red with the documents of this PLAN present.
 - A throwaway reference template, outside the repository, was built from the draft in `interface.md` to show that the Cases can pass: all eleven were green with it. It implies no wording of the delivered template.
-- Mutation: the reference template was altered five times, and each alteration turned the Case that owns it RED with a message naming the fault: a renamed Recovery heading (T151, T155), a DO heading reused (T151), a Defect hint that no longer names the states (T152), a Route hint that describes the merge queue (T154) and a Correction hint that allows refactoring (T153).
+- Mutation: the reference template was altered six times, and each alteration turned the Case that owns it RED with a message naming the fault: Urgency renamed (T151, T153), Approach renamed to Route (T151, T154, T155), an Urgency hint that accepts a ticket number (T153), a Defect hint that no longer forbids a false production claim (T152), an Approach hint without the refactoring bar (T154) and an introduction that no longer says the Cases and the diff hold everything else (T155).
 
 ## Result
 

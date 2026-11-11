@@ -12,9 +12,11 @@ const headings = (text) => text.split('\n').filter((line) => line.startsWith('##
 const chapter = (text, name) => (text.split(new RegExp(`^## ${name}$`, 'm'))[1] ?? '').split(/^## /m)[0];
 export const id = 'release/T155';
 export const tests = ['release/F16'];
-export const title = 'the Recovery chapter asks how main and production return to what they were';
+export const title = 'the Hotfix template has no chapter for what the Change, the Cases, the diff or the delivery controls already hold';
 export function run() {
-  const hint = chapter(read(hotfix, 'the Hotfix template'), 'Recovery');
-  assert.ok(/wrong/i.test(hint), 'the Recovery hint does not say when recovery applies');
-  assert.ok(/main/i.test(hint) && /previous/i.test(hint), 'the Recovery hint does not ask how main and production go back');
+  const text = read(hotfix, 'the Hotfix template');
+  const held = ['Change', 'Correction', 'Route', 'Recovery', 'Verification', 'Evidence', 'Implementation'];
+  assert.deepEqual(headings(text).filter((h) => held.includes(h)), [], 'the template has a chapter for material that is held elsewhere');
+  const intro = text.split(/^## /m)[0];
+  assert.ok(/Cases/.test(intro) && /diff/.test(intro), 'the template does not say that the Cases and the diff hold everything else');
 }

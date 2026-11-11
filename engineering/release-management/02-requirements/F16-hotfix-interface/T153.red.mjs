@@ -12,10 +12,10 @@ const headings = (text) => text.split('\n').filter((line) => line.startsWith('##
 const chapter = (text, name) => (text.split(new RegExp(`^## ${name}$`, 'm'))[1] ?? '').split(/^## /m)[0];
 export const id = 'release/T153';
 export const tests = ['release/F16'];
-export const title = 'the Correction chapter states the boundary: what is changed, what is left out, and no refactoring';
+export const title = 'the Urgency chapter asks why the correction cannot follow the ordinary path and the consequence of waiting, and rejects a ticket number or a priority label as the answer';
 export function run() {
-  const hint = chapter(read(hotfix, 'the Hotfix template'), 'Correction');
-  assert.ok(/leaves out|not include|excludes/i.test(hint), 'the Correction hint does not ask for what is left out');
-  assert.ok(/refactor/i.test(hint), 'the Correction hint does not rule out refactoring');
-  assert.ok(/unrelated/i.test(hint), 'the Correction hint does not rule out unrelated work');
+  const hint = chapter(read(hotfix, 'the Hotfix template'), 'Urgency');
+  assert.ok(/ordinary/i.test(hint), 'the Urgency hint does not mention the ordinary Change path');
+  assert.ok(/consequence/i.test(hint) && /waiting/i.test(hint), 'the Urgency hint does not ask for the consequence of waiting');
+  assert.ok(/ticket/i.test(hint) && /priority label/i.test(hint), 'the Urgency hint does not reject a ticket number or a priority label');
 }

@@ -12,11 +12,12 @@ const headings = (text) => text.split('\n').filter((line) => line.startsWith('##
 const chapter = (text, name) => (text.split(new RegExp(`^## ${name}$`, 'm'))[1] ?? '').split(/^## /m)[0];
 export const id = 'release/T154';
 export const tests = ['release/F16'];
-export const title = 'the Route chapter names the new version and what it carries, and the collectors that must take the correction from main';
+export const title = 'the Approach chapter asks why the path is the fastest safe one from RED to GREEN, rules out improvement and refactoring, asks for the choice and not the implementation, and asks what else a new version would carry';
 export function run() {
-  const hint = chapter(read(hotfix, 'the Hotfix template'), 'Route');
-  assert.ok(/version/i.test(hint), 'the Route hint does not ask whether a version is published');
-  assert.ok(/carry/i.test(hint), 'the Route hint does not ask what else the version carries');
-  assert.ok(/collectors?/i.test(hint) && /main/i.test(hint), 'the Route hint does not name the collectors that take the correction from main');
-  assert.ok(!/squash|merge commit|queue/i.test(hint), 'the Route hint describes promotion or synchronization, which have their own interfaces');
+  const hint = chapter(read(hotfix, 'the Hotfix template'), 'Approach');
+  assert.ok(/fastest safe/i.test(hint), 'the Approach hint does not ask for the fastest safe path');
+  assert.ok(/RED/.test(hint) && /GREEN/.test(hint), 'the Approach hint does not name RED and GREEN');
+  assert.ok(/refactor/i.test(hint) && /broader/i.test(hint), 'the Approach hint does not rule out a broader improvement or refactoring');
+  assert.ok(/not the implementation/i.test(hint), 'the Approach hint asks for the implementation');
+  assert.ok(/version/i.test(hint) && /carry/i.test(hint), 'the Approach hint does not ask what else a new version would carry');
 }
