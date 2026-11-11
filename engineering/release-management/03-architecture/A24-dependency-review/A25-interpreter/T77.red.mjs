@@ -8,8 +8,8 @@ const cap = join(repo, 'engineering/release-management');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
 export const id = 'release/T77';
 export const tests = ['release/A25'];
-export const title = 'A25 is the one judge';
+export const title = 'A25 is the one interpreter';
 export function run() {
-  const d = read(join(cap, '03-architecture/A24-dependency-review/A25-judge/A25.md'), 'A25');
+  const d = read(join(cap, '03-architecture/A24-dependency-review/A25-interpreter/A25.md'), 'A25');
   assert.ok(d.includes('No adapter restates'), 'A25 does not state No adapter restates');
 }

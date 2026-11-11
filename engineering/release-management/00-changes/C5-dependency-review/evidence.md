@@ -18,13 +18,13 @@ The PLAN of C5 observes its RED against `main`. Work that is not on `main` is no
 | T83 | G23 | RED: no merge group reports the name | RED: the same |
 | T84 | G24 | RED: `ruleset-needs.json` is absent | green |
 | T85 | G25 | RED: the old workflow is present | RED: the same |
-| T87 to T89 | F7 behaviors | RED: the judge is absent | RED: the judge is absent |
-| T90 | G27 | RED: the judge is absent | RED: the judge is absent |
+| T87 to T89 | F7 behaviors | RED: the interpreter is absent | RED: the interpreter is absent |
+| T90 | G27 | RED: the interpreter is absent | RED: the interpreter is absent |
 | T86 | G26 | RED: the replay is absent | RED: the same |
 
-On `main` and in the tree of this PLAN the judge is absent, so the behavioral Cases T87 to T89 and T90 are RED in both ("the judge is absent"). On `main`: all 19 RED-observed. In the tree of this PLAN: 11 green (documents this PLAN adds) and 8 RED-observed, which wait for the DO: the judge (S0), the declaration (S1), the merge-group reporting (S2), the replay (S3) and the retirement (S5). The operational observations are not Cases and none is observed yet (`acceptance.md`).
+On `main` and in the tree of this PLAN the interpreter is absent, so the behavioral Cases T87 to T89 and T90 are RED in both ("the interpreter is absent"). On `main`: all 19 RED-observed. In the tree of this PLAN: 11 green (documents this PLAN adds) and 8 RED-observed, which wait for the DO: the interpreter (S0), the declaration (S1), the merge-group reporting (S2), the replay (S3) and the retirement (S5). The operational observations are not Cases and none is observed yet (`acceptance.md`).
 
-The four behavioral Cases (T87 to T90) were also run once against a throwaway reference judge outside the repository, and all four were green, so each can pass. The reference is not part of this PLAN and implies no design of the DO beyond F7.
+The four behavioral Cases (T87 to T90) were also run once against a throwaway reference interpreter outside the repository, and all four were green, so each can pass. The reference is not part of this PLAN and implies no design of the DO beyond F7.
 
 ## Reproduce
 

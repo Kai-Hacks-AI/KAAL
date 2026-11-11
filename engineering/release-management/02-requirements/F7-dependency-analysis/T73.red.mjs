@@ -8,9 +8,9 @@ const cap = join(repo, 'engineering/release-management');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
 export const id = 'release/T73';
 export const tests = ['release/F7'];
-export const title = 'the verdicts of Dependency Review are stated by dependency-verdict';
+export const title = 'the outcomes of Dependency Review are stated by dependency-analysis';
 export function run() {
-  const d = read(join(cap, '02-requirements/F7-dependency-verdict/F7.md'), 'F7');
+  const d = read(join(cap, '02-requirements/F7-dependency-analysis/F7.md'), 'F7');
   assert.ok(d.includes('PASS'), 'F7 does not state PASS');
   assert.ok(d.includes('FAIL'), 'F7 does not state FAIL');
   assert.ok(d.includes('UNKNOWN'), 'F7 does not state UNKNOWN');

@@ -10,18 +10,18 @@ Dependency Review is a detective control, and this PLAN does not make it prevent
 
 | Step | Change | Class | Turns green |
 | --- | --- | --- | --- |
-| S0 | The judge `05-src/dependency-verdict/judge.mjs` (A25) and its Cases. | Improve | T87, T88, T89, T90 |
+| S0 | The interpreter `05-src/dependency-analysis/interpreter.mjs` (A25) and its Cases. | Improve | T87, T88, T89, T90 |
 | S1 | The control is declared for its places (a file in `.kaal/config/guard/`, `runs: [ci]`, named as the Owner picks in `naming.md`). Observation of whether Guard can bind an action-run check comes first. | Improve | T82 |
 | S2 | The new realization: a workflow with the job of F9 on `pull_request` and `merge_group`, explicit severity, no skip. It runs beside the old one. | Improve | T83 |
-| S3 | Observation: the stable name on real pull requests into a collector and into `main`, a merge group on a scratch target, one FAIL on a throwaway pull request that adds a known-vulnerable dependency. The replay compares the new verdicts with the old job's last runs. | Evidence | T86 |
-| S4 | The Owner's go, then the ruleset of Integration requires `verify Dependencies (Integration)`, after A1, A2, A3 and A5. The ruleset of Promotion requires `verify Dependencies (Promotion)` only after A4. Only the context is added, and exports before and after differ by that one line each (`ruleset-needs.json`). | Enhance | T84 |
+| S3 | Observation: the stable name on real pull requests into a collector and into `main`, a merge group on a scratch target, one FAIL on a throwaway pull request that adds a known-vulnerable dependency. The replay compares the new outcomes with the old job's last runs. | Evidence | T86 |
+| S4 | The Owner's go, then the ruleset of Integration requires `analyze Dependencies (Integration)`, after A1, A2, A3 and A5. The ruleset of Promotion requires `analyze Dependencies (Promotion)` only after A4. Only the context is added, and exports before and after differ by that one line each (`ruleset-needs.json`). | Enhance | T84 |
 | S5 | `dependency-review.yml` is removed, once S3 holds. It does not wait for S4: the old job is bound nowhere, so removing it reduces nothing. The uncovered-gate line of `engineering/controls/README.md` is edited. | Terminate | T85 |
 
 The Cases are renamed to `.test.mjs` and listed in Engineering CI in the Change that makes them green, which is also the known wiring gap of create Plan.
 
 ## Equivalence and acceptance evidence
 
-The observations of `acceptance.md` (A1 to A6) are the equivalence and operational evidence. The judge's behaviors are Cases (T87 to T89). Observed results and proposed tests are kept apart there, and nothing in this PLAN is observed beyond what it states.
+The observations of `acceptance.md` (A1 to A6) are the equivalence and operational evidence. The interpreter's behaviors are Cases (T87 to T89). Observed results and proposed tests are kept apart there, and nothing in this PLAN is observed beyond what it states.
 
 ## Scope by place
 

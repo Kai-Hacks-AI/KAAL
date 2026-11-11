@@ -5,17 +5,17 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const cap = join(repo, 'engineering/release-management');
-const judgeFile = join(repo, 'engineering/release-management/05-src/dependency-verdict/judge.mjs');
+const interpreterFile = join(repo, 'engineering/release-management/05-src/dependency-analysis/interpreter.mjs');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
-const judgeModule = () => { assert.ok(existsSync(judgeFile), 'the judge is absent'); return import(pathToFileURL(judgeFile).href); };
+const interpreterModule = () => { assert.ok(existsSync(interpreterFile), 'the interpreter is absent'); return import(pathToFileURL(interpreterFile).href); };
 export const id = 'release/T87';
 export const tests = ['release/F7'];
-export const title = 'a vulnerable addition is judged FAIL and names what is vulnerable';
+export const title = 'a vulnerable addition is analyzed FAIL and names what is vulnerable';
 export async function run() {
-  const m = await judgeModule();
+  const m = await interpreterModule();
   
-  const result = m.judge({ conclusion: 'failure', outputs: { vulnerableChanges: JSON.stringify([{ name: 'left-pad', version: '1.0.0', manifest: 'package-lock.json', vulnerabilities: [{ advisory_ghsa_id: 'GHSA-xxxx-xxxx-xxxx', severity: 'high' }] }]) } });
-  assert.equal(result.verdict, 'FAIL');
+  const result = m.interpret({ conclusion: 'failure', outputs: { vulnerableChanges: JSON.stringify([{ name: 'left-pad', version: '1.0.0', manifest: 'package-lock.json', vulnerabilities: [{ advisory_ghsa_id: 'GHSA-xxxx-xxxx-xxxx', severity: 'high' }] }]) } });
+  assert.equal(result.outcome, 'FAIL');
   const f = result.findings[0];
   assert.deepEqual([f.package, f.version, f.advisory, f.severity], ['left-pad', '1.0.0', 'GHSA-xxxx-xxxx-xxxx', 'high']);
 }

@@ -5,17 +5,17 @@ import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const cap = join(repo, 'engineering/release-management');
-const judgeFile = join(repo, 'engineering/release-management/05-src/dependency-verdict/judge.mjs');
+const interpreterFile = join(repo, 'engineering/release-management/05-src/dependency-analysis/interpreter.mjs');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
-const judgeModule = () => { assert.ok(existsSync(judgeFile), 'the judge is absent'); return import(pathToFileURL(judgeFile).href); };
+const interpreterModule = () => { assert.ok(existsSync(interpreterFile), 'the interpreter is absent'); return import(pathToFileURL(interpreterFile).href); };
 export const id = 'release/T89';
 export const tests = ['release/F7'];
 export const title = 'a successful comparison with no vulnerable change is PASS';
 export async function run() {
-  const m = await judgeModule();
+  const m = await interpreterModule();
   
-  const v = m.judge({ conclusion: 'success', outputs: { vulnerableChanges: '[]' } });
-  assert.equal(v.verdict, 'PASS');
+  const v = m.interpret({ conclusion: 'success', outputs: { vulnerableChanges: '[]' } });
+  assert.equal(v.outcome, 'PASS');
   assert.equal(v.passes, true);
-  assert.equal(m.judge({ conclusion: 'success', outputs: { vulnerableChanges: '[]' } }).verdict, v.verdict, 'the same input gives the same verdict');
+  assert.equal(m.interpret({ conclusion: 'success', outputs: { vulnerableChanges: '[]' } }).outcome, v.outcome, 'the same input gives the same outcome');
 }

@@ -1,18 +1,19 @@
-// release/A25 judge: reads what the Dependency Review mechanism returned and decides one of the three
-// verdicts of the common control contract (release/F7). The mechanism does the comparison and the
-// advisory lookup; this function only reads its result. UNKNOWN never passes.
+// release/A25 result interpreter: reads what the Dependency Review mechanism returned and classifies it as one
+// of the three outcomes of the common control contract (release/F7). It is deterministic: it establishes no truth
+// of its own and applies no contextual judgment. FAIL and UNKNOWN need a subsequent judgment elsewhere. The mechanism does the comparison and the
+// advisory lookup; this function only reads its result. `passes` is true only for PASS, the only clean go. passes:false means no automatic clearance, not a final rejection.
 //
 // Input: { conclusion, outputs: { vulnerableChanges } }
 //   conclusion        'success' or 'failure', the outcome of the mechanism's step
 //   vulnerableChanges the mechanism's `vulnerable-changes` output, a JSON list, set only when the
 //                     comparison itself succeeded
-// Output: { control, verdict, passes, findings, reason }
-const CONTROL = 'verify Dependencies';
+// Output: { control, outcome, passes, findings, reason }
+const CONTROL = 'analyze Dependencies';
 
-const record = (verdict, findings, reason) => ({ control: CONTROL, verdict, passes: verdict === 'PASS', findings, reason });
+const record = (outcome, findings, reason) => ({ control: CONTROL, outcome, passes: outcome === 'PASS', findings, reason });
 const unknown = (reason) => record('UNKNOWN', [], reason);
 
-export function judge(result) {
+export function interpret(result) {
   if (!result || typeof result !== 'object') return unknown('the mechanism returned no result');
   const raw = result.outputs?.vulnerableChanges;
   if (raw === undefined || raw === null || raw === '') {
