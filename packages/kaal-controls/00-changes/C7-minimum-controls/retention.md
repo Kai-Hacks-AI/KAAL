@@ -1,10 +1,10 @@
 # C7 retention
 
-The collector `kaal/controls` is 105 commits behind `main` and holds an earlier package in a layout `main` no longer uses. It is not promoted. Its text is read for what can be reused, and nothing is copied by this PLAN.
+The earlier collector, now `kaal/old/controls`, is 105 commits behind `main` and holds an earlier package in a layout `main` no longer uses. It is not promoted. Its text is read for what can be reused, and nothing is copied by this PLAN.
 
 ## Retained (the semantics, reworded in the DO)
 
-| From `kaal/controls` | Why it stays |
+| From `kaal/old/controls` | Why it stays |
 | --- | --- |
 | Class as design, distinct from assurance; the four classes | F10. A preventive design stays preventive whether or not it was observed operating. |
 | Mechanism is not type; a check that reports is detective, a gate that requires it prevents | F11. Same distinction, now with enforcement named. |
@@ -34,4 +34,4 @@ The collector `kaal/controls` is 105 commits behind `main` and holds an earlier 
 | Declaring controls through Guard, a guard aggregate, any enforcement | Guard's machinery is not yet correct, and this Change enforces nothing. |
 | A checker that reads a control PLAN | A later Change, once the Skill has been consumed and the Cases show what a checker must catch. |
 | Migrating existing controls, completing the Controls backlog | Out of scope. C5 stays its own Change and is not implemented here. |
-| Retiring the collector `kaal/controls` | A later ACT, after this Change is on `main`. |
+| Retiring the collector `kaal/old/controls` | A later ACT, after this Change is on `main`. |

@@ -4,7 +4,7 @@
 
 1. Add I3, F10 to F14, N4 and A5 to A8 with their Cases T8 to T18, and C7 with its own Cases T19 to T23, one per gap.
 2. Observe the expected RED against `main` (`evidence.md`).
-3. State what is retained from the collector `kaal/controls`, what changes and what waits (`retention.md`).
+3. State what is retained from the earlier collector `kaal/old/controls`, what changes and what waits (`retention.md`).
 4. State how the Change reaches `main` and the evidence needed first (`promotion.md`).
 5. The PLAN adds no Node, no Skill and no code, moves nothing and changes no other capability. It cites no document that is not on `main`.
 

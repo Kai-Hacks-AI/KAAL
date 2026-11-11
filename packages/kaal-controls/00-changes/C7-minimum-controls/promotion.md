@@ -4,11 +4,11 @@
 
 A PLAN never goes to `main` alone.
 
-1. PLAN and DO go into the collector `kaal/controls-minimum`, each by its own pull request, squashed.
+1. PLAN and DO go into the collector `kaal/controls`, each by its own pull request, squashed.
 2. The collector goes to `main` as a whole, by a promotion pull request, on the Owner's go.
 3. ACT goes to `main`, possibly through the collector, so the learning is recorded.
 
-The collector is created from `main` and is separate from `kaal/controls`, which is left untouched. No ruleset changes, no publication, and no go is implied by this PLAN.
+The collector is created from `main`. The earlier collector, now `kaal/old/controls`, is left untouched. No ruleset changes, no publication, and no go is implied by this PLAN.
 
 ## Smallest coherent promotion
 

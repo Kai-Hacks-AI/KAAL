@@ -4,4 +4,4 @@ The baseline is `main`. Work that is not on `main` is not delivered functionalit
 
 - `main` holds no Controls capability: no `packages/kaal-controls/`, no Agent Skill on controls, no definition of a Control.
 - Control semantics are cited but not defined on `main`: the PLANs of release management name a common control contract for verdicts, and no document on `main` states it.
-- The collector `kaal/controls` holds an earlier Controls package in a layout `main` no longer uses, and is not on `main`.
+- The earlier collector `kaal/old/controls` holds an earlier Controls package in a layout `main` no longer uses, and is not on `main`.
