@@ -29,6 +29,17 @@ All four merged, none is open (`evidence.md`).
 - **Attribution, status, retrospective.** As in the other interfaces.
 - **How a hotfix is promoted, synchronized or published.** Route only names them. create Promotion and create Sync own the first two, and Engineering's Release engine owns publication.
 
+## Current practice and the target
+
+**Current practice** (observed, not approved as the target): Hotfixes travel through the collector `kaal/hotfix` under `engineering/github/branching.md`, which is protected like any `kaal/*` collector and so passes the ordinary `kaal/**` integration controls and then the controls at `main`.
+
+**CPO decisions on this PLAN** (the Hotfix delivery path, not implemented here):
+- `hotfix/*` is the target namespace for Hotfix branches.
+- Admission is planned as a differentiated path for `hotfix/*` versus ordinary `kaal/**` integration. Every Hotfix still passes the full admission controls at `main`. Each control is assessed on its own; none is assumed relaxed.
+- Branching, CI, Guard and ruleset changes each need their own Change and authorization.
+
+**Relationship.** create Hotfix (C11) is the directive interface of the pull request that carries a correction, and its Cases. It is the same whichever branch the pull request travels on, so F16 names no branch: Route says only "the branch that carries the correction". The Hotfix delivery path is a separate, later Change that decides where that pull request lands and which controls it passes. C11 neither depends on it nor implements any part of it.
+
 ## Draft of the template
 
 ```
@@ -59,7 +70,7 @@ All four merged, none is open (`evidence.md`).
 
 - A checker, hook, workflow, required check or ruleset for a Hotfix body. Checking a body and admitting a pull request are separate concerns and later Changes.
 - Whether a Hotfix needs its own approved PLAN before the correction or an ACT after it. This interface covers the pull request that carries the correction; the CPO decides the rest.
-- The route itself (`kaal/hotfix`, one correction at a time, squash, promotion, deletion), the promotion queue and the Owner's `Promotion-Order` override. An urgent promotion queued behind older ones in #763 is Promotion's concern.
+- The Hotfix delivery path: the branch lifecycle and the controls a Hotfix passes (next section). The promotion queue and the Owner's `Promotion-Order` override. An urgent promotion queued behind older ones in #763 is Promotion's concern.
 - Tags, release records and publication.
 - An agent skill that gives agents the guidance GitHub offers only to people.
 - The template file itself, which the DO delivers alone in `.github`.
