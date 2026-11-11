@@ -48,6 +48,8 @@ test(`${id} ${title}`, async () => {
     'a malformed node id': { path: '02-requirements/F9-x/F9.md', text: '---\nid: F999\nserves: []\n---\n' },
     'a node of an unknown kind': { path: '02-requirements/Z1-x/Z1.md', text: '---\nid: release/Z1\n---\n' },
     'front matter that cannot be parsed': { path: '02-requirements/F9-x/F9.md', text: '---\nid: release/F9\n  - broken\n---\n' },
+    'a malformed Gap id': { path: '00-changes/C1-z/gap.md', text: '| Gap | Target | Baseline | Gap |\n| --- | --- | --- | --- |\n| G2 | F1 | none | absent |' },
+    'a Gap in another capability form': { path: '00-changes/C1-z/gap.md', text: '| Gap | Target |\n| --- | --- |\n| release/G | F1 |' },
     'a Case without an id': { path: '02-requirements/F1-y/T3.red.mjs', text: "export const tests = ['release/F1'];" },
     'a Case without tests': { path: '02-requirements/F1-y/T3.red.mjs', text: "export const id = 'release/T3';" },
   };

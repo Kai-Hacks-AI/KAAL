@@ -52,9 +52,12 @@ export function readTree(files) {
     if (path.endsWith('gap.md')) {
       const header = text.split('\n').find((line) => line.startsWith('|')) ?? '';
       const parentColumn = header.split('|').map((cell) => cell.trim()).indexOf('Parent');
-      for (const line of text.split('\n')) {
+      const rows = text.split('\n').filter((line) => line.startsWith('|'));
+      for (const line of rows.slice(1)) {
         const cells = line.split('|').map((cell) => cell.trim());
-        if (/^[a-z][a-z0-9-]*\/G\d+$/.test(cells[1] ?? '')) plan.gaps.push(parentColumn > 0 && cells[parentColumn] ? { id: cells[1], parent: cells[parentColumn] } : { id: cells[1] });
+        if (cells.slice(1, -1).every((cell) => /^:?-+:?$/.test(cell))) continue;
+        if (!/^[a-z][a-z0-9-]*\/G\d+$/.test(cells[1] ?? '')) { problems.push(`${path} has a Gap row whose id ${JSON.stringify(cells[1] ?? '')} is not <capability>/G<n>`); continue; }
+        plan.gaps.push(parentColumn > 0 && cells[parentColumn] ? { id: cells[1], parent: cells[parentColumn] } : { id: cells[1] });
       }
     } else if (path.endsWith('.md')) {
       const fields = frontMatter(text);
