@@ -35,7 +35,7 @@ Adopted, with two refinements, because the evidence supports it and nothing else
 - Refinement 1, from 5: a Resolutions chapter is not necessary. A decision at a conflict is stated in Reason, when there is one. A chapter that is `none` in most syncs would be an obligation, and the verdict already names the paths.
 - Refinement 2, from 6: the limits that keep the body clean (no footer, link, attribution or separator) stay, because the generated footer appeared on every recent body in the evidence.
 - Not necessary, with evidence: the commit of `main` and the collector (4), the verification (the checks show it, #1262, #1235), a statement of the merge method (Branching names it), a statement of the rule of synchronization.
-- Open for the CPO: a synchronization that two Changes need (#965 served #892 and #916). F14 states one Change per SYNC. The second is named in Reason, or the synchronization is made for the first and the second reuses it.
+- Decided by the CPO: a synchronization that several Changes need (#965 served #892 and #916) names the primary driving Change in Change, and Reason says why it is the primary driver. Other Changes appear only with their relationship, never as a list.
 
 ## Provenance
 
@@ -57,7 +57,7 @@ With the throwaway reference template all eleven are green. Mutations of it:
 | a Sync chapter added | T112, T113, T114, T119 |
 | chapters out of order | T112, T119 |
 | the hint of Reason removed | T114 |
-| the Reason hint no longer names a decision at a conflict | T114 |
+| the Reason hint no longer names a decision at a conflict or the primary driver | T114 |
 | a link inside a hint | T114 |
 | a generated footer | T114 |
 
