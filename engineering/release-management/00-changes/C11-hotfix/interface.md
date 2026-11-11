@@ -2,7 +2,7 @@
 
 ## Why not PLAN, DO or a promotion
 
-A PLAN says where a Change goes and why (From, To, Because). A DO says what it implements and refactors. A promotion delivers reviewed collector content. None of them answers the three things a reviewer of an urgent correction decides on: whether the defect is real and in which state, whether it truly cannot wait, and whether the path taken is the fastest safe one rather than an improvement in disguise. A DO even asks for a Refactor chapter, which a correction must not have.
+A PLAN says where a Change goes and why (From, To, Because). A DO says what it implements and refactors. A promotion delivers reviewed collector content. None of them answers the three things a reviewer of an urgent correction decides on: whether the defect is real and in which state, whether it truly cannot wait, and whether the path taken is the fastest safe one rather than an improvement in disguise. A DO even asks for a Refactor chapter, which a correction must not have. Identity is the one thing a Hotfix shares with them (Change chapter).
 
 ## What the observed Hotfixes show
 
@@ -23,7 +23,7 @@ Four corrections used the Hotfix route (`evidence.md`). All merged, none is open
 | Defect | Keep | The premise of the route. A Defect record, where one exists, holds the symptom and its impact. The chapter adds the state, which no record holds and which the observed bodies left out. |
 | Urgency | Keep | The only reason to leave the ordinary path. Held nowhere else, stated implicitly in every observed body. |
 | Approach | Keep | The one judgment the diff and the Case cannot show: why this path and not a wider one. It is also where the risk of the three states belongs, see below. |
-| Change | Drop | The identity is in the pull request title and the `Driven-by` trailer, and the Change record holds the rest. A chapter would repeat them. The PLAN, DO and ACT bodies keep it for uniformity, which a Hotfix gains nothing from. The CPO may keep it for the family. |
+| Change | Keep, as identity only | First assessed as droppable because the title and the `Driven-by` trailer held the identity. The Owner's title convention (type first, human-readable purpose, no identifier) removes it from the title, and the trailer sits on commits, not on the pull request. The body is now the one place of the pull request that names the Change, so the chapter holds independent value. It carries the id and name and no description. This is kept for traceability, not for uniformity. |
 | Correction | Drop | What changes is the diff. What counts as fixed is the Case. What it leaves out survives as the trade-off in Approach. |
 | Route | Drop | The route to `main` is the promotion's interface, synchronization into collectors is a Sync pull request, publication is the release engine, and the branch is the delivery path. Which collectors must synchronize follows from ownership of the corrected behavior. |
 | Recovery | Drop | It is a property of the delivery path, not of one Hotfix: `main` goes back by undoing the one squash commit, and a published version is not replaced (a version already on the registry is refused), so production goes forward. Nothing observed varied it per Hotfix. |
@@ -36,7 +36,7 @@ Four corrections used the Hotfix route (`evidence.md`). All merged, none is open
 
 ## Shared formatting contract
 
-Every PR interface shares one formatting contract, separate from its meaning (see F16). F16 states only the chapters and their meaning. The Hotfix interface needs no Change chapter: the identity is stable in the title and trailer, and the Owner decided that interfaces do not reuse chapters for uniformity. The contract needs no logic of its own here. Whether and how a reusable body checker covers the Hotfix interface, as `check PR Body` does for the PLAN, is separate planning and authorization.
+Every PR interface shares one formatting contract, separate from its meaning (see F16). F16 states only the chapters and their meaning. The Hotfix interface keeps a Change chapter because the contract asks for a stable identity where the interface requires it, and a Hotfix does: under the title convention the body is the only place of the pull request that names the Change. It is not there for uniformity. The contract needs no logic of its own here. Whether and how a reusable body checker covers the Hotfix interface, as `check PR Body` does for the PLAN, is separate planning and authorization.
 
 ## Current practice and the target
 
@@ -52,7 +52,11 @@ Every PR interface shares one formatting contract, separate from its meaning (se
 ## Draft of the template
 
 ```
-<!-- A HOTFIX pull request. Exactly three chapters in this order and nothing else: no extra headings, commentary, test results, CI status or execution logs. The Change, the Cases, the diff and the checks hold everything else; discussion goes into comments. -->
+<!-- A HOTFIX pull request. Exactly four chapters in this order and nothing else: no extra headings, commentary, test results, CI status or execution logs. The Change, the Cases, the diff and the checks hold everything else; discussion goes into comments. -->
+
+## Change
+
+<!-- One line, `<id> <name>`: the stable id and the name of the Change. An identity, not a description; the Defect says what is broken. -->
 
 ## Defect
 

@@ -4,13 +4,13 @@
 
 1. Add I10, F16, A36 and A39 with their Cases T150 to T157, and C11 with its own Cases T158 to T160, one per gap.
 2. The expected RED is observed against `main` (`evidence.md`).
-3. The Hotfix template has three chapters, Defect, Urgency and Approach, as F16 states. `interface.md` assesses every candidate chapter against the observed Hotfixes and says what is left out and why. The body states what nothing else holds. It reuses no PLAN, DO or ACT heading.
+3. The Hotfix template has four chapters, Change, Defect, Urgency and Approach, as F16 states. `interface.md` assesses every candidate chapter against the observed Hotfixes and says what is left out and why. The body states what nothing else holds. Change is its identity line, justified in `interface.md`; the other three are its own.
 4. The PLAN states the relationship between this interface and the future Hotfix delivery path (`interface.md`) and implements none of that path.
 5. The PLAN delivers no template, no checker and no enforcement, adds no hook, workflow, required check or ruleset, changes no branching rule, and cites no document that is not on `main`.
 
 ## DO
 
-1. Deliver `.github/PULL_REQUEST_TEMPLATE/hotfix.md` with the three chapters of F16, as its own `.github` change on its own collector, because Change Isolation keeps `.github` apart from engineering.
+1. Deliver `.github/PULL_REQUEST_TEMPLATE/hotfix.md` with the four chapters of F16, as its own `.github` change on its own collector, because Change Isolation keeps `.github` apart from engineering.
 2. Rename the Cases from `T<n>.red.mjs` to `T<n>.test.mjs` when they are green, and wire them where the other release management Cases run.
 
 ## ACT
