@@ -53,4 +53,10 @@ test(`${id} ${title}`, async () => {
   const twoTargets = { intents: [{ id: 'release/I1' }, { id: 'release/I2' }], cases: [{ id: 'release/T1', found: 'release/I1', tests: ['release/I1', 'release/I2'] }] };
   const unattributed = await judge({ ...twoTargets, evidence: rows.filter((r) => r.case === 'release/T1') });
   assert.ok(unattributed.findings.some((f) => f.rule === 'F1/6' && f.status === 'fail'));
+  // The C1 baseline stand-in accepts every plan. It is opt-in, so a Case of any other capability never fails against it and qualifies as RED.
+  const usesJudge = join(scratch, 'T6.red.mjs');
+  writeFileSync(usesJudge, "export const id = 'release/T6';\nexport const tests = ['release/I1'];\nexport async function run({ judge }) { const result = await judge({}); if (result.verdict !== 'FAIL') throw Object.assign(new Error('accepted by the stand-in'), { code: 'ERR_ASSERTION', operator: 'strictEqual' }); }\n");
+  const reasonsOf = (flags) => { const file = join(scratch, `ev-${flags.length}.json`); spawnSync('node', [runner, ...flags, '--evidence', file, usesJudge], { encoding: 'utf8' }); return readEvidence(readFileSync(file, 'utf8')).map((r) => r.reason); };
+  assert.deepEqual(reasonsOf([]), ['error'], 'no stand-in is passed to a Case unless asked for');
+  assert.deepEqual(reasonsOf(['--baseline']), ['assertion'], 'the C1 baseline is opt-in');
 });

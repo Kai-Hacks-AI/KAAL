@@ -1,7 +1,7 @@
 // Case release/T20 tests: release/A6
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
@@ -61,6 +61,11 @@ test(`${id} ${title}`, () => {
   // A merge commit brings changes that were admitted elsewhere and carries no trailer; it is not judged for one.
   const merged = pr('release/C1 PLAN: x', { commits: [...own.commits, { sha: 'm1', message: "Merge branch 'main'", parents: ['p1', 'p2'] }] });
   assert.equal(run('--pr', merged, '--repo', repo, '--evidence', evidenceFile).status, 0, 'a merge commit is skipped');
+  // An artificial baseline cannot qualify the plan of an unrelated capability as RED.
+  writeFileSync(join(scratch, 'repo/engineering/demo/T1.red.mjs'), "export const id = 'demo/T1';\nexport const tests = ['demo/C1'];\nexport async function run({ judge }) { if ((await judge({})).verdict !== 'FAIL') throw Object.assign(new Error('accepted'), { code: 'ERR_ASSERTION', operator: 'strictEqual' }); }\n");
+  rmSync(join(scratch, 'repo/engineering/other'), { recursive: true });
+  const stand = run('--pr', demo(), '--repo', join(scratch, 'repo'), '--execute');
+  assert.match(stand.stdout, /F1\/6[^\n]*no meaningful observed RED/, stand.stdout);
   // The check can execute the Cases of the located folder itself.
   const executed = run('--pr', pr('release/C1 PLAN: x'), '--repo', repo, '--execute');
   assert.equal(executed.status, 1, executed.stdout);

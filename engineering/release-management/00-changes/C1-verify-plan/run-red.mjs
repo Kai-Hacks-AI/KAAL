@@ -1,8 +1,9 @@
 // Interim expected-RED runner for C1. Temporary migration work: removed when Testing provides expected-RED execution.
-// Usage: node run-red.mjs [--root <capability folder>] [--complete] [--judge <module>] [--evidence <file>] [<case-file>...]
+// Usage: node run-red.mjs [--root <capability folder>] [--complete] [--baseline | --judge <module>] [--evidence <file>] [<case-file>...]
 // With --evidence, every T<n>.red.mjs under the capability runs and one execution is recorded per Case and written to <file> for the verify Plan check.
 // A failure is attributed to a target only when the Case declares exactly one target or its assertion error names the failed target (error.target). Otherwise one row without a target is written, which the judge cannot count as observed RED for any target.
 // A passing run executed every assertion, so it is recorded as passed for each declared target.
+// Without --baseline or --judge no judge is passed to a Case: it runs against the capability's own targets. The baseline stand-in (baseline-judge.mjs) accepts every plan, is specific to C1's own PLAN, and is used only with --baseline.
 // Executes outer-loop Cases against a judge and reports what each execution shows.
 //   RED-observed       the Case failed on an assertion about the intended behaviour
 //   RED-unconditional  the Case failed through an unconditional failure, which is not meaningful evidence
@@ -18,12 +19,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const here = dirname(fileURLToPath(import.meta.url));
 let root = resolve(here, '../..');
 const args = process.argv.slice(2);
-let judgePath = join(here, 'baseline-judge.mjs');
+let judgePath;
 let complete = false;
 let evidenceFile;
 const files = [];
 for (let i = 0; i < args.length; i += 1) {
   if (args[i] === '--judge') judgePath = resolve(args[++i]);
+  else if (args[i] === '--baseline') judgePath = join(here, 'baseline-judge.mjs');
   else if (args[i] === '--complete') complete = true;
   else if (args[i] === '--root') root = resolve(args[++i]);
   else if (args[i] === '--evidence') evidenceFile = resolve(args[++i]);
@@ -51,7 +53,7 @@ function stoppedAt(error, file) {
   return line ? `stopped at line ${line}` : '';
 }
 
-const { judge } = await import(pathToFileURL(judgePath).href);
+const { judge } = judgePath === undefined ? {} : await import(pathToFileURL(judgePath).href);
 const rows = [];
 for (const file of files.sort()) {
   let id = file;
