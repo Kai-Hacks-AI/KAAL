@@ -1,5 +1,5 @@
 // A10 plan-rules: evaluates the eight rules of F1 over a resolved plan model.
-import { capabilityOf, childGaps, closersOf, cycleMembers, decomposed, kindOf, nearestShared } from './resolve.mjs';
+import { capabilityOf, closersOf, cycleMembers, decomposed, kindOf, nearestShared } from './resolve.mjs';
 
 const fail = (rule, id, message, recovery) => ({ rule, id, status: 'fail', message, recovery });
 const unknown = (rule, id, message, recovery) => ({ rule, id, status: 'unknown', message, recovery });
@@ -45,7 +45,7 @@ export function evaluate(plan, byId) {
   checkLinks(plan, byId, findings);
   checkIds(plan, byId, findings);
 
-  // F1/1: a Change has at least one driver and closes at least one Gap. A Gap has exactly one directly closing Change; a parent Gap is closed through its child Gaps.
+  // F1/1: a Change has at least one driver and closes at least one Gap. A Change may close several Gaps. Every Gap, a parent Gap included, has exactly one closing Change.
   for (const change of list(plan.changes)) {
     if (list(change.implements).length + list(change.resolves).length === 0) {
       findings.push(fail('F1/1', change.id, `${change.id} implements no Intent and resolves no Defect`, `Add an implements link to an Intent or a resolves link to a Defect on ${change.id}.`));
@@ -56,10 +56,8 @@ export function evaluate(plan, byId) {
   }
   for (const gap of list(plan.gaps)) {
     const closers = closersOf(byId, gap.id);
-    const children = childGaps(byId, gap.id);
-    if (children.length > 0 && closers.length > 0) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} has child Gaps and is closed directly by ${closers.join(', ')}`, `Close the child Gaps of ${gap.id} instead. A parent Gap is closed through its child Gaps.`));
-    else if (children.length === 0 && closers.length === 0) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} is closed by no Change`, `Add a closes link to ${gap.id} on the Change that closes it.`));
-    else if (closers.length > 1) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} is closed directly by ${closers.length} Changes: ${closers.join(', ')}`, `Decompose ${gap.id} into child Gaps through parent links and let each Change close one child Gap.`));
+    if (closers.length === 0) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} is closed by no Change`, `Add a closes link to ${gap.id} on the Change that closes it.`));
+    else if (closers.length > 1) findings.push(fail('F1/1', gap.id, `Gap ${gap.id} is closed by ${closers.length} Changes: ${closers.join(', ')}`, `Decompose ${gap.id} into child Gaps through parent links and let each Change close its own Gaps.`));
   }
 
   // F1/2: a Requirement serves an Intent.

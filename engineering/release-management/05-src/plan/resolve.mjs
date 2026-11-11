@@ -41,7 +41,7 @@ function edges(byId, id) {
   const { kind, item } = entry;
   // Decomposition applies to every kind that has a parent; it places Cases and carries no coverage.
   const parent = typeof item.parent === 'string' ? [item.parent] : [];
-  if (kind === 'change') return [...(item.implements ?? []), ...(item.resolves ?? []), ...(item.closes ?? [])];
+  if (kind === 'change') return [...(item.implements ?? []), ...(item.resolves ?? [])];
   if (kind === 'requirement') return [...parent, ...(item.serves ?? [])];
   if (kind === 'architecture') return [...parent, ...(item.addresses ?? [])];
   return parent;
@@ -63,28 +63,16 @@ export function reach(byId, id) {
   return distance;
 }
 
-// The Changes that directly close a gap, and the gaps decomposed from it.
+// The Change that closes a gap. A gap sits in the folder of its closing Change, and no Change reaches a gap as an ancestor.
 export const closersOf = (byId, gap) => [...byId.values()].filter((entry) => entry.kind === 'change' && Array.isArray(entry.item.closes) && entry.item.closes.includes(gap)).map((entry) => entry.item.id);
-export const childGaps = (byId, gap) => [...byId.entries()].filter(([, entry]) => entry.kind === 'gap' && entry.item.parent === gap).map(([id]) => id);
-
-// A gap is Change-oriented: a Case that tests it sits beside the Change that closes it, or, for a parent gap, beside the nearest shared Change of its child gaps.
-function placeOf(byId, id, seen = new Set()) {
-  if (byId.get(id)?.kind !== 'gap' || seen.has(id)) return id;
-  seen.add(id);
-  const closers = closersOf(byId, id);
-  if (closers.length > 0) return closers[0];
-  const children = childGaps(byId, id).map((child) => placeOf(byId, child, seen));
-  return children.length === 0 ? id : sharedAmong(byId, [...new Set(children)]);
-}
+const placeOf = (byId, id) => (byId.get(id)?.kind === 'gap' ? closersOf(byId, id)[0] ?? id : id);
 
 // The nearest shared ancestor of the targets, or the owning capability when they share none.
 // With no shared ancestor, the place is the owning capability, named by the prefix of the targets.
 export const capabilityOf = (id) => (typeof id === 'string' && id.includes('/') ? id.split('/')[0] : undefined);
 
-export const nearestShared = (byId, targetIds) => sharedAmong(byId, [...new Set(targetIds.map((id) => placeOf(byId, id)))]);
-
-// The nearest shared ancestor of places that are already resolved. It never resolves a gap again, so a gap cycle cannot recurse.
-function sharedAmong(byId, targets) {
+export function nearestShared(byId, targetIds) {
+  const targets = [...new Set(targetIds.map((id) => placeOf(byId, id)))];
   if (targets.length === 1) return targets[0];
   const reaches = targets.map((target) => reach(byId, target));
   const common = [...reaches[0].keys()].filter((id) => reaches.every((distance) => distance.has(id)));

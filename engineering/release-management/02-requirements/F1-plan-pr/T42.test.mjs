@@ -4,7 +4,7 @@ import test from 'node:test';
 import { judge } from '../../05-src/plan/judge.mjs';
 export const id = 'release/T42';
 export const tests = ['release/F1'];
-export const title = 'a Case that tests Gaps sits where its targets sit, and a Gap is closed by exactly one Change, every Change closes a Gap, and a parent Gap is closed through its child Gaps';
+export const title = 'a Case that tests Gaps sits where its targets sit, and a Change may close several Gaps, every Gap, parents included, has exactly one closing Change';
 const plan = (over = {}) => ({
   intents: [{ id: 'release/I1' }],
   gaps: [{ id: 'release/G1' }],
@@ -30,18 +30,27 @@ test(`${id} ${title}`, async () => {
   const badId = await judge(plan({ gaps: [{ id: 'release/C1/G1' }], changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/C1/G1'] }] }));
   assert.ok(has(badId, 'F1/4', 'release/C1/G1'));
 
-  const parent = {
-    gaps: [{ id: 'release/G1' }, { id: 'release/G2', parent: 'release/G1' }, { id: 'release/G3', parent: 'release/G1' }],
-    changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G2'] }, { id: 'release/C2', implements: ['release/I1'], closes: ['release/G3'] }],
-    cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G2'] }, { id: 'release/T2', found: 'release/C2', tests: ['release/G3'] }, { id: 'release/T3', found: 'release/I1', tests: ['release/I1'] }, { id: 'release/T4', found: 'release/I1', tests: ['release/G1'] }],
-    evidence: [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G2' }],
-  };
-  const derived = await judge(plan(parent));
-  assert.ok(!derived.findings.some((f) => f.rule === 'F1/1'));
-  assert.deepEqual(derived.findings.filter((f) => ['F1/5', 'F1/7'].includes(f.rule)), []);
+  const family = [{ id: 'release/G1' }, { id: 'release/G2', parent: 'release/G1' }, { id: 'release/G3', parent: 'release/G1' }];
+  const evidence = [{ case: 'release/T1', result: 'failed', reason: 'assertion', target: 'release/G2' }];
+  const intent = { id: 'release/T9', found: 'release/I1', tests: ['release/I1'] };
 
-  const direct = await judge(plan({ ...parent, changes: [...parent.changes, { id: 'release/C3', implements: ['release/I1'], closes: ['release/G1'] }] }));
-  assert.ok(has(direct, 'F1/1', 'release/G1'));
+  // One Change may close a parent Gap and its children together.
+  const together = await judge(plan({ gaps: family, changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G1', 'release/G2', 'release/G3'] }], cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G1', 'release/G2', 'release/G3'] }, intent], evidence }));
+  assert.equal(together.verdict, 'PASS');
+
+  // The parent Gap has its own closing Change and its own place, even when the children belong to unrelated Intents.
+  const apart = await judge(plan({
+    intents: [{ id: 'release/I1' }, { id: 'release/I2' }],
+    gaps: family,
+    changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G2'] }, { id: 'release/C2', implements: ['release/I2'], closes: ['release/G3'] }, { id: 'release/C3', implements: ['release/I1'], closes: ['release/G1'] }],
+    cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G2'] }, { id: 'release/T2', found: 'release/C2', tests: ['release/G3'] }, { id: 'release/T3', found: 'release/C3', tests: ['release/G1'] }, intent, { id: 'release/T4', found: 'release/I2', tests: ['release/I2'] }],
+    evidence,
+  }));
+  assert.equal(apart.verdict, 'PASS');
+
+  // A parent Gap is a Gap: it has exactly one closing Change.
+  const open = await judge(plan({ gaps: family, changes: [{ id: 'release/C1', implements: ['release/I1'], closes: ['release/G2', 'release/G3'] }], cases: [{ id: 'release/T1', found: 'release/C1', tests: ['release/G2', 'release/G3'] }, { id: 'release/T3', found: 'release/I1', tests: ['release/G1'] }, intent], evidence }));
+  assert.ok(has(open, 'F1/1', 'release/G1'));
 
   const multi = await judge(plan({
     gaps: [{ id: 'release/G1' }, { id: 'release/G2' }],
