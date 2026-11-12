@@ -19,9 +19,9 @@ One deterministic script in the Skill turns Analyze Flow's facts and findings, t
 1. This PLAN, with its recorded real evidence and RED Cases, into the `kaal/release/plan` collector after CPO review.
 2. DO (not authorized yet): the Script and its CLI. T1 to T13 go GREEN; T13 runs on evidence recorded from the real repository.
 3. ACT, on the collector once everything is green (Owner, 12 Nov). The Script judges the same rule of the Changes it judges.
-4. Only then the wiring, `pull/C2` ([../pull-wiring/](../pull-wiring/00-changes.md)): the part that reads the real host for KAAL. It is its own PLAN, with its own wiring collector, and lands after this Change is done (Owner, 12 Nov): the core reason is to prevent cheating, since a wiring that lands first lets the contract be weakened until it goes green.
+4. Only then the host integration, `pull/C2` ([../pull-integration/](../pull-integration/00-changes.md)): the read-only adapter and command that obtain the facts from the real host for KAAL. It is its own PLAN, with its own collector, and lands after this Change is done (Owner, 12 Nov): the core reason is to prevent cheating, since an integration that lands first lets the contract be weakened until it goes green. Wiring in the KAAL sense, a hook or CI trigger that runs the command automatically, is a further Change that is not planned here (CPO, 12 Nov).
 
-The DO is accepted on T1 to T13, which include the recording of a real collector (T13). The live proof on the real host belongs to the wiring Change, `pull/C2` (T14).
+The DO is accepted on T1 to T13, which include the recording of a real collector (T13). The live proof on the real host belongs to the integration Change, `pull/C2` (T14).
 
 ## Constraints kept
 
@@ -33,7 +33,7 @@ Promotion WIP stays one (the Script cannot make a second promotion ready). No ch
 - Selection among collectors: it judges one named collector and reads whose turn it is from Analyze Flow.
 - Any Change that spans collectors: such work is decomposed into separate dependent Changes, and a legacy record is only identified and reported incomplete.
 - That READY is safe: no collector has been READY yet on real evidence. The recorded real collector is BLOCKED.
-- That the Script can read the host itself: the Engineering adapter that gathers the facts is the wiring Change `pull/C2`.
+- That the Script can read the host itself: the Engineering adapter that gathers the facts is the integration Change `pull/C2`.
 - That the checks' conclusions say why they failed (see analysis.md, M2).
 - Anything about publishing, hotfix routes, DO or ACT proposals, scheduling or automation.
 

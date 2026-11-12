@@ -1,0 +1,31 @@
+# Pull Promotion host integration: Change (A to B)
+
+This is `pull/C2`, a PLAN Change. It ships no code. It is the **host integration** of the capability `pull/C1` (the `pull-promotion.mjs` Script, [../pull/00-changes.md](../pull/00-changes.md)) with KAAL's GitHub host: a read-only command that obtains the facts from the real repository and evaluates a real collector, invoked by a person or an agent. By the Owner's rule of 12 Nov 2026 it has its own PLAN and its own collector and lands only after its capability is done. The core reason is to prevent cheating: the capability's contract cannot be weakened to go green against an integration that already exists.
+
+## Three concerns, three Changes
+
+In KAAL, **wiring** means connecting a capability to an execution trigger (a Git hook or a CI workflow). Reading facts from the host through an adapter and running the capability by hand is **host integration**. They are different Changes (CPO, 12 Nov 2026):
+
+| Concern | Change | What it is |
+| --- | --- | --- |
+| Capability | `pull/C1` (done) | The host-independent readiness decision from supplied facts. |
+| Integration | `pull/C2` (this) | The read-only GitHub adapter and command that obtains the facts, reusing Analyze Flow's supplier, and evaluates a real collector on request. |
+| Wiring | a future Change, not planned here | A hook or CI trigger that invokes the integrated command automatically. |
+
+## A: the present
+
+`pull/C1` judges one collector from data. Nothing gathers that data from the real repository for KAAL, and nothing proves the Script on the real host.
+
+## B: the target
+
+In `engineering/release-management/05-src/pull-promotion/`, one command reads the repository through the signed-in host reader, reuses Analyze Flow's supplier for the facts and does not duplicate it, adds only the optional facts of `pull/F3`, and prints the verdict of one real collector. It is read-only, with a stated boundary of what is proved, and runs on any appropriately provisioned runner with an explicit read-only credential; the Owner authorizes promotion and is not the test runner. Its acceptance evidence is collected first and certified afterwards, tied to the exact implementation head and host state. See [requirements.md](requirements.md) and [testing.md](testing.md).
+
+## Boundaries and exclusions
+
+- **In this Change:** the adapter, the command, its read-only and portability evidence (`pull/F14` to `pull/F18`), and the proof that nothing triggers it (`pull/F20`).
+- **Not in this Change:** any Git hook, CI workflow, scheduled job, required check, ruleset or Guard change; any automatic invocation; any PR creation, auto-merge, approval or promotion; any change to Analyze Flow's supplier or contract; any change to the capability. The command is run by hand.
+- **Dependency:** the integration DO depends on the corrected and verified supplier of Analyze Flow (`coordination/C1`, DO #1476) being in the collector. It does not start before that, because it reuses `gather` and must not copy it.
+
+## Order and constraints
+
+Lands only after `pull/C1` is done (its DO and ACT on its collector, all Cases green) and after the supplier above. Its collector is named `kaal/release/integrate-pull-promotion`. It depends on the optional additions that the Analyze Flow thread would make to its contract; nothing here changes that contract.
