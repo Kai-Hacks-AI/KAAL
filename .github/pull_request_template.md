@@ -1,17 +1,10 @@
-<!-- This pull request is a stable Change envelope. Execution history belongs in comments, reviews and checks. -->
+<!-- KAAL-PR-template: DEFAULT -->
+<!-- The fallback pull request template. Use it only when no specialized template in .github/PULL_REQUEST_TEMPLATE/ applies. Exactly two chapters in this order and nothing else: no extra headings, commentary, test output or status reports. The files, the checks and the reviews hold the evidence; discussion goes into comments. -->
 
-## Intent
+## Change
 
-<!-- What this Change must achieve. -->
+<!-- One line: what this pull request changes. Name `<id> <name>` when it belongs to a Change. -->
 
-## Design
+## Because
 
-<!-- Optional. Only boundary or end-to-end design that is part of the Change contract. If the Worker could change it during implementation without changing the intended Change, leave it out. -->
-
-## Verified by
-
-<!-- The deterministic evidence required: tests, checks, reproducible verification. -->
-
-## Validated by
-
-<!-- The judgment required: independent review, Owner review or other explicit validation. -->
+<!-- The value delivered, briefly. The value, not who asked for it. -->
