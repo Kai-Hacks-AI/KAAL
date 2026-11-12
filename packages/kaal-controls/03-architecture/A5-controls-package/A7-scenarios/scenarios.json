@@ -1,0 +1,70 @@
+{
+  "scenarios": [
+    {
+      "id": "S1",
+      "situation": "A written policy says that every release needs a second reviewer.",
+      "types": [
+        "directive"
+      ],
+      "claimSupported": null
+    },
+    {
+      "id": "S2",
+      "situation": "The release system refuses to publish a release that has no recorded approval from a second reviewer.",
+      "types": [
+        "preventive"
+      ],
+      "claimSupported": null
+    },
+    {
+      "id": "S3",
+      "situation": "A scanner lists every dependency with a known advisory in a report. Nothing is stopped.",
+      "types": [
+        "detective"
+      ],
+      "claimSupported": null
+    },
+    {
+      "id": "S4",
+      "situation": "When a configuration drifts from the approved one, a job restores the approved configuration.",
+      "types": [
+        "corrective"
+      ],
+      "claimSupported": null
+    },
+    {
+      "id": "S5",
+      "situation": "The release system refuses to publish unless the scanner's report shows no known advisory.",
+      "types": [
+        "detective",
+        "preventive"
+      ],
+      "claimSupported": null
+    },
+    {
+      "id": "S6",
+      "situation": "A policy requires scanning, and the scanner reported no advisory. Claim: no vulnerable dependency can be released.",
+      "types": [
+        "directive",
+        "detective"
+      ],
+      "claimSupported": false
+    },
+    {
+      "id": "S7",
+      "situation": "The release system refuses to publish without approval, but an administrator can override the refusal. Claim: no unapproved release can ever happen.",
+      "types": [
+        "preventive"
+      ],
+      "claimSupported": false
+    },
+    {
+      "id": "S8",
+      "situation": "A setting requires the scanner's result before publishing. No publication has been observed to be refused or admitted under it. Claim: the setting prevents vulnerable releases.",
+      "types": [
+        "preventive"
+      ],
+      "claimSupported": false
+    }
+  ]
+}
