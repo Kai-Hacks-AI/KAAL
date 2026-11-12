@@ -49,6 +49,36 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 
 ## Open for the Owner
 
-1. Package name: `@kaihacksai/kaal-release`, scoped like the other consumer-facing packages, is the default.
+1. Decided (Owner, 12 Nov 2026, #1463): the package name is `@kaihacksai/kaal-release`.
 2. Decided (Owner, 12 Nov 2026): 0.0.1 is not Skill-only. The release helper lives in kaal-release as a Script inside the Skill, hosted at `skills/kaal-release/scripts/analyze-flow.mjs`. This PLAN is the prerequisite: it specifies the Skill and fixes the Script's host and place in the package, but it does not specify or accept the Script itself. The Script's contract and Cases are `coordination/C1` (`plan/coordination/`, PLAN accepted 12 Nov 2026), and the full 0.0.1 target is not complete until its DO is accepted.
-3. Safe repair of the `kaal/release` collector, preserving unique commits. No reset, promotion or publication is authorized.
+3. Decided: the collector is `kaal/release/plan`; the bare `kaal/release` was deleted by the Owner. No promotion or publication is authorized by this record.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- Exact-head review at each step found real gaps before they cost anything: the contradiction between the Script decision and I5, N3 and T9, and the PR bodies that did not match their phase.
+- Cases with a positive and a negative fixture caught my own wording at once: the npm example's file name tripped T4 and a trailing full stop tripped T5.
+- The packed tarball, installed into a clean directory, held exactly the six intended files. The Skill and the Node came out byte-identical, the Node kept its id, and the Skill checker passed.
+
+### Learned
+
+- A first `Branching` run on a new PR fails when it starts before auto-merge is registered, and the `auto_merge_enabled` event re-runs it. Enabling auto-merge straight after opening the PR clears it.
+- A collector's head branch is deleted when its PR merges, and force pushes are blocked. The next phase on the same branch name starts from the collector, never from history.
+- A Case sourced from something not yet on the collector has to state what it falls back to and assert that it found something, or it passes vacuously.
+- Keeping verification (scripts) and validation (a reviewer's reading of recorded consumers) apart made each easy to state and to review.
+
+### Lacked
+
+- The Delivery target on the collector, so T5 reads workflow names as a stand-in.
+- Early knowledge of the per-phase PR templates; two bodies were written and corrected before I found them.
+- A Case for the packed artifact. I ran that acceptance by hand and recorded its result here: six files, clean install, checker ok.
+- A stated answer to what "all green" means when a Change's Script is carried by a sibling Change.
+
+### Longed For
+
+- The Delivery target landing, so T5 switches to its real source without an edit.
+- The hosted Script's DO landing, which completes the package for release.
+- The packed-artifact acceptance written as a Case, not run by hand.
