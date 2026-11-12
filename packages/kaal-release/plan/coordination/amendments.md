@@ -1,5 +1,7 @@
 # analyze Flow: the exact amendments to #1350
 
+**Status (12 Nov 2026):** #1350 landed already carrying edits 2, 4, 5, 6, 7, 8 and 9 in its own words. The remaining edits 1, 3 and 10, and the pointers that said the contract was still to come, are applied by the PLAN that merges this note. The table below is the original list and is kept for trace.
+
 #1350 is approved at its exact head and waits on its normal route. This PLAN does not touch its files. When #1350 is in `kaal/release/plan`, one commit on this branch (the collector merged into the head first) applies exactly the edits below, so the repository never holds two contradictory statements. They are listed now so the CPO reviews them with this PLAN. All paths are under `packages/kaal-release/plan/release/`.
 
 | # | File | Old | New |
