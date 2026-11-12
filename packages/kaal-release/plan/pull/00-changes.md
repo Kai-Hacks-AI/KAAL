@@ -40,3 +40,32 @@ Promotion WIP stays one (the Script cannot make a second promotion ready). No ch
 ## Out of scope
 
 Any write; changing Analyze Flow's Script or contract (the four additions are requested of its owner, not made here); retiring track Work or any control.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- Writing each Case as a runnable RED file before any code made the DO mechanical: the reference script went green on T1 to T13 unchanged, and the later reviews added Cases, never rewrites.
+- Using a real recorded collector (T13) kept the model honest: the verdict BLOCKED came from the repository's own state, not from a fixture I could tune.
+- The CPO's findings were all about a boundary, never a detail: an Owner hold must never recommend a proceed action, a missing fact must never read as unrelated, a prose gap is not a structured gap. Each became a Case that fails on the earlier script.
+
+### Learned
+
+- The data an upstream script emits is part of its contract even when its contract text says nothing about the shape. Analyze Flow's gaps are prose, and I first read them as objects because my own fixtures were. The Case that uses the upstream wording found it at once.
+- Missing evidence needs a rule for relevance, not a flag: a gap is relevant when it names something the judgment reads, unrelated only when it names only things outside the collector or the consumer's declaration says so, and anything undecidable fails safe.
+- A phase that moves a script into a package touches the package's own claims. "One hosted Script" in the README and in release/T9 had to change, and the PLAN had not said so.
+- A DO may start when its PLAN is merged into the collector. I waited for a separate go because the handover said PLAN only, and the Owner said a merged PLAN is the allowance.
+
+### Lacked
+
+- Analyze Flow's Script in the package, so no Case runs both scripts end to end on one real collector. The two meet in data, and the data shape was only checked against recorded wording.
+- A fixture of the real host's gaps in the string form. T17 uses the wording of Analyze Flow's own Cases, not captured output.
+- Knowledge up front that `pull/T14` and F14 to F18 belong to the wiring PLAN, so the DO's new Cases are T15 to T17 and the Case numbering has a hole.
+
+### Longed For
+
+- Analyze Flow giving each gap a machine-readable subject, so relevance is read, not matched on prose.
+- The wiring Change (`pull/C2`) running the Script on the real repository, which is the only proof that READY can ever be reached.
+- A KAAL declaration with `gapRules` for the known limitations, so a verdict on a real collector can be anything but NOT JUDGED for want of a classification.
