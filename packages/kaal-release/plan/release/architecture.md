@@ -36,7 +36,7 @@ packages/kaal-release/
   payload/Release.md                     (Skill Node, typed KAAL Skill)
   skills/kaal-release/SKILL.md           (the F2 loop; decisions per F3)
   skills/kaal-release/references/npm.md  (F4)
-  skills/kaal-release/scripts/analyze-flow.mjs  (the hosted Script; contract by amendment, see 00-changes.md)
+  skills/kaal-release/scripts/analyze-flow.mjs  (the hosted Script; contract in coordination/C1)
   plan/release/                          (this plan, then the DO's tracing)
   test/                                  (Cases below)
 ```
@@ -63,6 +63,7 @@ Every capability has a deterministic element (Script) and non-deterministic elem
 | Choosing the version bump, writing release notes | Skill (judgment) |
 | Reading the repository's own release decisions | Agent (`AGENTS.md` and Engine Nodes) |
 | Checking the Skill's own conformance | Script (the existing `kaal-engineer-skill` checker) |
+| Listing the next release actions | Script (analyze-flow.mjs, coordination/C1) |
 | Verifying a published artifact | not yet (see 00-changes.md) |
 
 ## Mnemonics
