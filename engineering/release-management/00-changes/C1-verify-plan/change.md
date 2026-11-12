@@ -2,36 +2,40 @@
 
 ## PLAN
 
-1. Add the layout, I1, F1, A1 to A13 and D1 with their Cases. Add C1 with its own Cases T1 to T5, one per gap.
-2. Add the interim expected-RED runner `run-red.mjs` and the baseline stand-in `baseline-judge.mjs` under `00-changes/C1-verify-plan/`. The runner executes the F1 Cases against the baseline, where every plan is accepted, and records the observed results as current evaluation evidence: `node engineering/release-management/00-changes/C1-verify-plan/run-red.mjs`. It is wired into no lane.
-3. The PLAN enters the collector with expected RED. The PLAN judgment passes when at least one meaningful RED condition is observed. An unconditional failure and a missing import are not that condition, so the expected failing outer-loop execution yields green CI.
-4. Review each file by hand for language: migration wording under `00-changes/`, standing target state elsewhere.
+This amendment reconciles the Change with what `main` holds now and with the split of the controls. `reconcile.md` classifies every document, element and Case, and every earlier step. `evidence.md` observes the baseline against `main`.
+
+1. Valid and delivered on the collector: the layout, I1, F1, A1 to A13 and D1 with their Cases, and C1 with its Cases T29 to T33. Nothing of it is on `main`.
+2. Valid, interim: the expected-RED runner `run-red.mjs` and the baseline stand-in `baseline-judge.mjs`. They are removed when Testing provides expected-RED execution on `main`.
+3. Superseded: the claim that the PLAN has accepted RED. That rested on the stand-in, which is not `main`, and the baseline of this Change is `main` (`evidence.md`).
+4. Rebuild the expected RED against `main`. The unconditional markers T19 and T29 to T37 are now Cases that assert intended behaviour and fail on an assertion against `main`, as the Cases of create Plan do, and they pass on the collector where their targets exist. T16 is re-expressed with A2 in DO step 5. T17, T18, T26 and T27 are removed or moved with their elements in DO step 5. A missing module is not RED, so the Cases that import the judgment (T1 to T15, T20 to T25, T28, T38 to T42) cannot supply it: they are green only where the judgment is.
+5. Review each file by hand for language: migration wording under `00-changes/`, standing target state elsewhere.
 
 ## DO
 
-The Change is the whole lot. It reaches `main` in separate promotions, because Change Isolation keeps `.github` and engineering apart, and because the template, the workflow and the ruleset requirement are different controls placed at different points of the lifecycle. It closes only when everything is on `main` and wired.
+The Change is the whole lot, and it closes only when verify Plan is on `main` and wired. It reaches `main` after create Plan and in separate promotions, because Change Isolation keeps `.github` and engineering apart. Each promotion needs the Owner's go.
 
-1. Implement the judgment so that the F1 Cases pass, and the A7 to A11 Cases pass beside their elements (#1384).
-2. Add the readers and the check body, and let the interim runner write the evidence rows: A7, A9 and the A6 body (#1386). The runner attributes a failure to a target only where the Case names it.
-3. Make the check cover every PLAN pull request: the adapter finds the capability folder from the Change named in the title, skips merge commits when it checks the `Driven-by` trailers, and executes the Cases of that folder against their own targets. The C1 baseline stand-in is opt-in (`--baseline`) and never part of generic execution.
-4. Deliver the PLAN pull request template (A4) first, as an independent `.github` pull request on its own collector, `kaal/release/wire-verify-plan`. It is a directive control at Development OUT and needs no judge on `main`.
-5. Promote the engineering collector `kaal/release/verify-plan` to `main`, and promote the template collector. Each needs the Owner's go, and they travel apart.
-6. Deliver the `verify Plan` workflow (A5) in its own `.github` pull request once the engineering code is on `main`. It is the execution of a detective control at Integration IN. The workflow takes the judge and the runner from the target branch and the plan from the pull request. Test the complete adapter path with a throwaway PLAN pull request before anything is required.
-7. On `main`, rename T18 and T19 from `.red.mjs` to `.test.mjs` and wire them, in an engineering pull request on a new collector.
-8. Require the check named `verify Plan` in the `integration` ruleset (A13), a separate preventive control at Integration IN, and rename T26 and T27 when they are green. The ruleset change needs the Owner's go.
-9. Rename each passing Case from `T<n>.red.mjs` to `T<n>.test.mjs` and wire it into its lane. A promotion carries red markers only for Cases whose target lies outside the promoted paths, and the pull request names each of them. Remove the runner and the baseline stand-in when Testing provides expected-RED execution on main.
+1. Judgment, so that the F1 Cases pass (#1384, on the collector).
+2. Readers and the check body, with the interim runner writing the evidence rows (#1386, on the collector).
+3. A check that covers every PLAN pull request, whatever its capability (#1389).
+4. Bring the collector level with `main` by a SYNC, so that create Plan and the check of the PR body are in the tree that this Change is judged in.
+5. Reconcile the documents with the classification of `reconcile.md`, one concern per pull request: F1 cites F2 and F3 and no longer restates what create Plan owns; A8 to A11 move to a portable branch of A1, beside the GitHub adapter; A3 and A4 and their Cases T17 and T18 are removed, because the template is create Plan's; A12, A13 and their Cases T26 and T27 leave this Change for the preventive control. No implementation moves in this step except the elements named.
+6. Promote the engineering collector to `main`.
+7. Deliver the `verify Plan` workflow (A5) in its own `.github` pull request, once the engineering code is on `main`. The workflow takes the judge and the runner from the target branch and the plan from the pull request. Test the complete adapter path with a throwaway PLAN pull request before anything requires it. It runs the body check of release/C8 as well as the judgment.
+8. Rename each passing Case from `T<n>.red.mjs` to `T<n>.test.mjs` and wire it into its lane. A promotion carries red markers only for Cases whose target lies outside the promoted paths, and the pull request names each of them.
 
-Open for Owner and CPO agreement: whether the directive concerns of PLAN creation (the template A4 and what produces a well-formed PLAN) leave `verify Plan` for a separate control, working name `create Plan`. The boundary and the move are proposed separately and are not part of this amendment.
+Not in this Change: the PLAN pull request template, which is create Plan and is on `main`; requiring the status `verify Plan` before a pull request merges, which is the preventive control `guard Integration` with its own PLAN and the Owner's go.
 
 ## ACT
 
-1. Record what the first enforced PLAN shows, and adjust F1 through a new Change.
-2. Close C1 and its Gaps once every step of DO is on `main` and wired.
+1. Record what the first enforced PLAN shows, and adjust F1 through a new Change. Record the learning on contamination of the PR body, with the pull requests #1406 and #1407 as regression examples.
+2. Close C1 and its Gaps once verify Plan is on `main` and its workflow is wired.
+
+Open for the Owner and the CPO: whether C1 waits for `guard Integration` before ACT, or closes when verify Plan reports on every PLAN pull request and enforcement is its own Change.
 
 ## Dependencies
 
-Testing owns expected-RED execution, Case design, identity and placement, and the In, Stock and Out model. The common metamodel owns the relationship vocabulary, and the common control contract owns verdict semantics. verify Plan consumes them. This Change does not define them and does not bring Guard or gate ownership into scope.
+create Plan owns the structure of a PLAN (F2) and the interface that presents it (F3, A14 to A16). verify Plan consumes both and redefines neither. Testing owns expected-RED execution, Case design, identity and placement, and the In, Stock and Out model. The common metamodel owns the relationship vocabulary, and the common control contract owns verdict semantics. verify Plan consumes them. This Change does not define them, and does not bring Guard or gate ownership into scope.
 
 ## Later
 
-The language review of PLAN step 4 can become a Case for verify Plan.
+The language review of PLAN step 5 can become a Case for verify Plan. The judgment of the whole PR body against F3 and F13 can become Cases that reuse release/C8, with the contaminated bodies #1406 and #1407 as regression examples.
