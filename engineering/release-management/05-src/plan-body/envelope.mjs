@@ -29,6 +29,7 @@ function sharedBodyRules(body) {
   }
   const text = stripComments(body);
   const lines = text.split('\n');
+  const seen = [];
   const chapters = new Map();
   let current;
   let before = '';
@@ -36,7 +37,12 @@ function sharedBodyRules(body) {
     const heading = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
     if (heading) {
       if (heading[1] !== '##') problems.push(`the heading "${line.trim()}" is not a level-2 chapter`);
-      else { current = heading[2]; chapters.set(current, []); }
+      else {
+        current = heading[2];
+        if (seen.includes(current)) problems.push(`the chapter ${current} appears more than once`);
+        seen.push(current);
+        chapters.set(current, chapters.get(current) ?? []);
+      }
     } else if (current !== undefined) chapters.get(current).push(line);
     else before += line;
   }
@@ -74,7 +80,9 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
     else notJudged.push(`the route of ${type} has no row and is not judged`);
     if (IDENTITY.has(type)) {
       const id = /^\S+/.exec(headings.length && typeof facts.body === 'string' ? stripComments(facts.body).split(/^##\s+Change\s*$/m)[1]?.trim() ?? '' : '')?.[0];
-      for (const commit of facts.commits ?? []) {
+      if (!Array.isArray(facts.commits)) notJudged.push(`the Change identity of ${type} is not verified: no commit evidence was supplied`);
+      else if (facts.commits.length === 0) problems.push(`the Change identity of ${type} cannot be verified: the pull request lists no commits`);
+      for (const commit of Array.isArray(facts.commits) ? facts.commits : []) {
         const trailers = [...commit.message.matchAll(/^Driven-by:\s*(\S+)\s*$/gim)].map((m) => m[1]);
         if (trailers.length !== 1) problems.push(`a commit has ${trailers.length} Driven-by trailers; it must have exactly one`);
         else if (trailers[0] !== id) problems.push(`a commit is driven by ${trailers[0]} but the Change chapter names ${id ?? 'no id'}`);

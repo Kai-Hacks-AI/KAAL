@@ -16,9 +16,11 @@ export function readTemplates(files) {
   const facts = {};
   const typed = new Map();
   const fallbacks = [];
+  const defaults = [];
   for (const { path, text } of files) {
     const isDefault = DEFAULT_PATH.test(path);
     if (!isDefault && !DIRECTORY_PATH.test(path)) continue;
+    if (isDefault) defaults.push(path);
     const declarations = [...text.matchAll(DECLARATION)].map((match) => match[1]);
     const chapters = headings(text);
     if (declarations.length === 0) {
@@ -30,8 +32,10 @@ export function readTemplates(files) {
     const [declared] = declarations;
     if (!TYPE.test(declared)) { findings.push(`${path} declares KAAL-PR-template "${declared}"; a TYPE is an upper-case word`); continue; }
     if (declared === 'DEFAULT') {
-      if (isDefault) fallbacks.push(path);
-      else findings.push(`${path} declares DEFAULT but is not at a default template path`);
+      if (isDefault) {
+        if (/^<!--\s*KAAL-PR-template:\s*DEFAULT\s*-->\s*$/.test(text.split('\n')[0])) fallbacks.push(path);
+        else findings.push(`${path} declares DEFAULT but not on its first line; the declaration must open the default file`);
+      } else findings.push(`${path} declares DEFAULT but is not at a default template path`);
       continue;
     }
     if (isDefault) { findings.push(`${path} is at a default template path and declares the TYPE ${declared}; only DEFAULT may be declared there`); continue; }
@@ -43,7 +47,7 @@ export function readTemplates(files) {
     else registry[type] = templates[0].chapters;
   }
   let fallback;
-  if (fallbacks.length > 1) findings.push(`several default templates declare DEFAULT (${fallbacks.join(', ')}); the fallback is ambiguous`);
+  if (defaults.length > 1) findings.push(`several default template files exist (${defaults.join(', ')}); the fallback is ambiguous and none is used`);
   else if (fallbacks.length === 1) fallback = { path: fallbacks[0], declared: true };
   const decisions = others.length === 0 ? [] : [{ kind: 'non-KAAL-templates', paths: others, facts, question: QUESTION }];
   return { registry, findings, decisions, fallback };
