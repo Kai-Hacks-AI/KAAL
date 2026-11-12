@@ -33,6 +33,7 @@ Options: a version number; a date; a build identifier; a name per target.
 
 Decide what evidence shows that the candidate meets its acceptance, and that the name is unused. Require verification evidence, which is deterministic and comes from testing, and a validation of the result, which is a judgment and comes from review.
 Options: which evidence, how recent, and for which exact artifact.
+To ask whether a collector of changes is ready to be promoted, `scripts/pull-promotion.mjs` combines the recorded facts, the repository's declaration and the findings of the flow into READY, BLOCKED or NOT JUDGED, names who owns each judgment and what evidence is missing, and recommends a next step. It reads files only, treats missing evidence as unknown, and authorizes nothing.
 
 ### 4. Choose the controls and the authority
 
