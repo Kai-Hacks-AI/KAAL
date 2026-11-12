@@ -39,30 +39,30 @@ Adopted, with two refinements, because the evidence supports it and nothing else
 
 ## Provenance
 
-- Baseline: `main` at `d19abef`. `main` holds the PLAN template and no SYNC template.
-- Method: the eleven Cases of this PLAN (T110 to T120) are copied over a tree that holds `main` and none of this PLAN's documents, and each Case's `run()` is called. A second execution in the tree of this PLAN shows which Cases stay red with the documents of this PLAN present.
-- A throwaway reference template, outside the repository, shows that the Cases can pass. Seven throwaway mutations of it, run once, show that they fail meaningfully.
+- Baseline: `main` at `27d86be`. `main` holds the PLAN, ACT, DO and Promotion templates and no SYNC template text.
+- Method: the nine Cases of this Change (T110 to T115 and T118 to T120) are copied over a tree that holds `main` and none of this Change's documents, and each Case's `run()` is called. A second execution in the tree of this Change, with no `.github` SYNC template, shows that they need nothing outside it.
+- Seven throwaway mutations of `sync-template.md`, run once, show that the Cases fail meaningfully.
 
 ## Result
 
-On `main`: 11 RED-observed, 0 error, 0 green. Each reports the artefact that is absent.
+On `main`: 9 RED-observed, 0 error, 0 green. Each reports the artefact that is absent.
 
-In the tree of this PLAN: T110, T111, T115, T116 and T118 are green, about documents this PLAN adds. T112, T113, T114, T117, T119 and T120 stay red with "the SYNC template is absent", and wait for the template that the DO delivers.
+In the tree of this Change, without the installed template: all nine are green.
 
-With the throwaway reference template all eleven are green. Mutations of it:
-
-| Mutation | Cases that turn red |
+| Mutation of `sync-template.md` | Cases that turn red |
 | --- | --- |
 | a Because chapter added | T112, T113, T114, T119 |
 | a Sync chapter added | T112, T113, T114, T119 |
-| chapters out of order | T112, T119 |
+| chapters out of order | T112, T114, T119 |
 | the hint of Reason removed | T114 |
-| the Reason hint no longer names a decision at a conflict or the primary driver | T114 |
+| the Reason hint no longer names the primary driver | T114 |
 | a link inside a hint | T114 |
 | a generated footer | T114 |
 
 T111 tests the interface itself on bodies, not the template: it accepts the worked body of F14 and rejects a PLAN-shaped body (the shape of #1429), a footed body, a Change line without an identity, a restated source and an empty reason.
 
+The installed `.github` template, and the Cases T116, T117 and T121 that verify its installation against `sync-template.md`, are release/C16.
+
 ## Reproduce
 
-Run from a checkout of this branch, with Node 22 and no dependencies. For each `T110` to `T120` `.red.mjs` file import it, call `run()` and report RED-observed when it throws an assertion error.
+Run from a checkout of this branch, with Node 22 and no dependencies. For each `T110` to `T115` and `T118` to `T120` `.test.mjs` file import it, call `run()` and report RED-observed when it throws an assertion error.
