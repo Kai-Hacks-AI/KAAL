@@ -7,17 +7,24 @@
 
 ## DO
 
-1. Add `05-src/plan-body/templates.mjs` (A40): it reads the templates of the base and derives the registry of types and their chapters from the declarations.
+1. Add `05-src/plan-body/templates.mjs` (A40): it reads the templates of the base, sorts them into declared KAAL templates, the known default and other templates, derives the registry from the declarations, and raises a decision point for the other templates.
 2. Add `05-src/plan-body/envelope.mjs` (A33): it takes title, body, base, head, commits and the registry as input, applies the shared rules, the structure of the declared template and the rows keyed by TYPE, and reports what it did not judge. It runs by hand and reads no git or GitHub.
 3. Rename the Cases from `T<n>.red.mjs` to `T<n>.test.mjs` when they are green.
 
 ## Dependency: template declarations
 
-The templates on `main` carry no declaration yet, and `.github` cannot ride with an engineering change. Each template gets its declaration in its own `.github` change, the PLAN template first. Until a template declares its TYPE, that TYPE is unsupported and the result says so. Adding a declaration to the PLAN template is not part of this Change.
+The templates on `main` carry no declaration yet, and `.github` cannot ride with an engineering change. The existing specialized templates receive their declarations together in one `.github` change, a one-time migration and not a standing rule of one change per template. Future KAAL templates declare themselves when they are created. Until a template declares its TYPE, that TYPE is unsupported and the result says so. The migration is not part of this Change.
+
+## Two tracks
+
+- **Track 1, not this Change:** the existing fallback `.github/pull_request_template.md` (Intent, Design, Verified by, Validated by) is brought up to par by a separate CTO Change through the `.github` lane. C12 does not own the fallback redesign. The fallback is only for a PR that no typed template covers.
+- **Track 2, this Change:** the template reader and the envelope judge. The two tracks converge on `main` through the one-promotion-at-a-time SYNC and PROMOTION discipline.
 
 ## Staging and what is not judged
 
 - Types are not a closed set. A TYPE is judged by structure as soon as a template that declares it is on `main`. A TYPE with no declared template is unsupported.
+- The fallback never validates a PR. A PR whose TYPE has a declared template is judged by it, and one without is judged by the shared rules only.
+- Templates that are not KAAL templates are reported to the Owner as a decision point, with their paths and facts. The checker proceeds without them, never judges by them and never calls them invalid.
 - Rules that cannot be derived from headings are rows keyed by TYPE. Only PLAN's `Change` shape is on `main`.
 - The HOTFIX route is not judged here. It comes from the Hotfix delivery-path Change, not from the HOTFIX template.
 - The `Driven-by` agreement is judged for PLAN, DO and ACT only, for the reason F17 gives.
