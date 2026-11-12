@@ -6,7 +6,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const judge = join(repo, 'engineering/release-management/05-src/plan-body/envelope.mjs');
 export const id = 'release/T161';
 export const tests = ['release/F17'];
-export const title = 'a clean envelope passes; a wrong title, a contaminated title, a wrong route, a disagreeing or doubled Driven-by and a contaminated body are each rejected; the PLAN contract is not applied to a DO, whose chapters are reported as not judged; HOTFIX route and SYNC id are not judged';
+export const title = 'a clean envelope passes; a wrong title, a contaminated title, a wrong route, a disagreeing or doubled Driven-by and a contaminated body are each rejected; the PLAN contract is not applied to a DO, whose chapters are reported as not judged; HOTFIX route and SYNC id are not judged; the Change chapter of a SYNC, PROMOTION or HOTFIX needs no description or phases';
 export async function run() {
   const { verifyEnvelope } = await import(pathToFileURL(judge).href);
   const body = '## Change\n\nrelease/C99 sample: a sample Change.\n\n## From\n\nNothing.\n\n## To\n\nSomething.\n\n## Because\n\nIt helps.\n';
@@ -34,5 +34,15 @@ export async function run() {
   assert.ok(done.notJudged?.length > 0, 'the chapters of a DO are not reported as not judged');
   assert.equal(verifyEnvelope({ ...doFacts, body: doBody + '\n---\nGenerated with Claude Code\n' }).ok, false, 'a footer on a DO body is accepted');
   assert.equal(verifyEnvelope({ ...good, title: 'HOTFIX: Restore a sample', base: 'main', head: 'claude/x', body: doBody }).ok, true, 'a HOTFIX route is judged');
+  const shapes = {
+    SYNC: '## Change\n\nrelease/C99 sample\n\n## Reason\n\nMain moved.\n',
+    HOTFIX: '## Change\n\nrelease/C99 sample\n\n## Defect\n\nIt fails.\n\n## Urgency\n\nNow.\n\n## Approach\n\nFix it.\n',
+    PROMOTION: '## Change\n\nrelease/C99 sample, PLAN DO ACT\nrelease/C98 other, PLAN DO\n\n## Why now\n\nReady.\n',
+  };
+  for (const [type, shape] of Object.entries(shapes)) {
+    const facts = { ...good, title: `${type}: Do a sample`, body: shape, base: type === 'PROMOTION' ? 'main' : 'kaal/release/sample', head: type === 'PROMOTION' ? 'kaal/release/sample' : 'claude/x' };
+    assert.equal(verifyEnvelope(facts).ok, true, `a valid ${type} body is rejected for lacking a description or phases`);
+  }
+  assert.equal(bad({ body: body.replace('release/C99 sample: a sample Change.', 'release/C99 sample') }), false, 'a PLAN Change line without a description is accepted');
   assert.equal(verifyEnvelope({ ...good, title: 'SYNC: Prepare a sample', body: '## Change\n\nrelease/C99 sample: a sample Change.\n\n## Reason\n\nMain moved.\n', commits: [commit('release/C1', 'release/C2')] }).ok, true, 'Driven-by agreement is judged for a SYNC');
 }

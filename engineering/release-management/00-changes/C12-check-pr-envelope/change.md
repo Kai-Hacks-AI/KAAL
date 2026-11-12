@@ -12,7 +12,7 @@
 
 ## Staging and what is not judged
 
-- The body is judged by a shared formatting rule for every TYPE and, separately, by the contract of the TYPE. Only the PLAN contract is on `main`, so only PLAN gets chapter rules now. The other types get the shared rule only and are reported as not judged by chapter. Each later template adds one contract row.
+- The body is judged by a shared formatting rule for every TYPE and, separately, by the contract of the TYPE, which also holds the shape of the `Change` chapter, because that shape differs by TYPE. Only the PLAN contract is on `main`, so only PLAN gets chapter rules now. The other types get the shared rule only and are reported as not judged by chapter. Each later template adds one contract row.
 - The HOTFIX route is not judged here. It comes from the Hotfix delivery-path Change, not from the HOTFIX template.
 - The `Driven-by` agreement is judged for PLAN, DO and ACT only. SYNC, PROMOTION and HOTFIX are not judged, for the reason F17 gives.
 
