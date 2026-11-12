@@ -6,7 +6,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const judge = join(repo, 'engineering/release-management/05-src/plan-body/envelope.mjs');
 export const id = 'release/T161';
 export const tests = ['release/F17'];
-export const title = 'a clean envelope passes; a wrong title, a contaminated title, a wrong route, a disagreeing or doubled Driven-by and a contaminated body are each rejected; the PLAN contract is not applied to a DO, whose chapters are reported as not judged; HOTFIX route and SYNC id are not judged; the Change chapter of a SYNC, PROMOTION or HOTFIX needs no description or phases';
+export const title = 'a clean envelope passes; a wrong title, a contaminated title, a wrong route, a disagreeing or doubled Driven-by and a contaminated body are each rejected; the PLAN contract is not applied to a DO, whose chapters are reported as not judged; HOTFIX route and SYNC id are not judged; the Change chapter of a SYNC, PROMOTION or HOTFIX needs no description or phases; a TYPE outside the registry is reported as unsupported, gets the shared rules, and is never reported as fully judged';
 export async function run() {
   const { verifyEnvelope } = await import(pathToFileURL(judge).href);
   const body = '## Change\n\nrelease/C99 sample: a sample Change.\n\n## From\n\nNothing.\n\n## To\n\nSomething.\n\n## Because\n\nIt helps.\n';
@@ -45,4 +45,8 @@ export async function run() {
   }
   assert.equal(bad({ body: body.replace('release/C99 sample: a sample Change.', 'release/C99 sample') }), false, 'a PLAN Change line without a description is accepted');
   assert.equal(verifyEnvelope({ ...good, title: 'SYNC: Prepare a sample', body: '## Change\n\nrelease/C99 sample: a sample Change.\n\n## Reason\n\nMain moved.\n', commits: [commit('release/C1', 'release/C2')] }).ok, true, 'Driven-by agreement is judged for a SYNC');
+  const unknown = verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: doBody });
+  assert.equal(unknown.ok, true, 'a clean body under an unknown TYPE is rejected for being unknown');
+  assert.ok(unknown.notJudged?.some((note) => /REVERT/.test(note) && /unsupported/i.test(note)), 'an unknown TYPE is not reported as unsupported');
+  assert.equal(verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: doBody + '\n---\nGenerated with Claude Code\n' }).ok, false, 'the shared rules are not applied to an unknown TYPE');
 }

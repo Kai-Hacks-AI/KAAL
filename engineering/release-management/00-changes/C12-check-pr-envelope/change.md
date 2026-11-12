@@ -7,12 +7,13 @@
 
 ## DO
 
-1. Add `05-src/plan-body/envelope.mjs`: it takes title, body, base, head and commits as one facts file, applies the shared body rule, the PLAN contract for PLAN and the rules of F17, reports the other types' chapters as not judged, and runs by hand. It reads no git or GitHub, so a later adapter gathers the facts.
+1. Add `05-src/plan-body/envelope.mjs`: it takes title, body, base, head and commits as one facts file, applies the shared body rule, the PLAN contract for PLAN and the rules of F17, holds the types as a registry of rows, reports the other types' chapters as not judged and an unknown TYPE as unsupported, and runs by hand. It reads no git or GitHub, so a later adapter gathers the facts.
 2. Rename the Cases from `T<n>.red.mjs` to `T<n>.test.mjs` when they are green.
 
 ## Staging and what is not judged
 
 - The body is judged by a shared formatting rule for every TYPE and, separately, by the contract of the TYPE, which also holds the shape of the `Change` chapter, because that shape differs by TYPE. Only the PLAN contract is on `main`, so only PLAN gets chapter rules now. The other types get the shared rule only and are reported as not judged by chapter. Each later template adds one contract row.
+- The types are a registry of rows, not a closed set. A TYPE outside the registry is reported as unsupported and is not judged beyond the shared rules.
 - The HOTFIX route is not judged here. It comes from the Hotfix delivery-path Change, not from the HOTFIX template.
 - The `Driven-by` agreement is judged for PLAN, DO and ACT only. SYNC, PROMOTION and HOTFIX are not judged, for the reason F17 gives.
 
