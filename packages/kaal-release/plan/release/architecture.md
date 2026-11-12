@@ -50,10 +50,10 @@ Every capability has a deterministic element (Script) and non-deterministic elem
 
 | Element | Deterministic (Script) | Non-deterministic (Bare, Agent, Skill) |
 | --- | --- | --- |
-| kaal-release 0.0.1 | none shipped; KAAL's release engine is a KAAL realization, not part of the product | the Skill: how to design and drive a release process, and the decision whether progression is allowed |
+| kaal-release 0.0.1 | one Script inside the Skill, `skills/kaal-release/scripts/analyze-flow.mjs` (Owner, 12 Nov 2026); KAAL's release engine is a KAAL realization, not part of the product | the Skill: how to design and drive a release process, and the decision whether progression is allowed |
 | What Release requires of others | verification evidence (Testing, executed through the consumer's protection runner) | validation of the result (Review) |
 
-0.0.1 ships the non-deterministic element only. A deterministic element for the reusable product is a later Change with its own USE vs BUILD (see 00-changes.md); the Owner's default is Skill-only.
+0.0.1 ships the Skill as host for its first Script, `analyze-flow.mjs` (Owner decision, 12 Nov 2026). The Script's contract and Cases are described in `plan/coordination/`. Any further deterministic element is a later Change with its own USE vs BUILD (see 00-changes.md).
 
 ## BASS allocation
 
