@@ -16,6 +16,7 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 
 1. This PLAN, approved by exact-head CPO review. Lands in the clean `kaal/release/plan` collector (squash).
 2. DO: create the package shape from architecture.md, write the Cases RED, then GREEN: T1 to T13.
+2a. The analyze Flow Script and its Cases (coordination/C1, plan in `plan/coordination/`), once the package shape exists.
 3. Acceptance on the packed artifact in a clean directory.
 3a. CARGO: a separate Change adds `engineering/CARGO.md` (KAAL Definition) with its Cases; the Skill names it only after that is on `main` (T6).
 4. Release of `kaal-release` itself is the final step, after release management is on `main`, with its own explicit Owner go.
@@ -42,11 +43,12 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 | Markdown reading in tests | USE `commonmark` | A parser does what a hand-written reader would do. |
 | Release engine for consumers | NOT in 0.0.1 | It is KAAL's realization; whether any part generalizes is a later Change with its own USE vs BUILD. |
 | Version comparison script | NOT in 0.0.1 | The `semver` package exists; a Script level is added only when a behaviour must repeat exactly. |
+| analyze Flow script | BUILD in 0.0.1 | Listing the next release action must repeat exactly and needs no judgment; see coordination/C1. |
 
 
 
 ## Open for the Owner
 
 1. Package name: `@kaihacksai/kaal-release`, scoped like the other consumer-facing packages, is the default.
-2. Decided (Owner, 12 Nov 2026): 0.0.1 is not Skill-only. The release helper lives in kaal-release as a Script inside the Skill, hosted at `skills/kaal-release/scripts/analyze-flow.mjs`. This PLAN is the prerequisite: it specifies the Skill and fixes the Script's host and place in the package, but it does not specify or accept the Script itself. The Script's contract and Cases are a subsequent, traceable amendment (draft material under `plan/coordination/`, applied only after this PLAN lands), and the full 0.0.1 target is not complete until that amendment is accepted.
+2. Decided (Owner, 12 Nov 2026): 0.0.1 is not Skill-only. The release helper lives in kaal-release as a Script inside the Skill, hosted at `skills/kaal-release/scripts/analyze-flow.mjs`. This PLAN is the prerequisite: it specifies the Skill and fixes the Script's host and place in the package, but it does not specify or accept the Script itself. The Script's contract and Cases are `coordination/C1` (`plan/coordination/`, PLAN accepted 12 Nov 2026), and the full 0.0.1 target is not complete until its DO is accepted.
 3. Safe repair of the `kaal/release` collector, preserving unique commits. No reset, promotion or publication is authorized.
