@@ -19,7 +19,7 @@ export const declaration = (over = {}) => ({
   freshnessChecks: ['fresh'],
   promotions: [{ collector: 'col-a', change: 'c/C1' }],
   holds: [],
-  roles: { author: 'author', reviewer: 'reviewer', owner: 'owner' },
+  roles: { author: 'author', reviewer: 'reviewer', owner: 'owner', lander: 'lander' },
   ...over,
 });
 
@@ -29,8 +29,12 @@ export const facts = (over = {}) => ({
   target: { from: 't1' },
   collectors: [collector('col-a')],
   pieces: [],
+  deliveries: [],
   ...over,
 });
+
+// A delivery is the evidence of a landed PROMOTION: the collector version it carried when it landed, never a version of the target.
+export const delivery = (collectorName, delivered, over = {}) => ({ collector: collectorName, delivered, ref: '#30', landedOn: 'target-after', ...over });
 
 export const ok = (name) => ({ name, conclusion: 'success' });
 export const bad = (name) => ({ name, conclusion: 'failure' });

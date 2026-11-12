@@ -1,6 +1,6 @@
 // Case coordination/T13 tests: F6, F8, F10
 import assert from 'node:assert/strict';
-import { byTarget, collector, analyzeFlow, declaration, facts, promotionOf, syncInto } from './fixtures.mjs';
+import { byTarget, collector, analyzeFlow, declaration, delivery, facts, promotionOf, syncInto } from './fixtures.mjs';
 export const id = 'coordination/T13';
 export const tests = ['coordination/F6', 'coordination/F8', 'coordination/F10'];
 export const title = 'the sequence of 12 Nov (promotion 1440, then sync 1430, then promotion 1428) is listed in that order, one active pair at a time, and advances when 1440 lands';
@@ -22,7 +22,7 @@ export async function run() {
   assert.equal(before.actions.filter((a) => a.layer === 'promotion' && a.status === 'ready').length, 1, 'more than one promotion step is ready');
 
   const landed = promotionOf(1440, 'col-act', { change: 'rm/C6', state: 'landed' });
-  const after = await analyzeFlow(facts({ collectors, pieces: [landed, open[1], open[2]] }), declaration({ promotions: pairs }));
+  const after = await analyzeFlow(facts({ collectors, pieces: [landed, open[1], open[2]], deliveries: [delivery('col-act', 'col-act-head', { ref: '#1440' })] }), declaration({ promotions: pairs }));
   assert.ok(!byTarget(after, '#1440'), 'a landed promotion is still listed');
   assert.equal(byTarget(after, '#1430').action, 'REVIEW', 'the sync does not become the next step when 1440 lands');
   assert.equal(byTarget(after, '#1430').status, 'ready');
