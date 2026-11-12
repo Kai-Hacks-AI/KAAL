@@ -5,7 +5,7 @@ Cases trace one requirement each. Which are written in which Change is in [00-ch
 | Case | Requirement | What it shows |
 | --- | --- | --- |
 | release/T1 | F1 | the package has one Skill, one Node typed `KAAL Skill`, and `Release` states meaning and scope only |
-| release/T2 | F2 | the Skill's headings contain the eight loop steps in order |
+| release/T2 | F2 | the Skill's headings contain the nine loop steps of F2 in order |
 | release/T3 | F3 | each step names its decision and options, and the Skill tells the agent to read the repository's record first |
 | release/T4 | F4 | `references/npm.md` exists; the Skill body names no registry or tool, while the npm file may name npm mechanisms |
 | release/T5 | F5 | the general/KAAL line holds: shipped files contain none of the KAAL-specific identities, and generic words stay allowed (see below) |
@@ -16,7 +16,7 @@ Cases trace one requirement each. Which are written in which Change is in [00-ch
 | release/T11 | F8, I9 | the Skill names each delegated role (implementation, protection, verification, validation, execution) as a step and contains no protective rule, check, runner, verdict vocabulary or gate; positive fixture: a sentence requiring "evidence that change isolation holds" passes; negative fixture: a sentence defining how to run or pin that check fails |
 | release/T13 | I10, F10 | readiness and outcome verification are stated as requirements on both verification and validation; the Skill defines no coverage measure and no acceptance criterion; positive fixture: "require verification evidence and a validation of the result" passes; negative fixture: a sentence defining how coverage is measured, or that Release itself judges the result, fails |
 | release/T12 | F9 | the Skill covers single owner per control, one orchestration layer, distinct execution contexts, and proof of replacement coverage before retirement |
-| release/T9 | N3 | the README states Skill-level, no Script, no verification |
+| release/T9 | N3 | the README states Skill-level guidance with the one hosted Script `analyze-flow.mjs`, and no verification of anyone's release |
 
 Cases run against the package as written and against the packed artifact installed into a clean directory. T5 is the one that keeps the general/KAAL line honest, so it fails with the offending term and file named.
 

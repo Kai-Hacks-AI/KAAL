@@ -36,6 +36,7 @@ packages/kaal-release/
   payload/Release.md                     (Skill Node, typed KAAL Skill)
   skills/kaal-release/SKILL.md           (the F2 loop; decisions per F3)
   skills/kaal-release/references/npm.md  (F4)
+  skills/kaal-release/scripts/analyze-flow.mjs  (the hosted Script; contract by amendment, see 00-changes.md)
   plan/release/                          (this plan, then the DO's tracing)
   test/                                  (Cases below)
 ```

@@ -10,7 +10,7 @@ The line is the point of this capability. KAAL's own release approach (collector
 - **release/I2. KAAL's own release decisions stay in KAAL.** They live in `engineering/release-management/` as Delivery architecture, are traced there, and are not shipped. `kaal-release` points to them as one realization when the repository is a KAAL Engine that has them, and never restates them.
 - **release/I3. The shipped Skill never forces a decision.** Where a repository has to choose (how many gates, who approves, where a candidate is tested), the Skill names the decision and its common options, and the repository's own record wins.
 - **release/I4. The capability runs standalone.** A dependency on KAAL is fair for developing `kaal-release` and not for running it (Owner, 9 Nov 2026).
-- **release/I5. The capability is shipped as BASS and says at which level each behaviour lives.** Judgment stays guidance (Skill). What must repeat exactly may become a Script later, and is not in 0.0.1.
+- **release/I5. The capability is shipped as BASS and says at which level each behaviour lives.** Judgment stays guidance (Skill). What must repeat exactly is a Script. 0.0.1 ships one, `analyze-flow.mjs`, hosted inside the Skill (Owner, 12 Nov 2026); any further Script is a later Change.
 
 ## Product boundary
 

@@ -48,5 +48,5 @@ No `kaal-release` package exists. General release guidance is mixed into KAAL's 
 ## Open for the Owner
 
 1. Package name: `@kaihacksai/kaal-release`, scoped like the other consumer-facing packages, is the default.
-2. Decided (Owner, 12 Nov 2026): 0.0.1 is not Skill-only. The release helper lives in kaal-release as a Script inside the Skill, hosted at `skills/kaal-release/scripts/analyze-flow.mjs`. Its Cases and contract are in `plan/coordination/`, added by a later amendment after this PLAN lands.
+2. Decided (Owner, 12 Nov 2026): 0.0.1 is not Skill-only. The release helper lives in kaal-release as a Script inside the Skill, hosted at `skills/kaal-release/scripts/analyze-flow.mjs`. This PLAN is the prerequisite: it specifies the Skill and fixes the Script's host and place in the package, but it does not specify or accept the Script itself. The Script's contract and Cases are a subsequent, traceable amendment (draft material under `plan/coordination/`, applied only after this PLAN lands), and the full 0.0.1 target is not complete until that amendment is accepted.
 3. Safe repair of the `kaal/release` collector, preserving unique commits. No reset, promotion or publication is authorized.
