@@ -67,4 +67,11 @@ export const promotionOf = (number, collectorName, over = {}) =>
 // The sync member of a pair, or a development sync: into the collector, for the Change it serves.
 export const syncInto = (number, into, change, over = {}) => piece(number, { type: 'SYNC', change, into, review: null, landsOnApproval: false, ...over });
 
+// The supplier: the only part that reads the host. It lives in the consumer's Delivery, never in the shipped Skill.
+export const gatherPath = join(repo, 'engineering/release-management/05-src/analyze-flow/gather.mjs');
+export async function gather(gh, repoName, declaration) {
+  const module = await import(pathToFileURL(gatherPath).href);
+  return module.gather(gh, repoName, declaration);
+}
+
 export const byTarget = (result, target) => result.actions.find((a) => a.target === target);

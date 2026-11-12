@@ -33,7 +33,7 @@ A sync is a promotion sync when it matches a declared pair (the collector it goe
 
 ## 5. Incomplete promotion and next candidate
 
-A pair is complete when a delivery names the collector's current version (F13). The history of the target is not used: promotions squash, so the collector's commits never reach it and a promoted collector that survives looks ahead forever. The gatherer supplies, per landed PROMOTION, the collector version it carried when it landed (recorded by the host on the piece), and the target version it became as provenance only. The next candidate is the next declared pair, and its first step is OPEN for the sync when its collector is behind, or for the promotion.
+A pair is complete when a delivery names the collector's current version (F13). The history of the target is not used: promotions squash, so the collector's commits never reach it and a promoted collector that survives looks ahead forever. The supplier (F14, F16) supplies, per landed PROMOTION, the collector version it carried when it landed (recorded by the host on the piece), and the target version it became as provenance only. The next candidate is the next declared pair, and its first step is OPEN for the sync when its collector is behind, or for the promotion.
 
 ## 6. The live sequence
 
@@ -41,10 +41,10 @@ The real-world order is promotion #1440, then sync #1430, then promotion #1428. 
 
 ## 7. First increment and what stays outside
 
-The Script, its README, the Cases going GREEN, and the amendments applied. The gatherer, writes, DO and ACT proposals, the HOTFIX route, Publishing, and any wiring stay outside.
+The slice: the Script, the supplier, the command, their Cases going GREEN with the connected path run on the real repository, and the amendments applied. Writes, DO and ACT proposals, the HOTFIX route, Publishing, and any wiring stay outside.
 
 ## Assumptions
 
 - Review is current only if it names the head commit.
 - A missing or ambiguous fact is reported, never guessed.
-- The gatherer reads `type` and `change` from the template and the named Change, not from prose.
+- The supplier reads `type` and `change` from the template and the named Change, not from prose.

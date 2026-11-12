@@ -16,11 +16,14 @@ One deterministic script in the Skill turns declared pairs and policy plus gathe
 
 Resolved: #1350 merges first, untouched. This PLAN neither edits nor waits inside it.
 
+The delivery is an end-to-end vertical slice, not the Script alone (CPO, 12 Nov). Order:
+
 1. #1350 lands through its own protected route (CPO: no override, no manual merge).
 2. This PLAN, approved by exact-head CPO review, into the `kaal/release/plan` collector. It can be reviewed now; it merges after #1350.
 3. One commit on this branch applies the ten edits of [amendments.md](amendments.md) to #1350's files, after the collector is merged into the head.
-4. DO: the package shape from #1350's DO exists; then the Script, the Cases going from RED to GREEN, and the refactor they allow.
-5. A second Change adds the live gatherer, run on the Owner's device.
+4. **The contract**: F2, F3 and F14 to F17 define what crosses from supplier to Script, how the real host's facts and delivery provenance are obtained, and what happens when the host cannot supply one.
+5. **The minimal slice (DO)**: the supplier, the Script and the command, so that T18 to T21 go from RED to GREEN and T22 runs on the real repository and prints one recommendation naming a real piece. Separately owned Changes may build the Skill's Script and the consumer's supplier, but the slice is not accepted until the connected path (T19, T22) passes.
+6. **Expansion**: the remaining Cases (T1 to T17: pairs, development SYNCs, missing pieces, HOTFIX and fallback, ordering) go green on that path, then the refactor they allow.
 
 ## Questions raised earlier, and where they stand
 
@@ -36,7 +39,7 @@ Resolved: #1350 merges first, untouched. This PLAN neither edits nor waits insid
 
 - Any write: opening, approving or landing a piece, commenting.
 - Running it inside a workflow, scheduling it, or posting its findings anywhere (each its own Change; F12 only makes it possible). The first increment is run on demand, on a person's machine.
-- Gathering the facts from the host (its own Change). The gatherer reads each piece's template type and named Change; the Script never parses titles or prose.
+- Anything beyond the supplier's read-only mapping: the Script never parses titles or prose, and the supplier writes nothing to the host.
 - Proposing DO or ACT pieces from Change state.
 - The HOTFIX route (reported, not modelled), the Publishing layer (reported, not modelled), hooks, CI, Guard and rulesets.
 - Retiring track Work (a decision after the Script is on `main`).
