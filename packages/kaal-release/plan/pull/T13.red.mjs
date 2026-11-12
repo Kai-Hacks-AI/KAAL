@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { declaration, flow, judgment, pullPromotion, snapshotPath } from './fixtures.mjs';
 export const id = 'pull/T13';
 export const tests = ['pull/F2', 'pull/F4', 'pull/F5', 'pull/F6', 'pull/F7', 'pull/F8', 'pull/F9', 'pull/F10'];
-export const title = 'the real collector kaal/release/wire-fallback-template, as the repository showed it on 12 Nov 2026, is BLOCKED twice over: the Change reports no ACT closing the increment, and Release\'s Branching check is red; every other judgment passes';
+export const title = 'the real collector kaal/release/wire-fallback-template, as the repository showed it on 12 Nov 2026, is BLOCKED for three reasons: the Change reports no ACT closing the increment, and Release finds the capability collector undelivered and its Branching check red; every other judgment passes';
 export async function run() {
   const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
   const name = snapshot.collector;
@@ -24,7 +24,7 @@ export async function run() {
   }, {
     owners: { increment: 'Change', verification: 'Testing', protection: 'Guard', sequencing: 'Release', validation: 'Review', attribution: 'Engineering adapter' },
     closing: 'ACT',
-    increments: [{ collector: name, change: 'release/C14', carries: ['DO'] }],
+    increments: [{ collector: name, change: 'release/C14', carries: ['DO'], after: ['kaal/release/fallback-template'] }],
     changes: [{ id: 'release/C14', onTarget: ['PLAN', 'DO', 'ACT'] }],
     checkOwners: {
       'Branching': 'sequencing', 'Promotion Source': 'sequencing', 'Change Isolation': 'increment', 'Change Isolation (review)': 'validation',
@@ -41,7 +41,7 @@ export async function run() {
   const sequencing = judgment(result, 'sequencing');
   assert.equal(sequencing.status, 'FAIL');
   assert.equal(sequencing.owner, 'Release', 'the red check is not traced to the control that owns it');
-  assert.deepEqual(sequencing.evidence, ['Branching'], 'the evidence is not the one red check');
+  assert.deepEqual(sequencing.evidence, ['Branching', 'kaal/release/fallback-template'], 'the evidence is not the red check and the undelivered capability collector');
   assert.ok(!/auto-merge|merge method/i.test(JSON.stringify(result)), 'the Script claims a cause that only the check log holds');
   const closing = judgment(result, 'increment');
   assert.equal(closing.status, 'FAIL', 'an increment with no ACT is complete');

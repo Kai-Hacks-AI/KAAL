@@ -14,6 +14,8 @@ Three different statements, kept apart because KAAL delivers a Change in more th
 
 **Incomplete versus not judged.** Incomplete is evidence that says work is missing or red (FAIL). Not judged is evidence that is absent, still running or unowned (UNKNOWN). BLOCKED beats NOT JUDGED: a failure is never hidden by an unknown. READY needs every judgment to PASS.
 
+**Readiness order: capability first, wiring after (Owner, 12 Nov).** A capability `x` has a collector that holds its PLAN, DO and ACT; its wiring into the host (GitHub, git hooks) has a separate collector and a separate PLAN, and can land only after `x` is done. The core reason is to prevent cheating: a wiring that lands first lets the capability's contract be weakened until it goes green. An increment of a wiring collector therefore declares `after` the collector of its capability, and is not ready until that collector is delivered at its current version (F8). KAAL already names these collectors `kaal/release/wire-<x>`.
+
 **Minimum observable evidence for one collector:** the declared increment and the pieces of the Change (Analyze Flow's facts); the checks run on the collector's promotion piece, or on its head when none exists; the collector's distance to the target; the reviews of the landed pieces at their landed versions; the Change's declaration of what it needs on the target.
 
 ### The Owner's hypothesis, tested against real evidence
@@ -52,17 +54,17 @@ What the real evidence says, judgment by judgment:
 | increment | Change | **FAIL** | DO #1458 landed in the collector (approved at its head by the CPO), no open piece of C14 into it, Change Isolation passes; but no ACT of C14 has landed in the collector, and an increment is closed by its ACT. |
 | verification | Testing | PASS | Acceptance, Engineering, Workspaces, Hosting: success on all platforms. |
 | protection | Guard | PASS | Guard: success on all platforms. |
-| sequencing | Release | **FAIL** | Branching: the newest of four runs (12:30:36Z) is `failure`. Promotion Source, Dependency Review and CodeQL pass; the collector is 0 behind `main`. |
+| sequencing | Release | **FAIL** | Branching: the newest of four runs (12:30:36Z) is `failure`. And the collector is a wiring: its capability collector `kaal/release/fallback-template` (PLAN #1447, Cases, engineering part) has not been delivered, which the order of 12 Nov forbids. Promotion Source, Dependency Review and CodeQL pass; the collector is 0 behind `main`. |
 | validation | Review | PASS | #1458 approved at the version that landed. |
 | attribution | Adapter | PASS | All 19 check names have a declared owner. |
 
-Verdict **BLOCKED**, for two reasons, each traced to its owner: the Change (no ACT closes the increment) and Release (Branching). Next: the Owner's hold on #1461 (draft, auto-merge off, "no promotion go yet", from the Owner's order C7, C10, C9) makes the recommendation WAIT, escalate, for the owner. Nothing is executed.
+Verdict **BLOCKED**, for three reasons, each traced to its owner: the Change (no ACT closes the increment) and Release (the capability collector is undelivered; Branching is red). The second is a finding about the order #1461 states, "the template goes first so the Cases of the engineering part run green against it": it is the opposite of the order the Owner has now set. Next: the Owner's hold on #1461 (draft, auto-merge off, "no promotion go yet", from the Owner's order C7, C10, C9) makes the recommendation WAIT, escalate, for the owner. Nothing is executed.
 
 **What a person sees in the Branching log, which the Script must not use (M2):** `Fresh: merging ... yields exactly the head's validated tree` and `Merge method: Auto-merge is disabled for this pull request into main. Enable auto-merge with squash before integration.` The collector is fresh; the red is the hold. A strict "nothing red" blocks a collector for a state the Owner chose. That is the learning of the experiment, and why D1 exists.
 
 ## 4. How does it relate to Analyze Flow?
 
-**Reused as data, not code:** the facts (`coordination/F2`), the findings (`F4`) and the five actions; the declaration (`F3`: roles, holds, pairs, target); the delivery identity (`F13`); the supplier and the command (`F14`, `F17`), which the connected path calls instead of building another. The Script imports nothing from `analyze-flow.mjs`.
+**Reused as data, not code:** the facts (`coordination/F2`), the findings (`F4`) and the five actions; the declaration (`F3`: roles, holds, pairs, target); the delivery identity (`F13`); the supplier and the command (`F14`, `F17`), which the wiring Change (`pull/C2`) calls instead of building another. The Script imports nothing from `analyze-flow.mjs`.
 
 **Separate, and why.** The handover asks whether Pull Promotion warrants its own Script. Decision for now: **a separate file in the same Skill**, composed by data. Reasons: Analyze Flow's Script is under active change by its own thread and a function added to it would be edited by two threads; its contract is "observe and explain", this one is "judge eligibility on other controls' evidence"; a separate Script can be folded in later at no cost to either. Fold it in if, after the DO, it adds only a verdict per pair and no input of its own beyond `readiness`.
 
@@ -73,6 +75,7 @@ Verdict **BLOCKED**, for two reasons, each traced to its owner: the Change (no A
 - **R3.** `collector.checks` (checks on a collector head) is missing. Optional and additive.
 - **R4.** `checks` must keep the supplier's meaning in `F14`: the newest run per name, running as pending.
 - **R5.** Words. Analyze Flow's `status: ready` means an action is actionable now; this verdict's `READY` means eligible. They are different fields; the verdict is never called `status`.
+- **R7.** A wiring collector follows its capability. Analyze Flow declares pairs as an ordered list of (collector, Change); `after` is carried in this Script's `readiness` section for now. Whether `coordination/F3`'s pair declaration should carry the same `after` is for its owner, as a later amendment.
 - **R6.** The amendments of #1462 and the id scope: `pull/` is its own scope and edits no file of #1350 or `coordination/`.
 
 ## Decisions for the CPO
@@ -81,4 +84,4 @@ Verdict **BLOCKED**, for two reasons, each traced to its owner: the Change (no A
 - **D2. Decided by the Owner, 12 Nov: No.** ACT is a prerequisite: it lands on the collector after everything is green, then the collector can be promoted. The PLAN follows (H1, F5).
 - **D3. Decided by the Owner, 12 Nov:** a separate Script (section 4).
 - **D4. Decided by the Owner, 12 Nov:** `analyze Vulnerabilities` and CodeQL evidence stay in Release for now, because all controls are born there at present.
-- **D5.** Where the increments of a Change are declared (M1): the consumer's declaration now, the Change record later.
+- **D5. Decided by the Owner, 12 Nov:** a capability and its wiring are separate Changes with separate collectors, the wiring after the capability, to prevent cheating. Increments are declared in the consumer's declaration, each wiring increment saying what it comes `after`; the Change record can carry the order once it can express a route (M1). This PLAN is split accordingly: `pull/C1` here is the capability, the connected path is `pull/C2` (`plan/pull-wiring`).

@@ -17,10 +17,11 @@ One deterministic script in the Skill turns Analyze Flow's facts and findings, t
 ## The route
 
 1. This PLAN, with its recorded real evidence and RED Cases, into the `kaal/release/plan` collector after CPO review.
-2. DO (not authorized yet): the Script and its CLI; then the Engineering adapter that gathers the real evidence for KAAL (F14). T1 to T13 go GREEN, T14 runs by hand on the Owner's device against `kaal/release/wire-fallback-template` (or the collector the Owner names).
-3. ACT.
+2. DO (not authorized yet): the Script and its CLI. T1 to T13 go GREEN; T13 runs on evidence recorded from the real repository.
+3. ACT, on the collector once everything is green (Owner, 12 Nov).
+4. Only then the wiring, `pull/C2` ([../pull-wiring/](../pull-wiring/00-changes.md)): the part that reads the real host for KAAL. It is its own PLAN, with its own wiring collector, and lands after this Change is done (Owner, 12 Nov): the core reason is to prevent cheating, since a wiring that lands first lets the contract be weakened until it goes green.
 
-The DO is accepted only when the connected path passes on a real collector (T14). A synthetic Case alone does not accept it.
+The DO is accepted on T1 to T13, which include the recording of a real collector (T13). The live proof on the real host belongs to the wiring Change, `pull/C2` (T14).
 
 ## Constraints kept
 
@@ -32,6 +33,7 @@ Promotion WIP stays one (the Script cannot make a second promotion ready). No ch
 - Selection among collectors: it judges one named collector and reads whose turn it is from Analyze Flow.
 - Any Change topology beyond one declared increment per collector; no Change that spans collectors is modelled except by a declaration.
 - That READY is safe: no collector has been READY yet on real evidence. The recorded real collector is BLOCKED.
+- That the Script can read the host itself: the Engineering adapter that gathers the facts is the wiring Change `pull/C2`.
 - That the checks' conclusions say why they failed (see analysis.md, M2).
 - Anything about publishing, hotfix routes, DO or ACT proposals, scheduling or automation.
 
