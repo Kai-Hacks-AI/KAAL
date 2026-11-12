@@ -54,10 +54,12 @@ A read-only view that judges nothing and has no authority is a **report**, not a
 | Stage | Controls |
 | --- | --- |
 | Development | isolate Change F6, verify Envelope F19 |
-| Integration | bind Merge F10, verify Ancestry F7, approve Change F15, test Candidate F12, scan Vulnerabilities F8, scan Dependencies F9, freeze Collector F21 |
-| Promotion | accept Capability F14, approve Promotion F11, serialize Promotion F13, test Integration F16 |
+| Integration | bind Merge F10, verify Ancestry F7, approve Change F15, test Integration F16, scan Vulnerabilities F8, scan Dependencies F9, freeze Collector F21 |
+| Promotion | accept Capability F14, approve Promotion F11, serialize Promotion F13, test Candidate F12 |
 | Publishing | version Package F3, approve Publishing F1, verify Package F2 |
 | Operations | audit Lineage F5, track Work F23, and the corrective gap (no control is named with a corrective verb yet) |
+
+Correction (10 November 2026): test Integration F16 acts at the collectors (Integration) and test Candidate F12 at `main` (Promotion), as the requirements and the architecture table say; the first grouping had them the other way round. Both are detective (the verb `test`).
 
 The stage says where in the lifecycle a control acts; the class says what it does. Both are columns, neither replaces the other. The stages are the Owner's domain language and the DO adds each to the Definitions.
 
