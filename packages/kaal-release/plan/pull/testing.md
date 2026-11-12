@@ -11,7 +11,7 @@ Cases trace requirements. They are runnable files, `T<n>.red.mjs`, beside the re
 | pull/T5 | F7 | Checks are judged by their declared owner: failures trace to it, running and absent checks are unknown and named, an unowned check is reported and not judged, a contradictory pair is unknown. |
 | pull/T6 | F8 | Behind the target fails, an unknown distance is unknown, an undelivered explicit dependency blocks and names the Change it waits for, a wiring never borrows the ACT of its capability, and the lane's turn (active, waiting, not judged) never changes the verdict. |
 | pull/T7 | F9 | Validation is Review's: each landed piece of each Change must be approved at the version that landed; no review is unknown, another version or a change request fails. |
-| pull/T8 | F10 | One next action in the five words: OPEN, the flow's own finding, WAIT on the lane, REVISE naming the owner, nothing when not judged, escalate on a hold; never a command or a bypass. |
+| pull/T8 | F10 | One next action in the five words: OPEN, the flow's own finding, WAIT on the lane, REVISE naming the owner, nothing when not judged, a hold is always WAIT, escalate, for the owner, for a ready, blocked or not judged collector, with or without a promotion piece, on or off the lane's turn, and never an actionable recommendation; never a command or a bypass. |
 | pull/T9 | F11 | Byte-identical output for the same inputs and for the evidence in reverse order; no time in the output. |
 | pull/T10 | F3 | The Script reads only Analyze Flow's fields plus the three additions: no competing collector-state model. |
 | pull/T11 | F12 | Two ready collectors yield at most one OPEN; the output carries no authorization; no authority is invented. |

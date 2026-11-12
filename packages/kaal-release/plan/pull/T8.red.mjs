@@ -44,9 +44,31 @@ export async function run() {
   // a hold in the declaration makes it escalate for the owner, whatever the verdict
   const held = await pullPromotion(facts({ pieces: [...lifecycle(), promotion(20, 'col-a', { checks: [ok('build'), bad('suite'), ok('guard'), ok('fresh')] })] }), declaration({ holds: [{ target: '#20', reason: 'no promotion go' }] }), flow(), 'col-a');
   assert.equal(held.verdict, 'BLOCKED', 'a hold changes the verdict');
+  assert.equal(held.next.action, 'WAIT', 'a hold on a blocked collector recommends something other than WAIT');
   assert.equal(held.next.status, 'escalate');
   assert.equal(held.next.authority, 'owner');
   assert.match(held.next.reason, /no promotion go/);
+
+  // a hold never yields an actionable promotion recommendation: not OPEN, REVIEW, REVISE or LAND, whatever the verdict and whatever analyze Flow found
+  const green = [ok('build'), ok('suite'), ok('guard'), ok('fresh')];
+  const landing = { rank: 1, action: 'LAND', target: '#20', layer: 'promotion', kind: 'promotion', pair: 'col-a', status: 'ready', authority: 'lander', reason: 'approved at the current version' };
+  const holds = [{ target: '#20', reason: 'no promotion go' }];
+  const holdsCollector = [{ target: 'col-a', reason: 'no promotion go' }];
+  const variants = [
+    ['ready with a promotion piece and a LAND finding', facts({ pieces: [...lifecycle(), promotion(20)] }), declaration({ holds }), flow({ actions: [landing] })],
+    ['ready with no promotion piece on the lane\'s turn', facts({ collectors: [collector('col-a', { checks: green })] }), declaration({ holds: holdsCollector }), flow()],
+    ['ready off the lane\'s turn', facts({ collectors: [collector('col-a', { checks: green })] }), declaration({ holds: holdsCollector }), flow({ lane: { active: 'col-b' } })],
+    ['blocked', facts({ pieces: [...lifecycle(), promotion(20, 'col-a', { checks: [ok('build'), bad('suite'), ok('guard'), ok('fresh')] })] }), declaration({ holds }), flow()],
+    ['not judged', facts(), declaration({ holds: holdsCollector }), flow()],
+  ];
+  for (const [what, state, decl, lane] of variants) {
+    const r = await pullPromotion(state, decl, lane, 'col-a');
+    assert.equal(r.next.action, 'WAIT', `a hold on a collector that is ${what} recommends ${r.next.action}`);
+    assert.equal(r.next.status, 'escalate', `a hold on a collector that is ${what} is not an escalation`);
+    assert.equal(r.next.authority, 'owner');
+    assert.ok(!['OPEN', 'REVIEW', 'REVISE', 'LAND'].includes(r.next.action), `a hold on a collector that is ${what} gives an actionable recommendation`);
+    assert.match(r.next.reason, /no promotion go/);
+  }
 
   // no command, no approval, no bypass in any recommendation
   for (const r of [open, withHead, existing, waits, blocked, held]) {
