@@ -19,7 +19,7 @@ One deterministic script in the Skill turns Analyze Flow's facts and findings, t
 1. This PLAN, with its recorded real evidence and RED Cases, into the `kaal/release/plan` collector after CPO review.
 2. DO (not authorized yet): the Script and its CLI. T1 to T13 go GREEN; T13 runs on evidence recorded from the real repository.
 3. ACT, on the collector once everything is green (Owner, 12 Nov).
-4. Only then the wiring, `pull/C2` ([../pull-wiring/](../pull-wiring/00-changes.md)): the part that reads the real host for KAAL. It is its own PLAN, with its own wiring collector, and lands after this Change is done (Owner, 12 Nov): the core reason is to prevent cheating, since a wiring that lands first lets the contract be weakened until it goes green.
+4. Only then the wiring, `pull/C2` ([../pull-wiring/](../pull-wiring/00-changes.md)): the part that reads the real host for KAAL. It is its own PLAN, with its own wiring collector named `kaal/release/wire-<capability>` (a wiring wires things against the capability and never reimplements them; Owner, 12 Nov), and lands after this Change is done (Owner, 12 Nov): the core reason is to prevent cheating, since a wiring that lands first lets the contract be weakened until it goes green.
 
 The DO is accepted on T1 to T13, which include the recording of a real collector (T13). The live proof on the real host belongs to the wiring Change, `pull/C2` (T14).
 
