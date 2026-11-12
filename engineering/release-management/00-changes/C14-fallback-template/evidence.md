@@ -1,29 +1,28 @@
 # C14 evidence
 
-The PLAN of C14 observes its RED against `main`. Work that is not on `main` is not delivered functionality, and C14 cites nothing that is not on `main`.
+The RED of this PLAN is observed against `main`. Work that is not on `main` is not delivered functionality, and C14 cites nothing that is not on `main`. This evidence replaces the first one, written before the split into release/C14 and release/C15.
 
 ## Provenance
 
-- Baseline: `main` at `247f35a32c3083c1dcd0d038bb4e1578b1241559`. `main` holds the default template with the chapters Intent, Design, Verified by and Validated by, and the specialized templates `plan.md` and `act.md`.
-- Method: the nine Cases of this PLAN (T172 to T180) are run over two trees, each Case's `run()` called. The first holds `main`'s templates and none of this PLAN's documents. The second holds this PLAN's documents and the old default template.
-- A throwaway reference template, outside the repository, was used once to show that the Cases can pass: all nine were green with it, and T174 turned red when a specialized template was made to declare DEFAULT. It carries the DEFAULT declaration, the two chapters of F18, a leading comment and a hint each, and implies no wording of the delivered template.
+- Baseline: `main` at `a7ce82dae43a9232ba2b3b90db62d7a1fbe58234`, whose default template has the chapters Intent, Design, Verified by and Validated by, beside the specialized templates `plan.md`, `act.md` and `do.md`.
+- Method: the ten Cases of C14 and C15 (T172 to T181) are run over a tree that holds the documents of both Changes and the old default template, each Case's `run()` called. The same Cases are run over a tree that holds the wired default template of release/C15.
+- A throwaway reference template was used once to show that the Cases can pass; the template file of release/C15 passes them too (see its `evidence.md`).
 
-## Result
+## Result for the Cases of C14
 
-| Case | Tests | On `main` | In the tree of this PLAN |
+| Case | Tests | With the old default template | With the wired template |
 | --- | --- | --- | --- |
-| release/T172 | I8 | RED: I8 is absent | green |
-| release/T173 | F18 | RED: F18 is absent | RED: the chapters are not Change and Because |
-| release/T174 | F18 | RED: F18 is absent | RED: the default does not declare DEFAULT |
-| release/T175 | A41 | RED: A41 is absent | RED: the default does not start with the DEFAULT declaration |
-| release/T176 | A41 | RED: A41 is absent | RED: the default does not point to the directory of specialized templates |
-| release/T177 | A42 | RED: A42 is absent | RED: the default does not say that it is the fallback |
-| release/T178 | G45 | RED: I8 is absent | green |
-| release/T179 | G46 | RED: F18 is absent | RED: the chapters are not Change and Because |
-| release/T180 | G47 | RED: A41 is absent | RED: the chapters are not Change and Because |
+| release/T172 | I8 | green (I8 is present) | green |
+| release/T173 | F18 | RED: the chapters are not Change and Because | green |
+| release/T174 | F18 | RED: the default does not declare DEFAULT | green |
+| release/T175 | A41 | RED: the default does not start with the DEFAULT declaration | green |
+| release/T176 | A41 | RED: the default does not point to the directory of specialized templates | green |
+| release/T178 | G45 | green | green |
+| release/T179 | G46 | green (F18 is present) | green |
+| release/T180 | G47 | green (A41 is present) | green |
 
-On `main`: 9 RED-observed, 0 error, 0 green. In the tree of this PLAN: 7 RED-observed and 2 green, about documents this PLAN adds. The red Cases wait for the new default template, a `.github` change that the DO delivers.
+The gap Cases T178 to T180 close on documents alone. The contract Cases T173 to T176 read the template file and stay red until release/C15 wires it, which is the purpose of the split.
 
 ## Reproduce
 
-Run from a checkout of this branch, with Node 22 and no dependencies. For each `T172` to `T180` `.red.mjs` file import it, call `run()` and report RED-observed when it throws an assertion error.
+Run from a checkout of this branch, with Node 22 and no dependencies. For each `T172` to `T181` `.red.mjs` file import it, call `run()` and report RED-observed when it throws an assertion error.
