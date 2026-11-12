@@ -17,7 +17,7 @@ export function run() {
   assert.deepEqual(headings(text), ['Change', 'Because']);
   const chapters = text.split(/^## .*$/m).slice(1);
   assert.deepEqual(chapters.map((part) => /<!--[\s\S]*?-->/.test(part)), [true, true], 'every chapter carries a hint');
-  const visible = text.replace(/<!--[\s\S]*?-->/g, '').split('\n').filter((line) => line.trim() !== '');
+  const visible = text.split(/<!--[\s\S]*?-->/).join('').split('\n').filter((line) => line.trim() !== '');
   assert.ok(visible.every((line) => line.startsWith('## ')), 'the template shows text beyond its headings');
   assert.ok(!/https?:\/\//.test(text), 'the template holds a link');
   assert.ok(!/\p{Extended_Pictographic}/u.test(text), 'the template holds an emoji');
