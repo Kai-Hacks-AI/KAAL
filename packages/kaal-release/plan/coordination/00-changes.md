@@ -35,6 +35,7 @@ Resolved: #1350 merges first, untouched. This PLAN neither edits nor waits insid
 ## Out of scope
 
 - Any write: creating pull requests, approving, merging, enabling auto-merge, commenting.
+- Running it inside a workflow, scheduling it, or posting its findings anywhere (each its own Change; F12 only makes it possible). The first increment is run on demand, on a person's machine.
 - Gathering the facts from the host (its own Change). The gatherer reads each request's template type and named Change; the Script never parses titles or prose.
 - Proposing DO or ACT pull requests from Change state.
 - The HOTFIX route (reported, not modelled), the Publishing layer (reported, not modelled), hooks, CI, Guard and rulesets.

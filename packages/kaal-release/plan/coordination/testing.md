@@ -19,3 +19,4 @@ Cases trace one requirement each. They are written in this PLAN as runnable file
 | coordination/T13 | F6, F8, F10 | The sequence of 12 Nov, promotion 1440, sync 1430, promotion 1428, is listed in that order with one active pair, and advances when 1440 merges. |
 | coordination/T14 | F10 | A hotfix is the expedite class and does not occupy the lane; a fallback request is reported and not classified. |
 | coordination/T15 | F9 | Entries carry their layer and are ordered nearest the outcome first with dependencies before dependents; the publishing layer is reported as not modelled. |
+| coordination/T16 | F12 | The Script runs from a command line in any directory with an empty environment, prints what the function returns, and fails only when an input cannot be read. |
