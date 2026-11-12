@@ -64,4 +64,14 @@ export async function run() {
   const dup = find([file(`${dir}a.md`, template('DO', ['Change', 'Implement'])), file(`${dir}b.md`, template('DO', ['Change', 'Refactor']))]);
   assert.ok(dup.findings.some((f) => /duplicate|ambiguous/i.test(f)), 'a duplicate TYPE is not reported');
   assert.equal(dup.registry.DO, undefined, 'an ambiguous TYPE is in the registry');
+
+  // the DEFAULT declaration opens the default file; several default files are ambiguous
+  const later = readTemplates([file('.github/pull_request_template.md', plain(['Intent']) + '<!-- KAAL-PR-template: DEFAULT -->\n')]);
+  assert.equal(later.fallback, undefined, 'a DEFAULT declaration that is not on the first line makes the fallback');
+  assert.ok(later.findings.some((f) => /first line/i.test(f)), 'a late DEFAULT declaration is not reported');
+  const blank = readTemplates([file('.github/pull_request_template.md', '\n<!-- KAAL-PR-template: DEFAULT -->\n' + plain(['Intent']))]);
+  assert.equal(blank.fallback, undefined, 'a DEFAULT declaration after a blank line makes the fallback');
+  const two = readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n' + plain(['Intent'])), file('docs/pull_request_template.md', plain(['Summary']))]);
+  assert.equal(two.fallback, undefined, 'two default files, one declaring DEFAULT, still give a fallback');
+  assert.ok(two.findings.some((f) => /several default/i.test(f) && /ambiguous/i.test(f)), 'several default files are not reported as ambiguous');
 }

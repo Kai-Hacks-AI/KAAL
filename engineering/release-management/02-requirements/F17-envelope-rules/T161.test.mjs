@@ -79,4 +79,20 @@ export async function run() {
   const unsupported = verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: fallbackBody }, registry, { fallback: { path: '.github/pull_request_template.md' } });
   assert.ok(unsupported.notJudged?.some((note) => /fallback/i.test(note) && /not used/i.test(note)), 'a fallback that was not used to validate is not reported');
   assert.equal(verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: fallbackBody }, registry, { fallback: { path: '.github/pull_request_template.md' } }).complete, false, 'a PR judged by the shared rules only is reported as complete');
+
+  // commit evidence: absent is not judged, empty is a failure, never verified
+  const { commits: _omitted, ...withoutCommits } = good;
+  const absent = verifyEnvelope(withoutCommits, registry);
+  assert.equal(absent.complete, false, 'a PLAN without commit evidence is reported as complete');
+  assert.ok(absent.notJudged.some((note) => /identity/i.test(note) && /commit/i.test(note)), 'missing commit evidence is not reported as unverified');
+  const empty = run({ commits: [] });
+  assert.equal(empty.ok, false, 'a PLAN with no commits passes identity verification');
+  assert.ok(empty.problems.some((p) => /identity/i.test(p) && /no commits/i.test(p)), 'empty commit evidence is not named');
+
+  // duplicate chapters are flagged, not overwritten
+  const duplicated = body + '\n## From\n\nAgain.\n';
+  const twice = run({ body: duplicated });
+  assert.equal(twice.ok, false, 'a repeated chapter is accepted');
+  assert.ok(twice.problems.some((p) => /From/.test(p) && /more than once/.test(p)), 'the repeated chapter is not named');
+  assert.equal(verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: duplicated }, registry).ok, false, 'a repeated chapter is accepted for an unsupported TYPE');
 }
