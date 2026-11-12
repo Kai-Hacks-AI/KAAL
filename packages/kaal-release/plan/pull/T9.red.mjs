@@ -1,11 +1,11 @@
 // Case pull/T9 tests: pull/F11
 import assert from 'node:assert/strict';
-import { allGreen, bad, declaration, facts, flow, landed, ok, promotion, pullPromotion } from './fixtures.mjs';
+import { allGreen, bad, declaration, facts, flow, landed, ok, promotion, pullPromotion, lifecycle } from './fixtures.mjs';
 export const id = 'pull/T9';
 export const tests = ['pull/F11'];
 export const title = 'the same inputs give byte-identical output, whatever the order of pieces, checks and evidence';
 export async function run() {
-  const pieces = [landed(10), landed(11, 'PLAN', { into: 'main' }), promotion(20, 'col-a', { checks: [ok('guard'), bad('suite'), ok('build'), ok('fresh'), ok('stranger')] })];
+  const pieces = [...lifecycle(), landed(30, 'PLAN', { into: 'main', change: 'c/C9' }), promotion(20, 'col-a', { checks: [ok('guard'), bad('suite'), ok('build'), ok('fresh'), ok('stranger')] })];
   const a = await pullPromotion(facts({ pieces }), declaration(), flow());
   const reversed = [...pieces].reverse().map((p) => ({ ...p, checks: [...p.checks].reverse() }));
   const b = await pullPromotion(facts({ pieces: reversed }), declaration(), flow());

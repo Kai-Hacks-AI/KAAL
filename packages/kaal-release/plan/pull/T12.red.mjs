@@ -4,13 +4,13 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { collector, declaration, facts, flow, landed, ok, promotion, pullPromotion, scriptPath } from './fixtures.mjs';
+import { collector, declaration, facts, flow, landed, ok, promotion, pullPromotion, scriptPath, lifecycle } from './fixtures.mjs';
 export const id = 'pull/T12';
 export const tests = ['pull/F1', 'pull/F13'];
 export const title = 'the command prints what the function returns for a named collector, in any directory with an empty environment, and fails only when an input cannot be read or the collector is not in the facts';
 export async function run() {
   const dir = mkdtempSync(join(tmpdir(), 'pull-'));
-  const state = facts({ collectors: [collector('col-a', { checks: [ok('build'), ok('suite'), ok('guard'), ok('fresh')] })], pieces: [landed(10)] });
+  const state = facts({ collectors: [collector('col-a', { checks: [ok('build'), ok('suite'), ok('guard'), ok('fresh')] })], pieces: [...lifecycle()] });
   const files = { facts: join(dir, 'facts.json'), declaration: join(dir, 'declaration.json'), flow: join(dir, 'flow.json') };
   writeFileSync(files.facts, JSON.stringify(state));
   writeFileSync(files.declaration, JSON.stringify(declaration()));
@@ -19,7 +19,7 @@ export async function run() {
   assert.deepEqual(JSON.parse(printed), JSON.parse(JSON.stringify(await pullPromotion(state, declaration(), flow(), 'col-a'))), 'the command prints something else than the function returns');
 
   // a verdict of any kind exits 0: NOT JUDGED and BLOCKED are answers, not failures
-  writeFileSync(files.facts, JSON.stringify(facts({ pieces: [landed(10)] })));
+  writeFileSync(files.facts, JSON.stringify(facts({ pieces: [...lifecycle()] })));
   const notJudged = spawnSync(process.execPath, [scriptPath, files.facts, files.declaration, files.flow, 'col-a'], { cwd: dir, env: {}, encoding: 'utf8' });
   assert.equal(notJudged.status, 0, 'a verdict other than READY is a failure');
   assert.equal(JSON.parse(notJudged.stdout).verdict, 'NOT JUDGED');

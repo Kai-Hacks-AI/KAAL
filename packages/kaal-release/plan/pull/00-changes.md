@@ -7,8 +7,8 @@ Authorized by the Owner (12 Nov 2026) for a PLAN only. The DO needs the CPO's re
 ## A: the present
 
 - Engineering decides by hand which collector is promoted next. Analyze Flow (`coordination/C1`, #1446, merged into this collector) lists the next actions of a flow whose pairs are declared, but it does not say whether a collector is fit to be promoted: it reads pieces, not evidence from Testing, Guard, Review or the Change.
-- The Owner's hypothesis of readiness is "PLAN, DO, Check and ACT done; nothing red; everything landed in the collector". The Owner confirmed its ACT part (12 Nov): ACT lands on the collector once everything is green, and only then can it be promoted. It has not been tested against a real collector.
-- KAAL delivers some Changes across several collectors and promotions (release/C14: the `.github` DO in `kaal/release/wire-fallback-template`, the PLAN and the engineering part in `kaal/release/fallback-template`). Nothing separates a complete Change, a complete delivery increment and a promotion-ready collector.
+- The Owner's hypothesis of readiness is "PLAN, DO, Check and ACT done; nothing red; everything landed in the collector". The Owner's decision of 12 Nov makes it precise: a Change is scoped to one collector and driven there through its own PLAN, DO, Check and ACT; the ACT must land in that collector before the Change is eligible for promotion. Work spanning collectors is decomposed into separate Changes, each with its own identity, evidence and closing ACT, related by explicit dependencies. It has not been tested against a real collector.
+- Some legacy records predate that rule and spread one Change over several collectors (release/C14: the `.github` DO in `kaal/release/wire-fallback-template`, the PLAN and the engineering part in `kaal/release/fallback-template`; release/C10: its `.github` half and its engineering half travelled as a pair). They are identified in this PLAN, not retroactively treated as compliant.
 
 ## B: the target
 
@@ -18,8 +18,8 @@ One deterministic script in the Skill turns Analyze Flow's facts and findings, t
 
 1. This PLAN, with its recorded real evidence and RED Cases, into the `kaal/release/plan` collector after CPO review.
 2. DO (not authorized yet): the Script and its CLI. T1 to T13 go GREEN; T13 runs on evidence recorded from the real repository.
-3. ACT, on the collector once everything is green (Owner, 12 Nov).
-4. Only then the wiring, `pull/C2` ([../pull-wiring/](../pull-wiring/00-changes.md)): the part that reads the real host for KAAL. It is its own PLAN, with its own wiring collector named `kaal/release/wire-<capability>` (a wiring wires things against the capability and never reimplements them; Owner, 12 Nov), and lands after this Change is done (Owner, 12 Nov): the core reason is to prevent cheating, since a wiring that lands first lets the contract be weakened until it goes green.
+3. ACT, on the collector once everything is green (Owner, 12 Nov). The Script judges the same rule of the Changes it judges.
+4. Only then the wiring, `pull/C2` ([../pull-wiring/](../pull-wiring/00-changes.md)): the part that reads the real host for KAAL. It is its own PLAN, with its own wiring collector, and lands after this Change is done (Owner, 12 Nov): the core reason is to prevent cheating, since a wiring that lands first lets the contract be weakened until it goes green.
 
 The DO is accepted on T1 to T13, which include the recording of a real collector (T13). The live proof on the real host belongs to the wiring Change, `pull/C2` (T14).
 
@@ -31,7 +31,7 @@ Promotion WIP stays one (the Script cannot make a second promotion ready). No ch
 
 - That the allocation of judgments to controls is right; it is a candidate allocation the CPO verifies.
 - Selection among collectors: it judges one named collector and reads whose turn it is from Analyze Flow.
-- Any Change topology beyond one declared increment per collector; no Change that spans collectors is modelled except by a declaration.
+- Any Change that spans collectors: such work is decomposed into separate dependent Changes, and a legacy record is only identified and reported incomplete.
 - That READY is safe: no collector has been READY yet on real evidence. The recorded real collector is BLOCKED.
 - That the Script can read the host itself: the Engineering adapter that gathers the facts is the wiring Change `pull/C2`.
 - That the checks' conclusions say why they failed (see analysis.md, M2).

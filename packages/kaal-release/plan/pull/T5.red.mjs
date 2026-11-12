@@ -1,12 +1,12 @@
 // Case pull/T5 tests: pull/F7
 import assert from 'node:assert/strict';
-import { bad, declaration, facts, flow, landed, ok, promotion, pullPromotion, running } from './fixtures.mjs';
+import { bad, declaration, facts, flow, landed, ok, promotion, pullPromotion, running, lifecycle } from './fixtures.mjs';
 export const id = 'pull/T5';
 export const tests = ['pull/F7'];
 export const title = 'each check is judged by the owner the declaration gives it: a failure traces to that owner, a running or absent check is unknown, an unowned check is not judged, and a check reported twice with different conclusions is unknown';
 export async function run() {
   const piece = (checks) => promotion(20, 'col-a', { checks });
-  const run = (checks, decl = declaration()) => pullPromotion(facts({ pieces: [landed(10), piece(checks)] }), decl, flow());
+  const run = (checks, decl = declaration()) => pullPromotion(facts({ pieces: [...lifecycle(), piece(checks)] }), decl, flow());
 
   const failed = await run([ok('build'), bad('suite'), ok('guard'), ok('fresh')]);
   const verification = failed.judgments.find((j) => j.id === 'verification');

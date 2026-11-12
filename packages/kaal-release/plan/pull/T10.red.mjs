@@ -1,6 +1,6 @@
 // Case pull/T10 tests: pull/F3
 import assert from 'node:assert/strict';
-import { collector, declaration, facts, flow, landed, promotion, pullPromotion, delivery, ok } from './fixtures.mjs';
+import { collector, declaration, facts, flow, landed, promotion, pullPromotion, delivery, ok, lifecycle } from './fixtures.mjs';
 export const id = 'pull/T10';
 export const tests = ['pull/F3'];
 export const title = 'the Script models no collector state of its own: it reads only the fields of analyze Flow\'s facts, plus the three optional additions, and only the fields of its output and lane';
@@ -24,7 +24,7 @@ export async function run() {
   const finding = { rank: 1, action: 'REVIEW', target: '#20', layer: 'promotion', kind: 'promotion', pair: 'col-a', status: 'ready', authority: 'reviewer', reason: 'x' };
   const state = facts({
     collectors: [collector('col-a', { checks: [ok('build')] })],
-    pieces: [landed(10), landed(11, 'PLAN', { into: 'main' }), promotion(20)],
+    pieces: [...lifecycle(), landed(30, 'PLAN', { into: 'main', change: 'c/C9' }), promotion(20)],
     deliveries: [delivery('col-a', 'older', { landedAt: '2026-11-12T00:00:00Z' })],
     gaps: [{ subject: '#10', missing: 'x' }],
   });

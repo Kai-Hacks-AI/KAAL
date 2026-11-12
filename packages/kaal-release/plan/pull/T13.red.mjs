@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { declaration, flow, judgment, pullPromotion, snapshotPath } from './fixtures.mjs';
 export const id = 'pull/T13';
 export const tests = ['pull/F2', 'pull/F4', 'pull/F5', 'pull/F6', 'pull/F7', 'pull/F8', 'pull/F9', 'pull/F10'];
-export const title = 'the real collector kaal/release/wire-fallback-template, as the repository showed it on 12 Nov 2026, is BLOCKED for three reasons: the Change reports no ACT closing the increment, and Release finds the capability collector undelivered and its Branching check red; every other judgment passes';
+export const title = 'the real collector kaal/release/wire-fallback-template, as the repository showed it on 12 Nov 2026, is BLOCKED: its one Change, a legacy record, has not completed its lifecycle in the collector (only the DO landed there), and Release\'s Branching check is red; every other judgment passes';
 export async function run() {
   const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
   const name = snapshot.collector;
@@ -17,42 +17,50 @@ export async function run() {
   assert.deepEqual([...promotionPiece.checks].sort(byName), [...newest.values()].map((r) => ({ name: r.name, conclusion: r.conclusion })).sort(byName), 'the facts do not hold the newest run of each check');
   assert.equal(snapshot.raw.checkRuns.filter((r) => r.name === 'Branching').length, 4, 'the snapshot lost the Branching runs');
 
-  // the consumer's declaration (KAAL's; the Owner keeps analyze Vulnerabilities and CodeQL evidence in Release for now, 12 Nov): who owns which check, what the increment carries, the Owner's hold
+  // the consumer's declaration (KAAL's; the Owner keeps analyze Vulnerabilities and CodeQL evidence in Release for now, 12 Nov)
   const decl = declaration({
     promotions: [{ collector: 'kaal/release/wire-promotion', change: 'release/C10' }, { collector: name, change: 'release/C14' }],
     holds: [{ target: '#1461', reason: 'the Owner order: C14 has no promotion go yet' }],
   }, {
-    owners: { increment: 'Change', verification: 'Testing', protection: 'Guard', sequencing: 'Release', validation: 'Review', attribution: 'Engineering adapter' },
-    closing: 'ACT',
-    increments: [{ collector: name, change: 'release/C14', carries: ['DO'], after: ['kaal/release/fallback-template'] }],
-    changes: [{ id: 'release/C14', onTarget: ['PLAN', 'DO', 'ACT'] }],
+    owners: { lifecycle: 'Change', verification: 'Testing', protection: 'Guard', sequencing: 'Release', validation: 'Review', attribution: 'Engineering adapter' },
+    lifecycle: ['PLAN', 'DO', 'ACT'],
+    dependencies: [],
+    // release/C14 and release/C10 predate the rule of 12 Nov that a Change lives in one collector: their records are legacy, never retroactively compliant
+    legacy: [
+      { change: 'release/C14', reason: 'predates the one-collector rule: its PLAN is in kaal/release/fallback-template and its DO here' },
+      { change: 'release/C10', reason: 'predates the one-collector rule: its .github half and its engineering half travelled as a pair of promotions' },
+    ],
     checkOwners: {
-      'Branching': 'sequencing', 'Promotion Source': 'sequencing', 'Change Isolation': 'increment', 'Change Isolation (review)': 'validation',
+      'Branching': 'sequencing', 'Promotion Source': 'sequencing', 'Change Isolation': 'lifecycle', 'Change Isolation (review)': 'validation',
       'Acceptance': 'verification', 'Acceptance (Windows)': 'verification', 'Acceptance (macOS)': 'verification', 'Engineering': 'verification', 'Workspaces': 'verification',
       'Hosting (Linux)': 'verification', 'Hosting (Windows)': 'verification', 'Hosting (macOS)': 'verification',
-      'Guard': 'protection', 'Guard (Windows)': 'protection', 'Guard (macOS)': 'protection', 'CodeQL': 'sequencing', 'CodeQL (actions)': 'sequencing', 'CodeQL (javascript-typescript)': 'sequencing', 'Dependency Review': 'sequencing',
+      'Guard': 'protection', 'Guard (Windows)': 'protection', 'Guard (macOS)': 'protection',
+      'CodeQL': 'sequencing', 'CodeQL (actions)': 'sequencing', 'CodeQL (javascript-typescript)': 'sequencing', 'Dependency Review': 'sequencing',
     },
   });
   // the lane is the Owner's standing order (C10 first), recorded; it is not computed here
   const result = await pullPromotion(snapshot.facts, decl, flow({ lane: { active: 'kaal/release/wire-promotion' } }), name);
 
   assert.equal(result.collector, name);
-  assert.equal(result.verdict, 'BLOCKED', 'the red Branching check of the real promotion does not block');
+  assert.equal(result.verdict, 'BLOCKED', 'the real collector is promotable');
+
+  // the one Change in the collector has not completed its lifecycle THERE: only its DO landed; its PLAN is in another collector and no ACT exists, and neither is borrowed
+  const lifecycle = judgment(result, 'lifecycle');
+  assert.equal(lifecycle.status, 'FAIL');
+  assert.equal(lifecycle.owner, 'Change');
+  assert.deepEqual(result.changes.map((c) => c.id), ['release/C14']);
+  assert.equal(result.changes[0].status, 'incomplete');
+  assert.deepEqual(result.changes[0].missing, ['ACT', 'PLAN'], 'the lifecycle gaps of the Change are not named');
+  assert.equal(result.changes[0].legacy, true, 'the legacy record is not identified');
+  assert.match(result.changes[0].legacyReason, /one-collector rule/);
+
+  // Release's red Branching check, traced to its owner, from the conclusion only
   const sequencing = judgment(result, 'sequencing');
   assert.equal(sequencing.status, 'FAIL');
   assert.equal(sequencing.owner, 'Release', 'the red check is not traced to the control that owns it');
-  assert.deepEqual(sequencing.evidence, ['Branching', 'kaal/release/fallback-template'], 'the evidence is not the red check and the undelivered capability collector');
+  assert.deepEqual(sequencing.evidence, ['Branching'], 'the evidence is not the one red check');
   assert.ok(!/auto-merge|merge method/i.test(JSON.stringify(result)), 'the Script claims a cause that only the check log holds');
-  const closing = judgment(result, 'increment');
-  assert.equal(closing.status, 'FAIL', 'an increment with no ACT is complete');
-  assert.equal(closing.owner, 'Change');
-  assert.deepEqual(result.increment.missing, ['ACT'], 'the missing ACT is not named');
   for (const id of ['verification', 'protection', 'validation', 'attribution']) assert.equal(judgment(result, id).status, 'PASS', `${id} does not pass on the real evidence`);
-  assert.equal(result.increment.landed.join(), '#1458', 'the increment is not the one landed DO');
-
-  // three statements, three answers: the Change is incomplete on the target, its increment lacks the ACT that closes it, the collector is blocked
-  assert.equal(result.change.status, 'incomplete');
-  assert.deepEqual(result.change.missing, ['ACT', 'DO', 'PLAN']);
 
   // not the lane's turn, and an Owner hold: the recommendation is the owner's, nothing is executed
   assert.equal(result.turn.status, 'waiting');

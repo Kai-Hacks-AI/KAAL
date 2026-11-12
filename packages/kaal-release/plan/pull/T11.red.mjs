@@ -1,6 +1,6 @@
 // Case pull/T11 tests: pull/F12
 import assert from 'node:assert/strict';
-import { collector, declaration, facts, flow, landed, ok, promotion, pullPromotion } from './fixtures.mjs';
+import { collector, declaration, facts, flow, landed, ok, promotion, pullPromotion, lifecycle } from './fixtures.mjs';
 export const id = 'pull/T11';
 export const tests = ['pull/F12'];
 export const title = 'readiness is not authorization and not a second lane: two ready collectors yield at most one OPEN, a ready collector never marks itself approved, and the declared holds and roles are the only authority';
@@ -8,12 +8,9 @@ export async function run() {
   const green = [ok('build'), ok('suite'), ok('guard'), ok('fresh')];
   const state = facts({
     collectors: [collector('col-a', { checks: green }), collector('col-b', { checks: green })],
-    pieces: [landed(10), landed(11, 'DO', { into: 'col-b', change: 'c/C2' }), landed(8, 'ACT', { into: 'col-b', change: 'c/C2' })],
+    pieces: [...lifecycle(), ...lifecycle({}, 40, 'c/C2', 'col-b')],
   });
-  const decl = declaration({ promotions: [{ collector: 'col-a', change: 'c/C1' }, { collector: 'col-b', change: 'c/C2' }] }, {
-    increments: [{ collector: 'col-a', change: 'c/C1', carries: ['DO'] }, { collector: 'col-b', change: 'c/C2', carries: ['DO'] }],
-    changes: [{ id: 'c/C1', onTarget: ['PLAN', 'DO', 'ACT'] }, { id: 'c/C2', onTarget: ['PLAN', 'DO', 'ACT'] }],
-  });
+  const decl = declaration({ promotions: [{ collector: 'col-a', change: 'c/C1' }, { collector: 'col-b', change: 'c/C2' }] });
   const lane = flow({ lane: { active: 'col-a' } });
   const a = await pullPromotion(state, decl, lane, 'col-a');
   const b = await pullPromotion(state, decl, lane, 'col-b');
