@@ -85,21 +85,47 @@ export function pullPromotion(facts, declaration, flow, collectorName) {
   // sequencing
   if (col.behindTarget === undefined) set('sequencing', 'UNKNOWN', 'the distance to the target is unknown', [], ['behindTarget']);
   else if (col.behindTarget > 0) set('sequencing', 'FAIL', `the collector is ${col.behindTarget} behind the target`);
-  // gaps: what the supplier or the flow could not read. A gap that bears on a judgment makes that judgment UNKNOWN; any other stays visible and blocks nothing
+  // gaps: what the supplier or the flow could not read. A gap that bears on a judgment makes that judgment UNKNOWN; a gap known to bear on none stays visible and blocks nothing.
+  // Analyze Flow emits a gap as prose (a string); a structured gap { subject, missing, affects? } is also read. A prose gap whose relevance cannot be established fails safe: UNKNOWN.
   const changeIds = changes.map((c) => c.id);
-  const relevance = (g) => {
-    if (g.affects !== undefined) return ORDER.includes(g.affects) ? { id: g.affects, by: 'declared by the supplier' } : { id: 'attribution', by: `affects names ${JSON.stringify(g.affects)}, which is not a judgment` };
-    if (g.subject === collectorName) return { id: 'sequencing', by: 'it is a fact about the collector itself' };
-    if (g.subject in owned) return { id: owned[g.subject], by: 'it is a check with a declared owner' };
-    const piece = pieces.find((p) => p.ref === g.subject);
-    if (piece && (changeIds.includes(piece.change) || piece.into === collectorName || piece.from === collectorName)) return { id: 'lifecycle', by: 'it is a piece of a Change judged here' };
-    return null;
+  const mentions = (text, name) => new RegExp(`(?<![\\w/#.-])${String(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w/-])`).test(text);
+  const rules = (rd.gapRules ?? []).map((r) => ({ re: new RegExp(r.match), affects: r.affects ?? null, reason: r.reason }));
+  const judged = (piece) => changeIds.includes(piece.change) || piece.into === collectorName || piece.from === collectorName;
+  const referents = (text) => {
+    const found = [];
+    const add = (id, by) => { if (!found.some((f) => f.id === id)) found.push({ id, by }); };
+    let outside = false;
+    for (const c of facts.collectors ?? []) if (mentions(text, c.name)) { if (c.name === collectorName) add('sequencing', `it mentions the collector ${c.name}`); else outside = true; }
+    for (const [name, id] of Object.entries(owned)) if (mentions(text, name)) add(id, `it mentions the check ${name}, owned by ${id}`);
+    for (const piece of pieces) if (mentions(text, piece.ref)) { if (judged(piece)) add('lifecycle', `it mentions ${piece.ref}, a piece of a Change judged here`); else outside = true; }
+    for (const id of changeIds) if (mentions(text, id)) add('lifecycle', `it mentions the Change ${id}`);
+    return { found, outside };
   };
-  for (const g of [...(facts.gaps ?? []), ...(flow?.notJudged ?? [])]) {
-    const hit = relevance(g);
-    if (!hit) { notJudged.push({ ...g, affects: null, blocking: false }); continue; }
-    set(hit.id, 'UNKNOWN', `${g.subject}: ${g.missing}`, [], [g.subject]);
-    notJudged.push({ ...g, affects: hit.id, blocking: true, because: hit.by });
+  const relevance = (g) => {
+    if (g.affects !== undefined) return ORDER.includes(g.affects) ? [{ id: g.affects, by: 'declared by the supplier' }] : [{ id: 'attribution', by: `affects names ${JSON.stringify(g.affects)}, which is not a judgment` }];
+    const rule = rules.find((r) => r.re.test(g.text));
+    if (rule) return rule.affects === null ? [] : [{ id: rule.affects, by: rule.reason ?? 'declared by the consumer' }];
+    if (g.structured) {
+      if (g.subject === collectorName) return [{ id: 'sequencing', by: 'it is a fact about the collector itself' }];
+      if (g.subject in owned) return [{ id: owned[g.subject], by: 'it is a check with a declared owner' }];
+      const piece = pieces.find((p) => p.ref === g.subject);
+      return piece && judged(piece) ? [{ id: 'lifecycle', by: 'it is a piece of a Change judged here' }] : [];
+    }
+    const { found, outside } = referents(g.text);
+    if (found.length) return found;
+    if (outside) return [];
+    return [{ id: 'attribution', by: 'a prose gap that names nothing known and that the declaration does not classify: its relevance cannot be established' }];
+  };
+  const normal = (g) => (typeof g === 'string' ? { text: g, subject: null, missing: g }
+    : g && typeof g === 'object' && typeof g.subject === 'string' ? { ...g, text: `${g.subject}: ${g.missing}`, structured: true }
+    : { text: JSON.stringify(g), subject: null, missing: JSON.stringify(g), malformed: true });
+  for (const raw of [...(facts.gaps ?? []), ...(flow?.notJudged ?? [])]) {
+    const g = normal(raw);
+    const hits = g.malformed ? [{ id: 'attribution', by: 'the gap is neither a string nor a { subject, missing } object' }] : relevance(g);
+    const entry = typeof raw === 'string' || g.malformed ? { text: g.text } : { ...raw };
+    if (!hits.length) { notJudged.push({ ...entry, affects: null, blocking: false }); continue; }
+    for (const hit of hits) set(hit.id, 'UNKNOWN', g.text, [], [g.subject ?? g.text]);
+    notJudged.push({ ...entry, affects: hits.map((h) => h.id).sort()[0], blocking: true, because: hits.map((h) => h.by).join('; ') });
   }
   const judgments = ORDER.map((id) => {
     const j = J[id];
