@@ -14,4 +14,4 @@ In `engineering/release-management/05-src/pull-promotion/`, one command reads th
 
 ## Order and constraints
 
-Lands only after `pull/C1` is done (its DO and ACT on its collector, all Cases green). Its collector is a wiring collector for the capability, named in the convention `kaal/release/wire-<capability>`. It depends on the optional additions that the Analyze Flow thread would make to its contract; nothing here changes that contract. No PR creation, auto-merge, scheduling, rulesets, hooks, CI or Guard changes.
+Its own PLAN → DO → Check → ACT lives in its own collector, and it borrows neither the ACT nor the completion evidence of `pull/C1`. It depends on `pull/C1` explicitly, and lands only after `pull/C1` is done and delivered (its DO and ACT on its collector, all Cases green). Its collector is a wiring collector for the capability, named in the convention `kaal/release/wire-<capability>`. It depends on the optional additions that the Analyze Flow thread would make to its contract; nothing here changes that contract. No PR creation, auto-merge, scheduling, rulesets, hooks, CI or Guard changes.
