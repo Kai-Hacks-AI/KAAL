@@ -1,102 +1,45 @@
-// Case pull/T14 tests: pull/F14, pull/F15, pull/F16, pull/F17, pull/F18
+// Case pull/T14 tests: pull/F14, pull/F15
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 export const id = 'pull/T14';
-export const tests = ['pull/F14', 'pull/F15', 'pull/F16', 'pull/F17', 'pull/F18'];
-export const title = 'the command reads the real repository on any provisioned runner with an explicit read-only credential, issues only reads, leaves a defined snapshot of host state identical, fails naming what is missing, and has its evidence certified, after collection, by an offline step tied to the exact implementation head and host state';
-// Observation boundary (pull/F16). PROVED: every request through the one reader is a read to the repository's host; the snapshot below is identical before the first run and after the last
-// on an otherwise quiet host, and the audits and the snapshots cover every invocation of the command in this Case. NOT PROVED: mutations outside the snapshot, a command that bypasses the reader, an adversarial adapter.
-const gh = (args) => execFileSync('gh', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
-const sorted = (rows, key) => [...rows].sort((a, b) => (a[key] < b[key] ? -1 : 1));
-function snapshot(live) {
-  const prs = JSON.parse(gh(['pr', 'list', '--repo', live, '--state', 'open', '--limit', '500', '--json', 'number,state,isDraft,autoMergeRequest,headRefOid,baseRefName,labels,assignees,reviewRequests,mergeStateStatus,mergeable']));
-  const branches = gh(['api', `repos/${live}/branches`, '--paginate', '--jq', '.[] | {name, sha: .commit.sha}']).split('\n').filter(Boolean).map((line) => JSON.parse(line));
-  const settings = JSON.parse(gh(['api', `repos/${live}`, '--jq', '{allow_auto_merge, allow_squash_merge, allow_merge_commit, allow_rebase_merge, delete_branch_on_merge, default_branch}']));
-  let rulesets = 'unreadable';
-  try { rulesets = JSON.parse(gh(['api', `repos/${live}/rulesets`, '--jq', '[.[] | {id, name, enforcement, updated_at}]'])); } catch { /* recorded as unreadable, not as empty */ }
-  return { prs: sorted(prs, 'number'), branches: sorted(branches, 'name'), settings, rulesets };
-}
-const digest = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-const readsOnly = (line) => {
-  const entry = JSON.parse(line);
-  if (entry.kind === 'context') return true; // the closing line of an audit: facts about the run, not a request
-  if (entry.kind === 'graphql') return entry.operation === 'query' && !/\bmutation\b/i.test(JSON.stringify(entry));
-  return entry.method === 'GET' && /^(api\.github\.com|github\.com)$/.test(entry.host);
-};
+export const tests = ['pull/F14', 'pull/F15'];
+export const title = 'the command, run on the real repository, prints a result for every declared collector and the qualifiers in the declared order, fails naming what is missing, and its gatherer issues only reads';
 export async function run() {
   const live = process.env.KAAL_LIVE;
-  const collector = process.env.KAAL_COLLECTOR;
-  assert.ok(live && collector, 'KAAL_LIVE=<owner/repo> and KAAL_COLLECTOR=<collector> are required: this Case runs against the real host and is not simulated');
+  assert.ok(live, 'KAAL_LIVE=<owner/repo> is required: this Case runs against the real host and is not simulated');
   const dir = join(repoRoot, 'engineering/release-management/05-src/pull-promotion');
   const declared = join(dir, 'declaration.json');
-  const work = mkdtempSync(join(tmpdir(), 'pull-audit-'));
-  const implementationHead = execFileSync('git', ['-C', repoRoot, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  assert.equal(execFileSync('git', ['-C', repoRoot, 'status', '--porcelain'], { encoding: 'utf8' }).trim(), '', 'the checkout under test is not clean: the evidence would not name an exact head');
+  const command = (args, options = {}) => spawnSync('node', [join(dir, 'run.mjs'), ...args], { encoding: 'utf8', ...options });
 
-  // EVERY invocation of the command in this Case, successful or not, writes its own audit; none runs outside it
-  const audits = [];
-  const invoke = (name, args, options = {}) => {
-    const file = join(work, `${name}.jsonl`);
-    audits.push(file);
-    return spawnSync('node', [join(dir, 'run.mjs'), ...args, '--audit', file], { encoding: 'utf8', ...options });
-  };
+  const declaration = JSON.parse(readFileSync(declared, 'utf8'));
+  const names = declaration.collectors.map((c) => c.name ?? c);
+  const ok = command([live, declared]);
+  assert.equal(ok.status, 0, `the command failed: ${ok.stderr}`);
+  const result = JSON.parse(ok.stdout);
+  assert.deepEqual(result.collectors.map((c) => c.name), names, 'the result does not hold one entry per declared collector, in the declared order');
+  for (const c of result.collectors) {
+    assert.ok(['qualifies', 'does not qualify', 'not judged'].includes(c.status), `${c.name}: no status`);
+    if (c.status !== 'qualifies') assert.ok(c.missing.length > 0, `${c.name}: ${c.status} without saying what is missing`);
+  }
+  const order = result.collectors.filter((c) => c.status === 'qualifies').map((c) => c.name);
+  assert.deepEqual(result.qualifiers, order, 'the qualifiers are not those that qualify, in the declared order');
+  assert.ok(!/\bREADY\b|may promote/i.test(ok.stdout), 'the output claims readiness or an authorization');
 
-  // the baseline is taken before the command runs for the first time
-  const before = snapshot(live);
-
-  // failures first: no supported credential, and an unreadable host. Each must fail naming what is missing, and is audited like the rest
-  const bare = invoke('no-credential', [live, declared, collector], { env: { PATH: process.env.PATH, HOME: mkdtempSync(join(tmpdir(), 'pull-nohome-')) } });
+  // no usable credential and an unreadable host fail naming what is missing
+  const bare = command([live, declared], { env: { PATH: process.env.PATH, HOME: mkdtempSync(join(tmpdir(), 'pull-nohome-')) } });
   assert.notEqual(bare.status, 0, 'the command ran without a supported credential');
   assert.match(String(bare.stderr), /GH_TOKEN|GITHUB_TOKEN|gh auth|credential/i, 'the missing credential is not named');
-  const unreadable = invoke('unreadable-host', ['no-such-owner-xyz/none', declared, collector]);
+  const unreadable = command(['no-such-owner-xyz/none', declared]);
   assert.notEqual(unreadable.status, 0);
   assert.match(String(unreadable.stderr), /could not|cannot|not read|unreach/i, 'an unreadable host did not fail naming what could not be read');
 
-  // the successful executions that acceptance rests on: the verdict and a repeat
-  const first = invoke('verdict', [live, declared, collector]);
-  assert.equal(first.status, 0, `the command failed: ${first.stderr}`);
-  const result = JSON.parse(first.stdout);
-  assert.ok(['READY', 'BLOCKED', 'NOT JUDGED'].includes(result.verdict), 'no verdict');
-  assert.equal(result.judgments.length, 6);
-  assert.ok(result.judgments.every((j) => j.owner && ['PASS', 'FAIL', 'UNKNOWN'].includes(j.status)), 'a judgment without an owner or a status');
-  assert.ok(result.judgments.filter((j) => j.status === 'UNKNOWN').every((j) => j.missing.length > 0), 'an unknown judgment without the missing evidence');
-  assert.ok(result.judgments.filter((j) => j.status !== 'PASS').every((j) => j.because), 'a judgment that did not pass without a reason');
-  assert.ok(['OPEN', 'REVIEW', 'REVISE', 'LAND', 'WAIT', null].includes(result.next.action), 'an action outside the five');
-  const repeat = invoke('repeat', [live, declared, collector]);
-  assert.equal(repeat.status, 0);
-  // the final snapshot is taken after ALL executions, and compared with the baseline taken before the first
-  const after = snapshot(live);
-  assert.deepEqual(after, before, 'the snapshot of host state changed between before the first invocation and after the last');
-
-  // read-only, part one: every request of every invocation (successful or not) is a read to the repository's host; the audits are the evidence inspected
-  const lines = audits.flatMap((file) => { try { return readFileSync(file, 'utf8').split('\n').filter(Boolean); } catch { return []; } });
-  assert.ok(lines.length > 0, 'the audits are empty: no recorded request, so nothing is proved');
-  for (const name of ['verdict', 'repeat']) assert.ok(readFileSync(join(work, `${name}.jsonl`), 'utf8').trim().length > 0, `the audit of the ${name} run is empty`);
-  assert.deepEqual(lines.filter((line) => !readsOnly(line)), [], 'an audit holds a request that is not a read');
-
-  // CERTIFICATION is a separate step from collection. All evidence is complete and closed: the audits of every invocation and the final snapshot. Only now does the certifier run,
-  // offline (it reads files only, issues no host request and is not itself an invocation of the adapter), over exactly the evidence inspected above.
-  const snapshotFile = join(work, 'final-snapshot.json');
-  writeFileSync(snapshotFile, JSON.stringify(after));
-  const certified = spawnSync('node', [join(dir, 'certify.mjs'), '--head', implementationHead, '--snapshot', snapshotFile, '--baseline', (() => { const f = join(work, 'baseline-snapshot.json'); writeFileSync(f, JSON.stringify(before)); return f; })(), ...audits.flatMap((file) => ['--audit', file])], { encoding: 'utf8' });
-  assert.equal(certified.status, 0, `the certifier refused the completed evidence: ${certified.stderr}`);
-  const record = JSON.parse(certified.stdout);
-  assert.equal(record.implementationHead, implementationHead, 'the record names another head than the one that ran');
-  assert.equal(record.snapshotDigest, digest(after), 'the record names another host state than the one observed last');
-  assert.equal(record.auditDigest, digest(lines), 'the record names other audits than the ones inspected');
-  assert.equal(record.invocations, audits.length, 'the record does not count every invocation');
-  assert.equal(record.collector, collector);
-  assert.ok(record.collectorHead && record.credentialKind && record.runnerKind && record.at, 'the record omits the collector head, credential kind, runner kind or time');
-  assert.ok(!JSON.stringify(record).includes(process.env.GH_TOKEN ?? '\u0000'), 'the record holds the credential');
-  // the certifier is a check, not a stamp: it refuses evidence that does not hold together
-  const tampered = join(work, 'tampered.json');
-  writeFileSync(tampered, JSON.stringify({ ...after, branches: [] }));
-  assert.notEqual(spawnSync('node', [join(dir, 'certify.mjs'), '--head', implementationHead, '--snapshot', tampered, '--baseline', join(work, 'baseline-snapshot.json'), ...audits.flatMap((file) => ['--audit', file])], { encoding: 'utf8' }).status, 0, 'the certifier accepted a final snapshot that differs from the baseline');
-  assert.notEqual(spawnSync('node', [join(dir, 'certify.mjs'), '--head', implementationHead, '--snapshot', snapshotFile, '--baseline', join(work, 'baseline-snapshot.json'), '--audit', audits[0], '--audit', join(work, 'missing.jsonl')], { encoding: 'utf8' }).status, 0, 'the certifier accepted an unreadable audit');
+  // read-only by construction: the sources of the command hold no request that is not a GET
+  const sources = readdirSync(dir).filter((f) => /\.mjs$/.test(f)).map((f) => readFileSync(join(dir, f), 'utf8')).join('\n');
+  assert.ok(!/(-X|--method)\s*['"]?(POST|PUT|PATCH|DELETE)\b/i.test(sources), 'a source holds a request that is not a GET');
+  assert.ok(!/\bmutation\b/.test(sources), 'a source holds a GraphQL mutation');
 }

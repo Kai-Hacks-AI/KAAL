@@ -1,8 +1,10 @@
-# Pull Promotion host integration: Testing (target)
+# Pull Promotion v1 command: Testing (target)
 
-One runnable Case, `T14.red.mjs`, not run by CI, so CI stays green. It fails because the command does not exist (RED). It needs a runner with Node and one supported credential (pull/F15) and a host state that is otherwise quiet; it is not part of the default CI run. Run it from a checkout of the head under test: `KAAL_LIVE=<owner/repo> KAAL_COLLECTOR=<collector> node -e "import('./T14.red.mjs').then(m => m.run())"`. The runner is not specified: a person's machine, a CI job or an agent session.
+Two runnable RED Cases, `T14.red.mjs` and `T18.red.mjs`, kept out of the default CI run so CI stays green. Both fail because the command does not exist. T14 needs a runner with Node and one supported credential (pull/F15): `KAAL_LIVE=<owner/repo> node -e "import('./T14.red.mjs').then(m => m.run())"`. The capability's Cases (T19 to T23) belong to `pull/C3` and are listed in [v1.md](v1.md).
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
-| pull/T14 | F14 to F18 | The connected path on the real repository prints the verdict of one real collector with owners and missing evidence; every invocation (failing and successful) is audited and closed and the audits show only reads to the repository's host; the snapshot of host state is identical before the first invocation and after the last, the final one taken after all of them; an insufficient or missing credential and an unreadable host fail naming what could not be read; only afterwards does the offline certifier produce the acceptance record over that completed evidence (exact implementation head, final host snapshot, audit digest, invocation count), and it refuses a snapshot that differs from the baseline and an unreadable audit. It states what it does not prove. |
-| pull/T18 | F20 | The command exists, imports the shared observer and nothing of Analyze Flow (neither its Script nor its supplier), and copies no host mapping; no workflow, hook or scheduled-job file in the repository names `pull-promotion`; no required check or ruleset is changed by this Change. It fails (RED) because the command does not exist. |
+| pull/T14 | F14, F15 | The command on the real repository prints a result for every declared collector (qualifies, does not qualify naming what is missing, or not judged naming the missing fact) and the qualifiers in the declared order; with no usable credential, or for an unreadable host, it fails naming what is missing; the gatherer's source holds no request that is not a GET. |
+| pull/T18 | F20 | The command exists and imports nothing of Show WIP; no workflow, hook or scheduled-job file in the repository names `pull-promotion`. |
+
+It states what it does not prove: that the host was not mutated by anything else, an adversarial gatherer, and the later refinements deferred in [v1.md](v1.md) section 4.
