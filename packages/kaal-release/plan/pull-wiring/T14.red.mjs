@@ -2,14 +2,14 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 export const id = 'pull/T14';
 export const tests = ['pull/F14', 'pull/F15', 'pull/F16', 'pull/F17', 'pull/F18'];
-export const title = 'the command reads the real repository on any provisioned runner with an explicit read-only credential, issues only reads, leaves a defined snapshot of host state identical, fails naming what is missing, and emits acceptance evidence tied to the exact implementation head and host state';
+export const title = 'the command reads the real repository on any provisioned runner with an explicit read-only credential, issues only reads, leaves a defined snapshot of host state identical, fails naming what is missing, and has its evidence certified, after collection, by an offline step tied to the exact implementation head and host state';
 // Observation boundary (pull/F16). PROVED: every request through the one reader is a read to the repository's host; the snapshot below is identical before the first run and after the last
 // on an otherwise quiet host, and the audits and the snapshots cover every invocation of the command in this Case. NOT PROVED: mutations outside the snapshot, a command that bypasses the reader, an adversarial adapter.
 const gh = (args) => execFileSync('gh', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
@@ -25,6 +25,7 @@ function snapshot(live) {
 const digest = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const readsOnly = (line) => {
   const entry = JSON.parse(line);
+  if (entry.kind === 'context') return true; // the closing line of an audit: facts about the run, not a request
   if (entry.kind === 'graphql') return entry.operation === 'query' && !/\bmutation\b/i.test(JSON.stringify(entry));
   return entry.method === 'GET' && /^(api\.github\.com|github\.com)$/.test(entry.host);
 };
@@ -57,7 +58,7 @@ export async function run() {
   assert.notEqual(unreadable.status, 0);
   assert.match(String(unreadable.stderr), /could not|cannot|not read|unreach/i, 'an unreadable host did not fail naming what could not be read');
 
-  // the successful executions that acceptance rests on: the verdict, a repeat, and the acceptance record
+  // the successful executions that acceptance rests on: the verdict and a repeat
   const first = invoke('verdict', [live, declared, collector]);
   assert.equal(first.status, 0, `the command failed: ${first.stderr}`);
   const result = JSON.parse(first.stdout);
@@ -69,10 +70,6 @@ export async function run() {
   assert.ok(['OPEN', 'REVIEW', 'REVISE', 'LAND', 'WAIT', null].includes(result.next.action), 'an action outside the five');
   const repeat = invoke('repeat', [live, declared, collector]);
   assert.equal(repeat.status, 0);
-  const recorded = invoke('record', [live, declared, collector, '--record']);
-  assert.equal(recorded.status, 0, `the record run failed: ${recorded.stderr}`);
-  const record = JSON.parse(recorded.stdout);
-
   // the final snapshot is taken after ALL executions, and compared with the baseline taken before the first
   const after = snapshot(live);
   assert.deepEqual(after, before, 'the snapshot of host state changed between before the first invocation and after the last');
@@ -80,15 +77,26 @@ export async function run() {
   // read-only, part one: every request of every invocation (successful or not) is a read to the repository's host; the audits are the evidence inspected
   const lines = audits.flatMap((file) => { try { return readFileSync(file, 'utf8').split('\n').filter(Boolean); } catch { return []; } });
   assert.ok(lines.length > 0, 'the audits are empty: no recorded request, so nothing is proved');
-  for (const name of ['verdict', 'repeat', 'record']) assert.ok(readFileSync(join(work, `${name}.jsonl`), 'utf8').trim().length > 0, `the audit of the ${name} run is empty`);
+  for (const name of ['verdict', 'repeat']) assert.ok(readFileSync(join(work, `${name}.jsonl`), 'utf8').trim().length > 0, `the audit of the ${name} run is empty`);
   assert.deepEqual(lines.filter((line) => !readsOnly(line)), [], 'an audit holds a request that is not a read');
 
-  // the acceptance record names what was actually inspected: the exact head, the host state observed, and the audits read
+  // CERTIFICATION is a separate step from collection. All evidence is complete and closed: the audits of every invocation and the final snapshot. Only now does the certifier run,
+  // offline (it reads files only, issues no host request and is not itself an invocation of the adapter), over exactly the evidence inspected above.
+  const snapshotFile = join(work, 'final-snapshot.json');
+  writeFileSync(snapshotFile, JSON.stringify(after));
+  const certified = spawnSync('node', [join(dir, 'certify.mjs'), '--head', implementationHead, '--snapshot', snapshotFile, '--baseline', (() => { const f = join(work, 'baseline-snapshot.json'); writeFileSync(f, JSON.stringify(before)); return f; })(), ...audits.flatMap((file) => ['--audit', file])], { encoding: 'utf8' });
+  assert.equal(certified.status, 0, `the certifier refused the completed evidence: ${certified.stderr}`);
+  const record = JSON.parse(certified.stdout);
   assert.equal(record.implementationHead, implementationHead, 'the record names another head than the one that ran');
   assert.equal(record.snapshotDigest, digest(after), 'the record names another host state than the one observed last');
-  assert.equal(record.snapshotDigest, digest(before), 'the record names a host state that differs from the baseline');
   assert.equal(record.auditDigest, digest(lines), 'the record names other audits than the ones inspected');
   assert.equal(record.invocations, audits.length, 'the record does not count every invocation');
-  assert.ok(record.collector === collector && record.collectorHead && record.credentialKind && record.runnerKind && record.at, 'the record omits the collector head, credential kind, runner kind or time');
+  assert.equal(record.collector, collector);
+  assert.ok(record.collectorHead && record.credentialKind && record.runnerKind && record.at, 'the record omits the collector head, credential kind, runner kind or time');
   assert.ok(!JSON.stringify(record).includes(process.env.GH_TOKEN ?? '\u0000'), 'the record holds the credential');
+  // the certifier is a check, not a stamp: it refuses evidence that does not hold together
+  const tampered = join(work, 'tampered.json');
+  writeFileSync(tampered, JSON.stringify({ ...after, branches: [] }));
+  assert.notEqual(spawnSync('node', [join(dir, 'certify.mjs'), '--head', implementationHead, '--snapshot', tampered, '--baseline', join(work, 'baseline-snapshot.json'), ...audits.flatMap((file) => ['--audit', file])], { encoding: 'utf8' }).status, 0, 'the certifier accepted a final snapshot that differs from the baseline');
+  assert.notEqual(spawnSync('node', [join(dir, 'certify.mjs'), '--head', implementationHead, '--snapshot', snapshotFile, '--baseline', join(work, 'baseline-snapshot.json'), '--audit', audits[0], '--audit', join(work, 'missing.jsonl')], { encoding: 'utf8' }).status, 0, 'the certifier accepted an unreadable audit');
 }
