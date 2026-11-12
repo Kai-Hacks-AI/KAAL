@@ -31,6 +31,18 @@ export async function run() {
     assert.equal(readTemplates([file(path, plain(['Intent']))]).fallback?.path, path, `the default file ${path} is not recognised`);
   }
 
+  // DEFAULT is a reserved fallback identity, not a TYPE
+  const declared = readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n' + plain(['Change', 'Summary'])), file(`${dir}plan.md`, template('PLAN', ['Change', 'From']))]);
+  assert.equal(declared.fallback?.path, '.github/pull_request_template.md', 'a default file that declares DEFAULT is not the fallback');
+  assert.equal(declared.fallback?.declared, true, 'a declared default is reported as undeclared');
+  assert.equal(withDefault.fallback?.declared, false, 'an undeclared default is reported as declared');
+  assert.equal(declared.registry.DEFAULT, undefined, 'DEFAULT is in the registry');
+  assert.equal(declared.findings.length, 0, 'a declared default has findings');
+  assert.ok(readTemplates([file(`${dir}x.md`, template('DEFAULT', ['Change']))]).findings.length > 0, 'DEFAULT in a template of the directory is accepted');
+  assert.ok(readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n<!-- KAAL-PR-template: DEFAULT -->\n## Change\n')]).findings.length > 0, 'a second DEFAULT is accepted');
+  assert.ok(readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n## Change\n'), file('docs/pull_request_template.md', '## Change\n')]).findings.length > 0, 'two default files are accepted');
+  assert.ok(readTemplates([file('.github/pull_request_template.md', template('PLAN', ['Change']))]).registry.PLAN, 'a typed declaration in the default path is not read as a typed template');
+
   // other templates: reported, not ignored, not judged, not invalid
   const other = readTemplates([file(`${dir}plan.md`, template('PLAN', ['Change', 'From'])), file(`${dir}release.md`, plain(['Summary', 'Testing']) + '\n<!-- some-other-marker: 1 -->\n')]);
   assert.equal(other.decisions.length, 1, 'templates that are not KAAL templates are not raised as a decision point');
