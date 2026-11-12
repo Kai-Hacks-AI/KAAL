@@ -34,8 +34,8 @@ Candidate allocations from the handover, checked against what exists. "Interface
 | --- | --- | --- | --- |
 | increment | Change | The pieces of the Change (Analyze Flow facts); the Change record in `engineering/release-management/00-changes/<id>/` (`change.md`, `evidence.md`, `act.md` when done); the Cases named `.red.mjs` until they are green. | **M1.** The Change record has no machine-readable route: nothing says "this increment carries the DO of C14, the next carries the PLAN". The first increment declares it in the consumer's declaration. |
 | verification | Testing | Check conclusions: Acceptance (three platforms), Engineering, Workspaces, Hosting (three platforms). | **M4.** Only check conclusions are visible, not which Cases ran or went green. |
-| protection | Guard | Guard (three platforms), CodeQL, Dependency Review conclusions. | Dependency Review is Release's `analyze Vulnerabilities` (release/C5); whether it is Guard's evidence or Release's is for the CPO (D4). |
-| sequencing | Release | Collector distance to the target; Branching and Promotion Source conclusions; the lane from Analyze Flow. | **M2.** Branching reports freshness, merge method and more as one conclusion. Which verdict failed is only in its log. |
+| protection | Guard | Guard (three platforms) conclusions. | None for the first increment. |
+| sequencing | Release | Collector distance to the target; Branching, Promotion Source, Dependency Review (`analyze Vulnerabilities`, release/C5) and CodeQL conclusions; the lane from Analyze Flow. | **M2.** Branching reports freshness, merge method and more as one conclusion. Which verdict failed is only in its log. |
 | validation | Review | The review of each landed piece and the version it was given at (Analyze Flow facts); Change Isolation (review). | None for the first increment. |
 | attribution | Engineering adapter | Which check belongs to which owner (the declaration), what the host could not supply (`gaps`). | **M3.** Landing times and collector-head checks are not in Analyze Flow's facts. |
 
@@ -51,8 +51,8 @@ What the real evidence says, judgment by judgment:
 | --- | --- | --- | --- |
 | increment | Change | **FAIL** | DO #1458 landed in the collector (approved at its head by the CPO), no open piece of C14 into it, Change Isolation passes; but no ACT of C14 has landed in the collector, and an increment is closed by its ACT. |
 | verification | Testing | PASS | Acceptance, Engineering, Workspaces, Hosting: success on all platforms. |
-| protection | Guard | PASS | Guard, CodeQL, Dependency Review: success. |
-| sequencing | Release | **FAIL** | Branching: the newest of four runs (12:30:36Z) is `failure`. Promotion Source passes; the collector is 0 behind `main`. |
+| protection | Guard | PASS | Guard: success on all platforms. |
+| sequencing | Release | **FAIL** | Branching: the newest of four runs (12:30:36Z) is `failure`. Promotion Source, Dependency Review and CodeQL pass; the collector is 0 behind `main`. |
 | validation | Review | PASS | #1458 approved at the version that landed. |
 | attribution | Adapter | PASS | All 19 check names have a declared owner. |
 
@@ -80,5 +80,5 @@ Verdict **BLOCKED**, for two reasons, each traced to its owner: the Change (no A
 - **D1. Decided by the Owner, 12 Nov: strict** for the first increment (blocks the C14 collector on a hold-induced Branching red); revisit when Branching exposes its sub-verdicts (M2).
 - **D2. Decided by the Owner, 12 Nov: No.** ACT is a prerequisite: it lands on the collector after everything is green, then the collector can be promoted. The PLAN follows (H1, F5).
 - **D3. Decided by the Owner, 12 Nov:** a separate Script (section 4).
-- **D4.** Which control owns `analyze Vulnerabilities` and CodeQL evidence: Guard or Release.
+- **D4. Decided by the Owner, 12 Nov:** `analyze Vulnerabilities` and CodeQL evidence stay in Release for now, because all controls are born there at present.
 - **D5.** Where the increments of a Change are declared (M1): the consumer's declaration now, the Change record later.

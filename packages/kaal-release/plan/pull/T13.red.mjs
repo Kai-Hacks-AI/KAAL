@@ -17,7 +17,7 @@ export async function run() {
   assert.deepEqual([...promotionPiece.checks].sort(byName), [...newest.values()].map((r) => ({ name: r.name, conclusion: r.conclusion })).sort(byName), 'the facts do not hold the newest run of each check');
   assert.equal(snapshot.raw.checkRuns.filter((r) => r.name === 'Branching').length, 4, 'the snapshot lost the Branching runs');
 
-  // the consumer's declaration (KAAL's, candidate allocation): who owns which check, what the increment carries, the Owner's hold
+  // the consumer's declaration (KAAL's; the Owner keeps analyze Vulnerabilities and CodeQL evidence in Release for now, 12 Nov): who owns which check, what the increment carries, the Owner's hold
   const decl = declaration({
     promotions: [{ collector: 'kaal/release/wire-promotion', change: 'release/C10' }, { collector: name, change: 'release/C14' }],
     holds: [{ target: '#1461', reason: 'the Owner order: C14 has no promotion go yet' }],
@@ -30,7 +30,7 @@ export async function run() {
       'Branching': 'sequencing', 'Promotion Source': 'sequencing', 'Change Isolation': 'increment', 'Change Isolation (review)': 'validation',
       'Acceptance': 'verification', 'Acceptance (Windows)': 'verification', 'Acceptance (macOS)': 'verification', 'Engineering': 'verification', 'Workspaces': 'verification',
       'Hosting (Linux)': 'verification', 'Hosting (Windows)': 'verification', 'Hosting (macOS)': 'verification',
-      'Guard': 'protection', 'Guard (Windows)': 'protection', 'Guard (macOS)': 'protection', 'CodeQL': 'protection', 'CodeQL (actions)': 'protection', 'CodeQL (javascript-typescript)': 'protection', 'Dependency Review': 'protection',
+      'Guard': 'protection', 'Guard (Windows)': 'protection', 'Guard (macOS)': 'protection', 'CodeQL': 'sequencing', 'CodeQL (actions)': 'sequencing', 'CodeQL (javascript-typescript)': 'sequencing', 'Dependency Review': 'sequencing',
     },
   });
   // the lane is the Owner's standing order (C10 first), recorded; it is not computed here
