@@ -10,13 +10,21 @@ export async function run() {
   assert.equal(statuses(pass).increment, 'PASS');
 
   // a carried type that has not landed is incomplete, named
-  const wider = declaration({}, { increments: [{ collector: 'col-a', change: 'c/C1', carries: ['DO', 'ACT'] }] });
+  const wider = declaration({}, { increments: [{ collector: 'col-a', change: 'c/C1', carries: ['DO', 'PLAN'] }] });
   const incomplete = await pullPromotion(facts({ pieces: [landed(10, 'DO'), promotion(20)] }), wider, base.flow);
   const inc = incomplete.judgments.find((j) => j.id === 'increment');
-  assert.equal(inc.status, 'FAIL', 'a missing ACT is not incomplete');
-  assert.match(inc.because, /ACT/);
-  assert.deepEqual(incomplete.increment.missing, ['ACT']);
+  assert.equal(inc.status, 'FAIL', 'a missing PLAN is not incomplete');
+  assert.match(inc.because, /PLAN/);
+  assert.deepEqual(incomplete.increment.missing, ['PLAN']);
   assert.equal(incomplete.verdict, 'BLOCKED');
+
+  // the increment is closed by its ACT: without it the work is not green and the learning not logged, so it is incomplete
+  const unclosed = await pullPromotion(facts({ pieces: [landed(10, 'DO'), promotion(20)], noAct: true }), base.declaration, base.flow);
+  assert.equal(statuses(unclosed).increment, 'FAIL', 'an increment without its ACT is complete');
+  assert.deepEqual(unclosed.increment.missing, ['ACT']);
+  assert.equal(unclosed.verdict, 'BLOCKED');
+  const noClosing = await pullPromotion(facts({ pieces: [landed(10, 'DO'), promotion(20)] }), declaration({}, { closing: undefined }), base.flow);
+  assert.equal(statuses(noClosing).increment, 'UNKNOWN', 'a declaration without the closing piece is guessed');
 
   // a piece of the Change still open into the collector: not everything has landed
   const open = landed(11, 'DO', { state: 'open', review: null });

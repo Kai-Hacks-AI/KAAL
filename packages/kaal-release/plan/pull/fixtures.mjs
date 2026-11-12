@@ -27,7 +27,9 @@ export const declaration = (over = {}, readiness = {}) => ({
   readiness: {
     // the judgments and who owns them, in the consumer's words
     owners: { increment: 'Change', verification: 'Testing', protection: 'Guard', sequencing: 'Release', validation: 'Review', attribution: 'Adapter' },
-    // what each collector's increment must carry, per Change
+    // the piece that closes every increment: the work is green and the learning is logged (for KAAL, ACT)
+    closing: 'ACT',
+    // what each collector's increment must carry besides the closing piece, per Change
     increments: [{ collector: 'col-a', change: 'c/C1', carries: ['DO'] }],
     // what a Change needs on the target to be complete
     changes: [{ id: 'c/C1', onTarget: ['PLAN', 'DO', 'ACT'] }],
@@ -44,13 +46,13 @@ export const bad = (name) => ({ name, conclusion: 'failure' });
 export const running = (name) => ({ name, conclusion: 'pending' });
 export const allGreen = () => [ok('build'), ok('suite'), ok('guard'), ok('fresh')];
 
-export const facts = (over = {}) => ({
-  target: { from: 't1' },
-  collectors: [collector('col-a')],
-  pieces: [landed(10, 'DO')],
-  deliveries: [],
-  ...over,
-});
+// An increment is closed by its ACT (Owner, 12 Nov 2026): facts() adds the landed ACT of c/C1 into col-a unless one is given or noAct is set.
+export const facts = ({ noAct, ...over } = {}) => {
+  const made = { target: { from: 't1' }, collectors: [collector('col-a')], pieces: [landed(10, 'DO')], deliveries: [], ...over };
+  const closed = made.pieces.some((p) => p.type === 'ACT' && p.into === 'col-a' && p.change === 'c/C1');
+  if (!noAct && !closed) made.pieces = [...made.pieces, landed(9, 'ACT')];
+  return made;
+};
 
 // A piece that landed into a collector, approved at the version it landed at.
 export const landed = (number, type = 'DO', over = {}) => ({

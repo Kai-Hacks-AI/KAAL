@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { declaration, flow, judgment, pullPromotion, snapshotPath } from './fixtures.mjs';
 export const id = 'pull/T13';
 export const tests = ['pull/F2', 'pull/F4', 'pull/F5', 'pull/F6', 'pull/F7', 'pull/F8', 'pull/F9', 'pull/F10'];
-export const title = 'the real collector kaal/release/wire-fallback-template, as the repository showed it on 12 Nov 2026, is BLOCKED by Release\'s Branching check; every other judgment passes, and the Change is incomplete without blocking its increment';
+export const title = 'the real collector kaal/release/wire-fallback-template, as the repository showed it on 12 Nov 2026, is BLOCKED twice over: the Change reports no ACT closing the increment, and Release\'s Branching check is red; every other judgment passes';
 export async function run() {
   const snapshot = JSON.parse(readFileSync(snapshotPath, 'utf8'));
   const name = snapshot.collector;
@@ -23,6 +23,7 @@ export async function run() {
     holds: [{ target: '#1461', reason: 'the Owner order: C14 has no promotion go yet' }],
   }, {
     owners: { increment: 'Change', verification: 'Testing', protection: 'Guard', sequencing: 'Release', validation: 'Review', attribution: 'Engineering adapter' },
+    closing: 'ACT',
     increments: [{ collector: name, change: 'release/C14', carries: ['DO'] }],
     changes: [{ id: 'release/C14', onTarget: ['PLAN', 'DO', 'ACT'] }],
     checkOwners: {
@@ -42,10 +43,14 @@ export async function run() {
   assert.equal(sequencing.owner, 'Release', 'the red check is not traced to the control that owns it');
   assert.deepEqual(sequencing.evidence, ['Branching'], 'the evidence is not the one red check');
   assert.ok(!/auto-merge|merge method/i.test(JSON.stringify(result)), 'the Script claims a cause that only the check log holds');
-  for (const id of ['increment', 'verification', 'protection', 'validation', 'attribution']) assert.equal(judgment(result, id).status, 'PASS', `${id} does not pass on the real evidence`);
+  const closing = judgment(result, 'increment');
+  assert.equal(closing.status, 'FAIL', 'an increment with no ACT is complete');
+  assert.equal(closing.owner, 'Change');
+  assert.deepEqual(result.increment.missing, ['ACT'], 'the missing ACT is not named');
+  for (const id of ['verification', 'protection', 'validation', 'attribution']) assert.equal(judgment(result, id).status, 'PASS', `${id} does not pass on the real evidence`);
   assert.equal(result.increment.landed.join(), '#1458', 'the increment is not the one landed DO');
 
-  // three statements, three answers: the Change is incomplete on the target, its increment is complete, the collector is blocked
+  // three statements, three answers: the Change is incomplete on the target, its increment lacks the ACT that closes it, the collector is blocked
   assert.equal(result.change.status, 'incomplete');
   assert.deepEqual(result.change.missing, ['ACT', 'DO', 'PLAN']);
 

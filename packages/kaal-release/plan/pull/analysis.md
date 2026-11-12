@@ -9,7 +9,7 @@ Three different statements, kept apart because KAAL delivers a Change in more th
 | Statement | Question | Real example (release/C14) |
 | --- | --- | --- |
 | Change complete | Did every piece type of the Change land on the target? | No: PLAN #1447 is in `kaal/release/fallback-template`, DO #1458 in `kaal/release/wire-fallback-template`, no ACT yet. Nothing is on `main`. |
-| Increment complete | Did what this promotion carries land in the collector since its last delivery? | Yes for `wire-fallback-template`: its increment is the `.github` DO #1458. |
+| Increment complete | Did what this promotion carries, closed by its ACT, land in the collector since its last delivery? | No for `wire-fallback-template`: its increment is the `.github` DO #1458, with no ACT yet. |
 | Collector promotion-ready | Is the increment complete and does every owner's evidence pass? | BLOCKED, see section 3. |
 
 **Incomplete versus not judged.** Incomplete is evidence that says work is missing or red (FAIL). Not judged is evidence that is absent, still running or unowned (UNKNOWN). BLOCKED beats NOT JUDGED: a failure is never hidden by an unknown. READY needs every judgment to PASS.
@@ -20,7 +20,7 @@ Three different statements, kept apart because KAAL delivers a Change in more th
 
 "Ready = PLAN, DO, Check and ACT done. Nothing red. Everything landed in the collector."
 
-- **H1, "ACT done".** The standing flow lands the ACT after the PLAN and DO are on `main` (a PLAN never goes to main alone; ACT only after it is on main and wired). An ACT cannot be a precondition of the promotion that delivers its own Change. Real: C14 has no ACT and its `.github` increment is rightly promotable. Proposed: the ACT is a fact of the Change (complete or incomplete), not of the increment; what an increment must carry is declared per collector (`carries`).
+- **H1, "ACT done".** Confirmed by the Owner (12 Nov, D2): the ACT lands on the collector after everything is green, so the work is done and the learning is logged; only then can the collector be promoted. An increment is therefore closed by its ACT (`readiness.closing`), on top of what it declares it `carries`. A first draft of this PLAN argued the opposite (ACT lands after PLAN and DO reach `main`, so it cannot precede their promotion); the Owner decided against it. Consequence for the real collector: C14 has no ACT, so its increment is incomplete.
 - **H2, "PLAN and DO done".** True of a Change, not of an increment. C14's `.github` DO is promoted first so that the engineering part's Cases run green against it (PR #1461 says so); the PLAN follows with the next promotion. So the declared carries of this increment are the DO only. The same pattern is in the evidence of C10 (the `.github` half and the engineering half "must travel as a pair").
 - **H3, "Everything landed in the collector".** Needs "since the last delivery": a squash promotion leaves no collector commit on `main`, so `git` cannot say what a collector still holds. Analyze Flow's facts carry the collector version a delivery carried but no landing times, so the increment cannot be placed. Requested as the optional addition `landedAt` (section 4).
 - **H4, "Check".** The strongest evidence of "nothing red" exists only on the promotion piece, which does not exist before it is opened. Before that, only checks on the collector head, if the supplier provides them (`collector.checks`), can say anything; otherwise the honest verdict is NOT JUDGED. A consequence for the DO: OPENing a draft promotion is how the evidence is obtained, and the Script recommends it without doing it.
@@ -49,14 +49,14 @@ What the real evidence says, judgment by judgment:
 
 | Judgment | Owner | Status | Evidence |
 | --- | --- | --- | --- |
-| increment | Change | PASS | DO #1458 landed in the collector (approved at its head by the CPO); no open piece of C14 into it. Change Isolation passes. |
+| increment | Change | **FAIL** | DO #1458 landed in the collector (approved at its head by the CPO), no open piece of C14 into it, Change Isolation passes; but no ACT of C14 has landed in the collector, and an increment is closed by its ACT. |
 | verification | Testing | PASS | Acceptance, Engineering, Workspaces, Hosting: success on all platforms. |
 | protection | Guard | PASS | Guard, CodeQL, Dependency Review: success. |
 | sequencing | Release | **FAIL** | Branching: the newest of four runs (12:30:36Z) is `failure`. Promotion Source passes; the collector is 0 behind `main`. |
 | validation | Review | PASS | #1458 approved at the version that landed. |
 | attribution | Adapter | PASS | All 19 check names have a declared owner. |
 
-Verdict **BLOCKED**, traced to Release (Branching). Next: the Owner's hold on #1461 (draft, auto-merge off, "no promotion go yet", from the Owner's order C7, C10, C9) makes the recommendation WAIT, escalate, for the owner. Nothing is executed.
+Verdict **BLOCKED**, for two reasons, each traced to its owner: the Change (no ACT closes the increment) and Release (Branching). Next: the Owner's hold on #1461 (draft, auto-merge off, "no promotion go yet", from the Owner's order C7, C10, C9) makes the recommendation WAIT, escalate, for the owner. Nothing is executed.
 
 **What a person sees in the Branching log, which the Script must not use (M2):** `Fresh: merging ... yields exactly the head's validated tree` and `Merge method: Auto-merge is disabled for this pull request into main. Enable auto-merge with squash before integration.` The collector is fresh; the red is the hold. A strict "nothing red" blocks a collector for a state the Owner chose. That is the learning of the experiment, and why D1 exists.
 
@@ -77,8 +77,8 @@ Verdict **BLOCKED**, traced to Release (Branching). Next: the Owner's hold on #1
 
 ## Decisions for the CPO
 
-- **D1.** "Nothing red": strict (default in the Cases; blocks the C14 collector on a hold-induced Branching red) or scoped to evidence about the collector's content, with the checks of the promotion's admission reported but left to Analyze Flow. Recommendation: keep strict for the first increment and revisit when Branching exposes its sub-verdicts (M2).
-- **D2.** ACT is a fact of the Change, not a prerequisite of its increment (H1).
-- **D3.** A separate Script now, folded later if it earns no input of its own (section 4).
+- **D1. Decided by the Owner, 12 Nov: strict** for the first increment (blocks the C14 collector on a hold-induced Branching red); revisit when Branching exposes its sub-verdicts (M2).
+- **D2. Decided by the Owner, 12 Nov: No.** ACT is a prerequisite: it lands on the collector after everything is green, then the collector can be promoted. The PLAN follows (H1, F5).
+- **D3. Decided by the Owner, 12 Nov:** a separate Script (section 4).
 - **D4.** Which control owns `analyze Vulnerabilities` and CodeQL evidence: Guard or Release.
 - **D5.** Where the increments of a Change are declared (M1): the consumer's declaration now, the Change record later.

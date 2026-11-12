@@ -7,7 +7,7 @@ Authorized by the Owner (12 Nov 2026) for a PLAN only. The DO needs the CPO's re
 ## A: the present
 
 - Engineering decides by hand which collector is promoted next. Analyze Flow (`coordination/C1`, #1446, merged into this collector) lists the next actions of a flow whose pairs are declared, but it does not say whether a collector is fit to be promoted: it reads pieces, not evidence from Testing, Guard, Review or the Change.
-- The Owner's hypothesis of readiness is "PLAN, DO, Check and ACT done; nothing red; everything landed in the collector". It has not been tested against a real collector.
+- The Owner's hypothesis of readiness is "PLAN, DO, Check and ACT done; nothing red; everything landed in the collector". The Owner confirmed its ACT part (12 Nov): ACT lands on the collector once everything is green, and only then can it be promoted. It has not been tested against a real collector.
 - KAAL delivers some Changes across several collectors and promotions (release/C14: the `.github` DO in `kaal/release/wire-fallback-template`, the PLAN and the engineering part in `kaal/release/fallback-template`). Nothing separates a complete Change, a complete delivery increment and a promotion-ready collector.
 
 ## B: the target

@@ -5,7 +5,7 @@ export const id = 'pull/T4';
 export const tests = ['pull/F6'];
 export const title = 'a complete Change, a complete increment and a ready collector are three different statements: an incomplete Change does not by itself block an increment';
 export async function run() {
-  // the increment carries its DO; the Change still lacks its PLAN and ACT on the target
+  // the increment carries its DO and is closed by its ACT in the collector; the Change still lacks all three on the target
   const partial = await pullPromotion(facts({ pieces: [landed(10, 'DO'), promotion(20)] }), declaration(), flow());
   assert.equal(statuses(partial).increment, 'PASS', 'an incomplete Change blocks a complete increment');
   assert.equal(partial.verdict, 'READY');

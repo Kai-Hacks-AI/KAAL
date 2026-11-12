@@ -8,7 +8,7 @@ export async function run() {
   const green = [ok('build'), ok('suite'), ok('guard'), ok('fresh')];
   const state = facts({
     collectors: [collector('col-a', { checks: green }), collector('col-b', { checks: green })],
-    pieces: [landed(10), landed(11, 'DO', { into: 'col-b', change: 'c/C2' })],
+    pieces: [landed(10), landed(11, 'DO', { into: 'col-b', change: 'c/C2' }), landed(8, 'ACT', { into: 'col-b', change: 'c/C2' })],
   });
   const decl = declaration({ promotions: [{ collector: 'col-a', change: 'c/C1' }, { collector: 'col-b', change: 'c/C2' }] }, {
     increments: [{ collector: 'col-a', change: 'c/C1', carries: ['DO'] }, { collector: 'col-b', change: 'c/C2', carries: ['DO'] }],
