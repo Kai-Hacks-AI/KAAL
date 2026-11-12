@@ -23,44 +23,44 @@ export const declaration = (over = {}) => ({
   ...over,
 });
 
-export const collector = (name, behindTarget = 0) => ({ name, head: `${name}-head`, behindTarget });
+export const collector = (name, behindTarget = 0) => ({ name, at: `${name}-head`, behindTarget });
 
 export const facts = (over = {}) => ({
-  target: { head: 't1' },
+  target: { from: 't1' },
   collectors: [collector('col-a')],
-  requests: [],
+  pieces: [],
   ...over,
 });
 
 export const ok = (name) => ({ name, conclusion: 'success' });
 export const bad = (name) => ({ name, conclusion: 'failure' });
 
-// An open change request into a collector, approved at its current head, checks green, auto-merge on: nothing to do but wait.
-// Without an explicit review it is approved at whatever head it ends up with.
-export const request = (number, over = {}) => {
+// An open piece of work (one PLAN, DO, ACT, SYNC, PROMOTION or HOTFIX of a Change) going into a collector, approved at its current
+// version, checks green, set to land on approval: nothing to do but wait. Without an explicit review it is approved at whatever version it ends up with.
+export const piece = (number, over = {}) => {
   const made = {
-    number,
+    ref: `#${number}`,
     type: 'DO',
     change: `c/C${number}`,
-    base: 'col-a',
-    head: `work-${number}`,
-    headSha: `h${number}`,
+    into: 'col-a',
+    from: `work-${number}`,
+    at: `h${number}`,
     state: 'open',
     checks: [ok('build'), ok('fresh')],
-    mergeable: 'clean',
-    unresolvedThreads: 0,
-    autoMerge: true,
+    fit: 'fits',
+    openComments: 0,
+    landsOnApproval: true,
     ...over,
   };
-  if (!('review' in over)) made.review = { state: 'APPROVED', at: made.headSha };
+  if (!('review' in over)) made.review = { state: 'approved', at: made.at };
   return made;
 };
 
-// The promotion member of a pair: base is the target, head is the collector, at the collector's head.
+// The promotion member of a pair: into the target, from the collector, at the collector's head.
 export const promotionOf = (number, collectorName, over = {}) =>
-  request(number, { type: 'PROMOTION', change: 'c/C1', base: 'main', head: collectorName, headSha: `${collectorName}-head`, ...over });
+  piece(number, { type: 'PROMOTION', change: 'c/C1', into: 'main', from: collectorName, at: `${collectorName}-head`, ...over });
 
-// The sync member of a pair, or a development sync: base is the collector, the change is the one it serves.
-export const syncInto = (number, base, change, over = {}) => request(number, { type: 'SYNC', change, base, review: null, autoMerge: false, ...over });
+// The sync member of a pair, or a development sync: into the collector, for the Change it serves.
+export const syncInto = (number, into, change, over = {}) => piece(number, { type: 'SYNC', change, into, review: null, landsOnApproval: false, ...over });
 
 export const byTarget = (result, target) => result.actions.find((a) => a.target === target);

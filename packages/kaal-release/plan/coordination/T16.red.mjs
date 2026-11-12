@@ -11,7 +11,7 @@ export const title = 'the Script runs from a command line in any directory with 
 export async function run() {
   assert.ok(existsSync(scriptPath), 'the Script is absent');
   assert.ok(!/process\.env/.test(readFileSync(scriptPath, 'utf8')), 'the Script reads the environment');
-  const state = facts({ collectors: [collector('col-a', 1)], requests: [promotionOf(5, 'col-a', { review: null })] });
+  const state = facts({ collectors: [collector('col-a', 1)], pieces: [promotionOf(5, 'col-a', { review: null })] });
   const dir = mkdtempSync(join(tmpdir(), 'flow-'));
   const write = (name, value) => { const file = join(dir, name); writeFileSync(file, JSON.stringify(value)); return file; };
   const factsFile = write('facts.json', state);

@@ -1,16 +1,16 @@
 // Case coordination/T15 tests: F9
 import assert from 'node:assert/strict';
-import { bad, byTarget, collector, analyzeFlow, declaration, facts, ok, promotionOf, request, syncInto } from './fixtures.mjs';
+import { bad, byTarget, collector, analyzeFlow, declaration, facts, ok, promotionOf, piece, syncInto } from './fixtures.mjs';
 export const id = 'coordination/T15';
 export const tests = ['coordination/F9'];
 export const title = 'entries carry their layer; what is ready is listed nearest the outcome first, a dependent after what it depends on, and the publishing layer is reported as not modelled';
 export async function run() {
   const state = facts({
     collectors: [collector('col-a'), collector('col-d', 2)],
-    requests: [
-      promotionOf(80, 'col-a', { review: null, autoMerge: false }),
-      request(81, { base: 'col-a', change: 'c/C81', review: null, autoMerge: false }),
-      request(83, { base: 'col-d', change: 'c/C83', checks: [ok('build'), bad('fresh')] }),
+    pieces: [
+      promotionOf(80, 'col-a', { review: null, landsOnApproval: false }),
+      piece(81, { into: 'col-a', change: 'c/C81', review: null, landsOnApproval: false }),
+      piece(83, { into: 'col-d', change: 'c/C83', checks: [ok('build'), bad('fresh')] }),
       syncInto(82, 'col-d', 'c/C83'),
     ],
   });

@@ -5,8 +5,8 @@ This is `coordination/C1`, a PLAN Change. It ships no code. It adds one read-onl
 ## A: the present
 
 - `kaal-release` is Skill-only (#1350, approved at its exact head, not yet merged; no package on `main`).
-- The CPO and CTO reconstruct by hand which pull request deserves attention, whether it needs creating, review, revision or auto-merge, which collector is promoted next, and whether a SYNC prepares a promotion or only unblocks a Change.
-- Nothing reports a pull request that does not exist yet, and the relationship between a promotion's SYNC and PROMOTION, or between a SYNC and the Change it unblocks, is nowhere stated.
+- The CPO and CTO reconstruct by hand which piece deserves attention, whether it needs opening, review, revision or landing, which collector is promoted next, and whether a SYNC prepares a promotion or only unblocks a Change.
+- Nothing reports a piece that does not exist yet, and the relationship between a promotion's SYNC and PROMOTION, or between a SYNC and the Change it unblocks, is nowhere stated.
 
 ## B: the target
 
@@ -29,14 +29,14 @@ Resolved: #1350 merges first, untouched. This PLAN neither edits nor waits insid
 | Does a `scripts/` directory conform? | Yes. `kaal-engineer-skill` ships `skills/<name>/scripts/` through its `files` list, and its checker requires a referenced `scripts/` file to exist. `SKILL.md` must name the Script and the package must carry it (F1). |
 | Sequencing against #1350 | Above. |
 | Id scope | `coordination/`, with no `release/` id. |
-| Are `OPEN PR` and `PR` acceptable words in a generic Skill | Yes. The Owner and CPO name these actions. |
+| Host-neutral words | Resolved by the Owner (12 Nov): the contract says piece, into, from, at, fit, LAND and CHECK, built on PLAN, DO, CHECK, ACT, HOTFIX and REVIEW. The gatherer maps the host's terms. |
 | Declared file or command line for the pair order and the holds | A declared file, the declaration of F3. The pair order is the CPO's priority and must be reviewable. The Owner has not yet confirmed it. |
 
 ## Out of scope
 
-- Any write: creating pull requests, approving, merging, enabling auto-merge, commenting.
+- Any write: opening, approving or landing a piece, commenting.
 - Running it inside a workflow, scheduling it, or posting its findings anywhere (each its own Change; F12 only makes it possible). The first increment is run on demand, on a person's machine.
-- Gathering the facts from the host (its own Change). The gatherer reads each request's template type and named Change; the Script never parses titles or prose.
-- Proposing DO or ACT pull requests from Change state.
+- Gathering the facts from the host (its own Change). The gatherer reads each piece's template type and named Change; the Script never parses titles or prose.
+- Proposing DO or ACT pieces from Change state.
 - The HOTFIX route (reported, not modelled), the Publishing layer (reported, not modelled), hooks, CI, Guard and rulesets.
 - Retiring track Work (a decision after the Script is on `main`).

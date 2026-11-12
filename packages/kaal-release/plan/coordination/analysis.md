@@ -1,6 +1,6 @@
 # analyze Flow: analysis
 
-The CTO handover asked seven questions. Evidence is from the repository and the open pull request list of 12 Nov 2026. Nothing was run against GitHub.
+The CTO handover asked seven questions. Evidence is from the repository and the open piece list of 12 Nov 2026. Nothing was run against GitHub.
 
 ## 1. Where it belongs
 
@@ -15,29 +15,29 @@ In the `kaal-release` Skill, as a script (Owner, 12 Nov). The kaal-release PLAN 
 ## 2. What exists and is reused
 
 - **track Work** (#1363, #1364), on the blocked `kaal/engineering-release-management` collector and not on `main`, already gathers open requests, review at the head, unresolved threads, behind-base, auto-merge, CI per check and collector distance. It has no priority, dependency, pair or sync purpose. Its ideas are ported, not imported.
-- **C12 / #1435** reads a request's type from its declared template. The Script takes `type` as a fact and never reads a title; titles are the envelope control's concern.
+- **C12 / #1435** reads a piece's type from its declared template. The Script takes `type` as a fact and never reads a title; titles are the envelope control's concern.
 - **kaal-engineer-skill** already ships and checks `scripts/`.
 
 ## 3. Layers and relationships
 
 The layers backwards from the outcome are Publishing, Promotion, Integration, Development. Two relationships are explicit, never inferred from titles or from the SYNC Reason prose:
 
-- **Promotion pair.** A SYNC and a PROMOTION that prepare and deliver one collector's Change. It is a declared (collector, Change) entry in an ordered list. Its members are found by structure: a sync-type request into the collector naming the Change, and a promotion-type request from the collector into the target. A member that does not exist is OPEN PR. Only the first incomplete pair is active; requests already open for later pairs wait and never become competing active pairs.
-- **Development sync.** A SYNC that unblocks one Change: it names that Change. Synchronization is the remedy only when a declared freshness check fails while the collector is behind the target. A conflict, a branch behind its base, another failing check and a missing review are REVISE PR or REVIEW PR instead. A development sync does not occupy the promotion lane.
+- **Promotion pair.** A SYNC and a PROMOTION that prepare and deliver one collector's Change. It is a declared (collector, Change) entry in an ordered list. Its members are found by structure: a SYNC piece into the collector naming the Change, and a PROMOTION piece into the target from the collector. A member that does not exist is OPEN. Only the first incomplete pair is active; pieces already open for later pairs wait and never become competing active pairs.
+- **Development sync.** A SYNC that unblocks one Change: it names that Change. Synchronization is the remedy only when a declared freshness check fails while the collector is behind the target. A conflict, a branch behind its base, another failing check and a missing review are REVISE or REVIEW instead. A development sync does not occupy the promotion lane.
 
 Templates: PLAN, DO, ACT, SYNC, PROMOTION, HOTFIX, with DEFAULT as fallback. HOTFIX is the expedite class, an exceptional route outside the pair and its WIP limit. A DEFAULT or unknown type is reported and not classified.
 
 ## 4. Promotion SYNC vs development SYNC
 
-A sync is a promotion sync when it matches a declared pair (base collector and Change), a development sync when it names the Change of a request blocked as above, and otherwise it has no purpose and is reported.
+A sync is a promotion sync when it matches a declared pair (the collector it goes into and its Change), a development sync when it names the Change of a piece blocked as above, and otherwise it has no purpose and is reported.
 
 ## 5. Incomplete promotion and next candidate
 
-A pair is complete when a merged promotion request carries the collector's current head. "Collector ahead of `main`" is not used: promotions squash, so a promoted collector that survives looks ahead forever. The next candidate is the next declared pair, and its first step is OPEN PR for the sync when its collector is behind, or for the promotion.
+A pair is complete when a landed PROMOTION carries the collector's current version. "Collector ahead of `main`" is not used: promotions squash, so a promoted collector that survives looks ahead forever. The next candidate is the next declared pair, and its first step is OPEN for the sync when its collector is behind, or for the promotion.
 
 ## 6. The live sequence
 
-The real-world order is promotion #1440, then sync #1430, then promotion #1428. #1428 and #1440 are both open promotions, and #1430 is open. Declared as two ordered pairs, #1440 is the next action (review), #1430 waits for it, #1428 waits for #1430, and when #1440 merges #1430 becomes the next action. Case T13 shows it.
+The real-world order is promotion #1440, then sync #1430, then promotion #1428. #1428 and #1440 are both open promotions, and #1430 is open. Declared as two ordered pairs, #1440 is the next action (review), #1430 waits for it, #1428 waits for #1430, and when #1440 lands #1430 becomes the next action. Case T13 shows it.
 
 ## 7. First increment and what stays outside
 
