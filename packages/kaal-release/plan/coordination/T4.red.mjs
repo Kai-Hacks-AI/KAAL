@@ -1,6 +1,6 @@
 // Case coordination/T4 tests: F8
 import assert from 'node:assert/strict';
-import { byTarget, collector, coordinate, declaration, facts, syncInto } from './fixtures.mjs';
+import { byTarget, collector, analyzeFlow, declaration, facts, syncInto } from './fixtures.mjs';
 export const id = 'coordination/T4';
 export const tests = ['coordination/F8'];
 export const title = 'the first incomplete declared pair is the only active pair: the next pair waits and gets no OPEN PR';
@@ -9,7 +9,7 @@ export async function run() {
     collectors: [collector('col-a', 2), collector('col-b', 1)],
     requests: [syncInto(40, 'col-a', 'c/C1')],
   });
-  const result = await coordinate(state, declaration({ promotions: [{ collector: 'col-a', change: 'c/C1' }, { collector: 'col-b', change: 'c/C2' }] }));
+  const result = await analyzeFlow(state, declaration({ promotions: [{ collector: 'col-a', change: 'c/C1' }, { collector: 'col-b', change: 'c/C2' }] }));
   const sync = byTarget(result, '#40');
   assert.ok(sync, 'the open sync of the active pair yields no entry');
   assert.equal(sync.purpose, 'promotion', 'the sync of the active pair is not a promotion sync');

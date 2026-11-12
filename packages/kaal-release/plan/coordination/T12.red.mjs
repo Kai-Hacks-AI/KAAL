@@ -1,6 +1,6 @@
 // Case coordination/T12 tests: F5, F7
 import assert from 'node:assert/strict';
-import { bad, byTarget, collector, coordinate, declaration, facts, ok, request } from './fixtures.mjs';
+import { bad, byTarget, collector, analyzeFlow, declaration, facts, ok, request } from './fixtures.mjs';
 export const id = 'coordination/T12';
 export const tests = ['coordination/F5', 'coordination/F7'];
 export const title = 'a blocked change request needs a development sync only when a freshness check fails behind a stale collector; a conflict, another failing check or a missing review is not a sync';
@@ -15,7 +15,7 @@ export async function run() {
       request(64, { base: 'col-a', change: 'c/C64', checks: [ok('build'), bad('fresh')] }),
     ],
   });
-  const result = await coordinate(state, declaration({ promotions: [] }));
+  const result = await analyzeFlow(state, declaration({ promotions: [] }));
   const syncs = result.actions.filter((a) => a.action === 'OPEN PR' && a.kind === 'sync');
   assert.equal(syncs.length, 1, 'exactly one development sync is not recommended');
   assert.equal(syncs[0].target, 'col-d');

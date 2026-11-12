@@ -1,4 +1,4 @@
-# Coordination: analysis
+# analyze Flow: analysis
 
 The CTO handover asked seven questions. Evidence is from the repository and the open pull request list of 12 Nov 2026. Nothing was run against GitHub.
 
@@ -25,7 +25,7 @@ The layers backwards from the outcome are Publishing, Promotion, Integration, De
 - **Promotion pair.** A SYNC and a PROMOTION that prepare and deliver one collector's Change. It is a declared (collector, Change) entry in an ordered list. Its members are found by structure: a sync-type request into the collector naming the Change, and a promotion-type request from the collector into the target. A member that does not exist is OPEN PR. Only the first incomplete pair is active; requests already open for later pairs wait and never become competing active pairs.
 - **Development sync.** A SYNC that unblocks one Change: it names that Change. Synchronization is the remedy only when a declared freshness check fails while the collector is behind the target. A conflict, a branch behind its base, another failing check and a missing review are REVISE PR or REVIEW PR instead. A development sync does not occupy the promotion lane.
 
-Templates: PLAN, DO, ACT, SYNC, PROMOTION, HOTFIX, with DEFAULT as fallback. HOTFIX is an exceptional route outside the pair. A DEFAULT or unknown type is reported and not classified.
+Templates: PLAN, DO, ACT, SYNC, PROMOTION, HOTFIX, with DEFAULT as fallback. HOTFIX is the expedite class, an exceptional route outside the pair and its WIP limit. A DEFAULT or unknown type is reported and not classified.
 
 ## 4. Promotion SYNC vs development SYNC
 

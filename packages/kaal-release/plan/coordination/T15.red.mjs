@@ -1,6 +1,6 @@
 // Case coordination/T15 tests: F9
 import assert from 'node:assert/strict';
-import { bad, byTarget, collector, coordinate, declaration, facts, ok, promotionOf, request, syncInto } from './fixtures.mjs';
+import { bad, byTarget, collector, analyzeFlow, declaration, facts, ok, promotionOf, request, syncInto } from './fixtures.mjs';
 export const id = 'coordination/T15';
 export const tests = ['coordination/F9'];
 export const title = 'entries carry their layer; what is ready is listed nearest the outcome first, a dependent after what it depends on, and the publishing layer is reported as not modelled';
@@ -14,7 +14,7 @@ export async function run() {
       syncInto(82, 'col-d', 'c/C83'),
     ],
   });
-  const result = await coordinate(state, declaration());
+  const result = await analyzeFlow(state, declaration());
   const layers = { '#80': 'promotion', '#81': 'integration', '#82': 'development', '#83': 'integration' };
   for (const [target, layer] of Object.entries(layers)) assert.equal(byTarget(result, target)?.layer, layer, `${target} is not in the ${layer} layer`);
   const ranks = ['#80', '#81', '#82', '#83'].map((t) => byTarget(result, t).rank);

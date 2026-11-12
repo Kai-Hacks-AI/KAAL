@@ -1,6 +1,6 @@
-# Coordination: Change (A to B)
+# analyze Flow: Change (A to B)
 
-This is `coordination/C1`, a PLAN Change. It ships no code. It adds one read-only script to the `kaal-release` Skill. Its ids are in the scope `coordination/`, which holds no `release/` id, so it cannot collide with the `release/` ids used by #1350 and by `engineering/release-management`. Whether those two collide with each other is for them to settle, not this Change.
+This is `coordination/C1`, a PLAN Change. It ships no code. It adds one read-only script to the `kaal-release` Skill, the detective control `analyze Flow` (Owner, 12 Nov 2026): it makes the flow transparent and authorizes nothing. Its ids are in the scope `coordination/`, which holds no `release/` id, so it cannot collide with the `release/` ids used by #1350 and by `engineering/release-management`. Whether those two collide with each other is for them to settle, not this Change.
 
 ## A: the present
 

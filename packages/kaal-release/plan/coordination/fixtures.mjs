@@ -1,21 +1,21 @@
 // Shared fixtures for the coordination Cases. Not a Case. The Script under test is
-// packages/kaal-release/skills/kaal-release/scripts/coordinate.mjs, exporting coordinate(facts, declaration) -> { actions, notJudged }.
+// packages/kaal-release/skills/kaal-release/scripts/analyze-flow.mjs, exporting analyzeFlow(facts, declaration) -> { actions, notJudged }.
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
-export const scriptPath = join(repo, 'packages/kaal-release/skills/kaal-release/scripts/coordinate.mjs');
+export const scriptPath = join(repo, 'packages/kaal-release/skills/kaal-release/scripts/analyze-flow.mjs');
 
-export async function coordinate(facts, declaration) {
+export async function analyzeFlow(facts, declaration) {
   const module = await import(pathToFileURL(scriptPath).href);
-  return module.coordinate(facts, declaration);
+  return module.analyzeFlow(facts, declaration);
 }
 
 // The declaration is the consumer's: the target, the types of its templates, the policy, the ordered promotion pairs, the holds.
 export const declaration = (over = {}) => ({
   target: 'main',
   types: { promotion: 'PROMOTION', sync: 'SYNC', change: ['PLAN', 'DO', 'ACT'], hotfix: 'HOTFIX', fallback: 'DEFAULT' },
-  policy: { promotionsInFlight: 1 },
+  policy: { wipLimit: { promotion: 1 } },
   freshnessChecks: ['fresh'],
   promotions: [{ collector: 'col-a', change: 'c/C1' }],
   holds: [],
