@@ -1,0 +1,95 @@
+{
+  "scenarios": [
+    {
+      "id": "S1",
+      "writtenIn": "requirement",
+      "statement": "A Change that holds files of two owners that must travel apart is refused, and each offending file is named.",
+      "parts": [
+        "solution/target"
+      ],
+      "finding": "none"
+    },
+    {
+      "id": "S2",
+      "writtenIn": "requirement",
+      "statement": "The verdict is produced by an automated job on every proposed Change into a collector.",
+      "parts": [
+        "delivery/target"
+      ],
+      "finding": "none"
+    },
+    {
+      "id": "S3",
+      "writtenIn": "change",
+      "statement": "Move the judgment of the local check onto the control's own declaration, then remove the old block once the replay agrees with it.",
+      "parts": [
+        "change/change"
+      ],
+      "finding": "none"
+    },
+    {
+      "id": "S4",
+      "writtenIn": "requirement",
+      "statement": "The judge returns PASS, FAIL or UNKNOWN, and until the replay agrees the old script keeps judging as well.",
+      "parts": [
+        "solution/target",
+        "change/change"
+      ],
+      "finding": "mixed"
+    },
+    {
+      "id": "S5",
+      "writtenIn": "requirement",
+      "statement": "The control shall be migrated from the old script to the judge.",
+      "parts": [
+        "change/change"
+      ],
+      "finding": "misplaced"
+    },
+    {
+      "id": "S6",
+      "writtenIn": "change",
+      "statement": "Every application of the control records the control, the place, the verdict and the offending paths. No requirement states it.",
+      "parts": [
+        "solution/target"
+      ],
+      "finding": "misplaced"
+    },
+    {
+      "id": "S7",
+      "writtenIn": "change",
+      "statement": "So that the local check passes on every machine, it treats UNKNOWN as PASS. It is a step of the Change that delivers the check.",
+      "parts": [
+        "delivery/change",
+        "solution/change"
+      ],
+      "finding": "weakens-solution"
+    },
+    {
+      "id": "S8",
+      "writtenIn": "requirement",
+      "statement": "The check must be mandatory.",
+      "parts": [],
+      "finding": "ambiguous"
+    },
+    {
+      "id": "S9",
+      "writtenIn": "change",
+      "statement": "Add the local placement. It calls the verdict function of the judge, which does not exist yet.",
+      "parts": [
+        "delivery/change"
+      ],
+      "finding": "dependency"
+    },
+    {
+      "id": "S10",
+      "writtenIn": "requirement",
+      "statement": "The control judges from the changed paths, and the judge is run by a job of the hosting platform on each proposed Change.",
+      "parts": [
+        "solution/target",
+        "delivery/target"
+      ],
+      "finding": "mixed"
+    }
+  ]
+}
