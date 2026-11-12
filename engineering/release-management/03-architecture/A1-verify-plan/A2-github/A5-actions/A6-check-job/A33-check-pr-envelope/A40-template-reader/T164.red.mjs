@@ -6,7 +6,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const reader = join(repo, 'engineering/release-management/05-src/plan-body/templates.mjs');
 export const id = 'release/T164';
 export const tests = ['release/A40'];
-export const title = 'the template reader sorts templates into declared KAAL templates, the known default and others, reports malformed, duplicate and chapterless declarations, and raises a decision point for other templates without judging them';
+export const title = 'the template reader sorts templates into declared KAAL templates, the DEFAULT fallback and others, reports malformed, duplicate and chapterless declarations, and raises a decision point for other templates without judging them';
 export async function run() {
   const { readTemplates } = await import(pathToFileURL(reader).href);
   const file = (path, text) => ({ path, text });
@@ -22,26 +22,27 @@ export async function run() {
   assert.equal(ok.decisions.length, 0, 'a valid template set raises a decision point');
   assert.equal(ok.fallback, undefined, 'a fallback is reported where there is none');
 
-  // the known default
-  const withDefault = readTemplates([file('.github/pull_request_template.md', plain(['Intent', 'Design', 'Verified by', 'Validated by'])), file(`${dir}plan.md`, template('PLAN', ['Change', 'From']))]);
-  assert.equal(withDefault.fallback?.path, '.github/pull_request_template.md', 'the default file is not recognised');
-  assert.equal(withDefault.registry.Intent, undefined, 'the default is in the registry');
-  assert.equal(withDefault.decisions.length, 0, 'the default is reported as a template that is not KAAL');
-  for (const path of ['PULL_REQUEST_TEMPLATE.md', 'docs/Pull_Request_Template.txt', '.github/PULL_REQUEST_TEMPLATE.md']) {
-    assert.equal(readTemplates([file(path, plain(['Intent']))]).fallback?.path, path, `the default file ${path} is not recognised`);
+  // the fallback: only a default file that declares DEFAULT
+  const withDefault = readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n' + plain(['Intent', 'Design'])), file(`${dir}plan.md`, template('PLAN', ['Change', 'From']))]);
+  assert.equal(withDefault.fallback?.path, '.github/pull_request_template.md', 'the declared default file is not the fallback');
+  assert.equal(withDefault.registry.DEFAULT, undefined, 'DEFAULT is in the registry');
+  assert.equal(withDefault.registry.Intent, undefined, 'the fallback chapters are in the registry');
+  assert.deepEqual(Object.keys(withDefault.registry), ['PLAN'], 'the registry holds more than the declared typed template');
+  assert.equal(withDefault.decisions.length, 0, 'the fallback is reported as a template that is not KAAL');
+  assert.equal(withDefault.findings.length, 0, 'a declared fallback has findings');
+  for (const path of ['pull_request_template.md', 'PULL_REQUEST_TEMPLATE.md', 'docs/Pull_Request_Template.txt', '.github/PULL_REQUEST_TEMPLATE.md']) {
+    assert.equal(readTemplates([file(path, '<!-- KAAL-PR-template: DEFAULT -->\n' + plain(['Intent']))]).fallback?.path, path, `the default file ${path} is not recognised`);
   }
+  const undeclaredDefault = readTemplates([file('.github/pull_request_template.md', plain(['Intent', 'Design']))]);
+  assert.equal(undeclaredDefault.fallback, undefined, 'a default file without a declaration is the fallback');
+  assert.deepEqual(undeclaredDefault.decisions[0]?.paths, ['.github/pull_request_template.md'], 'a default file without a declaration is not raised as a decision point');
 
-  // DEFAULT is a reserved fallback identity, not a TYPE
-  const declared = readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n' + plain(['Change', 'Summary'])), file(`${dir}plan.md`, template('PLAN', ['Change', 'From']))]);
-  assert.equal(declared.fallback?.path, '.github/pull_request_template.md', 'a default file that declares DEFAULT is not the fallback');
-  assert.equal(declared.fallback?.declared, true, 'a declared default is reported as undeclared');
-  assert.equal(withDefault.fallback?.declared, false, 'an undeclared default is reported as declared');
-  assert.equal(declared.registry.DEFAULT, undefined, 'DEFAULT is in the registry');
-  assert.equal(declared.findings.length, 0, 'a declared default has findings');
+  // DEFAULT is a reserved declaration, not a type
   assert.ok(readTemplates([file(`${dir}x.md`, template('DEFAULT', ['Change']))]).findings.length > 0, 'DEFAULT in a template of the directory is accepted');
   assert.ok(readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n<!-- KAAL-PR-template: DEFAULT -->\n## Change\n')]).findings.length > 0, 'a second DEFAULT is accepted');
-  assert.ok(readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n## Change\n'), file('docs/pull_request_template.md', '## Change\n')]).findings.length > 0, 'two default files are accepted');
-  assert.ok(readTemplates([file('.github/pull_request_template.md', template('PLAN', ['Change']))]).registry.PLAN, 'a typed declaration in the default path is not read as a typed template');
+  assert.ok(readTemplates([file('.github/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n## Change\n'), file('docs/pull_request_template.md', '<!-- KAAL-PR-template: DEFAULT -->\n## Change\n')]).findings.length > 0, 'two default files are accepted');
+  assert.ok(readTemplates([file('.github/pull_request_template.md', template('PLAN', ['Change']))]).findings.length > 0, 'a typed declaration in the default path is accepted');
+  assert.ok(readTemplates([file(`${dir}plan.md`, template('PLAN', ['Change']) + '<!-- KAAL-PR-template: DEFAULT -->\n')]).findings.length > 0, 'a typed template that also declares DEFAULT is accepted');
 
   // other templates: reported, not ignored, not judged, not invalid
   const other = readTemplates([file(`${dir}plan.md`, template('PLAN', ['Change', 'From'])), file(`${dir}release.md`, plain(['Summary', 'Testing']) + '\n<!-- some-other-marker: 1 -->\n')]);

@@ -7,7 +7,7 @@
 
 ## DO
 
-1. Add `05-src/plan-body/templates.mjs` (A40): it reads the templates of the base, sorts them into declared KAAL templates, the known default and other templates, derives the registry from the declarations, and raises a decision point for the other templates.
+1. Add `05-src/plan-body/templates.mjs` (A40): it reads the templates of the base, sorts them into declared KAAL templates, the DEFAULT fallback and other templates, derives the registry from the declarations, and raises a decision point for the other templates.
 2. Add `05-src/plan-body/envelope.mjs` (A33): it takes title, body, base, head, commits and the registry as input, applies the shared rules, the structure of the declared template and the rows keyed by TYPE, and reports what it did not judge. It runs by hand and reads no git or GitHub.
 3. Rename the Cases from `T<n>.red.mjs` to `T<n>.test.mjs` when they are green.
 
@@ -17,7 +17,7 @@ The templates on `main` carry no declaration yet, and `.github` cannot ride with
 
 ## Two tracks
 
-- **Track 1, not this Change:** the existing fallback `.github/pull_request_template.md` (Intent, Design, Verified by, Validated by) is brought up to par by a separate CTO Change through the `.github` lane. C12 does not own the fallback redesign. The fallback is only for a PR that no typed template covers.
+- **Track 1, not this Change:** the existing fallback `.github/pull_request_template.md` (Intent, Design, Verified by, Validated by) is brought up to par by a separate CTO Change through the `.github` lane. C12 does not own the fallback redesign. The fallback is only for a PR that no typed template covers, and it declares itself with `<!-- KAAL-PR-template: DEFAULT -->`, the marker agreed with that Change. A default file without the declaration is reported as a template that is not a KAAL template.
 - **Track 2, this Change:** the template reader and the envelope judge. The two tracks converge on `main` through the one-promotion-at-a-time SYNC and PROMOTION discipline.
 
 ## Staging and what is not judged
