@@ -6,7 +6,7 @@ The PLAN of C14 observes its RED against `main`. Work that is not on `main` is n
 
 - Baseline: `main` at `247f35a32c3083c1dcd0d038bb4e1578b1241559`. `main` holds the default template with the chapters Intent, Design, Verified by and Validated by, and the specialized templates `plan.md` and `act.md`.
 - Method: the nine Cases of this PLAN (T172 to T180) are run over two trees, each Case's `run()` called. The first holds `main`'s templates and none of this PLAN's documents. The second holds this PLAN's documents and the old default template.
-- A throwaway reference template, outside the repository, was used once to show that the Cases can pass: all nine were green with it. It carries the two chapters of F18 with a leading comment and a hint each, and implies no wording of the delivered template.
+- A throwaway reference template, outside the repository, was used once to show that the Cases can pass: all nine were green with it, and T174 turned red when a specialized template was made to declare DEFAULT. It carries the DEFAULT declaration, the two chapters of F18, a leading comment and a hint each, and implies no wording of the delivered template.
 
 ## Result
 
@@ -14,8 +14,8 @@ The PLAN of C14 observes its RED against `main`. Work that is not on `main` is n
 | --- | --- | --- | --- |
 | release/T172 | I8 | RED: I8 is absent | green |
 | release/T173 | F18 | RED: F18 is absent | RED: the chapters are not Change and Because |
-| release/T174 | F18 | RED: F18 is absent | RED: the default does not start with the shared Change chapter |
-| release/T175 | A41 | RED: A41 is absent | RED: the leading comment does not call the template the fallback |
+| release/T174 | F18 | RED: F18 is absent | RED: the default does not declare DEFAULT |
+| release/T175 | A41 | RED: A41 is absent | RED: the default does not start with the DEFAULT declaration |
 | release/T176 | A41 | RED: A41 is absent | RED: the default does not point to the directory of specialized templates |
 | release/T177 | A42 | RED: A42 is absent | RED: the default does not say that it is the fallback |
 | release/T178 | G45 | RED: I8 is absent | green |

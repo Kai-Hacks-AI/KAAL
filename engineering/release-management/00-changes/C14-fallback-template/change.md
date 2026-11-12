@@ -5,7 +5,7 @@
 1. Add I8, F18, A41 and A42 with their Cases T172 to T177, and C14 with its own Cases T178 to T180, one per gap.
 2. The expected RED is observed against `main` (`evidence.md`).
 3. The fallback has two chapters, Change and Because, as F18 states. Intent is absorbed by those two, Design stays in the files of the Change, and Verified by and Validated by stay with the checks and the reviews.
-4. The fallback identifies itself by its path, the single default file GitHub names, and by a leading comment that calls it the fallback. It carries no declaration and is not a TYPE.
+4. The fallback identifies itself by the declaration `<!-- KAAL-PR-template: DEFAULT -->` on the first line of the single default file GitHub names, and by a leading comment that calls it the fallback. DEFAULT is a reserved identity and not a TYPE.
 5. The PLAN delivers no template, no checker and no enforcement, and cites no document that is not on `main`.
 
 ## DO
@@ -25,4 +25,4 @@
 
 ## Dependencies
 
-check PR Envelope (release/C12) classifies the default file as the known default and judges no pull request by it. This Change adds no marker for C12 to read. Whether the fallback should carry an explicit marker that is not a TYPE is an open question for review. The specialized templates stay as they are.
+The contract with check PR Envelope (release/C12, #1435), proposed to that Change and to be confirmed there: the reader classifies a file at the known default path that declares DEFAULT as the fallback, separate from specialized templates and from templates that are not KAAL templates; the fallback is never in the registry, never judges a pull request and never takes precedence over a declared TYPE; DEFAULT declared elsewhere, declared twice or declared by a specialized template is a finding on the template set; a title whose TYPE is DEFAULT is unsupported; a default file with no declaration stays the known default. This Change adds the declaration and its Cases and implements nothing in the reader. The specialized templates stay as they are.
