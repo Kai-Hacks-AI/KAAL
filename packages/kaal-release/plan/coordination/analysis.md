@@ -1,51 +1,50 @@
 # Coordination: analysis
 
-The CTO handover asked seven questions. Evidence is from the repository and the open pull request list of 12 Nov 2026. Nothing was run.
+The CTO handover asked seven questions. Evidence is from the repository and the open pull request list of 12 Nov 2026. Nothing was run against GitHub.
 
 ## 1. Where it belongs
 
-In the `kaal-release` Skill, as a script (Owner decision, 12 Nov). The kaal-release PLAN (#1350) constrains how:
+In the `kaal-release` Skill, as a script (Owner, 12 Nov). The kaal-release PLAN (#1350) constrains how:
 
-- F5/I2: shipped files hold no KAAL identity. The Script therefore carries no collector, control or branch-lineage name. KAAL's conventions are supplied by a **declaration the consumer owns**. KAAL's declaration lives in `engineering/release-management/` (Delivery, not shipped).
+- F5/I2: shipped files hold no KAAL identity. The Script carries no collector, control or branch-lineage name. KAAL's conventions are supplied by a **declaration the consumer owns**; KAAL's declaration lives in `engineering/release-management/` (Delivery, not shipped).
 - N2: no runtime dependency on KAAL. The Script cannot import the existing KAAL code.
-- N3, T9: written for a Skill-only 0.0.1, and amended (see 00-changes.md).
-- I3 and F3: the Skill never forces a decision. "One promotion in flight" is therefore a declared policy, not a built-in. If it is not declared, the Script reports so.
+- I3, F3: the Skill never forces a decision, so "one promotion pair in flight" is declared policy and the pair order is declared.
 - I9, F8: Release owns the decision whether progression is allowed. The Script lists recommendations, not verdicts.
+- N3, T9 and others were written for a Skill-only 0.0.1: amended, exactly, in amendments.md.
 
 ## 2. What exists and is reused
 
-- **track Work** (old release-management/C7: #1363, #1364) is on the blocked `kaal/engineering-release-management` collector, not on `main`. Its gatherer already reads open pull requests, review state at the head commit, unresolved threads, behind-base, auto-merge, CI per check (newest run of each name) and collector distance to `main`. Its sort already yields "branch with no pull request" and "collector with no promotion pull request". It has no priority, no dependency, no SYNC purpose, no REVISE and no pair invariant. Its ideas are ported, not imported (N2). Its old id C7 now belongs to the DO template. Moving branches to conform is acceptable (Owner, 12 Nov).
-- **C12 / #1435** derives a pull request TYPE from the title and a registry of types from the templates. Only the PLAN and ACT templates are on `main`. SYNC, PROMOTION and DO templates arrive with #1441 to #1445. Until then those TYPEs are "unsupported", and the Script reports it.
-- **kaal-engineer-skill** checks Skill conformance (T7). Whether it accepts a `scripts/` directory is unverified.
+- **track Work** (#1363, #1364), on the blocked `kaal/engineering-release-management` collector and not on `main`, already gathers open requests, review at the head, unresolved threads, behind-base, auto-merge, CI per check and collector distance. It has no priority, dependency, pair or sync purpose. Its ideas are ported, not imported.
+- **C12 / #1435** reads a request's type from its declared template. The Script takes `type` as a fact and never reads a title; titles are the envelope control's concern.
+- **kaal-engineer-skill** already ships and checks `scripts/`.
 
-## 3. Input and output contract
+## 3. Layers and relationships
 
-See requirements.md (F2 to F4). Input is a facts file plus a declaration file. Output is an ordered list and a separate "not judged" list.
+The layers backwards from the outcome are Publishing, Promotion, Integration, Development. Two relationships are explicit, never inferred from titles or from the SYNC Reason prose:
+
+- **Promotion pair.** A SYNC and a PROMOTION that prepare and deliver one collector's Change. It is a declared (collector, Change) entry in an ordered list. Its members are found by structure: a sync-type request into the collector naming the Change, and a promotion-type request from the collector into the target. A member that does not exist is OPEN PR. Only the first incomplete pair is active; requests already open for later pairs wait and never become competing active pairs.
+- **Development sync.** A SYNC that unblocks one Change: it names that Change. Synchronization is the remedy only when a declared freshness check fails while the collector is behind the target. A conflict, a branch behind its base, another failing check and a missing review are REVISE PR or REVIEW PR instead. A development sync does not occupy the promotion lane.
+
+Templates: PLAN, DO, ACT, SYNC, PROMOTION, HOTFIX, with DEFAULT as fallback. HOTFIX is an exceptional route outside the pair. A DEFAULT or unknown type is reported and not classified.
 
 ## 4. Promotion SYNC vs development SYNC
 
-GitHub cannot say; the SYNC template's Reason chapter is prose and is not parsed. What is derivable is structural:
+A sync is a promotion sync when it matches a declared pair (base collector and Change), a development sync when it names the Change of a request blocked as above, and otherwise it has no purpose and is reported.
 
-- A SYNC whose base is the collector of the **declared current candidate**, or of an open promotion, is a promotion SYNC.
-- A SYNC into any other collector is a development SYNC.
-- Which collector is the candidate is CPO priority, so it is declared. With no declaration the SYNC's purpose is UNKNOWN and reported.
+## 5. Incomplete promotion and next candidate
 
-## 5. Detecting an incomplete promotion and the next candidate
+A pair is complete when a merged promotion request carries the collector's current head. "Collector ahead of `main`" is not used: promotions squash, so a promoted collector that survives looks ahead forever. The next candidate is the next declared pair, and its first step is OPEN PR for the sync when its collector is behind, or for the promotion.
 
-The promotion lane is busy while an open promotion request into the target exists, or an open promotion SYNC exists. It is released when the promotion request is **merged**, a GitHub fact. "Collector ahead of `main`" must not be used: promotions squash, so a promoted collector that survives looks ahead forever and would produce a false OPEN PR (a trap in the old track Work sort). The next candidate is the first declared candidate that is not yet promoted, and the next action for it is OPEN PR (SYNC) when behind the target, or OPEN PR (PROMOTION) when fresh and no promotion request exists.
+## 6. The live sequence
 
-Live observation: the open list on 12 Nov shows two PROMOTIONs into `main` (#1428 and #1440) and SYNC #1430. From GitHub alone the current pair cannot be told. This is the case the declared candidate settles.
+The real-world order is promotion #1440, then sync #1430, then promotion #1428. #1428 and #1440 are both open promotions, and #1430 is open. Declared as two ordered pairs, #1440 is the next action (review), #1430 waits for it, #1428 waits for #1430, and when #1440 merges #1430 becomes the next action. Case T13 shows it.
 
-## 6. First increment
+## 7. First increment and what stays outside
 
-The pure judge, a runner on a facts file and a declaration file, and the Cases. No gatherer.
-
-## 7. Outside the increment
-
-See 00-changes.md.
+The Script, its README, the Cases going GREEN, and the amendments applied. The gatherer, writes, DO and ACT proposals, the HOTFIX route, Publishing, and any wiring stay outside.
 
 ## Assumptions
 
 - Review is current only if it names the head commit.
 - A missing or ambiguous fact is reported, never guessed.
-- The SYNC convention (merge commit into the collector) and the squash promotion into `main` hold as recorded in the Delivery target.
+- The gatherer reads `type` and `change` from the template and the named Change, not from prose.

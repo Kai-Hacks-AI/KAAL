@@ -1,47 +1,41 @@
 # Coordination: Change (A to B)
 
-This is `coordination/C1`, a PLAN Change. It ships no code. It adds one read-only script to the `kaal-release` Skill. The id scope `coordination/` is provisional: `release/` is already used both by the kaal-release PLAN (#1350) and by `engineering/release-management`, and the ids would collide. See "Open for the CPO".
+This is `coordination/C1`, a PLAN Change. It ships no code. It adds one read-only script to the `kaal-release` Skill. Its ids are in the scope `coordination/`, which holds no `release/` id, so it cannot collide with the `release/` ids used by #1350 and by `engineering/release-management`. Whether those two collide with each other is for them to settle, not this Change.
 
 ## A: the present
 
-- `kaal-release` is Skill-only (#1350, not yet merged; no package on `main`).
-- The CPO and CTO reconstruct by hand which pull request deserves attention, whether it needs creating, review, revision or auto-merge, and which collector is promoted next.
-- Nothing reports a pull request that does not exist yet.
+- `kaal-release` is Skill-only (#1350, approved at its exact head, not yet merged; no package on `main`).
+- The CPO and CTO reconstruct by hand which pull request deserves attention, whether it needs creating, review, revision or auto-merge, which collector is promoted next, and whether a SYNC prepares a promotion or only unblocks a Change.
+- Nothing reports a pull request that does not exist yet, and the relationship between a promotion's SYNC and PROMOTION, or between a SYNC and the Change it unblocks, is nowhere stated.
 
 ## B: the target
 
-One deterministic script in the Skill turns declared policy and gathered facts into an ordered action list. See [requirements.md](requirements.md) and [testing.md](testing.md). Analysis: [analysis.md](analysis.md).
+One deterministic script in the Skill turns declared pairs and policy plus gathered facts into an ordered action list, derived backwards from the outcome through Publishing, Promotion, Integration and Development and printed forwards. See [requirements.md](requirements.md) and [testing.md](testing.md). Analysis: [analysis.md](analysis.md).
 
-## The route
+## The route, and the sequencing against #1350
 
-1. This PLAN, approved by exact-head CPO review, into the `kaal/release/plan` collector.
-2. Amend #1350 (below). Land #1350's PLAN first.
-3. DO: the package shape from #1350's DO must exist; then the script, Cases RED then GREEN.
-4. A second Change adds the live gatherer, run on the Owner's device.
+Resolved: #1350 merges first, untouched. This PLAN neither edits nor waits inside it.
 
-## Amendments to #1350 (these become a PLAN edit once #1350 is in the collector)
+1. #1350 lands through its own protected route (CPO: no override, no manual merge).
+2. This PLAN, approved by exact-head CPO review, into the `kaal/release/plan` collector. It can be reviewed now; it merges after #1350.
+3. One commit on this branch applies the ten edits of [amendments.md](amendments.md) to #1350's files, after the collector is merged into the head.
+4. DO: the package shape from #1350's DO exists; then the Script, the Cases going from RED to GREEN, and the refactor they allow.
+5. A second Change adds the live gatherer, run on the Owner's device.
 
-| #1350 text | Amendment |
+## Questions raised earlier, and where they stand
+
+| Question | Resolution |
 | --- | --- |
-| N3: ships no Script | 0.0.1 ships one Script. It still verifies nobody's release and only recommends. |
-| T9: README states no Script | README states one read-only Script and what it does not do. |
-| Open item 2: Skill-only or with a first Script | Resolved by the Owner (12 Nov): with a first Script. |
-| I5 and USE vs BUILD row: Script later, only when a behaviour must repeat exactly | Release coordination is that behaviour. |
-| Architecture and BASS rows: no deterministic element shipped | The deterministic element is this Script. |
-| T5: scans shipped files for KAAL identities | Also scans the Script and its fixtures. F5 itself is unchanged. |
-| T8 / N2: no KAAL runtime dependency | Unchanged. The Script has no dependencies and imports nothing from KAAL. |
+| Does a `scripts/` directory conform? | Yes. `kaal-engineer-skill` ships `skills/<name>/scripts/` through its `files` list, and its checker requires a referenced `scripts/` file to exist. `SKILL.md` must name the Script and the package must carry it (F1). |
+| Sequencing against #1350 | Above. |
+| Id scope | `coordination/`, with no `release/` id. |
+| Are `OPEN PR` and `PR` acceptable words in a generic Skill | Yes. The Owner and CPO name these actions. |
+| Declared file or command line for the pair order and the holds | A declared file, the declaration of F3. The pair order is the CPO's priority and must be reviewable. The Owner has not yet confirmed it. |
 
 ## Out of scope
 
 - Any write: creating pull requests, approving, merging, enabling auto-merge, commenting.
-- Proposing DO or ACT pull requests from Change state (a later increment).
-- The hotfix route, the npm release step, and wiring into hooks, CI, Guard or rulesets.
-- The live `gh` gatherer (its own Change).
-- Retiring track Work (a MERIT decision after the Script is on `main`).
-
-## Open for the CPO
-
-1. Id scope. `coordination/` is a stand-in until the `release/` collision is settled.
-2. Sequencing. Wait for #1350's PLAN and DO, or fold the Script into #1350.
-3. Whether `OPEN PR` and `PR` are acceptable words in a generic Skill, or the host-neutral term should be used with `PR` as a worked-example synonym.
-4. Whether `kaal-engineer-skill`'s checker accepts a `scripts/` directory (unverified).
+- Gathering the facts from the host (its own Change). The gatherer reads each request's template type and named Change; the Script never parses titles or prose.
+- Proposing DO or ACT pull requests from Change state.
+- The HOTFIX route (reported, not modelled), the Publishing layer (reported, not modelled), hooks, CI, Guard and rulesets.
+- Retiring track Work (a decision after the Script is on `main`).
