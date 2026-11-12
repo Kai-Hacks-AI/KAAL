@@ -20,7 +20,8 @@ The control's contract is placement-independent: a defined input, a record of wh
 
 | Analyzed today | Not analyzed today |
 | --- | --- |
-| Dependencies added or changed between a base and a head | The full inventory of dependencies already present |
+| Dependencies added or changed between a base and a head, runtime scope | The full inventory of dependencies already present |
+| | Development dependencies: the action counts runtime scope only unless configured (observed, `acceptance.md` A7) |
 | Advisories known at the time of the analysis | Advisories published later against unchanged dependencies |
 
 The not-analyzed column is an open coverage gap of the realization. C5 does not close it, and it needs a Change of its own with its own mechanism. It does not change the PASS, FAIL and UNKNOWN meanings. Where the control runs (pull request, Integration, Promotion, a schedule) is a separate decision in `transition.md` and `ruleset-needs.json`.
