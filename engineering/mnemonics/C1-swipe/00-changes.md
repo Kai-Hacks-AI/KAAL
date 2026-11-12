@@ -12,4 +12,4 @@ The mnemonic exists only in a draft. `engineering/` holds no `SWIPE.md`, so the 
 
 ## Order and constraints
 
-This Change travels alone, in its own collector `kaal/mnemonics/swipe`, and not with pull request 1476. It changes no architecture, no Show WIP behavior and no vocabulary of the flow board. The expected moves named in the definition are the ones the CPO named; the board's own move set is not decided here.
+This Change travels alone, in its own collector `kaal/mnemonics-swipe` (the name `kaal/mnemonics/swipe` is impossible while the branch `kaal/mnemonics` exists), and not with pull request 1476. It changes no architecture, no Show WIP behavior and no vocabulary of the flow board. The expected moves named in the definition are the ones the CPO named; the board's own move set is not decided here.
