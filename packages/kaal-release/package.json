@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w @kaihacksai/kaal-hosting",
-    "test": "node --test test/release.test.mjs"
+    "test": "node --test test/release.test.mjs test/pull.test.mjs"
   },
   "engines": {
     "node": ">=24"

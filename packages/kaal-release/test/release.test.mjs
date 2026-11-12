@@ -205,8 +205,9 @@ describe("kaal-release", () => {
     }
   });
 
-  it("release/T9 (release/N3): the README states Skill-level guidance with the one hosted Script analyze-flow.mjs, and no verification of anyone's release", () => {
-    assert.match(README, /Skill-level guidance with one Script, `analyze-flow\.mjs`, hosted inside the Skill/);
+  it("release/T9 (release/N3): the README states Skill-level guidance with the hosted read-only Scripts, and no verification of anyone's release", () => {
+    assert.match(README, /Skill-level guidance with two read-only Scripts, `analyze-flow\.mjs` and `pull-promotion\.mjs`, hosted inside the Skill/);
+    assert.match(README, /recommends only, and verifies and authorizes nothing/);
     assert.match(README, /does not verify anyone's release/);
   });
 
