@@ -1,0 +1,291 @@
+{
+  "capturedAt": "2026-11-12T12:55:00Z",
+  "source": "Captured by a person-driven agent from the real repository Kai-Hacks-AI/KAAL through the GitHub API (pull requests #1447, #1458, #1461, their reviews and comments, the check runs of #1461, the job log of its newest Branching run, and the branch heads). Not reconstructed. It records what the host showed at capturedAt and does not change as the repository moves.",
+  "collector": "kaal/release/wire-fallback-template",
+  "change": "release/C14",
+  "facts": {
+    "target": {
+      "from": "a7ce82dae43a9232ba2b3b90db62d7a1fbe58234"
+    },
+    "collectors": [
+      {
+        "name": "kaal/release/wire-fallback-template",
+        "at": "3fde678f15563ff66561f8c26221927e84e3a4eb",
+        "behindTarget": 0
+      },
+      {
+        "name": "kaal/release/fallback-template",
+        "at": "5c976fb"
+      }
+    ],
+    "pieces": [
+      {
+        "ref": "#1458",
+        "type": "DO",
+        "change": "release/C14",
+        "into": "kaal/release/wire-fallback-template",
+        "from": "claude/project-thread-8c3n1b-do",
+        "at": "9f691d531e3a10b330dd134081e42eba942b8e1a",
+        "state": "landed",
+        "landedAt": "2026-11-12T12:29:06Z",
+        "checks": [],
+        "fit": "fits",
+        "openComments": 0,
+        "landsOnApproval": true,
+        "review": {
+          "state": "approved",
+          "at": "9f691d531e3a10b330dd134081e42eba942b8e1a"
+        }
+      },
+      {
+        "ref": "#1447",
+        "type": "PLAN",
+        "change": "release/C14",
+        "into": "kaal/release/fallback-template",
+        "from": "unrecorded",
+        "at": "5c976fb",
+        "state": "landed",
+        "checks": [],
+        "fit": "fits",
+        "openComments": 0,
+        "landsOnApproval": true
+      },
+      {
+        "ref": "#1461",
+        "type": "PROMOTION",
+        "change": "release/C14",
+        "into": "main",
+        "from": "kaal/release/wire-fallback-template",
+        "at": "3fde678f15563ff66561f8c26221927e84e3a4eb",
+        "state": "open",
+        "checks": [
+          {
+            "name": "Acceptance",
+            "conclusion": "success"
+          },
+          {
+            "name": "Acceptance (Windows)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Acceptance (macOS)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Branching",
+            "conclusion": "failure"
+          },
+          {
+            "name": "Change Isolation",
+            "conclusion": "success"
+          },
+          {
+            "name": "Change Isolation (review)",
+            "conclusion": "success"
+          },
+          {
+            "name": "CodeQL",
+            "conclusion": "success"
+          },
+          {
+            "name": "CodeQL (actions)",
+            "conclusion": "success"
+          },
+          {
+            "name": "CodeQL (javascript-typescript)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Dependency Review",
+            "conclusion": "success"
+          },
+          {
+            "name": "Engineering",
+            "conclusion": "success"
+          },
+          {
+            "name": "Guard",
+            "conclusion": "success"
+          },
+          {
+            "name": "Guard (Windows)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Guard (macOS)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Hosting (Linux)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Hosting (Windows)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Hosting (macOS)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Promotion Source",
+            "conclusion": "success"
+          },
+          {
+            "name": "Workspaces",
+            "conclusion": "success"
+          }
+        ],
+        "fit": "fits",
+        "openComments": 0,
+        "landsOnApproval": false,
+        "review": null
+      }
+    ],
+    "deliveries": [],
+    "gaps": [
+      {
+        "subject": "#1458",
+        "missing": "checks at its landing: the capture read the checks of #1461 only"
+      },
+      {
+        "subject": "#1447",
+        "missing": "head, review and landing time were not read: the capture records its merge commit 5c976fb only"
+      },
+      {
+        "subject": "kaal/release/fallback-template",
+        "missing": "behindTarget: not compared; PR #1461 says only that the engineering part follows after a SYNC"
+      }
+    ]
+  },
+  "raw": {
+    "checkRuns": [
+      {
+        "name": "Branching",
+        "conclusion": "failure",
+        "startedAt": "2026-11-12T12:30:36Z"
+      },
+      {
+        "name": "Branching",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:30:06Z"
+      },
+      {
+        "name": "Promotion Source",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:30:01Z"
+      },
+      {
+        "name": "Change Isolation",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:30:01Z"
+      },
+      {
+        "name": "Branching",
+        "conclusion": "failure",
+        "startedAt": "2026-11-12T12:30:01Z"
+      },
+      {
+        "name": "Change Isolation (review)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Workspaces",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Hosting (Windows)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:57Z"
+      },
+      {
+        "name": "Acceptance (Windows)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Hosting (Linux)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Hosting (macOS)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:31:51Z"
+      },
+      {
+        "name": "Acceptance",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Engineering",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Acceptance (macOS)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:30:55Z"
+      },
+      {
+        "name": "Guard",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Guard (macOS)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:30:43Z"
+      },
+      {
+        "name": "Promotion Source",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "CodeQL (javascript-typescript)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Change Isolation",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Guard (Windows)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "Branching",
+        "conclusion": "failure",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "CodeQL (actions)",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:55Z"
+      },
+      {
+        "name": "Dependency Review",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:56Z"
+      },
+      {
+        "name": "CodeQL",
+        "conclusion": "success",
+        "startedAt": "2026-11-12T12:29:51Z"
+      }
+    ],
+    "reduction": "newest run per check name by startedAt"
+  },
+  "readBySomeone": {
+    "branchingLogOfNewestRun": "Fresh: merging kaal/release/wire-fallback-template (3fde678) into main (a7ce82d) yields exactly the head's validated tree. / Merge method: Auto-merge is disabled for this pull request into main. Enable auto-merge with squash before integration.",
+    "holdComment": "On hold: draft, auto-merge off. Kai's promotion order for the release lane is C7, C10, C9 with one promotion at a time, and C14 has no promotion go yet. This PR is not to be reviewed or merged until it is marked ready again.",
+    "note": "Neither line is a structured fact. The check conclusion is the only evidence a Script may use; the lines are kept so a person can see what the conclusion hides."
+  }
+}
