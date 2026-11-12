@@ -1,0 +1,24 @@
+// Case release/T173 tests: F18
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
+const cap = join(repo, 'engineering/release-management');
+const fallback = join(repo, '.github/pull_request_template.md');
+const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
+const headings = (text) => text.split('\n').filter((line) => line.startsWith('## ')).map((line) => line.slice(3).trim());
+export const id = 'release/T173';
+export const tests = ['release/F18'];
+export const title = 'the fallback template has two chapters, Change and Because, each with a hint, and no visible text beyond the headings, no link and no emoji';
+export function run() {
+  read(join(cap, '02-requirements/F18-fallback-interface/F18.md'), 'F18');
+  const text = read(fallback, 'the fallback template');
+  assert.deepEqual(headings(text), ['Change', 'Because']);
+  const chapters = text.split(/^## .*$/m).slice(1);
+  assert.deepEqual(chapters.map((part) => /<!--[\s\S]*?-->/.test(part)), [true, true], 'every chapter carries a hint');
+  const visible = text.split(/<!--[\s\S]*?-->/).join('').split('\n').filter((line) => line.trim() !== '');
+  assert.ok(visible.every((line) => line.startsWith('## ')), 'the template shows text beyond its headings');
+  assert.ok(!/https?:\/\//.test(text), 'the template holds a link');
+  assert.ok(!/\p{Extended_Pictographic}/u.test(text), 'the template holds an emoji');
+}
