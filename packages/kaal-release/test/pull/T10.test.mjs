@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { collector, declaration, facts, flow, landed, promotion, pullPromotion, delivery, ok, lifecycle } from './fixtures.mjs';
 export const id = 'pull/T10';
 export const tests = ['pull/F3'];
-export const title = 'the Script models no collector state of its own: it reads only the fields of analyze Flow\'s facts, plus the three optional additions, and only the fields of its output and lane';
+export const title = 'the Script models no collector state of its own: it reads only the fields of analyze Flow\'s facts, plus the four optional additions, and only the fields of its output and lane';
 export async function run() {
   // coordination/F2 names these; landedAt (piece and delivery) and collector checks are the only additions (pull/F3)
   const allowed = new Set([
     'target', 'from', 'collectors', 'name', 'at', 'behindTarget', 'checks', 'pieces', 'ref', 'type', 'change', 'into', 'state', 'review', 'landedAt',
     'deliveries', 'collector', 'delivered', 'gaps', 'conclusion', 'subject', 'missing', 'actions', 'notJudged', 'lane', 'active',
-    'action', 'kind', 'pair', 'layer', 'status', 'authority', 'reason', 'dependency', 'rank', 'evidence', 'purpose', 'class',
+    'affects', 'action', 'kind', 'pair', 'layer', 'status', 'authority', 'reason', 'dependency', 'rank', 'evidence', 'purpose', 'class',
   ]);
   const seen = new Set();
   const watch = (value) => {

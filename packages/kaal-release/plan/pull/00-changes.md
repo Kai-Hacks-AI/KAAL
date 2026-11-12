@@ -39,4 +39,4 @@ Promotion WIP stays one (the Script cannot make a second promotion ready). No ch
 
 ## Out of scope
 
-Any write; changing Analyze Flow's Script or contract (the three additions are requested of its owner, not made here); retiring track Work or any control.
+Any write; changing Analyze Flow's Script or contract (the four additions are requested of its owner, not made here); retiring track Work or any control.

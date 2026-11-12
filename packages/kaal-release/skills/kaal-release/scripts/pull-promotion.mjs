@@ -85,8 +85,22 @@ export function pullPromotion(facts, declaration, flow, collectorName) {
   // sequencing
   if (col.behindTarget === undefined) set('sequencing', 'UNKNOWN', 'the distance to the target is unknown', [], ['behindTarget']);
   else if (col.behindTarget > 0) set('sequencing', 'FAIL', `the collector is ${col.behindTarget} behind the target`);
-  for (const g of facts.gaps ?? []) notJudged.push(g);
-  for (const g of flow?.notJudged ?? []) notJudged.push(g);
+  // gaps: what the supplier or the flow could not read. A gap that bears on a judgment makes that judgment UNKNOWN; any other stays visible and blocks nothing
+  const changeIds = changes.map((c) => c.id);
+  const relevance = (g) => {
+    if (g.affects !== undefined) return ORDER.includes(g.affects) ? { id: g.affects, by: 'declared by the supplier' } : { id: 'attribution', by: `affects names ${JSON.stringify(g.affects)}, which is not a judgment` };
+    if (g.subject === collectorName) return { id: 'sequencing', by: 'it is a fact about the collector itself' };
+    if (g.subject in owned) return { id: owned[g.subject], by: 'it is a check with a declared owner' };
+    const piece = pieces.find((p) => p.ref === g.subject);
+    if (piece && (changeIds.includes(piece.change) || piece.into === collectorName || piece.from === collectorName)) return { id: 'lifecycle', by: 'it is a piece of a Change judged here' };
+    return null;
+  };
+  for (const g of [...(facts.gaps ?? []), ...(flow?.notJudged ?? [])]) {
+    const hit = relevance(g);
+    if (!hit) { notJudged.push({ ...g, affects: null, blocking: false }); continue; }
+    set(hit.id, 'UNKNOWN', `${g.subject}: ${g.missing}`, [], [g.subject]);
+    notJudged.push({ ...g, affects: hit.id, blocking: true, because: hit.by });
+  }
   const judgments = ORDER.map((id) => {
     const j = J[id];
     // keep only the evidence that explains a non-pass
