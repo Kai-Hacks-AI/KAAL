@@ -24,7 +24,7 @@ In `engineering/release-management/05-src/pull-promotion/`, one command obtains 
 
 - **In this Change:** the adapter, the command, its read-only and portability evidence (`pull/F14` to `pull/F18`), and the proof that nothing triggers it (`pull/F20`).
 - **Not in this Change:** any Git hook, CI workflow, scheduled job, required check, ruleset or Guard change; any automatic invocation; any PR creation, auto-merge, approval or promotion; any change to Analyze Flow's supplier or contract; any change to the capability (its re-basing is `pull/C3`, a separate Change). The command is run by hand.
-- **Dependency (revised, CPO direction of 12 Nov):** the integration depends on the shared host-observation elements and on the capability re-based on them, **not** on Analyze Flow: neither its findings nor its supplier (#1476). The elements, ownership and delivery order are proposed in [decomposition.md](decomposition.md), for CPO alignment before any implementation. The integration DO does not start before them.
+- **Dependency (revised, CPO direction of 12 Nov):** the integration depends on the shared host-observation elements and on the capability re-based on them, **not** on Analyze Flow: neither its findings nor its supplier (#1476). The elements, ownership and delivery order are proposed in [decomposition.md](decomposition.md), for CPO alignment before any implementation. The integration DO does not start before them, and it never consumes a private supplier of any capability. E1, E2, `pull/C3` and this integration are separate Changes with their own contracts and acceptance evidence, and `pull/C1` stays as the completed historical record.
 
 ## Order and constraints
 
