@@ -1,6 +1,6 @@
 # Pull Promotion v1 capability: Testing (target)
 
-Cases are runnable files, `T<n>.red.mjs`, beside the requirements, with shared fixtures in `fixtures.mjs`. They are RED because the Script exports no `walkCollectors`; they are not wired into any CI run (the DO moves them to `test/pull/` as `.test.mjs`). Run one with `node -e "import('./T19.red.mjs').then(m => m.run())"` from this folder. They need no network and no credential. T23 reads the recorded real evidence of `pull/C1` (`test/pull/evidence/`).
+Cases are runnable files `test/pull/T<n>.test.mjs` with shared fixtures in `test/pull/fixtures.mjs`, GREEN since the DO (they were `.red.mjs` beside this document in the PLAN). Run them with `npm test -w @kaihacksai/kaal-release`.
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
