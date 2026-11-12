@@ -1,0 +1,47 @@
+# KAAL release, analyze Vulnerabilities at Promotion: a pull request into main and its merge group.
+# The control is release/I4 (engineering/release-management). The step above the last one is the
+# retained GitHub Dependency Review mechanism; the last step asks Guard to run the check, whose
+# command classifies the result as PASS (exit 0), FAIL (1) or UNKNOWN (2). UNKNOWN never passes.
+#
+# Detective only: no ruleset requires this job, so it blocks nothing. It runs beside the old
+# `Dependency Review` workflow, which stays until its retirement. Until the Guard declaration
+# lands (the next Change) the last step reports that Guard does not know the check, and the
+# job fails harmlessly because nothing requires it.
+name: KAAL release
+
+on:
+  pull_request:
+    branches: [main]
+  merge_group:
+
+permissions: {}
+
+jobs:
+  analyze-vulnerabilities:
+    name: analyze Vulnerabilities (Promotion)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      # The retained mechanism. It may fail, and the failure is not the verdict: the step ends
+      # as success and its real result is read from `outcome` and the output below.
+      - name: Compare the added or changed dependencies with known advisories
+        id: analysis
+        continue-on-error: true
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
+      - name: Classify the result
+        env:
+          KAAL_ANALYZE_CONCLUSION: ${{ steps.analysis.outcome }}
+          KAAL_ANALYZE_VULNERABLE_CHANGES: ${{ steps.analysis.outputs.vulnerable-changes }}
+        run: npx --no kaal-guard run --check Analyze-Vulnerabilities --github
