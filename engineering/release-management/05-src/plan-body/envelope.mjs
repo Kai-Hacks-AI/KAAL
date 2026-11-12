@@ -3,6 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { checkPlanBody } from './check.mjs';
+import { stripComments } from './comments.mjs';
 
 const PROVENANCE = /https?:\/\/|\]\(|\p{Extended_Pictographic}|\b(generated (with|by)|co-authored-by|claude-session|claude code|requested by)\b/iu;
 const METADATA = /attribution|claude|session|thread|requested by|generated|co-authored|https?:\/\/|[{}]/i;
@@ -26,7 +27,7 @@ function sharedBodyRules(body) {
     else if (first === -1 || comment.index < first) problems.push('an HTML comment sits before the first chapter');
     else if (METADATA.test(comment[0])) problems.push('an HTML comment carries attribution or metadata');
   }
-  const text = body.replace(/<!--[\s\S]*?-->/g, '');
+  const text = stripComments(body);
   const lines = text.split('\n');
   const chapters = new Map();
   let current;
@@ -59,7 +60,7 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
   else if (CHANGE_ID.test(title[2]) || PROVENANCE.test(title[2])) problems.push('the title carries a Change id, a link, an emoji or attribution wording');
   const type = title?.[1];
   problems.push(...sharedBodyRules(facts.body));
-  const headings = typeof facts.body === 'string' ? [...facts.body.replace(/<!--[\s\S]*?-->/g, '').matchAll(/^##\s+(.*?)\s*#*\s*$/gm)].map((m) => m[1]) : [];
+  const headings = typeof facts.body === 'string' ? [...stripComments(facts.body).matchAll(/^##\s+(.*?)\s*#*\s*$/gm)].map((m) => m[1]) : [];
   if (type) {
     if (registry[type]) {
       if (JSON.stringify(headings) !== JSON.stringify(registry[type])) problems.push(`the chapters of a ${type} body must be ${registry[type].join(', ')} in this order (found: ${headings.join(', ') || 'none'})`);
@@ -72,7 +73,7 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
     if (ROUTE[type]) { if (!ROUTE[type](facts)) problems.push(`the route of a ${type} (base ${facts.base}, head ${facts.head}) does not fit its TYPE`); }
     else notJudged.push(`the route of ${type} has no row and is not judged`);
     if (IDENTITY.has(type)) {
-      const id = /^\S+/.exec(headings.length && typeof facts.body === 'string' ? facts.body.replace(/<!--[\s\S]*?-->/g, '').split(/^##\s+Change\s*$/m)[1]?.trim() ?? '' : '')?.[0];
+      const id = /^\S+/.exec(headings.length && typeof facts.body === 'string' ? stripComments(facts.body).split(/^##\s+Change\s*$/m)[1]?.trim() ?? '' : '')?.[0];
       for (const commit of facts.commits ?? []) {
         const trailers = [...commit.message.matchAll(/^Driven-by:\s*(\S+)\s*$/gim)].map((m) => m[1]);
         if (trailers.length !== 1) problems.push(`a commit has ${trailers.length} Driven-by trailers; it must have exactly one`);

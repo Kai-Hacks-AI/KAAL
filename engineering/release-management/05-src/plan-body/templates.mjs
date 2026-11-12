@@ -1,4 +1,5 @@
 // A40 template-reader: sorts the pull request templates of the base into declared KAAL templates,
+import { stripComments } from './comments.mjs';
 // the DEFAULT fallback and other templates, and derives the registry of types and their chapters.
 const DECLARATION = /<!--\s*KAAL-PR-template:\s*([^>]*?)\s*-->/g;
 const TYPE = /^[A-Z][A-Z0-9_]*$/;
@@ -6,7 +7,7 @@ const DEFAULT_PATH = /^(?:docs\/|\.github\/)?pull_request_template(?:\.[a-z0-9]+
 const DIRECTORY_PATH = /^(?:docs\/|\.github\/)?pull_request_template\/[^/]+$/i;
 const QUESTION = 'I found templates that are not KAAL templates; what should we do with them?';
 
-const headings = (text) => text.replace(/<!--[\s\S]*?-->/g, '').split('\n').filter((line) => /^##\s+\S/.test(line)).map((line) => line.replace(/^##\s+/, '').replace(/\s*#*\s*$/, ''));
+const headings = (text) => stripComments(text).split('\n').filter((line) => /^##\s+\S/.test(line)).map((line) => line.replace(/^##\s+/, '').replace(/\s*#*\s*$/, ''));
 
 export function readTemplates(files) {
   const registry = {};
