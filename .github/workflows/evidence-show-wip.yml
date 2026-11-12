@@ -1,0 +1,46 @@
+# TEMPORARY evidence run for Show WIP v1 (T39). Never merged; the PR is closed after the run.
+# Read-only token, no secrets, no write.
+name: evidence Show WIP
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: bc230ea451ed575351595056fa00f39111c7e9df
+          persist-credentials: false
+      - name: Run Show WIP against the live repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          mkdir -p out
+          D=engineering/release-management/05-src/show-wip
+          INV="node $D/run.mjs Kai-Hacks-AI/KAAL $D/show-wip.json"
+          echo "$INV" > out/invocation.txt
+          node --version > out/node-version.txt
+          gh --version | head -1 > out/gh-version.txt
+          $INV > out/report.txt 2> out/stderr.txt
+          echo $? > out/exit-code.txt
+          echo "head=$(git rev-parse HEAD)" > out/checkout.txt
+          echo "=== invocation"; cat out/invocation.txt
+          echo "=== checkout"; cat out/checkout.txt
+          echo "=== node"; cat out/node-version.txt
+          echo "=== gh"; cat out/gh-version.txt
+          echo "=== exit code"; cat out/exit-code.txt
+          echo "=== stderr"; cat out/stderr.txt
+          echo "=== report"; cat out/report.txt
+          exit 0
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: show-wip-live-run
+          path: out/
