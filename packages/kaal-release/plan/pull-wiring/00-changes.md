@@ -2,6 +2,8 @@
 
 This is `pull/C2`, a PLAN Change. It ships no code. It is the wiring of the capability `pull/C1` (the `pull-promotion.mjs` Script, [../pull/00-changes.md](../pull/00-changes.md)) into KAAL's host: the Engineering adapter that reads the real repository. By the Owner's rule of 12 Nov 2026, a wiring has its own PLAN and its own wiring collector and lands only after its capability is done. The core reason is to prevent cheating: the capability's contract cannot be weakened to go green against a wiring that already exists.
 
+A wiring collector wires things against the capability and never reimplements them (Owner, 12 Nov 2026). It is named `kaal/release/wire-<capability>`, the convention already in use; here `kaal/release/wire-pull-promotion`.
+
 ## A: the present
 
 `pull/C1` judges one collector from data. Nothing gathers that data from the real repository for KAAL, and nothing proves the Script on the real host.

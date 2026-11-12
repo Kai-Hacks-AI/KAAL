@@ -15,6 +15,8 @@ export async function run() {
   assert.ok(live && collector, 'KAAL_LIVE=<owner/repo> and KAAL_COLLECTOR=<collector> are required: this Case runs against the real host and is not simulated');
   const dir = join(repo, 'engineering/release-management/05-src/pull-promotion');
   const declared = join(dir, 'declaration.json');
+  // the baseline of the host is captured before the command runs for the first time, so a mutation by any run is seen
+  const before = execFileSync('gh', ['pr', 'list', '--repo', live, '--state', 'open', '--json', 'number,isDraft,autoMergeRequest,headRefOid'], { encoding: 'utf8' });
   const out = execFileSync('node', [join(dir, 'run.mjs'), live, declared, collector], { encoding: 'utf8' });
   const result = JSON.parse(out);
   assert.ok(['READY', 'BLOCKED', 'NOT JUDGED'].includes(result.verdict), 'no verdict');
@@ -24,7 +26,6 @@ export async function run() {
   assert.ok(result.judgments.filter((j) => j.status !== 'PASS').every((j) => j.because), 'a judgment that did not pass without a reason');
   assert.ok(['OPEN', 'REVIEW', 'REVISE', 'LAND', 'WAIT', null].includes(result.next.action), 'an action outside the five');
   // read-only: the repository's open pieces and their states are the same after the run
-  const before = execFileSync('gh', ['pr', 'list', '--repo', live, '--state', 'open', '--json', 'number,isDraft,autoMergeRequest,headRefOid'], { encoding: 'utf8' });
   execFileSync('node', [join(dir, 'run.mjs'), live, declared, collector], { encoding: 'utf8' });
   const after = execFileSync('gh', ['pr', 'list', '--repo', live, '--state', 'open', '--json', 'number,isDraft,autoMergeRequest,headRefOid'], { encoding: 'utf8' });
   assert.equal(after, before, 'the run changed the open pieces');
