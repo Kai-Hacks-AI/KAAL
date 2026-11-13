@@ -1,6 +1,6 @@
 # Pull Promotion v1 command: Testing (target)
 
-Two runnable RED Cases, `T14.red.mjs` and `T18.red.mjs`, kept out of the default CI run so CI stays green. Both fail because the command does not exist. T14 needs a runner with Node and one supported credential (pull/F15): `KAAL_LIVE=<owner/repo> node -e "import('./T14.red.mjs').then(m => m.run())"`. The capability's Cases (T19 to T23) belong to `pull/C3` and are listed in [v1.md](v1.md).
+Two runnable Cases, `T14` and `T18`, in `test/pull/` since the DO (they were `.red.mjs` beside this document in the PLAN). `T14` always checks the credential failure, the read-only source and the recorded live run (`engineering/release-management/05-src/pull-promotion/evidence/`), and with `KAAL_LIVE=<owner/repo>` it runs the command on the real host again. The capability's Cases (T19 to T25) belong to `pull/C3`.
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
