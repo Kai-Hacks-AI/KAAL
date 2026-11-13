@@ -4,325 +4,111 @@
       "name": "kaal/release/plan",
       "status": "does not qualify",
       "missing": [
-        "#1476 names no Change",
-        "#1512 names no Change",
-        "#1519 names no Change",
-        "#1521 names no Change",
-        "#1526 is open and names no Change",
-        "ACT of coordination/C1",
-        "ACT of pull/C2",
-        "DO of coordination/C1",
-        "DO of pull/C2",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": [
-        {
-          "id": "coordination/C1",
-          "complete": false,
-          "missing": [
-            "DO",
-            "ACT"
-          ]
-        },
-        {
-          "id": "pull/C1",
-          "complete": true,
-          "missing": []
-        },
-        {
-          "id": "pull/C2",
-          "complete": false,
-          "missing": [
-            "DO",
-            "ACT"
-          ]
-        },
-        {
-          "id": "pull/C3",
-          "complete": true,
-          "missing": []
-        }
+        "ACT: more than one retrospective (packages/kaal-release/plan/coordination-review/00-changes.md, packages/kaal-release/plan/coordination/00-changes.md, packages/kaal-release/plan/pull-v1/00-changes.md, packages/kaal-release/plan/pull/00-changes.md, packages/kaal-release/plan/release/00-changes.md)",
+        "Test Case pull/T19 has no execution at the current head",
+        "Test Case pull/T20 has no execution at the current head",
+        "Test Case pull/T21 has no execution at the current head",
+        "Test Case pull/T22 has no execution at the current head",
+        "Test Case pull/T23 has no execution at the current head",
+        "Test Case pull/T24 has no execution at the current head",
+        "Test Case pull/T25 has no execution at the current head"
       ]
     },
     {
       "name": "kaal/release/wire-fallback-template",
       "status": "does not qualify",
       "missing": [
-        "ACT of release/C14",
-        "DO of release/C6",
-        "DO of release/C7",
-        "PLAN of release/C14",
-        "PLAN of release/C6",
-        "PLAN of release/C7",
-        "check Branching: failure"
-      ],
-      "changes": [
-        {
-          "id": "release/C14",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "ACT"
-          ]
-        },
-        {
-          "id": "release/C6",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        },
-        {
-          "id": "release/C7",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        }
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
       ]
     },
     {
       "name": "kaal/release/wire-hotfix-template",
       "status": "does not qualify",
       "missing": [
-        "a Change in the collector not yet delivered",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": []
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
     },
     {
       "name": "kaal/release/wire-hotfix",
       "status": "does not qualify",
       "missing": [
-        "ACT of release/C17",
-        "DO #1525 of release/C17 is open",
-        "DO of release/C17",
-        "DO of release/C6",
-        "DO of release/C7",
-        "PLAN of release/C17",
-        "PLAN of release/C6",
-        "PLAN of release/C7"
-      ],
-      "changes": [
-        {
-          "id": "release/C17",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO",
-            "ACT"
-          ]
-        },
-        {
-          "id": "release/C6",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        },
-        {
-          "id": "release/C7",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        }
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
       ]
     },
     {
       "name": "kaal/release/wire-hotfix-engineering",
       "status": "does not qualify",
       "missing": [
-        "DO of release/C6",
-        "DO of release/C7",
-        "PLAN of release/C6",
-        "PLAN of release/C7",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": [
-        {
-          "id": "release/C6",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        },
-        {
-          "id": "release/C7",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        }
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
       ]
     },
     {
       "name": "kaal/release/wire-analyze-vulnerabilities",
       "status": "does not qualify",
       "missing": [
-        "#1510 names no Change",
-        "DO of release/C6",
-        "DO of release/C7",
-        "PLAN of release/C6",
-        "PLAN of release/C7",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": [
-        {
-          "id": "release/C6",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        },
-        {
-          "id": "release/C7",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        }
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
       ]
     },
     {
       "name": "kaal/release/wire-analyze-vulnerabilities-engineering",
       "status": "does not qualify",
       "missing": [
-        "#1506 names no Change",
-        "DO of release/C6",
-        "DO of release/C7",
-        "PLAN of release/C6",
-        "PLAN of release/C7",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": [
-        {
-          "id": "release/C6",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        },
-        {
-          "id": "release/C7",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        }
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
       ]
     },
     {
       "name": "kaal/release/check-pr-envelope",
-      "status": "does not qualify",
+      "status": "not judged",
       "missing": [
-        "ACT of release/C21",
-        "DO of release/C21",
-        "DO of release/C6",
-        "DO of release/C7",
-        "PLAN #1524 of release/C21 is open",
-        "PLAN of release/C21",
-        "PLAN of release/C6",
-        "PLAN of release/C7",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": [
-        {
-          "id": "release/C12",
-          "complete": true,
-          "missing": []
-        },
-        {
-          "id": "release/C20",
-          "complete": true,
-          "missing": []
-        },
-        {
-          "id": "release/C21",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO",
-            "ACT"
-          ]
-        },
-        {
-          "id": "release/C6",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        },
-        {
-          "id": "release/C7",
-          "complete": false,
-          "missing": [
-            "PLAN",
-            "DO"
-          ]
-        }
+        "the delta, the tree and the history of the collector"
       ]
     },
     {
       "name": "kaal/release/change-isolation",
       "status": "does not qualify",
       "missing": [
-        "a Change in the collector not yet delivered"
-      ],
-      "changes": []
+        "an expected Test Case in the tree",
+        "files that differ from main: the delta is empty"
+      ]
     },
     {
       "name": "kaal/release/verify-plan",
       "status": "does not qualify",
       "missing": [
-        "a Change in the collector not yet delivered",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": []
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
     },
     {
       "name": "kaal/release/wire-verify-plan",
       "status": "does not qualify",
       "missing": [
-        "a Change in the collector not yet delivered"
-      ],
-      "changes": []
+        "an expected Test Case in the tree",
+        "files that differ from main: the delta is empty"
+      ]
     },
     {
       "name": "kaal/release/approve-change",
       "status": "does not qualify",
       "missing": [
-        "a Change in the collector not yet delivered",
-        "check Branching has no run",
-        "check Change Isolation has no run",
-        "check Promotion Source has no run"
-      ],
-      "changes": []
+        "ACT: no file of the delta holds one 4L retrospective",
+        "DO: no file of the delta matches the do evidence",
+        "PLAN: no file of the delta matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
     }
   ],
   "qualifiers": [],

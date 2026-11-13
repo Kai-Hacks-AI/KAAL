@@ -1,39 +1,40 @@
-# Live run of Pull Promotion v1 on the real repository (Case pull/T14)
+# Live run of Pull Promotion on the real repository (Case pull/T14)
 
 Invocation: `node engineering/release-management/05-src/pull-promotion/run.mjs kai-hacks-ai/kaal engineering/release-management/05-src/pull-promotion/declaration.json`
 
-Exit code: 0 (stderr empty). The result is `live-report.json`, written by the command itself, unedited.
+Exit code: 0. The result is `live-report.json`, written by the command itself, unedited. stderr held one line: `pull Promotion: could not order the history: 51dc7aa8 does not follow 57c3401f` (the collector `check-pr-envelope`, reported below as not judged).
 
 ## Where it ran
 
-13 Nov 2026 09:42 UTC, in the engineering session's container, with Node v22.23.4, gh 2.89.0 and the session's `GITHUB_TOKEN`, on a checkout of commit `ad606595968e20f0a442951fd419ccaf10110e41` (the DO commit of pull/C2, whose code the later commits of this PR do not change). The host was Kai-Hacks-AI/KAAL, read through GET calls only. It took 48 seconds.
+13 Nov 2026 about 15:35 UTC, in the engineering session's container (Node v22.23.4, gh 2.89.0, the session's `GITHUB_TOKEN`), on a working tree whose command files are those of commit `bae1c0cd92d48e9d9d6ded83303cf687ce069d40` (the DO of this revision; the commits after it change only this evidence). The host was Kai-Hacks-AI/KAAL, read through GET calls only. It took 6 minutes 44 seconds: the history of each collector is read commit by commit and the logs of every completed CI job of each head are read.
 
 ## What it shows
 
-One entry per declared collector (12), in the declared order. No collector qualifies; each says what is missing:
+One entry per declared collector (12), in the declared order, judged from file state; no pull request is read. **No collector qualifies**, and each says what is missing:
 
-| Collector | Status | Missing (first three) |
+| Collector | Status | Missing (first two) |
 | --- | --- | --- |
-| kaal/release/plan | does not qualify | #1476 names no Change; #1512 names no Change; #1519 names no Change |
-| kaal/release/wire-fallback-template | does not qualify | ACT of release/C14; DO of release/C6; DO of release/C7 |
-| kaal/release/wire-hotfix-template | does not qualify | a Change in the collector not yet delivered; check Branching has no run; check Change Isolation has no run |
-| kaal/release/wire-hotfix | does not qualify | ACT of release/C17; DO #1525 of release/C17 is open; DO of release/C17 |
-| kaal/release/wire-hotfix-engineering | does not qualify | DO of release/C6; DO of release/C7; PLAN of release/C6 |
-| kaal/release/wire-analyze-vulnerabilities | does not qualify | #1510 names no Change; DO of release/C6; DO of release/C7 |
-| kaal/release/wire-analyze-vulnerabilities-engineering | does not qualify | #1506 names no Change; DO of release/C6; DO of release/C7 |
-| kaal/release/check-pr-envelope | does not qualify | ACT of release/C21; DO of release/C21; DO of release/C6 |
-| kaal/release/change-isolation | does not qualify | a Change in the collector not yet delivered |
-| kaal/release/verify-plan | does not qualify | a Change in the collector not yet delivered; check Branching has no run; check Change Isolation has no run |
-| kaal/release/wire-verify-plan | does not qualify | a Change in the collector not yet delivered |
-| kaal/release/approve-change | does not qualify | a Change in the collector not yet delivered; check Branching has no run; check Change Isolation has no run |
+| kaal/release/plan | does not qualify | ACT: more than one retrospective (packages/kaal-release/plan/coordination-review/00-changes.md, packages/kaal-release...; Test Case pull/T19 has no execution at the current head |
+| kaal/release/wire-fallback-template | does not qualify | ACT: no file of the delta holds one 4L retrospective; PLAN: no file of the delta matches the plan evidence |
+| kaal/release/wire-hotfix-template | does not qualify | ACT: no file of the delta holds one 4L retrospective; PLAN: no file of the delta matches the plan evidence |
+| kaal/release/wire-hotfix | does not qualify | ACT: no file of the delta holds one 4L retrospective; PLAN: no file of the delta matches the plan evidence |
+| kaal/release/wire-hotfix-engineering | does not qualify | ACT: no file of the delta holds one 4L retrospective; PLAN: no file of the delta matches the plan evidence |
+| kaal/release/wire-analyze-vulnerabilities | does not qualify | ACT: no file of the delta holds one 4L retrospective; PLAN: no file of the delta matches the plan evidence |
+| kaal/release/wire-analyze-vulnerabilities-engineering | does not qualify | ACT: no file of the delta holds one 4L retrospective; PLAN: no file of the delta matches the plan evidence |
+| kaal/release/check-pr-envelope | not judged | the delta, the tree and the history of the collector |
+| kaal/release/change-isolation | does not qualify | an expected Test Case in the tree; files that differ from main: the delta is empty |
+| kaal/release/verify-plan | does not qualify | ACT: no file of the delta holds one 4L retrospective; PLAN: no file of the delta matches the plan evidence |
+| kaal/release/wire-verify-plan | does not qualify | an expected Test Case in the tree; files that differ from main: the delta is empty |
+| kaal/release/approve-change | does not qualify | ACT: no file of the delta holds one 4L retrospective; DO: no file of the delta matches the do evidence |
 
-The qualifiers are empty, so nothing is named as next. This agrees with the hand assessment of 12 Nov: the PLAN and ACT of release/C14 are missing in wire-fallback-template.
+## What this means, and limitations
 
-## Limitations
-
-- This is the green-path-less run: no real collector qualifies today, so the run shows the not-qualifies and not-judged paths on the real host. The qualifies path is proven on fixtures only (pull/T20, T21).
-- It ran in a container with a token that the `gh` login check does not accept (`gh auth status` reports a failed login for `GITHUB_TOKEN`), but REST reads worked; it is not a run in CI with a read-only workflow token, as the Show WIP run was. A run in that form can be recorded on request.
-- Commits on a collector include history merged in from `main`. A piece is only counted when its subject is `TYPE: description (#number)` and it landed after the collector's last delivery; a piece without a `Driven-by:` trailer names no Change and makes the collector not judged.
-- The declaration's order of collectors is this PR's proposal (the open collectors in the lane order of the queue); the CPO or the Owner decides it by reviewing `declaration.json`.
-- Legacy commit statuses are not read, only check runs.
-- A run is a point in time. T14 checks that this record exists and has the right shape; with `KAAL_LIVE=<owner/repo>` it also reruns the command on the host.
+- **kaal/release/plan** holds five retrospectives (one per Change since its last promotion), so by the one-ACT rule it does not qualify. Its `pull` Cases (T19 to T25) have no execution at the current head under a scoped id, because the earlier head reported them as bare `T19` names; the Cases of this DO report as `pull/T<n>`.
+- **The wiring collectors** (wire-*) hold files of the wiring only: no PLAN file, no ACT and no Case in their delta or tree. Under the collector-level contract they do not qualify; their PLANs and ACTs live in other collectors.
+- **change-isolation, wire-verify-plan** have an empty delta against `main`.
+- **check-pr-envelope** is not judged: the host's list of its commits did not follow the first-parent order the capability orders by, so its history is not read. The command names it and does not guess.
+- **The green path is not shown on the real host.** No collector has a complete PDCA of this form today; it is proven on fixtures (T26 to T30) and on a recorded real CI log excerpt (`ci-log-excerpt.txt`) for the execution reading.
+- **Case executions come from the CI job logs of the exact head**, where the runner prints a Case under a scoped id (`scope/T<n>`). Cases written inline in a suite file, under another name, or whose log the host no longer keeps are not discovered or have no execution, and so are not judged. A test runner other than node's reporter would need its own reading.
+- The comparison is the host's three-dot one (from the merge base); a collector that has not been synced since earlier work was promoted by squash shows that work in its delta.
+- It ran in a container with a token that the `gh` login check does not accept, but REST reads worked; it is not a run in CI with a read-only workflow token.
+- The order of the collectors in `declaration.json` is a proposal for the Owner. A run is a point in time. T14 checks that this record exists and has the right shape; with `KAAL_LIVE=<owner/repo>` it also reruns the command on the host.
