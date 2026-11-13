@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | I3, F4 verdicts, F6 record, A18 judge | Solution | clean |
 | F4 rules | Solution | one rule names a platform path ("`.github` travels alone"); the Solution term is the class of paths. A wording question |
-| F4 and A19, the carried ledger entry | Solution fixed in a Delivery element | **Disguised.** That a promotion's entry is admitted only with an attestation is a rule about what the control decides, yet only A19 states it. F4 does not |
+| F4 and A19, the carried ledger entry | Solution rule stated only in a Delivery element | **Misplaced.** That a promotion's entry is admitted only with an attestation is a rule about what the control decides, yet only A19 states it. F4 does not |
 | F5 | Delivery | clean; it also restates a rule that C4's own Dependencies give to `guard Integration` |
 | A17 | Solution feature with Delivery children | A19 and A22, deployment targets, sit under the feature. The established hierarchy is deployment target, feature, component, so its owners would re-cut A17 there |
 | A19 to A23 | Delivery | clean, except the attestation sentence |

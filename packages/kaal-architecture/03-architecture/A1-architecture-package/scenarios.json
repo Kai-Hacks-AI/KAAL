@@ -37,9 +37,9 @@
    "writtenIn": "delivery",
    "statement": "The kitchen serves only the dishes that travel well in the delivery van.",
    "parts": [
-    "solution"
+    "delivery"
    ],
-   "finding": "disguised"
+   "finding": "ambiguous"
   },
   {
    "id": "S5",

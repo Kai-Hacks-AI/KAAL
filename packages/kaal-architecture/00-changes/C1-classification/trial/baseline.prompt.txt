@@ -2,7 +2,7 @@ You are classifying statements about an intended solution. Use no tool and read 
 
 For each statement below, give its parts and a finding.
 - parts: a list holding solution, delivery, or both, in no particular order. Leave it empty if you cannot tell.
-- finding: one of none, mixed, disguised, ambiguous.
+- finding: one of none, mixed, ambiguous.
 
 Reply with JSON only and nothing else: an object with the key answers, a list holding one object per statement with the keys id, parts and finding.
 
