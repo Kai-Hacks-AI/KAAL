@@ -12,6 +12,7 @@ const T = '00-changes/C10-transition/trial/';
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 export const FIELDS = ['current', 'intended', 'changes', 'superseded_and_protected', 'evidence'];
+export const decompositions = () => JSON.parse(read(KEY, 'the scenario key')).decompositions;
 export const key = () => JSON.parse(read(KEY, 'the scenario key')).scenarios;
 // A trial is valid only with provenance: who observed it, that its prompt is the statements (and the Skill) and nothing else,
 // and that the recorded answers are the raw output unedited.
@@ -26,8 +27,18 @@ export function trial(name) {
   assert.deepEqual(raw.explanation, meta.explanation, `${name}: the explanation is not the raw output unedited`);
   for (const f of FIELDS) assert.ok(String(meta.explanation?.[f] ?? '').trim(), `${name}: the explanation lacks ${f}`);
   for (const s of key()) assert.ok(prompt.includes(s.statement), `${name}: the prompt lacks ${s.id}`);
+  for (const s of decompositions()) assert.ok(prompt.includes(s.statement), `${name}: the prompt lacks ${s.id}`);
   assert.ok(!prompt.includes('"finding"') && !prompt.includes('"parts"'), `${name}: the prompt carries the key`);
   return { meta, prompt };
+}
+export function judgedDecompositions() {
+  const { meta } = trial('skill');
+  for (const k of decompositions()) {
+    const a = (meta.decompositions || []).find((x) => x.id === k.id);
+    assert.ok(a, `${k.id} is missing from the trial`);
+    assert.equal(a.changes, k.changes, `${k.id}: the agent counted ${a.changes} Change(s), the key says ${k.changes}`);
+    if (k.changes > 1) assert.ok(String(a.boundaries || '').trim(), `${k.id}: the agent names no boundaries`);
+  }
 }
 export function judged(ids) {
   const { meta, prompt } = trial('skill');

@@ -31,6 +31,13 @@ Replace the comma-separated export by JSON Lines. Introduce B1. Keep B2 and the 
 | B1 | target | true only of B; needs a new Case |
 | same notes in both exports; H1 recorded as superseded | transition | shows that A became B and what was kept; lives in the Change record |
 
+## One Change or several
+
+- D1: the export move above. One Change carries it: the boundary is the export, and one baseline and one target hold.
+- D2: replace the CSV export by JSON Lines, then retire the CSV reader of an outside consumer once it reads JSON Lines, then remove the option that served both. Three Changes (A to B, B to C, C to D): each leaves a valid state, each has its own evidence, and a later one needs the outcome of the earlier. The Skill names these boundaries and plans none of the Changes.
+
+The Skill must not split D1, and must not carry D2 as one Change.
+
 ## Confusions the Skill must prevent
 
 - Reading a green historical Case as evidence of B (all three are green today and B1 is still false).
