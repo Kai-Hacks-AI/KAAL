@@ -34,7 +34,7 @@ export function section(app, name) {
   return m[1];
 }
 // Each finding of the Comparison is marked Proven (citing test evidence and its result), Judged (saying why it can only be judged)
-// or Testable, not tested (named for Testing). A review runs no test of its own.
+// or Testable, not tested (saying what a test would have to show). A review runs no test of its own.
 export function findings(app) {
   const c = section(app, 'Comparison');
   const f = c.split('\n').filter((l) => /^\s*[-*] /.test(l));
