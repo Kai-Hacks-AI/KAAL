@@ -21,3 +21,7 @@ Not authorized by this PLAN. S1 to S5 of `transition.md` is the proposal, each s
 ## Dependencies
 
 The common metamodel owns the relationship vocabulary, Testing owns Case design, identity, placement and expected-RED execution, and the common control contract owns the outcomes. The control consumes them. The preventive requirement that an outcome is a condition of admission belongs to `guard Integration`. This Change does not define, move or duplicate them.
+
+## Wiring moved
+
+The wiring of the control (the two workflows, the Guard declaration, and the Cases T82 and T83 that close G22 and G23) is not carried by this Change. It is the separate Change release/C18, which lands after this one, because the workflows are `.github` and travel alone. This Change delivers the capability (interpreter, adapter, Case T109, the analysis and the records) and closes G21, G24, G25, G26 and G27.
