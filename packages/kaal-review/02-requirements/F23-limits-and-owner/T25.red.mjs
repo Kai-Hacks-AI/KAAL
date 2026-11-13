@@ -1,6 +1,6 @@
 // Case review/T25 tests: review/F23
 import assert from 'node:assert/strict';
-import { each, section, trial } from '../../00-changes/C1-skill-trial-review/lib.mjs';
+import { each, section, trial, FOCI } from '../../00-changes/C1-focused-review/lib.mjs';
 export const id = 'review/T25';
 export const tests = ['review/F23'];
 export const title = "the record states what it did not check, the reviewer's limits and each decision for the Owner with its options";
