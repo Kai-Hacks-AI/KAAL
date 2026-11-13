@@ -17,3 +17,32 @@ No ruleset, required-check or hook change. No change to the gatherer, the declar
 ## Order
 
 PLAN (this), then DO (the test file and the `test:engineering` entry), then the collector's ACT, then SYNC and PROMOTION. Collector: `kaal/release/wire-pull`, from `main`.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- T34 failed for the right reason before any code existed (the Cases file was absent) and went green with one small file plus one script entry. The wiring stayed inside the existing `Engineering` check: no new job, required check or ruleset.
+- The CPO's correction to T34 (a RED Case is execution evidence, not missing evidence) made the Case stronger: it now proves that a failing Case is logged as `✖`, read as a failure and fails the file, so qualification stays blocked by a RED Case.
+- Running the real log output through the real gatherer gave integration evidence that does not depend on the collectors being merged: 82 successes and a RED fixture read as a failure.
+
+### Learned
+
+- Wiring CI to run existing Cases is also an audit of them. Within minutes it exposed nine Hotfix Cases that had been landed ahead of their template and never ran. The right fix was ownership and activation timing (a Case becomes active with the thing it checks), not suppression.
+- My first runner found only the Cases under `00-changes/`, 31 of 91. The declaration already defined the true shape, so the runner should have been written from the declaration instead of from the first folder I looked at. The coordinator's cross-check from the HOTFIX thread caught it.
+- A PLAN's Case must be runnable on the collector it is merged into. T34 imported code from a collector that had not been promoted, so it was approved but could not run. That was found only when the DO started.
+- A child `node --test` process inside a test inherits `NODE_TEST_CONTEXT` and then reports to its parent instead of printing log lines. It must be removed from the environment.
+
+### Lacked
+
+- A check that a PLAN's RED Case can run on the collector it targets. It would have caught the T34 dependency at the PLAN.
+- A single list of where engineering Cases live. The declaration holds it for the report, but nothing derives the CI runner from it, so the two can drift apart again.
+- A Hotfix-free baseline: until the HOTFIX delivery lands, nine Cases are recorded in `case-transfer.md` and are absent from CI.
+
+### Longed For
+
+- Deriving the runner's discovery from the declaration's Case patterns, so the report's expectation and CI's execution are one definition.
+- The HOTFIX delivery restoring the nine Cases green in the same pull request as the template, which closes the transfer.
+- The same wiring for the `packages/*/test` Cases that the declaration also expects, which this Change did not cover.
