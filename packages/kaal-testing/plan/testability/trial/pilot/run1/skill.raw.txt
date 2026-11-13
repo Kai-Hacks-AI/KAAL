@@ -1,0 +1,51 @@
+[
+    {
+      "id": "E1",
+      "approach": "pushback",
+      "why": "The two-second threshold is defined, but 'under specified conditions' names no conditions, so two readers could not agree on a single measurement setup or oracle. A threshold exists, but the observable is not defined well enough to script without inventing the conditions.",
+      "observable": null,
+      "oracle": null,
+      "evidence": null,
+      "judge": null,
+      "owner": "Requirements",
+      "question": "What are the specified conditions (load, payload, hardware, network, data size), what counts as 'response complete' (first byte, full body, rendered), and is two seconds a maximum for every response or for a percentile such as p95 or p99?",
+      "unresolved": [
+        "Which conditions are 'specified' (load, payload, hardware, network, data volume)?",
+        "What marks the start and end of a response for timing?",
+        "Is the limit absolute or a percentile, and over how many samples?"
+      ]
+    },
+    {
+      "id": "E2",
+      "approach": "judgment",
+      "why": "There is no unambiguous oracle for 'usefully distinguish' or for how ambiguity should be handled, but the claim can be evaluated through evidence and independent review of the Skill's output on Solution-versus-Delivery cases. The outcome is validation, not a passing test.",
+      "observable": null,
+      "oracle": null,
+      "evidence": "Skill outputs on a set of sample inputs, including clear Solution items, clear Delivery items and deliberately ambiguous items, compared against independent classifications and against a baseline without the Skill.",
+      "judge": "An independent reviewer from the seat of a Delivery or Solution practitioner, who is not the Skill's author. Where the author's key and the reviewer's answer differ, both are recorded.",
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "What does 'usefully' mean, and useful to whom?",
+        "What is the expected handling of ambiguous items: flagged, split or asked about?",
+        "Does Architecture want to confirm the intended definitions of Solution and Delivery?"
+      ]
+    },
+    {
+      "id": "E3",
+      "approach": "pushback",
+      "why": "'Sufficiently reliable' has no threshold, measure, time window or conditions, so neither a script nor a meaningful independent evaluation can be defined without inventing a standard. Any number I chose would be my own invention.",
+      "observable": null,
+      "oracle": null,
+      "evidence": null,
+      "judge": null,
+      "owner": "Requirements",
+      "question": "What reliability measure and target apply (for example availability, MTBF or failure rate), over what period and under what usage conditions, and who decides what counts as sufficient?",
+      "unresolved": [
+        "Which reliability measure applies (availability, failure rate, MTBF, error budget)?",
+        "What target, time window and operating conditions apply?",
+        "What counts as a failure?",
+        "Who decides what is 'sufficient'?"
+      ]
+    }
+  ]
