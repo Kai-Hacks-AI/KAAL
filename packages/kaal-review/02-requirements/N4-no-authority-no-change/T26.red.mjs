@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { each, section, findings, FOCI } from '../../00-changes/C1-focused-review/lib.mjs';
 export const id = 'review/T26';
 export const tests = ['review/N4'];
-export const title = "the record says the reviewed work was changed nowhere and no Case or key was weakened, it approves nothing and it relies on no Skill of Testing";
+export const title = "the record says the reviewed work was changed nowhere and no Case or key was weakened, it approves nothing and it relies on no Skill of another capability";
 export function run() {
   each((app) => {
     const n = section(app, 'No authority');
