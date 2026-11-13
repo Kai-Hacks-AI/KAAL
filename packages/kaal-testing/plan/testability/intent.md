@@ -6,6 +6,6 @@ This is `testing/C59`, a PLAN Change. It ships no code and installs nothing in t
 
 - **testing/I38**: Before Testing designs a Case, it assesses the claim the Case would verify, traced to the concern that owns it (Intent, Requirements, Architecture or Defect). A claim with an observable result and a defensible, unambiguous oracle is verified by a deterministic Case. A claim without one is judged through evidence, comparison or independent review, and recorded as validation. A claim that supports neither goes back, as a question, to its owner. Testing owns the assessment and the suitability of the method. It never owns or rewrites the claim.
 
-Principle: a test is proof and a review is judgement. Some things can only be judged and some can be tested. What a test cannot prove goes to judgement (Review), and is never turned into an oracle. The Skill exercises judgment, the Script verifies deterministic assertions.
+Principle: a test is proof and a review is judgement. Some things can only be judged and some can be tested. Testing points at what can only be judged and never turns it into an oracle. Review, in its own Change, points at what could be tested. Neither relies on the other's Skill. The Skill exercises judgment, the Script verifies deterministic assertions.
 
 **Out of scope.** No new gate, no new capability, no new finding kind, no new export, no restructuring of kaal-testing, and no change to the Architecture package or its key.

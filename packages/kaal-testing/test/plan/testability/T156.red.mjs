@@ -14,7 +14,8 @@ export function run() {
     assert.match(section.slice(at[i], at[i + 1] ?? undefined), words, `outcome ${i + 1} mentions ${words}`);
   assert.match(section, /test is proof/i, 'the section says a test is proof');
   assert.match(section, /review is judge?ment/i, 'the section says a review is judgement');
-  assert.match(section.slice(at[1], at[2]), /\bReview\b/, 'a claim a test cannot prove is handed to Review');
+  assert.match(section.slice(at[1], at[2]), /can only be judged/i, 'a claim a test cannot prove is pointed at as one that can only be judged');
+  assert.doesNotMatch(section, /kaal-review|\bReview\b/, 'the section names no other Skill: neither Review nor kaal-review');
   for (const o of OWNERS) assert.ok(section.includes(o), `the section names the owner ${o}`);
   assert.ok(section.split(/\s+/).length <= 260, 'the section stays small: at most 260 words');
 }

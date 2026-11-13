@@ -8,7 +8,7 @@ Baseline: `main` at `cce35a7`. `node packages/kaal-testing/test/plan/testability
 
 ## Pilot: does the idea help
 
-The pilot ran before DO, on the **proposed** wording as it stood before Kai's principle ("review is judgement, test is proof") was added to it. The wording then gained that boundary and the hand-over to Review, so the DO trial must be run on the installed text (testing/T158 checks that). The pilot ran on the proposed wording (`proposed-skill-section.md`), not on an installed Skill, so it informs this PLAN and does not stand in for the DO trial. Records are in `trial/pilot/`: prompts, the author's key written before any run, and the raw outputs. Four fresh subagents (claude-sonnet-5-5, no tools but reading the prompt), two per arm. Raw outputs are as handed back, with the harness's indentation removed.
+The pilot ran before DO, on the **proposed** wording as it stood before Kai's principle ("review is judgement, test is proof") was added to it. The wording then gained that boundary and the pointing at what can only be judged, with no reference to another Skill, so the DO trial must be run on the installed text (testing/T158 checks that). The pilot ran on the proposed wording (`proposed-skill-section.md`), not on an installed Skill, so it informs this PLAN and does not stand in for the DO trial. Records are in `trial/pilot/`: prompts, the author's key written before any run, and the raw outputs. Four fresh subagents (claude-sonnet-5-5, no tools but reading the prompt), two per arm. Raw outputs are as handed back, with the harness's indentation removed.
 
 | Claim | Author's key | Baseline, run 1 and 2 | Skill, run 1 and 2 |
 | --- | --- | --- | --- |
