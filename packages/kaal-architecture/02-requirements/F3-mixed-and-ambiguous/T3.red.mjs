@@ -6,5 +6,5 @@ export const tests = ['architecture/F3'];
 export const title = "a Skill-only agent splits a mixed statement, reclassifies a disguised one and does not guess an ambiguous one";
 export function run() {
   read('02-requirements/F3-mixed-and-ambiguous/F3.md', 'F3');
-  judged(['S5', 'S6', 'S10']);
+  judged(['S3', 'S4', 'S5', 'S8', 'S9']);
 }

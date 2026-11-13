@@ -6,7 +6,7 @@
    "writtenIn": "solution",
    "statement": "A patient who arrives at the emergency ward is seen by a triage nurse within ten minutes.",
    "parts": [
-    "solution/target"
+    "solution"
    ],
    "finding": "none"
   },
@@ -16,43 +16,33 @@
    "writtenIn": "delivery",
    "statement": "Triage is staffed by two nurses on a rota that is posted in the ward each Friday.",
    "parts": [
-    "delivery/target"
+    "delivery"
    ],
    "finding": "none"
   },
   {
    "id": "S3",
    "domain": "transport",
-   "writtenIn": "plan",
-   "statement": "Until the new bridge opens, the ferry keeps running on its present timetable.",
-   "parts": [
-    "transition"
-   ],
-   "finding": "transition"
-  },
-  {
-   "id": "S4",
-   "domain": "transport",
    "writtenIn": "solution",
-   "statement": "The bridge carries two lanes of traffic in each direction, and it will be opened in stages, one direction first.",
+   "statement": "The bridge carries two lanes of traffic in each direction, and it is built from steel box girders brought in by barge.",
    "parts": [
-    "solution/target",
-    "transition"
+    "solution",
+    "delivery"
    ],
    "finding": "mixed"
   },
   {
-   "id": "S5",
+   "id": "S4",
    "domain": "food service",
    "writtenIn": "delivery",
    "statement": "The kitchen serves only the dishes that travel well in the delivery van.",
    "parts": [
-    "solution/target"
+    "solution"
    ],
    "finding": "disguised"
   },
   {
-   "id": "S6",
+   "id": "S5",
    "domain": "public service",
    "writtenIn": "solution",
    "statement": "The service must be reliable.",
@@ -60,46 +50,56 @@
    "finding": "ambiguous"
   },
   {
-   "id": "S7",
+   "id": "S6",
    "domain": "software",
    "writtenIn": "delivery",
    "statement": "The search runs on three servers behind one address.",
    "parts": [
-    "delivery/target"
+    "delivery"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S7",
+   "domain": "software",
+   "writtenIn": "solution",
+   "statement": "The search returns results ranked by relevance within two seconds.",
+   "parts": [
+    "solution"
    ],
    "finding": "none"
   },
   {
    "id": "S8",
-   "domain": "software",
-   "writtenIn": "plan",
-   "statement": "Move the search from the old servers to the new ones before March.",
+   "domain": "civic",
+   "writtenIn": "solution",
+   "statement": "Voters can cast a ballot at any polling place in their county, and each polling place keeps its own printed roll of voters.",
    "parts": [
-    "transition"
+    "solution",
+    "delivery"
    ],
-   "finding": "transition"
+   "finding": "mixed"
   },
   {
    "id": "S9",
-   "domain": "civic",
+   "domain": "culture",
    "writtenIn": "solution",
-   "statement": "Voters can cast a ballot at any polling place in their county, and the polling places will move to schools this year.",
+   "statement": "The museum leads each visitor through the collection in date order, and a printed map handed out at the door shows the way.",
    "parts": [
-    "solution/target",
-    "transition"
+    "solution",
+    "delivery"
    ],
    "finding": "mixed"
   },
   {
    "id": "S10",
-   "domain": "culture",
-   "writtenIn": "solution",
-   "statement": "The museum leads each visitor through the collection in date order, and a printed map handed out at the door shows the way.",
+   "domain": "education",
+   "writtenIn": "delivery",
+   "statement": "Lectures are recorded and posted to the course page on the day they are given.",
    "parts": [
-    "solution/target",
-    "delivery/target"
+    "delivery"
    ],
-   "finding": "mixed"
+   "finding": "none"
   }
  ]
 }

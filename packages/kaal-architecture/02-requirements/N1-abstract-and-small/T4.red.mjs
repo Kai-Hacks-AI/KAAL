@@ -5,11 +5,11 @@ import { join } from 'node:path';
 import { dir, judged, key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
 export const id = 'architecture/T4';
 export const tests = ['architecture/N1'];
-export const title = "the Skill is small, names no organization, tool or technology, prescribes no change control, and the package adds no gate";
+export const title = "the Skill is small, names no organization, domain, tool or technology, and the package adds no gate";
 export function run() {
   const skill = read(SKILL, 'the Skill');
   assert.ok(skill.split('\n').length <= 120, 'the Skill is longer than 120 lines');
-  const banned = /\b(kaal|github|git|pull request|branch|collector|promotion|gap|ledger|repository|software|code|api|server|workflow|lifecycle|migration plan)\b/i;
+  const banned = /\b(kaal|github|git|pull request|branch|collector|promotion|gap|ledger|repository|software|code|api|server|workflow|lifecycle|hospital|bridge|kitchen|museum)\b/i;
   const hit = skill.split(/^---$/m).slice(2).join('---').match(banned);
   assert.equal(hit, null, `the Skill names ${hit && hit[0]}`);
   const found = [];
