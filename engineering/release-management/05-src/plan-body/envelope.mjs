@@ -1,5 +1,5 @@
 // A33 check-pr-envelope: judges the envelope of a pull request (release/F17). It reads no git or GitHub.
-// Run by hand: node envelope.mjs <facts file>, a JSON file with title, body, base, head, commits, registry and optionally fallback.
+// Run by hand: node envelope.mjs <facts file>, a JSON file with title, body, base, head, commits, and registry.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { checkPlanBody } from './check.mjs';
@@ -74,7 +74,6 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
       else notJudged.push(`the Change chapter shape of ${type} has no row and is not judged`);
     } else {
       notJudged.push(`the TYPE ${type} is unsupported: no declared template, so its chapters are not judged`);
-      if (options.fallback) notJudged.push(`the fallback ${options.fallback.path} was not used to validate it`);
     }
     if (ROUTE[type]) { if (!ROUTE[type](facts)) problems.push(`the route of a ${type} (base ${facts.base}, head ${facts.head}) does not fit its TYPE`); }
     else notJudged.push(`the route of ${type} has no row and is not judged`);
@@ -97,7 +96,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const file = process.argv[2];
   if (!file) { console.error('usage: node envelope.mjs <facts file>'); process.exit(2); }
   const facts = JSON.parse(readFileSync(file, 'utf8'));
-  const { ok, problems, notJudged } = verifyEnvelope(facts, facts.registry, { fallback: facts.fallback });
+  const { ok, problems, notJudged } = verifyEnvelope(facts, facts.registry);
   console.log(ok ? 'PASS: the envelope is clean' : `FAIL:\n${problems.map((p) => `- ${p}`).join('\n')}`);
   if (notJudged.length) console.log(`Not judged:\n${notJudged.map((n) => `- ${n}`).join('\n')}`);
   process.exit(ok ? 0 : 1);
