@@ -1,0 +1,80 @@
+{
+ "author": "testing thread session (wrote the section, the prompts and the key)",
+ "observer": "fresh subagent, started with this prompt alone; its hand-back recorded unedited",
+ "agent": "general-purpose subagent, reads only its prompt",
+ "model": "claude-sonnet-5-5",
+ "date": "2026-11-13",
+ "run": "run2",
+ "promptSha256": "3830f208683d32278ae2da9ca04fe4c3f0043087dce6322044706a70195e7fbb",
+ "keySha256": "345c1d4a2eda0e4b86890b4f827884ca8fb0ddbf9f4e751846818c9fcac1edeb",
+ "answers": [
+  {
+   "id": "E1",
+   "approach": "deterministic",
+   "why": "The claim names a measurable result, response completion time, and a threshold of two seconds, so two readers would accept the same pass/fail verdict. The conditions and the statistic (every response, or a percentile) come from the Requirements owner's specification and must not be invented.",
+   "observable": "Elapsed time from request sent to response complete, measured under the specified conditions (load, data, environment).",
+   "oracle": "Pass if the measured time is at most 2 seconds under the specified conditions, using the statistic the requirement names. Fail otherwise.",
+   "evidence": null,
+   "judge": null,
+   "owner": null,
+   "question": null,
+   "unresolved": [
+    "What exactly are the 'specified conditions' (load, data volume, hardware, network)?",
+    "Does the limit apply to every response or to a percentile, and is the bound inclusive?"
+   ],
+   "rejectsCase": null
+  },
+  {
+   "id": "E2",
+   "approach": "judgment",
+   "why": "Whether a Skill 'usefully' distinguishes Solution from Delivery, including ambiguity, is a question of whether a decision is sound and fit for its purpose. No observable result with an unambiguous oracle settles it, so it can only be judged and must not be recorded as a passing test.",
+   "observable": null,
+   "oracle": null,
+   "evidence": "Worked examples where the Skill separates Solution from Delivery, how it treats ambiguous statements, and whether practitioners using it reach better or clearer decisions.",
+   "judge": "A reviewer who is not the Skill's author, such as an independent Architecture reviewer or a practitioner who uses the Skill.",
+   "owner": null,
+   "question": null,
+   "unresolved": [
+    "What would count as 'useful' for the Skill's users?",
+    "Which ambiguous statements are representative enough to judge against?"
+   ],
+   "rejectsCase": null
+  },
+  {
+   "id": "E3",
+   "approach": "pushback",
+   "why": "'Sufficiently reliable' gives no measure, threshold, period or conditions, so no defensible oracle exists. Requirements could reasonably make it decidable, and testing must not invent a threshold to reach GREEN.",
+   "observable": null,
+   "oracle": null,
+   "evidence": null,
+   "judge": null,
+   "owner": "Requirements",
+   "question": "What reliability measure and threshold is required (for example availability percentage, failure rate or MTBF), over what period, and under what conditions? Recommend restating it in those terms; do not rewrite the claim for the owner.",
+   "unresolved": [
+    "Reliability measure",
+    "Threshold",
+    "Measurement period",
+    "Operating conditions",
+    "Definition of a failure"
+   ],
+   "rejectsCase": null
+  },
+  {
+   "id": "E4",
+   "approach": "judgment",
+   "why": "The Case passes only when an agent matches the author's key 'ambiguous', and the author's assertion is that author's judgment, not an independent oracle. Whether the statement is ambiguous (for example, what 'travel well' and 'only' scope over) is itself a judgment, so the Case checks the author's preferred answer rather than the concept. Reject it and record the author's key and any independent answer side by side.",
+   "observable": null,
+   "oracle": null,
+   "evidence": "The statement's possible readings, written out explicitly (for example, whether 'only' restricts the whole menu or only the delivery menu, and what 'travel well' is judged against), plus answers from independent judges who did not write the Case.",
+   "judge": "Independent reviewers or agents who are not the Case's author, with the author's key recorded next to their answers.",
+   "owner": null,
+   "question": null,
+   "unresolved": [
+    "Do independent judges agree with the author that the statement is ambiguous?",
+    "If they differ from the author's key, both answers must be recorded.",
+    "What concept should the Case verify, such as identifying that multiple readings exist, rather than matching the word 'ambiguous'?"
+   ],
+   "rejectsCase": true
+  }
+ ]
+}
