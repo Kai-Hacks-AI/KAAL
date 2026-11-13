@@ -1,4 +1,4 @@
-# C1 example
+# C10 example
 
 One small, self-contained example whose current and target expectations conflict. It names no platform. The Skill's trial uses exactly this.
 
