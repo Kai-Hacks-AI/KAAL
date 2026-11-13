@@ -4,3 +4,4 @@ skills/kaal-graph/scripts/form.d.ts -text
 skills/kaal-graph/scripts/form.mjs -text
 skills/kaal-graph/scripts/node.mjs -text
 skills/kaal-graph/scripts/edges.d.ts -text
+skills/kaal-graph/scripts/node.d.ts -text

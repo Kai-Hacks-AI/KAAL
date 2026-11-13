@@ -1,0 +1,19 @@
+diff --git a/packages/kaal-core/test/plan/standalone.test.mjs b/packages/kaal-core/test/plan/standalone.test.mjs
+index 0e9eb15..570995f 100644
+--- a/packages/kaal-core/test/plan/standalone.test.mjs
++++ b/packages/kaal-core/test/plan/standalone.test.mjs
+@@ -174,10 +174,12 @@ describe("Core standalone, with Graph's Node support delivered inside it (core/C
+     const graph = [...workspaces()].find(([name]) => GRAPH.test(name));
+     assert.ok(graph, "Graph's package is a workspace");
+     const [name, dir] = graph;
+-    assert.equal(m.name, name, "the manifest names Graph's package");
++    const key = Object.keys(pkg().devDependencies ?? {}).find((n) => GRAPH.test(n));
++    assert.equal(m.name, key, "the manifest names Graph's package as kaal-core's devDependencies declare it");
+     const version = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")).version;
+     assert.equal(m.version, version, "the manifest's Graph version is the workspace's");
+-    assert.equal(pkg().devDependencies?.[name], version, "kaal-core's devDependencies pins that Graph version");
++    const spec = pkg().devDependencies?.[key];
++    assert.ok(spec === version || (spec?.startsWith("file:") && resolve(CORE, spec.slice(5)) === dir), "kaal-core's devDependencies pins that Graph version, or the workspace by path");
+     assert.deepEqual(Object.keys(m.files ?? {}).sort(), DELIVERED, "the manifest lists exactly the delivered Node support");
+     // Revised by core/C38: while Graph's source holds no node.d.ts, node.mjs's declarations are selected from Graph's edges.d.ts.
+     const split = existsSync(join(dir, "skills", "kaal-graph", "scripts", "node.d.ts"));

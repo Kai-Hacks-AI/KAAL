@@ -36,9 +36,9 @@ before(async () => {
 });
 
 describe("the installed package", () => {
-  it("depends at runtime on kaal-hosting and its pinned YAML parser, and not on kaal-core", () => {
+  it("depends at runtime on Foundation, kaal-hosting and its pinned YAML parser, and not on kaal-core", () => {
     const pkg = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
-    assert.deepEqual(Object.keys(pkg.dependencies).sort(), ["@kaihacksai/kaal-hosting", "yaml"]);
+    assert.deepEqual(Object.keys(pkg.dependencies).sort(), ["@kaihacksai/kaal-foundation", "@kaihacksai/kaal-hosting", "yaml"]);
     for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `kaal-graph ${field}`);
   });
 

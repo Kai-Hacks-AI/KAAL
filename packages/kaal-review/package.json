@@ -21,7 +21,7 @@
   "devDependencies": {
     "kaal-core": "0.0.1",
     "kaal-engineer-skill": "0.0.1",
-    "kaal-graph": "0.0.1",
+    "kaal-graph": "file:../kaal-graph",
     "@kaihacksai/kaal-hosting": "0.0.1",
     "kaal-testing": "0.0.1"
   }
