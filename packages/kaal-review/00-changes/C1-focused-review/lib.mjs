@@ -20,7 +20,7 @@ export function applications() {
     assert.ok(f, `${name}: subject.json states no focus`);
     for (const side of ['reference', 'actual']) {
       const x = subject[side];
-      assert.ok(x && x.label && x.reads, `${name}: the ${side} is not given as a label and what is read`);
+      assert.ok(x && x.label && x.reads && Array.isArray(x.items) && x.items.length > 0, `${name}: the ${side} is not given as a label, what is read and its items`);
     }
     if (!(f in FOCI)) assert.ok(subject.reference.provided && subject.actual.provided, `${name}: the focus ${f} is not defined by Review, so its reference and actual must be provided`);
     assert.ok(Array.isArray(subject.inspected) && subject.inspected.length > 0, `${name}: subject.json lists nothing inspected`);
@@ -40,5 +40,12 @@ export function findings(app) {
   const f = c.split('\n').filter((l) => /^\s*[-*] /.test(l));
   assert.ok(f.length > 0, `${app.name}: no findings are listed`);
   return f;
+}
+// The Comparison's findings under one direction heading, as the bullets between that heading and the next.
+export function direction(app, heading) {
+  const c = section(app, 'Comparison');
+  const m = c.match(new RegExp(`^### ${heading}\\s*$([\\s\\S]*?)(?=^### |(?![\\s\\S]))`, 'm'));
+  assert.ok(m, `${app.name}: the Comparison has no "${heading}" part`);
+  return m[1].split('\n').filter((l) => /^\s*[-*] /.test(l));
 }
 export const each = (fn) => { for (const app of applications()) fn(app); };
