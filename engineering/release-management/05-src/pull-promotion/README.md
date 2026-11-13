@@ -5,7 +5,7 @@
 For each collector the declaration lists, in the declared order, it reads:
 
 - the **delta** against `main` and the commits since the collector diverged from it (the host's three-dot comparison) and the files each commit changed, as the **history**, checked to be a line by ancestry (each commit follows the previous one, the first follows the merge base);
-- the **tree** at the head;
+- the **tree** at the head (it holds the PLAN and DO evidence; the delta says whether there is anything to promote);
 - the text of the files that match the declaration's ACT pattern;
 - the **executions of Test Cases at the exact head**: the logs of the completed CI jobs of that head, where the test runner reports a Case under its scoped id (`scope/T<n>`) with a mark. The newest run of each job counts, and a red job counts against the Case.
 
@@ -13,7 +13,7 @@ A collector the host does not have is reported as not judged. A list the host cu
 
 - `read.mjs` maps the host's records to the facts the Script judges.
 - `declaration.json` is this repository's declaration, reviewed like any other file: the collectors in their promotion order (an Owner decision) and the evidence patterns (PLAN, DO, Case files, ACT file and the 4L headings).
-- `evidence/` holds the run on the real repository (pull/T14) and an excerpt of a real CI log.
+- `evidence/` holds the runs on the real repository (pull/T14; the second one reads PLAN and DO from the head tree) and an excerpt of a real CI log.
 
 Credential: `GH_TOKEN` or `GITHUB_TOKEN`, or an already signed-in `gh`; the command fails naming the credential when there is none.
 
