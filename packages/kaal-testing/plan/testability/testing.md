@@ -4,11 +4,13 @@ The planned Cases live in `packages/kaal-testing/test/plan/testability/`, named 
 
 | Case | Checks | What it decides deterministically |
 | --- | --- | --- |
-| testing/T156: the Skill assesses a claim by deterministic test, then judgment, then pushback to a named owner | testing/F129 | the section exists, is placed before the loops, says a test is proof and a review is judgement, names the three outcomes in order, points at what can only be judged without naming any other Skill, and names the four owners |
-| testing/T157: the Skill forbids an invented oracle and an autonomous rewrite, and keeps judgment apart from a passing test | testing/F130 | the section states each of the three rules |
+| testing/T156: the Skill has one assessment section, with the outcomes Verify, Challenge and Point at judgement in order, the four owners, and no other Skill named | testing/F129, testing/N28 | structure: the section exists, is placed before the loops, has the labelled outcomes in order, names the owners and no other Skill, and stays small |
+| testing/T157: the section carries two labelled rules after the outcomes: reject a brittle Case, and never invent an oracle | testing/F130, testing/F133, testing/N28 | that each rule is present, labelled and not empty |
 | testing/T158: the trial records of the installed section are raw, hashed and well-formed | testing/F131 | provenance, prompt hashes, installed section present only in the Skill arm, answer shape by approach, at least two runs per arm |
 | testing/T159: every disagreement is listed with its positions and none is settled by editing the key | testing/F132 | the comparison equals the one recomputed from the records, the key hash matches or a revision is recorded, limits are stated |
-| testing/T160: the Change stays inside its boundary | testing/N27 | exports, Nodes, skills and workflows are unchanged, and nothing refers to or depends on `kaal-review` |
+| testing/T160: the Change stays inside its boundary | testing/N27 | the Skill has exactly one new section, and exports, Nodes, skills, workflows and dependencies are unchanged |
+
+T156 and T157 check structure and boundary, never a sentence of the Skill: a Case that matched wording would verify incidental text, which the Skill itself tells agents to reject (testing/N28). Whether the Skill changes what an agent does is judged by the trial.
 
 T158 and T159 check the form and the integrity of the evidence. Whether the Skill helps is the trial's finding, read by a reviewer. No Case requires an answer to match the key, and none requires the Skill arm to beat the baseline.
 

@@ -2,26 +2,38 @@
 
 ## RED of this PLAN
 
-Baseline: `main` at `cce35a7`. `node packages/kaal-testing/test/plan/testability/run-red.mjs`, Node 22, Linux: T156 to T160 are RED-observed, 0 error, 0 green. T156 and T157: the Skill has no such section. T158 and T159: no DO trial records. T160: the Skill has no new section.
+Baseline: `main` at `cce35a7`. `node packages/kaal-testing/test/plan/testability/run-red.mjs`, Node 22, Linux: T156 to T160 are RED-observed, 0 error, 0 green. T156 and T157: the Skill has no such section. T158 and T159: no DO trial records. T160: the Skill has no new section. T156 and T157 check structure only, so they do not verify wording (testing/N28).
 
-**Can each Case pass, and fail for the right reason.** Against a throwaway reference outside the repository (the proposed section inserted in the Skill, and DO records built from the pilot runs below), all five were GREEN. Of 18 mutants, 17 were caught by at least one Case and one was a no-op by construction (its hash edit changed nothing) and was redone as an effective one, which was caught. They covered a missing owner, swapped outcome order, a section after the loops, the three rules removed one by one, an answer edited away from the raw output, a wrong prompt hash, the section leaking into the baseline prompt, one run only, a pushback without a real owner, a dropped disagreement, a key edited silently, a disagreement marked resolved, no stated limits, a new export, a new Skill, and the author as observer. The reference is not part of this PLAN and implies no wording of the Skill.
+**Can each Case pass, and fail for the right reason.** Against a throwaway reference outside the repository (the proposed section inserted in the Skill, and DO records built from the pilot 2 runs below), all five were GREEN, with the E4 disagreement listed as recorded. Nine mutants were each caught by the Case that owns them: swapped outcome order, a dropped or emptied rule label, a named other Skill, a missing owner, the section after the loops, a dependency on `kaal-review`, a key edited silently, and a dropped disagreement. The reference is not part of this PLAN and implies no wording of the Skill.
 
-## Pilot: does the idea help
+## Pilots: does the idea help
 
-The pilot ran before DO, on the **proposed** wording as it stood before Kai's principle ("review is judgement, test is proof") was added to it. The wording then gained that boundary and the pointing at what can only be judged, with no reference to another Skill, and the word "validation" was dropped from the new text, so the DO trial must be run on the installed text (testing/T158 checks that). The pilot ran on the proposed wording (`proposed-skill-section.md`), not on an installed Skill, so it informs this PLAN and does not stand in for the DO trial. Records are in `trial/pilot/`: prompts, the author's key written before any run, and the raw outputs. Four fresh subagents (claude-sonnet-5-5, no tools but reading the prompt), two per arm. Raw outputs are as handed back, with the harness's indentation removed.
+Both pilots ran before DO, on the **proposed** wording (`proposed-skill-section.md`), so they inform this PLAN and do not stand in for the DO trial, which must run on the installed text (testing/T158). Records are in `trial/pilot/` and `trial/pilot2/`: prompts, the author's key written before any run, and the raw outputs. Each pilot used four fresh subagents (claude-sonnet-5-5, no tools but reading the prompt), two per arm. Raw outputs are as handed back, with the harness's indentation removed.
 
-| Claim | Author's key | Baseline, run 1 and 2 | Skill, run 1 and 2 |
-| --- | --- | --- | --- |
-| E1: a response completes within two seconds under specified conditions | deterministic | deterministic, deterministic | **pushback to Requirements**, pushback to Requirements |
-| E2: an Architecture Skill should usefully distinguish Solution from Delivery, including ambiguity | judgment | judgment, judgment | judgment, judgment |
-| E3: a system must be sufficiently reliable | pushback to Requirements | pushback to Requirements, same | pushback to Requirements, same |
+**Pilot 1** (wording before the CPO's verification and validation model; three claims). Key: E1 deterministic, E2 judgment, E3 pushback to Requirements.
 
-What the pilot shows, and what it does not:
+| Claim | Baseline x2 | Skill x2 |
+| --- | --- | --- |
+| E1 two-second response under "specified conditions" | deterministic, deterministic | pushback to Requirements, pushback to Requirements |
+| E2 an Architecture Skill should "usefully" distinguish | judgment, judgment | judgment, judgment |
+| E3 "sufficiently reliable" | pushback to Requirements, same | pushback to Requirements, same |
 
-- **A disagreement, kept.** On E1 both arms were stable and they differ from each other and, for the Skill arm, from the key. The baseline took the two-second bound as testable and listed the unspecified conditions as open. The Skill arm withheld a deterministic Case until Requirements names the conditions, completion event and percentile. The key itself doubted E1 (`trial/pilot/key.json`: "specified conditions" is not specified in the claim as given). Neither position is declared right. If DO shows the same, the finding is that the claim needs the question put to Requirements, and the key is the one that is open to challenge. It is not an instance of the Skill failing.
-- **Where the Skill changed behaviour.** On E1 only. Both arms already got E2 and E3 as keyed, and every run listed the unresolved questions. The baseline named independent review and recorded differences without the Skill. The pilot does not show the Skill raises the quality of E2 and E3 answers.
-- **The Skill arm echoes the section.** Its E2 answers reuse the section's phrases ("validation, not a passing test", "where the key and the reviewer differ, both are recorded"). That shows the section is read and applied. It is not independent evidence that the answer is better.
-- **Limits.** n=2 per arm, one model family, the author wrote prompt, key and section, three claims chosen to contrast, no real Case being designed. A fresh independent review of the key and of the comparison is still wanted (compare the Architecture ACT's "Lacked").
+**Pilot 2** (wording after the model: Verify, Challenge, Point at judgement, Reject a brittle Case; four claims; the baseline prompt now also carries the three definitions). Key: E1 to E3 unchanged, E4 pushback to Architecture, with a stated doubt. E4 is the Architecture T3/S4 situation: a Case whose oracle is an author's key.
+
+| Claim | Baseline x2 | Skill x2 |
+| --- | --- | --- |
+| E1 | **pushback to Requirements**, deterministic | deterministic, deterministic |
+| E2 | judgment, judgment | judgment, judgment |
+| E3 | pushback to Requirements, same | pushback to Requirements, same |
+| E4 | judgment, judgment | judgment, judgment |
+
+What the two pilots show, and what they do not:
+
+- **The E1 difference did not hold.** In pilot 1 the Skill arm withheld a Case on E1 and the baseline did not. In pilot 2, with the Skill's wording changed ("automated or not", challenge only when its owner could make it decidable), the Skill arm is deterministic twice and the baseline split. So E1 is sensitive to wording and to run, and neither pilot supports "the Skill moves E1" or "the Skill is right on E1". The key doubted E1 from the start and was not retuned.
+- **E4 disagrees with the key in every run.** All four runs, both arms, answered judgment where the key says pushback to Architecture. The key's own doubt allows that. The Skill arm named the Case as brittle ("proves nothing as written", "reject the Case") and asked for the author's key and an independent answer side by side. The baseline also refused to treat the author's say-so as an oracle. The approach labels do not separate the arms, and the answer format has no place to say "reject this Case", so a DO trial needs one. Architecture's key for T3 is untouched, and the disagreement stays recorded.
+- **Where the Skill changed behaviour.** Only in the wording of E4's reasoning (brittle, reject, record both). Both arms already got E2 and E3 as keyed on both pilots. The pilots do not show the Skill raises the quality of those answers.
+- **The Skill arm echoes the section.** Phrases such as "judgement, not a passing test" and "record the author's key and the independent answer" come from the text. That shows the section is applied, not that the answers are better.
+- **Limits.** n=2 per arm, one model family, the author wrote prompts, key and section, claims chosen to contrast, no real Case being designed, and the second pilot's baseline prompt is not a no-Skill agent in the sense of pilot 1 because it carries the definitions. An independent review of the key and the comparison is still wanted.
 
 ## The existing Skill, assessed against the bar
 

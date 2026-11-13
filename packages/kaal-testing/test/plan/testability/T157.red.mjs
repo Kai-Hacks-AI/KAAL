@@ -1,21 +1,18 @@
-// Case testing/T157 tests: testing/F130
+// Case testing/T157 tests: testing/F130, testing/F133, testing/N28. It checks that the rules are present and labelled, never their wording.
 import assert from 'node:assert/strict';
 import { HEADING, skillParts } from './lib.mjs';
 export const id = 'testing/T157';
-export const tests = ['testing/F130'];
-export const title = 'the Skill forbids an invented oracle and an autonomous rewrite, and keeps judgment apart from a passing test';
+export const tests = ['testing/F130', 'testing/F133', 'testing/N28'];
+export const title = 'the section carries two labelled rules after the outcomes: reject a brittle Case, and never invent an oracle';
 export function run() {
   const { section } = skillParts();
   assert.ok(section, `the Skill has no section "${HEADING}"`);
-  const rules = {
-    'never invent an oracle, a threshold or a key to obtain GREEN': /never invent an oracle[^.]*\bkey\b[^.]*GREEN/i,
-    'a judgment is recorded as a judgement, never as a passing test': /a judgement, never as a passing test/i,
-    'what cannot be proven is pointed at as judgement': /cannot be proven is pointed at as judgement/i,
-    'a pushback is reported as unknown': /\bunknown\b/i,
-    'Testing recommends and does not rewrite the owner\'s claim': /recommend[^.]*do not rewrite/i,
-    'an author\'s key is that author\'s judgment, and a difference is recorded as both': /key is that author's judgment[^.]*record both/i,
-    'every claim states why and what stays unresolved': /why[^.]*unresolved/i,
-  };
-  assert.doesNotMatch(section, /validation/i, 'the section does not use "validation", a KAAL convention that differs from IEEE 1012');
-  for (const [rule, re] of Object.entries(rules)) assert.match(section, re, `the section does not state: ${rule}`);
+  const last = section.indexOf('**Point at judgement.**');
+  assert.ok(last >= 0, 'the outcomes are present');
+  for (const label of ['**Reject a brittle Case.**', '**Never invent.**']) {
+    const at = section.indexOf(label);
+    assert.ok(at > last, `${label} follows the outcomes`);
+    const body = section.slice(at + label.length).split(/\n\s*\n/)[0].trim();
+    assert.ok(body.split(/\s+/).length >= 12, `${label} is followed by its rule, not left empty`);
+  }
 }

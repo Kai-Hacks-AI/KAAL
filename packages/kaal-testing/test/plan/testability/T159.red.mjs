@@ -24,8 +24,8 @@ export function run() {
   const c = readJson(join(DO_TRIAL, 'comparison.json'));
   assert.ok(/judg/i.test(key.status ?? ''), 'the key says it is the author\'s judgment');
   assert.ok(key.key.every((k) => typeof k.doubt === 'string' && k.doubt.trim()), 'every key entry states its doubt');
-  if (sha(readText(join(DO_TRIAL, 'key.json'))) !== sha(readText(join(PLAN, 'trial/pilot/key.json'))))
-    assert.ok(c.keyRevision?.reason && c.keyRevision?.by && c.keyRevision?.from === sha(readText(join(PLAN, 'trial/pilot/key.json'))), 'a changed key records its revision: from (the pilot key hash), by and reason');
+  if (sha(readText(join(DO_TRIAL, 'key.json'))) !== sha(readText(join(PLAN, 'trial/pilot2/key.json'))))
+    assert.ok(c.keyRevision?.reason && c.keyRevision?.by && c.keyRevision?.from === sha(readText(join(PLAN, 'trial/pilot2/key.json'))), 'a changed key records its revision: from (the pilot key hash), by and reason');
   assert.equal(c.keySha256, sha(readText(join(DO_TRIAL, 'key.json'))), 'the comparison names the key it used');
   const want = positions(key, runs);
   assert.deepEqual(c.positions, want, 'the comparison holds every position, as recomputed from the records');
