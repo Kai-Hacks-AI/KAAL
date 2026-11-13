@@ -1,0 +1,65 @@
+[
+    {
+      "id": "E1",
+      "approach": "deterministic",
+      "why": "Response time is directly observable and two seconds is a stated threshold, so a measurement against it is an unambiguous oracle. The claim is only decidable once the 'specified conditions' are actually written down by Requirements; I do not invent them.",
+      "observable": "Elapsed time from request sent to response complete, measured under the specified conditions.",
+      "oracle": "Pass if the measured time is at most 2 seconds under the specified conditions; fail otherwise.",
+      "evidence": null,
+      "judge": null,
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "What are the 'specified conditions' (load, hardware, data size, network)? They must be stated in the Requirements, not assumed by the test.",
+        "Does the limit apply to every response or to a percentile or average over a number of runs?"
+      ],
+      "rejectsCase": null
+    },
+    {
+      "id": "E2",
+      "approach": "judgment",
+      "why": "Whether a Skill 'usefully' distinguishes Solution from Delivery is about fitness for purpose, not about a measurable result, so it can only be judged and never recorded as a passing test.",
+      "observable": null,
+      "oracle": null,
+      "evidence": "The Architecture Skill text, worked examples of Solution versus Delivery including ambiguous cases, and how agents using the Skill classify or handle those examples.",
+      "judge": "A reviewer who is not the author of the Skill, such as an Architecture reviewer or an independent practitioner who uses the Skill.",
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "What counts as 'usefully', and for whom?",
+        "What counts as 'including ambiguity': recognising it, naming it, or resolving it?"
+      ],
+      "rejectsCase": null
+    },
+    {
+      "id": "E3",
+      "approach": "pushback",
+      "why": "'Sufficiently reliable' states no measure, threshold or conditions, so no observable or oracle can be defended without inventing one. Requirements could reasonably make it decidable, so the claim is reported as unknown.",
+      "observable": null,
+      "oracle": null,
+      "evidence": null,
+      "judge": null,
+      "owner": "Requirements",
+      "question": "What does 'sufficiently reliable' mean in measurable terms: which reliability measure (for example availability, failure rate or mean time between failures), what threshold, over what period and under what conditions? If it cannot be quantified, should it be treated as a judgment about fitness for purpose and say who judges it?",
+      "unresolved": [
+        "Reliability measure, threshold, period and operating conditions are all unspecified."
+      ],
+      "rejectsCase": null
+    },
+    {
+      "id": "E4",
+      "approach": "judgment",
+      "why": "The only oracle offered is the Case author's own preferred answer ('ambiguous'), which is that author's judgment and not an independent oracle, and the Case checks a particular answer word rather than the concept of ambiguity detection. The statement does plausibly admit more than one reading (for example, that the kitchen serves nothing but dishes that travel well, versus that it serves only some subset of such dishes), but whether it is ambiguous enough to warrant this answer must be judged by someone other than the author.",
+      "observable": null,
+      "oracle": null,
+      "evidence": "The statement 'The kitchen serves only the dishes that travel well in the delivery van.' with the competing readings written out, the author's key ('ambiguous'), and independent answers from reviewers or agents who did not write the Case.",
+      "judge": "An independent reviewer (not the Case author), such as an Architecture reviewer or a panel of independent readers; record the author's key and any differing independent answer side by side.",
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "Do independent readers also find the statement ambiguous, and which readings do they identify?",
+        "Should the Case verify that an agent identifies the competing readings (the concept) rather than emit the single word 'ambiguous'?"
+      ],
+      "rejectsCase": true
+    }
+]

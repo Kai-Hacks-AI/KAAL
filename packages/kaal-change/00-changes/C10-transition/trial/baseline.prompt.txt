@@ -1,0 +1,47 @@
+# Task
+
+A notes tool exports its store.
+
+Current state (A): three Cases are green today.
+- H1: export writes a header row id,title,body, then one comma-separated line per note.
+- H2: export writes every note in the store; none is dropped.
+- H3: export of an empty store exits with 0 and writes only the header.
+
+Intended outcome (B):
+- B1: export writes one JSON object per line and no header.
+- B2: export writes every note in the store; none is dropped.
+- B3: export of an empty store exits with 0 and writes nothing.
+
+Change (A to B): replace the comma-separated export by JSON Lines. Introduce B1. Keep B2 and the exit code of B3.
+
+## Statements
+
+For each statement below, say which kinds of truth it carries and whether it has a finding.
+
+S1. Export writes a header row id,title,body, then one comma-separated line per note.
+S2. Export writes every note in the store; none is dropped.
+S3. Export of an empty store exits with 0 and writes only the header.
+S4. Export writes one JSON object per line and no header.
+S5. The Case that checks the header row stays green after the change.
+S6. All three current Cases are green, so the new export is reached.
+S7. Both exports run on the same store give the same set of notes, and the header Case is recorded as superseded.
+S8. Drop the Case that no note is dropped, because the old export is being replaced.
+S9. The new export is shown to be reached because its own Cases are green.
+
+## Transformations
+
+For each transformation, say how many Changes it needs and, when more than one, name the boundaries between them.
+
+D1. Replace the comma-separated export of the notes tool by JSON Lines, keeping that no note is dropped.
+D2. Replace the comma-separated export by JSON Lines. Then retire the comma-separated reader that an outside consumer still depends on, once that consumer reads JSON Lines. Then remove the transition option that served both.
+
+## Explanation
+
+Explain the Change as the transition from A to B. Cover: the current state, the intended outcome, what changes, which expectations are superseded and which protections remain valid, and what evidence shows the transition.
+
+## Reply format
+
+Reply with one JSON object and nothing else: no code fence, no text before or after. Its fields are:
+- answers: a list with, for each statement, the fields id, parts and finding. parts is a list of kinds from: historical, enduring, target, transition. finding is one of: none, mixed, historical-as-target, historical-as-evidence, retires-enduring, no-transition-evidence. Meaning of the findings: none (nothing wrong), mixed (the statement carries more than one kind), historical-as-target (history kept as a protection of the target), historical-as-evidence (history cited as evidence of the target), retires-enduring (a protection that remains valid is dropped), no-transition-evidence (the target's own Cases are taken as proof of the transition).
+- decompositions: a list with, for each transformation, the fields id, changes (a number) and boundaries (text; empty when one Change suffices).
+- explanation: an object with the text fields current, intended, changes, superseded_and_protected and evidence.

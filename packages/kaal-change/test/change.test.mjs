@@ -112,6 +112,7 @@ describe("the package", () => {
       "payload/Change-Practice.md",
       "skills/kaal-change/SKILL.md",
       "skills/kaal-change/references/isolation.md",
+      "skills/kaal-change/references/transition.md",
       "skills/kaal-change/references/worksheet.md",
       "skills/kaal-change/scripts/example-model.mjs",
       "skills/kaal-change/scripts/example.mjs",
