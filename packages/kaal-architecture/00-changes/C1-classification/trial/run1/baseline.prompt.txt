@@ -1,0 +1,19 @@
+You are classifying statements about an intended solution. Use no tool and read nothing else: answer from this text alone.
+
+For each statement below, give its parts and a finding.
+- parts: a list holding solution, delivery, or both, in no particular order. Leave it empty if you cannot tell.
+- finding: one of none, mixed, disguised, ambiguous.
+
+Reply with JSON only and nothing else: an object with the key answers, a list holding one object per statement with the keys id, parts and finding.
+
+Statements:
+S1: A patient who arrives at the emergency ward is seen by a triage nurse within ten minutes.
+S2: Triage is staffed by two nurses on a rota that is posted in the ward each Friday.
+S3: The bridge carries two lanes of traffic in each direction, and it is built from steel box girders brought in by barge.
+S4: The kitchen serves only the dishes that travel well in the delivery van.
+S5: The service must be reliable.
+S6: The search runs on three servers behind one address.
+S7: The search returns results ranked by relevance within two seconds.
+S8: Voters can cast a ballot at any polling place in their county, and each polling place keeps its own printed roll of voters.
+S9: The museum leads each visitor through the collection in date order, and a printed map handed out at the door shows the way.
+S10: Lectures are recorded and posted to the course page on the day they are given.
