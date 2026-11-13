@@ -12,7 +12,7 @@ const T = '00-changes/C1-classification/trial/';
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
 export const key = () => JSON.parse(read(KEY, 'the scenario key')).scenarios;
-// A trial is valid only with provenance: who observed it, that its prompt is the Skill and the statements and nothing else,
+// A trial is valid only with provenance: who observed it, that its prompt holds the statements and nothing of the key,
 // and that the recorded answers are the raw output unedited.
 export function trial(name) {
   const meta = JSON.parse(read(`${T}${name}.json`, `the ${name} record`));
@@ -22,7 +22,8 @@ export function trial(name) {
   assert.ok(meta.observer && meta.observer !== meta.author, `${name}: the observer is the author or unnamed`);
   assert.ok(meta.agent && meta.model && meta.date, `${name}: agent, model or date is not recorded`);
   assert.deepEqual(JSON.parse(raw).answers, meta.answers, `${name}: the answers are not the raw output unedited`);
-  for (const s of key()) { assert.ok(prompt.includes(s.statement), `${name}: the prompt lacks ${s.id}`); assert.ok(!prompt.includes(s.finding + '"'), `${name}: the prompt carries the key`); }
+  assert.ok(!prompt.includes('"finding"'), `${name}: the prompt carries the key`);
+  for (const s of key()) assert.ok(prompt.includes(s.statement), `${name}: the prompt lacks ${s.id}`);
   return { meta, prompt };
 }
 export function judged(ids) {

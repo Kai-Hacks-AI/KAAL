@@ -2,8 +2,9 @@
  "scenarios": [
   {
    "id": "S1",
-   "writtenIn": "requirement",
-   "statement": "A Change that holds files of two owners that must travel apart is refused, and each offending file is named.",
+   "domain": "health care",
+   "writtenIn": "solution",
+   "statement": "A patient who arrives at the emergency ward is seen by a triage nurse within ten minutes.",
    "parts": [
     "solution/target"
    ],
@@ -11,8 +12,9 @@
   },
   {
    "id": "S2",
-   "writtenIn": "requirement",
-   "statement": "The verdict is produced by an automated job on every proposed Change into a collector.",
+   "domain": "health care",
+   "writtenIn": "delivery",
+   "statement": "Triage is staffed by two nurses on a rota that is posted in the ward each Friday.",
    "parts": [
     "delivery/target"
    ],
@@ -20,71 +22,79 @@
   },
   {
    "id": "S3",
-   "writtenIn": "change",
-   "statement": "Move the judgment of the local check onto the control's own declaration, then remove the old block once the replay agrees with it.",
+   "domain": "transport",
+   "writtenIn": "plan",
+   "statement": "Until the new bridge opens, the ferry keeps running on its present timetable.",
    "parts": [
-    "change/change"
+    "transition"
    ],
-   "finding": "none"
+   "finding": "transition"
   },
   {
    "id": "S4",
-   "writtenIn": "requirement",
-   "statement": "The judge returns PASS, FAIL or UNKNOWN, and until the replay agrees the old script keeps judging as well.",
+   "domain": "transport",
+   "writtenIn": "solution",
+   "statement": "The bridge carries two lanes of traffic in each direction, and it will be opened in stages, one direction first.",
    "parts": [
     "solution/target",
-    "change/change"
+    "transition"
    ],
    "finding": "mixed"
   },
   {
    "id": "S5",
-   "writtenIn": "requirement",
-   "statement": "The control shall be migrated from the old script to the judge.",
-   "parts": [
-    "change/change"
-   ],
-   "finding": "misplaced"
-  },
-  {
-   "id": "S6",
-   "writtenIn": "change",
-   "statement": "Every application of the control records the control, the place, the verdict and the offending paths. No requirement states it.",
+   "domain": "food service",
+   "writtenIn": "delivery",
+   "statement": "The kitchen serves only the dishes that travel well in the delivery van.",
    "parts": [
     "solution/target"
    ],
-   "finding": "misplaced"
+   "finding": "disguised"
   },
   {
-   "id": "S7",
-   "writtenIn": "change",
-   "statement": "So that the local check passes on every machine, it treats UNKNOWN as PASS. It is a step of the Change that delivers the check.",
-   "parts": [
-    "delivery/change",
-    "solution/change"
-   ],
-   "finding": "weakens-solution"
-  },
-  {
-   "id": "S8",
-   "writtenIn": "requirement",
-   "statement": "The check must be mandatory.",
+   "id": "S6",
+   "domain": "public service",
+   "writtenIn": "solution",
+   "statement": "The service must be reliable.",
    "parts": [],
    "finding": "ambiguous"
   },
   {
-   "id": "S9",
-   "writtenIn": "change",
-   "statement": "Add the local placement. It calls the verdict function of the judge, which does not exist yet.",
+   "id": "S7",
+   "domain": "software",
+   "writtenIn": "delivery",
+   "statement": "The search runs on three servers behind one address.",
    "parts": [
-    "delivery/change"
+    "delivery/target"
    ],
-   "finding": "dependency"
+   "finding": "none"
+  },
+  {
+   "id": "S8",
+   "domain": "software",
+   "writtenIn": "plan",
+   "statement": "Move the search from the old servers to the new ones before March.",
+   "parts": [
+    "transition"
+   ],
+   "finding": "transition"
+  },
+  {
+   "id": "S9",
+   "domain": "civic",
+   "writtenIn": "solution",
+   "statement": "Voters can cast a ballot at any polling place in their county, and the polling places will move to schools this year.",
+   "parts": [
+    "solution/target",
+    "transition"
+   ],
+   "finding": "mixed"
   },
   {
    "id": "S10",
-   "writtenIn": "requirement",
-   "statement": "The control judges from the changed paths, and the judge is run by a job of the hosting platform on each proposed Change.",
+   "domain": "culture",
+   "writtenIn": "solution",
+   "statement": "The museum leads each visitor through the collection in date order, and a printed map handed out at the door shows the way.",
    "parts": [
     "solution/target",
     "delivery/target"

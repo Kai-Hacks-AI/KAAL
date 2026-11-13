@@ -1,42 +1,53 @@
 # C1 proposal
 
-For CPO alignment. Nothing here is implemented.
+For CPO alignment. Nothing here is implemented. The Skill is abstract: it knows no organization, discipline or technology.
 
 ## 1. The contract of the Skill
 
+Two independent questions per statement.
+
 | Question | Test | Answer |
 | --- | --- | --- |
-| Semantics | Would it still be true once the Change is finished and its record deleted? | yes: target-state. No, because it names a from and a to, a step, a migration, a retirement, an "until" or an order of work: change-oriented |
-| Concern | Would it still hold if the platform or mechanism that carries it out were replaced? | yes: Solution. No, because it says how the solution is made available, integrated, executed or operated: Delivery |
-| Concern | Is it the bounded transition from the baseline to the target? | Change |
+| Concern | Would it still hold if the means that realize, operate or provide the solution were replaced? | yes: **Solution**, what the solution is and must do. No, because it names those means or how they are used: **Delivery** |
+| Semantics | Does it describe the end state, or a movement toward it (a before, an until, a stage, a step, a move, a retirement)? | end state: **target-state**. Movement: **transition** |
 
-Valid pairs: Solution with target-state, Delivery with target-state, Change with change-oriented. Any other is a finding. Rules, in at most 120 lines: split a mixed statement by pair; move a change-oriented statement out of a target element into its Change, and raise a target-state statement found only in a Change to its element; name an ambiguous term and ask; trace target, Gap and one closing Change; keep Solution and Delivery in their own Changes, with a dependency as an edge and never a merge, and a Delivery Change never weakening the Solution contract; classify before planning. Output per statement: its parts, the owning element, the finding and the next move.
+Rules, in at most 120 lines:
+
+1. Architecture describes the target. A transition statement is flagged as belonging outside target-state Architecture. The Skill says nothing of who governs a transition or how, and a transition is not a third concern.
+2. A statement whose parts differ is split by part, never classified by its dominant part.
+3. A term that can mean both concerns is named and put to its author, not guessed.
+4. A statement written as one concern that in fact fixes the other (a means that limits what the solution offers) is reclassified by what it fixes.
+5. Raise each before design proceeds.
+
+Output per statement: its parts, the finding (none, transition, mixed, disguised or ambiguous) and the next move.
 
 ## 2. Placement
 
-The Skill is Architecture's: package and Skill `kaal-architecture`, collector `kaal/architecture/classify`. The earlier package of the same name (the URBAN Skill) is parked on `kaal/old/architecture`, is not on `main`, and is not depended on. The ids restart in `architecture/` and are C1, I1, F1 to F3, N1, A1, A2, G1, G2 and T1 to T6.
+The Skill and the package are `kaal-architecture`, developed on the collector `kaal/architecture/classify`. The earlier URBAN package of that name is parked on `kaal/old/architecture` and is not depended on. Ids restart in `architecture/`: C1, I1, F1 to F3, N1, A1, A2, G1, G2, T1 to T8.
 
 ## 3. Representative classifications
 
-| Statement | Classification | Finding |
-| --- | --- | --- |
-| "A Change that holds files of two owners that must travel apart is refused, and each offending file is named." | Solution, target-state | none |
-| "The verdict is produced by an automated job on every proposed Change into a collector." | Delivery, target-state | none |
-| "The judge returns PASS, FAIL or UNKNOWN, and until the replay agrees the old script keeps judging as well." | Solution target-state, and Change change-oriented | mixed: split |
-| "The control shall be migrated from the old script to the judge." (as a Solution requirement) | Change, change-oriented | misplaced: move to the Change |
-| "So that the local check passes on every machine, it treats UNKNOWN as PASS." (a step of the delivering Change) | Delivery change, and a change of the Solution contract | weakens-solution: refuse; a Solution Change first |
+| Statement | Domain | Parts | Finding |
+| --- | --- | --- | --- |
+| "A patient who arrives at the emergency ward is seen by a triage nurse within ten minutes." | health care | Solution, target-state | none |
+| "Triage is staffed by two nurses on a rota that is posted in the ward each Friday." | health care | Delivery, target-state | none |
+| "Until the new bridge opens, the ferry keeps running on its present timetable." | transport | transition | flagged as outside target-state Architecture |
+| "The bridge carries two lanes in each direction, and it will be opened in stages." | transport | Solution target, and a transition | mixed: split |
+| "The kitchen serves only the dishes that travel well in the delivery van." | food service | Solution, target-state | disguised: a means that fixes what is offered |
+| "The service must be reliable." | public service | none yet | ambiguous: ask |
+| "The search runs on three servers behind one address." | software | Delivery, target-state | none |
 
 ## 4. Verification and the Cases
 
-Comparing recorded answers with a key shows only that the answers match. The evidence that the Skill produces them is a trial that the author did not run, with provenance, so the Cases refuse a trial without it (`trial/` in the DO):
+Comparing recorded answers with a key shows only that they match. The evidence that the Skill produces them is a trial that the author did not run:
 
-- `skill.prompt.txt` holds the Skill as shipped and the ten statements, and nothing else. Its sha256 is recorded. `skill.raw.txt` is the agent's output, unedited, and the recorded answers must equal it.
+- `skill.prompt.txt` holds the Skill as shipped and the ten statements, nothing of the key. Its sha256 is recorded. `skill.raw.txt` is the agent's output, unedited, and the recorded answers must equal it.
 - `skill.json` names the observer, who must not be the author, the agent, the model and the date.
-- `baseline.*` is the same trial without the Skill. It is recorded and reported, so that what the Skill adds is visible. A baseline that already matches the key is a finding about the Skill.
+- `baseline.*` is the same trial without the Skill, recorded and reported so that what the Skill adds is visible. A baseline that already matches the key is a finding about the Skill.
 - A difference from the key is reported, never corrected silently.
 
-Cases: T1 (I1, F1, F2) and T4 (A2, F3) compare the Skill-only answers with the key; T2 (N1) checks size and that no workflow or gate exists; T3 (A1) checks the shell and the key; T5 and T6 close the two Gaps. Negative statements: S4 and S10 (mixed), S5 and S6 (wrong element), S7 (weakening), S8 (ambiguous).
+Cases: T1 (I1, F1), T2 (F2) and T3 (F3) compare the Skill-only answers with the key; T4 (N1) checks size, that the Skill names no organization, tool or technology, and that no gate exists; T5 (A1) checks the shell and that the key covers each kind, the negative findings, software and at least four other domains; T6 (A2) the Skill; T7 and T8 close the two Gaps. Negative statements: S4, S9, S10 (mixed), S5 (disguised), S6 (ambiguous), S3 and S8 (transition).
 
-## 5. Smallest PLAN and Change
+## 5. Smallest PLAN
 
-One PLAN and one Change, architecture/C1, onto one component. Applying the Skill to #1404 is a Change of the Change Isolation capability (`application-1404.md`).
+One PLAN and one Change, architecture/C1, onto one component.
