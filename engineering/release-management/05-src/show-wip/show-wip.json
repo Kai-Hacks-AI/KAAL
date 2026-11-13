@@ -3,5 +3,10 @@
   "stations": [
     { "station": "Integration", "into": "kaal/*" },
     { "station": "Promotion", "into": "main" }
-  ]
+  ],
+  "review": {
+    "stations": ["Promotion", "Integration"],
+    "types": ["SYNC", "PROMOTION", "HOTFIX", "ACT", "DO", "PLAN"],
+    "sync": "SYNC"
+  }
 }
