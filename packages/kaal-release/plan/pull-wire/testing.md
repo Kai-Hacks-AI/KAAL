@@ -4,6 +4,6 @@ Runnable Case `T34`, `.red.mjs`. It is RED because `engineering/cases/cases.test
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
-| pull/T34 | F35 | `test:engineering` names the Cases file. Running it with `node --test` logs one `✔ <scope>/T<n>` line per discovered Case file, and the gatherer's `executionsOf` reads each of them as a success at the head. A throwing Case logs `✖` and reads as a failure; a Case without a scoped `id` fails and is not skipped. |
+| pull/T34 | F35 | `test:engineering` names the Cases file. Running it on the real Cases logs every one with a recorded execution that `executionsOf` reads as a success. A fixture folder (via `KAAL_CASES_ROOT`) holds a passing Case, a deliberately failing Case and a Case without a scoped `id`: the passing one reads as a success, the failing one logs `✖ <scope>/T<n>` and reads as a **failure** (execution evidence, not missing), the file exits non-zero so qualification stays blocked, and the Case without an id is never accepted as a success. |
 
 It does not prove that CI runs it on every host, only that the file and the script entry produce lines the report accepts. The first CI run on the collector is the live evidence.
