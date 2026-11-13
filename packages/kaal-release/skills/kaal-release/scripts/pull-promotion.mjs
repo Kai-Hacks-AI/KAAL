@@ -20,7 +20,7 @@ export function walkCollectors(facts, declaration) {
   else {
     if (!isList(ev.plan)) undecl.push('plan evidence');
     if (!isList(ev.do)) undecl.push('do evidence');
-    if (typeof ev.cases?.files !== 'string') undecl.push('cases evidence');
+    if (!patterns(ev.cases?.files).length) undecl.push('cases evidence');
     if (!patterns(ev.act?.files).length || !isList(ev.act?.headings)) undecl.push('act evidence (files and 4L headings)');
   }
   for (const u of undecl) problems.push(`the declaration lists no ${u}`);
@@ -41,12 +41,15 @@ export function walkCollectors(facts, declaration) {
     const tree = col.tree.filter(inScope);
     if (!col.delta.length) no('files that differ from main: the delta is empty');
     else if (!col.delta.some((f) => inScope(f.path))) no('files that differ from main inside the scope of the collector: none');
+    const outside = uniq(col.delta.filter((f) => !inScope(f.path)).map((f) => f.path));
+    if (outside.length) no(`scope: files of the delta outside the scope of the collector (${outside.slice(0, 5).join(', ')}${outside.length > 5 ? `, and ${outside.length - 5} more` : ''})`);
     const plan = tree.filter((p) => any(ev.plan, p));
     const dos = tree.filter((p) => any(ev.do, p));
     if (col.delta.length && !plan.length) no('PLAN: no file of the tree matches the plan evidence');
     if (col.delta.length && !dos.length) no('DO: no file of the tree matches the do evidence');
-    const caseRe = new RegExp(ev.cases.files);
-    const idsIn = (paths) => paths.map((p) => caseRe.exec(p)?.[1]).filter(Boolean);
+    const caseRes = patterns(ev.cases.files).map((p) => new RegExp(p));
+    const isCase = (path) => caseRes.some((re) => re.test(path));
+    const idsIn = (paths) => paths.flatMap((p) => caseRes.map((re) => re.exec(p)?.[1]).filter(Boolean));
     const expected = uniq([...idsIn(tree), ...(ev.cases.required ?? [])]);
     for (const id of ev.cases.required ?? []) if (!idsIn(tree).includes(id)) no(`Test Case ${id} is required and the tree has no such Case`);
     if (!expected.length) dunno('an expected Test Case in the tree');
@@ -71,7 +74,7 @@ export function walkCollectors(facts, declaration) {
     if (acts.length === 1) {
       const last = (path) => col.history.reduce((n, c, i) => (c.paths.includes(path) ? i : n), -1);
       const at = last(acts[0].path);
-      const ordered = uniq(col.history.flatMap((c) => c.paths)).filter(inScope).filter((p) => any(ev.plan, p) || any(ev.do, p) || caseRe.test(p));
+      const ordered = uniq(col.history.flatMap((c) => c.paths)).filter(inScope).filter((p) => any(ev.plan, p) || any(ev.do, p) || isCase(p));
       for (const f of ordered) {
         const i = last(f);
         if (i < 0 || at < 0) dunno(`where ${f} or the ACT sits in the history`);

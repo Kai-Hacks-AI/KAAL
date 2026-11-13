@@ -5,6 +5,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { retro, statusOf, walkCollectors } from './fixtures.mjs';
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 export const id = 'pull/T14';
 export const tests = ['pull/F14', 'pull/F15'];
@@ -19,6 +20,26 @@ function shows(result, names) {
   const order = result.collectors.filter((c) => c.status === 'qualifies').map((c) => c.name);
   assert.deepEqual(result.qualifiers, order, 'the qualifiers are not those that qualify, in the declared order');
 }
+// A small host that answers the gatherer's reads, as the REST API does.
+function host(branches) {
+  const b = (name) => branches[name];
+  const get = async (path) => {
+    let m;
+    if ((m = /\/branches\/(.+)$/.exec(path))) { if (!b(m[1])) throw new Error('HTTP 404'); return { commit: { sha: `${m[1].split('/').pop()}-2` } }; }
+    const col = Object.values(branches).find((c) => path.includes(`${c.name.split('/').pop()}-2`));
+    if (/\/compare\//.test(path)) return { files: col.history.flatMap((c) => c.files).map((f) => ({ filename: f, status: 'added' })), total_commits: col.history.length, commits: col.history.map((c, i) => ({ sha: c.id, parents: [{ sha: i ? col.history[i - 1].id : 'base' }] })), merge_base_commit: { sha: 'base' } };
+    if (/\/git\/trees\//.test(path)) return { truncated: false, tree: col.tree.map((p) => ({ type: 'blob', path: p })) };
+    if (/\/check-runs/.test(path)) return { check_runs: [{ id: col.name.length, status: 'completed', app: { slug: 'github-actions' } }] };
+    if ((m = /\/commits\/([^/?]+)$/.exec(path))) return { files: Object.values(branches).flatMap((c) => c.history).find((c) => c.id === m[1]).files.map((f) => ({ filename: f, status: 'added' })) };
+    if ((m = /\/contents\/([^?]+)\?/.exec(path))) return { encoding: 'base64', content: Buffer.from(col.texts[decodeURIComponent(m[1])] ?? '').toString('base64') };
+    throw new Error(`HTTP 404 ${path}`);
+  };
+  const getText = async (path) => Object.values(branches).find((c) => path.endsWith(`/jobs/${c.name.length}/logs`)).log;
+  return { get, getText };
+}
+const logOf = (...cases) => cases.map((c) => `2026-11-13T10:00:00.0000000Z   ✔ ${c} (1ms)`).join('\n');
+
+
 export async function run() {
   const live = process.env.KAAL_LIVE;
   const dir = join(repoRoot, 'engineering/release-management/05-src/pull-promotion');
@@ -63,6 +84,24 @@ export async function run() {
   const recorded = JSON.parse(readFileSync(join(dir, 'evidence/live-report.json'), 'utf8'));
   shows(recorded, names);
   assert.ok(existsSync(join(dir, 'evidence/live-run.md')), 'the record of the live run is missing');
+
+  // the gatherer and the Script together, on a host that answers the reads like the real one: a collector with complete evidence of its own qualifies, one that only inherits does not
+  // end to end on a real-shaped host: the gatherer and the Script together
+    const mk = (name, files, tree, texts, cases) => ({ name, history: [{ id: `${name.split('/').pop()}-1`, files: files.slice(0, -1) }, { id: `${name.split('/').pop()}-2`, files: files.slice(-1) }], tree, texts, log: logOf(...cases) });
+  const mainTree = ['README.md', 'packages/kaal-other/plan/c9/requirements.md', 'packages/kaal-other/src/other.mjs', 'packages/kaal-other/test/other/T1.test.mjs'];
+  const mine = ['packages/kaal-demo/plan/c1/requirements.md', 'packages/kaal-demo/plan/c1/testing.md', 'packages/kaal-demo/src/demo.mjs', 'packages/kaal-demo/test/demo/T1.test.mjs', 'packages/kaal-demo/00-changes/C1-x/act.md'];
+  const branches = {
+    'kaal/demo/own': mk('kaal/demo/own', mine, [...mainTree, ...mine], { 'packages/kaal-demo/00-changes/C1-x/act.md': retro() }, ['demo/T1', 'other/T1']),
+    'kaal/demo/inherits': mk('kaal/demo/inherits', ['docs/note.md', 'docs/more.md'], [...mainTree, 'docs/note.md', 'docs/more.md'], {}, ['other/T1']),
+  };
+  const real = JSON.parse(readFileSync(join(dir, 'declaration.json'), 'utf8'));
+  const d = { collectors: [{ name: 'kaal/demo/own', scope: ['^packages/kaal-demo/'] }, { name: 'kaal/demo/inherits', scope: ['^packages/kaal-other/'] }], evidence: { ...real.evidence, cases: { files: '^packages/[^/]+/test/([a-z-]+/T\\d+)\\.test\\.mjs$' } } };
+  const { get, getText } = host(branches);
+  const out = await walkCollectors(await read.readFacts('o/r', d, get, getText), d);
+  assert.deepEqual(out.qualifiers, ['kaal/demo/own'], `the collector with complete evidence of its own did not qualify, or another did: ${JSON.stringify(out.collectors)}`);
+  const inh = statusOf(out, 'kaal/demo/inherits');
+  assert.equal(inh.status, 'does not qualify', 'a collector that only inherits evidence from main qualified');
+  assert.ok(inh.missing.some((m) => /scope/.test(m)), 'the missing work inside the scope is not named');
 
   if (!live) return;
   const ok = command([live, declared]);

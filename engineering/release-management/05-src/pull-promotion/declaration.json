@@ -4,25 +4,28 @@
       "name": "kaal/release/plan",
       "scope": [
         "^packages/kaal-release/",
-        "^engineering/release-management/05-src/pull-promotion/"
+        "^engineering/release-management/05-src/(pull-promotion|show-wip)/",
+        "^package(-lock)?\\.json$"
       ]
     },
     {
       "name": "kaal/release/wire-fallback-template",
       "scope": [
-        "^\\.github/"
+        "^\\.github/pull_request_template\\.md$"
       ]
     },
     {
       "name": "kaal/release/wire-hotfix-template",
       "scope": [
-        "^\\.github/PULL_REQUEST_TEMPLATE/"
+        "^\\.github/PULL_REQUEST_TEMPLATE/hotfix\\.md$",
+        "^engineering/release-management/00-changes/C17-wire-hotfix-template/"
       ]
     },
     {
       "name": "kaal/release/wire-hotfix",
       "scope": [
-        "^\\.github/PULL_REQUEST_TEMPLATE/"
+        "^\\.github/PULL_REQUEST_TEMPLATE/hotfix\\.md$",
+        "^engineering/release-management/00-changes/C17-wire-hotfix-template/"
       ]
     },
     {
@@ -34,7 +37,8 @@
     {
       "name": "kaal/release/wire-analyze-vulnerabilities",
       "scope": [
-        "^\\.github/workflows/"
+        "^\\.github/workflows/release-analyze-vulnerabilities-(integration|promotion)\\.yml$",
+        "^engineering/release-management/00-changes/C18-wire-analyze-vulnerabilities/"
       ]
     },
     {
@@ -46,8 +50,7 @@
     {
       "name": "kaal/release/check-pr-envelope",
       "scope": [
-        "^engineering/release-management/00-changes/C12-",
-        "^engineering/release-management/05-src/check-pr-envelope/"
+        "^engineering/release-management/00-changes/C12-"
       ]
     },
     {
@@ -59,32 +62,37 @@
     {
       "name": "kaal/release/verify-plan",
       "scope": [
-        "^engineering/release-management/(00-changes/C1-verify-plan|00-changes/C2-verify-plan-ids|02-requirements/F1-plan-pr|03-architecture/A1-verify-plan|05-src/plan|06-defects/D1-untraced-plan)(/|$)"
+        "^engineering/release-management/(00-changes/C1-verify-plan|00-changes/C2-verify-plan-ids|01-intent/I1-verify-plan|02-requirements/F1-plan-pr|03-architecture/A1-verify-plan|05-src/plan|06-defects/D1-untraced-plan)/",
+        "^engineering/release-management/(AGENTS|README)\\.md$",
+        "^package\\.json$"
       ]
     },
     {
       "name": "kaal/release/wire-verify-plan",
       "scope": [
-        "^\\.github/"
+        "^\\.github/workflows/"
       ]
     },
     {
       "name": "kaal/release/approve-change",
       "scope": [
-        "^\\.kaal/changes/",
-        "^packages/kaal-hosting/00-changes/"
+        "^\\.kaal/changes/"
       ]
     }
   ],
   "evidence": {
     "plan": [
-      "(^|/)plan/.+/(requirements|testing)\\.md$"
+      "(^|/)plan/.+/(requirements|testing)\\.md$",
+      "(^|/)00-changes/[^/]+/(change|gap)\\.md$"
     ],
     "do": [
       "^(?!.*(^|/)plan/)(packages|engineering|\\.github|\\.githooks)/.+"
     ],
     "cases": {
-      "files": "^packages/[^/]+/test/([a-z-]+/T\\d+)\\.test\\.mjs$"
+      "files": [
+        "^packages/[^/]+/test/([a-z-]+/T\\d+)\\.test\\.mjs$",
+        "^engineering/release-management/00-changes/[^/]+/(T\\d+)\\.test\\.mjs$"
+      ]
     },
     "act": {
       "files": [
