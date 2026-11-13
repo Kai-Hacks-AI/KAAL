@@ -16,11 +16,11 @@ The Change is the whole lot, and it closes only when verify Plan is on `main` an
 
 1. Judgment, so that the F1 Cases pass (#1384, on the collector).
 2. Readers and the check body, with the interim runner writing the evidence rows (#1386, on the collector).
-3. A check that covers every PLAN pull request, whatever its capability (#1389).
+3. A check that covers every PLAN pull request, whatever its capability, limited to what only verify Plan does (see Scope). #1389 is parked; its pieces are rehomed or dropped when this step starts.
 4. Bring the collector level with `main` by a SYNC, so that create Plan and the check of the PR body are in the tree that this Change is judged in.
 5. Reconcile the documents with the classification of `reconcile.md`, one concern per pull request: F1 cites F2 and F3 and no longer restates what create Plan owns; A8 to A11 move to a portable branch of A1, beside the GitHub adapter; A3 and A4 and their Cases T17 and T18 are removed, because the template is create Plan's; A12, A13 and their Cases T26 and T27 leave this Change for the preventive control. No implementation moves in this step except the elements named.
 6. Promote the engineering collector to `main`.
-7. Deliver the `verify Plan` workflow (A5) in its own `.github` pull request, once the engineering code is on `main`. The workflow takes the judge and the runner from the target branch and the plan from the pull request. Test the complete adapter path with a throwaway PLAN pull request before anything requires it. It runs the body check of release/C8 as well as the judgment.
+7. Deliver the `verify Plan` workflow (A5) in its own `.github` pull request, once the engineering code is on `main`. The workflow takes the judge and the runner from the target branch and the plan from the pull request. Test the complete adapter path with a throwaway PLAN pull request before anything requires it. It runs beside the envelope check of release/C12, which it does not repeat.
 8. Rename each passing Case from `T<n>.red.mjs` to `T<n>.test.mjs` and wire it into its lane. A promotion carries red markers only for Cases whose target lies outside the promoted paths, and the pull request names each of them.
 
 Not in this Change: the PLAN pull request template, which is create Plan and is on `main`; requiring the status `verify Plan` before a pull request merges, which is the preventive control `guard Integration` with its own PLAN and the Owner's go.
@@ -31,6 +31,14 @@ Not in this Change: the PLAN pull request template, which is create Plan and is 
 2. Close C1 and its Gaps once verify Plan is on `main` and its workflow is wired.
 
 Open for the Owner and the CPO: whether C1 waits for `guard Integration` before ACT, or closes when verify Plan reports on every PLAN pull request and enforcement is its own Change.
+
+## Scope
+
+Cross-cutting conformance of a pull request is not verify Plan. The body checks of release/C8 (on `main`) and the envelope check of release/C12 (on its collector) cover, for every PR type: title shape, body structure derived from the declared template, contamination, route, and for PLAN, DO and ACT the agreement between the Change id in the body and the `Driven-by` trailer of every commit. This Change does not repeat any of it, and it reads the Change id from the body's Change chapter and not from the title.
+
+What only verify Plan does, and what stays here: rules 1 to 7 of F1 over the PLAN files (drivers and Gaps, Requirements serve Intents, Architecture addresses, Case targets, ids and placement, a meaningful observed RED, Change-oriented and target-oriented Cases apart), the verdict with findings and Recovery where UNKNOWN never passes, and the one adapter check that the changed files lie under the capability folder of the Change.
+
+Taken out of this Change: the `Driven-by` trailer check of `check.mjs`, the reading of the Change id from the title, and F1 rule 8's parsing of template headings. They belong to release/C12 and release/C8.
 
 ## Dependencies
 

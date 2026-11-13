@@ -9,7 +9,8 @@ Which control owns each existing element, where it belongs, and what depends on 
 | I1 verify Plan | VP | stays | none |
 | F1 plan-pr | VP | stays, narrowed: rules 1 to 5 cite F2 and F3 instead of restating them | consumes F2 and F3 of CP |
 | F1 rule 6, the red plan | CP states its existence (F2 item 4), VP judges whether the observed RED is valid | stays in VP as the judgment; TS owns execution and evidence conventions | consumes F2 and TS |
-| F1 rule 8, every template heading is parsed | CP (F3) and VP (A33 on `main`) | superseded: the body is judged by release/A16 and release/A33 | consumes F3, F13 |
+| F1 rule 8, every template heading is parsed | CP (F3) and the envelope check | taken out: judged by release/A16 and A33 (C8 on `main`, C12 on its collector) | consumes F3, F13, F17 |
+| `check.mjs` `Driven-by` trailer check and Change id from the title | the envelope check (C12, F17 section 3) | taken out of this Change; the id is read from the body's Change chapter | F17 |
 | D1 untraced-plan | VP and CP, one Defect | stays in `06-defects/`; A14 gains `addresses: D1` through a Change of create Plan | CP |
 | A1 verify Plan, A2 github | VP | stay | none |
 | A3 pr-templates, A4 plan-template | CP | superseded by A15 and the template on `main`; removed in DO step 5 | none |
@@ -17,7 +18,7 @@ Which control owns each existing element, where it belongs, and what depends on 
 | A6 check-job, A7 pr-reader | VP | stay, the GitHub adapter: PR reading and orchestration | none |
 | A8 trace-resolver, A9 evidence-reader, A10 plan-rules, A11 reporter | VP | move to a portable branch of A1 beside A2, ids kept (CPO decision), in DO step 5 | MM for the vocabulary, TS for evidence |
 | A12 rulesets, A13 integration | GI | leave this Change for the preventive control, named `guard Integration`, with its own PLAN | consumes the verdict of VP |
-| A33 check-pr-body | VP | on `main` (release/C8); this Change reuses it | F13, A16 of CP |
+| A33 check-pr-body, becoming check-pr-envelope (C12) | cross-cutting envelope check | on `main` (C8) and on its collector (C12); this Change reuses it and repeats none of it | F13, F17, A16 |
 | `05-src/plan`: judge, rules, evidence, report, resolve | VP, portable | stay | MM, CC |
 | `05-src/plan`: check, reader | VP, GitHub adapter | stay | none |
 | `run-red.mjs`, `baseline-judge.mjs` | TS, interim | stay until Testing provides expected-RED execution | TS |
