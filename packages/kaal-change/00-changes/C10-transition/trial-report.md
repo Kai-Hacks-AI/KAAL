@@ -6,6 +6,10 @@ The independent trial of `trial-design.md` on the integrated guidance (`kaal-cha
 
 An earlier DO tried the guidance as a separate Skill, nested beside its element, before the Owner decided there is one `kaal-change` Skill. Its records stay: `trial/skill-run1.*` (differed from the key at S7) and `trial/skill-nested-run2.*` (equal to the key), with `trial/observer-verdict-nested.json`. The nested Skill text is the origin of the reference. The no-Skill baseline `trial/baseline.*` is unchanged, because its prompt is unchanged.
 
+## A repair and a re-run
+
+CI found that the widened description of `SKILL.md` was not valid YAML (a colon in a plain value). The description was reworded and the inventory digest updated. Because the prompt holds the Skill as shipped, the integrated arm was run again with a fresh agent, and a fresh blind observer read the replies again. The first integrated run and its observer verdict stay as history (`trial/skill-before-yaml-fix.*`, `trial/observer-verdict-before-yaml-fix.json`, `trial/existing-before-yaml-fix.json`). The tables below are the re-run. It repeated the first result: the same labels, with D1 now justified in the reply.
+
 ## Runs on the integrated guidance
 
 Fresh subagents given only a prompt file; a fresh blind observer read the task and the three replies, shuffled and unlabelled (`trial/observer-verdict.json`).

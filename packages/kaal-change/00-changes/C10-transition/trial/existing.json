@@ -94,7 +94,7 @@
  },
  "observerVerdict": {
   "historicalKeptApartFromTarget": true,
-  "boundaryReasoning": "Two boundaries are named with correct ordering (consumer must read JSON Lines before the reader is retired; reader retired before the dual-format option is removed), and no Change is planned in detail. It does not say what each Change hands over, and D1 is left as one Change with no justification.",
+  "boundaryReasoning": "Both boundaries are placed correctly, and the first states a gate (the outside consumer must first be shown to read JSON Lines). Neither boundary says what is handed over, and the second gives no reason why order matters. It writes no detailed plan, and D1 is left as one Change with no justification.",
   "doubtfulLabels": []
  }
 }

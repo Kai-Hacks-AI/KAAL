@@ -1,6 +1,6 @@
 ---
 name: kaal-change
-description: Scope a proposed change, trace intent, functional and nonfunctional requirements, defects, architecture and tests, identify incoming and outgoing interfaces, and organize multi-loop TDD evidence. Use when planning an isolated change, reviewing its boundaries, or explaining missing evidence and effects outside the selected scope, or when explaining a Change as the transition from the current state to the intended outcome: what it replaces, what stays protected, how many Changes it needs and what shows it was reached.
+description: Scope a proposed change, trace intent, functional and nonfunctional requirements, defects, architecture and tests, identify incoming and outgoing interfaces, and organize multi-loop TDD evidence. Use when planning an isolated change, reviewing its boundaries, or explaining missing evidence and effects outside the selected scope, or when explaining a Change as the transition from the current state to the intended outcome, covering what it replaces, what stays protected, how many Changes it needs and what shows it was reached.
 ---
 
 # Working on an isolated Change
