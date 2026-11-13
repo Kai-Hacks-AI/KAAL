@@ -24,3 +24,9 @@ T152 asserts the Defect hint of the installed template and T181 compares the ins
 ## Provenance
 
 Runs were made on 13 November over copies of trees. No run changed `main` or a collector.
+
+## CHECK at the collector head (13 Nov)
+
+T193, T194 and T195 were run by calling `run()` over `kaal/release/hotfix-defect-reference` at 27dca0b: all three green. The DO amended the Defect line of F16 and the Defect hint of the template draft in `00-changes/C11-hotfix/interface.md`. This is a manual run, not a CI check.
+
+The installed template is not changed by this Change. Its re-wiring to the amended draft is a further DO of release/C17, planned after this collector reaches `main`.
