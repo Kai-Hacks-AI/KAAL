@@ -1,4 +1,4 @@
-# C17 evidence
+# C19 evidence
 
 ## Provenance
 
@@ -11,7 +11,7 @@
 | --- | --- | --- | --- | --- |
 | release/T182 | F19 | RED: F19 is absent | green (F19 is present) | green |
 | release/T183 | F18 | RED: F18 says that DEFAULT is not a TYPE | RED: F18 still says it | green |
-| release/T184 | G49 | RED: F19 is absent | RED: F18 does not point to F19 | green |
+| release/T184 | G51 | RED: F19 is absent | RED: F18 does not point to F19 | green |
 
 The Cases T183 and T184 wait for the DO, which changes one sentence of F18.
 

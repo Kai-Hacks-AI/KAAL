@@ -1,8 +1,8 @@
-# C17 change
+# C19 change
 
 ## PLAN
 
-1. Add F19 with the Cases T182 and T183, and C17 with the gap Case T184, one per gap.
+1. Add F19 with the Cases T182 and T183, and C19 with the gap Case T184, one per gap.
 2. The expected RED is observed against the collector (`evidence.md`).
 3. DEFAULT keeps its name, its declaration on the first line and its two chapters. It becomes a TYPE: title `DEFAULT: <meaningful description>`, applied only when no specialized TYPE fits, never outranking a specialized TYPE.
 
