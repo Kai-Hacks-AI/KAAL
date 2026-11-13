@@ -1,6 +1,6 @@
 // Case review/T26 tests: review/N4
 import assert from 'node:assert/strict';
-import { each, section, trial, FOCI } from '../../00-changes/C1-focused-review/lib.mjs';
+import { each, section, findings, FOCI } from '../../00-changes/C1-focused-review/lib.mjs';
 export const id = 'review/T26';
 export const tests = ['review/N4'];
 export const title = "the record says the reviewed work was changed nowhere and no Case or key was weakened, and it approves nothing";

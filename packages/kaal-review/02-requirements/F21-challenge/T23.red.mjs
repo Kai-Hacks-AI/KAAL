@@ -1,6 +1,6 @@
 // Case review/T23 tests: review/F21
 import assert from 'node:assert/strict';
-import { each, section, trial, FOCI } from '../../00-changes/C1-focused-review/lib.mjs';
+import { each, section, findings, FOCI } from '../../00-changes/C1-focused-review/lib.mjs';
 export const id = 'review/T23';
 export const tests = ['review/F21'];
 export const title = "the record compares both ways, states what was checked for each finding and answers each question of its subject.json";

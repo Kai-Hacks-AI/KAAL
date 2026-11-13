@@ -2,13 +2,11 @@
 // whose own subject.json names its focus, its reference and its actual, what is inspected and the questions to answer.
 // At least one application is required. The focuses promotion and capability are defined here; any other focus carries its own.
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 export const dir = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const A = join(dir, '00-changes/C1-focused-review/applications');
-const sha = (s) => createHash('sha256').update(s).digest('hex');
 const rd = (p, what) => { assert.ok(existsSync(p), `${what} is absent`); return readFileSync(p, 'utf8'); };
 export const FOCI = { promotion: ['what the promotion promised to change', 'what changed'], capability: ['the Intent of the capability', 'what the capability delivers'] };
 export function applications() {
@@ -25,7 +23,6 @@ export function applications() {
       assert.ok(x && x.label && x.reads, `${name}: the ${side} is not given as a label and what is read`);
     }
     if (!(f in FOCI)) assert.ok(subject.reference.provided && subject.actual.provided, `${name}: the focus ${f} is not defined by Review, so its reference and actual must be provided`);
-    assert.equal(typeof subject.trial, 'boolean', `${name}: subject.json does not say whether the evidence is a trial`);
     assert.ok(Array.isArray(subject.inspected) && subject.inspected.length > 0, `${name}: subject.json lists nothing inspected`);
     assert.ok(Array.isArray(subject.questions) && subject.questions.length > 0, `${name}: subject.json lists no questions`);
     return { name, d, subject, review: () => rd(join(d, 'review.md'), `${name}: the review record`) };
@@ -36,36 +33,12 @@ export function section(app, name) {
   assert.ok(m && m[1].trim().length > 0, `${app.name}: the review record has no chapter "${name}" or it is empty`);
   return m[1];
 }
-// A reviewer trial is valid with provenance: a key of the reviewer fixed before the runs, its hash in every record,
-// statements none of which is the author's, a prompt that holds the statements and nothing of the key, raw output equal
-// to the recorded answers, an observer who is not the author, and at least three runs per arm.
-export function trial(app) {
-  const T = join(app.d, 'trial');
-  const keyText = rd(join(T, 'key.json'), `${app.name}: the reviewer key`);
-  const key = JSON.parse(keyText).scenarios;
-  const author = JSON.parse(rd(join(T, 'author-statements.json'), `${app.name}: the snapshot of the author statements`)).statements;
-  for (const s of key) assert.ok(!author.includes(s.statement), `${app.name} ${s.id}: the statement is the author's`);
-  assert.ok(key.length >= 8, `${app.name}: the reviewer key holds fewer than eight statements`);
-  const runs = { skill: [], baseline: [] };
-  for (const arm of Object.keys(runs)) {
-    const names = readdirSync(T).filter((f) => new RegExp(`^${arm}\\.\\d+\\.json$`).test(f));
-    assert.ok(names.length >= 3, `${app.name} ${arm}: fewer than three runs are recorded`);
-    for (const n of names) {
-      const base = n.replace(/\.json$/, '');
-      const meta = JSON.parse(rd(join(T, n), `${base} record`));
-      const prompt = rd(join(T, `${base}.prompt.txt`), `${base} prompt`);
-      const raw = rd(join(T, `${base}.raw.txt`), `${base} raw output`);
-      assert.equal(meta.keySha256, sha(keyText), `${base}: the key is not the one recorded`);
-      assert.equal(meta.promptSha256, sha(prompt), `${base}: the prompt is not the one recorded`);
-      assert.ok(meta.observer && meta.observer !== meta.author, `${base}: the observer is the author or unnamed`);
-      assert.ok(meta.agent && meta.model && meta.date, `${base}: agent, model or date is not recorded`);
-      assert.deepEqual(JSON.parse(raw).answers, meta.answers, `${base}: the answers are not the raw output unedited`);
-      assert.ok(!prompt.includes('"finding":'), `${base}: the prompt carries the key`);
-      for (const s of key) assert.ok(prompt.includes(s.statement), `${base}: the prompt lacks ${s.id}`);
-      assert.ok(meta.answers.every((a) => 'next' in a), `${base}: the answers lack the next move`);
-      runs[arm].push(meta);
-    }
-  }
-  return { key, runs };
+// Each finding of the Comparison is marked Proven (citing test evidence and its result), Judged (saying why it can only be judged)
+// or Testable, not tested (named for Testing). A review runs no test of its own.
+export function findings(app) {
+  const c = section(app, 'Comparison');
+  const f = c.split('\n').filter((l) => /^\s*[-*] /.test(l));
+  assert.ok(f.length > 0, `${app.name}: no findings are listed`);
+  return f;
 }
 export const each = (fn) => { for (const app of applications()) fn(app); };
