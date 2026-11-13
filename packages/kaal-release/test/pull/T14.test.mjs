@@ -4,11 +4,11 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 const repoRoot = fileURLToPath(new URL('../../../../', import.meta.url));
 export const id = 'pull/T14';
 export const tests = ['pull/F14', 'pull/F15'];
-export const title = 'the command, run on the real repository, prints a result for every declared collector and the qualifiers in the declared order, fails naming what is missing, and its gatherer issues only reads';
+export const title = 'the command, run on the real repository, prints a result for every declared collector and the qualifiers in the declared order, fails naming what is missing, and its gatherer issues only reads and reads the file state, the history by ancestry and the Case executions of the exact head';
 // Always: the credential failure, the read-only source check and the recorded live run. With KAAL_LIVE=<owner/repo>: the command is run on the real host again.
 function shows(result, names) {
   assert.deepEqual(result.collectors.map((c) => c.name), names, 'the result does not hold one entry per declared collector, in the declared order');
@@ -26,6 +26,27 @@ export async function run() {
   const command = (args, options = {}) => spawnSync('node', [join(dir, 'run.mjs'), ...args], { encoding: 'utf8', ...options });
   const declaration = JSON.parse(readFileSync(declared, 'utf8'));
   const names = declaration.collectors.map((c) => c.name ?? c);
+
+  // the gatherer's reading of the host's records, on the recorded log of a real CI job and on small records of the host's comparison
+  const read = await import(pathToFileURL(join(dir, 'read.mjs')).href);
+  const log = readFileSync(join(dir, 'evidence/ci-log-excerpt.txt'), 'utf8');
+  const runs = [{ job: 1, text: log }];
+  const seen = read.executionsOf(runs, 'H');
+  assert.deepEqual(seen.map((e) => e.case).sort(), ['foundation/T16', 'foundation/T17', 'foundation/T18', 'foundation/T19', 'foundation/T20', 'foundation/T21', 'release/T1', 'release/T2', 'release/T3', 'release/T4'], 'the Cases of the recorded log are not those reported under a scoped id');
+  assert.ok(seen.every((e) => e.head === 'H' && e.conclusion === 'success' && /^\d{4}-\d\d-\d\dT/.test(e.at)), 'an execution does not carry its head, its conclusion and its time');
+  // the newest run of a job counts; a failure of any job at the head counts against the Case
+  const failed = log.replace('✔ release/T2', '✖ release/T2');
+  assert.equal(read.executionsOf([{ job: 1, text: log }, { job: 2, text: failed }], 'H').find((e) => e.case === 'release/T2').conclusion, 'failure', 'a red job did not count');
+  const rerun = `${failed}\n2026-11-13T16:00:00.0000000Z ✔ release/T2 (1ms)`;
+  assert.equal(read.executionsOf([{ job: 1, text: rerun }], 'H').find((e) => e.case === 'release/T2').conclusion, 'success', 'the newest run of a job did not win');
+  assert.deepEqual(read.executionsOf([{ job: 1, text: '2026-11-13T15:00:00.0Z   ✔ T19 (1ms)\nno marks here' }], 'H'), [], 'an unscoped name was taken for a Case');
+  // history: ancestry, not order of arrival
+  const c = (sha, parent) => ({ sha, parents: [{ sha: parent }] });
+  assert.deepEqual(read.historyOf([c('b', 'a'), c('c', 'b')], 'a'), ['b', 'c']);
+  assert.throws(() => read.historyOf([c('c', 'b'), c('b', 'a')], 'a'), /could not order the history/, 'a history out of ancestry was accepted');
+  assert.throws(() => read.historyOf([c('b', 'x')], 'a'), /could not order the history/, 'a history that does not start at the merge base was accepted');
+  // the delta keeps added, modified and removed apart, and a rename is a removal and an addition
+  assert.deepEqual(read.deltaOf([{ filename: 'a', status: 'added' }, { filename: 'b', status: 'removed' }, { filename: 'n', status: 'renamed', previous_filename: 'o' }]), [{ path: 'a', status: 'added' }, { path: 'b', status: 'removed' }, { path: 'n', status: 'modified' }, { path: 'o', status: 'removed' }]);
 
   // no usable credential: the command fails naming what is missing (no network is needed)
   const bare = command(['some-owner/some-repo', declared], { env: { PATH: process.env.PATH, HOME: mkdtempSync(join(tmpdir(), 'pull-nohome-')) } });

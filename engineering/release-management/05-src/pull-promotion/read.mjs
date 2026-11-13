@@ -1,14 +1,16 @@
-// Reads, from the host, the four things the Pull Promotion capability judges, for the collectors a declaration lists.
-// Read-only: every call is a plain GET of the host's REST API. `get(path)` takes the path of one GET and returns its parsed answer;
-// the command supplies it (see run.mjs). A list the host cut is never read as complete: the gatherer fails naming what it could not read.
+// Reads, from the host, the file state of each declared collector: its delta against main, the tree at its head, its history, the text
+// of its ACT candidates and the executions of Test Cases at its exact head. Pull requests are not read: they are transport.
+// Read-only: every call is a plain GET of the host's REST API. `get(path)` returns the parsed answer of one GET and `getText(path)` its text;
+// the command supplies both (see run.mjs). A list the host cut, or a record it could not give, fails the gatherer naming it: never a guess.
 const PAGE = 100;
 const MAX_PAGES = 5;
-const TYPE = /^(PLAN|DO|ACT|SYNC|PROMOTION|HOTFIX): /;
-const PIECE = /^(PLAN|DO|ACT|SYNC|PROMOTION|HOTFIX): .*\(#(\d+)\)\s*$/;
-const FAILED = new Set(['failure', 'timed_out', 'cancelled', 'action_required', 'startup_failure', 'stale']);
-const GREEN = new Set(['success', 'neutral', 'skipped']);
-
-const drivenBy = (message) => /^Driven-by:\s*(\S+)\s*$/m.exec(message ?? '')?.[1];
+const MAX_COMMITS = 250;
+const MAX_FILES = 300;
+const MAX_ACT_TEXTS = 30;
+const STATUS = { added: 'added', removed: 'removed', renamed: 'modified', modified: 'modified', changed: 'modified', copied: 'added', unchanged: 'modified' };
+const MARKS = { '✔': 'success', '✖': 'failure', '√': 'success', '×': 'failure' };
+// A Case is reported by the host's test runner under its scoped id (scope/T<n>) with a mark, after the log's own time stamp.
+const CASE_LINE = /^(\d{4}-\d\d-\d\dT[\d:.]+Z)\s+\s*(✔|✖|√|×)\s+([a-z][a-z-]*\/T\d+)\b/u;
 
 async function pages(get, path, pick) {
   const out = [];
@@ -20,58 +22,97 @@ async function pages(get, path, pick) {
   throw new Error(`could not read all of ${path.split('?')[0]}: more than ${PAGE * MAX_PAGES} entries`);
 }
 
-// Per check, the newest run counts: an older failure that a later run of the same check superseded is not red.
-export function checksOf(runs) {
-  const newest = new Map();
-  for (const run of runs) {
-    const held = newest.get(run.name);
-    if (!held || (run.started_at ?? '') >= (held.started_at ?? '')) newest.set(run.name, run);
+// The paths that differ between main and the collector: what the collector would bring, as the host's comparison reports them.
+export function deltaOf(files) {
+  return files.flatMap((f) => {
+    const out = [{ path: f.filename, status: STATUS[f.status] ?? 'modified' }];
+    if (f.status === 'renamed' && f.previous_filename) out.push({ path: f.previous_filename, status: 'removed' });
+    return out;
+  });
+}
+
+// The history is the collector's commits since it diverged from main. Order is ancestry: each commit must have the previous one as its
+// first parent, and the first one the merge base. Anything else is not a line the capability can order by, so it is not read.
+export function historyOf(commits, mergeBase) {
+  let parent = mergeBase;
+  for (const commit of commits) {
+    if (commit.parents?.[0]?.sha !== parent) throw new Error(`could not order the history: ${commit.sha.slice(0, 8)} does not follow ${String(parent).slice(0, 8)}`);
+    parent = commit.sha;
   }
-  return [...newest.values()].map((run) => ({
-    name: run.name,
-    conclusion: run.status !== 'completed' ? 'pending' : GREEN.has(run.conclusion) ? 'success' : FAILED.has(run.conclusion) ? 'failure' : 'pending',
-  }));
+  return commits.map((c) => c.sha);
 }
 
-// A commit on a collector is a piece when its subject is `TYPE: description (#number)`. Its Change is its Driven-by trailer; without one it names none.
-export function pieceOf(commit, collector, lifecycle) {
-  const m = PIECE.exec(String(commit.commit?.message ?? '').split('\n')[0]);
-  if (!m || !lifecycle.includes(m[1])) return undefined;
-  return { ref: `#${m[2]}`, type: m[1], change: drivenBy(commit.commit.message), into: collector, state: 'landed', landedAt: commit.commit.committer?.date ?? commit.commit.author?.date };
+// The newest execution of each Case, per job, then one record per Case at this head: a failure of any job's newest run counts.
+export function executionsOf(runs, head) {
+  const perJob = new Map();
+  for (const { job, text } of runs) {
+    for (const line of text.split('\n')) {
+      const m = CASE_LINE.exec(line.replace(/\u001b\[[0-9;]*m/g, ''));
+      if (!m) continue;
+      const key = `${job}\u0000${m[3]}`;
+      const seen = perJob.get(key);
+      if (!seen || m[1] >= seen.at) perJob.set(key, { case: m[3], head, conclusion: MARKS[m[2]], at: m[1] });
+    }
+  }
+  const byCase = new Map();
+  for (const e of perJob.values()) {
+    const held = byCase.get(e.case);
+    if (!held || (e.conclusion === 'failure' && held.conclusion !== 'failure') || (e.conclusion === held.conclusion && e.at > held.at)) byCase.set(e.case, e);
+  }
+  return [...byCase.values()];
 }
 
-export async function readFacts(repoName, declaration, get) {
-  const [owner] = repoName.split('/');
-  const lifecycle = Array.isArray(declaration.lifecycle) ? declaration.lifecycle : [];
-  const facts = { collectors: [], pieces: [], deliveries: [] };
+export async function readFacts(repoName, declaration, get, getText, warn = () => {}) {
+  const ev = declaration.evidence ?? {};
+  const actFiles = typeof ev.act?.files === 'string' ? new RegExp(ev.act.files) : undefined;
+  const facts = { collectors: [] };
   for (const { name } of declaration.collectors ?? []) {
     let branch;
-    try { branch = await get(`repos/${repoName}/branches/${encodeURIComponent(name).replace(/%2F/g, '/')}`); } catch (error) {
+    try { branch = await get(`repos/${repoName}/branches/${name}`); } catch (error) {
       if (/HTTP 404/.test(error.message)) continue; // the host has no such collector: the capability reports it as not judged
       throw error;
     }
-    const sha = branch.commit.sha;
-    const runs = await pages(get, `repos/${repoName}/commits/${sha}/check-runs`, (r) => r.check_runs ?? []);
-    facts.collectors.push({ name, at: sha, checks: checksOf(runs) });
+    const head = branch.commit.sha;
+    try {
+      const compare = await get(`repos/${repoName}/compare/main...${head}`);
+      if (compare.files?.length >= MAX_FILES) throw new Error(`could not read all of the delta of ${name}: ${compare.files.length} files or more`);
+      if (compare.total_commits > MAX_COMMITS || compare.commits.length < compare.total_commits) throw new Error(`could not read all of the history of ${name}: ${compare.total_commits} commits`);
+      const delta = deltaOf(compare.files ?? []);
 
-    const delivered = (await pages(get, `repos/${repoName}/pulls?state=closed&base=main&head=${owner}:${name}`, (r) => r))
-      .filter((pull) => pull.merged_at)
-      .map((pull) => ({ collector: name, delivered: pull.head.sha, landedAt: pull.merged_at }));
-    facts.deliveries.push(...delivered);
-    const since = delivered.map((d) => d.landedAt).sort().pop();
+      const tree = await get(`repos/${repoName}/git/trees/${head}?recursive=1`);
+      if (tree.truncated) throw new Error(`could not read all of the tree of ${name}: the host cut it`);
 
-    const commits = await pages(get, `repos/${repoName}/commits?sha=${name}${since ? `&since=${since}` : ''}`, (r) => r);
-    for (const commit of commits) {
-      const piece = pieceOf(commit, name, lifecycle);
-      if (piece) facts.pieces.push(piece);
-    }
+      const order = historyOf(compare.commits, compare.merge_base_commit.sha);
+      const history = [];
+      for (const id of order) {
+        const commit = await get(`repos/${repoName}/commits/${id}`);
+        if ((commit.files?.length ?? 0) >= MAX_FILES) throw new Error(`could not read all of the files of commit ${id.slice(0, 8)} in ${name}`);
+        history.push({ id, paths: deltaOf(commit.files ?? []).map((f) => f.path) });
+      }
 
-    for (const pull of await pages(get, `repos/${repoName}/pulls?state=open&base=${name}`, (r) => r)) {
-      const type = TYPE.exec(pull.title)?.[1];
-      if (!type || !lifecycle.includes(type)) continue;
-      const own = await pages(get, `repos/${repoName}/pulls/${pull.number}/commits`, (r) => r);
-      const change = [...own].reverse().map((c) => drivenBy(c.commit?.message)).find(Boolean);
-      facts.pieces.push({ ref: `#${pull.number}`, type, change, into: name, state: 'open' });
+      const texts = {};
+      const candidates = actFiles ? delta.filter((f) => f.status !== 'removed' && actFiles.test(f.path)) : [];
+      if (candidates.length > MAX_ACT_TEXTS) throw new Error(`could not read the ACT candidates of ${name}: ${candidates.length} files`);
+      for (const f of candidates) {
+        const file = await get(`repos/${repoName}/contents/${f.path.split('/').map(encodeURIComponent).join('/')}?ref=${head}`);
+        if (file.encoding !== 'base64') throw new Error(`could not read ${f.path} of ${name}: the host gave no text`);
+        texts[f.path] = Buffer.from(file.content, 'base64').toString('utf8');
+      }
+
+      const checks = await pages(get, `repos/${repoName}/commits/${head}/check-runs`, (r) => r.check_runs ?? []);
+      const runs = [];
+      for (const run of checks.filter((c) => c.status === 'completed' && c.app?.slug === 'github-actions')) {
+        const job = run.id;
+        try { runs.push({ job, text: await getText(`repos/${repoName}/actions/jobs/${job}/logs`) }); } catch (error) {
+          if (!/HTTP 410|HTTP 404/.test(error.message)) throw error; // the host no longer keeps this log: its Cases are simply not reported
+        }
+      }
+      facts.collectors.push({ name, at: head, delta, tree: tree.tree.filter((e) => e.type === 'blob').map((e) => e.path), history, texts, executions: executionsOf(runs, head) });
+    } catch (error) {
+      // What could not be read stays unread: the collector is reported without its file state, which the capability does not judge.
+      if (!/^could not/.test(error.message)) throw error;
+      warn(error.message);
+      facts.collectors.push({ name, at: head });
     }
   }
   return facts;

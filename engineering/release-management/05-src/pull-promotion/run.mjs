@@ -1,4 +1,4 @@
-// The Pull Promotion command: read the declared collectors of a repository from the host, say which have fulfilled their PDCA.
+// The Pull Promotion command: read the file state of the declared collectors of a repository from the host, say which have fulfilled their PDCA.
 // Usage: node run.mjs <owner/repo> <declaration.json>
 // Read-only and run by hand: it only asks the host's API with GET and is named by no hook, workflow or scheduled job.
 // Credential: GH_TOKEN or GITHUB_TOKEN, or an already signed-in gh. Exit 0 when a result was printed; 2 naming what could not be read.
@@ -19,15 +19,17 @@ function requireCredential() {
 }
 
 // A gateway failure is read again a few times; a missing branch (HTTP 404) is the host's answer and is not retried.
-const get = async (path) => {
+const request = async (path, parse) => {
   for (let attempt = 1; ; attempt++) {
-    try { return JSON.parse(run(['api', '-X', 'GET', path])); } catch (error) {
+    try { return parse(run(['api', '-X', 'GET', path])); } catch (error) {
       const text = String(error.stderr || error.message).trim().split('\n')[0];
       if (/HTTP 404/.test(text) || attempt === 4) throw new Error(`could not read ${path.split('?')[0]}: ${text}`);
       await pause(PAUSE_MS * attempt);
     }
   }
 };
+const get = (path) => request(path, JSON.parse);
+const getText = (path) => request(path, (text) => text);
 
 try {
   const [repoName, declarationFile] = process.argv.slice(2);
@@ -35,7 +37,7 @@ try {
   let declaration;
   try { declaration = JSON.parse(readFileSync(declarationFile, 'utf8')); } catch (error) { throw new Error(`could not read ${declarationFile}: ${error.message}`); }
   requireCredential();
-  const facts = await readFacts(repoName, declaration, get);
+  const facts = await readFacts(repoName, declaration, get, getText, (message) => console.error(`pull Promotion: ${message}`));
   process.stdout.write(`${JSON.stringify(walkCollectors(facts, declaration), null, 2)}\n`);
 } catch (error) {
   console.error(`pull Promotion: ${error.message}`);

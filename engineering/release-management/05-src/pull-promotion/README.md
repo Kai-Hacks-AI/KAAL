@@ -1,13 +1,20 @@
 # Pull Promotion: the command for this repository
 
-`node run.mjs <owner/repo> declaration.json` reads, through the `gh` command line (read-only GET calls of the REST API), the declared collectors of a repository, runs the Skill's `pull-promotion.mjs` and prints which of them have fulfilled their PDCA, as JSON.
+`node run.mjs <owner/repo> declaration.json` reads the file state of the declared collectors through the `gh` command line (read-only GET calls of the REST API), runs the Skill's `pull-promotion.mjs` and prints which of them have fulfilled their PDCA, as JSON. The collector is the unit; pull requests are not read.
 
-For each collector the declaration lists, in the declared order, it reads: the head of the branch and the newest run of each of its checks; the commits on it since its last delivery (a commit titled `TYPE: description (#number)` is a piece, its Change is its `Driven-by:` trailer); the open pull requests into it; and the pull requests that delivered it into `main`. A collector the host does not have is reported as not judged. A list the host cut at its limit fails the command naming it, never a guess. It exits 0 when it printed a result and 2 naming what it could not read.
+For each collector the declaration lists, in the declared order, it reads:
 
-- `read.mjs` maps the host's records to the facts the Script judges. Legacy commit statuses are not read, only check runs.
-- `declaration.json` is this repository's declaration, reviewed like any other file: the collectors in their promotion order, the piece types of the lifecycle and the names of the Check checks. It is the only source of the order.
-- `evidence/` holds the run on the real repository (pull/T14).
+- the **delta** against `main` and the commits since the collector diverged from it (the host's three-dot comparison) and the files each commit changed, as the **history**, checked to be a line by ancestry (each commit follows the previous one, the first follows the merge base);
+- the **tree** at the head;
+- the text of the files that match the declaration's ACT pattern;
+- the **executions of Test Cases at the exact head**: the logs of the completed CI jobs of that head, where the test runner reports a Case under its scoped id (`scope/T<n>`) with a mark. The newest run of each job counts, and a red job counts against the Case.
+
+A collector the host does not have is reported as not judged. A list the host cut, a history out of ancestry or a record it would not give leaves that collector without its file state: it is reported as not judged and the reason goes to stderr. The command exits 0 when it printed a result and 2 naming what it could not read.
+
+- `read.mjs` maps the host's records to the facts the Script judges.
+- `declaration.json` is this repository's declaration, reviewed like any other file: the collectors in their promotion order (an Owner decision) and the evidence patterns (PLAN, DO, Case files, ACT file and the 4L headings).
+- `evidence/` holds the run on the real repository (pull/T14) and an excerpt of a real CI log.
 
 Credential: `GH_TOKEN` or `GITHUB_TOKEN`, or an already signed-in `gh`; the command fails naming the credential when there is none.
 
-It reports and decides nothing: a collector qualifies or not, it never says "ready", and promotion stays the Owner's decision. It is run by hand; no hook, workflow or scheduled job names it.
+**Limits.** A Case is found only as a file matching the declaration's pattern, and reported only under a scoped id; Cases written inline in a suite file are not discovered. A Case whose log the host no longer keeps has no execution and is not judged. The result is advisory: it never says "ready", and promotion stays the Owner's decision. It is run by hand; no hook, workflow or scheduled job names it.

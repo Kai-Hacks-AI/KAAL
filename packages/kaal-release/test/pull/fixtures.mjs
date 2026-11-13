@@ -1,11 +1,10 @@
-// Shared fixtures for the Pull Promotion v1 Cases. Not a Case. The Script under test is
+// Shared fixtures for the Pull Promotion file-state Cases. Not a Case. The Script under test is
 // packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs, exporting walkCollectors(facts, declaration).
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 export const repo = fileURLToPath(new URL('../../../../', import.meta.url));
 export const scriptPath = join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs');
-export const snapshotPath = join(repo, 'packages/kaal-release/test/pull/evidence/wire-fallback-template-2026-11-12.json');
 
 export async function walkCollectors(facts, declaration) {
   const module = await import(pathToFileURL(scriptPath).href);
@@ -13,36 +12,46 @@ export async function walkCollectors(facts, declaration) {
   return module.walkCollectors(facts, declaration);
 }
 
-// The declaration is the consumer's. v1 reads three things from it: the collectors in their promotion order, the
-// piece types of the lifecycle, and the checks that are the Check phase.
+// The declaration is the consumer's. The patterns are regular expressions on paths; the Script names no folder.
+export const HEADINGS = ['Liked', 'Learned', 'Lacked', 'Longed For'];
+export const evidence = (over = {}) => ({
+  plan: ['^plan/.*(requirements|testing)\\.md$'],
+  do: ['^src/'],
+  cases: { files: '^test/(T\\d+)\\.test\\.mjs$' },
+  act: { files: '^plan/.*00-changes\\.md$', headings: HEADINGS },
+  ...over,
+});
 export const declaration = (over = {}) => ({
   collectors: [{ name: 'col-a' }, { name: 'col-b' }, { name: 'col-c' }],
-  lifecycle: ['PLAN', 'DO', 'ACT'],
-  checks: ['build', 'suite'],
+  evidence: evidence(),
   ...over,
 });
 
-export const ok = (name) => ({ name, conclusion: 'success' });
-export const bad = (name) => ({ name, conclusion: 'failure' });
-export const running = (name) => ({ name, conclusion: 'pending' });
-export const green = () => [ok('build'), ok('suite')];
-export const collector = (name, checks = green()) => ({ name, at: `${name}-head`, checks });
+export const file = (path, status = 'modified') => ({ path, status });
+export const retro = (headings = HEADINGS) => `# Change\n\n## ACT: retrospective (4L)\n\n${headings.map((h) => `### ${h}\n\n- something\n`).join('\n')}`;
+export const execution = (caseId, head, conclusion = 'success', at = '2026-11-12T06:00:00Z') => ({ case: caseId, head, conclusion, at });
 
-// A piece landed into a collector. landedAt orders the pieces against deliveries.
-export const landed = (ref, type, change, into, landedAt = '2026-11-12T08:00:00Z') => ({ ref, type, change, into, state: 'landed', landedAt });
-export const open = (ref, type, change, into) => ({ ref, type, change, into, state: 'open' });
+// A collector whose history is four commits (PLAN files, the DO, the Cases, the 4L ACT), the last being its head. Its delta holds
+// PLAN, DO, two changed Cases and one ACT; its tree also holds one unchanged Case (T0). Every Case is green at the head.
+export function good(name, over = {}) {
+  const head = `${name}-head`;
+  const history = [
+    { id: `${name}-1`, paths: ['plan/x/requirements.md', 'plan/x/testing.md'] },
+    { id: `${name}-2`, paths: ['src/script.mjs'] },
+    { id: `${name}-3`, paths: ['test/T1.test.mjs', 'test/T2.test.mjs'] },
+    { id: head, paths: ['plan/x/00-changes.md'] },
+  ];
+  const delta = [...new Set(history.flatMap((c) => c.paths))].map((p) => file(p, 'added'));
+  return {
+    name, at: head, history, delta,
+    tree: ['README.md', 'test/T0.test.mjs', ...delta.map((f) => f.path)],
+    texts: { 'plan/x/00-changes.md': retro() },
+    executions: [execution('T0', head), execution('T1', head), execution('T2', head)],
+    ...over,
+  };
+}
 
-// One Change with its whole lifecycle landed in one collector.
-export const lifecycle = (into, change = `c/${into}`, base = 10) =>
-  ['PLAN', 'DO', 'ACT'].map((type, i) => landed(`#${base + i}-${into}`, type, change, into, `2026-11-12T0${i + 1}:00:00Z`));
-
-export const delivery = (collectorName, landedAt) => ({ collector: collectorName, delivered: `${collectorName}-head`, landedAt });
-
-export const facts = (over = {}) => ({
-  collectors: [collector('col-a'), collector('col-b'), collector('col-c')],
-  pieces: [...lifecycle('col-a'), ...lifecycle('col-b', undefined, 20), ...lifecycle('col-c', undefined, 30)],
-  deliveries: [],
-  ...over,
-});
-
+export const facts = (over = {}) => ({ collectors: [good('col-a'), good('col-b'), good('col-c')], ...over });
 export const statusOf = (result, name) => result.collectors.find((c) => c.name === name);
+// The collector without some files: gone from the delta and from the tree.
+export const drop = (collector, ...paths) => ({ delta: collector.delta.filter((f) => !paths.includes(f.path)), tree: collector.tree.filter((p) => !paths.includes(p)) });
