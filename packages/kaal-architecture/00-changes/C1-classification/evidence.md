@@ -2,7 +2,7 @@
 
 The RED of this PLAN, observed against `main`. Work not on `main` is not delivered functionality, and C1 cites nothing that is not on `main`.
 
-- Baseline: `main` at `1263be7`, which holds no `packages/kaal-classify/`. Method: the Cases are copied over a checkout of `main` and each `run()` is called, then run in the tree of this PLAN. No job executes them yet. Node 22 on Linux.
+- Baseline: `main` at `1263be7`, which holds no `packages/kaal-architecture/`. Method: the Cases are copied over a checkout of `main` and each `run()` is called, then run in the tree of this PLAN. No job executes them yet. Node 22 on Linux.
 
 | Case | Tests | On `main` | In this PLAN |
 | --- | --- | --- | --- |
@@ -37,5 +37,5 @@ for (const f of process.argv.slice(2)) {
   catch (x) { console.log(x?.code === 'ERR_ASSERTION' ? 'RED-observed' : 'ERROR       ', m.id, String(x.message).split('\n')[0]); }
 }
 JS
-node red.mjs $(find packages/kaal-classify -name 'T*.red.mjs' | sort -V)
+node red.mjs $(find packages/kaal-architecture -name 'T*.red.mjs' | sort -V)
 ```

@@ -1,10 +1,10 @@
-// Case classify/T2 tests: classify/N1
+// Case architecture/T2 tests: architecture/N1
 import assert from 'node:assert/strict';
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { dir, judged, key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
-export const id = 'classify/T2';
-export const tests = ['classify/N1'];
+export const id = 'architecture/T2';
+export const tests = ['architecture/N1'];
 export const title = "the Skill is small and the package adds no gate, workflow or deployment";
 export function run() {
   assert.ok(read(SKILL, 'the Skill').split('\n').length <= 120, 'the Skill is longer than 120 lines');

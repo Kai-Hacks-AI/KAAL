@@ -1,12 +1,12 @@
-// Case classify/T3 tests: classify/A1
+// Case architecture/T3 tests: architecture/A1
 import assert from 'node:assert/strict';
 import { dir, judged, key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
-export const id = 'classify/T3';
-export const tests = ['classify/A1'];
+export const id = 'architecture/T3';
+export const tests = ['architecture/A1'];
 export const title = "the package is minimal and its key covers every valid kind, mixed and misplaced statements, a weakening, an ambiguity and a dependency";
 export function run() {
   const pkg = JSON.parse(read('package.json', 'package.json'));
-  assert.equal(pkg.name, 'kaal-classify'); assert.equal(pkg.private, true); assert.deepEqual(pkg.files, ['skills']);
+  assert.equal(pkg.name, 'kaal-architecture'); assert.equal(pkg.private, true); assert.deepEqual(pkg.files, ['skills']);
   const PAIRS = ['solution/target', 'delivery/target', 'change/change', 'delivery/change', 'solution/change'];
   const k = key();
   assert.equal(new Set(k.map((s) => s.id)).size, k.length, 'scenario ids repeat');

@@ -1,8 +1,8 @@
-// Case classify/T1 tests: classify/I1, classify/F1, classify/F2
+// Case architecture/T1 tests: architecture/I1, architecture/F1, architecture/F2
 import assert from 'node:assert/strict';
 import { dir, judged, key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
-export const id = 'classify/T1';
-export const tests = ['classify/I1', 'classify/F1', 'classify/F2'];
+export const id = 'architecture/T1';
+export const tests = ['architecture/I1', 'architecture/F1', 'architecture/F2'];
 export const title = "a Skill-only agent splits, moves and challenges statements as the key does";
 export function run() {
   read('01-intent/I1-classification/I1.md', 'I1');

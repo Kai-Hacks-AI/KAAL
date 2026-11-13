@@ -14,7 +14,7 @@ Valid pairs: Solution with target-state, Delivery with target-state, Change with
 
 ## 2. Placement
 
-The Skill is Architecture-owned and separate: package `kaal-classify`, own collector, ids under `classify/`. It does not depend on the older `kaal-architecture` collector, now `kaal/old/architecture`. The ids claimed are C1, I1, F1 to F3, N1, A1, A2, G1, G2 and T1 to T6.
+The Skill is Architecture's: package and Skill `kaal-architecture`, collector `kaal/architecture/classify`. The earlier package of the same name (the URBAN Skill) is parked on `kaal/old/architecture`, is not on `main`, and is not depended on. The ids restart in `architecture/` and are C1, I1, F1 to F3, N1, A1, A2, G1, G2 and T1 to T6.
 
 ## 3. Representative classifications
 
@@ -39,4 +39,4 @@ Cases: T1 (I1, F1, F2) and T4 (A2, F3) compare the Skill-only answers with the k
 
 ## 5. Smallest PLAN and Change
 
-One PLAN and one Change, classify/C1, onto one component. Applying the Skill to #1404 is a Change of the Change Isolation capability (`application-1404.md`).
+One PLAN and one Change, architecture/C1, onto one component. Applying the Skill to #1404 is a Change of the Change Isolation capability (`application-1404.md`).
