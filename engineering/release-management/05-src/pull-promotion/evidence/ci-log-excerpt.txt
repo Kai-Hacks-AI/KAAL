@@ -1,0 +1,14 @@
+2026-11-13T15:01:36.8652971Z ✔ foundation/T16 [foundation/F12, foundation/F17]: the installed npm test ends on the verification line with verified, exit 0, every declar
+2026-11-13T15:01:36.8656920Z ✔ foundation/T17 [foundation/F12, foundation/N10]: on an installed copy, a changed document, a missing manifest, a removed case file and an
+2026-11-13T15:01:36.8661265Z ✔ foundation/T18 [foundation/F14, foundation/N8]: the declared bin, run in the consumer through npm exec, prints the host's digest for a fi
+2026-11-13T15:01:36.8664418Z ✔ foundation/T19 [foundation/F16]: the repository's AGENTS.md has a Foundation section naming the skill's path and both commands (0.561108m
+2026-11-13T15:01:36.8668053Z ✔ foundation/T20 [foundation/F17]: the source Test Plan is declared; in source the runner runs test:embedded then test:publisher and ends o
+2026-11-13T15:01:36.8670380Z ✔ foundation/T21 [foundation/N7]: no file in the package, tests included, reads the platform, names the Windows platform, writes a command-
+2026-11-13T15:01:41.9316813Z   ✔ has Cases T19 to T25 (2.794631ms)
+2026-11-13T15:01:41.9317321Z   ✔ T19 (6.898756ms)
+2026-11-13T15:01:41.9317723Z   ✔ T20 (8.730191ms)
+2026-11-13T15:01:41.9321208Z ▶ kaal-release
+2026-11-13T15:01:41.9321859Z   ✔ release/T1 (release/F1): one Skill, one Node typed KAAL Skill, and the Node states meaning and scope only (15.276199ms)
+2026-11-13T15:01:41.9322705Z   ✔ release/T2 (release/F2): the Skill's headings contain the nine loop steps in order (5.483266ms)
+2026-11-13T15:01:41.9323677Z   ✔ release/T3 (release/F3): each step names its decision and options, and the Skill tells the agent to read the repository's record first 
+2026-11-13T15:01:41.9324705Z   ✔ release/T4 (release/F4): the npm example exists; the Skill body names no registry or tool, and the npm file may (0.428118ms)

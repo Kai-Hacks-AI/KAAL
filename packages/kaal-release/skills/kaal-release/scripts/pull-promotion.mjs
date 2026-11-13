@@ -1,58 +1,89 @@
-// pull Promotion: for each collector the declaration lists, in the declared order, says whether it has fulfilled its PDCA.
-// A collector qualifies when every Change in it not yet delivered has PLAN, DO and ACT landed in it and every declared
-// Check is green on its head. Missing evidence is "not judged" and never qualifies. The output is advisory: it names the
-// qualifiers and the first one that moves next, and authorizes or recommends nothing. Read-only, deterministic, no host access.
+// pull Promotion: for each collector the declaration lists, in the declared order, says whether the collector has fulfilled its PDCA.
+// The collector is the unit, judged from its file state: the effective delta against main, the tree at its head and its history.
+// It qualifies when its delta is not empty, its head tree holds PLAN and DO files, every expected Test Case has a green latest execution at the exact head, and
+// exactly one 4L retrospective concludes the collected work. Order is the history's (ancestry), never a time. Missing, stale or
+// ambiguous evidence is "not judged" and never qualifies. Advisory: it names the qualifiers and the first one that moves next, and
+// authorizes or recommends nothing. Read-only, deterministic, no host access.
 // Usage: node pull-promotion.mjs <facts.json> <declaration.json>
 import { readFileSync } from 'node:fs';
 const uniq = (a) => [...new Set(a)].sort();
+const isList = (v) => Array.isArray(v) && v.length > 0;
+const any = (patterns, path) => patterns.some((p) => new RegExp(p).test(path));
+const patterns = (v) => (typeof v === 'string' ? [v] : Array.isArray(v) ? v : []);
 export function walkCollectors(facts, declaration) {
   const problems = [];
   const declared = (declaration.collectors ?? []).map((c) => c.name);
   if (!declared.length) problems.push('the declaration lists no collectors');
-  // An absent or empty lifecycle or Check declaration would make every collector qualify vacuously: it is not judged instead.
-  const lifecycle = Array.isArray(declaration.lifecycle) ? declaration.lifecycle : [];
-  const checkNames = Array.isArray(declaration.checks) ? declaration.checks : [];
-  const undeclared_ = [];
-  if (!lifecycle.length) { undeclared_.push('the lifecycle declaration (the phases that make PDCA)'); problems.push('the declaration lists no lifecycle phases'); }
-  if (!checkNames.length) { undeclared_.push('the checks declaration (the Check checks)'); problems.push('the declaration lists no checks'); }
+  const ev = declaration.evidence;
+  const undecl = [];
+  if (!ev) undecl.push('evidence declaration');
+  else {
+    if (!isList(ev.plan)) undecl.push('plan evidence');
+    if (!isList(ev.do)) undecl.push('do evidence');
+    if (!patterns(ev.cases?.files).length) undecl.push('cases evidence');
+    if (!patterns(ev.act?.files).length || !isList(ev.act?.headings)) undecl.push('act evidence (files and 4L headings)');
+  }
+  for (const u of undecl) problems.push(`the declaration lists no ${u}`);
   const host = facts.collectors ?? [];
   const entries = declared.map((name) => {
     const col = host.find((c) => c.name === name);
-    if (!col) return { name, status: 'not judged', missing: ['the collector on the host'], changes: [] };
-    const missing = [...undeclared_]; let unknown = undeclared_.length > 0; let fail = false;
-    const deliveries = (facts.deliveries ?? []).filter((d) => d.collector === name);
-    let since = null;
-    if (deliveries.length) { if (deliveries.some((d) => !d.landedAt)) { unknown = true; missing.push('the landing time of the last delivery'); } else since = deliveries.map((d) => d.landedAt).sort().pop(); }
-    const pieces = (facts.pieces ?? []).filter((p) => p.into === name && p.state !== 'dropped');
-    const mine = pieces.filter((p) => p.state !== 'open');
-    const fresh = unknown ? [] : mine.filter((p) => since === null || (p.landedAt && p.landedAt > since));
-    const changes = {}; const outstanding = new Set();
-    // An open piece is outstanding work of its Change: its Change stays in the evidence and its phase is not landed.
-    for (const p of pieces.filter((q) => q.state === 'open')) {
-      if (!p.change) { unknown = true; missing.push(`${p.ref} is open and names no Change`); continue; }
-      changes[p.change] ??= new Set();
-      outstanding.add(p.change); fail = true;
-      missing.push(`${p.type} ${p.ref} of ${p.change} is open`);
+    const scope = declaration.collectors.find((c) => c.name === name).scope;
+    if (!col) return { name, status: 'not judged', missing: ['the collector on the host'] };
+    if (undecl.length) return { name, status: 'not judged', missing: undecl.map((u) => `the ${u}`) };
+    const missing = []; let unknown = false; let fail = false;
+    const no = (m) => { fail = true; missing.push(m); };
+    const dunno = (m) => { unknown = true; missing.push(m); };
+    if (scope !== undefined && !(isList(scope) && scope.every((p) => typeof p === 'string'))) return { name, status: 'not judged', missing: ['the scope of the collector (a non-empty list of path patterns)'] };
+    const inScope = (path) => scope === undefined || any(scope, path);
+    if (!Array.isArray(col.delta) || !Array.isArray(col.tree) || !Array.isArray(col.history)) return { name, status: 'not judged', missing: ['the delta, the tree and the history of the collector'] };
+    if (col.history.length && col.history.at(-1).id !== col.at) dunno('the history does not end at the head being qualified');
+    const live = col.delta.filter((f) => f.status !== 'removed' && inScope(f.path));
+    const tree = col.tree.filter(inScope);
+    if (!col.delta.length) no('files that differ from main: the delta is empty');
+    else if (!col.delta.some((f) => inScope(f.path))) no('files that differ from main inside the scope of the collector: none');
+    const outside = uniq(col.delta.filter((f) => !inScope(f.path)).map((f) => f.path));
+    if (outside.length) no(`scope: files of the delta outside the scope of the collector (${outside.slice(0, 5).join(', ')}${outside.length > 5 ? `, and ${outside.length - 5} more` : ''})`);
+    const plan = tree.filter((p) => any(ev.plan, p));
+    const dos = tree.filter((p) => any(ev.do, p));
+    if (col.delta.length && !plan.length) no('PLAN: no file of the tree matches the plan evidence');
+    if (col.delta.length && !dos.length) no('DO: no file of the tree matches the do evidence');
+    const caseRes = patterns(ev.cases.files).map((p) => new RegExp(p));
+    const isCase = (path) => caseRes.some((re) => re.test(path));
+    const idsIn = (paths) => paths.flatMap((p) => caseRes.map((re) => re.exec(p)?.[1]).filter(Boolean));
+    const unnamed = tree.filter((p) => /\.test\.mjs$/.test(p) && !isCase(p) && !any(patterns(ev.cases.other), p));
+    if (unnamed.length) dunno(`test files that are neither a Case nor declared otherwise (${unnamed.slice(0, 5).join(', ')}${unnamed.length > 5 ? `, and ${unnamed.length - 5} more`: ''})`);
+    const expected = uniq([...idsIn(tree), ...(ev.cases.required ?? [])]);
+    for (const id of ev.cases.required ?? []) if (!idsIn(tree).includes(id)) no(`Test Case ${id} is required and the tree has no such Case`);
+    if (!expected.length) dunno('an expected Test Case in the tree');
+    for (const id of expected) {
+      if ((ev.cases.required ?? []).includes(id) && !idsIn(tree).includes(id)) continue;
+      const runs = (col.executions ?? []).filter((e) => e.case === id && e.head === col.at).sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+      const last = runs.at(-1);
+      if (!last) dunno(`Test Case ${id} has no execution at the current head`);
+      else if (last.conclusion === 'failure') no(`Test Case ${id}: failure`);
+      else if (last.conclusion !== 'success') dunno(`Test Case ${id}: ${last.conclusion}`);
     }
-    for (const p of fresh) {
-      if (!p.change) { unknown = true; missing.push(`${p.ref} names no Change`); continue; }
-      (changes[p.change] ??= new Set()).add(p.type);
+    const candidates = live.filter((f) => any(patterns(ev.act.files), f.path));
+    const acts = [];
+    let unread = false;
+    for (const f of candidates) {
+      const text = col.texts?.[f.path];
+      if (typeof text !== 'string') { unread = true; dunno(`${f.path} was not read`); continue; }
+      if (ev.act.headings.every((h) => new RegExp(`^#{1,6}\\s*${h}\\b`, 'm').test(text))) acts.push(f);
     }
-    const list = Object.keys(changes).sort().map((id) => {
-      const gone = lifecycle.filter((t) => !changes[id].has(t));
-      for (const t of gone) { fail = true; missing.push(`${t} of ${id}`); }
-      return { id, complete: gone.length === 0 && !outstanding.has(id), missing: gone };
-    });
-    if (!unknown && !list.length) { fail = true; missing.push('a Change in the collector not yet delivered'); }
-    if (!col.checks) { unknown = true; missing.push('the checks of the collector head'); }
-    else for (const n of checkNames) {
-      const runs = col.checks.filter((c) => c.name === n);
-      if (!runs.length) { unknown = true; missing.push(`check ${n} has no run`); }
-      else if (runs.some((r) => r.conclusion === 'failure')) { fail = true; missing.push(`check ${n}: failure`); }
-      else if (runs.some((r) => r.conclusion !== 'success')) { unknown = true; missing.push(`check ${n}: ${runs[0].conclusion}`); }
+    if (col.delta.length && !acts.length && !unread) no('ACT: no file of the delta holds one 4L retrospective');
+    if (acts.length > 1) no(`ACT: more than one retrospective (${acts.map((f) => f.path).sort().join(', ')})`);
+    if (acts.length === 1) {
+      const last = (path) => col.history.reduce((n, c, i) => (c.paths.includes(path) ? i : n), -1);
+      const at = last(acts[0].path);
+      const ordered = uniq(col.history.flatMap((c) => c.paths)).filter(inScope).filter((p) => any(ev.plan, p) || any(ev.do, p) || isCase(p));
+      for (const f of ordered) {
+        const i = last(f);
+        if (i < 0 || at < 0) dunno(`where ${f} or the ACT sits in the history`);
+        else if (i > at) no(`ACT: ${f} changed in a later commit than the ACT`);
+      }
     }
-    const status = undeclared_.length ? 'not judged' : fail ? 'does not qualify' : unknown ? 'not judged' : 'qualifies';
-    return { name, status, missing: uniq(missing), changes: list };
+    return { name, status: fail ? 'does not qualify' : unknown ? 'not judged' : 'qualifies', missing: uniq(missing) };
   });
   const qualifiers = entries.filter((e) => e.status === 'qualifies').map((e) => e.name);
   const undeclared = uniq(host.map((c) => c.name).filter((n) => !declared.includes(n)));
