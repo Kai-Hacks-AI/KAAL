@@ -1,4 +1,4 @@
-// Runs every engineering Case (engineering/<scope>/00-changes/<change>/T<n>.test.mjs) as one test named by its own id,
+// Runs every engineering Case (engineering/<scope>/0n-*/**/T<n>.test.mjs) as one test named by its own id,
 // so the job log holds "✔ <scope>/T<n>" or "✖ <scope>/T<n>" per Case (pull/F35). A Case that throws is a failed test;
 // a Case file that cannot be loaded or has no scoped id is a failed test too, never skipped.
 // KAAL_CASES_ROOT replaces the engineering folder (the fixtures of Case pull/T34).
@@ -11,15 +11,16 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = process.env.KAAL_CASES_ROOT ?? join(here, '..');
 
+// A Case file is engineering/<scope>/<00-changes | 01-intent .. 06-*>/**/T<n>.test.mjs, at any depth (the declaration's shape).
+const walk = (dir) => readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).flatMap((entry) => (entry.isDirectory() ? walk(join(dir, entry.name)) : [join(dir, entry.name)]));
 const files = [];
-for (const scope of readdirSync(root).sort()) {
-  const changes = join(root, scope, '00-changes');
-  if (!existsSync(changes)) continue;
-  for (const change of readdirSync(changes).sort()) {
-    for (const f of readdirSync(join(changes, change)).sort()) if (/^T\d+\.test\.mjs$/.test(f)) files.push(join(changes, change, f));
+for (const scope of readdirSync(root, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort()) {
+  const base = join(root, scope);
+  for (const entry of readdirSync(base, { withFileTypes: true })) {
+    if (entry.isDirectory() && /^0[0-6]-/.test(entry.name)) for (const f of walk(join(base, entry.name))) if (/\/T\d+\.test\.mjs$/.test(f)) files.push(f);
   }
 }
-files.sort((a, b) => (a.replace(/.*\/T/, '').match(/\d+/)[0] - b.replace(/.*\/T/, '').match(/\d+/)[0]) || a.localeCompare(b));
+files.sort((a, b) => (a.match(/T(\d+)\.test\.mjs$/)[1] - b.match(/T(\d+)\.test\.mjs$/)[1]) || a.localeCompare(b));
 
 for (const file of files) {
   const rel = relative(root, file);

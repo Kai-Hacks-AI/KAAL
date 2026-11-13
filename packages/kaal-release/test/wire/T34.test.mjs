@@ -33,13 +33,15 @@ export async function run() {
 
   // Every real Case has a logged execution, and each passing one reads as a success (execution evidence, not only success).
   const dir = join(repo, 'engineering');
+  const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]));
   const expected = [];
-  for (const scope of readdirSync(dir)) {
-    const changes = join(dir, scope, '00-changes');
-    if (!existsSync(changes)) continue;
-    for (const change of readdirSync(changes)) for (const f of readdirSync(join(changes, change))) {
-      const m = /^T\d+\.test\.mjs$/.test(f) && /export const id = '([^']+)'/.exec(readFileSync(join(changes, change, f), 'utf8'));
-      if (m) expected.push(m[1]);
+  for (const scope of readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory())) {
+    for (const part of readdirSync(join(dir, scope.name), { withFileTypes: true })) {
+      if (!part.isDirectory() || !/^0[0-6]-/.test(part.name)) continue;
+      for (const f of walk(join(dir, scope.name, part.name))) {
+        const m = /\/T\d+\.test\.mjs$/.test(f) && /export const id = '([^']+)'/.exec(readFileSync(f, 'utf8'));
+        if (m) expected.push(m[1]);
+      }
     }
   }
   assert.ok(expected.length > 0, 'no engineering Case files found');
