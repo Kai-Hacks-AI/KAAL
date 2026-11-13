@@ -92,7 +92,7 @@ When designing a release process rather than driving one:
 
 ## Seeing the work in progress
 
-When several pieces of release work are open, run the read-only Script [scripts/show-wip.mjs](scripts/show-wip.mjs) on two files: the facts the repository's host reports about its open pieces, and a config that maps where a piece comes from and goes into onto stations. It prints one line per piece with its type and its expected next move, WORK, REVIEW or WAIT, and says UNKNOWN where the host did not report a fact. It observes only: the decision to proceed stays with the roles above.
+When several pieces of release work are open, run the read-only Script [scripts/show-wip.mjs](scripts/show-wip.mjs) on two files: the facts the repository's host reports about its open pieces, and a config that maps where a piece comes from and goes into onto stations. It prints one line per piece with its type and its expected next move, WORK, REVIEW or WAIT, and says UNKNOWN where the host did not report a fact. It also lists the pieces that wait for a reviewer in a reading order, each clean, not clean or unknown for review at that moment, with the exact head it read. It observes only: the decision to proceed stays with the roles above.
 
 ## What this Skill does not do
 
