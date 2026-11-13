@@ -1,6 +1,6 @@
 # C1 act
 
-A 4L retrospective of the Change, from the viewpoint of the agent that carried it. It closes C1 in the collector. Promotion and publication are not claimed here.
+A 4L retrospective of the Change, from the viewpoint of the agent that carried it. It does not close C1: the T3 decision below is open. Promotion and publication are not claimed here.
 
 ## Liked
 
@@ -18,6 +18,6 @@ An independent seat. The author wrote the Skill, the key and the prompt; the obs
 
 An independent Review of this trial that challenges the S4 key and the baseline comparison and states what it could not verify. Several runs per arm. A place on main where a defensible disagreement is recorded as such, not as a failed Case.
 
-## Closed
+## Open
 
-Gaps G1 and G2 are closed by Cases T7 and T8. T3 stays red on S4 (the Skill-only agent found none, the key says ambiguous). The CPO accepted that as an observed validation limitation; it is carried here and is not relabelled green.
+Not closed. Gaps G1 and G2 are covered by Cases T7 and T8, but T3 is RED on S4: the Skill-only agent found none where the key says ambiguous. That is the observed result and the recorded limitation (`do.md`, run 3). How to resolve it, and whether the Change may close with it, is a pending CPO decision. This ACT does not claim acceptance or closure. An independent review may inform that decision and cannot substitute for it.
