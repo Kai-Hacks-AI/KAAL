@@ -15,3 +15,7 @@ In `engineering/release-management/05-src/pull-promotion/`, `run.mjs <repo> <dec
 ## Order and constraints
 
 Lands after `pull/C3` (the v1 capability, its own PLAN, DO and ACT). Its collector is named `kaal/release/integrate-pull-promotion`. Nothing here is a Git hook, CI workflow, scheduled job, required check, ruleset or Guard change, an automatic invocation, a PR action, an approval or a promotion. Deferred refinements are listed in [v1.md](v1.md) section 4.
+
+## Revision (13 Nov 2026): the command as built
+
+The command first gathered pull-request pieces, deliveries and Check checks for the piece-based capability (`pull/C3`). The capability now qualifies a collector from its file state (`pull/C4`), and the DO #1527 rebuilt the gatherer accordingly. [requirements.md](requirements.md) pull/F14 now describes that gatherer: delta, history by ancestry, head tree, ACT texts and Case executions of the exact head read from CI job logs, the scope of each collector in the declaration, and not judged for whatever the host cut. F15 (credential, read-only) and F20 (not a trigger) are unchanged. See [testing.md](testing.md) for why no new Case is needed.
