@@ -35,6 +35,14 @@ export async function run() {
   for (const change of ['release/C99', 'sample without an id', 'release/C99 sample\n\nrelease/C98 other']) {
     assert.equal(verifyEnvelope({ ...hotfix, body: body(change) }, registry).verdict, 'FAIL', `the Change chapter "${change}" is not a finding`);
   }
+  // the whole line is judged, not its start: a name may have several words and nothing else
+  for (const change of ['release/C99 sample: a description', 'release/C99 sample\tname', 'release/C99 sample  name', 'release/C99 sample\u200b', 'release/C99 **sample**', 'release/C99 <b>sample</b>', 'release/C99 sample\u0007', 'release/C99 [sample](x)', 'release/C99 -sample', 'release/C99  sample']) {
+    const result = verifyEnvelope({ ...hotfix, body: body(change) }, registry);
+    assert.equal(result.verdict, 'FAIL', `the Change line ${JSON.stringify(change)} is not a finding`);
+  }
+  for (const change of ['release/C99 check PR Envelope', "release/C99 maker's (v2) restore", 'release/C99 Restore 2-pass a/b & c+d', 'release/C99 Zażółć naïve']) {
+    assert.equal(verifyEnvelope({ ...hotfix, body: body(change) }, registry).problems.length, 0, `the legitimate Change line ${JSON.stringify(change)} is a finding`);
+  }
   assert.equal(verifyEnvelope(hotfix, registry).problems.length, 0, 'a well-formed HOTFIX has a finding');
 
   // what the envelope cannot show stays unjudged, and the verdict stays UNKNOWN

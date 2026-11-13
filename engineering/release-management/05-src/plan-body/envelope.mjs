@@ -24,7 +24,9 @@ const HOTFIX_UNJUDGED = [
   'whether a HOTFIX corrects only its defect is not judged: the diff, the Case and the review decide it',
   'whether the Defect and the Urgency of a HOTFIX are true is not judged: the review decides it',
 ];
-const HOTFIX_CHANGE = /^[\w-]+\/[A-Z]\d+ \S/;
+// The whole line: a Change id, one space, and a name of words (letters, digits and _ . ' ( ) / & + -) joined by single spaces.
+// No colon or description, no markup, no control or invisible characters.
+const HOTFIX_CHANGE = /^[\w-]+\/[A-Z]\d+ [\p{L}\p{N}](?:[\p{L}\p{N}_.'()/&+-]| (?! ))*$/u;
 const IDENTITY = new Set(['PLAN', 'DO', 'ACT']);
 const SHAPE = new Set(['PLAN']);
 
