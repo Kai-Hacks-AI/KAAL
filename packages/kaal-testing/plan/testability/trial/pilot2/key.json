@@ -1,0 +1,10 @@
+{
+ "author": "testing thread session (wrote the section, the prompts and this key before any run of pilot 2)",
+ "status": "the author's judgment, not an oracle; each doubt is disclosed. Written after the CPO's verification and validation model and before pilot 2 ran.",
+ "key": [
+  {"id": "E1", "approach": "deterministic", "doubt": "Unchanged from pilot 1. 'specified conditions' is not specified in the claim as given, so pushback to Requirements is defensible. In pilot 1 the Skill arm answered pushback, the baseline deterministic. Not retuned."},
+  {"id": "E2", "approach": "judgment", "doubt": "'usefully' is fitness for purpose, which the CPO's model assigns to validation. A reviewer may rightly push 'usefully' back to Architecture as underspecified."},
+  {"id": "E3", "approach": "pushback", "owner": "Requirements", "doubt": "Intent may be the better owner if the need itself is unstated."},
+  {"id": "E4", "approach": "pushback", "owner": "Architecture", "doubt": "Judgment is defensible: whether S4 is ambiguous can be judged by independent review. What the key does not allow is a test whose oracle is the author's key. Architecture's own key for T3 is not touched."}
+ ]
+}
