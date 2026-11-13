@@ -50,6 +50,8 @@ export function walkCollectors(facts, declaration) {
     const caseRes = patterns(ev.cases.files).map((p) => new RegExp(p));
     const isCase = (path) => caseRes.some((re) => re.test(path));
     const idsIn = (paths) => paths.flatMap((p) => caseRes.map((re) => re.exec(p)?.[1]).filter(Boolean));
+    const unnamed = tree.filter((p) => /\.test\.mjs$/.test(p) && !isCase(p) && !any(patterns(ev.cases.other), p));
+    if (unnamed.length) dunno(`test files that are neither a Case nor declared otherwise (${unnamed.slice(0, 5).join(', ')}${unnamed.length > 5 ? `, and ${unnamed.length - 5} more`: ''})`);
     const expected = uniq([...idsIn(tree), ...(ev.cases.required ?? [])]);
     for (const id of ev.cases.required ?? []) if (!idsIn(tree).includes(id)) no(`Test Case ${id} is required and the tree has no such Case`);
     if (!expected.length) dunno('an expected Test Case in the tree');

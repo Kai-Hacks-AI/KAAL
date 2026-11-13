@@ -91,7 +91,12 @@
     "cases": {
       "files": [
         "^packages/[^/]+/test/([a-z-]+/T\\d+)\\.test\\.mjs$",
-        "^engineering/release-management/00-changes/[^/]+/(T\\d+)\\.test\\.mjs$"
+        "^packages/[^/]+/plan/[^/]+/(T\\d+)\\.test\\.mjs$",
+        "^engineering/release-management/(?:00-changes|0[1-6]-[^/]+)/(?:[^/]+/)+(T\\d+)\\.test\\.mjs$"
+      ],
+      "other": [
+        "^packages/[^/]+/test/[^/]+\\.test\\.mjs$",
+        "^packages/[^/]+/test/consumers/"
       ]
     },
     "act": {

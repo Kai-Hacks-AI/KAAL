@@ -103,6 +103,17 @@ export async function run() {
   assert.equal(inh.status, 'does not qualify', 'a collector that only inherits evidence from main qualified');
   assert.ok(inh.missing.some((m) => /scope/.test(m)), 'the missing work inside the scope is not named');
 
+  // the declaration covers what each collector owns: on the recorded files of the real collectors, no file of a delta lies outside its scope,
+  // and every test file of its scope is a Case or declared not to be one (the completeness the qualifier enforces)
+  const files = JSON.parse(readFileSync(join(dir, 'evidence/collector-files.json'), 'utf8')).collectors;
+  const matches = (list, path) => [list].flat().filter(Boolean).some((p) => new RegExp(p).test(path));
+  for (const c of declaration.collectors) {
+    const held = files[c.name];
+    assert.ok(held, `${c.name}: no recorded files`);
+    assert.deepEqual(held.delta.filter((f) => !matches(c.scope, f)), [], `${c.name}: files of its delta lie outside its scope`);
+    assert.deepEqual(held.testFiles.filter((f) => matches(c.scope, f) && !matches(declaration.evidence.cases.files, f) && !matches(declaration.evidence.cases.other, f)), [], `${c.name}: test files of its scope are neither a Case nor declared otherwise`);
+  }
+
   if (!live) return;
   const ok = command([live, declared]);
   assert.equal(ok.status, 0, `the command failed: ${ok.stderr}`);
