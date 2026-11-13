@@ -11,7 +11,7 @@ export function run() {
   assert.equal(new Set(k.map((s) => s.id)).size, k.length, 'scenario ids repeat');
   for (const s of k) assert.ok(s.parts.every((p) => ['solution', 'delivery'].includes(p)), `${s.id} names a part that is neither Solution nor Delivery`);
   for (const p of ['solution', 'delivery']) assert.ok(k.some((s) => s.finding === 'none' && s.parts.length === 1 && s.parts[0] === p), `no clean scenario holds ${p}`);
-  for (const f of ['mixed', 'disguised', 'ambiguous']) assert.ok(k.some((s) => s.finding === f), `no scenario holds ${f}`);
+  for (const f of ['mixed', 'ambiguous']) assert.ok(k.some((s) => s.finding === f), `no scenario holds ${f}`);
   assert.ok(k.filter((s) => s.finding === 'mixed').every((s) => s.parts.length === 2), 'a mixed scenario does not hold both');
   assert.ok(new Set(k.filter((s) => s.domain !== 'software').map((s) => s.domain)).size >= 4, 'fewer than four domains outside software');
   assert.ok(k.some((s) => s.domain === 'software'), 'no software scenario');

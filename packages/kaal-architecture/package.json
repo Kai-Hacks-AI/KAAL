@@ -1,0 +1,17 @@
+{
+  "name": "kaal-architecture",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Architecture: telling Solution from Delivery in statements about an intended solution.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "skills"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test test/cases.test.mjs"
+  }
+}

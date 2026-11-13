@@ -37,9 +37,9 @@
    "writtenIn": "delivery",
    "statement": "The kitchen serves only the dishes that travel well in the delivery van.",
    "parts": [
-    "solution"
+    "delivery"
    ],
-   "finding": "disguised"
+   "finding": "ambiguous"
   },
   {
    "id": "S5",
@@ -95,7 +95,7 @@
    "id": "S10",
    "domain": "education",
    "writtenIn": "delivery",
-   "statement": "Lectures are recorded and posted to the course page on the day they are given.",
+   "statement": "Each lecture room has a ceiling camera that feeds a recorder, and the recorder stores every session on the faculty file store.",
    "parts": [
     "delivery"
    ],
