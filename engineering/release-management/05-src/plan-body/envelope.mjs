@@ -14,7 +14,11 @@ const CHANGE_ID = /\b[\w-]+\/[A-Z]\d+\b/;
 const ROUTE = {
   PLAN: (f) => f.base.startsWith('kaal/'), DO: (f) => f.base.startsWith('kaal/'), ACT: (f) => f.base.startsWith('kaal/'), SYNC: (f) => f.base.startsWith('kaal/'),
   PROMOTION: (f) => f.base === 'main' && f.head.startsWith('kaal/'),
+  HOTFIX: (f) => typeof f.head === 'string' && /^hotfix\/\S/.test(f.head),
 };
+// What a route row leaves unjudged on purpose, reported on every result of that TYPE.
+const ROUTE_HINT = { HOTFIX: 'a HOTFIX takes a head under hotfix/' };
+const ROUTE_UNJUDGED = { HOTFIX: 'the base of a HOTFIX is not judged: the Hotfix delivery path, a separate Change, decides it' };
 const IDENTITY = new Set(['PLAN', 'DO', 'ACT']);
 const SHAPE = new Set(['PLAN']);
 
@@ -75,7 +79,10 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
     } else {
       notJudged.push(`the TYPE ${type} is unsupported: no declared template, so its chapters are not judged`);
     }
-    if (ROUTE[type]) { if (!ROUTE[type](facts)) problems.push(`the route of a ${type} (base ${facts.base}, head ${facts.head}) does not fit its TYPE`); }
+    if (ROUTE[type]) {
+      if (!ROUTE[type](facts)) problems.push(`the route of a ${type} (base ${facts.base}, head ${facts.head}) does not fit its TYPE${ROUTE_HINT[type] ? `: ${ROUTE_HINT[type]}` : ''}`);
+      if (ROUTE_UNJUDGED[type]) notJudged.push(ROUTE_UNJUDGED[type]);
+    }
     else notJudged.push(`the route of ${type} has no row and is not judged`);
     if (IDENTITY.has(type)) {
       const id = /^\S+/.exec(headings.length && typeof facts.body === 'string' ? stripComments(facts.body).split(/^##\s+Change\s*$/m)[1]?.trim() ?? '' : '')?.[0];
@@ -89,15 +96,19 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
     } else notJudged.push(`the Change identity of ${type} is not judged`);
   }
   const unique = [...new Set(problems)];
-  return { ok: unique.length === 0, problems: unique, notJudged, complete: notJudged.length === 0 };
+  // `ok` is local validation only: no rule found a fault. The verdict is the only result a consumer may rely on;
+  // UNKNOWN never passes.
+  const verdict = unique.length > 0 ? 'FAIL' : notJudged.length > 0 ? 'UNKNOWN' : 'PASS';
+  return { ok: unique.length === 0, verdict, problems: unique, notJudged, complete: notJudged.length === 0 };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const file = process.argv[2];
   if (!file) { console.error('usage: node envelope.mjs <facts file>'); process.exit(2); }
   const facts = JSON.parse(readFileSync(file, 'utf8'));
-  const { ok, problems, notJudged } = verifyEnvelope(facts, facts.registry);
-  console.log(ok ? 'PASS: the envelope is clean' : `FAIL:\n${problems.map((p) => `- ${p}`).join('\n')}`);
+  const { verdict, problems, notJudged } = verifyEnvelope(facts, facts.registry);
+  console.log({ PASS: 'PASS: the envelope is clean and everything was judged', FAIL: 'FAIL: the envelope has findings', UNKNOWN: 'UNKNOWN: no finding, but something was not judged; this is not a pass' }[verdict]);
+  if (problems.length) console.log(`Findings:\n${problems.map((p) => `- ${p}`).join('\n')}`);
   if (notJudged.length) console.log(`Not judged:\n${notJudged.map((n) => `- ${n}`).join('\n')}`);
-  process.exit(ok ? 0 : 1);
+  process.exit({ PASS: 0, FAIL: 1, UNKNOWN: 3 }[verdict]);
 }

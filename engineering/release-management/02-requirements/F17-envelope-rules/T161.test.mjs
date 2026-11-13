@@ -55,7 +55,7 @@ export async function run() {
   };
   for (const [type, shape] of Object.entries(shapes)) {
     const promotion = type === 'PROMOTION';
-    const result = run({ title: `${type}: Do a sample`, body: shape, base: promotion ? 'main' : 'kaal/release/sample', head: promotion ? 'kaal/release/sample' : 'claude/x' });
+    const result = run({ title: `${type}: Do a sample`, body: shape, base: promotion ? 'main' : 'kaal/release/sample', head: promotion ? 'kaal/release/sample' : type === 'HOTFIX' ? 'hotfix/do-a-sample' : 'claude/x' });
     assert.equal(result.ok, true, `a valid ${type} body is rejected for lacking a description or phases`);
   }
 
@@ -63,9 +63,9 @@ export async function run() {
   assert.equal(bad({ base: 'main' }), false, 'a PLAN into main is accepted');
   assert.equal(run({ title: 'PROMOTION: Make it available', body: shapes.PROMOTION, base: 'main', head: 'kaal/release/sample' }).ok, true, 'a promotion from a collector into main is rejected');
   assert.equal(bad({ title: 'PROMOTION: Make it available', body: shapes.PROMOTION, base: 'kaal/x', head: 'kaal/release/sample' }), false, 'a promotion into a collector is accepted');
-  const hotfix = run({ title: 'HOTFIX: Restore a sample', body: shapes.HOTFIX, base: 'main', head: 'claude/x' });
+  const hotfix = run({ title: 'HOTFIX: Restore a sample', body: shapes.HOTFIX, base: 'main', head: 'hotfix/restore-a-sample' });
   assert.equal(hotfix.ok, true, 'a HOTFIX route is judged');
-  assert.ok(hotfix.notJudged?.some((note) => /HOTFIX/.test(note) && /route/i.test(note)), 'the missing HOTFIX route row is not reported');
+  assert.ok(hotfix.notJudged?.some((note) => /HOTFIX/.test(note) && /base/i.test(note)), 'the unjudged HOTFIX base is not reported');
 
   // Change identity
   assert.equal(bad({ commits: [commit('release/C98')] }), false, 'a commit driven by another Change is accepted');
