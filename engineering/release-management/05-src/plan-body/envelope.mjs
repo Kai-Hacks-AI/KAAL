@@ -19,6 +19,12 @@ const ROUTE = {
 // What a route row leaves unjudged on purpose, reported on every result of that TYPE.
 const ROUTE_HINT = { HOTFIX: 'a HOTFIX takes a head under hotfix/' };
 const ROUTE_UNJUDGED = { HOTFIX: 'the base of a HOTFIX is not judged: the Hotfix delivery path, a separate Change, decides it' };
+// What the envelope cannot show about a HOTFIX, reported on every HOTFIX result.
+const HOTFIX_UNJUDGED = [
+  'whether a HOTFIX corrects only its defect is not judged: the diff, the Case and the review decide it',
+  'whether the Defect and the Urgency of a HOTFIX are true is not judged: the review decides it',
+];
+const HOTFIX_CHANGE = /^[\w-]+\/[A-Z]\d+ \S/;
 const IDENTITY = new Set(['PLAN', 'DO', 'ACT']);
 const SHAPE = new Set(['PLAN']);
 
@@ -62,6 +68,31 @@ function sharedBodyRules(body) {
   return problems;
 }
 
+function chapterTexts(body) {
+  const texts = new Map();
+  let current;
+  for (const line of stripComments(body).split('\n')) {
+    const heading = /^##\s+(.*?)\s*#*\s*$/.exec(line);
+    if (heading) { current = heading[1]; texts.set(current, texts.get(current) ?? []); } else if (current !== undefined) texts.get(current).push(line);
+  }
+  return texts;
+}
+
+// What a HOTFIX envelope can show: its chapters hold content and its Change is one line, id then name (release/F16).
+function hotfixBodyRules(body) {
+  const problems = [];
+  if (typeof body !== 'string') return problems;
+  const texts = chapterTexts(body);
+  for (const name of ['Defect', 'Urgency', 'Approach']) {
+    if (texts.has(name) && texts.get(name).join('\n').trim() === '') problems.push(`the ${name} chapter of a HOTFIX is empty`);
+  }
+  if (texts.has('Change')) {
+    const lines = texts.get('Change').map((l) => l.trim()).filter((l) => l !== '');
+    if (lines.length > 0 && !(lines.length === 1 && HOTFIX_CHANGE.test(lines[0]))) problems.push('the Change chapter of a HOTFIX must be one line, `<id> <name>`');
+  }
+  return problems;
+}
+
 export function verifyEnvelope(facts, registry = {}, options = {}) {
   const problems = [];
   const notJudged = [];
@@ -75,9 +106,15 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
     if (registry[type]) {
       if (JSON.stringify(headings) !== JSON.stringify(registry[type])) problems.push(`the chapters of a ${type} body must be ${registry[type].join(', ')} in this order (found: ${headings.join(', ') || 'none'})`);
       if (SHAPE.has(type) && typeof facts.body === 'string') problems.push(...checkPlanBody(facts.body).problems);
-      else notJudged.push(`the Change chapter shape of ${type} has no row and is not judged`);
+      else if (type !== 'HOTFIX') notJudged.push(`the Change chapter shape of ${type} has no row and is not judged`);
     } else {
       notJudged.push(`the TYPE ${type} is unsupported: no declared template, so its chapters are not judged`);
+    }
+    if (type === 'HOTFIX') {
+      problems.push(...hotfixBodyRules(facts.body));
+      notJudged.push(...HOTFIX_UNJUDGED);
+    } else if (typeof facts.head === 'string' && facts.head.startsWith('hotfix/')) {
+      problems.push(`a pull request from the head ${facts.head} must be a HOTFIX: a hotfix/ head takes the TYPE HOTFIX, not ${type}`);
     }
     if (ROUTE[type]) {
       if (!ROUTE[type](facts)) problems.push(`the route of a ${type} (base ${facts.base}, head ${facts.head}) does not fit its TYPE${ROUTE_HINT[type] ? `: ${ROUTE_HINT[type]}` : ''}`);
