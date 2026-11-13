@@ -101,14 +101,17 @@
     },
     "act": {
       "files": [
-        "(^|/)plan/[^/]+/00-changes\\.md$",
-        "(^|/)00-changes/[^/]+/act\\.md$"
+        "(^|/)concluding-act\\.md$"
       ],
       "headings": [
         "Liked",
         "Learned",
         "Lacked",
         "Longed For"
+      ],
+      "history": [
+        "(^|/)plan/[^/]+/00-changes\\.md$",
+        "(^|/)00-changes/[^/]+/act\\.md$"
       ]
     }
   }

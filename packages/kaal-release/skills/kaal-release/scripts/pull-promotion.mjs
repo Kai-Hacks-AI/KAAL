@@ -1,7 +1,7 @@
 // pull Promotion: for each collector the declaration lists, in the declared order, says whether the collector has fulfilled its PDCA.
 // The collector is the unit, judged from its file state: the effective delta against main, the tree at its head and its history.
 // It qualifies when its delta is not empty, its head tree holds PLAN and DO files, every expected Test Case has a green latest execution at the exact head, and
-// exactly one 4L retrospective concludes the collected work. Order is the history's (ancestry), never a time. Missing, stale or
+// exactly one 4L retrospective concludes the collected work (the Change-history retrospectives a declaration names are not counted). Order is the history's (ancestry), never a time. Missing, stale or
 // ambiguous evidence is "not judged" and never qualifies. Advisory: it names the qualifiers and the first one that moves next, and
 // authorizes or recommends nothing. Read-only, deterministic, no host access.
 // Usage: node pull-promotion.mjs <facts.json> <declaration.json>
@@ -63,7 +63,8 @@ export function walkCollectors(facts, declaration) {
       else if (last.conclusion === 'failure') no(`Test Case ${id}: failure`);
       else if (last.conclusion !== 'success') dunno(`Test Case ${id}: ${last.conclusion}`);
     }
-    const candidates = live.filter((f) => any(patterns(ev.act.files), f.path));
+    const isHistory = (path) => any(patterns(ev.act.history), path);
+    const candidates = live.filter((f) => any(patterns(ev.act.files), f.path) && !isHistory(f.path));
     const acts = [];
     let unread = false;
     for (const f of candidates) {
@@ -76,7 +77,7 @@ export function walkCollectors(facts, declaration) {
     if (acts.length === 1) {
       const last = (path) => col.history.reduce((n, c, i) => (c.paths.includes(path) ? i : n), -1);
       const at = last(acts[0].path);
-      const ordered = uniq(col.history.flatMap((c) => c.paths)).filter(inScope).filter((p) => any(ev.plan, p) || any(ev.do, p) || isCase(p));
+      const ordered = uniq([...col.history.flatMap((c) => c.paths).filter(inScope).filter((p) => any(ev.plan, p) || any(ev.do, p) || isCase(p)), ...live.filter((f) => isHistory(f.path)).map((f) => f.path)]);
       for (const f of ordered) {
         const i = last(f);
         if (i < 0 || at < 0) dunno(`where ${f} or the ACT sits in the history`);

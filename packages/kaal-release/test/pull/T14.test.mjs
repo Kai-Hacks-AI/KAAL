@@ -89,9 +89,9 @@ export async function run() {
   // end to end on a real-shaped host: the gatherer and the Script together
     const mk = (name, files, tree, texts, cases) => ({ name, history: [{ id: `${name.split('/').pop()}-1`, files: files.slice(0, -1) }, { id: `${name.split('/').pop()}-2`, files: files.slice(-1) }], tree, texts, log: logOf(...cases) });
   const mainTree = ['README.md', 'packages/kaal-other/plan/c9/requirements.md', 'packages/kaal-other/src/other.mjs', 'packages/kaal-other/test/other/T1.test.mjs'];
-  const mine = ['packages/kaal-demo/plan/c1/requirements.md', 'packages/kaal-demo/plan/c1/testing.md', 'packages/kaal-demo/src/demo.mjs', 'packages/kaal-demo/test/demo/T1.test.mjs', 'packages/kaal-demo/00-changes/C1-x/act.md'];
+  const mine = ['packages/kaal-demo/plan/c1/requirements.md', 'packages/kaal-demo/plan/c1/testing.md', 'packages/kaal-demo/src/demo.mjs', 'packages/kaal-demo/test/demo/T1.test.mjs', 'packages/kaal-demo/concluding-act.md'];
   const branches = {
-    'kaal/demo/own': mk('kaal/demo/own', mine, [...mainTree, ...mine], { 'packages/kaal-demo/00-changes/C1-x/act.md': retro() }, ['demo/T1', 'other/T1']),
+    'kaal/demo/own': mk('kaal/demo/own', mine, [...mainTree, ...mine], { 'packages/kaal-demo/concluding-act.md': retro() }, ['demo/T1', 'other/T1']),
     'kaal/demo/inherits': mk('kaal/demo/inherits', ['docs/note.md', 'docs/more.md'], [...mainTree, 'docs/note.md', 'docs/more.md'], {}, ['other/T1']),
   };
   const real = JSON.parse(readFileSync(join(dir, 'declaration.json'), 'utf8'));
