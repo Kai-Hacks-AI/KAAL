@@ -1,11 +1,11 @@
 // Case change/T63 tests: change/A24
 import assert from 'node:assert/strict';
-import { dir, decompositions, judged, key, read, SKILL, trial, FIELDS } from '../../00-changes/C10-transition/lib.mjs';
+import { dir, decompositions, judged, key, read, REF, trial, FIELDS } from '../../00-changes/C10-transition/lib.mjs';
 export const id = 'change/T63';
 export const tests = ['change/A24'];
 export const title = "the additions are minimal and its key covers every kind of truth, a mixed statement and each confusion";
 export function run() {
-  read(SKILL, 'the Skill');
+  read(REF, 'the reference');
   const KINDS = JSON.parse(read('03-architecture/A24-transition-package/scenarios.json', 'the key')).kinds;
   const dk = decompositions();
   assert.ok(dk.some((x) => x.changes === 1) && dk.some((x) => x.changes > 1), 'the key lacks a single-Change and a multi-Change transformation');

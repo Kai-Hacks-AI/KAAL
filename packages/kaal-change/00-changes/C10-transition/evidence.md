@@ -10,14 +10,15 @@ The RED of this PLAN, observed against `main`. C10 cites nothing that is not on 
 | T62 | N14 | RED: the Skill is absent | RED: the same |
 | T63 | A24 | RED: the Skill is absent | RED: the same |
 | T64 | A25, F52 | RED: the Skill is absent | RED: the same |
-| T65 | G1 | RED: the Skill is absent | RED: the same |
+| T65 | G1 | RED: the reference is absent | RED: the same |
 | T66 | G2 | RED: the Skill-only trial record is absent | RED: the same |
+| T67 | A24, F52 | RED: the reference is absent | RED: the same |
 
-On `main` and in this PLAN: 6 RED-observed, 0 error, 0 green. Every Case waits for the DO: the Skill, the shell and the trial.
+On `main` and in this PLAN: 7 RED-observed, 0 error, 0 green. Every Case waits for the DO: the Skill, the shell and the trial.
 
 ## Can each Case pass, and fail for the right reason
 
-Against a throwaway reference outside the repository (a minimal Skill, a shell, a prompt, a raw output and a record equal to the key, for the Skill and for a baseline), all six were green. With the observer named as the author, T61 failed on provenance. The reference is not part of this PLAN and implies no wording of the Skill.
+Against a throwaway reference outside the repository (a minimal Skill, a shell, a prompt, a raw output and a record equal to the key, for the Skill and for a baseline), all seven were green. With the observer named as the author, T61 failed on provenance. The reference is not part of this PLAN and implies no wording of the Skill.
 
 ## Reproduce
 

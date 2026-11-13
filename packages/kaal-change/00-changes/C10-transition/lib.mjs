@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 export const dir = join(dirname(fileURLToPath(import.meta.url)), '../..');
 export const read = (rel, what) => { const p = join(dir, rel); assert.ok(existsSync(p), `${what} is absent`); return readFileSync(p, 'utf8'); };
 export const KEY = '03-architecture/A24-transition-package/scenarios.json';
-export const SKILL = 'skills/kaal-change-transition/SKILL.md';
+export const SKILL = 'skills/kaal-change/SKILL.md';
+export const REF = 'skills/kaal-change/references/transition.md';
 const T = '00-changes/C10-transition/trial/';
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
@@ -24,6 +25,7 @@ export function trial(name) {
   assert.ok(meta.observer && meta.observer !== meta.author, `${name}: the observer is the author or unnamed`);
   assert.ok(meta.agent && meta.model && meta.date, `${name}: agent, model or date is not recorded`);
   assert.deepEqual(raw.answers, meta.answers, `${name}: the answers are not the raw output unedited`);
+  assert.deepEqual(raw.decompositions, meta.decompositions, `${name}: the decompositions are not the raw output unedited`);
   assert.deepEqual(raw.explanation, meta.explanation, `${name}: the explanation is not the raw output unedited`);
   for (const f of FIELDS) assert.ok(String(meta.explanation?.[f] ?? '').trim(), `${name}: the explanation lacks ${f}`);
   for (const s of key()) assert.ok(prompt.includes(s.statement), `${name}: the prompt lacks ${s.id}`);
@@ -42,7 +44,8 @@ export function judgedDecompositions() {
 }
 export function judged(ids) {
   const { meta, prompt } = trial('skill');
-  assert.ok(prompt.includes(read(SKILL, 'the Skill')), 'the prompt does not hold the Skill as shipped');
+  const shipped = read(SKILL, 'the Skill'), reference = read(REF, 'the reference');
+  assert.ok(prompt.includes(shipped) && prompt.includes(reference), 'the prompt does not hold the Skill and its reference as shipped');
   for (const id of ids) {
     const k = key().find((s) => s.id === id); const a = meta.answers.find((s) => s.id === id);
     assert.ok(k && a, `scenario ${id} is missing from the key or the trial`);
