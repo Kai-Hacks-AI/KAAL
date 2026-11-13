@@ -23,3 +23,32 @@ First of the two Changes of v1, before the command `pull/C2`. Its own PLAN, DO a
 ## Not in this Change
 
 The command and the host gatherer (`pull/C2`); the shared observation elements, a shared Release declaration, gap classification, stronger read-only proof and wiring (deferred, [../pull-integration/v1.md](../pull-integration/v1.md) section 4).
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- Starting from the CPO's three steps and writing five RED Cases first made the DO small: a ~60-line walker went green on T19 to T23 without a rewrite.
+- Reading the recorded real collector (T23) again gave the reduced Script a true answer: it does not qualify, and it names the PLAN and ACT of release/C14 as missing.
+- The review found two real holes by reading the code against the spec, not by tests: an open piece silently dropped, and an empty declaration that qualifies everything. Both became Cases that fail on the earlier head.
+
+### Learned
+
+- "Absent" and "empty" are different failures of a declaration, and both must read as not judged: a vacuous set makes `every` true. Any rule written as "all of these are fine" needs a Case for the empty set.
+- Filtering by state before grouping lets a state vanish from the evidence. Group first, then judge each state, so outstanding work stays visible.
+- A reduction PLAN should name the Cases of the old Change that retire, up front. I listed them in the DO (`retired.md`), which worked, but the PLAN could have carried it.
+- The first Branching run on a new PR fails until auto-merge registers; the re-run passes. Not a defect of the Change.
+
+### Lacked
+
+- A producer for the facts. The Script only reads files, so nobody can run it on the real repository yet; the C5 thread asked and the answer was "by hand".
+- A shared Release declaration: v1 will carry its own `declaration.json`, which can drift from what Show WIP knows about the collectors.
+- Evidence of a qualifying collector. Every recorded real collector so far does not qualify; the green path is only tested on fixtures.
+
+### Longed For
+
+- `pull/C2`, the read-only command, so the answer to "which collector qualifies?" is a command and not a reading of GitHub by hand.
+- One declaration of the ordered collectors that Show WIP and Pull Promotion both read, without either depending on the other's output.
+- A real collector that qualifies, to prove the green path on the host and not only on fixtures.
