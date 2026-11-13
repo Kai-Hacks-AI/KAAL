@@ -6,4 +6,4 @@ Run: `node -e "import('./T2.red.mjs').then(m => m.run())"`
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
-| mnemonics/T2 | F3, F4 | The file exists with the KAAL Definition front matter of DISCO, the heading and first sentence, the statement that `kaal-testing` and `kaal-review` keep their names, the statement that neither approves and the Owner decides, and the statement that it owns nothing. |
+| mnemonics/T2 | F3, F4 | The file exists with the KAAL Definition front matter of DISCO, the heading and first sentence, the Testing and verification and Review and validation distinction, that validation is not only the fallback and that Review may use test evidence, that quality assurance needs both, that neither approves, and that it owns nothing. |
