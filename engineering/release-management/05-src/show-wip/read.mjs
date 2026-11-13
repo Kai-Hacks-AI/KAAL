@@ -51,7 +51,7 @@ const fitOf = (state) => (state === 'DIRTY' ? 'conflicts' : state === 'BEHIND' ?
 export function toFacts(node) {
   const rollup = node.commits?.nodes?.at(-1)?.commit?.statusCheckRollup;
   const facts = {
-    ref: `#${node.number}`, title: node.title, from: node.headRefName, into: node.baseRefName, draft: Boolean(node.isDraft),
+    ref: `#${node.number}`, title: node.title, from: node.headRefName, into: node.baseRefName, head: node.headRefOid, draft: Boolean(node.isDraft),
     review: reviewOf(node.latestReviews, node.headRefOid), threads: threadsOf(node.reviewThreads), checks: node.commits ? checksOf(rollup) : undefined,
     fit: fitOf(node.mergeStateStatus), landing: Boolean(node.autoMergeRequest),
   };

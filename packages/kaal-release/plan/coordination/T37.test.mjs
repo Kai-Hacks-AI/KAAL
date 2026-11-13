@@ -25,7 +25,7 @@ export async function run() {
   assert.ok(endless.pieces.length <= 20 * 1 && endless.gaps.some((g) => /more pieces than were read/.test(g)), 'the page limit is not a gap');
 
   const clean = await one({});
-  assert.deepEqual(clean, { ref: '#1', title: 'DO: change 1', from: 'work-1', into: 'col/a', draft: false, review: 'approved', threads: 0, checks: 'success', fit: 'fits', landing: false });
+  assert.deepEqual(clean, { ref: '#1', title: 'DO: change 1', from: 'work-1', into: 'col/a', draft: false, review: 'approved', threads: 0, checks: 'success', fit: 'fits', landing: false, head: 'h1' });
   assert.equal((await one({ autoMergeRequest: { enabledAt: 'x' } })).landing, true);
   assert.equal((await one({ isDraft: true })).draft, true);
   assert.equal((await one({ mergeStateStatus: 'DIRTY' })).fit, 'conflicts');
