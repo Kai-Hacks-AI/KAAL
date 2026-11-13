@@ -24,3 +24,31 @@ PLAN first (this), then its DO (the Script, the declaration of this repository a
 ## Not in this Change
 
 The concluding ACT file of any collector; the collector order; the host gatherer (`pull/C2` revision, separate).
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- The Owner's direction arrived as one sentence and became one requirement (F34) with one Case (T33) that failed on the collector's Script and passed on a throwaway reference before any DO code existed. The DO was then a small patch of two lines of judgment and a declaration change.
+- Keeping the history retrospectives unread removed a whole class of noise: a stale or incomplete old retrospective can no longer make a collector ambiguous.
+- Re-running the real host after the change showed the effect in one line: `kaal/release/plan` stopped reporting six retrospectives and started reporting the truth, that no concluding ACT exists yet.
+
+### Learned
+
+- Telling two kinds of records apart needs two names in the declaration, not a smarter pattern: `act.history` for what happened and `act.files` for the conclusion. Anything cleverer would have guessed.
+- Ordering has to include the history retrospectives too. A conclusion written before the last Change retrospective is not a conclusion, so the ordering rule covers them by commit position, and one the history never places is not judged.
+- Moving the ACT shapes into `act.history` broke the host-shaped fixture of T14 at once, because its qualifying collector used a Change-style ACT. That is the Case doing its job, and it shows how much the old shape had been taken for the conclusion.
+- The command PLAN revision needed no new Case: T14 and T18 already covered what shipped. Saying so in the PR was clearer than inventing a RED Case.
+
+### Lacked
+
+- A concluding ACT for `kaal/release/plan` itself. The mechanism exists, but no collector holds a `concluding-act.md`, so no real collector can qualify, and the green path is still shown only on fixtures.
+- A decision on who writes a collector's concluding ACT and when: the agent that carried the last Change, at the moment the collected work is complete, is my assumption, not a recorded rule.
+
+### Longed For
+
+- A first real concluding ACT on a real collector, to show a qualifier on the host and not only on fixtures.
+- CI that runs the engineering Cases and the Cases in the `plan/<change>/` folders under a scoped id, so their CHECK can be GREEN on the host.
+- The Owner's order of the collectors in `declaration.json`.
