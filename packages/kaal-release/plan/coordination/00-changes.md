@@ -1,5 +1,7 @@
 # analyze Flow: Change (A to B)
 
+> **Superseded in scope (CPO, 12 Nov 2026).** The delivery is now the minimal Show WIP v1 of [requirements.md](requirements.md). This document describes the earlier, larger analyze Flow design and is kept for the trace; where it differs, requirements.md and testing.md win.
+
 This is `coordination/C1`, a PLAN Change. It ships no code. It adds one read-only script to the `kaal-release` Skill, the detective control `analyze Flow` (Owner, 12 Nov 2026): it makes the flow transparent and authorizes nothing. Its ids are in the scope `coordination/`, which holds no `release/` id, so it cannot collide with the `release/` ids used by #1350 and by `engineering/release-management`. Whether those two collide with each other is for them to settle, not this Change.
 
 ## A: the present
@@ -43,3 +45,34 @@ The delivery is an end-to-end vertical slice, not the Script alone (CPO, 12 Nov)
 - Proposing DO or ACT pieces from Change state.
 - The HOTFIX route (reported, not modelled), the Publishing layer (reported, not modelled), hooks, CI, Guard and rulesets.
 - Retiring track Work (a decision after the Script is on `main`).
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- Cutting the scope to one line per open piece, with a disposition and a reason, made the DO small enough to finish: a Script, a paged reader and a command, with Cases T33 to T39.
+- Writing the contract and the Cases first and showing them RED before any code kept the cut honest. Every Case that went GREEN was RED on the earlier head.
+- The live run did its job. Reading the 57 lines against pull requests I knew (a draft, a piece with an unresolved thread, a piece waiting on checks) showed that the reasons were true, and not only that the job was green.
+- The Script stayed host-neutral. The station mapping and the types sit in a small config, and nothing of the host is in the Script or its fixtures.
+
+### Learned
+
+- A green workflow is not acceptance. The CPO asked for the artifact and the exit code to be read, and the first live run showed a gap I would not have seen otherwise: most older pieces have no TYPE, and the Script says `unknown` instead of guessing.
+- Evidence taken at one head does not cover the next. A reader change after the first run meant the run had to be repeated on the final head, and a recorded report only proves that the final code ran if the checked-out SHA is in the record.
+- A catch-up merge dismisses an approval, and a rebase does too. With a busy collector the order matters: sync, get the approval at the exact head, and land before the collector moves again.
+- A review rule must be tested with two verdicts from one reviewer. An older request for changes must not override that reviewer's later approval, and another reviewer's approval must not clear a request for changes.
+- Replaying many old commits on a rebase can conflict on history the PR removes. Applying the net change in one step avoids it.
+
+### Lacked
+
+- A way to run the command from the cloud session. GraphQL is blocked there, so each real run needed a temporary, never-merged CI trial with its own authorization (#1485, #1498, #1500). The board I gave Kai during the work was read by hand.
+- A TYPE on most open pieces. Until older pieces follow the title convention, the board shows `unknown` for them.
+- Any next-move vocabulary beyond WORK, REVIEW, WAIT and UNKNOWN. Kai asked for the next expected move, and v1 deliberately stops at the disposition.
+
+### Longed For
+
+- Running Show WIP on Kai's device or on a schedule, with the result posted where the CPO and the CTO see it, so the board is a command and not a reading of GitHub by hand.
+- A next-move vocabulary derived from the flow as it is observed, added in its own Change once v1 has been used for a while.
+- One declaration of the stations and collectors that Show WIP and Pull Promotion can both read, without either depending on the other's output.

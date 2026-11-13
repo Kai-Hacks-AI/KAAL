@@ -18,3 +18,11 @@
 | 10 | `architecture.md`, BASS allocation | before the row `Verifying a published artifact` | add `\| Listing the next release actions \| Script (analyze-flow.mjs, coordination/C1) \|` |
 
 Not changed: F5, N2, T5 and T8. Both already cover the Script, since T5 scans shipped files and N2 forbids a KAAL runtime dependency. The Script is shipped under `skills/`, which the package's `files` list includes, as `kaal-engineer-skill` ships its own `scripts/`.
+
+## Revision of 12 Nov 2026 (CPO alignment on #1476)
+
+The capability is a point-in-time view of where work is in the production chain, not a release-readiness evaluator. `requirements.md` is revised accordingly: the output is a board (stations, transports, pieces, queue, WIP, constraints, not observed), the next move is a production activity (PLAN, DO, CHECK, ACT, SYNCHRONIZE, PROMOTE) with a comment, waiting is an observed condition, and nothing is a verdict. F5, F11 and the output of F4 are replaced; F7 and the readiness and freshness-gate behaviours leave the contract; F18 is new. `testing.md` lists the revised Cases T28 to T32 (RED, run by hand), the Cases that stay and are re-pointed in the DO, and the Cases withdrawn. The Script in this DO still prints actions until the CPO re-reviews this contract; nothing is implemented against it yet. The supplier, its readers, the declaration's observation parts, the delivery provenance and the live-run evidence are retained. Shared host observations will be coordinated with the independently owned elements proposed in #1466 (E1 the observation contract, E2 the GitHub observer); Pull Promotion does not depend on this capability.
+
+## Revision of 12 Nov 2026 (v1, CPO GO on #1476)
+
+The contract and Cases are reduced to the landing-first Show WIP v1: one line per open piece (`#ref TYPE from → into DISPOSITION reason`), WORK, REVIEW, WAIT or UNKNOWN from observed facts, and a small explicit mapping to stations. `requirements.md` and `testing.md` are replaced; coordination/T1 to T32 are withdrawn (in the branch history) and coordination/T33 to T39 are the Cases. The queue, WIP limit, pairs, deliveries, holds, freshness and readiness rules, the activity vocabulary, E1/E2 and the earlier supplier are out of this delivery and deferred.

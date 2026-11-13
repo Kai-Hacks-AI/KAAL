@@ -90,6 +90,10 @@ When designing a release process rather than driving one:
 
 - [A package published to a public registry](references/npm.md) applies the loop to one registry, as an example.
 
+## Seeing the work in progress
+
+When several pieces of release work are open, run the read-only Script [scripts/show-wip.mjs](scripts/show-wip.mjs) on two files: the facts the repository's host reports about its open pieces, and a config that maps where a piece comes from and goes into onto stations. It prints one line per piece with its type and its expected next move, WORK, REVIEW or WAIT, and says UNKNOWN where the host did not report a fact. It observes only: the decision to proceed stays with the roles above.
+
 ## What this Skill does not do
 
 It does not verify anyone's release and it authorizes nothing. It states the decisions to take and the order to take them in.
