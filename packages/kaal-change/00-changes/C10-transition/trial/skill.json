@@ -1,0 +1,104 @@
+{
+  "arm": "kaal-change SKILL.md after the orchestration correction (isolation worksheet conditional, transition owns its output format), followed by references/transition.md, as shipped",
+  "promptSha256": "649e69ed9501daf68ed6cafbe36776286c13e2ccf0a6cace7d1d69356d1385d8",
+  "author": "CTO thread (Claude, authored the guidance, the key and the prompts)",
+  "observer": "independent observer subagent (Claude), blind to which reply used which Skill text; it read only the task and the three replies",
+  "agent": "general-purpose subagent given only the prompt file, no repository access requested",
+  "model": "as configured for the session (claude-sonnet-5-5); the serving model was not verified",
+  "date": "2026-11-13",
+  "answers": [
+    {
+      "id": "S1",
+      "parts": [
+        "historical"
+      ],
+      "finding": "none"
+    },
+    {
+      "id": "S2",
+      "parts": [
+        "enduring"
+      ],
+      "finding": "none"
+    },
+    {
+      "id": "S3",
+      "parts": [
+        "enduring",
+        "historical"
+      ],
+      "finding": "mixed"
+    },
+    {
+      "id": "S4",
+      "parts": [
+        "target"
+      ],
+      "finding": "none"
+    },
+    {
+      "id": "S5",
+      "parts": [
+        "historical"
+      ],
+      "finding": "historical-as-target"
+    },
+    {
+      "id": "S6",
+      "parts": [
+        "historical"
+      ],
+      "finding": "historical-as-evidence"
+    },
+    {
+      "id": "S7",
+      "parts": [
+        "transition"
+      ],
+      "finding": "none"
+    },
+    {
+      "id": "S8",
+      "parts": [
+        "enduring"
+      ],
+      "finding": "retires-enduring"
+    },
+    {
+      "id": "S9",
+      "parts": [
+        "target"
+      ],
+      "finding": "no-transition-evidence"
+    }
+  ],
+  "decompositions": [
+    {
+      "id": "D1",
+      "changes": 1,
+      "boundaries": ""
+    },
+    {
+      "id": "D2",
+      "changes": 3,
+      "boundaries": "Change 1: replace the comma-separated export by JSON Lines (A to B), keeping both formats available through the transition option; it hands over a working JSON Lines export and the transition option. Change 2: retire the comma-separated reader, which can start only after the outside consumer reads JSON Lines; it hands over a state with no comma-separated reader. Change 3: remove the transition option that served both formats, which retires what Change 1 introduced and starts only after Change 2."
+    }
+  ],
+  "explanation": {
+    "current": "Today (A) the export writes a header row id,title,body and one comma-separated line per note (H1), writes every note without dropping any (H2), and for an empty store exits 0 and writes only the header (H3). All three Cases are green. They are evidence of what exists now, not of the intended outcome.",
+    "intended": "In the intended outcome (B) the export writes one JSON object per line and no header (B1), writes every note without dropping any (B2), and for an empty store exits 0 and writes nothing (B3). B1 is new and needs its own Case. B2 and the exit code of B3 are expectations that A already has.",
+    "changes": "The comma-separated format is replaced by JSON Lines, and B1 is introduced. The completeness guarantee (no note dropped) and the exit code 0 on an empty store are kept. The header row and the output of only the header on an empty store are removed. One Change suffices because there is one boundary, one baseline and one target.",
+    "superseded_and_protected": "Superseded (historical): H1, the header row with comma-separated lines, and the only-the-header part of H3, which B1 and B3 contradict. Protected (enduring): H2 and B2, no note dropped, whose Case stays and is re-run against the new export; and the exit code 0 on an empty store from H3 and B3. H3 is mixed and must be split: the exit code is enduring, the header-only output is historical. Dropping the H2 Case or keeping the header Case green would be wrong. The new empty-store output (nothing written) is a target that needs its own Case.",
+    "evidence": "B's own Cases being green shows B holds but not that A became B. Transition evidence is needed and belongs to the Change record. It includes: running the old and new export on the same store and showing the same set of notes, recording the header Case as superseded, and showing that the H2 Case and the exit code check were kept and re-run against the new export. What I could not establish is whether any outside consumer reads the old format; that would settle whether further Changes are needed."
+  },
+  "observerVerdict": {
+    "historicalKeptApartFromTarget": true,
+    "boundaryReasoning": "Best on D2: each of the three Changes is named and states the state it hands over (working JSON Lines plus transition option; no comma reader; option removed), ordering is justified (consumer must read JSON Lines; Change 3 retires what Change 1 introduced), and D1 as one Change is justified (one boundary, baseline and target); no detailed plan.",
+    "transitionEvidence": "Concrete and mostly correct (old and new export on same store give same notes, header Case recorded as superseded, H2 and exit-code Cases re-run), but it omits a discriminating red-to-green Case and admits it could not establish the outside consumer.",
+    "doubtfulLabels": [
+      "S7: labelled transition only with finding none; it also carries the enduring same-set-of-notes claim, so mixed is more accurate",
+      "Explanation says 'one Change suffices' for A to B, which is consistent with D1 but sits oddly beside its own three-Change D2"
+    ],
+    "threeWay": "observer-verdict.json"
+  }
+}

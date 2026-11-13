@@ -1,4 +1,5 @@
 // Case change/T67 tests: change/A24, change/F52
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -16,3 +17,4 @@ export function run() {
   }
   assert.ok(read('test/change.test.mjs', 'the delivered-file Case').includes(`"${REF}"`), 'the delivered-file Case does not name the reference');
 }
+test(id, () => run());

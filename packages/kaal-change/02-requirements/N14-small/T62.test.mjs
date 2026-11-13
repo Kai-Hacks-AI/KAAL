@@ -1,4 +1,5 @@
 // Case change/T62 tests: change/N14
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -14,3 +15,4 @@ export function run() {
   for (const sub of ['00-changes/C10-transition']) if (existsSync(join(dir, sub))) walk(join(dir, sub));
   assert.deepEqual(found.filter((f) => /(^|\/)\.(github|githooks)\//.test(f) || /\.ya?ml$/.test(f) || /ruleset/i.test(f)), [], 'the package carries a workflow, hook, gate or ruleset');
 }
+test(id, () => run());

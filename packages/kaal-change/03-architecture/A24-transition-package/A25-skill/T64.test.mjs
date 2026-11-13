@@ -1,4 +1,5 @@
 // Case change/T64 tests: change/A25, change/F52
+import test from 'node:test';
 import assert from 'node:assert/strict';
 import { dir, judged, key, read, SKILL, REF, trial, FIELDS } from '../../../00-changes/C10-transition/lib.mjs';
 export const id = 'change/T64';
@@ -12,3 +13,4 @@ export function run() {
   const { meta } = trial('skill');
   assert.equal(meta.observerVerdict?.historicalKeptApartFromTarget, true, 'the observer does not find historical and target truth kept apart');
 }
+test(id, () => run());

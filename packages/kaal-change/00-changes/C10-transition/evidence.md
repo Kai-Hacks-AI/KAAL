@@ -32,5 +32,5 @@ for (const f of process.argv.slice(2)) {
   catch (x) { console.log(x?.code === 'ERR_ASSERTION' ? 'RED-observed' : 'ERROR       ', m.id, String(x.message).split('\n')[0]); }
 }
 JS
-node red.mjs $(find packages/kaal-change -name 'T*.red.mjs' | sort -V)
+node red.mjs $(find packages/kaal-change -name 'T*.test.mjs' | sort -V)
 ```
