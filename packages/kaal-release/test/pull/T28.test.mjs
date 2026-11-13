@@ -41,8 +41,10 @@ export async function run() {
   const stale = await only({ history: h.slice(0, -1) });
   assert.equal(stale.status, 'not judged', 'a history that does not end at the head qualified');
   assert.ok(stale.missing.some((m) => /head/.test(m)), 'the missing tie to the head is not named');
-  // a file the history never touches cannot be ordered
-  assert.equal((await only({ history: h.map((c) => ({ ...c, paths: c.paths.filter((p) => p !== 'src/script.mjs') })).filter((c) => c.paths.length) })).status, 'not judged');
+  // a PLAN or DO file the history never touches is carried from main and does not break the order
+  assert.equal((await only({ history: h.map((c) => ({ ...c, paths: c.paths.filter((p) => p !== 'src/script.mjs') })).filter((c) => c.paths.length) })).status, 'qualifies');
+  // but the ACT the history never places cannot be ordered
+  assert.equal((await only({ history: h.map((c) => ({ ...c, paths: c.paths.filter((p) => p !== 'plan/x/00-changes.md').concat(c.id === 'col-a-head' ? ['README.md'] : []) })) })).status, 'not judged');
   // timestamps are not authority: changedAt, mtime and times in the delta change nothing
   const stamped = await only({ delta: base().delta.map((f) => ({ ...f, changedAt: f.path === 'plan/x/00-changes.md' ? '2020-01-01T00:00:00Z' : '2030-01-01T00:00:00Z', mtime: 1 })) });
   assert.equal(stamped.status, 'qualifies', 'timestamps decided the order');

@@ -1,6 +1,6 @@
 // pull Promotion: for each collector the declaration lists, in the declared order, says whether the collector has fulfilled its PDCA.
 // The collector is the unit, judged from its file state: the effective delta against main, the tree at its head and its history.
-// It qualifies when its delta holds PLAN and DO files, every expected Test Case has a green latest execution at the exact head, and
+// It qualifies when its delta is not empty, its head tree holds PLAN and DO files, every expected Test Case has a green latest execution at the exact head, and
 // exactly one 4L retrospective concludes the collected work. Order is the history's (ancestry), never a time. Missing, stale or
 // ambiguous evidence is "not judged" and never qualifies. Advisory: it names the qualifiers and the first one that moves next, and
 // authorizes or recommends nothing. Read-only, deterministic, no host access.
@@ -35,10 +35,10 @@ export function walkCollectors(facts, declaration) {
     if (col.history.length && col.history.at(-1).id !== col.at) dunno('the history does not end at the head being qualified');
     const live = col.delta.filter((f) => f.status !== 'removed');
     if (!col.delta.length) no('files that differ from main: the delta is empty');
-    const plan = live.filter((f) => any(ev.plan, f.path));
-    const dos = live.filter((f) => any(ev.do, f.path));
-    if (col.delta.length && !plan.length) no('PLAN: no file of the delta matches the plan evidence');
-    if (col.delta.length && !dos.length) no('DO: no file of the delta matches the do evidence');
+    const plan = col.tree.filter((p) => any(ev.plan, p));
+    const dos = col.tree.filter((p) => any(ev.do, p));
+    if (col.delta.length && !plan.length) no('PLAN: no file of the tree matches the plan evidence');
+    if (col.delta.length && !dos.length) no('DO: no file of the tree matches the do evidence');
     const caseRe = new RegExp(ev.cases.files);
     const idsIn = (paths) => paths.map((p) => caseRe.exec(p)?.[1]).filter(Boolean);
     const expected = uniq([...idsIn(col.tree), ...(ev.cases.required ?? [])]);
@@ -65,11 +65,11 @@ export function walkCollectors(facts, declaration) {
     if (acts.length === 1) {
       const last = (path) => col.history.reduce((n, c, i) => (c.paths.includes(path) ? i : n), -1);
       const at = last(acts[0].path);
-      const ordered = [...plan, ...dos, ...live.filter((f) => caseRe.test(f.path))];
+      const ordered = uniq(col.history.flatMap((c) => c.paths)).filter((p) => any(ev.plan, p) || any(ev.do, p) || caseRe.test(p));
       for (const f of ordered) {
-        const i = last(f.path);
-        if (i < 0 || at < 0) dunno(`where ${f.path} or the ACT sits in the history`);
-        else if (i > at) no(`ACT: ${f.path} changed in a later commit than the ACT`);
+        const i = last(f);
+        if (i < 0 || at < 0) dunno(`where ${f} or the ACT sits in the history`);
+        else if (i > at) no(`ACT: ${f} changed in a later commit than the ACT`);
       }
     }
     return { name, status: fail ? 'does not qualify' : unknown ? 'not judged' : 'qualifies', missing: uniq(missing) };
