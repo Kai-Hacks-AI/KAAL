@@ -1,105 +1,115 @@
 {
- "scenarios": [
-  {
-   "id": "S1",
-   "domain": "health care",
-   "writtenIn": "solution",
-   "statement": "A patient who arrives at the emergency ward is seen by a triage nurse within ten minutes.",
-   "parts": [
-    "solution"
-   ],
-   "finding": "none"
-  },
-  {
-   "id": "S2",
-   "domain": "health care",
-   "writtenIn": "delivery",
-   "statement": "Triage is staffed by two nurses on a rota that is posted in the ward each Friday.",
-   "parts": [
-    "delivery"
-   ],
-   "finding": "none"
-  },
-  {
-   "id": "S3",
-   "domain": "transport",
-   "writtenIn": "solution",
-   "statement": "The bridge carries two lanes of traffic in each direction, and it is built from steel box girders brought in by barge.",
-   "parts": [
-    "solution",
-    "delivery"
-   ],
-   "finding": "mixed"
-  },
-  {
-   "id": "S4",
-   "domain": "food service",
-   "writtenIn": "delivery",
-   "statement": "The kitchen serves only the dishes that travel well in the delivery van.",
-   "parts": [
-    "delivery"
-   ],
-   "finding": "ambiguous"
-  },
-  {
-   "id": "S5",
-   "domain": "public service",
-   "writtenIn": "solution",
-   "statement": "The service must be reliable.",
-   "parts": [],
-   "finding": "ambiguous"
-  },
-  {
-   "id": "S6",
-   "domain": "software",
-   "writtenIn": "delivery",
-   "statement": "The search runs on three servers behind one address.",
-   "parts": [
-    "delivery"
-   ],
-   "finding": "none"
-  },
-  {
-   "id": "S7",
-   "domain": "software",
-   "writtenIn": "solution",
-   "statement": "The search returns results ranked by relevance within two seconds.",
-   "parts": [
-    "solution"
-   ],
-   "finding": "none"
-  },
-  {
-   "id": "S8",
-   "domain": "civic",
-   "writtenIn": "solution",
-   "statement": "Voters can cast a ballot at any polling place in their county, and each polling place keeps its own printed roll of voters.",
-   "parts": [
-    "solution",
-    "delivery"
-   ],
-   "finding": "mixed"
-  },
-  {
-   "id": "S9",
-   "domain": "culture",
-   "writtenIn": "solution",
-   "statement": "The museum leads each visitor through the collection in date order, and a printed map handed out at the door shows the way.",
-   "parts": [
-    "solution",
-    "delivery"
-   ],
-   "finding": "mixed"
-  },
-  {
-   "id": "S10",
-   "domain": "education",
-   "writtenIn": "delivery",
-   "statement": "Each lecture room has a ceiling camera that feeds a recorder, and the recorder stores every session on the faculty file store.",
-   "parts": [
-    "delivery"
-   ],
-   "finding": "none"
-  }
- ]
+  "scenarios": [
+    {
+      "id": "S1",
+      "domain": "health care",
+      "writtenIn": "solution",
+      "statement": "A patient who arrives at the emergency ward is seen by a triage nurse within ten minutes.",
+      "parts": [
+        "solution"
+      ],
+      "finding": "none",
+      "next": "keep"
+    },
+    {
+      "id": "S2",
+      "domain": "health care",
+      "writtenIn": "delivery",
+      "statement": "Triage is staffed by two nurses on a rota that is posted in the ward each Friday.",
+      "parts": [
+        "delivery"
+      ],
+      "finding": "none",
+      "next": "keep"
+    },
+    {
+      "id": "S3",
+      "domain": "transport",
+      "writtenIn": "solution",
+      "statement": "The bridge carries two lanes of traffic in each direction, and it is built from steel box girders brought in by barge.",
+      "parts": [
+        "solution",
+        "delivery"
+      ],
+      "finding": "mixed",
+      "next": "split"
+    },
+    {
+      "id": "S4",
+      "domain": "food service",
+      "writtenIn": "delivery",
+      "statement": "The kitchen serves only the dishes that travel well in the delivery van.",
+      "parts": [
+        "delivery"
+      ],
+      "finding": "ambiguous",
+      "next": "ask"
+    },
+    {
+      "id": "S5",
+      "domain": "public service",
+      "writtenIn": "solution",
+      "statement": "The service must be reliable.",
+      "parts": [],
+      "finding": "ambiguous",
+      "next": "ask"
+    },
+    {
+      "id": "S6",
+      "domain": "software",
+      "writtenIn": "delivery",
+      "statement": "The search runs on three servers behind one address.",
+      "parts": [
+        "delivery"
+      ],
+      "finding": "none",
+      "next": "keep"
+    },
+    {
+      "id": "S7",
+      "domain": "software",
+      "writtenIn": "solution",
+      "statement": "The search returns results ranked by relevance within two seconds.",
+      "parts": [
+        "solution"
+      ],
+      "finding": "none",
+      "next": "keep"
+    },
+    {
+      "id": "S8",
+      "domain": "civic",
+      "writtenIn": "solution",
+      "statement": "Voters can cast a ballot at any polling place in their county, and each polling place keeps its own printed roll of voters.",
+      "parts": [
+        "solution",
+        "delivery"
+      ],
+      "finding": "mixed",
+      "next": "split"
+    },
+    {
+      "id": "S9",
+      "domain": "culture",
+      "writtenIn": "solution",
+      "statement": "The museum leads each visitor through the collection in date order, and a printed map handed out at the door shows the way.",
+      "parts": [
+        "solution",
+        "delivery"
+      ],
+      "finding": "mixed",
+      "next": "split"
+    },
+    {
+      "id": "S10",
+      "domain": "education",
+      "writtenIn": "delivery",
+      "statement": "Each lecture room has a ceiling camera that feeds a recorder, and the recorder stores every session on the faculty file store.",
+      "parts": [
+        "delivery"
+      ],
+      "finding": "none",
+      "next": "keep"
+    }
+  ]
 }
