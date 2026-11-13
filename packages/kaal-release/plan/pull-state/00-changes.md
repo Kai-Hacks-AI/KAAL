@@ -33,3 +33,12 @@ The capability Change comes first, with its own PLAN, DO and ACT. The command (`
 ## Not in this Change
 
 The command and the host reading (a revision of `pull/C2`, its own PLAN and DO); the order of the collectors (an Owner decision in `declaration.json`); promotion, which stays the Owner's.
+
+## Amendment: scope and discovery (CPO review of 13 Nov, 17:40, on #1527)
+
+The approved contract judges a collector from the whole head tree, so PLAN, DO and Cases inherited from `main` can qualify a collector for another capability, and the evidence patterns of one record shape miss the other shapes of the repository (`plan/<change>/...` of the packages and `00-changes/<change>/...` of the engineering work). Two requirements are added without relaxing any of F25 to F31:
+
+- **pull/F32** gives a declared collector a `scope`, the work it owns; everything is judged inside it and delta files outside it keep it from qualifying.
+- **pull/F33** lets `cases.files` and `act.files` be lists, so every record shape is discovered and none can be silently left out.
+
+Cases T31 and T32 are RED against the Script on the collector today and are moved to `test/pull/` by the DO ([#1527](https://github.com/Kai-Hacks-AI/KAAL/pull/1527)).
