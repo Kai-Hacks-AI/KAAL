@@ -42,3 +42,33 @@ The approved contract judges a collector from the whole head tree, so PLAN, DO a
 - **pull/F33** lets `cases.files` and `act.files` be lists and enforces that every test file in scope is a Case or declared not to be one, so a Case shape cannot be silently left out. That the PLAN, DO and ACT patterns name every record shape is not enforceable by the qualifier: it is the declaration's review, said so explicitly.
 
 Cases T31 and T32 are RED against the Script on the collector today and are moved to `test/pull/` by the DO ([#1527](https://github.com/Kai-Hacks-AI/KAAL/pull/1527)).
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- Running each RED Case against three Scripts (the collector's, the previous DO head and a throwaway reference) showed what each requirement really added: T31 and T32 failed on the earlier head for the right reasons, so the amendment was a PLAN and not a rewrite.
+- The reviews narrowed the contract in the right order: collector as the unit, then delta against head tree, then scope, then completeness. Each HOLD named one gap and was fixed with a Case.
+- Keeping all five real-host runs unedited made the limits visible: no collector qualifies, and each run says why, so nothing was inferred green.
+
+### Learned
+
+- The delta says what promotion changes and the head tree says what the collected work holds. Judging evidence from the delta alone fails work that is already in the tree. Judging it from the whole tree lets everything inherited from `main` qualify any collector, so a scope of owned work is needed.
+- A rule that reads "every file is named" finds an incomplete declaration at once: 27 test files of `verify-plan` and 15 of `kaal/release/plan` matched no Case pattern. A multiple-pattern feature alone proves nothing about completeness.
+- The engineering Cases (`00-changes/.../T<n>.test.mjs`) are not run by CI, so the host holds no execution for them. The reader must say not judged and never assume green.
+- A squash merge of the PLAN re-adds its RED files to a DO branch that had moved them; the DO must remove them again after each sync.
+- Checking each scope against the collector's recorded real delta found five owned files that a hand-written scope had missed.
+
+### Lacked
+
+- A real collector that qualifies, so the green path is shown on a host-shaped fixture and not on the real host.
+- Case executions under a scoped id for the `pull` Cases at the head and for the engineering Cases, so their CHECK is not judged today.
+- A reliable event channel while I worked: one CPO review of #1527 reached me hours late, which cost time.
+
+### Longed For
+
+- CI that runs the engineering Cases and logs them under a scoped id, so their CHECK can be GREEN on the host.
+- One concluding ACT per capability collector instead of one per Change: `kaal/release/plan` holds six retrospectives, so it cannot qualify by the Script's own rule.
+- The Owner's decision on the order of the collectors in `declaration.json`, and the revision of the `pull/C2` command PLAN to describe the gatherer as built.
