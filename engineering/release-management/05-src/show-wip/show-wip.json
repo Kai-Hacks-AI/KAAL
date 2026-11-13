@@ -1,0 +1,7 @@
+{
+  "types": ["PLAN", "DO", "ACT", "SYNC", "PROMOTION", "HOTFIX"],
+  "stations": [
+    { "station": "Integration", "into": "kaal/*" },
+    { "station": "Promotion", "into": "main" }
+  ]
+}

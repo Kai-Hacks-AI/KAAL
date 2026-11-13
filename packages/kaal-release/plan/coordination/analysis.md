@@ -1,5 +1,7 @@
 # analyze Flow: analysis
 
+> **Superseded in scope (CPO, 12 Nov 2026).** The delivery is now the minimal Show WIP v1 of [requirements.md](requirements.md). This document describes the earlier, larger analyze Flow design and is kept for the trace; where it differs, requirements.md and testing.md win.
+
 The CTO handover asked seven questions. Evidence is from the repository and the open piece list of 12 Nov 2026. Nothing was run against GitHub.
 
 ## 1. Where it belongs
