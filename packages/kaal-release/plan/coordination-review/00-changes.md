@@ -17,3 +17,31 @@ Reuses v1 as it is: the same Script, reader and command, extended by this Change
 ## Not in this Change
 
 A prediction that a head will not move (a point-in-time view cannot know it; the exact head is shown so a later move is visible). Pieces that are not REVIEW yet but will be (WAIT, WORK). A queue or limit. Roles. Policy about when a sync must precede a promotion. The next-move vocabulary beyond v1.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- Reusing v1 kept the Change small: the same Script, reader and command, a `review` config key, and Cases T40 to T44. Nothing on the board changed.
+- Every Case was shown RED in the PLAN before the DO, and the DO moved them to GREEN (33 of 33 in the suite).
+- "Unknown, never clean" was settled in the PLAN. A piece whose head is not observed cannot be called clean by accident.
+- The sequence shows the exact head to seven characters, so a later move of the head is visible.
+
+### Learned
+
+- Clean means suitable for review at one observed point in time. It does not authorize a merge or a promotion, and the report says so by being a reading order only.
+- Cleanness depends on pieces other than the one being read: a pending sync into the same collector makes a promotion not clean. The rule needs the whole list of open pieces, not one piece.
+- Adding the head to the reader changed an existing exact-equality Case (T37). New facts can break old expectations, so update them in the same DO.
+
+### Lacked
+
+- A real run of the new section. GraphQL is blocked in this cloud session, so the review sequence has been run on fixtures only. A temporary read-only CI trial needs its own go.
+- A TYPE on most older open pieces, so they rank last as `unknown`.
+
+### Longed For
+
+- Running the command where the CPO and Kai see it, so the review sequence is read at the moment of review and not reconstructed by hand.
+- The next-move vocabulary Kai asked for, derived from observed flow, in its own Change.
+- A single declaration of stations and collectors that Show WIP and Pull Promotion both read.
