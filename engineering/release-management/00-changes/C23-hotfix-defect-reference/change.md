@@ -8,7 +8,7 @@
 
 ## DO
 
-1. Amend F16 to state the requirement, and the Defect hint of the template draft in `00-changes/C11-hotfix/interface.md` to ask for the KAAL Defect identity. Rename T193 to T195 to `.test.mjs`.
+1. Amend F16 to state the requirement, and the Defect hint of the template draft in `00-changes/C11-hotfix/interface.md` to ask for the KAAL Defect identity. Rename T193, T194 and T195 from `.red.mjs` to `.test.mjs`.
 2. The delivered Case T181 of release/C17 compares the installed template with that draft, and T152 asserts the Defect hint of the installed template. Neither is changed here. The installed template follows the draft through release/C17, which is held, so C17 and this Change are ordered by the Owner, not decided here.
 
 ## ACT
