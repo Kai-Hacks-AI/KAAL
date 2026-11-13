@@ -27,7 +27,7 @@ A collector qualifies when all four hold. Missing or ambiguous evidence is repor
 
 ## Order and constraints
 
-The capability Change comes first, with its own PLAN, DO and ACT. The command (`pull/C2`) then needs its own revision: its gatherer replaces the PR and trailer reading with the delta, the file times, the ACT text and the Case executions. Pull requests stay readable as provenance but are not read by the capability. No hook, CI, ruleset or Guard change.
+The capability Change comes first, with its own PLAN, DO and ACT. The command (`pull/C2`) then needs its own revision: its gatherer replaces the PR and trailer reading with the delta, the head tree, the collector history, the ACT text and the Case executions at the exact head. Pull requests stay readable as provenance but are not read by the capability. No hook, CI, ruleset or Guard change.
 
 ## Not in this Change
 
