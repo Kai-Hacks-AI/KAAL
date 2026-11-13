@@ -1,0 +1,17 @@
+{
+  "name": "kaal-controls",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Controls: the semantics of directive, preventive, detective and corrective controls.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "skills"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test test/cases.test.mjs"
+  }
+}
