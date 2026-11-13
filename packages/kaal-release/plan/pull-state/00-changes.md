@@ -1,0 +1,35 @@
+# Pull Promotion: qualify a collector from its file state (Change A to B)
+
+This is `pull/C4`, a PLAN Change. It ships no code. It answers the CPO's review of 13 Nov 2026 on #1527: the unit of Pull Promotion is the capability a collector represents, **pull requests are transport, not PDCA evidence**, and qualification is read from the collector's **file state and effective delta against `main`**. It replaces the basis of the capability of `pull/C3` (PR pieces reconstructed from titles and `Driven-by:` trailers). [../pull-v1/](../pull-v1/) and [../pull-integration/](../pull-integration/) stay as the record of what was approved and merged.
+
+## A: the present
+
+`walkCollectors(facts, declaration)` (pull/C3) reads `pieces`: landed and open pull requests, typed from commit titles and tied to a Change by a trailer. It says a phase is missing when the title convention or a trailer is. The review found that this is not an authoritative basis: history is provenance, not evidence of the state of the work.
+
+## B: the target
+
+The Script reads, for each declared collector, **what the collector contains relative to `main`** and judges four things, in this order (PDCA of the collector as a whole):
+
+1. **PLAN**: one or more PLAN files in the collector's head tree.
+2. **DO**: one or more implementation files in the head tree.
+3. **CHECK**: every expected Test Case, including the unchanged ones, each with its latest execution **on the exact current head of the collector**, which must be green.
+4. **ACT**: **exactly one** concluding 4L retrospective for the collected work, after the last PLAN, DO and Case change in the collector's history (any file of the history that matches those patterns).
+
+A collector qualifies when all four hold. Missing or ambiguous evidence is reported as such and never read as a pass. It stays advisory: it reports eligibility, never authorization to promote, and the order of the collectors is the declaration's alone. See [requirements.md](requirements.md) and [testing.md](testing.md).
+
+## Interpretation (refined after the CPO's review of 13 Nov, 14:58)
+
+- **The unit is the collector at promotion time.** One or more PLANs, DOs and Changes with a complete CHECK, and exactly **one** concluding 4L ACT for the collected work, never one per Change.
+- **Delta and head tree answer different questions (refined after the CPO's review of 13 Nov, 15:59).** The effective delta says what promotion changes, so an empty delta is nothing to promote. The head tree is the collector's authoritative state and says whether the collected work holds its PLAN and DO evidence: those files may already be present without differing from `main`, and still count. The one concluding ACT is new work of the collector, so it is a delta file.
+- **"Effective delta against main"** is the set of files that differ between the collector's head and `main`, with their status. The capability also receives the **tree** at the head and the collector's **history** (its commits since it diverged from `main`, in order, with the paths each changed). The command computes them.
+- **The expected Test Cases** are every Case file of the head tree that matches the declaration's pattern, so an unchanged Case is still required, plus any Case ids the declaration pins as required (so deleting a Case cannot shrink the set). Their executions are reported by the host, one per run, with the exact head it ran at; the latest one of each expected Case counts and must be green **at the head being qualified**. A run at another head never counts.
+- **The ACT concludes the work by position, not by time.** It is the one 4L file; no PLAN, DO or Case file may change in a commit after the one that last changed it. Order is read from the history (ancestry), never from file times or modification times, and the history must end at the head that is qualified, so the final CHECK is the check of the head that includes the ACT. A later change to something else (a README) does not break it.
+- All path patterns (PLAN, DO, Cases, ACT) live in the declaration, so the Script names no folder.
+
+## Order and constraints
+
+The capability Change comes first, with its own PLAN, DO and ACT. The command (`pull/C2`) then needs its own revision: its gatherer replaces the PR and trailer reading with the delta, the head tree, the collector history, the ACT text and the Case executions at the exact head. Pull requests stay readable as provenance but are not read by the capability. No hook, CI, ruleset or Guard change.
+
+## Not in this Change
+
+The command and the host reading (a revision of `pull/C2`, its own PLAN and DO); the order of the collectors (an Owner decision in `declaration.json`); promotion, which stays the Owner's.
