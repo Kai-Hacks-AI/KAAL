@@ -1,0 +1,18 @@
+{
+  "collectors": [
+    { "name": "kaal/release/plan" },
+    { "name": "kaal/release/wire-fallback-template" },
+    { "name": "kaal/release/wire-hotfix-template" },
+    { "name": "kaal/release/wire-hotfix" },
+    { "name": "kaal/release/wire-hotfix-engineering" },
+    { "name": "kaal/release/wire-analyze-vulnerabilities" },
+    { "name": "kaal/release/wire-analyze-vulnerabilities-engineering" },
+    { "name": "kaal/release/check-pr-envelope" },
+    { "name": "kaal/release/change-isolation" },
+    { "name": "kaal/release/verify-plan" },
+    { "name": "kaal/release/wire-verify-plan" },
+    { "name": "kaal/release/approve-change" }
+  ],
+  "lifecycle": ["PLAN", "DO", "ACT"],
+  "checks": ["Change Isolation", "Hosting (Linux)", "Workspaces", "Branching", "Acceptance", "Engineering", "Promotion Source", "Guard"]
+}
