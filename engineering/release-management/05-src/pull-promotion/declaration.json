@@ -1,40 +1,79 @@
 {
   "collectors": [
     {
-      "name": "kaal/release/plan"
+      "name": "kaal/release/plan",
+      "scope": [
+        "^packages/kaal-release/",
+        "^engineering/release-management/05-src/pull-promotion/"
+      ]
     },
     {
-      "name": "kaal/release/wire-fallback-template"
+      "name": "kaal/release/wire-fallback-template",
+      "scope": [
+        "^\\.github/"
+      ]
     },
     {
-      "name": "kaal/release/wire-hotfix-template"
+      "name": "kaal/release/wire-hotfix-template",
+      "scope": [
+        "^\\.github/PULL_REQUEST_TEMPLATE/"
+      ]
     },
     {
-      "name": "kaal/release/wire-hotfix"
+      "name": "kaal/release/wire-hotfix",
+      "scope": [
+        "^\\.github/PULL_REQUEST_TEMPLATE/"
+      ]
     },
     {
-      "name": "kaal/release/wire-hotfix-engineering"
+      "name": "kaal/release/wire-hotfix-engineering",
+      "scope": [
+        "^engineering/release-management/00-changes/C17-wire-hotfix-template/"
+      ]
     },
     {
-      "name": "kaal/release/wire-analyze-vulnerabilities"
+      "name": "kaal/release/wire-analyze-vulnerabilities",
+      "scope": [
+        "^\\.github/workflows/"
+      ]
     },
     {
-      "name": "kaal/release/wire-analyze-vulnerabilities-engineering"
+      "name": "kaal/release/wire-analyze-vulnerabilities-engineering",
+      "scope": [
+        "^engineering/release-management/00-changes/C18-wire-analyze-vulnerabilities/"
+      ]
     },
     {
-      "name": "kaal/release/check-pr-envelope"
+      "name": "kaal/release/check-pr-envelope",
+      "scope": [
+        "^engineering/release-management/00-changes/C12-",
+        "^engineering/release-management/05-src/check-pr-envelope/"
+      ]
     },
     {
-      "name": "kaal/release/change-isolation"
+      "name": "kaal/release/change-isolation",
+      "scope": [
+        "^engineering/release-management/00-changes/C3-create-plan/"
+      ]
     },
     {
-      "name": "kaal/release/verify-plan"
+      "name": "kaal/release/verify-plan",
+      "scope": [
+        "^engineering/release-management/(00-changes/C1-verify-plan|00-changes/C2-verify-plan-ids|02-requirements/F1-plan-pr|03-architecture/A1-verify-plan|05-src/plan|06-defects/D1-untraced-plan)(/|$)"
+      ]
     },
     {
-      "name": "kaal/release/wire-verify-plan"
+      "name": "kaal/release/wire-verify-plan",
+      "scope": [
+        "^\\.github/"
+      ]
     },
     {
-      "name": "kaal/release/approve-change"
+      "name": "kaal/release/approve-change",
+      "scope": [
+        "^\\.kaal/changes/",
+        "^packages/kaal-hosting/00-changes/"
+      ]
     }
   ],
   "evidence": {
@@ -48,7 +87,10 @@
       "files": "^packages/[^/]+/test/([a-z-]+/T\\d+)\\.test\\.mjs$"
     },
     "act": {
-      "files": "(^|/)plan/.+/00-changes\\.md$",
+      "files": [
+        "(^|/)plan/[^/]+/00-changes\\.md$",
+        "(^|/)00-changes/[^/]+/act\\.md$"
+      ],
       "headings": [
         "Liked",
         "Learned",

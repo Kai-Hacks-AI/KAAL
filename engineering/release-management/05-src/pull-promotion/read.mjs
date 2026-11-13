@@ -64,9 +64,11 @@ export function executionsOf(runs, head) {
 
 export async function readFacts(repoName, declaration, get, getText, warn = () => {}) {
   const ev = declaration.evidence ?? {};
-  const actFiles = typeof ev.act?.files === 'string' ? new RegExp(ev.act.files) : undefined;
+  const actFiles = [ev.act?.files].flat().filter((p) => typeof p === 'string').map((p) => new RegExp(p));
   const facts = { collectors: [] };
-  for (const { name } of declaration.collectors ?? []) {
+  for (const { name, scope } of declaration.collectors ?? []) {
+    const scopes = Array.isArray(scope) ? scope.filter((p) => typeof p === 'string').map((p) => new RegExp(p)) : [];
+    const inScope = (path) => !scopes.length || scopes.some((re) => re.test(path));
     let branch;
     try { branch = await get(`repos/${repoName}/branches/${name}`); } catch (error) {
       if (/HTTP 404/.test(error.message)) continue; // the host has no such collector: the capability reports it as not judged
@@ -91,7 +93,7 @@ export async function readFacts(repoName, declaration, get, getText, warn = () =
       }
 
       const texts = {};
-      const candidates = actFiles ? delta.filter((f) => f.status !== 'removed' && actFiles.test(f.path)) : [];
+      const candidates = delta.filter((f) => f.status !== 'removed' && inScope(f.path) && actFiles.some((re) => re.test(f.path)));
       if (candidates.length > MAX_ACT_TEXTS) throw new Error(`could not read the ACT candidates of ${name}: ${candidates.length} files`);
       for (const f of candidates) {
         const file = await get(`repos/${repoName}/contents/${f.path.split('/').map(encodeURIComponent).join('/')}?ref=${head}`);

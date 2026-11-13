@@ -9,6 +9,7 @@ import { readFileSync } from 'node:fs';
 const uniq = (a) => [...new Set(a)].sort();
 const isList = (v) => Array.isArray(v) && v.length > 0;
 const any = (patterns, path) => patterns.some((p) => new RegExp(p).test(path));
+const patterns = (v) => (typeof v === 'string' ? [v] : Array.isArray(v) ? v : []);
 export function walkCollectors(facts, declaration) {
   const problems = [];
   const declared = (declaration.collectors ?? []).map((c) => c.name);
@@ -20,39 +21,44 @@ export function walkCollectors(facts, declaration) {
     if (!isList(ev.plan)) undecl.push('plan evidence');
     if (!isList(ev.do)) undecl.push('do evidence');
     if (typeof ev.cases?.files !== 'string') undecl.push('cases evidence');
-    if (typeof ev.act?.files !== 'string' || !isList(ev.act?.headings)) undecl.push('act evidence (files and 4L headings)');
+    if (!patterns(ev.act?.files).length || !isList(ev.act?.headings)) undecl.push('act evidence (files and 4L headings)');
   }
   for (const u of undecl) problems.push(`the declaration lists no ${u}`);
   const host = facts.collectors ?? [];
   const entries = declared.map((name) => {
     const col = host.find((c) => c.name === name);
+    const scope = declaration.collectors.find((c) => c.name === name).scope;
     if (!col) return { name, status: 'not judged', missing: ['the collector on the host'] };
     if (undecl.length) return { name, status: 'not judged', missing: undecl.map((u) => `the ${u}`) };
     const missing = []; let unknown = false; let fail = false;
     const no = (m) => { fail = true; missing.push(m); };
     const dunno = (m) => { unknown = true; missing.push(m); };
+    if (scope !== undefined && !(isList(scope) && scope.every((p) => typeof p === 'string'))) return { name, status: 'not judged', missing: ['the scope of the collector (a non-empty list of path patterns)'] };
+    const inScope = (path) => scope === undefined || any(scope, path);
     if (!Array.isArray(col.delta) || !Array.isArray(col.tree) || !Array.isArray(col.history)) return { name, status: 'not judged', missing: ['the delta, the tree and the history of the collector'] };
     if (col.history.length && col.history.at(-1).id !== col.at) dunno('the history does not end at the head being qualified');
-    const live = col.delta.filter((f) => f.status !== 'removed');
+    const live = col.delta.filter((f) => f.status !== 'removed' && inScope(f.path));
+    const tree = col.tree.filter(inScope);
     if (!col.delta.length) no('files that differ from main: the delta is empty');
-    const plan = col.tree.filter((p) => any(ev.plan, p));
-    const dos = col.tree.filter((p) => any(ev.do, p));
+    else if (!col.delta.some((f) => inScope(f.path))) no('files that differ from main inside the scope of the collector: none');
+    const plan = tree.filter((p) => any(ev.plan, p));
+    const dos = tree.filter((p) => any(ev.do, p));
     if (col.delta.length && !plan.length) no('PLAN: no file of the tree matches the plan evidence');
     if (col.delta.length && !dos.length) no('DO: no file of the tree matches the do evidence');
     const caseRe = new RegExp(ev.cases.files);
     const idsIn = (paths) => paths.map((p) => caseRe.exec(p)?.[1]).filter(Boolean);
-    const expected = uniq([...idsIn(col.tree), ...(ev.cases.required ?? [])]);
-    for (const id of ev.cases.required ?? []) if (!idsIn(col.tree).includes(id)) no(`Test Case ${id} is required and the tree has no such Case`);
+    const expected = uniq([...idsIn(tree), ...(ev.cases.required ?? [])]);
+    for (const id of ev.cases.required ?? []) if (!idsIn(tree).includes(id)) no(`Test Case ${id} is required and the tree has no such Case`);
     if (!expected.length) dunno('an expected Test Case in the tree');
     for (const id of expected) {
-      if ((ev.cases.required ?? []).includes(id) && !idsIn(col.tree).includes(id)) continue;
+      if ((ev.cases.required ?? []).includes(id) && !idsIn(tree).includes(id)) continue;
       const runs = (col.executions ?? []).filter((e) => e.case === id && e.head === col.at).sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
       const last = runs.at(-1);
       if (!last) dunno(`Test Case ${id} has no execution at the current head`);
       else if (last.conclusion === 'failure') no(`Test Case ${id}: failure`);
       else if (last.conclusion !== 'success') dunno(`Test Case ${id}: ${last.conclusion}`);
     }
-    const candidates = live.filter((f) => new RegExp(ev.act.files).test(f.path));
+    const candidates = live.filter((f) => any(patterns(ev.act.files), f.path));
     const acts = [];
     let unread = false;
     for (const f of candidates) {
@@ -65,7 +71,7 @@ export function walkCollectors(facts, declaration) {
     if (acts.length === 1) {
       const last = (path) => col.history.reduce((n, c, i) => (c.paths.includes(path) ? i : n), -1);
       const at = last(acts[0].path);
-      const ordered = uniq(col.history.flatMap((c) => c.paths)).filter((p) => any(ev.plan, p) || any(ev.do, p) || caseRe.test(p));
+      const ordered = uniq(col.history.flatMap((c) => c.paths)).filter(inScope).filter((p) => any(ev.plan, p) || any(ev.do, p) || caseRe.test(p));
       for (const f of ordered) {
         const i = last(f);
         if (i < 0 || at < 0) dunno(`where ${f} or the ACT sits in the history`);
