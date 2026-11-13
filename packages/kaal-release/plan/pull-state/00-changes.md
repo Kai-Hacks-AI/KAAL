@@ -39,6 +39,6 @@ The command and the host reading (a revision of `pull/C2`, its own PLAN and DO);
 The approved contract judges a collector from the whole head tree, so PLAN, DO and Cases inherited from `main` can qualify a collector for another capability, and the evidence patterns of one record shape miss the other shapes of the repository (`plan/<change>/...` of the packages and `00-changes/<change>/...` of the engineering work). Two requirements are added without relaxing any of F25 to F31:
 
 - **pull/F32** gives a declared collector a `scope`, the work it owns; everything is judged inside it and delta files outside it keep it from qualifying.
-- **pull/F33** lets `cases.files` and `act.files` be lists, so every record shape is discovered and none can be silently left out.
+- **pull/F33** lets `cases.files` and `act.files` be lists and enforces that every test file in scope is a Case or declared not to be one, so a Case shape cannot be silently left out. That the PLAN, DO and ACT patterns name every record shape is not enforceable by the qualifier: it is the declaration's review, said so explicitly.
 
 Cases T31 and T32 are RED against the Script on the collector today and are moved to `test/pull/` by the DO ([#1527](https://github.com/Kai-Hacks-AI/KAAL/pull/1527)).
