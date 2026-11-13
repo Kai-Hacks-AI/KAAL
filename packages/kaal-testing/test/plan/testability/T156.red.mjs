@@ -12,6 +12,9 @@ export function run() {
   assert.ok(at.every((i) => i >= 0) && at[0] < at[1] && at[1] < at[2], 'the three outcomes appear in order: Deterministic, Judgment, Pushback');
   for (const [i, words] of [[0, /observable/i], [0, /oracle/i], [1, /evidence|comparison|independent review/i], [1, /who judges/i]])
     assert.match(section.slice(at[i], at[i + 1] ?? undefined), words, `outcome ${i + 1} mentions ${words}`);
+  assert.match(section, /test is proof/i, 'the section says a test is proof');
+  assert.match(section, /review is judge?ment/i, 'the section says a review is judgement');
+  assert.match(section.slice(at[1], at[2]), /\bReview\b/, 'a claim a test cannot prove is handed to Review');
   for (const o of OWNERS) assert.ok(section.includes(o), `the section names the owner ${o}`);
   assert.ok(section.split(/\s+/).length <= 260, 'the section stays small: at most 260 words');
 }

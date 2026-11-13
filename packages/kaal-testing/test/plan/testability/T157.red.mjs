@@ -10,6 +10,7 @@ export function run() {
   const rules = {
     'never invent an oracle, a threshold or a key to obtain GREEN': /never invent an oracle[^.]*\bkey\b[^.]*GREEN/i,
     'a judgment is recorded as validation, never as a passing test': /validation, never as a passing test/i,
+    'what cannot be proven goes to judgement': /cannot be proven goes to judgement/i,
     'a pushback is reported as unknown': /\bunknown\b/i,
     'Testing recommends and does not rewrite the owner\'s claim': /recommend[^.]*do not rewrite/i,
     'an author\'s key is that author\'s judgment, and a difference is recorded as both': /key is that author's judgment[^.]*record both/i,

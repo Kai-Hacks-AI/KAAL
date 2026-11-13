@@ -9,6 +9,7 @@ Each element names, in brackets, the Requirements it answers.
 | Concern | Owns |
 | --- | --- |
 | Intent, Requirements, Architecture, Defect | their claims and what they mean |
+| Review (the `kaal-review` Skill) | the judgement of what a test cannot prove. Testing hands it over and never judges in its place or invents an oracle for it |
 | Testing, by the Skill | the assessment of testability, the suitability of a method, and the recommendation to a concern owner |
 | Testing, by the Script | only deterministic properties, here: the shape and integrity of the trial records (testing/T158, T159) and the boundary (testing/T160). It judges no semantic correctness |
 

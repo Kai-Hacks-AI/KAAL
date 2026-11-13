@@ -4,7 +4,7 @@ The planned Cases live in `packages/kaal-testing/test/plan/testability/`, named 
 
 | Case | Checks | What it decides deterministically |
 | --- | --- | --- |
-| testing/T156: the Skill assesses a claim by deterministic test, then judgment, then pushback to a named owner | testing/F129 | the section exists, is placed before the loops, names the three outcomes in order and the four owners |
+| testing/T156: the Skill assesses a claim by deterministic test, then judgment, then pushback to a named owner | testing/F129 | the section exists, is placed before the loops, says a test is proof and a review is judgement, names the three outcomes in order, hands what a test cannot prove to Review, and names the four owners |
 | testing/T157: the Skill forbids an invented oracle and an autonomous rewrite, and keeps judgment apart from a passing test | testing/F130 | the section states each of the three rules |
 | testing/T158: the trial records of the installed section are raw, hashed and well-formed | testing/F131 | provenance, prompt hashes, installed section present only in the Skill arm, answer shape by approach, at least two runs per arm |
 | testing/T159: every disagreement is listed with its positions and none is settled by editing the key | testing/F132 | the comparison equals the one recomputed from the records, the key hash matches or a revision is recorded, limits are stated |
