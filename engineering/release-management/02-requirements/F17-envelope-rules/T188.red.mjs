@@ -30,6 +30,14 @@ export async function run() {
 
   // the verdict
   assert.equal(good.verdict, 'UNKNOWN', 'a HOTFIX that left its base unjudged does not read UNKNOWN');
+  // ok is local validation only: ok true with UNKNOWN must never be mistaken for a pass
+  assert.equal(good.ok, true, 'the local validation of a valid HOTFIX head is not ok');
+  assert.notEqual(good.verdict, 'PASS', 'ok true with unjudged parts reads PASS');
+  assert.equal(good.admitted ?? false, false, 'ok true with UNKNOWN admits');
+  for (const verdict of ['PASS', 'FAIL', 'UNKNOWN']) assert.ok(['PASS', 'FAIL', 'UNKNOWN'].includes(verdict));
+  const verdicts = [good, verifyEnvelope({ ...hotfix, head: 'claude/x' }, registry), verifyEnvelope({ title: 'PLAN: Create a sample', body: '## Change\n\nrelease/C99 sample: a sample Change.\n\n## From\n\nNothing.\n\n## To\n\nSomething.\n\n## Because\n\nIt helps.\n', base: 'kaal/release/sample', head: 'claude/x', commits: [{ subject: 'x', message: 'x\n\nDriven-by: release/C99\n' }] }, registry)];
+  assert.deepEqual(verdicts.map((r) => [r.ok, r.verdict]), [[true, 'UNKNOWN'], [false, 'FAIL'], [true, 'PASS']], 'ok and verdict are not told apart: only PASS may authorize");
+
   assert.equal(verifyEnvelope({ ...hotfix, head: 'claude/x' }, registry).verdict, 'FAIL', 'a HOTFIX with a finding does not read FAIL');
   const planBody = '## Change\n\nrelease/C99 sample: a sample Change.\n\n## From\n\nNothing.\n\n## To\n\nSomething.\n\n## Because\n\nIt helps.\n';
   const plan = { title: 'PLAN: Create a sample', body: planBody, base: 'kaal/release/sample', head: 'claude/x', commits: [{ subject: 'x', message: 'x\n\nDriven-by: release/C99\n' }] };

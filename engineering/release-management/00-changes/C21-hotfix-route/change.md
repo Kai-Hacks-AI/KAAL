@@ -4,7 +4,7 @@
 
 1. Add C21 with the gap Case T190, and the Cases T188 (the judge) and T189 (the command line). They are RED on the collector (`evidence.md`).
 2. HOTFIX gets a route row: the head must start with `hotfix/`. The base is not judged for a HOTFIX, whatever it is, and every HOTFIX result says so under not judged.
-3. The result carries a verdict: FAIL when it has a finding, UNKNOWN when it has none and left something unjudged, PASS only when it judged everything. The command line prints the verdict first, lists the findings and the unjudged items, and exits 0 only for PASS, 1 for FAIL and 3 for UNKNOWN.
+3. Two results are kept apart. `ok` is local validation only: it says that no rule found a fault, and it never authorizes success, merge, admission or promotion. The verdict is the only result a consumer may rely on, and `ok: true` with the verdict UNKNOWN is the normal result for a valid HOTFIX. The result carries a verdict: FAIL when it has a finding, UNKNOWN when it has none and left something unjudged, PASS only when it judged everything. The command line prints the verdict first, lists the findings and the unjudged items, and exits 0 only for PASS, 1 for FAIL and 3 for UNKNOWN.
 
 ## DO
 

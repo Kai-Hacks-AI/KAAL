@@ -28,6 +28,7 @@ export function run() {
   assert.equal(unknown.status, 3, `an envelope with unjudged parts does not exit 3: ${unknown.stderr}${unknown.stdout}`);
   assert.match(unknown.stdout.split('\n')[0], /^UNKNOWN/, 'an UNKNOWN run does not open with UNKNOWN');
   assert.doesNotMatch(unknown.stdout, /PASS/, 'an UNKNOWN run prints PASS');
+  assert.doesNotMatch(unknown.stdout, /\bok\b/i, 'an UNKNOWN run reports ok, which could be mistaken for a pass');
   assert.match(unknown.stdout, /Not judged/, 'an UNKNOWN run does not list what was not judged');
   assert.match(unknown.stdout, /base/i, 'an UNKNOWN run does not name the unjudged base');
 

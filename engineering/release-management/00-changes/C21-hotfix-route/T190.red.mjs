@@ -15,6 +15,9 @@ export function run() {
   assert.match(f17, /base of a HOTFIX is not judged/, 'F17 does not state that the base of a HOTFIX is not judged');
   assert.doesNotMatch(f17, /HOTFIX has no route row/, 'F17 still gives HOTFIX no route row');
   assert.match(f17, /UNKNOWN never passes/, 'F17 does not state that UNKNOWN never passes');
+  assert.match(f17, /`ok` alone never authorizes/, 'F17 does not state that ok alone never authorizes');
+  assert.match(f17, /verdict is the only result a consumer may rely on/, 'F17 does not make the verdict authoritative');
   const a33 = read(join(cap, '03-architecture/A1-verify-plan/A2-github/A5-actions/A6-check-job/A33-check-pr-envelope/A33.md'), 'A33');
   assert.match(a33, /exit(s)? 3/, 'A33 does not state the exit code of UNKNOWN');
+  assert.match(a33, /only PASS exits 0/, 'A33 does not state that only PASS exits 0');
 }
