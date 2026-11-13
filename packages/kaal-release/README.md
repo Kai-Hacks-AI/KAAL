@@ -1,12 +1,12 @@
 # @kaihacksai/kaal-release
 
-KAAL Release: how to design and drive an end-to-end release process, for any target, as a Skill. It is Skill-level guidance with two read-only Scripts, `analyze-flow.mjs` and `pull-promotion.mjs`, hosted inside the Skill, and it does not verify anyone's release. `pull-promotion.mjs` walks the declared collectors, says which fulfilled their PDCA and in which order, recommends only, and verifies and authorizes nothing. `analyze-flow.mjs` arrives with its own Change (`coordination/C1`) and is not in this package until that Change lands.
+KAAL Release: how to design and drive an end-to-end release process, for any target, as a Skill. It is Skill-level guidance with two read-only Scripts, `show-wip.mjs` and `pull-promotion.mjs`, hosted inside the Skill, and it does not verify anyone's release. `pull-promotion.mjs` walks the declared collectors, says which fulfilled their PDCA and in which order, recommends only, and verifies and authorizes nothing. `show-wip.mjs` (`coordination/C1`, mnemonic SWIPE) shows each open piece of work, grouped by station, with its expected next move (WORK, REVIEW or WAIT) from the facts the host reports, says UNKNOWN where it was not told, and observes and shows only.
 
 ```
 payload/Release.md                         the Skill Node, typed by Core's KAAL Skill
 skills/kaal-release/SKILL.md               the Agent Skill: the release loop
 skills/kaal-release/references/npm.md      the loop applied to npm, as one example
-skills/kaal-release/scripts/analyze-flow.mjs   the hosted Script (arrives with coordination/C1)
+skills/kaal-release/scripts/show-wip.mjs      the hosted Script (coordination/C1)
 skills/kaal-release/scripts/pull-promotion.mjs the hosted Script (pull/C1, reduced by pull/C3)
 ```
 
