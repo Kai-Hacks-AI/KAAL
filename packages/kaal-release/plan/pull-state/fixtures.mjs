@@ -55,3 +55,21 @@ export const facts = (over = {}) => ({ collectors: [good('col-a'), good('col-b')
 export const statusOf = (result, name) => result.collectors.find((c) => c.name === name);
 // The collector without some files: gone from the delta and from the tree.
 export const drop = (collector, ...paths) => ({ delta: collector.delta.filter((f) => !paths.includes(f.path)), tree: collector.tree.filter((p) => !paths.includes(p)) });
+
+// A collector whose PLAN and DO already sit in the tree without differing from main (they landed earlier or arrived by a sync):
+// its history and delta hold only a changed Case and the 4L ACT, its tree holds everything.
+export function carried(name, over = {}) {
+  const head = `${name}-head`;
+  const history = [
+    { id: `${name}-1`, paths: ['test/T1.test.mjs'] },
+    { id: head, paths: ['plan/x/00-changes.md'] },
+  ];
+  const delta = [file('test/T1.test.mjs', 'added'), file('plan/x/00-changes.md', 'added')];
+  return {
+    name, at: head, history, delta,
+    tree: ['README.md', 'plan/x/requirements.md', 'plan/x/testing.md', 'src/script.mjs', 'test/T0.test.mjs', 'test/T1.test.mjs', 'plan/x/00-changes.md'],
+    texts: { 'plan/x/00-changes.md': retro() },
+    executions: [execution('T0', head), execution('T1', head)],
+    ...over,
+  };
+}
