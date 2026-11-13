@@ -11,7 +11,7 @@ const cases = readdirSync(DIR)
 
 describe("pull Promotion (pull/C4, pull/C2)", () => {
   it("has Cases T14, T18 and T26 to T31", () => {
-    if (cases.length !== 9) throw new Error(`expected 9 Cases, found ${cases.length}`);
+    if (cases.length !== 10) throw new Error(`expected 10 Cases, found ${cases.length}`);
   });
   for (const name of cases) {
     it(`pull/${name.replace(".test.mjs", "")}`, async () => {
