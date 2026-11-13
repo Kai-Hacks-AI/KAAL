@@ -27,28 +27,31 @@ export const declaration = (over = {}) => ({
   ...over,
 });
 
-const t = (n) => `2026-11-12T0${n}:00:00Z`;
-export const file = (path, changedAt, status = 'modified') => ({ path, status, changedAt });
+export const file = (path, status = 'modified') => ({ path, status });
 export const retro = (headings = HEADINGS) => `# Change\n\n## ACT: retrospective (4L)\n\n${headings.map((h) => `### ${h}\n\n- something\n`).join('\n')}`;
-export const execution = (caseId, head, conclusion = 'success', at = t(6)) => ({ case: caseId, head, conclusion, at });
+export const execution = (caseId, head, conclusion = 'success', at = '2026-11-12T06:00:00Z') => ({ case: caseId, head, conclusion, at });
 
-// A collector whose delta holds PLAN, DO, two expected Cases and one 4L ACT changed last, with both Cases green at its head.
+// A collector whose history is four commits (PLAN files, the DO, the Cases, the 4L ACT), the last being its head. Its delta holds
+// PLAN, DO, two changed Cases and one ACT; its tree also holds one unchanged Case (T0). Every Case is green at the head.
 export function good(name, over = {}) {
   const head = `${name}-head`;
+  const history = [
+    { id: `${name}-1`, paths: ['plan/x/requirements.md', 'plan/x/testing.md'] },
+    { id: `${name}-2`, paths: ['src/script.mjs'] },
+    { id: `${name}-3`, paths: ['test/T1.test.mjs', 'test/T2.test.mjs'] },
+    { id: head, paths: ['plan/x/00-changes.md'] },
+  ];
+  const delta = [...new Set(history.flatMap((c) => c.paths))].map((p) => file(p, 'added'));
   return {
-    name, at: head,
-    delta: [
-      file('plan/x/requirements.md', t(1), 'added'), file('plan/x/testing.md', t(1), 'added'),
-      file('src/script.mjs', t(2), 'added'), file('test/T1.test.mjs', t(3), 'added'), file('test/T2.test.mjs', t(3), 'added'),
-      file('plan/x/00-changes.md', t(4), 'added'),
-    ],
+    name, at: head, history, delta,
+    tree: ['README.md', 'test/T0.test.mjs', ...delta.map((f) => f.path)],
     texts: { 'plan/x/00-changes.md': retro() },
-    executions: [execution('T1', head), execution('T2', head)],
+    executions: [execution('T0', head), execution('T1', head), execution('T2', head)],
     ...over,
   };
 }
 
 export const facts = (over = {}) => ({ collectors: [good('col-a'), good('col-b'), good('col-c')], ...over });
 export const statusOf = (result, name) => result.collectors.find((c) => c.name === name);
-export const without = (collectorFile, ...paths) => collectorFile.delta.filter((f) => !paths.includes(f.path));
-export const t0 = t;
+// The collector without some files: gone from the delta and from the tree.
+export const drop = (collector, ...paths) => ({ delta: collector.delta.filter((f) => !paths.includes(f.path)), tree: collector.tree.filter((p) => !paths.includes(p)) });

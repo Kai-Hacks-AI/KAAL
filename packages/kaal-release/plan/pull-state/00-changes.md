@@ -8,21 +8,22 @@ This is `pull/C4`, a PLAN Change. It ships no code. It answers the CPO's review 
 
 ## B: the target
 
-The Script reads, for each declared collector, **what the collector contains relative to `main`** and judges four things, in this order:
+The Script reads, for each declared collector, **what the collector contains relative to `main`** and judges four things, in this order (PDCA of the collector as a whole):
 
 1. **PLAN**: one or more PLAN files in the delta.
 2. **DO**: one or more implementation files in the delta.
-3. **CHECK**: the Test Cases the PLAN expects, each with its latest execution **on the current head of the collector**, which must be green.
-4. **ACT**: **exactly one** concluding 4L retrospective in the delta, changed after the last PLAN and DO file.
+3. **CHECK**: every expected Test Case, including the unchanged ones, each with its latest execution **on the exact current head of the collector**, which must be green.
+4. **ACT**: **exactly one** concluding 4L retrospective for the collected work, after the last PLAN, DO and Case change in the collector's history.
 
 A collector qualifies when all four hold. Missing or ambiguous evidence is reported as such and never read as a pass. It stays advisory: it reports eligibility, never authorization to promote, and the order of the collectors is the declaration's alone. See [requirements.md](requirements.md) and [testing.md](testing.md).
 
-## Interpretation I chose, for the CPO to confirm or correct
+## Interpretation (refined after the CPO's review of 13 Nov, 14:58)
 
-- **"Effective delta against main"** is the set of files that differ between the collector's head and `main`, each with its status and the time it was last changed on the collector. The capability receives it as data; the command computes it.
-- **"Expected Test Cases"** are the Case files in the delta (declared by one file pattern whose first group is the id). Their **executions** are reported by the host, one per run of a Case: its id, the head it ran at, the conclusion and when. The latest execution of each expected Case counts.
-- **"Exactly one ACT"** is one file in the delta that holds the four 4L headings (Liked, Learned, Lacked, Longed For). Zero is missing, two or more is not a conclusion. **"After PLAN, DO and CHECK"**: it was changed no earlier than any PLAN or DO file, and the CHECK is judged at the head that includes it.
-- The patterns that say which paths are PLAN, DO, Case files and ACT files are part of the **declaration** (`evidence`), not of the Script, so the Script names no folder of this repository.
+- **The unit is the collector at promotion time.** One or more PLANs, DOs and Changes with a complete CHECK, and exactly **one** concluding 4L ACT for the collected work, never one per Change.
+- **"Effective delta against main"** is the set of files that differ between the collector's head and `main`, with their status. The capability also receives the **tree** at the head and the collector's **history** (its commits since it diverged from `main`, in order, with the paths each changed). The command computes them.
+- **The expected Test Cases** are every Case file of the head tree that matches the declaration's pattern, so an unchanged Case is still required, plus any Case ids the declaration pins as required (so deleting a Case cannot shrink the set). Their executions are reported by the host, one per run, with the exact head it ran at; the latest one of each expected Case counts and must be green **at the head being qualified**. A run at another head never counts.
+- **The ACT concludes the work by position, not by time.** It is the one 4L file; no PLAN, DO or Case file may change in a commit after the one that last changed it. Order is read from the history (ancestry), never from file times or modification times, and the history must end at the head that is qualified, so the final CHECK is the check of the head that includes the ACT. A later change to something else (a README) does not break it.
+- All path patterns (PLAN, DO, Cases, ACT) live in the declaration, so the Script names no folder.
 
 ## Order and constraints
 

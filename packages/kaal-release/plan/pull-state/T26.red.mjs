@@ -1,6 +1,6 @@
 // Case pull/T26 tests: pull/F25, pull/F26
 import assert from 'node:assert/strict';
-import { declaration, facts, good, statusOf, walkCollectors, without } from './fixtures.mjs';
+import { declaration, drop, facts, good, statusOf, walkCollectors } from './fixtures.mjs';
 export const id = 'pull/T26';
 export const tests = ['pull/F25', 'pull/F26'];
 export const title = 'the walk gives one entry per declared collector in the declared order, and PLAN and DO are read from the files of the collector\'s delta against main, never from a pull request';
@@ -18,20 +18,20 @@ export async function run() {
   assert.ok((await walkCollectors(facts(), declaration({ collectors: [] }))).problems.length > 0, 'an empty declaration is not reported');
 
   // PLAN: at least one PLAN file in the delta
-  const noPlan = await only(good('col-a', { delta: without(good('col-a'), 'plan/x/requirements.md', 'plan/x/testing.md') }));
+  const noPlan = await only(good('col-a', { ...drop(good('col-a'), 'plan/x/requirements.md', 'plan/x/testing.md') }));
   assert.equal(noPlan.status, 'does not qualify');
   assert.ok(noPlan.missing.some((m) => /PLAN/.test(m)), 'the missing PLAN is not named');
   // one PLAN file is enough: 1..n
-  assert.equal((await only(good('col-a', { delta: without(good('col-a'), 'plan/x/testing.md') }))).status, 'qualifies');
+  assert.equal((await only(good('col-a', { ...drop(good('col-a'), 'plan/x/testing.md') }))).status, 'qualifies');
   // DO: at least one implementation file
-  const noDo = await only(good('col-a', { delta: without(good('col-a'), 'src/script.mjs') }));
+  const noDo = await only(good('col-a', { ...drop(good('col-a'), 'src/script.mjs') }));
   assert.equal(noDo.status, 'does not qualify');
   assert.ok(noDo.missing.some((m) => /DO/.test(m)), 'the missing DO is not named');
   // a removed file is not a PLAN or a DO
   const removed = await only(good('col-a', { delta: good('col-a').delta.map((f) => (f.path === 'src/script.mjs' ? { ...f, status: 'removed' } : f)) }));
   assert.equal(removed.status, 'does not qualify', 'a removed file counted as the DO');
   // nothing differs from main
-  const empty = await only(good('col-a', { delta: [] }));
+  const empty = await only(good('col-a', { delta: [], history: [] }));
   assert.equal(empty.status, 'does not qualify');
   assert.ok(empty.missing.some((m) => /delta|main/.test(m)), 'an empty delta is not explained');
 }
