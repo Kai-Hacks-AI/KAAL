@@ -1,54 +1,49 @@
 # C1 application to #1404
 
-The rules of `proposal.md` applied to release/C4, Change Isolation, as it stands in #1404 at `b00a563`. Nothing of #1404 is edited, and nothing here weakens its protection. Its inventory, MERIT analysis and equivalence evidence stay as they are. They are Change-oriented, and `00-changes/` is where they belong.
+The rules of `proposal.md` applied to release/C4 as in #1404 at `b00a563`. Nothing of #1404 is edited and nothing here weakens its protection. Its inventory, MERIT analysis and equivalence evidence stay whole: they are Change-oriented and belong in `00-changes/`.
 
 ## 1. Statement by statement
 
-| Element | Concern and semantics | Finding |
+| Element | Classification | Finding |
 | --- | --- | --- |
-| I3 | Solution, target-state | clean |
-| F4, verdicts and rules | Solution, target-state | One rule names a platform path: "`.github` travels alone". The Solution's own term is the class of paths (delivery wiring), and `.github` is how the GitHub target spells it. Ambiguous term. Same rule, so rewording is not a weakening, but it is the CPO's call. |
-| F4, "the rules exist once, in the judge" and "how a platform derives the paths is the adapter's concern" | Solution constraint, and a pointer to Delivery | Already carried by A18 and A19. Stated twice. |
-| F4, the carried ledger entry | Solution, target-state | **Missing.** A promotion's ledger entry is admitted only with an attestation (`inventory.md`). F4 does not say so, and only A19 does ("derived by this target ... outside the judge"). A Solution rule exists only inside a Delivery element, which is how a Delivery Change could later redefine it. F4 should hold the rule, with the attestation as an input to the judge, and A19 only that the target supplies it. |
-| F5 | Delivery, target-state | Sits among the Requirements beside F4 with no marker of concern. Its table restates "preventive when `guard Integration` makes the verdict a condition", which `C4`'s Dependencies already assign to `guard Integration`. It should refer, not restate. |
-| F6, the record | Solution, target-state | clean |
-| F6, the claim rule ("a ruleset is evidence of neither") | owned by Controls | A rule about what a claim may say is `kaal-controls`'. Cite, do not restate. |
-| A17 | Solution node with Delivery children | The judge (A18) and the deployment targets (A19, A22) are siblings under the feature. The tree convention of this project is deployment target, then feature, then component. The CPO to say which reading is intended. |
-| A18 | Solution, target-state | clean |
-| A19, A20, A21, A22, A23 | Delivery, target-state | clean, except the attestation sentence of A19 above |
-| C4.md, "without reducing the protection it gives today" | Change, change-oriented | clean. It is the invariant of this Change and should be said as such. |
-| G15 to G20 | Change, change-oriented | One Change closes Solution Gaps (G15, G16, G18), Delivery Gaps (G17) and two mixed ones: G19 (A17 and A18 with A19 and A22) and G20 (the replay covers the judge, E1, E2, E4, and the adapters, E3). |
-| change.md step 1 | Change | Adds Solution and Delivery targets in one step. |
-| S1 | Solution Change | |
-| S2 | Change evidence | The replay E1, E2 and E4 belong to the Solution, E3 to the Delivery. |
-| S3, S5, S6 | Delivery Change | S6 also terminates, which is change-oriented. |
-| S4 | Delivery evidence | |
+| I3, F6 record, A18 | Solution, target-state | clean |
+| F4 rules | Solution, target-state | "`.github` travels alone" names a platform path in a Solution rule. The Solution term is the class of paths, `.github` is how GitHub spells it. Same rule, so rewording is no weakening. |
+| F4, carried ledger entry | Solution, target-state | **Missing.** A promotion's entry is admitted only with an attestation (`inventory.md`). F4 does not say so. Only A19 does. A Solution rule held only by a Delivery element is how a Delivery Change could redefine it. F4 should hold the rule with the attestation as an input of the judge, and A19 only that the target supplies it. |
+| F5 | Delivery, target-state | Stands among the Requirements with no marker of concern, and restates the preventive rule that C4's Dependencies already give to `guard Integration`. Refer, do not restate. |
+| F6, claim rule | owned by Controls | Cite `kaal-controls`, do not restate. |
+| A17 | Solution feature with Delivery children | See section 2. |
+| A19 to A23 | Delivery, target-state | clean, except the attestation sentence |
+| C4.md, "without reducing the protection" | Change | clean; it is this Change's invariant |
+| G15 to G20 | Change | One Change closes Solution Gaps (G15, G16, G18), a Delivery Gap (G17) and two mixed ones: G19 (A17 and A18 with A19 and A22) and G20 (the replay covers the judge, E1, E2, E4, and the adapters, E3). |
+| S1 / S3, S5, S6 | Solution Change / Delivery Change | S2 and S4 are evidence, split the same way (E3 and S4 are Delivery). |
 
-## 2. Terms
+## 2. A17 and the hierarchy
 
-- **Boundary or place.** F5, F6 and `--place <boundary>` use both words for Development, Integration, Promotion and Publishing. Choose one. The place vocabulary is the standing one.
-- **Placement.** F5 and G17 use it for where the control is applied. In Architecture, Placement is the relationship from a Requirement to an element. The two collide.
-- **Change Isolation** names the control, the judge, the check context and the workflow job. `merit.md` already keeps control and realization apart, and the requirements could say which they mean.
+The established hierarchy is deployment target, then feature, then component, and this proposal introduces no other. #1404 hangs A19 and A22, which are deployment targets, under the feature A17, beside the judge A18. Read against the hierarchy, A17 is not a node of its own: the feature belongs under each target that applies it, and the judge, which knows no platform, is the component the targets share. The Change Isolation Change re-cuts its tree to that hierarchy. This Change does not.
 
-## 3. Different functional ownership
+## 3. Terms
 
-| Element | Owner today | Proposed owner |
-| --- | --- | --- |
-| F4, F6, A18 and the attestation rule | release management | release management (Solution) |
-| The preventive requirement, rulesets and the queue | restated in F5 | `guard Integration` |
-| The declared check reaching the hook, CI and the queue | A17 prose | Guard, which owns that concept |
-| A19 to A23, the workflows, the hook | release management | the Delivery side of release management, as its own Change |
-| Claim wording about evidence | F6 | Controls |
-| The `lineage.ts` verdict that the adapter asks first (H7) | inside A19 | Branching, as an explicit dependency |
+- **Boundary or place:** F5, F6 and `--place <boundary>` use both words. Choose one; the place vocabulary is the standing one.
+- **Placement:** F5 and G17 use it for where the control applies. In Architecture it is the relationship from a Requirement to an element.
+- **Change Isolation** names the control, the judge, the check and the job. Requirements can say which they mean.
 
-## 4. Smallest decomposition
+## 4. Ownership
 
-Keep #1404's evidence whole and cut its Changes, not its content.
+| Element | Proposed owner |
+| --- | --- |
+| F4, F6, A18, the attestation rule | release management, Solution |
+| The preventive requirement, rulesets, the queue | `guard Integration` |
+| The declared check reaching hook, CI and queue | Guard |
+| A19 to A23, workflows, hook | release management, Delivery, its own Change |
+| Claim wording | Controls |
+| The `lineage.ts` verdict the adapter asks first (H7) | Branching, as an explicit dependency |
 
-| Change | Concern | Holds | Closes | Waits for |
-| --- | --- | --- | --- | --- |
-| C4, the parent | Change | inventory, MERIT, the equivalence plan, ACT | nothing itself; done when its children are done | |
-| C4 Solution, on `kaal/release/change-isolation` | Solution | I3, F4 with the attestation rule, F6, A17, A18; DO S1; replay E1, E2, E4 | G15, G16, G18, the Solution part of G19 and of G20 | |
-| C4 Delivery, on a wiring collector `kaal/release/wire-change-isolation` | Delivery | F5, A19 to A23; DO S3, S5, S6; E3; the S4 evidence | G17, and the Delivery part of G19 and of G20 | the Solution Change, done |
+## 5. Smallest decomposition
 
-G19 and G20 each become two Gaps so that each has exactly one closing Change. Their ids are for the Change Isolation Change to claim, so none is claimed here. The Delivery Change must leave T55, T56, T58, T59 and T60 unchanged: that is the invariant, checked by the same Cases that the Solution Change turned green. A `.github` Change is needed only if one is found to be, as `transition.md` already says. The `check.mjs` file, the ledger, the workflows and the rulesets are retained as MERIT decides, and no step weakens the protection of today.
+| Change | Holds | Closes | Waits for |
+| --- | --- | --- | --- |
+| C4, parent (Change) | inventory, MERIT, equivalence plan, ACT | nothing itself; done when its children are | |
+| C4 Solution, `kaal/release/change-isolation` | I3, F4 with the attestation rule, F6, A18; DO S1; replay E1, E2, E4 | G15, G16, G18, the Solution part of G19 and G20 | |
+| C4 Delivery, wiring collector `kaal/release/wire-change-isolation` | F5, A19 to A23; DO S3, S5, S6; E3; S4 evidence | G17, the Delivery part of G19 and G20 | the Solution Change, done |
+
+G19 and G20 each split in two so that each Gap has one closing Change. The Change Isolation Change claims those ids. The Delivery Change leaves T55, T56, T58, T59 and T60 unchanged: that is the invariant. A `.github` Change is needed only if one is found to be.
