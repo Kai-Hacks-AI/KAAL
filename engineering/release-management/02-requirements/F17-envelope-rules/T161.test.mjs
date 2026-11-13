@@ -73,12 +73,12 @@ export async function run() {
   assert.equal(bad({ commits: [{ subject: 'x', message: 'x\n' }] }), false, 'a commit without Driven-by is accepted');
   assert.equal(run({ title: 'SYNC: Prepare a sample', body: shapes.SYNC, commits: [commit('release/C1', 'release/C2')] }).ok, true, 'Driven-by agreement is judged for a SYNC');
 
-  // the fallback never validates
+  // DEFAULT is a TYPE; a specialized TYPE is never judged by its chapters
   const fallbackBody = '## Change\n\nrelease/C99 sample: a sample Change.\n\n## Intent\n\nIt.\n\n## Design\n\nIt.\n\n## Verified by\n\nIt.\n\n## Validated by\n\nIt.\n';
   assert.equal(bad({ title: 'SYNC: Prepare a sample', body: fallbackBody, commits: [commit('release/C99')] }), false, 'a SYNC written to the fallback chapters is accepted');
-  const unsupported = verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: fallbackBody }, registry, { fallback: { path: '.github/pull_request_template.md' } });
-  assert.ok(unsupported.notJudged?.some((note) => /fallback/i.test(note) && /not used/i.test(note)), 'a fallback that was not used to validate is not reported');
-  assert.equal(verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: fallbackBody }, registry, { fallback: { path: '.github/pull_request_template.md' } }).complete, false, 'a PR judged by the shared rules only is reported as complete');
+  const unsupported = verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: fallbackBody }, registry, registry);
+  assert.ok(unsupported.notJudged?.some((note) => /REVERT/.test(note) && /unsupported/i.test(note)), 'an unsupported TYPE is not reported');
+  assert.equal(verifyEnvelope({ ...good, title: 'REVERT: Undo a sample', body: fallbackBody }, registry).complete, false, 'a PR judged by the shared rules only is reported as complete');
 
   // commit evidence: absent is not judged, empty is a failure, never verified
   const { commits: _omitted, ...withoutCommits } = good;
