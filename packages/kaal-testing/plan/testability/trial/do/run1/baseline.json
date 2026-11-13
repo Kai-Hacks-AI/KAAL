@@ -1,0 +1,77 @@
+{
+ "author": "testing thread session (wrote the section, the prompts and the key)",
+ "observer": "fresh subagent, started with this prompt alone; its hand-back recorded unedited",
+ "agent": "general-purpose subagent, reads only its prompt",
+ "model": "claude-sonnet-5-5",
+ "date": "2026-11-13",
+ "run": "run1",
+ "promptSha256": "1e6276a55372695644e796daf7a8a8b9365385c430858e50193bf783b4728022",
+ "keySha256": "345c1d4a2eda0e4b86890b4f827884ca8fb0ddbf9f4e751846818c9fcac1edeb",
+ "answers": [
+  {
+   "id": "E1",
+   "approach": "deterministic",
+   "why": "Response time is directly observable and a two-second threshold gives an unambiguous pass/fail, provided the conditions are specified as the claim says.",
+   "observable": "Elapsed time from request to completed response, measured under the specified load and environment conditions.",
+   "oracle": "Pass if measured completion time is at most 2 seconds under the specified conditions; fail otherwise.",
+   "evidence": null,
+   "judge": null,
+   "owner": null,
+   "question": null,
+   "unresolved": [
+    "What the 'specified conditions' are is assumed to be defined elsewhere by Requirements.",
+    "Whether the limit applies to every response or a percentile is not stated."
+   ],
+   "rejectsCase": null
+  },
+  {
+   "id": "E2",
+   "approach": "judgment",
+   "why": "Whether a skill 'usefully' distinguishes Solution from Delivery, including ambiguity, is about fitness for purpose and cannot be settled by an objective oracle.",
+   "observable": null,
+   "oracle": null,
+   "evidence": "Skill outputs on varied statements that mix or blur Solution and Delivery, including ambiguous ones, plus the definitions of Solution and Delivery and how users apply the distinction.",
+   "judge": "An Architecture owner or a reviewer experienced in distinguishing Solution from Delivery.",
+   "owner": null,
+   "question": null,
+   "unresolved": [
+    "What counts as 'usefully' and for whom.",
+    "Which ambiguity cases are in scope."
+   ],
+   "rejectsCase": null
+  },
+  {
+   "id": "E3",
+   "approach": "pushback",
+   "why": "'Sufficiently reliable' has no measurable threshold, observable or conditions, so no oracle can be defined as written. Requirements could make it decidable.",
+   "observable": null,
+   "oracle": null,
+   "evidence": null,
+   "judge": null,
+   "owner": "Requirements",
+   "question": "What reliability measure (for example availability, failure rate or MTBF), what target value, over what period and under what conditions counts as sufficient?",
+   "unresolved": [
+    "Measure of reliability.",
+    "Target threshold.",
+    "Operating conditions and measurement period."
+   ],
+   "rejectsCase": null
+  },
+  {
+   "id": "E4",
+   "approach": "judgment",
+   "why": "The statement is genuinely ambiguous: 'only the dishes that travel well' can be read as restricting the menu to dishes that travel well, or as a restrictive versus non-restrictive reading of what is served, in the kitchen versus for delivery. Whether 'ambiguous' is the right answer is a judgment about the soundness of the Case's criterion. The author's assertion does not make it an oracle.",
+   "observable": null,
+   "oracle": null,
+   "evidence": "The statement text and its plausible readings, for example whether the restriction applies to all service or only to delivery, and the author's rationale for 'ambiguous'.",
+   "judge": "An Architecture owner or a language and ambiguity reviewer who decides whether 'ambiguous' is the sound expected answer.",
+   "owner": null,
+   "question": null,
+   "unresolved": [
+    "Whether the Case's expected answer is sound, since the author's say-so is not an oracle.",
+    "Whether the readings are materially different for the Skill's purpose."
+   ],
+   "rejectsCase": false
+  }
+ ]
+}
