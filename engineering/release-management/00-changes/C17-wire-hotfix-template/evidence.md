@@ -25,3 +25,16 @@ The Case T181 is called over a tree of each state with a throwaway runner. Run A
 ## Provenance
 
 Runs were made on 13 November over copies of trees. No run changed `main` or a collector.
+
+## CHECK at the exact heads (13 Nov)
+
+T181 was run by calling `run()` over the effective target state of the wiring: the tree of `kaal/release/wire-hotfix` at 2b98258, with the C17 folder of `kaal/release/wire-hotfix-engineering` at 3196eea added.
+
+| Item | Value |
+| --- | --- |
+| T181 | green |
+| sha256 of the installed `.github/PULL_REQUEST_TEMPLATE/hotfix.md` | c17f7a316d4ab654db9384a31bb1692fa4cd29e96b50811333776591bd9236a2 |
+| sha256 of the fenced draft in `00-changes/C11-hotfix/interface.md` at 3196eea | c17f7a316d4ab654db9384a31bb1692fa4cd29e96b50811333776591bd9236a2 |
+| Delta of `kaal/release/wire-hotfix` against its base | one commit, one file, 17 lines (#1525) |
+
+This is a manual run of the Case, not a CI check. The engineering collector alone does not hold the template, so the Case stays `.red.mjs` there; it is renamed to `.test.mjs` once the template is on `main`. The draft of release/C11 is unchanged by this run. A later amendment of the draft (release/C23) needs the installed template to follow it through its own wiring.
