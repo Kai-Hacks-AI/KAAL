@@ -10,6 +10,16 @@ An earlier DO tried the guidance as a separate Skill, nested beside its element,
 
 CI found that the widened description of `SKILL.md` was not valid YAML (a colon in a plain value). The description was reworded and the inventory digest updated. Because the prompt holds the Skill as shipped, the integrated arm was run again with a fresh agent, and a fresh blind observer read the replies again. The first integrated run and its observer verdict stay as history (`trial/skill-before-yaml-fix.*`, `trial/observer-verdict-before-yaml-fix.json`, `trial/existing-before-yaml-fix.json`). The tables below are the re-run. It repeated the first result: the same labels, with D1 now justified in the reply.
 
+## An orchestration correction and a re-run
+
+The CPO set the architecture of the Skill: two reasoning concerns, Transition and Isolation, each owning its own findings, uncertainty, evidence and decisions. `references/worksheet.md` is Isolation-specific (all six sections are isolation reasoning; it predates this Change), so `SKILL.md` now makes step 6 the isolation report, used when isolation is in play, and step 7 points to the transition guide's own output format and says that when both concerns arise their findings are reported separately with their relationship stated. The reference files are unchanged. Because the prompt holds the Skill as shipped, the integrated arm was run again with a fresh agent and a fresh blind observer read it with the existing-Skill and baseline replies (shuffled, unlabelled). The previous integrated run and verdict stay as history (`trial/skill-before-orchestration.*`, `trial/observer-verdict-before-orchestration.json`). The tables below describe the run before this correction unless marked.
+
+Re-run result: the labels equal the key at S1 to S9, D1 is one Change and D2 three with the state each hands over. The new observer (`trial/observer-verdict.json`, three replies) preferred the revised integrated reply for D2 (each Change names what it hands over and why the order holds; D1 justified), found the existing-Skill reply's transition evidence the sharpest (a Case that is red on the old export and green on the new one) and the integrated reply's evidence concrete but without that discriminating Case, and again doubts S7 `none` (closer to mixed). The key is unchanged and the disagreement stays visible. One run per arm: a single run cannot separate this from ordinary variation.
+
+## Whole-capability comparison (isolation, boundaries, evidence, protection)
+
+Eight fresh runs, two per arm and task, on two prompts that are not the A to B example: a shared validator with three consumers (one known only from the Graph view), and a rename that changes meaning with an outside dashboard. A blind observer scored shuffled replies 0 to 2 on isolation, boundaries, transition evidence and protection. Every reply scored 2 on every dimension in both arms; differences were depth (for example, whether the proposal was seen to be a no-op) and did not follow the arm. No regression was observed and the sample is too small to exclude a small effect. The raw replies are not stored in the repository.
+
 ## Runs on the integrated guidance
 
 Fresh subagents given only a prompt file; a fresh blind observer read the task and the three replies, shuffled and unlabelled (`trial/observer-verdict.json`).
