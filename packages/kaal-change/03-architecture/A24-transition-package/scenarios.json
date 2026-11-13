@@ -1,0 +1,95 @@
+{
+ "kinds": [
+  "historical",
+  "enduring",
+  "target",
+  "transition"
+ ],
+ "scenarios": [
+  {
+   "id": "S1",
+   "statement": "Export writes a header row id,title,body, then one comma-separated line per note.",
+   "parts": [
+    "historical"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S2",
+   "statement": "Export writes every note in the store; none is dropped.",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S3",
+   "statement": "Export of an empty store exits with 0 and writes only the header.",
+   "parts": [
+    "enduring",
+    "historical"
+   ],
+   "finding": "mixed"
+  },
+  {
+   "id": "S4",
+   "statement": "Export writes one JSON object per line and no header.",
+   "parts": [
+    "target"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S5",
+   "statement": "The Case that checks the header row stays green after the change.",
+   "parts": [
+    "historical"
+   ],
+   "finding": "historical-as-target"
+  },
+  {
+   "id": "S6",
+   "statement": "All three current Cases are green, so the new export is reached.",
+   "parts": [
+    "historical"
+   ],
+   "finding": "historical-as-evidence"
+  },
+  {
+   "id": "S7",
+   "statement": "Both exports run on the same store give the same set of notes, and the header Case is recorded as superseded.",
+   "parts": [
+    "transition"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S8",
+   "statement": "Drop the Case that no note is dropped, because the old export is being replaced.",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "retires-enduring"
+  },
+  {
+   "id": "S9",
+   "statement": "The new export is shown to be reached because its own Cases are green.",
+   "parts": [
+    "target"
+   ],
+   "finding": "no-transition-evidence"
+  }
+ ],
+ "decompositions": [
+  {
+   "id": "D1",
+   "statement": "Replace the comma-separated export of the notes tool by JSON Lines, keeping that no note is dropped.",
+   "changes": 1
+  },
+  {
+   "id": "D2",
+   "statement": "Replace the comma-separated export by JSON Lines. Then retire the comma-separated reader that an outside consumer still depends on, once that consumer reads JSON Lines. Then remove the transition option that served both.",
+   "changes": 3
+  }
+ ]
+}
