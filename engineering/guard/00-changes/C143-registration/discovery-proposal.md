@@ -71,3 +71,7 @@ A changed file with **no** nearest `guard.json` (an engineering area's own code,
 - Cost of scanning for `guard.json`: one tracked-file listing per run, not measured.
 - Check ids must be unique within a file; uniqueness across files is by path.
 - The merge-queue job that invokes the full run is the wiring owner's.
+
+## Boundary: Engineering's standing checks are not Guard's
+
+Idea from the Owner (21:30): Engineering needs its own, more permanent wiring. Read here as: Engineering's standing checks are hard-wired Delivery controls, installed through `.githooks/new/pre-push.d` and the new rulesets (the structure #1639 and the wiring sources of release/C18 build), never through Guard. Guard serves only package capabilities and Changes. This is a reading of the Owner's words, not a decision; the CPO classifies each control (#1639).
