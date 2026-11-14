@@ -5,12 +5,20 @@
   "license": "MIT",
   "type": "module",
   "files": [
+    "capability",
+    "payload",
     "skills"
   ],
   "scripts": {
-    "test": "node --test test/plan/retro.test.mjs"
+    "pretest": "npm run build -w kaal-core",
+    "test": "node --test test/plan/retro.test.mjs test/plan/capability.test.mjs"
   },
   "engines": {
     "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "kaal-testing": "0.0.1"
   }
 }
