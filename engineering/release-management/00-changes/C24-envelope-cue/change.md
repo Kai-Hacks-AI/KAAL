@@ -6,8 +6,10 @@
 2. The cue is one fixed line, written once, as the first visible line of the body of every pull request template:
    `**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.`
 3. It is visible text and not a comment, so a pull request opened from the template carries it without the agent having to invent it. It names no Change and repeats nothing from the files, so one line serves a pull request with one Change and a promotion with several.
-4. "Every template" means every file under `.github/PULL_REQUEST_TEMPLATE/`, the default `.github/pull_request_template.md` and the fallback text of release/A41. T198 enumerates them, so a template that lands later without the cue turns T198 RED.
+4. "Every template" means the named mandatory locations (the five typed templates, the default `.github/pull_request_template.md` and the fallback text of release/A41), which T198 requires to exist, and every other `.md` file in `.github/PULL_REQUEST_TEMPLATE/`, which T198 discovers, so a template that lands later without the cue turns T198 RED. No count stands in for the mandatory list.
 5. The envelope check accepts exactly that line, and only it, before the first chapter. Any other text there, a changed cue or text beside the cue stays a finding (T199).
+6. The envelope judge exports the cue it accepts as `CUE`, and T198 reads template text with the judge's own `stripComments`, so the Case and the judge agree on visible text and on the cue.
+7. The body stays an envelope: the cue points to the evidence and is never the authoritative PLAN, DO or ACT evidence. The bare-PR-link reader trial is validation evidence, not a GREEN/RED answer key.
 
 ## DO
 
