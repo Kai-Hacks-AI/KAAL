@@ -73,5 +73,32 @@
   "packages/kaal-retro/test/plan/fixtures/unlabeled.md",
   "packages/kaal-retro/test/plan/lib/record4l.mjs",
   "packages/kaal-retro/test/plan/retro.test.mjs"
+ ],
+ "kaal/release/githooks-split": [
+  "engineering/guard/acceptance/kaal.test.mjs",
+  "engineering/release-management/00-changes/C26-githooks-split/C26.md",
+  "engineering/release-management/00-changes/C26-githooks-split/T206.red.mjs",
+  "engineering/release-management/00-changes/C26-githooks-split/T207.red.mjs",
+  "engineering/release-management/00-changes/C26-githooks-split/T208.red.mjs",
+  "engineering/release-management/00-changes/C26-githooks-split/baseline.md",
+  "engineering/release-management/00-changes/C26-githooks-split/change.md",
+  "engineering/release-management/00-changes/C26-githooks-split/gap.md",
+  "engineering/release-management/02-requirements/F21-githooks-legacy-and-new/F21.md",
+  "engineering/release-management/03-architecture/A46-githooks-dispatch/A46.md"
+ ],
+ "kaal/release/wire-operation": [
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/C27.md",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/T209.test.mjs",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/T210.test.mjs",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/T211.red.mjs",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/T212.red.mjs",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/baseline.md",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/change.md",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/gap.md",
+  "engineering/release-management/00-changes/C27-wire-delivery-operation/interface.md",
+  "engineering/release-management/02-requirements/F22-wire-operation/F22.md",
+  "engineering/release-management/03-architecture/A47-wire-install/A47.md",
+  "engineering/release-management/05-src/wiring/templates/wire.md",
+  "engineering/release-management/05-src/wiring/wire-judge.mjs"
  ]
 }

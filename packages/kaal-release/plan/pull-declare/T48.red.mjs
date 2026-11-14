@@ -23,6 +23,9 @@ export async function run() {
   const ids = deltas['kaal/engineering/collector-capability'].map(idOf).filter(Boolean).sort();
   const want = Array.from({ length: 12 }, (_, i) => `T${268 + i}`);
   assert.deepEqual(ids, want, 'the collector-capability Cases T268 to T279 are not read as Cases with those ids');
+  const wireIds = deltas['kaal/release/wire-operation'].map(idOf).filter(Boolean).sort();
+  assert.deepEqual(wireIds, ['T209', 'T210'], 'the WIRE Cases T209 and T210 are not read as Cases with those ids');
+  for (const p of deltas['kaal/release/githooks-split'].filter((q) => /\.red\.mjs$/.test(q))) assert.equal(idOf(p), null, `${p} was counted as a Case`);
   for (const p of deltas['kaal/retro/skill'].filter((q) => /\.test\.mjs$/.test(q))) assert.equal(idOf(p), null, `${p} was counted as a Case`);
   for (const name of NEW) assert.ok(deltas[name].some((p) => plan.some((re) => re.test(p))), `${name}: no PLAN evidence is found in its delta`);
 }

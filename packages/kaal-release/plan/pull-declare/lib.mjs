@@ -5,7 +5,7 @@ import { join } from 'node:path';
 export const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 export const declaration = JSON.parse(readFileSync(join(repo, 'engineering/release-management/05-src/pull-promotion/declaration.json'), 'utf8'));
 export const deltas = JSON.parse(readFileSync(fileURLToPath(new URL('./fixtures/deltas.json', import.meta.url)), 'utf8'));
-export const NEW = ['kaal/engineering/collector-capability', 'kaal/guard/registration', 'kaal/retro/skill'];
+export const NEW = ['kaal/engineering/collector-capability', 'kaal/guard/registration', 'kaal/retro/skill', 'kaal/release/githooks-split', 'kaal/release/wire-operation'];
 export const entry = (name) => declaration.collectors.find((c) => c.name === name);
 export const scopeOf = (name) => (entry(name)?.scope ?? []).map((p) => new RegExp(p));
 export const matches = (res, path) => res.some((re) => re.test(path));
