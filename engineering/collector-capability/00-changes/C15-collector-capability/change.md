@@ -19,7 +19,7 @@ Provisional ids: C15 and T268-T276 were not checked for global uniqueness over e
 
 ## CPO follow-up (0409476)
 
-Report-only; no ruleset for collector legitimacy is activated. No Retro Capability Node is created merely to match `kaal/retro/*`: Retro is its own capability (Owner decision on #1640), so it needs its own legitimate capability identity first, which this Change does not decide. The flat `kaal/learning` branch is not an immutable blocker: if a `kaal/learning/<name>` collector is needed, the CTO asks the Owner for that specific operation. No permanent exception or alternative registry is designed around it.
+Report-only; no ruleset for collector legitimacy is activated. No Retro Capability Node is created merely to match `kaal/retro/*`: Retro is its own capability (Owner decision on #1640), so it needs its own legitimate capability identity first, which this Change does not decide. No branch is permanent except `main` (Owner, general principle): flat, legacy or conflicting branches may be changed or retired with Owner coordination, and their current existence is not an architecture constraint. The flat `kaal/learning` branch is therefore not a blocker: if a `kaal/learning/<name>` collector is needed, the CTO asks the Owner for that specific operation. No permanent exception or alternative registry is designed around it.
 
 ## Open, not decided here
 
