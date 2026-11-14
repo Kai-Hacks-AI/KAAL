@@ -24,6 +24,13 @@ export async function run() {
     assert.deepEqual(judged(r), ['col-a', 'col-b'], `the value ${JSON.stringify(bad)} was read as a value`);
   }
   assert.ok((await walk([{ name: 'col-a', value: 5 }, { name: 'col-b', value: 1.5 }])).problems.some((p) => /col-b/.test(p) && /value/.test(p)), 'a non-integer value is not named in problems');
+  // Equal ratios tie exactly (2/1 and 4/2); a float comparison must not break the tie.
+  assert.deepEqual(judged(await walk([{ name: 'col-a', value: 2, size: 1 }, { name: 'col-b', value: 4, size: 2 }])), ['col-a', 'col-b'], 'equal ratios were not a tie');
+  // An invalid size gives no valid rank, whatever the value.
+  for (const bad of [0, 1.5, '3']) {
+    const r = await walk([{ name: 'col-a', value: 5 }, { name: 'col-b', value: 9, size: bad }]);
+    assert.deepEqual(judged(r), ['col-a', 'col-b'], `the size ${JSON.stringify(bad)} was read as a size`);
+  }
   // Qualification itself is untouched by the judged outcome.
   const r = await walk([{ name: 'col-a', value: 2 }, { name: 'col-b', value: 2 }]);
   assert.deepEqual(r.qualifiers, ['col-a', 'col-b'], 'a tie changed who qualifies');

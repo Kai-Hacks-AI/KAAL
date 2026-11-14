@@ -25,6 +25,10 @@ export async function run() {
   // One qualifier, with or without a value.
   assert.equal((await walk(collectors([3, 4]), ['col-a'])).next.collector, 'col-a', 'a single qualifier was not next');
   assert.equal((await walk(collectors([]), ['col-c'])).next.collector, 'col-c', 'a single qualifier without a value was not next');
+  // With a size the rank is value / size: 6/3 = 2 loses to 3/1 = 3, and the order of the list does not matter.
+  const sized = (a, b) => [{ name: 'col-a', ...a }, { name: 'col-b', ...b }];
+  assert.equal((await walk(sized({ value: 6, size: 3 }, { value: 3, size: 1 }), ['col-a', 'col-b'])).next.collector, 'col-b', 'the rank was not value over size');
+  assert.equal((await walk(sized({ value: 9, size: 3 }, { value: 2, size: 1 }), ['col-a', 'col-b'])).next.collector, 'col-a', 'a larger ratio did not win');
   // Nothing else changes: the same report without any value differs only in next.
   const none = await walk(collectors([]), ['col-a', 'col-b']);
   const { next: _a, ...withValues } = two;

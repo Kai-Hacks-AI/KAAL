@@ -4,7 +4,7 @@ Runnable Cases `T38` and `T39`, `.red.mjs`, built on the fixtures of the existin
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
-| pull/T38 | F38 | Two qualifiers with values 1 and 2 give `next` the one with 2, whichever is listed first. Three qualifiers give the highest. A single qualifier is `next` with or without a value. With no qualifier `next` is unchanged. Statuses, `missing` and `qualifiers` equal the same run without any value. |
-| pull/T39 | F38 | A tie for the highest value, or a qualifier without a value, gives `collector: null` and `judged` naming the tied or all qualifiers. An invalid value (0, 1.5, a string) counts as no value and a non-integer is named in `problems`. A lower-valued tie below a unique highest does not make `next` judged. |
+| pull/T38 | F38 | Two qualifiers with values 1 and 2 give `next` the one with 2, whichever is listed first. Three qualifiers give the highest. A single qualifier is `next` with or without a value. With a `size`, the rank is value ÷ size (value 6 size 3 loses to value 3 size 1), compared exactly. With no qualifier `next` is unchanged. Statuses, `missing` and `qualifiers` equal the same run without any value. |
+| pull/T39 | F38 | A tie for the highest rank (equal ratios such as 2÷1 and 4÷2), or a qualifier without a value, gives `collector: null` and `judged` naming the tied or all qualifiers. An invalid value or size (0, 1.5, a string) gives no valid rank and a non-integer is named in `problems`. A lower-valued tie below a unique highest does not make `next` judged. |
 
 They do not show the live host.

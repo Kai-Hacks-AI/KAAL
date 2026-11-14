@@ -8,17 +8,17 @@ The report names as `next` the first qualifier in the order in which `declaratio
 
 ## B: the target
 
-A declared collector may carry a `value`, a positive integer set by the Owner or the CPO in the declaration (higher is worth more). The report then names `next` like this:
+A declared collector may carry a `value` and a `size`, both positive integers set in the declaration. `value` is the judged part: what it is worth to have this collector promoted sooner (a cost of delay), set by the Owner or the CPO. `size` is the counted part: how big the collector is, in one unit used for all collectors (a function point or COSMIC count, or the number of Cases it adds); when absent it is 1, so `value` alone is the rank. The rank is `value ÷ size` (value per unit of size, as in WSJF), compared exactly by cross-multiplication, never as a float. The report then names `next` like this:
 
 - one qualifier: that one, as today;
-- several qualifiers, each with a value, and one highest: that one (deterministic: the same declaration and facts always give the same `next`);
-- several qualifiers with the highest value tied, or any qualifier without a valid value: no collector is named. The report says `next` is **judged**, lists the candidates, and the CPO or Owner picks. The Script never picks silently.
+- several qualifiers, each with a valid rank, and one strictly highest: that one (deterministic: the same declaration and facts always give the same `next`);
+- several qualifiers with the highest rank tied, or any qualifier without a valid `value` (or with an invalid `size`): no collector is named. The report says `next` is **judged**, lists the candidates, and the CPO or Owner picks. The Script never picks silently.
 
-Qualification, `missing` and `qualifiers` do not change. The value is a judgement made once and reviewed like any other line of the declaration; the Script only reads it. See [requirements.md](requirements.md) and [testing.md](testing.md).
+Qualification, `missing` and `qualifiers` do not change. The `value` is a judgement made once and reviewed like any other line of the declaration; `size` is a count; the Script only reads both and does the arithmetic. Function point analysis measures size, not value, so it feeds `size` and never replaces the judged `value`. See [requirements.md](requirements.md) and [testing.md](testing.md).
 
 ## Not in this Change
 
-No weakening of any rule: scoped PLAN and DO, the exact-head CHECK, Case completeness and exactly one concluding collector-level ACT stay as approved. The report stays advisory: naming a `next` promotes nothing. No value is assigned to any collector in this Change, and the declaration is not edited. No hook, CI, ruleset or Guard change.
+No weakening of any rule: scoped PLAN and DO, the exact-head CHECK, Case completeness and exactly one concluding collector-level ACT stay as approved. The report stays advisory: naming a `next` promotes nothing. No value or size is assigned to any collector in this Change, and the declaration is not edited. No hook, CI, ruleset or Guard change.
 
 ## Order
 
