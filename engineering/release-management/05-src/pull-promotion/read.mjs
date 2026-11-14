@@ -31,15 +31,45 @@ export function deltaOf(files) {
   });
 }
 
-// The history is the collector's commits since it diverged from main. Order is ancestry: each commit must have the previous one as its
-// first parent, and the first one the merge base. Anything else is not a line the capability can order by, so it is not read.
-export function historyOf(commits, mergeBase) {
-  let parent = mergeBase;
-  for (const commit of commits) {
-    if (commit.parents?.[0]?.sha !== parent) throw new Error(`could not order the history: ${commit.sha.slice(0, 8)} does not follow ${String(parent).slice(0, 8)}`);
-    parent = commit.sha;
+// The history is the first-parent line of the head, followed while a commit is one of the collector's own commits (those the host lists
+// since the merge base), oldest first. A commit of main's history ends the line, so a collector that merged main is read the same as one
+// that did not. A SYNC pull request leaves a merge commit on the line whose second parent is the branch's own merge of main: those side
+// commits are accepted only as merges of main that grow from the line, and they bring no evidence. Order is ancestry, never the order the
+// host listed the commits. A history that is not one complete line (plus such SYNC branches) is not read.
+export function historyOf(commits, mergeBase, head = commits.at(-1)?.sha) {
+  const fail = (why) => { throw new Error(`could not order the history: ${why}`); };
+  const short = (id) => String(id).slice(0, 8);
+  if (!commits.length) return []; // nothing of the collector's own: the head is in main's history
+  const byId = new Map(commits.map((c) => [c.sha, c]));
+  if (!byId.has(head)) fail(`the head ${short(head)} is not among the collector's commits`);
+  const parentsOf = (id) => {
+    const parents = byId.get(id).parents;
+    if (!Array.isArray(parents) || !parents.length || !parents[0]?.sha) fail(`${short(id)} has no parents`);
+    return parents.map((p) => p.sha);
+  };
+  const line = [];
+  for (let id = head; byId.has(id);) {
+    if (line.includes(id)) fail(`${short(id)} is its own ancestor`);
+    line.push(id);
+    id = parentsOf(id)[0];
   }
-  return commits.map((c) => c.sha);
+  const onLine = new Set(line);
+  const side = new Set();
+  for (const id of line) {
+    for (const second of parentsOf(id).slice(1)) {
+      for (let x = second; byId.has(x) && !onLine.has(x);) {
+        if (side.has(x)) break;
+        const [first, ...others] = parentsOf(x);
+        if (!others.length || others.some((o) => byId.has(o))) fail(`${short(x)} is on a branch merged at ${short(id)} but is not a merge of main`);
+        side.add(x);
+        x = first;
+        if (!byId.has(x) && !onLine.has(x)) fail(`the branch merged at ${short(id)} does not grow from the first-parent line`);
+      }
+    }
+  }
+  const off = commits.find((c) => !onLine.has(c.sha) && !side.has(c.sha));
+  if (off) fail(`${short(off.sha)} is not on the first-parent line of ${short(head)}`);
+  return line.reverse();
 }
 
 // The newest execution of each Case, per job, then one record per Case at this head: a failure of any job's newest run counts.
@@ -84,9 +114,11 @@ export async function readFacts(repoName, declaration, get, getText, warn = () =
       const tree = await get(`repos/${repoName}/git/trees/${head}?recursive=1`);
       if (tree.truncated) throw new Error(`could not read all of the tree of ${name}: the host cut it`);
 
-      const order = historyOf(compare.commits, compare.merge_base_commit.sha);
+      const order = historyOf(compare.commits, compare.merge_base_commit.sha, head);
+      const sync = new Set(compare.commits.filter((c) => (c.parents?.length ?? 0) > 1).map((c) => c.sha));
       const history = [];
       for (const id of order) {
+        if (sync.has(id)) { history.push({ id, paths: [] }); continue; } // a SYNC: what it merged belongs to main, so it is not read as evidence
         const commit = await get(`repos/${repoName}/commits/${id}`);
         if ((commit.files?.length ?? 0) >= MAX_FILES) throw new Error(`could not read all of the files of commit ${id.slice(0, 8)} in ${name}`);
         history.push({ id, paths: deltaOf(commit.files ?? []).map((f) => f.path) });

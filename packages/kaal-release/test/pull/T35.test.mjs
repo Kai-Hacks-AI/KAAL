@@ -27,24 +27,30 @@ export async function run() {
   const read = await import(pathToFileURL(join(repo, 'engineering/release-management/05-src/pull-promotion/read.mjs')).href);
   const dir = mkdtempSync(join(tmpdir(), 'kaal-history-'));
   try {
-    // main m1; collector c1 c2; main m2; SYNC s1; c3; main m3; SYNC s2; c4.
+    // main m1; collector c1 c2; main m2; SYNC pull request 1 (a branch from the collector tip that merges main, merged with a merge commit);
+    // c3; main m3; SYNC pull request 2 the same way; c4; main m4; a SYNC by a direct merge of main; c5.
     git(dir, 'init', '-q', '-b', 'main');
     const m1 = commit(dir, 'm1');
     git(dir, 'checkout', '-q', '-b', 'collector');
     const c1 = commit(dir, 'c1'); const c2 = commit(dir, 'c2');
-    git(dir, 'checkout', '-q', 'main'); const m2 = commit(dir, 'm2');
-    git(dir, 'checkout', '-q', 'collector'); git(dir, 'merge', '-q', '--no-ff', '-m', 's1', 'main'); const s1 = git(dir, 'rev-parse', 'HEAD');
-    const c3 = commit(dir, 'c3');
-    git(dir, 'checkout', '-q', 'main'); const m3 = commit(dir, 'm3');
-    git(dir, 'checkout', '-q', 'collector'); git(dir, 'merge', '-q', '--no-ff', '-m', 's2', 'main'); const s2 = git(dir, 'rev-parse', 'HEAD');
-    const c4 = commit(dir, 'c4');
+    const syncPr = (n) => {
+      git(dir, 'checkout', '-q', 'main'); const m = commit(dir, `m${n}`);
+      git(dir, 'checkout', '-q', '-b', `sync${n}`, 'collector'); git(dir, 'merge', '-q', '--no-ff', '-m', `s${n}b`, 'main'); const branchTip = git(dir, 'rev-parse', 'HEAD');
+      git(dir, 'checkout', '-q', 'collector'); git(dir, 'merge', '-q', '--no-ff', '-m', `s${n}`, `sync${n}`); return { m, branchTip, merge: git(dir, 'rev-parse', 'HEAD') };
+    };
+    const p1 = syncPr(2); const c3 = commit(dir, 'c3');
+    const p2 = syncPr(3); const c4 = commit(dir, 'c4');
+    git(dir, 'checkout', '-q', 'main'); const m4 = commit(dir, 'm4');
+    git(dir, 'checkout', '-q', 'collector'); git(dir, 'merge', '-q', '--no-ff', '-m', 's4', 'main'); const s4 = git(dir, 'rev-parse', 'HEAD');
+    const c5 = commit(dir, 'c5');
+    const s1 = p1.merge; const s2 = p2.merge;
     const { commits, mergeBase, head } = records(dir, 'collector');
-    const line = [c1, c2, s1, c3, s2, c4];
-
+    const line = [c1, c2, s1, c3, s2, c4, s4, c5];
+    const m2 = p1.m; const m3 = p2.m;
     // The line, oldest first, ending at the head; no commit of main; the same whatever order the host lists them.
     assert.deepEqual(read.historyOf(commits, mergeBase, head), line, 'the first-parent line of a synchronized collector was not read');
     assert.deepEqual(read.historyOf([...commits].reverse(), mergeBase, head), line, 'the order the host listed the commits changed the history');
-    for (const m of [m1, m2, m3]) assert.ok(!read.historyOf(commits, mergeBase, head).includes(m), 'a commit of main was read as collector work');
+    for (const m of [m1, m2, m3, m4, p1.branchTip, p2.branchTip]) assert.ok(!read.historyOf(commits, mergeBase, head).includes(m), 'a commit of main, or the branch of a SYNC, was read as collector work');
 
     // A SYNC brings no paths: its place stays, its files are not read.
     const facts = await read.readFacts('o/r', { collectors: [{ name: 'collector' }], evidence: {} }, async (path) => {
@@ -53,12 +59,13 @@ export async function run() {
       if (path.includes('/git/trees/')) return { tree: [] };
       if (path.includes('/check-runs')) return { check_runs: [] };
       const sha = path.split('/commits/')[1];
-      return { files: [{ filename: sha === s1 || sha === s2 ? 'from-main.txt' : `own-${sha.slice(0, 4)}.txt`, status: 'added' }] };
+      return { files: [{ filename: sha === s1 || sha === s2 || sha === s4 ? 'from-main.txt' : `own-${sha.slice(0, 4)}.txt`, status: 'added' }] };
     }, async () => '');
     const byId = Object.fromEntries(facts.collectors[0].history.map((h) => [h.id, h.paths]));
     assert.deepEqual(facts.collectors[0].history.map((h) => h.id), line, 'the facts do not carry the first-parent line');
     assert.deepEqual(byId[s1], [], 'a SYNC brought paths into the evidence');
     assert.deepEqual(byId[s2], [], 'a SYNC brought paths into the evidence');
+    assert.deepEqual(byId[s4], [], 'a SYNC brought paths into the evidence');
     assert.equal(byId[c1].length, 1, 'a collector commit lost its paths');
 
     // Fail closed.
@@ -66,7 +73,9 @@ export async function run() {
     assert.throws(() => read.historyOf(commits, mergeBase, 'f'.repeat(40)), closed, 'a head that is not listed was accepted');
     assert.throws(() => read.historyOf(commits.filter((c) => c.sha !== c3), mergeBase, head), closed, 'a commit the host left out was accepted');
     assert.throws(() => read.historyOf(commits.map((c) => (c.sha === c4 ? { sha: c.sha } : c)), mergeBase, head), closed, 'a commit without parents was accepted');
-    assert.throws(() => read.historyOf(commits.map((c) => (c.sha === s2 ? { ...c, parents: [c.parents[0], { sha: c1 }] } : c)), mergeBase, head), closed, 'a collector commit off the line was accepted');
+    const own = 'b'.repeat(40);
+    assert.throws(() => read.historyOf([...commits, { sha: own, parents: [{ sha: c1 }] }].map((c) => (c.sha === s2 ? { ...c, parents: [...c.parents, { sha: own }] } : c)), mergeBase, head), closed, 'a collector commit that is not a merge of main, on a merged branch, was accepted');
+    assert.throws(() => read.historyOf(commits.map((c) => (c.sha === p1.branchTip ? { ...c, parents: [{ sha: m1 }, ...c.parents.slice(1)] } : c)), mergeBase, head), closed, 'a merged branch that does not grow from the line was accepted');
     assert.throws(() => read.historyOf([...commits, { sha: 'a'.repeat(40), parents: [{ sha: m1 }] }], mergeBase, head), closed, 'a commit that is not an ancestor of the head was accepted');
 
     // An unsynchronized, linear collector keeps its history.

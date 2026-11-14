@@ -1,0 +1,162 @@
+# Live run on the synchronized collector (pull/C7)
+
+Run with the DO's `read.mjs` against `Kai-Hacks-AI/KAAL`, collector `kaal/release/plan` at `ff5bbc7` (after SYNC #1584 and the C7 PLAN). Before the DO the same collector was "not judged: could not order the history". The first version of the rule failed closed on the real SYNC shape ("e1077a1b merges another commit of the collector"); that is why the rule accepts a SYNC pull request's side commit. The run is unedited; collectors other than `kaal/release/plan` are in the JSON.
+
+```json
+{
+  "collectors": [
+    {
+      "name": "kaal/release/plan",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: packages/kaal-release/plan/pull-history/00-changes.md changed in a later commit than the ACT",
+        "ACT: packages/kaal-release/plan/pull-history/requirements.md changed in a later commit than the ACT",
+        "ACT: packages/kaal-release/plan/pull-history/testing.md changed in a later commit than the ACT",
+        "Test Case T33 has no execution at the current head",
+        "Test Case T34 has no execution at the current head",
+        "Test Case T35 has no execution at the current head",
+        "Test Case T36 has no execution at the current head",
+        "Test Case T37 has no execution at the current head",
+        "Test Case T38 has no execution at the current head",
+        "Test Case T39 has no execution at the current head",
+        "Test Case T40 has no execution at the current head",
+        "Test Case T41 has no execution at the current head",
+        "Test Case T42 has no execution at the current head",
+        "Test Case T43 has no execution at the current head",
+        "Test Case T44 has no execution at the current head",
+        "Test Case wire/T34 has no execution at the current head"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-fallback-template",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-hotfix-template",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-hotfix",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-hotfix-engineering",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-analyze-vulnerabilities",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-analyze-vulnerabilities-engineering",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/check-pr-envelope",
+      "status": "not judged",
+      "missing": [
+        "the collector on the host"
+      ]
+    },
+    {
+      "name": "kaal/release/change-isolation",
+      "status": "does not qualify",
+      "missing": [
+        "Test Case T48 has no execution at the current head",
+        "Test Case T49 has no execution at the current head",
+        "Test Case T50 has no execution at the current head",
+        "Test Case T51 has no execution at the current head",
+        "Test Case T54 has no execution at the current head",
+        "files that differ from main: the delta is empty"
+      ]
+    },
+    {
+      "name": "kaal/release/verify-plan",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "Test Case T1 has no execution at the current head",
+        "Test Case T10 has no execution at the current head",
+        "Test Case T11 has no execution at the current head",
+        "Test Case T12 has no execution at the current head",
+        "Test Case T13 has no execution at the current head",
+        "Test Case T14 has no execution at the current head",
+        "Test Case T15 has no execution at the current head",
+        "Test Case T2 has no execution at the current head",
+        "Test Case T20 has no execution at the current head",
+        "Test Case T21 has no execution at the current head",
+        "Test Case T22 has no execution at the current head",
+        "Test Case T23 has no execution at the current head",
+        "Test Case T24 has no execution at the current head",
+        "Test Case T25 has no execution at the current head",
+        "Test Case T28 has no execution at the current head",
+        "Test Case T3 has no execution at the current head",
+        "Test Case T38 has no execution at the current head",
+        "Test Case T39 has no execution at the current head",
+        "Test Case T4 has no execution at the current head",
+        "Test Case T40 has no execution at the current head",
+        "Test Case T41 has no execution at the current head",
+        "Test Case T42 has no execution at the current head",
+        "Test Case T5 has no execution at the current head",
+        "Test Case T6 has no execution at the current head",
+        "Test Case T7 has no execution at the current head",
+        "Test Case T8 has no execution at the current head",
+        "Test Case T9 has no execution at the current head"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-verify-plan",
+      "status": "does not qualify",
+      "missing": [
+        "an expected Test Case in the tree",
+        "files that differ from main: the delta is empty"
+      ]
+    },
+    {
+      "name": "kaal/release/approve-change",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "DO: no file of the tree matches the do evidence",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    }
+  ],
+  "qualifiers": [],
+  "undeclared": [],
+  "next": {
+    "collector": null,
+    "reason": "no declared collector qualifies; each says what is missing"
+  },
+  "problems": []
+}
+```
