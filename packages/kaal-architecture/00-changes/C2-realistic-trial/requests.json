@@ -1,0 +1,40 @@
+{
+  "note": "Authored before any run. 'transition' declares which requests deliberately mix an instruction to move from one state to another. 'architecture' declares which requests also contain a statement about the architecture description itself, as opposed to the solution or delivery it describes. Neither is shown to the agents and neither is an answer key.",
+  "requests": [
+    {
+      "id": "R1",
+      "topic": "agent hosting",
+      "transition": true,
+      "request": "Agents run in a hosted container that has no direct access to the repository. The container must keep each agent's working files between sessions, and no agent may see another agent's files. Today the agents run on one shared machine. Move them to the hosted container one thread at a time, starting with the Review thread, and switch the shared machine off once the last thread has moved.",
+      "architecture": false
+    },
+    {
+      "id": "R2",
+      "topic": "Review installation",
+      "transition": false,
+      "request": "A project installs Review by adding one package to its dependencies. Installing Review must not change any rule the project already enforces, and a project that does not install it behaves exactly as before. The package is published to the public registry. The architecture of Review must show the package beside the project's own rules, so that a reader can see that installing it changes none of them.",
+      "architecture": true
+    },
+    {
+      "id": "R3",
+      "topic": "Pull Promotion",
+      "transition": true,
+      "request": "A promotion brings a collector into main only when every Case of the collector has passed at the exact head under review and nothing is red. Run the current check beside the new one for two weeks, then remove the current check once the new one has blocked a bad promotion at least once.",
+      "architecture": false
+    },
+    {
+      "id": "R4",
+      "topic": "incident reporting",
+      "transition": false,
+      "request": "When an agent finds a defect in a released package, the owner must be told within one working day, with the affected version, and the report must name who decides on a fix. Reports go to a shared mailbox that two people read. The architecture description of incident reporting is kept where agents can read it, and it names the mailbox.",
+      "architecture": true
+    },
+    {
+      "id": "R5",
+      "topic": "Testing and Review integration",
+      "transition": true,
+      "request": "Review reads the Cases that Testing runs and reports which requirement each failing Case covers, without running anything itself. Testing's result format has to change first: do that over the next two releases, and keep the old format readable until Review has switched over.",
+      "architecture": false
+    }
+  ]
+}
