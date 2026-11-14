@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const id = 'release/T206';
 export const tests = ['release/A46'];
-export const title = 'the dispatcher runs the legacy hook and every new hook with the same arguments and refs, runs all of them, and fails closed if the legacy hook is missing or any hook cannot run';
+export const title = 'the dispatcher source runs the legacy hook and every new hook with the same arguments and refs, runs all of them, and fails closed if the legacy hook is missing or any hook cannot run';
 
 const rcVar = (name) => `rc_${name.replace(/\W/g, '_')}`;
 const stub = (name) => `#!/bin/sh\necho "${name} $* <$(cat | paste -sd'|' -)>" >> "$LOG"\nexit \${${rcVar(name)}:-0}\n`;
@@ -82,8 +82,9 @@ const bad = {
 export function run() {
   assert.deepEqual(check(good), [], 'the harness rejects a good dispatcher');
   for (const [what, text] of Object.entries(bad)) assert.notDeepEqual(check(text), [], `the harness accepts ${what}`);
-  const path = join(repo, '.githooks/pre-push');
-  assert.ok(existsSync(join(repo, '.githooks/old/pre-push')), 'the legacy hook .githooks/old/pre-push is absent, so .githooks/pre-push is not a dispatcher');
+  // The dispatcher is judged as an Engineering source, in isolation: it needs no installation.
+  const path = join(repo, 'engineering/release-management/05-src/wiring/hooks/pre-push-dispatcher');
+  assert.ok(existsSync(path), 'the dispatcher source is absent from the Engineering wiring sources');
   const text = readFileSync(path, 'utf8');
   assert.ok(!text.includes('kaal-guard'), 'the dispatcher holds policy: it names kaal-guard');
   assert.ok(text.split('\n').length <= 30, 'the dispatcher is not thin');

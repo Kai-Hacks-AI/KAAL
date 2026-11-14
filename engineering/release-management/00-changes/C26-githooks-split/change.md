@@ -23,3 +23,11 @@ The CPO decided to keep release/C26 for this first split. It is not renamed to a
 ## Not in this Change
 
 Any new hook, the retirement of a legacy check, a change to what `kaal-guard run --hook` judges, and `core.hooksPath` of anyone's clone.
+
+## Amended 14 Nov: WIRE (release/C27)
+
+The CPO and the Owner made installs a WIRE operation (release/C27). In this Change:
+
+1. The dispatcher is the Engineering source `05-src/wiring/hooks/pre-push-dispatcher`. T206 judges that file in isolation and is green in the collector; it no longer needs `.githooks`. The collector completes PDCA with its ACT and is promoted before any install.
+2. T207 and T208 judge the installed `.githooks` tree. They are WIRE verification, not collector CHECK, and stay `.red.mjs`; they are renamed in the WIRE pull request from `wire/githooks-split`, together with C27's T284 (the installed dispatcher equals its source and the legacy hook is the declared move, sha256 `df18ff0179e9a10ae340cd463d7012305c438b7148f0217348974b7ab56c8c06`).
+3. The `.githooks` pull request #1646 is replaced by that WIRE pull request. Its diff does not grow.
