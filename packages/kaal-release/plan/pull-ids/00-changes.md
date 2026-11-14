@@ -26,3 +26,29 @@ No weakening of any rule: scoped PLAN and DO, the exact-head CHECK, Case complet
 ## Order
 
 PLAN (this), then DO (move the Cases and their runners), then ACT, then a fresh concluding ACT of `kaal/release/plan`, then the SYNC, then live integration evidence at the new exact head.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- The two Cases stated the problem as plain facts a reader can check: where a Case file sits, what id the declaration derives from that path, and what id a job log carries. They went RED for those reasons and green by moving files, with no change to the declaration, the gatherer or any assertion.
+- The CPO's request to derive T36's inventory from the declaration itself removed an arbitrary count and made a missing Case visible. The thirteen named Cases are checked against the same inventory the qualification reads.
+- Moving, not rewriting, kept every Case's id and assertion intact, and the existing `test:engineering` and package tests stayed green (361 of 361 and 13 of 13).
+
+### Learned
+
+- The path of a Case file is part of its identity for the qualification. The Show WIP Cases were green but unreadable to it, because their folder implied a bare id and their runner logged a bare name.
+- A Case that becomes green has to leave `plan/` in the same Change that makes it green. Nothing checked that before T36.
+- A branch that is approved can still be stuck behind its collector after a sibling lands. The catch-up merge dismissed the approval and cost a second review.
+
+### Lacked
+
+- A single check that every Case a collector delivers is runnable by a CI job and logged under its id. T36 and T37 do it for this package only.
+- A rule that tells a DO to move completed Cases out of `plan/`, instead of finding the leftovers at qualification time.
+
+### Longed For
+
+- The same inventory check for the other packages' Cases (`engineering/` Cases are covered by `cases.test.mjs`).
+- Qualification at the exact head after the fresh concluding ACT and the SYNC, which shows these thirteen Cases as scoped successes on the host.
