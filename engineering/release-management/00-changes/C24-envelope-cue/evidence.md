@@ -9,8 +9,8 @@
 
 | Case | Tests | On the baseline |
 | --- | --- | --- |
-| release/T198 | G55 | RED: `.github/PULL_REQUEST_TEMPLATE/plan.md` does not open its body with the Change envelope cue |
-| release/T199 | G55 | RED: the exact cue is rejected before the first chapter |
+| release/T198 | G56 | RED: `03-architecture/A34-sync-template/sync-template.md` does not open its body with the Change envelope cue |
+| release/T199 | G56 | RED: the exact cue is rejected before the first chapter |
 
 ## Reproduce
 
