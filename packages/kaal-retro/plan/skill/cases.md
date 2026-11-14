@@ -13,9 +13,9 @@ All Cases are in `test/plan/retro.test.mjs`, unwired, and run RED because the Sk
 | retro/T7 | references/4l.md states the six result expectations, each with its reason | R6 |
 | retro/T8 | A conforming 4L record raises no finding (T7 holds first) | R6, R7 |
 | retro/T9 | Records missing a category, an unlabeled entry, missing participants, a recorded decision, or no method each raise their finding (T7 holds first) | R6, R7 |
-| retro/T10 | `plan/skill/trial.json` records, for the Skill-only arm and the baseline arm on the same subjects, external lookups, tool calls and context used, and the Skill-only arm shows no external lookup | R2, R8 |
+| retro/T10 | `plan/skill/trial.json` records, for the Skill-only arm and the baseline arm on the same subjects, instruction lookups and evidence lookups separately, tool calls, and context with each value marked measured, estimated or unavailable; the Skill-only arm shows no instruction lookup | R2, R8 |
 
-T1 to T9 are deterministic: they read the written contract, the package and fixture records. T3 and T6 prove wording presence only. T10 checks that the accounting exists and is internally consistent, not that the Skill performs well.
+T1 to T9 are deterministic: they read the written contract, the package and fixture records. T3 and T6 prove wording presence only. T10 checks that the accounting exists, keeps instruction and evidence lookups apart, and does not present an unobservable figure as measured. It does not check that the Skill performs well. Evidence lookups are allowed in both arms.
 
 Behavioral quality is reported in the DO separately, from the actual trials. It is nondeterministic, has stated limitations, and claims no pass.
 

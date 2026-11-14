@@ -109,14 +109,16 @@ test('retro/T9 defective 4L records raise their findings', () => {
   for (const [f, id] of Object.entries(expected)) assert.deepEqual(challenge4l(fixture(f)), [id], f);
 });
 
-test('retro/T10 the trial accounts for lookups and context per arm', () => {
+test('retro/T10 the trial accounts for instruction and evidence lookups and context per arm', () => {
   const t = JSON.parse(fs.readFileSync(path.join(pkg, 'plan', 'skill', 'trial.json'), 'utf8'));
   assert.ok(Array.isArray(t.runs) && t.runs.length >= 2);
-  const arms = new Set(t.runs.map((r) => r.arm));
-  assert.deepEqual([...arms].sort(), ['baseline', 'skill-only']);
+  assert.deepEqual([...new Set(t.runs.map((r) => r.arm))].sort(), ['baseline', 'skill-only']);
   for (const r of t.runs) {
-    for (const k of ['subject', 'externalLookups', 'toolCalls', 'contextTokens']) assert.ok(k in r, `${r.arm} run has ${k}`);
-    if (r.arm === 'skill-only') assert.equal(r.externalLookups, 0);
+    for (const k of ['subject', 'instructionLookups', 'evidenceLookups', 'toolCalls', 'context']) assert.ok(k in r, `${r.arm} run has ${k}`);
+    assert.ok(['measured', 'estimated', 'unavailable'].includes(r.context.basis), `${r.arm} context basis`);
+    if (r.context.basis === 'unavailable') assert.equal(r.context.value, null);
+    else assert.equal(typeof r.context.value, 'number');
+    if (r.arm === 'skill-only') assert.equal(r.instructionLookups, 0);
   }
   for (const subject of new Set(t.runs.map((r) => r.subject))) {
     assert.equal(new Set(t.runs.filter((r) => r.subject === subject).map((r) => r.arm)).size, 2, `${subject} has both arms`);
