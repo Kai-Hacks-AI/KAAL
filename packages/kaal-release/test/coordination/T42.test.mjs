@@ -1,6 +1,6 @@
 // Case coordination/T42 tests: F13 (a pending sync ahead)
 import assert from 'node:assert/strict';
-import { config, showWip, typed } from './fixtures.mjs';
+import { config, showWip, typed } from './review-fixtures.mjs';
 export const id = 'coordination/T42';
 export const tests = ['coordination/F13'];
 export const title = 'an open sync into a REVIEW piece\'s from or into makes it not clean and is named; a sync is not behind itself; an unrelated or undeclared sync changes nothing';

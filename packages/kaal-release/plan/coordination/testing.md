@@ -13,3 +13,5 @@ Cases trace requirements. They are written first as runnable files, `T<n>.red.mj
 | coordination/T39 | F9 | On the real repository, the command prints one line per open piece with a disposition; evidence recorded in `evidence/`. Run by hand. |
 
 Withdrawn with the previous scope: coordination/T1 to T32 (actions, pairs, deliveries, holds, freshness, readiness, the board and its supplier). They are in the branch history.
+
+Moved in pull/C8: the Cases `T33` to `T39` and `fixtures.mjs` now live in `packages/kaal-release/test/coordination/`, run by `test/show-wip.test.mjs`. The hand runner `red.mjs` is retired.

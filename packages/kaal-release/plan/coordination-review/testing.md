@@ -9,3 +9,5 @@ Cases trace [requirements.md](requirements.md). They are runnable files, `T<n>.r
 | coordination/T42 | F13 | An open SYNC into a REVIEW piece's `from` or `into` makes it not clean, naming the sync and where it goes; a sync is not behind itself; a sync into an unrelated place changes nothing; a sync that is not of the declared type changes nothing. |
 | coordination/T43 | F15 | The rendering shows the section, a numbered line per entry with `@` and seven characters of the head, CLEAN or NOT CLEAN with reasons, `@unknown` for an unobserved head, and a sentence when no piece waits for review. |
 | coordination/T44 | F14 | The reader maps the host's head into the facts of every piece. |
+
+Moved in pull/C8: the Cases `T40` to `T44` now live in `packages/kaal-release/test/coordination/` (its fixtures as `review-fixtures.mjs`), run by `test/show-wip.test.mjs`. The hand runner `red.mjs` is retired.
