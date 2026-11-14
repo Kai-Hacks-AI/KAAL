@@ -60,7 +60,7 @@ Every PR interface shares one formatting contract, separate from its meaning (se
 
 ## Defect
 
-<!-- What is broken, and which state is defective: production (the package and its published version), main, or a collector. They are different states; name the one you mean and claim no production impact that does not exist. -->
+<!-- The KAAL Defect, by its identity `<capability>/D<n>`; a GitHub issue or URL is not that identity. What is broken, and which state is defective: production (the package and its published version), main, or a collector. They are different states; name the one you mean and claim no production impact that does not exist. -->
 
 ## Urgency
 
