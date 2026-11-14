@@ -5,7 +5,7 @@ Provisional ids: C15 and T268-T276 were not checked for global uniqueness over e
 ## PLAN (revised after the CPO decision at c0a4a29)
 
 1. Add a pure function `collectorCapability(ref, { capabilities })` returning PASS, FAIL or UNKNOWN for a branch `kaal/<capability>/<leaf>`. UNKNOWN never passes and is never reported as a pass or an exception.
-2. Kind-specific rule: `capabilities` holds only the names of admitted **KAAL Capability** Nodes (today Change, Core, Guard, Testing). A Skill, Agent or Extension Node does not authorize a segment. Skills follow the collector of their owning capability.
+2. Proposed API: `collectorCapability(ref, { registrations, capabilities })`. `registrations` is main's Core Registration evidence: the scope claims `{ scope, holder }` and the collisions that Core's `assemble()` reports over the Registrations on main, or null when unreadable. `capabilities` is the set of names of admitted **KAAL Capability** Nodes. PASS needs both: the segment is a registered scope, and that scope's holder is an admitted Capability. A Skill, Agent or Extension holder, or an admitted Capability Node name without a registered scope, never passes; the Node name's spelling is never used. Skills follow the collector of their owning capability.
 3. Trusted main: the names are read from the default branch's tip with Core's `evaluate` and Graph `typed()`, never from the pull request head or the collector. A Node that exists only in the head does not count.
 4. Report-only. Refs that do not pass are listed as migration findings (never as authorized): non-Node namespaces (`engineering`, `architecture`), flat legacy branches, `kaal/old/*`, and segments that name only a Skill (`release`, `review`, `retro`). Nothing enforces anything; no ruleset, workflow install or hook is part of this Change. Enforcement waits until bootstrap and owner identities are resolved and the Owner authorizes it.
 5. Explicit bootstrap path: a new capability's Node lands on main through a collector whose segment already passes (a registered owner), is promoted, and only then do collectors of the new capability pass. Before that they are reported exceptions. No parallel owner registry (option C is not accepted).
@@ -25,14 +25,16 @@ Report-only; no ruleset for collector legitimacy is activated. No Retro Capabili
 
 Which capability owns each existing Skill (Release, Review, Graph, Engineer Skill, Change Practice) is not declared anywhere on main. Until it is, `kaal/release/*` is an exception, not a PASS. C18's collectors are therefore reported, not blocked.
 
+## Verdicts: UNKNOWN when Registration evidence is absent, empty, unreadable or ambiguous (a collided scope, or no admitted Capability set); FAIL when evidence exists and the segment is not a registered scope held by an admitted Capability. The assessment is accepted (direction B); this implementation PLAN is not yet approved, and nothing is activated.
+
 ## Cases (all RED on main: the module does not exist)
 
-- T268: kaal/core/x PASSes when a Capability Node named Core is admitted.
-- T269: kaal/release/x is reported (FAIL) when only a Skill Node named Release is admitted.
-- T270: kaal/retro/x is reported (FAIL) even when a Skill Node named Retro is admitted; a Skill alone never authorizes it.
-- T271: an unreadable main, or a main with no admitted Capability Node, gives UNKNOWN, which never passes.
-- T272: a Capability Node only in the pull request head does not make its segment PASS.
-- T273: bootstrap: before a Capability Node is on main its collector is FAIL; with the Node on main it is PASS; the registering Change's own ref passes through an already-registered owner.
-- T274: flat refs, `kaal/old/*` and non-Node namespaces are listed as exceptions; the report changes no exit status.
-- T275: a scope whose holder is not an admitted Capability Node (for example a Skill) is FAIL.
-- T276: two Registrations claiming one scope give UNKNOWN for that segment (Core's collision finding), never PASS.
+- T268: a segment that is a registered scope held by an admitted Capability passes.
+- T269: a registered scope held by a non-Capability (a Skill) fails.
+- T270: an admitted Capability Node name without a registered scope never passes, whatever its spelling.
+- T271: absent, empty or unreadable Registration evidence, or no admitted Capability set, gives UNKNOWN.
+- T272: a Registration or Capability Node only in the pull request head does not count.
+- T273: bootstrap: a new capability's collector fails until its Registration and Node are on main; the registering Change travels on an already passing owner's collector.
+- T274: legacy, flat and non-Node refs are migration findings, never authorized, and change no exit status.
+- T275: a scope held by a Skill is FAIL even when registered.
+- T276: a scope Core reports as claimed by several holders gives UNKNOWN, never PASS.
