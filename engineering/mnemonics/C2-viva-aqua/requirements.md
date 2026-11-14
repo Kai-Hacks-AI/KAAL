@@ -1,0 +1,4 @@
+# VIVA AQUA mnemonic: Requirements (target)
+
+- **mnemonics/F3. VIVA AQUA is a KAAL Definition.** `engineering/VIVA-AQUA.md` has the front matter `name: VIVA AQUA` and the type `KAAL Definition` with the id the other mnemonics carry. Its heading is `VIVA AQUA` and its first sentence is `Verification Improves Validation After Agents Qualify Unproven Assumptions.`
+- **mnemonics/F4. VIVA AQUA states the boundary and owns nothing.** It says that Testing serves verification (objectively establishing whether defined criteria are satisfied) and Review serves validation (judging whether criteria, decisions and outcomes are sound and fit for purpose); that validation is not merely the fallback when verification is impossible and that Review may use objective test evidence; that quality assurance needs both; that `kaal-testing` and `kaal-review` keep their names; that neither approves and the Owner decides; and that it owns no instruction, no capability and no control.
