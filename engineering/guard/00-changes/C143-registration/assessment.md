@@ -18,7 +18,7 @@ Read-only analysis of `main` at a900273, with the earlier Guard work in the repo
 | Intent | Today | Gap |
 | --- | --- | --- |
 | Capabilities and Changes register checks | one repository-owned directory | none can register (G62, F43) |
-| A Change may add checks for itself; removal comes from main | trust applies only to checks declared `trusted` | a candidate can delete or weaken any ordinary declaration; Limitations says Guard cannot protect its own list (F44) |
+| Solutions and Changes register flexibly; the delivery engine is protected outside Guard | n/a | Guard does not police edits to registrations (Owner, 5906896260); it checks execution integrity only (F44) |
 | Test only what is in flight, by dependency graph, full run at the gate | every check runs on every push | no selection, no `--full` (F45) |
 | Delivery controls are handled outside Guard | n/a | withdrawn as a Guard requirement (Owner, 5906893250) |
 | Stricter on main than on hotfix or collector | one strictness | a policy by place, open question 3 |
@@ -41,11 +41,11 @@ Run with Node 24 against a checkout of `main`; all are RED for the reason named.
 | Case | Checks | Result on main |
 | --- | --- | --- |
 | guard/T209 | F43 two origins run (Engineering refused); conflation, differing copy, sourceless copy refused | RED: registered check not run |
-| guard/T210 | F44 per origin: add allowed; delete, weaken, re-own refused | RED: added registration did not run |
+| guard/T210 | F44 registrations evolve freely per origin (add, modify, remove run as the candidate has them); malformed or unstartable ones are cannot judge | RED: added registration did not run |
 | guard/T211 | F45 Guard runs the given plan for registrations; unknown/absent/`--full` run all | RED: `--plan` unknown option |
 | guard/T212 | withdrawn with F46 (delivery controls are outside Guard) | n/a |
 | guard/T213 | G61 on par with the capability standard | RED: ownership.kaal.json absent |
-| guard/T214 | F47 cross-owner addition and altered ownership refused | RED: cross-owner addition not cannot judge |
+| guard/T214 | withdrawn with F47 (ownership policing is the delivery system's) | n/a |
 | guard/T215 | F48 Guard's namespace includes `guard/registered` (amends F1 and T30) | RED: boundary Case does not allow it |
 
 ## 7. CPO direction and where it is applied
@@ -54,6 +54,6 @@ Earlier answers (review 5906850527) stand except where the re-review (5906885891
 1. Two origins, Solution and Change (Owner correction 5906889921: Engineering does not register with Guard); a Change's temporary registration is not a Solution one: F43, T209.
 2. Selection is the Engine's. Guard consumes a resolved plan, no package.json or graph policy in Guard; unknown handled at the Engine boundary: F45, T211.
 3. `--full` is an execution capability; no gate or schedule assumed; wiring has its own owner: F45.
-4. Base-trusted anti-delete and anti-weaken kept for Guard's own registrations; Guard is not a Change-lifecycle governor: F44, F47. Owner clarification 5906893250: delivery controls live outside Guard, so F46 and T212 (no shadowing of hard-wired delivery checks) are withdrawn.
+4. Owner rationale 5906896260: Solution and Change registrations must stay flexible and Guard must not make them immutable; the delivery system, outside Guard, governs whether an edit lands. F44 is re-scoped to execution integrity, F47 and T214 are withdrawn, and F46 and T212 stay withdrawn (5906893250). Guard is not a Change-lifecycle governor.
 5. T30: the path is decided valid and the contract amended through this Change, with T30 left as history: F48, T215, `change.md`.
 6. #1604 is separate from the Installation Contract (it declares a capability's mechanisms, no hook or workflow); no equivalence asserted. 0.0.5 intended, no publication authorized.
