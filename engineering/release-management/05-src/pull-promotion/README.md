@@ -22,3 +22,14 @@ Credential: `GH_TOKEN` or `GITHUB_TOKEN`, or an already signed-in `gh`; the comm
 ## Which qualifier is next
 
 `next` is advisory. With one qualifier it names that one. With several it names the one of strictly highest value density, `value ÷ size`, compared exactly by cross-multiplication, only when every qualifier carries a valid `value` and `size` (positive integers) and the same `unit` (the size unit and counting method, for example `IFPUG FP 4.3`). Otherwise `next.collector` is null, `next.judged` lists the candidates and the Owner chooses. A missing size or unit is never defaulted and ratios of different units are never compared. The Owner decides `value` and records it in the declaration; the CPO advises and reviews the recorded declaration. `size` is a count, which function point analysis can inform; it does not measure value. This is a value-density heuristic, not WSJF, unless the Owner's `value` includes the cost-of-delay components. No value or size is recorded in `declaration.json` yet, so several qualifiers are judged today.
+
+## The lane step
+
+`laneStep(state)` in the Script is the one advisory step of the promotion lane, a pure function of the facts it is given: the seat, the report, the declaration, whether the holder is behind `main`, its re-qualification at the exact head (`PASS`, `FAIL`, `UNKNOWN`) and a `pulse` of the open and closed pull requests, the trigger, the attempts and the cap. It returns `wait`, `judge`, `open-promotion`, `open-sync` or `ready-for-cpo`. It opens nothing itself and has no approval or merge action.
+
+- A free seat pulls `next` (the C9 rule); a judged `next` returns `judge` with the candidates.
+- Only the holder is synced, and only when behind `main`. `PASS` is ready for the CPO; `UNKNOWN` waits; `FAIL` ranks the remaining qualifiers with `chooseNext`, the same C9 rule, and waits if none remain.
+- The PRs it names use the existing templates: PROMOTION with Change and Why now, SYNC with Change and Reason.
+- It cannot spam: an open PR of a type blocks another of that type lane-wide, a closed one under the same trigger blocks another under that trigger (any collector), the attempt cap goes to `judge`, and a missing or invalid pulse goes to `judge`.
+
+Nothing calls it yet. A workflow and a GitHub App identity are a later Change.

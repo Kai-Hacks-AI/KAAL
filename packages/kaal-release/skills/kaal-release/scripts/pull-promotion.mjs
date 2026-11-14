@@ -96,7 +96,7 @@ export function walkCollectors(facts, declaration) {
 }
 // next: the one qualifier; else the strictly highest value density (value / size, exact by cross-multiplication) when every qualifier
 // has a valid value, size and the same unit; else judged (collector null, the candidates named). A missing size is never defaulted.
-function chooseNext(qualifiers, entries, declaration) {
+export function chooseNext(qualifiers, entries, declaration) {
   if (!qualifiers.length) return { collector: null, reason: entries.length ? 'no declared collector qualifies; each says what is missing' : 'there are no declared collectors' };
   if (qualifiers.length === 1) return { collector: qualifiers[0] };
   const by = new Map((declaration.collectors ?? []).map((c) => [c.name, c]));
@@ -108,6 +108,47 @@ function chooseNext(qualifiers, entries, declaration) {
   const best = rows.filter((c) => rows.every((o) => o === c || !beats(o, c)));
   if (best.length === 1) return { collector: best[0].name };
   return { collector: null, judged: best.map((c) => c.name), reason: 'judged by the Owner: the highest value densities tie' };
+}
+// laneStep: the one advisory step of the promotion lane, a pure function of the facts it is given (pull/F39, F40, F41, F42).
+// It returns wait, judge, open-promotion, open-sync or ready-for-cpo, and acts on nothing. A seat holder that fails re-qualification
+// is replaced by chooseNext (the pull/C9 rule) on the remaining qualifiers. Doubtful input fails closed to judge.
+const TEMPLATE = { 'open-promotion': { type: 'PROMOTION', chapters: ['Change', 'Why now'] }, 'open-sync': { type: 'SYNC', chapters: ['Change', 'Reason'] } };
+const isId = (v) => typeof v === 'string' && v.trim() !== '';
+const pulseProblem = (pulse) => {
+  if (!pulse || typeof pulse !== 'object') return 'the lane has no pulse';
+  const { open, closed, trigger, attempts, cap } = pulse;
+  if (!Array.isArray(open) || !open.every((p) => p && isId(p.type) && isId(p.collector))) return 'the open pull requests are not a list of type and collector';
+  if (!Array.isArray(closed) || !closed.every((p) => p && isId(p.type) && isId(p.collector) && isId(p.trigger))) return 'the closed pull requests are not a list of type, collector and trigger';
+  if (!isId(trigger)) return 'the trigger is not an id';
+  if (!Number.isSafeInteger(attempts) || attempts < 0) return 'the attempts are not a non-negative integer';
+  if (!Number.isSafeInteger(cap) || cap < 1) return 'the cap is not a positive integer';
+  return null;
+};
+export function laneStep(state = {}) {
+  const { seat = null, report = {}, declaration = {}, behind = false, requalification, pulse } = state;
+  const judge = (reason, judged) => ({ action: 'judge', reason, ...(judged?.length ? { judged } : {}) });
+  const wait = (reason) => ({ action: 'wait', reason });
+  const open = (action, collector) => {
+    const bad = pulseProblem(pulse);
+    if (bad) return judge(`judged: ${bad}`);
+    const { type } = TEMPLATE[action];
+    if (pulse.open.some((p) => p.type === type)) return wait(`a ${type} is already open`);
+    if (pulse.closed.some((p) => p.type === type && p.trigger === pulse.trigger)) return wait(`a ${type} was already opened under this trigger`);
+    if (pulse.attempts >= pulse.cap) return judge('judged: the attempt cap is reached');
+    return { action, collector, ...TEMPLATE[action] };
+  };
+  const qualifiers = Array.isArray(report.qualifiers) ? report.qualifiers : [];
+  const fromNext = (next) => {
+    if (next?.collector) return open('open-promotion', next.collector);
+    return next?.judged?.length ? judge(next.reason ?? 'judged by the Owner', next.judged) : wait('no qualifier is waiting');
+  };
+  if (!seat) return fromNext(report.next);
+  if (behind) return open('open-sync', seat.collector);
+  if (requalification === 'PASS') return { action: 'ready-for-cpo', collector: seat.collector };
+  if (requalification !== 'FAIL') return wait('the holder is not re-qualified at its exact head');
+  const rest = qualifiers.filter((n) => n !== seat.collector);
+  if (!rest.length) return wait('the holder failed and no other qualifier remains');
+  return fromNext(chooseNext(rest, [], declaration));
 }
 if (process.argv[1]?.endsWith('pull-promotion.mjs') && process.argv.length >= 4) {
   const read = (f) => { try { return JSON.parse(readFileSync(f, 'utf8')); } catch (e) { process.stderr.write(`could not read ${f}: ${e.message}\n`); process.exit(2); } };
