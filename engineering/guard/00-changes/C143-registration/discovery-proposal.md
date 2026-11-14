@@ -91,3 +91,7 @@ Through a Change, a new Engineering idea can be checked in Guard while the exist
 6. Graduation is package, then embed into `.kaal/`, then main. No separate Change type.
 
 Effect on the PLAN: answers 1 and 5 replace the earlier reading of "add only" and of Guard running from the checkout; both will be reflected in requirements and Cases once the CPO accepts this design.
+
+## `.kaal/` (Owner, 21:41)
+
+Deployed capabilities are always guarded. One `kaal-guard.json` sits at the `.kaal/` root and its checks run on **every** Guard run, whatever the diff selects. There are no Changes inside `.kaal/`; it changes only through the embed step (package, then `.kaal/`, then main). So `.kaal/` is a third place a `kaal-guard.json` lives (package root, open Change folder, `.kaal/` root), with the one difference that its checks are unconditional rather than selected by the diff. Note for the CPO: the earlier "exactly two kinds of folder" rule above is superseded by this.
