@@ -1,0 +1,1 @@
+Snapshot of `packages/kaal-architecture/skills/kaal-architecture/SKILL.md` as on the collector `kaal/architecture/classify` at `a9e19a9` (14 Nov 2026). Architecture is not on `main` yet. This copy exists only so the F5 and F7 checks have a Skill file to read; it is not Architecture's and is not a claim about it.

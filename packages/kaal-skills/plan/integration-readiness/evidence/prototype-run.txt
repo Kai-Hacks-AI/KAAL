@@ -1,0 +1,38 @@
+F1  PASS
+    PASS    5 mechanisms read, owner matches the ownership claim
+F2  UNKNOWN
+    PASS    duplicates: clear: ran with stdin closed, returned data, changed nothing in its package
+    PASS    duplicates: report: ran with stdin closed, returned data, changed nothing in its package
+    PASS    duplicates: unknown: ran with stdin closed, returned data, changed nothing in its package
+    PASS    report: clear: ran with stdin closed, returned data, changed nothing in its package
+    PASS    report: report: ran with stdin closed, returned data, changed nothing in its package
+    PASS    report: unknown: ran with stdin closed, returned data, changed nothing in its package
+    PASS    inventory: clear: ran with stdin closed, returned data, changed nothing in its package
+    UNKNOWN accept: clear: no fixture offered
+    UNKNOWN accept: report: no fixture offered
+    UNKNOWN accept: unknown: no fixture offered
+F3  UNKNOWN
+    PASS    duplicates: reads clear/report/unknown, unknown is not clear, each non-clear result carries a reason
+    PASS    report: reads clear/report/unknown, unknown is not clear, each non-clear result carries a reason
+    UNKNOWN accept: not all three fixtures ran
+F4  UNKNOWN
+    PASS    duplicates: its rule is told apart through the declared invocation alone
+    PASS    report: its rule is told apart through the declared invocation alone
+    UNKNOWN accept: not all three fixtures ran
+F5  PASS
+    PASS    assess-claim: Skill, section and result shape are declared, and no outcome is claimed
+F6  PASS
+    PASS    the declaration names no hook, workflow, ruleset or queue
+F7  UNKNOWN
+    UNKNOWN assess-claim: no activation declared yet: unknown, never conforming
+
+SELFTEST: each mutant of the draft must fail the named requirement
+  CAUGHT  F3  a value is listed under two outcomes (duplicates)
+  CAUGHT  F3  undecidable input reads as clear (duplicates)
+  CAUGHT  F2  wrong export name (inventory)
+  CAUGHT  F6  hook named in the declaration
+  CAUGHT  F5  judgment mechanism claims a gate outcome
+  CAUGHT  F3  non-clear result with no reason (report)
+  CAUGHT  F1  owner differs from the ownership claim
+
+node v22.23.4, repository at 882416d
