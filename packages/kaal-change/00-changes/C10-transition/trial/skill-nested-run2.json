@@ -1,0 +1,100 @@
+{
+ "promptSha256": "dc123ddc65856701a4301088dceec0192270627ea3e774fbe91c161c59ba7e31",
+ "author": "CTO thread (Claude, authored the Skill, the key and the prompts)",
+ "observer": "independent observer subagent (Claude), blind to which reply used the Skill; it read only the task and the two replies",
+ "agent": "general-purpose subagent given only the prompt file, no repository access requested",
+ "model": "as configured for the session (claude-sonnet-5-5); the serving model was not verified",
+ "date": "2026-11-13",
+ "answers": [
+  {
+   "id": "S1",
+   "parts": [
+    "historical"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S2",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S3",
+   "parts": [
+    "enduring",
+    "historical"
+   ],
+   "finding": "mixed"
+  },
+  {
+   "id": "S4",
+   "parts": [
+    "target"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S5",
+   "parts": [
+    "historical"
+   ],
+   "finding": "historical-as-target"
+  },
+  {
+   "id": "S6",
+   "parts": [
+    "historical"
+   ],
+   "finding": "historical-as-evidence"
+  },
+  {
+   "id": "S7",
+   "parts": [
+    "transition"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S8",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "retires-enduring"
+  },
+  {
+   "id": "S9",
+   "parts": [
+    "target"
+   ],
+   "finding": "no-transition-evidence"
+  }
+ ],
+ "decompositions": [
+  {
+   "id": "D1",
+   "changes": 1,
+   "boundaries": ""
+  },
+  {
+   "id": "D2",
+   "changes": 3,
+   "boundaries": "Change 1: replace the comma-separated export by JSON Lines while the comma-separated reader and the option serving both stay in place; it hands over a working JSON Lines export and the outside consumer migrated to read it. Change 2: retire the comma-separated reader, which can start only once that consumer reads JSON Lines; it hands over a state with only the transition option left. Change 3: remove the transition option that served both, which can start only once the reader is retired. Each step leaves a valid state and has its own evidence."
+  }
+ ],
+ "explanation": {
+  "current": "A is the comma-separated export. Three Cases are green today. H1 shows a header row id,title,body followed by one comma-separated line per note. H2 shows that every note is written and none is dropped. H3 shows that an empty store exits with 0 and writes only the header. These Cases prove A only.",
+  "intended": "B is a JSON Lines export. B1: one JSON object per line and no header. B2: every note is written and none is dropped. B3: an empty store exits with 0 and writes nothing. Each target expectation needs a Case of its own, and B1 and the no-output part of B3 are new.",
+  "changes": "The comma-separated format is replaced by JSON Lines. B1 is introduced. The no-note-dropped behaviour is preserved. The exit code 0 of the empty-store behaviour is preserved. The header row and the header-only output on an empty store are replaced. One Change suffices for the export itself, because one boundary, one baseline and one target hold.",
+  "superseded_and_protected": "Superseded (historical): H1, the header row and comma-separated lines, and the header-only part of H3. These Cases are recorded as superseded and are not kept as protections of B. Protected (enduring): H2/B2, that every note is written and none is dropped, and the exit code 0 on an empty store from H3/B3. Their Cases stay and must be re-run green against B. H3 is mixed and must be split into the enduring exit code and the historical header-only output.",
+  "evidence": "B's own green Cases (B1, B2, B3) show only that B holds. Evidence of the transition is separate and belongs in the Change record. It would show that the same store gives the same set of notes under the old and the new export, that the enduring Cases (no note dropped, exit 0 on an empty store) were kept green on B, and that the header Case and the header-only part of H3 were recorded as superseded. Whether such a comparison was actually run is unknown."
+ },
+ "observerVerdict": {
+  "historicalKeptApartFromTarget": true,
+  "boundaryReasoning": "D2 gives three Changes and says for each what it hands over (a working JSON Lines export, then a state with only the option left) and why order matters, with no detailed plan. D1 is justified as one boundary, one baseline and one target. One slip: it lists 'the outside consumer migrated' as an output of Change 1, when it is a precondition of Change 2.",
+  "doubtfulLabels": [
+   "S7 labelled transition / none: the statement joins a same-notes comparison (enduring) with a superseded record (transition), so mixed is more accurate"
+  ]
+ }
+}

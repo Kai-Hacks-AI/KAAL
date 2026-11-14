@@ -1,11 +1,11 @@
 ---
 name: kaal-change
-description: Scope a proposed change, trace intent, functional and nonfunctional requirements, defects, architecture and tests, identify incoming and outgoing interfaces, and organize multi-loop TDD evidence. Use when planning an isolated change, reviewing its boundaries, or explaining missing evidence and effects outside the selected scope.
+description: Scope a proposed change, trace intent, functional and nonfunctional requirements, defects, architecture and tests, identify incoming and outgoing interfaces, and organize multi-loop TDD evidence. Use when planning an isolated change, reviewing its boundaries, or explaining missing evidence and effects outside the selected scope, or when explaining a Change as the transition from the current state to the intended outcome, covering what it replaces, what stays protected, how many Changes it needs and what shows it was reached.
 ---
 
 # Working on an isolated Change
 
-Read the `Change`, `Change Isolation` and `Change Practice` Nodes where the consuming context makes them available. They state the capability's meaning and scope. This initial skill guides isolation; it provides no lifecycle, delivery or release decision.
+Read the `Change`, `Change Isolation` and `Change Practice` Nodes where the consuming context makes them available. They state the capability's meaning and scope. This initial skill guides isolation and the explanation of a Change as a transition; it provides no lifecycle, delivery or release decision.
 
 ## Bare
 
@@ -24,7 +24,8 @@ In Embed mode, use the consumer's existing KAAL context and governed interfaces.
 3. **Inspect the boundary.** Identify incoming drivers, outgoing collaborators and semantic references crossing the scope. Include affected surroundings even when they remain outside the selected implementation scope. Return an unsupported scope or unresolved interface for a decision.
 4. **Arrange the testing loops.** Use Testing for architecture conformance, capability acceptance and implementation test-first. Establish discriminating RED evidence before implementation, then GREEN and refactoring. Drive the real subject through incoming interfaces; control outgoing collaborators with appropriate mocks or stubs. Include Defect regression Cases. Keep independent contract and real-integration checks: passing doubles cannot establish compatibility.
 5. **Use the evaluator when inputs exist.** Supply the explicit proposal, pinned owner inventories and a Graph public view to the package's public isolation API. Read every finding and qualification. Treat unavailable evidence as unknown. The evaluator executes neither subjects nor tests; all emitted obligations remain not assessed.
-6. **Report and revisit.** Use the [worksheet](references/worksheet.md). Distinguish model-scoped isolation, repository authority, observed test execution and Owner decisions. Bind actual evidence to the assessed versions and reassess when those inputs change. Leave repository admission and CI policy to the consuming context.
+6. **Report and revisit the isolation.** When isolation is in play, use the isolation [worksheet](references/worksheet.md); it does not report a transition. Distinguish model-scoped isolation, repository authority, observed test execution and Owner decisions. Bind actual evidence to the assessed versions and reassess when those inputs change. Leave repository admission and CI policy to the consuming context.
+7. **Explain the transition.** When asked what a Change replaces, what stays protected, how many Changes a transformation needs or what shows it was reached, read the [transition guide](references/transition.md) and follow its own output format. Keep historical truth apart from intended-outcome truth. When a task raises both concerns, report the findings, uncertainty, evidence and decisions of transition and isolation separately and say how they relate.
 
 Read the [input and result guide](references/isolation.md) when preparing an executable model or interpreting an assessment. Keep an incomplete manual assessment useful without pretending it is an executable model.
 

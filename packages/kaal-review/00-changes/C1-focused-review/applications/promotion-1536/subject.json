@@ -1,0 +1,23 @@
+{
+  "focus": "promotion",
+  "reference": {
+    "label": "what the promotion promised to change",
+    "reads": "the body of PR #1536: the Changes C12, C20 and C21 each as PLAN, DO and ACT, and its Why now",
+    "items": ["C12", "C20", "C21", "Why now"]
+  },
+  "actual": {
+    "label": "what changed",
+    "reads": "the 38 changed files of PR #1536 at 7af0687, squashed into main as cce35a7",
+    "items": ["act.md", "T163", "T187", "T190", "T161", "envelope.mjs", "change.md"]
+  },
+  "inspected": [
+    "the body of #1536",
+    "the 38 changed files of #1536",
+    "change.md and act.md of C12, C20 and C21",
+    "the checks of #1536 at 7af0687"
+  ],
+  "questions": [
+    "Does the promotion carry more than its body promises?",
+    "Was the Why now claim that main has nothing the collector lacks true?"
+  ]
+}

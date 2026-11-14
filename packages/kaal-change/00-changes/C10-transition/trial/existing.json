@@ -1,0 +1,100 @@
+{
+ "arm": "control: the kaal-change SKILL.md as on the collector before this Change, no transition guide",
+ "promptSha256": "935032ff539661f24a05ff0e9de46f9c5454b4f9da4e3b6d18fd74bd9efa8d72",
+ "author": "CTO thread (Claude, authored the guidance, the key and the prompts)",
+ "observer": "independent observer subagent (Claude), blind to which reply used which Skill text; it read only the task and the three replies",
+ "agent": "general-purpose subagent given only the prompt file, no repository access requested",
+ "model": "as configured for the session (claude-sonnet-5-5); the serving model was not verified",
+ "date": "2026-11-13",
+ "answers": [
+  {
+   "id": "S1",
+   "parts": [
+    "historical"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S2",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S3",
+   "parts": [
+    "enduring",
+    "historical"
+   ],
+   "finding": "mixed"
+  },
+  {
+   "id": "S4",
+   "parts": [
+    "target"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S5",
+   "parts": [
+    "historical"
+   ],
+   "finding": "historical-as-target"
+  },
+  {
+   "id": "S6",
+   "parts": [
+    "historical"
+   ],
+   "finding": "historical-as-evidence"
+  },
+  {
+   "id": "S7",
+   "parts": [
+    "enduring",
+    "transition"
+   ],
+   "finding": "mixed"
+  },
+  {
+   "id": "S8",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "retires-enduring"
+  },
+  {
+   "id": "S9",
+   "parts": [
+    "target"
+   ],
+   "finding": "no-transition-evidence"
+  }
+ ],
+ "decompositions": [
+  {
+   "id": "D1",
+   "changes": 1,
+   "boundaries": ""
+  },
+  {
+   "id": "D2",
+   "changes": 3,
+   "boundaries": "Boundary 1: after the export is replaced by JSON Lines, before the comma-separated reader is retired; the outside consumer must first be shown to read JSON Lines. Boundary 2: after the reader is retired, before the transition option that served both formats is removed."
+  }
+ ],
+ "explanation": {
+  "current": "Today the export writes a header row id,title,body followed by one comma-separated line per note (H1). It writes every note, none dropped (H2). An empty store exits with 0 and writes only the header (H3). All three Cases are green; they protect the current state A.",
+  "intended": "The export writes one JSON object per line and no header (B1). It still writes every note, none dropped (B2). An empty store still exits with 0 but writes nothing (B3).",
+  "changes": "The output format changes from comma-separated with a header to JSON Lines with no header. The no-header rule changes the empty-store output from header only to nothing. The completeness of the export and the exit code 0 do not change.",
+  "superseded_and_protected": "Superseded: H1 (header row and comma-separated lines) and the header-only output half of H3. These are historical and must not be kept green as protection of the target. Still valid: H2, which carries over as B2, and the exit code 0 of H3, which carries over into B3. These enduring protections must not be dropped just because the old export is replaced.",
+  "evidence": "The old Cases being green shows only that state A held; it does not show the new export is reached. The new Cases B1, B2 and B3 being green shows the target holds, but not that the transition happened. Transition evidence needs RED then GREEN: a discriminating Case that fails on the old export and passes on the new one, the enduring Cases H2/B2 and the exit code staying green across the change, and H1 and the header-only part of H3 recorded as superseded rather than silently deleted."
+ },
+ "observerVerdict": {
+  "historicalKeptApartFromTarget": true,
+  "boundaryReasoning": "Both boundaries are placed correctly, and the first states a gate (the outside consumer must first be shown to read JSON Lines). Neither boundary says what is handed over, and the second gives no reason why order matters. It writes no detailed plan, and D1 is left as one Change with no justification.",
+  "doubtfulLabels": []
+ }
+}
