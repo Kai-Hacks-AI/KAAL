@@ -1,6 +1,6 @@
-// Case pull/T34: the wiring of the engineering Cases (pull/C6). It lives in test/wire/T34.test.mjs and exports run().
+// Case pull/T34: the wiring of the engineering Cases (pull/C6). It lives in test/pull/T34.test.mjs and exports run().
 import { describe, it } from "node:test";
-import { run, id, tests } from "./wire/T34.test.mjs";
+import { run, id, tests } from "./pull/T34.test.mjs";
 
 describe("pull wiring (pull/C6)", () => {
   it(id, async () => {
