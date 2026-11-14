@@ -1,10 +1,10 @@
-// The lifecycle: init, upgrade and remove, realizing the package's installation contract (contract.json).
+// The lifecycle: init, upgrade and remove, realizing the package's installation contract (installation.kaal.json).
 // init prepares Guard and activates nothing; init --hook and init --ci each activate one surface, and
 // remove --hook and remove --ci undo them, never touching a declaration (F30). It owns exactly the assets the installation record registers (state.mjs), each only while its SHA-256
 // is the registered one, and the core.hooksPath its checkout state records. A file at a managed path that
 // the record does not register is not Guard's, even with Guard's bytes: it is reported and left alone.
 // It writes only content the contract's catalogue holds, and reads the adapter templates as files, never
-// importing them. contract.json is an instance of Core's Installation Contract format, and the one list
+// importing them. installation.kaal.json is an instance of Core's Installation Contract format, and the one list
 // of Guard's assets: each asset's source in the package, its target in the repository, its kind and, for
 // the hook and the workflow, its surface. An asset with no surface, the Skill, is part of every init.
 import { createHash } from "node:crypto";
@@ -18,7 +18,7 @@ import { deleteRecord, deleteState, git, prune, RECORD, writeRecord, writeState 
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /** The installation contract this version realizes, and this version. */
-export const CONTRACT = JSON.parse(readFileSync(join(PACKAGE, "contract.json"), "utf8"));
+export const CONTRACT = JSON.parse(readFileSync(join(PACKAGE, "installation.kaal.json"), "utf8"));
 export const VERSION = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8")).version;
 
 const asset = (name) => CONTRACT.assets.find((a) => a.name === name);

@@ -4,6 +4,7 @@ import "../lib/node.mjs";
 import "../lib/git.mjs";
 import { resolve } from "node:path";
 import { configDir, legacy, readDeclarations, Refusal, shown } from "../lib/config.mjs";
+import { runDiscovered } from "../lib/discovery.mjs";
 import { annotations, declarations, summarize, verify } from "../lib/github.mjs";
 import { init, remove, upgrade } from "../lib/lifecycle.mjs";
 import { line as reminderLine, needed, skill } from "../lib/reminder.mjs";
@@ -12,6 +13,7 @@ import { checkout, gitRoot, readRecord, readState } from "../lib/state.mjs";
 
 const USAGE = `usage: kaal-guard run (--hook | --ci | --check <name>) [--config <dir>] [--github]
                        [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
+                       [--full] [--plan <file>]
        kaal-guard verify [--config <dir>] [--github]
        kaal-guard (init | remove) [--hook] [--ci] [--config <dir>]
        kaal-guard upgrade [--config <dir>]`;
@@ -112,7 +114,7 @@ if (command !== "run") cannotJudge(command ? `${command} is not a kaal-guard com
 
 const byOption = Object.fromEntries(Object.entries(FACTS).map(([fact, { option }]) => [option, fact]));
 if (args.includes("--local")) cannotJudge("--local is not an option of run in this version; did you mean --hook? A check the Git hook runs is registered as runs: [hook]", USAGE);
-const options = parse(args, ["--hook", "--ci", "--github"], ["--check", "--config", ...Object.keys(byOption)]);
+const options = parse(args, ["--hook", "--ci", "--github", "--full"], ["--check", "--config", "--plan", ...Object.keys(byOption)]);
 const selection = {};
 if (options["--hook"]) selection.hook = true;
 if (options["--ci"]) selection.ci = true;
@@ -122,5 +124,11 @@ const facts = {};
 for (const [option, fact] of Object.entries(byOption)) if (options[option] !== undefined) facts[fact] = fact === "changed" ? resolve(options[option]) : options[option];
 const { root, dir, list, record } = load(options["--config"]);
 const { results } = run(root, list, selection, facts, dir);
+// The kaal-guard.json files the change selects run beside the declared checks, on both surfaces.
+if (selection.check === undefined) {
+  const found = runDiscovered(root, facts, { full: options["--full"], plan: options["--plan"] });
+  for (const note of found.notes) console.log(note);
+  results.push(...found.results);
+}
 if (results.length === 0) console.log(`kaal-guard: no checks run ${selection.hook ? "--hook" : "--ci"}`);
 report(results, options["--github"], { root, record });

@@ -163,8 +163,8 @@ function open(root) {
     },
     /** The installed package's catalogue (guard/F27): every SHA-256 each asset path has had in a published version. */
     catalogue() {
-      const contract = join(dir, "node_modules", ...NAME.split("/"), "contract.json");
-      assert.ok(existsSync(contract), "the package ships no contract.json");
+      const contract = join(dir, "node_modules", ...NAME.split("/"), "installation.kaal.json");
+      assert.ok(existsSync(contract), "the package ships no installation.kaal.json");
       return JSON.parse(readFileSync(contract, "utf8")).catalogue;
     },
     /** The installed package's Skill source (guard/F23): its directory and its files. While the package ships none, a scenario is blocked here. */

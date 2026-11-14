@@ -6,7 +6,7 @@
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T30 [guard/A8, guard/N6]: the package declares and imports no KAAL element and references no Engineering path",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T31 [guard/A8, guard/N6]: the acceptance boundary is closed: its files import only Node built-ins and files inside it",
     "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T49 [guard/F21, guard/A15]: with --github, fail and cannot-judge annotations and the step summary name the Skill path, and a passing run's summary does not",
-    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T58 [guard/F27, guard/A17]: contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one",
+    "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T58 [guard/F27, guard/A17]: installation.kaal.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one",
     "test/acceptance/intent.test.mjs > Intent outcome validation > guard/T1 [guard/I2, guard/I3]: one check gives the same verdict through the hook and through CI, for the same facts",
     "test/acceptance/intent.test.mjs > Intent outcome validation > guard/T2 [guard/I1]: removing Guard leaves the repository's own tests intact",
     "test/acceptance/intent.test.mjs > Intent outcome validation > guard/T4 [guard/I5]: the packed package alone installs, operates and removes cleanly, and no other KAAL element appears",
@@ -24,6 +24,9 @@
     "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
     "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
     "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
+    "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone",
+    "test/acceptance/requirements-discovery.test.mjs > guard/F44 [guard/I1] discovery > guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file",
+    "test/acceptance/requirements-discovery.test.mjs > guard/F45 [guard/I1] discovery > guard/T211 [guard/F45, guard/A21]: when the selection is unknown, or --full is given, Guard runs every kaal-guard.json; the Engine's plan adds capabilities in flight; an invalid, unreadable or empty plan is cannot judge; no outcome is a silent success",
     "test/acceptance/requirements-installation.test.mjs > guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows > guard/T89 [guard/F10, guard/F17, guard/N4]: with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace",
     "test/acceptance/requirements-installation.test.mjs > guard/F19 [guard/I7] Guard's Skill > guard/T45 [guard/F19, guard/A13, guard/N11]: the packed package carries skills/kaal-guard/SKILL.md, named kaal-guard, with BASS sections and no script, and names no consumer",
     "test/acceptance/requirements-installation.test.mjs > guard/F2 [guard/I2] named outcomes > guard/T91 [guard/F2, guard/F18]: an outcomes key \"04\", \"+4\" or \"256\" is refused as cannot judge, naming the canonical form, and \"4\" names exit 4 as held",
@@ -135,6 +138,7 @@
     ],
     "Requirements": [
       "test/acceptance/requirements-configuration.test.mjs",
+      "test/acceptance/requirements-discovery.test.mjs",
       "test/acceptance/requirements-installation.test.mjs",
       "test/acceptance/requirements.test.mjs"
     ],
@@ -194,6 +198,9 @@
     "guard/F38",
     "guard/F39",
     "guard/F40",
+    "guard/F43",
+    "guard/F44",
+    "guard/F45",
     "guard/N1",
     "guard/N2",
     "guard/N3",
@@ -216,7 +223,8 @@
     "guard/A15",
     "guard/A17",
     "guard/A18",
-    "guard/A19"
+    "guard/A19",
+    "guard/A21"
   ],
   "coverage": {
     "guard/I9": {
@@ -277,7 +285,7 @@
     },
     "guard/F27": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T58 [guard/F27, guard/A17]: contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T58 [guard/F27, guard/A17]: installation.kaal.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one"
       ],
       "Requirements": [
         "test/acceptance/requirements-installation.test.mjs > guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone > guard/T85 [guard/F27, guard/F29, guard/F12]: in a clone with core.autocrlf=true, the hook, the workflow and the Skill Guard installed and committed keep the bytes Guard wrote: the hook runs under sh, and upgrade and remove treat each file as Guard's unmodified file",
@@ -287,7 +295,7 @@
     },
     "guard/A17": {
       "Architecture": [
-        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T58 [guard/F27, guard/A17]: contract.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one"
+        "test/acceptance/architecture.test.mjs > Architecture conformance > guard/T58 [guard/F27, guard/A17]: installation.kaal.json and the lifecycle agree: every asset standalone init writes is in the contract, every one in the contract is written, and the contract names no supplier location beyond the canonical one"
       ]
     },
     "guard/I2": {
@@ -360,6 +368,9 @@
         "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T76 [guard/F30, guard/N4]: init prepares the configuration and the installation record, activates neither hook nor CI, names both activations, and run again writes nothing",
         "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
         "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F44 [guard/I1] discovery > guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F45 [guard/I1] discovery > guard/T211 [guard/F45, guard/A21]: when the selection is unknown, or --full is given, Guard runs every kaal-guard.json; the Engine's plan adds capabilities in flight; an invalid, unreadable or empty plan is cannot judge; no outcome is a silent success",
         "test/acceptance/requirements-installation.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path",
         "test/acceptance/requirements-installation.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T48 [guard/F21]: a run of only pass, not applicable or held adds no reminder",
         "test/acceptance/requirements-installation.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T82 [guard/F21, guard/F23, guard/A15]: after a standalone init deploys the Skill, a failing and a cannot-judge local run's reminder names the deployed .agents/skills/kaal-guard/SKILL.md, not the package's copy, and with --github so do the annotations and the step summary",
@@ -544,6 +555,28 @@
         "test/acceptance/requirements-installation.test.mjs > guard/F27 and guard/F29 [guard/I5] Guard's bytes and mode in every clone > guard/T86 [guard/F4, guard/F27]: where core.fileMode is false, init --hook reports git add --chmod=+x .githooks/pre-push, and after the consumer runs it a fresh clone with core.fileMode=true runs the hook on push",
         "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T10 [guard/F4, guard/A4]: lets a push through when every hook check passes or is not applicable",
         "test/acceptance/requirements.test.mjs > guard/F4 [guard/I2, guard/I3] hook > guard/T9 [guard/F4, guard/A4]: blocks a push on fail or cannot judge, says that CI decides, and is skipped by --no-verify"
+      ]
+    },
+    "guard/F43": {
+      "Requirements": [
+        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone"
+      ]
+    },
+    "guard/A21": {
+      "Requirements": [
+        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F44 [guard/I1] discovery > guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F45 [guard/I1] discovery > guard/T211 [guard/F45, guard/A21]: when the selection is unknown, or --full is given, Guard runs every kaal-guard.json; the Engine's plan adds capabilities in flight; an invalid, unreadable or empty plan is cannot judge; no outcome is a silent success"
+      ]
+    },
+    "guard/F44": {
+      "Requirements": [
+        "test/acceptance/requirements-discovery.test.mjs > guard/F44 [guard/I1] discovery > guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file"
+      ]
+    },
+    "guard/F45": {
+      "Requirements": [
+        "test/acceptance/requirements-discovery.test.mjs > guard/F45 [guard/I1] discovery > guard/T211 [guard/F45, guard/A21]: when the selection is unknown, or --full is given, Guard runs every kaal-guard.json; the Engine's plan adds capabilities in flight; an invalid, unreadable or empty plan is cannot judge; no outcome is a silent success"
       ]
     },
     "guard/I7": {
@@ -734,36 +767,39 @@
   },
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "1d2ad48c1e26d4209e58ef9bcb4c27355f501b9b9604e0ede8646bf5f0cfbacc",
-    "bin/kaal-guard.mjs": "7b4b16be89374a72d25fe890382a8b68c7a8e929e56c715efc38cb9a7d75e97a",
-    "contract.json": "fcfa9645e793c14bd9c3512b0c018a5f6d1c2cdef7d6dd20b7ff3450ddc48a3e",
-    "docs/architecture.md": "e9f3e338b2940bef4b7baa6336dbd13ab5c766d3bc0ff26937d4569d7a962dea",
+    "README.md": "0ff965d0f2571fb7ad5b775655bfe2577b8465db8939f56f74e7829063d5e405",
+    "bin/kaal-guard.mjs": "11e1e4e700d00c35ebe55be785f655d8ea3cedd98652134c0ccf6d77e428741e",
+    "docs/architecture.md": "d9603194e0c931fe9fe7bd153af1113281959ed41b697fc1a4a3c760ef865c21",
     "docs/intent.md": "b76f9d553227edf4faf362a2e560251cbe6e71d04e38c70203bc7116b02a0a5f",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
-    "docs/requirements.md": "9690362283ede06b424768b5524b46d31078182ca63645efc3aefac20e3dd952",
-    "docs/testing.md": "7be4822001614a0fa61c1555cc53e8091bee4d86e726cd9d2188375ebc4911a6",
+    "docs/requirements.md": "fff3d0fc84d005dc102d7643c6f2ff75bdf8e7631ad6284b01db811d07570622",
+    "docs/testing.md": "5b89afc792c141f50850e853dcfb0bc7d0ac4e721038519fae165384208b3e3e",
+    "installation.kaal.json": "fcfa9645e793c14bd9c3512b0c018a5f6d1c2cdef7d6dd20b7ff3450ddc48a3e",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
+    "lib/discovery.mjs": "6a8f8e3d5e0a5ae60afe11879cc6f14b3bb1a0325d28064689f814a2cd1363df",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
     "lib/github.mjs": "6d5198ac24a8e444294683213860bf79644b08185d0ff25ba391923996aa1b98",
-    "lib/lifecycle.mjs": "e0afd58bc4a80aaace991255fd39ce024ac83832aca844dd0f17d6f80a8a5b4d",
+    "lib/lifecycle.mjs": "05600e087cb17b5b61ba4982be5c3b25e1a8082aa4fe5b4afe2ad42134edd081",
     "lib/node.mjs": "722efb5b27ccfeedf48e36d1f82246a38d75c78969b156f508498079c210bc4b",
     "lib/reminder.mjs": "e51ea0a40c499ee373c8a14a470e73e2998095bb973da5df999e0c8fb343cd05",
     "lib/runner.mjs": "46057c71dec99b55c2ccaa3b3f0d1dcbebff6290fdf541f77b29f46dafe60727",
     "lib/state.mjs": "0c785c2bc4ad892cfdf47a865088f0373cb93ce11fcf299f7d2196d708545836",
     "lib/trusted.mjs": "d216f081085ce1a3b202ddb8bec09ecd3993d1acfc5bbe5f62e6947c9d9ccdb7",
-    "package.json": "e4218a790a7904c7821c7d602e1b0dc48072e7a0ab957f69718ed01f683c8af5",
+    "package.json": "64435053a2385aeaceb57cefce61221aba8ae5a4e7504cb1718f8999dfa66440",
     "skills/kaal-guard/.gitattributes": "1c6803649686447b5a771e3eb8639d30fee8725a269fa78fdd6fca1ff5e190a6",
     "skills/kaal-guard/SKILL.md": "bc856bb457dede8b4a7c5302d2c6977e056e79064d41b9284e7c4afa04a69ed0",
     "templates/guard.yml": "3635321ec5949c64b7a03206f5958a65d1351662b43baeb4efccb75131c59070",
     "templates/hook.gitattributes": "a7ab545562de2d16d5636df6c5610cf0b501d63b6be14947f2b241cbd4170cb9",
     "templates/pre-push": "19ff9768dc9a736b1e6bfa14acabd9b714d29b5809a21aa7ad0643f39608cb95",
     "templates/workflow.gitattributes": "5e885fab6fa481e2cac05134e2ca78d93a83ebb8b0f75a3c3e756500054428ee",
-    "test/acceptance/architecture.test.mjs": "7c8eb42699290aba6cd0e57f02f9dbab4d5095c81d30ef08f16c0e667c161113",
-    "test/acceptance/harness.mjs": "4ed28907add38e700b0b9557c321c78da450621c50d02e00b29fdb2a6ea2204d",
+    "test/acceptance/architecture.test.mjs": "b197af6373f8ceb615fced0ee1e912b2d50289634804ad8271cf74a3ddb67ca1",
+    "test/acceptance/discovery-support.mjs": "2a46bd6343c1fff39d609b4364e734e16d585037386f940ff9a09bc8fb6d71af",
+    "test/acceptance/harness.mjs": "c7963e369d49d7a31d536bccf335c6b73cacf94b6dcf5e52fcf84d8a08f7a8b9",
     "test/acceptance/intent.test.mjs": "05be728b9532616e1e111bfc436576c77bfd4b8b9bae76f570efbaf0a29c4ac7",
     "test/acceptance/requirements-configuration.test.mjs": "59a320936e510e0639bed9c3370fa122243760f687a85fc748982609a75a991b",
-    "test/acceptance/requirements-installation.test.mjs": "36995ed5baa961e43f291585d29c1d6795fad0fe1edc8b5470b1301fc23f7842",
+    "test/acceptance/requirements-discovery.test.mjs": "eced0a51d37b8ec33b91b62dc70aad93f34f122e4ce770f2910e692e1232a2af",
+    "test/acceptance/requirements-installation.test.mjs": "64a3a3e7fcfe937a9c4b6a7d4648b50348bb993effc87ab73bc4c4ec63ec0589",
     "test/acceptance/requirements-support.mjs": "22528d3c0bd1451217c76a6b845ed4ed0ef62078b5318fe3699c088c3ffc2044",
     "test/acceptance/requirements.test.mjs": "69a545ba178e7b6d3609b6d0d4040a47a11f35c3f2b8d57b8b5ad583468c1cf8",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",

@@ -243,7 +243,7 @@ describe("guard/N1 [guard/I5] runtime prerequisite", () => {
     const installed = join(c.dir, "node_modules", ...NAME.split("/"));
     assert.equal(JSON.parse(readFileSync(join(installed, "package.json"), "utf8")).engines?.node, ">=24", "the package does not declare Node >=24");
     assert.match(readFileSync(join(installed, "README.md"), "utf8"), /Node(?:\.js)? 24\b/, "the README does not state Node 24");
-    assert.match(readFileSync(join(installed, "contract.json"), "utf8"), /\b24\b/, "the contract does not state the runtime prerequisite");
+    assert.match(readFileSync(join(installed, "installation.kaal.json"), "utf8"), /\b24\b/, "the contract does not state the runtime prerequisite");
     // An older Node, as the running command sees it: the preload replaces only the reported version.
     const preload = join(c.root, "node20.mjs");
     writeFileSync(preload, `Object.defineProperty(process, "versions", { value: { ...process.versions, node: "20.11.0" } });\nObject.defineProperty(process, "version", { value: "v20.11.0" });\n`);
