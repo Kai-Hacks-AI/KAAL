@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { baseline, cleanup, commit, hook, owner, regText, rev, reg, scratch, SOURCES } from './lib.mjs';
 export const id = 'guard/T210';
 export const tests = ['guard/F44'];
-export const title = 'for each origin, registrations evolve freely: an added, a modified and a removed registration run as the candidate has them, and only a malformed one, or one whose command cannot start, is cannot judge, naming it';
+export const title = 'for each origin, registrations evolve freely without rewiring Guard (the invocation is the same before and after): an added, a modified and a removed registration run as the candidate has them, and only a malformed one, or one whose command cannot start, is cannot judge, naming it';
 export function run() {
   for (const origin of ['solution', 'change']) {
     const own = origin === 'solution' ? 'alpha' : 'c7';

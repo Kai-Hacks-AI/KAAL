@@ -44,7 +44,9 @@ export const owner = (cap) => ({ [`packages/${cap}/ownership.kaal.json`]: JSON.s
 export const dependsOn = (cap, ...deps) => ({ [`packages/${cap}/package.json`]: JSON.stringify({ name: cap, dependencies: Object.fromEntries(deps.map((d) => [d, '1.0.0'])) }) });
 // A registration has one of two origins: solution (a capability's tree) or change (a Change's folder, temporary). Engineering registers nothing with Guard.
 // Its source carries origin, owner and its own path; the installed copy is that file verbatim at .kaal/guard/registered/<origin>/<owner>/<name>.md.
-export const SOURCES = { solution: (o, n) => `packages/${o}/guard/${n}.md`, change: (o, n) => `engineering/changes/${o}/guard/${n}.md` };
+// A Change folder lives wherever its Change puts it: the fixture spreads them over unrelated places; Guard is told the path only by the registration's own `source`.
+export const CHANGE_HOME = { c7: 'somewhere/else/entirely', c8: 'packages/alpha/00-changes', c9: 'x' };
+export const SOURCES = { solution: (o, n) => `packages/${o}/guard/${n}.md`, change: (o, n) => `${CHANGE_HOME[o] ?? 'work/changes'}/${o}/guard/${n}.md` };
 export const regText = (origin, owner, name, src) => decl(`${name}.mjs`, `origin: ${origin}\nowner: ${owner}\nsource: ${src}\ncapability: ${owner}\n`);
 export const reg = (owner, name, { origin = 'solution', installed, installedAt } = {}) => {
   const src = SOURCES[origin](owner, name);
