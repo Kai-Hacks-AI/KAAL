@@ -21,7 +21,7 @@
 
 1. Add `05-src/plan-body/cue.mjs` and change `envelope.mjs` and `check.mjs` for step 4.
 2. Add the cue to `sync-template.md` and to `fallback-template.md`; for the fallback, the declaration stays on the first line and the cue follows it.
-3. Delivered Cases that follow: release/T173 (F18, with its text) allows exactly the cue as the one visible line beside the headings of the fallback. release/T117 and T121 compare the installed SYNC template with `sync-template.md`; until release/C25 installs the cue they compare the two texts without the cue line, and the cue arrives with the wiring.
+3. Delivered Cases that follow: release/T173 (F18, with its text) allows exactly the cue as the one visible line beside the headings of the fallback. release/T117 and T121 compare the installed SYNC template with `sync-template.md`; until release/C25 installs the cue they compare the two texts without the cue line; as soon as the installed copy carries the cue they compare strictly, byte for byte. release/C25 must delete the transitional branch from T117 and T121 and carry a Case that fails while either file still names the cue or strips it, so the relaxed comparison never becomes the permanent contract.
 4. Rename T198 and T199 to `.test.mjs` when green.
 5. The gap id is G56: release/G55 is held by release/C23 (Hotfix defect reference). Global uniqueness of C24, G56, T198 and T199 was checked over every remote branch; C25 and T200 are reserved for the wiring.
 
