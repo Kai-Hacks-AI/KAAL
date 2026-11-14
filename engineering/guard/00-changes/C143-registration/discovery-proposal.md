@@ -1,6 +1,6 @@
 # C143 proposal: Guard discovers one `kaal-guard.json` per capability and per open Change
 
-Status: the discovery design the Owner agreed in the thread (21:24 to 21:27), for the CPO. It supersedes the earlier "option" text of this file. It is not yet in the requirements and Cases: F43, F48, T209 and T215 (the installed copy and the `.kaal/guard/registered/` path) would be reworked if the CPO accepts it. Nothing here is built or tested.
+Status: the discovery design the Owner agreed in the thread (21:24 to 21:27), for the CPO. It supersedes the earlier "option" text of this file. It is now worked into the requirements (F43 to F45) and the Cases (T209 to T211); the installed copy, F48 and T215 are gone. Nothing is built.
 
 ## Which folders may hold one
 
@@ -61,7 +61,7 @@ A changed file with **no** nearest `kaal-guard.json` (an engineering area's own 
 
 ## What this changes in C143
 
-- **Removed if accepted:** the installed copy under `.kaal/guard/registered/`, the source/install consistency check, the T30 namespace amendment (F48, T215), and the two-origin fields in the registration.
+- **Removed (done in this Change's requirements):** the installed copy under `.kaal/guard/registered/`, the source/install consistency check, the T30 namespace amendment (F48, T215), and the two-origin fields in the registration.
 - **Kept:** Guard runs the plan it is given (F45), `--full` on the merge queue, execution integrity (F44), the Owner's shared-file rules, and Guard not policing edits.
 - **Today's `.kaal/config/guard/*.md` declarations** keep working unchanged until Engineering moves its own checks out of Guard.
 

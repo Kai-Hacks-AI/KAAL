@@ -1,32 +1,43 @@
 // Case guard/T209 tests: F43
 import assert from 'node:assert/strict';
-import { baseline, cleanup, commit, hook, owner, rev, reg, scratch } from './lib.mjs';
+import { baseline, cleanup, commit, hook, kg, ran, rev, scratch, scripts } from './lib.mjs';
 export const id = 'guard/T209';
 export const tests = ['guard/F43'];
-export const title = 'a registration from each of the two origins, solution and change, with Change folders in unrelated places, is run by the unchanged hook invocation beside the declared check and is never taken for another origin; an installed copy that differs from its source, has none, or sits under another origin is cannot judge';
+export const title = 'Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change\'s checks once its file is gone';
+const ALL = ['alpha', 'alpha-lib', 'beta', 'c7', 'c8', 'c9', 'always', 'declared'];
 export function run() {
-  const dir = scratch({ ...baseline, ...owner('alpha') });
+  const dir = scratch({
+    ...baseline, ...scripts('alpha', 'alpha-lib', 'beta', 'c7', 'c8', 'c9', 'always'),
+    '.kaal/kaal-guard.json': kg('always'),
+    'packages/kaal-alpha/kaal-guard.json': kg('alpha', { id: 'alpha-lib', when: ['lib/**'] }),
+    'packages/kaal-beta/kaal-guard.json': kg('beta'),
+    'somewhere/else/entirely/00-changes/C7-x/kaal-guard.json': kg('c7'),
+    'engineering/area/00-changes/C8-x/kaal-guard.json': kg('c8'),
+    'packages/kaal-alpha/00-changes/C9-x/kaal-guard.json': kg('c9'),
+  });
   try {
     const base = rev(dir, 'HEAD');
-    commit(dir, { ...reg('alpha', 'sol'), ...reg('c7', 'chg', { origin: 'change' }), ...reg('c8', 'chg8', { origin: 'change' }), ...reg('c9', 'chg9', { origin: 'change' }) });
+    // A change outside lib/: the package's unnarrowed check, the .kaal file, never another package's or a Change's.
+    commit(dir, { 'packages/kaal-alpha/README.md': 'x\n' });
     let r = hook(dir, base);
-    assert.ok(r.out.includes('RAN declared'), `the declared check did not run: ${r.out}`);
-    for (const n of ['sol', 'chg', 'chg8', 'chg9']) assert.ok(r.out.includes(`RAN ${n}`), `the ${n} registration was not run: ${r.out}`);
+    assert.deepEqual(ran(r, ALL), ['alpha', 'always'], `wrong selection for a package file outside lib/: ${r.out}`);
+    commit(dir, { 'packages/kaal-alpha/lib/a.mjs': 'x\n' });
+    r = hook(dir, base);
+    assert.deepEqual(ran(r, ALL), ['alpha', 'alpha-lib', 'always'], `when did not widen to lib/: ${r.out}`);
+    // A file in an open Change folder finds the Change's file, wherever the folder is, and the host package's file is not nearest.
+    commit(dir, { 'somewhere/else/entirely/00-changes/C7-x/note.md': 'x\n', 'engineering/area/00-changes/C8-x/note.md': 'x\n', 'packages/kaal-alpha/00-changes/C9-x/note.md': 'x\n' });
+    r = hook(dir, base);
+    assert.deepEqual(ran(r, ['c7', 'c8', 'c9', 'beta']), ['c7', 'c8', 'c9'], `a Change's own file was not the nearest: ${r.out}`);
+    // A file with no nearest kaal-guard.json selects nothing; the .kaal root file still runs.
+    const base2 = rev(dir, 'HEAD');
+    commit(dir, { '.github/workflows/x.yml': 'x\n' });
+    r = hook(dir, base2);
+    assert.deepEqual(ran(r, ALL), ['always', 'declared'], `a file with no kaal-guard.json selected a check, or the .kaal file did not run: ${r.out}`);
     assert.equal(r.status, 0, r.out);
-    // Conflation: a change registration installed where a solution registration lives is refused.
-    commit(dir, reg('c7', 'chg', { origin: 'change', installedAt: '.kaal/guard/registered/solution/c7/chg.md' }));
-    r = hook(dir, base);
-    assert.equal(r.status, 2, `a registration under another origin's path was not cannot judge: ${r.status} ${r.out}`);
-    // Engineering is not an origin: a registration claiming it is cannot judge.
-    commit(dir, reg('release', 'eng', { origin: 'solution', installed: reg('release', 'eng')['.kaal/guard/registered/solution/release/eng.md'].replace('origin: solution', 'origin: engineering') }));
-    r = hook(dir, base);
-    assert.equal(r.status, 2, `an engineering-origin registration was not cannot judge: ${r.status} ${r.out}`);
-    // Provenance: an installed copy edited by hand, and one whose source is gone.
-    commit(dir, reg('alpha', 'sol', { installed: '---\ntype: Guard/Check\ncommand: node -e 0\nruns: [hook]\n---\nedited by hand\n' }));
-    r = hook(dir, base);
-    assert.equal(r.status, 2, `an installed copy that differs from its source was not cannot judge: ${r.status} ${r.out}`);
-    commit(dir, { 'packages/alpha/guard/sol.md': null });
-    r = hook(dir, base);
-    assert.equal(r.status, 2, `an installed registration with no source was not cannot judge: ${r.status} ${r.out}`);
+    // A closed Change: its file is removed and its checks are gone.
+    const base3 = rev(dir, 'HEAD');
+    commit(dir, { 'somewhere/else/entirely/00-changes/C7-x/kaal-guard.json': null, 'somewhere/else/entirely/00-changes/C7-x/note.md': 'y\n' });
+    r = hook(dir, base3);
+    assert.deepEqual(ran(r, ['c7']), [], `a closed Change's checks still ran: ${r.out}`);
   } finally { cleanup(dir); }
 }

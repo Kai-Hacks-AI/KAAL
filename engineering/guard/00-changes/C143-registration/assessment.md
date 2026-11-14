@@ -40,13 +40,13 @@ Run with Node 24 against a checkout of `main`; all are RED for the reason named.
 
 | Case | Checks | Result on main |
 | --- | --- | --- |
-| guard/T209 | F43 two origins run (Engineering refused); conflation, differing copy, sourceless copy refused | RED: registered check not run |
-| guard/T210 | F44 registrations evolve freely per origin (add, modify, remove run as the candidate has them); malformed or unstartable ones are cannot judge | RED: added registration did not run |
-| guard/T211 | F45 Guard runs the given plan for registrations; unknown/absent/`--full` run all | RED: `--plan` unknown option |
+| guard/T209 | F43 nearest `kaal-guard.json` (package, Change anywhere, `.kaal/` root always), `when`, no file selects nothing, closed Change stops | RED: selection ignores kaal-guard.json |
+| guard/T210 | F44 a package changes its own file, removals included; malformed, commandless or unstartable is cannot judge | RED: the candidate's own file not run |
+| guard/T211 | F45 unknown selection or `--full` runs all; the plan adds in-flight folders; invalid plans are cannot judge | RED: uncomputable selection did not run everything |
 | guard/T212 | withdrawn with F46 (delivery controls are outside Guard) | n/a |
 | guard/T213 | G61 on par with the capability standard | RED: ownership.kaal.json absent |
 | guard/T214 | withdrawn with F47 (ownership policing is the delivery system's) | n/a |
-| guard/T215 | F48 Guard's namespace includes `guard/registered` (amends F1 and T30) | RED: boundary Case does not allow it |
+| guard/T215 | withdrawn with F48 (no installed copy, T30 stands) | n/a |
 
 ## 7. CPO direction and where it is applied
 
@@ -55,5 +55,6 @@ Earlier answers (review 5906850527) stand except where the re-review (5906885891
 2. Selection is the Engine's. Guard consumes a resolved plan, no package.json or graph policy in Guard; unknown handled at the Engine boundary: F45, T211.
 3. `--full` is an execution capability; no gate or schedule assumed; wiring has its own owner: F45.
 4. Owner rationale 5906896260: Solution and Change registrations must stay flexible and Guard must not make them immutable; the delivery system, outside Guard, governs whether an edit lands. F44 is re-scoped to execution integrity, F47 and T214 are withdrawn, and F46 and T212 stay withdrawn (5906893250). Guard is not a Change-lifecycle governor.
-5. T30: the path is decided valid and the contract amended through this Change, with T30 left as history: F48, T215, `change.md`.
+5. T30: no longer touched; the `kaal-guard.json` design installs nothing under a new `.kaal` path (F48 and T215 withdrawn, `change.md`).
+7. Owner design of 14 Nov, 21:24 to 21:43 (`discovery-proposal.md`): F43 to F45 and T209 to T211 are reworked to it; the file is `kaal-guard.json`.
 6. #1604 is separate from the Installation Contract (it declares a capability's mechanisms, no hook or workflow); no equivalence asserted. 0.0.5 intended, no publication authorized.
