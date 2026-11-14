@@ -14,10 +14,14 @@ A categorical rule can sound sharp and be wrong. "A means that limits what the s
 
 An independent seat. The author wrote the Skill, the key and the prompt; the observer was a fresh subagent session, not a separate team. More than one run per arm, and different agents, so that a disagreement can be told from noise. A way to state, in a Case, that a judgment capability is useful without a key match.
 
+## Run 4
+
+The Owner's answer on T3/S4 was to ask for the next move, so that asking is observable. It was: both arms chose ask for S4 and S5. What it showed is smaller than I hoped. The Skill-only agent called S4 "none" and the baseline called it ambiguous, so the baseline sat closer to the key, and the trial gives no ground to say the Skill improves on it. The CPO also held my first T9 because it required agreement with a key that is itself a judgment; T9 now verifies the contract and names each disagreement, and leaves the judgment to the Review.
+
 ## Longed For
 
 An independent Review of this trial that challenges the S4 key and the baseline comparison and states what it could not verify. Several runs per arm. A place on main where a defensible disagreement is recorded as such, not as a failed Case.
 
 ## Open
 
-Not closed. Gaps G1 and G2 are covered by Cases T7 and T8, but T3 is RED on S4: the Skill-only agent found none where the key says ambiguous. That is the observed result and the recorded limitation (`do.md`, run 3). How to resolve it, and whether the Change may close with it, is a pending CPO decision. This ACT does not claim acceptance or closure. An independent review may inform that decision and cannot substitute for it.
+Not closed. T9 is green as an objective contract. The original T3 stays RED against the unchanged run 3, as preserved evidence of the disagreement on S4 (Skill finding none, key ambiguous). Whether S4 needs the finding `ambiguous`, whether delivery / none / ask is defensible, whether the key is sound and whether the Skill adds value over the baseline are judgments for the independent Review and the Owner. This ACT claims no acceptance and no closure.
