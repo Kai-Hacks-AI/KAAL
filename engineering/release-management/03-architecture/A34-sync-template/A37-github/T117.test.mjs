@@ -13,7 +13,10 @@ export const id = 'release/T117';
 export const tests = ['release/A37'];
 export const title = 'the SYNC template installed in GitHub is the text of the capability, byte for byte';
 export function run() {
-  // The cue line (release/C24) is set aside on both sides: the capability text carries it before the installed copy does (release/C25).
-  const withoutCue = (body) => body.split('\n').filter((line) => line !== CUE).join('\n').replace(/^\n+/, '');
-  assert.equal(withoutCue(read(installed, 'the installed SYNC template')), withoutCue(read(text, 'the capability text sync-template.md')));
+  // Transitional (release/C24): until release/C25 installs the cue, the installed copy lacks the cue line and both sides are compared without it.
+  // Once the installed copy carries the cue, the comparison is strict, byte for byte. release/C25 deletes this branch and a Case of C25 fails while it remains.
+  const capability = read(text, 'the capability text sync-template.md');
+  const copy = read(installed, 'the installed SYNC template');
+  if (copy.split('\n').includes(CUE)) assert.equal(copy, capability);
+  else assert.equal(copy, capability.split('\n').filter((line) => line !== CUE).join('\n').replace(/^\n+/, ''));
 }
