@@ -10,7 +10,8 @@ export const title = 'a freed seat pulls next in the existing PROMOTION and SYNC
 export async function run() {
   const mod = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
   assert.equal(typeof mod.laneStep, 'function', 'laneStep is not exported');
-  const { laneStep } = mod;
+  const calm = { open: [], closed: [], trigger: 't1', attempts: 0, cap: 2 };
+  const laneStep = (st) => mod.laneStep({ pulse: calm, ...st });
   const rep = (names, next = names[0]) => ({ qualifiers: names, next: next ? { collector: next } : { collector: null, judged: names, reason: 'judged' } });
   const hold = { collector: 'col-a', pr: 10 };
 

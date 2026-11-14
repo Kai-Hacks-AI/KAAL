@@ -17,6 +17,10 @@ One rule, pulled from the report. The lane has a seat (promotion WIP 1). A PROMO
 
 The step is a pure function of facts: `laneStep(state)` returns one advisory action (`wait`, `judge`, `open-promotion`, `open-sync`, `ready-for-cpo`) and never an approval, a merge or a ruleset change.
 
+## It cannot spam PRs
+
+Before any wiring it must be proven that the lane cannot flood the repository. The rule (pull/F42) is checked on the state it is given: an open PR of the same type for the same collector means wait, never a second; at most one PROMOTION and one SYNC are open lane-wide; a PR closed under the same trigger is not re-opened without a new trigger; an attempt cap, reached, goes to `judge`; and a missing or invalid input goes to `judge`, never to an open. Wiring (a workflow plus App) is a later Change and starts only after this is on `main`.
+
 ## What it reuses
 
 Nothing new is invented. The lane reads what exists:
