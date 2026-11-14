@@ -40,7 +40,7 @@ Run with Node 24 against a checkout of `main`; all are RED for the reason named.
 
 | Case | Checks | Result on main |
 | --- | --- | --- |
-| guard/T209 | F43 three origins run; conflation, differing copy, sourceless copy refused | RED: registered check not run |
+| guard/T209 | F43 two origins run (Engineering refused); conflation, differing copy, sourceless copy refused | RED: registered check not run |
 | guard/T210 | F44 per origin: add allowed; delete, weaken, re-own refused | RED: added registration did not run |
 | guard/T211 | F45 Guard runs the given plan; unknown/absent/`--full` run all; hard-wired never selected away | RED: `--plan` unknown option |
 | guard/T212 | F46 no shadowing of a hard-wired check | RED: shadowing registration not cannot judge |
@@ -51,7 +51,7 @@ Run with Node 24 against a checkout of `main`; all are RED for the reason named.
 ## 7. CPO direction and where it is applied
 
 Earlier answers (review 5906850527) stand except where the re-review (5906885891) supersedes them:
-1. Three origins, not only a capability package; a Change's temporary registration is not a Solution one: F43, T209.
+1. Two origins, Solution and Change (Owner correction 5906889921: Engineering does not register with Guard); a Change's temporary registration is not a Solution one: F43, T209.
 2. Selection is the Engine's. Guard consumes a resolved plan, no package.json or graph policy in Guard; unknown handled at the Engine boundary: F45, T211.
 3. `--full` is an execution capability; no gate or schedule assumed; wiring has its own owner: F45.
 4. Base-trusted anti-delete, anti-weaken, anti-shadow kept; Guard is not a Change-lifecycle governor: F44, F46, F47.

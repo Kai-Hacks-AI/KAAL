@@ -5,8 +5,8 @@ export const id = 'guard/T210';
 export const tests = ['guard/F44'];
 export const title = 'for every origin, a pull request may add a registration, but deleting, weakening or re-owning one the base holds is cannot judge, naming it, and its check never runs';
 export function run() {
-  for (const origin of ['solution', 'change', 'engineering']) {
-    const own = origin === 'solution' ? 'alpha' : 'o1';
+  for (const origin of ['solution', 'change']) {
+    const own = origin === 'solution' ? 'alpha' : 'c7';
     const dir = scratch({ ...baseline, ...owner('alpha'), ...reg(own, 'held', { origin }) });
     try {
       const base = rev(dir, 'HEAD');
