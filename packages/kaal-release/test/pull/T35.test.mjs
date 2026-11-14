@@ -53,20 +53,45 @@ export async function run() {
     for (const m of [m1, m2, m3, m4, p1.branchTip, p2.branchTip]) assert.ok(!read.historyOf(commits, mergeBase, head).includes(m), 'a commit of main, or the branch of a SYNC, was read as collector work');
 
     // A SYNC brings no paths: its place stays, its files are not read.
-    const facts = await read.readFacts('o/r', { collectors: [{ name: 'collector' }], evidence: {} }, async (path) => {
-      if (path.includes('/branches/')) return { commit: { sha: head } };
-      if (path.includes('/compare/')) return { files: [], total_commits: commits.length, commits, merge_base_commit: { sha: mergeBase } };
+    const fake = (cs, mb, hd, mainHas = () => true) => async (path) => {
+      if (path.includes('/branches/')) return { commit: { sha: hd } };
+      const against = /\/compare\/main\.\.\.([0-9a-f]{40})$/.exec(path);
+      if (against && against[1] !== hd) return { status: mainHas(against[1]) ? 'behind' : 'diverged' };
+      if (path.includes('/compare/')) return { files: [], total_commits: cs.length, commits: cs, merge_base_commit: { sha: mb } };
       if (path.includes('/git/trees/')) return { tree: [] };
       if (path.includes('/check-runs')) return { check_runs: [] };
       const sha = path.split('/commits/')[1];
       return { files: [{ filename: sha === s1 || sha === s2 || sha === s4 ? 'from-main.txt' : `own-${sha.slice(0, 4)}.txt`, status: 'added' }] };
-    }, async () => '');
+    };
+    const decl = { collectors: [{ name: 'collector' }], evidence: {} };
+    const facts = await read.readFacts('o/r', decl, fake(commits, mergeBase, head), async () => '');
     const byId = Object.fromEntries(facts.collectors[0].history.map((h) => [h.id, h.paths]));
     assert.deepEqual(facts.collectors[0].history.map((h) => h.id), line, 'the facts do not carry the first-parent line');
     assert.deepEqual(byId[s1], [], 'a SYNC brought paths into the evidence');
     assert.deepEqual(byId[s2], [], 'a SYNC brought paths into the evidence');
     assert.deepEqual(byId[s4], [], 'a SYNC brought paths into the evidence');
     assert.equal(byId[c1].length, 1, 'a collector commit lost its paths');
+
+    // A merge is not a SYNC by its parent count. A real development branch (not main) merged into the collector carries work: it fails closed.
+    git(dir, 'checkout', '-q', '-b', 'dev', c5); const d1 = commit(dir, 'd1');
+    git(dir, 'checkout', '-q', 'collector'); git(dir, 'merge', '-q', '--no-ff', '-m', 'dev', 'dev'); const devMerge = git(dir, 'rev-parse', 'HEAD');
+    const withDev = records(dir, 'collector');
+    assert.throws(() => read.historyOf(withDev.commits, withDev.mergeBase, withDev.head), /could not order the history/, 'a development branch merged into the collector was read as a SYNC');
+    const warned = [];
+    const devFacts = await read.readFacts('o/r', decl, fake(withDev.commits, withDev.mergeBase, withDev.head), async () => '', (w) => warned.push(w));
+    assert.ok(!devFacts.collectors[0].history && /could not order the history/.test(warned.join()), 'the work of a merged development branch was dropped, not refused');
+    assert.ok(withDev.commits.some((c) => c.sha === d1) && withDev.commits.some((c) => c.sha === devMerge), 'the fixture did not merge the development branch');
+    git(dir, 'reset', '-q', '--hard', c5);
+    // A merge of the collector's own earlier commit is the collector's work: its files are read, not discarded.
+    const own2 = git(dir, 'commit-tree', '-p', c5, '-p', c2, '-m', 'own', `${c5}^{tree}`);
+    git(dir, 'update-ref', 'refs/heads/collector', own2);
+    const ownRec = records(dir, 'collector');
+    const ownFacts = await read.readFacts('o/r', decl, fake(ownRec.commits, ownRec.mergeBase, ownRec.head), async () => '');
+    assert.equal(ownFacts.collectors[0].history.find((h) => h.id === own2).paths.length, 1, 'a merge of the collector\'s own commit was taken as a SYNC');
+    // A purported SYNC whose second parent main does not contain is refused.
+    const forged = []; const forgedFacts = await read.readFacts('o/r', decl, fake(commits, mergeBase, head, (p) => p !== m4), async () => '', (w) => forged.push(w));
+    assert.ok(!forgedFacts.collectors[0].history && /main does not contain it/.test(forged.join()), 'a purported SYNC that main does not contain was accepted');
+    git(dir, 'update-ref', 'refs/heads/collector', c5);
 
     // Fail closed.
     const closed = /could not order the history/;

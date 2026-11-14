@@ -115,7 +115,22 @@ export async function readFacts(repoName, declaration, get, getText, warn = () =
       if (tree.truncated) throw new Error(`could not read all of the tree of ${name}: the host cut it`);
 
       const order = historyOf(compare.commits, compare.merge_base_commit.sha, head);
-      const sync = new Set(compare.commits.filter((c) => (c.parents?.length ?? 0) > 1).map((c) => c.sha));
+      // A merge is a SYNC only when every parent besides the first is a commit of main (proved with the host: main contains it) or a side
+      // commit of such a merge. A merge of anything else (a development branch, the collector's own earlier commit) is the collector's own
+      // work: its files are read like any commit, and a branch with work in it already failed closed in historyOf.
+      const listed = new Set(compare.commits.map((c) => c.sha));
+      const onLine = new Set(order);
+      const main = new Set();
+      const sync = new Set();
+      for (const c of compare.commits) {
+        const others = (c.parents ?? []).slice(1).map((p) => p.sha);
+        for (const o of others) if (!listed.has(o)) main.add(o);
+        if (onLine.has(c.sha) && others.length && others.every((o) => !listed.has(o) || (!onLine.has(o)))) sync.add(c.sha);
+      }
+      for (const m of main) {
+        const against = await get(`repos/${repoName}/compare/main...${m}`);
+        if (!['behind', 'identical'].includes(against.status)) throw new Error(`could not read the history of ${name}: ${m.slice(0, 8)} is merged as main but main does not contain it`);
+      }
       const history = [];
       for (const id of order) {
         if (sync.has(id)) { history.push({ id, paths: [] }); continue; } // a SYNC: what it merged belongs to main, so it is not read as evidence
