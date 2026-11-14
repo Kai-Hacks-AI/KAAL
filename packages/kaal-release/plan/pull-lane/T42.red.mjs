@@ -5,7 +5,7 @@ import { join } from 'node:path';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 export const id = 'pull/T42';
 export const tests = ['pull/F42'];
-export const title = 'the lane cannot spam PRs: one open PR per type, WIP 1 lane-wide, no re-open under the same trigger, an attempt cap, and fail closed to judge';
+export const title = 'the lane cannot spam PRs: one open PR per type, WIP 1 lane-wide, at most one PR per trigger and type across collectors, an attempt cap, and fail closed to judge';
 
 export async function run() {
   const mod = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
@@ -23,10 +23,15 @@ export async function run() {
   assert.equal(behind({ open: [{ type: 'SYNC', collector: 'col-c' }] }).action, 'wait', 'a second SYNC lane-wide was opened');
   assert.equal(behind({ open: [{ type: 'PROMOTION', collector: 'col-a' }] }).action, 'open-sync', 'an open PROMOTION blocked the SYNC');
   assert.equal(free({ open: [{ type: 'SYNC', collector: 'col-a' }] }).action, 'open-promotion', 'an open SYNC blocked the PROMOTION');
-  // No re-open under the same trigger; a new trigger allows it.
+  // At most one PR per trigger and type, across collectors; a new trigger allows another.
   const closed = [{ type: 'PROMOTION', collector: 'col-b', trigger: 't1' }];
   assert.equal(free({ closed }).action, 'wait', 'a closed PR was re-opened under the same trigger');
-  assert.equal(free({ closed, trigger: 't2' }).action, 'open-promotion', 'a new trigger did not allow an open');
+  const other = [{ type: 'PROMOTION', collector: 'col-a', trigger: 't1' }];
+  const viaB = free({ closed: other, cap: 5 });
+  assert.equal(viaB.action, 'wait', 'a PROMOTION for another collector was opened under the same trigger');
+  assert.equal(behind({ closed: other, cap: 5 }).action, 'open-sync', 'a closed PROMOTION blocked a SYNC');
+  assert.equal(behind({ closed: [{ type: 'SYNC', collector: 'col-c', trigger: 't1' }], cap: 5 }).action, 'wait', 'a SYNC for another collector was opened under the same trigger');
+  assert.equal(free({ closed: other, trigger: 't2', cap: 5 }).action, 'open-promotion', 'a new trigger did not allow an open');
   // The attempt cap goes to judge.
   assert.equal(free({ attempts: 1 }).action, 'open-promotion');
   const capped = free({ attempts: 2 });
