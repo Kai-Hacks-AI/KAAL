@@ -1,0 +1,14 @@
+{
+  "name": "kaal-skills",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Skills: the common contract for how a Skill is integrated, stated once as Intent, Requirements and Cases. It ships nothing.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/integration.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
