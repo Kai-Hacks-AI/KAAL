@@ -136,11 +136,14 @@ export function runDiscovered(root, facts, options = {}) {
   }
   if (!everything) {
     for (const path of changed) {
+      // The nearest file is the deepest folder that holds the path, counted in folders and never by
+      // the order the files were listed in, so a nested Change's file beats its enclosing package's.
+      const depth = (file) => (posix.dirname(file) === "." ? 0 : posix.dirname(file).split("/").length);
       let nearest;
       for (const file of files.keys()) {
         const dir = posix.dirname(file);
         const inside = dir === "." || path.startsWith(`${dir}/`);
-        if (inside && (!nearest || posix.dirname(nearest).length < dir.length)) nearest = file;
+        if (inside && (!nearest || depth(file) > depth(nearest))) nearest = file;
       }
       if (!nearest || touched.get(nearest) === null) continue;
       const dir = posix.dirname(nearest);

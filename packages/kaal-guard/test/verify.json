@@ -25,6 +25,7 @@
     "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
     "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
     "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone",
+    "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] nearest declaration, whatever the listing order > guard/T216 [guard/F43, guard/A21]: a changed file under a nested folder's kaal-guard.json selects that file and never the enclosing package's, whether the nested file sorts before or after the enclosing one, and a root-level file loses to any folder's",
     "test/acceptance/requirements-discovery.test.mjs > guard/F44 [guard/I1] discovery > guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file",
     "test/acceptance/requirements-discovery.test.mjs > guard/F45 [guard/I1] discovery > guard/T211 [guard/F45, guard/A21]: when the selection is unknown, or --full is given, Guard runs every kaal-guard.json; the Engine's plan adds capabilities in flight; an invalid, unreadable or empty plan is cannot judge; no outcome is a silent success",
     "test/acceptance/requirements-installation.test.mjs > guard/F10 and guard/F17 [guard/I2, guard/I5] unreadable workflows > guard/T89 [guard/F10, guard/F17, guard/N4]: with a directory, and with a dangling link, named .github/workflows/x.yml, verify and init --ci are cannot judge (exit 2), naming the entry, and print no stack trace",
@@ -369,6 +370,7 @@
         "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T77 [guard/F30, guard/F4, guard/F17]: hook and CI are activated apart and registered apart; neither implies the other, and activating again changes nothing",
         "test/acceptance/requirements-configuration.test.mjs > guard/F30 [guard/I1, guard/I3, guard/I5] initialization, activation and execution > guard/T78 [guard/F30, guard/F18, guard/N4]: each activation is undone on its own, keeping every declaration and Test Case; local is refused, naming hook",
         "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] nearest declaration, whatever the listing order > guard/T216 [guard/F43, guard/A21]: a changed file under a nested folder's kaal-guard.json selects that file and never the enclosing package's, whether the nested file sorts before or after the enclosing one, and a root-level file loses to any folder's",
         "test/acceptance/requirements-discovery.test.mjs > guard/F44 [guard/I1] discovery > guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file",
         "test/acceptance/requirements-discovery.test.mjs > guard/F45 [guard/I1] discovery > guard/T211 [guard/F45, guard/A21]: when the selection is unknown, or --full is given, Guard runs every kaal-guard.json; the Engine's plan adds capabilities in flight; an invalid, unreadable or empty plan is cannot judge; no outcome is a silent success",
         "test/acceptance/requirements-installation.test.mjs > guard/F21 and guard/F22 [guard/I7, guard/I1, guard/I2] reminder, unchanged verdicts > guard/T47 [guard/F21, guard/F22]: a failing and a cannot-judge local run keep their exit statuses, verdict lines and the check's own stdout and stderr byte for byte, and add exactly one reminder line naming an existing Skill path",
@@ -559,12 +561,14 @@
     },
     "guard/F43": {
       "Requirements": [
-        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone"
+        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] nearest declaration, whatever the listing order > guard/T216 [guard/F43, guard/A21]: a changed file under a nested folder's kaal-guard.json selects that file and never the enclosing package's, whether the nested file sorts before or after the enclosing one, and a root-level file loses to any folder's"
       ]
     },
     "guard/A21": {
       "Requirements": [
         "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] discovery > guard/T209 [guard/F43, guard/A21]: Guard finds the nearest kaal-guard.json of each changed file, at a package root or in an open Change folder wherever it lives, runs only those checks narrowed by their when, runs the .kaal root file on every run, and stops running a Change's checks once its file is gone",
+        "test/acceptance/requirements-discovery.test.mjs > guard/F43 [guard/I1] nearest declaration, whatever the listing order > guard/T216 [guard/F43, guard/A21]: a changed file under a nested folder's kaal-guard.json selects that file and never the enclosing package's, whether the nested file sorts before or after the enclosing one, and a root-level file loses to any folder's",
         "test/acceptance/requirements-discovery.test.mjs > guard/F44 [guard/I1] discovery > guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file",
         "test/acceptance/requirements-discovery.test.mjs > guard/F45 [guard/I1] discovery > guard/T211 [guard/F45, guard/A21]: when the selection is unknown, or --full is given, Guard runs every kaal-guard.json; the Engine's plan adds capabilities in flight; an invalid, unreadable or empty plan is cannot judge; no outcome is a silent success"
       ]
@@ -773,11 +777,11 @@
     "docs/intent.md": "b76f9d553227edf4faf362a2e560251cbe6e71d04e38c70203bc7116b02a0a5f",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
     "docs/requirements.md": "fff3d0fc84d005dc102d7643c6f2ff75bdf8e7631ad6284b01db811d07570622",
-    "docs/testing.md": "5b89afc792c141f50850e853dcfb0bc7d0ac4e721038519fae165384208b3e3e",
+    "docs/testing.md": "bedf30b1d207a96f14a21f3776e99a1fe1e6499af52f96fbb003532b2cb34e9c",
     "installation.kaal.json": "fcfa9645e793c14bd9c3512b0c018a5f6d1c2cdef7d6dd20b7ff3450ddc48a3e",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
-    "lib/discovery.mjs": "6a8f8e3d5e0a5ae60afe11879cc6f14b3bb1a0325d28064689f814a2cd1363df",
+    "lib/discovery.mjs": "125d4f3602847f228a151ab9b93fe8393004b6fa671647af6025721a0b89eb14",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
     "lib/github.mjs": "6d5198ac24a8e444294683213860bf79644b08185d0ff25ba391923996aa1b98",
     "lib/lifecycle.mjs": "05600e087cb17b5b61ba4982be5c3b25e1a8082aa4fe5b4afe2ad42134edd081",
@@ -798,7 +802,7 @@
     "test/acceptance/harness.mjs": "c7963e369d49d7a31d536bccf335c6b73cacf94b6dcf5e52fcf84d8a08f7a8b9",
     "test/acceptance/intent.test.mjs": "05be728b9532616e1e111bfc436576c77bfd4b8b9bae76f570efbaf0a29c4ac7",
     "test/acceptance/requirements-configuration.test.mjs": "59a320936e510e0639bed9c3370fa122243760f687a85fc748982609a75a991b",
-    "test/acceptance/requirements-discovery.test.mjs": "eced0a51d37b8ec33b91b62dc70aad93f34f122e4ce770f2910e692e1232a2af",
+    "test/acceptance/requirements-discovery.test.mjs": "ee6b93f1940d8292c2c833c99fad796b319946d24f6d3a031eb8da126ce6041b",
     "test/acceptance/requirements-installation.test.mjs": "64a3a3e7fcfe937a9c4b6a7d4648b50348bb993effc87ab73bc4c4ec63ec0589",
     "test/acceptance/requirements-support.mjs": "22528d3c0bd1451217c76a6b845ed4ed0ef62078b5318fe3699c088c3ffc2044",
     "test/acceptance/requirements.test.mjs": "69a545ba178e7b6d3609b6d0d4040a47a11f35c3f2b8d57b8b5ad583468c1cf8",

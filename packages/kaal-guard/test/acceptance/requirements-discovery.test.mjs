@@ -45,6 +45,36 @@ describe("guard/F43 [guard/I1] discovery", () => {
   });
 });
 
+describe("guard/F43 [guard/I1] nearest declaration, whatever the listing order", () => {
+  it("guard/T216 [guard/F43, guard/A21]: a changed file under a nested folder's kaal-guard.json selects that file and never the enclosing package's, whether the nested file sorts before or after the enclosing one, and a root-level file loses to any folder's", () => {
+    const dir = scratch({
+      ...baseline, ...scripts('outer-a', 'inner-a', 'outer-z', 'inner-z', 'root'),
+      // The nested file sorts before the enclosing one ("00-changes" < "kaal-guard.json") ...
+      'packages/kaal-a/kaal-guard.json': kg('outer-a'),
+      'packages/kaal-a/00-changes/C1-x/kaal-guard.json': kg('inner-a'),
+      // ... and after it ("kaal-guard.json" < "zz-changes").
+      'packages/kaal-z/kaal-guard.json': kg('outer-z'),
+      'packages/kaal-z/zz-changes/C1-x/kaal-guard.json': kg('inner-z'),
+      'kaal-guard.json': kg('root'),
+    });
+    try {
+      const base = rev(dir, 'HEAD');
+      const NAMES = ['outer-a', 'inner-a', 'outer-z', 'inner-z', 'root'];
+      commit(dir, { 'packages/kaal-a/00-changes/C1-x/note.md': 'x\n' });
+      assert.deepEqual(ran(hook(dir, base), NAMES), ['inner-a'], 'the enclosing package was selected, or the nested file was not');
+      const base2 = rev(dir, 'HEAD');
+      commit(dir, { 'packages/kaal-z/zz-changes/C1-x/note.md': 'x\n' });
+      assert.deepEqual(ran(hook(dir, base2), NAMES), ['inner-z'], 'the enclosing package was selected, or the nested file was not');
+      const base3 = rev(dir, 'HEAD');
+      commit(dir, { 'packages/kaal-a/a.txt': 'x\n' });
+      assert.deepEqual(ran(hook(dir, base3), NAMES), ['outer-a'], 'a package file did not select its own file alone');
+      const base4 = rev(dir, 'HEAD');
+      commit(dir, { 'elsewhere.txt': 'x\n' });
+      assert.deepEqual(ran(hook(dir, base4), NAMES), ['root'], 'a root-level file did not select the root file');
+    } finally { cleanup(dir); }
+  });
+});
+
 describe("guard/F44 [guard/I1] discovery", () => {
   
   it("guard/T210 [guard/F44, guard/A21]: a package may change its own kaal-guard.json, removing checks included, and Guard runs it as the candidate has it; a malformed file, a check with no command or a command that cannot start is cannot judge, naming the file", () => {
