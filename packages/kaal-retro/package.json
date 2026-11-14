@@ -1,0 +1,16 @@
+{
+  "name": "kaal-retro",
+  "version": "0.0.1",
+  "description": "A standalone Skill for running a retrospective on any subject, with 4L as its first method.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "skills"
+  ],
+  "scripts": {
+    "test": "node --test test/plan/retro.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
