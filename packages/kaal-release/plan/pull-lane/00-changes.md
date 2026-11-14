@@ -44,3 +44,31 @@ No workflow, App, ruleset, hook or declaration change. No value or size is assig
 ## Order
 
 PLAN (this), then DO (`laneStep` in the Script, README, T40 and T41 to green), then ACT, a concluding collector-level ACT, SYNC and PROMOTION. Collector: `kaal/release/pull-lane`, from `main`. The wiring (workflow plus App) is a separate later collector, `kaal/release/wire-pull-lane`.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- The CPO's three reviews each closed a real gap before any code existed. A failed holder is re-ranked with the pull/C9 rule instead of a second algorithm. A closed PR under the same trigger blocks another across collectors. The anti-spam bound was stated and then tested.
+- The step stayed a pure function of its inputs. That made every rule a RED Case that went green by one function, with no workflow, App or ruleset touched.
+- Reusing `chooseNext`, the existing templates and the report meant the lane added no mechanism the Owner had not already approved.
+
+### Learned
+
+- A dependency between Changes shows up at the DO: the lane could not be built until pull/C9 reached `main`, because collectors cannot merge each other. The PLAN approvals were independent, but the order of promotion was not.
+- "At most one PR per trigger" is only true if closed PRs are counted across collectors, not just open ones. The first draft tested only the open case.
+- A failed re-qualification is its own trigger, so the alternative pulled after a FAIL counts as one PR under that trigger.
+
+### Lacked
+
+- Anything that produces the `pulse` from the host (open and closed PRs, the trigger, the attempts). `laneStep` only judges the facts it is given.
+- A caller. Nothing runs the step, and no GitHub App identity exists to open the PRs, so none of this is activated.
+- Recorded values, sizes and units in `declaration.json`, so `next` is still judged whenever several collectors qualify.
+
+### Longed For
+
+- A read-only gatherer of the pulse, with its own PLAN and Cases, before any wiring.
+- The Owner's go on the GitHub App identity and its narrow permissions, as a separate gated Change.
+- Auto-approval, if ever wanted, as its own Change with the Owner's go. It never bypasses the CPO or a required check.
