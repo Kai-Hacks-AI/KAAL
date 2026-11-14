@@ -25,7 +25,7 @@ Credential: `GH_TOKEN` or `GITHUB_TOKEN`, or an already signed-in `gh`; the comm
 
 ## The lane step
 
-`laneStep(state)` in the Script is the one advisory step of the promotion lane, a pure function of the facts it is given: the seat, the report, the declaration, whether the holder is behind `main`, its re-qualification at the exact head (`PASS`, `FAIL`, `UNKNOWN`) and a `pulse` of the open and closed pull requests, the trigger, the attempts and the cap. It returns `wait`, `judge`, `open-promotion`, `open-sync` or `ready-for-cpo`. It opens nothing itself and has no approval or merge action.
+`laneStep(state)` in the Script is the one advisory step of the promotion lane, a pure function of the facts it is given: the seat, the report, the declaration, whether the holder is behind `main`, its re-qualification at the exact head (`PASS`, `FAIL`, `UNKNOWN`) and a `pulse` of the open and closed pull requests, the trigger, the attempts and the cap. It returns `wait`, `judge`, `open-promotion`, `open-sync`, `ready-for-cpo` or `select`. It opens nothing itself and has no approval or merge action.
 
 - A free seat pulls `next` (the C9 rule); a judged `next` returns `judge` with the candidates.
 - Only the holder is synced, and only when behind `main`. `PASS` is ready for the CPO; `UNKNOWN` waits; `FAIL` ranks the remaining qualifiers with `chooseNext`, the same C9 rule, and waits if none remain.
@@ -33,3 +33,7 @@ Credential: `GH_TOKEN` or `GITHUB_TOKEN`, or an already signed-in `gh`; the comm
 - It cannot spam: an open PR of a type blocks another of that type lane-wide, a closed one under the same trigger blocks another under that trigger (any collector), the attempt cap goes to `judge`, and a missing or invalid pulse goes to `judge`.
 
 Nothing calls it yet. A workflow and a GitHub App identity are a later Change.
+
+### The next delivery by class (pull/C11)
+
+With a free seat and an optional `deliveries` list of candidates `{class, source, name, out, in}`, the step selects the eligible candidate of the highest class, HOTFIX then WIRE then KAAL. A candidate is eligible only when `out` and `in` are both `PASS` and its `source` starts with its class prefix (`hotfix/`, `wire/`, `kaal/`); `FAIL`, `UNKNOWN`, a missing value or an invalid candidate is not eligible, and an ineligible higher class never blocks an eligible lower one. `UNKNOWN` candidates are listed as `unknown`. For HOTFIX and WIRE the result is the advisory `select` with the class and name; within KAAL the pull/C9 value-density choice is returned as `open-promotion`. Two eligible candidates of one HOTFIX or WIRE class, or none eligible while some are unknown, or a `deliveries` that is not a list, are judged. What is in stays in: with the seat held the holder's step is unchanged whatever `deliveries` holds. One admission lane guards every class: any open PROMOTION, HOTFIX or WIRE in `pulse.open` gives `wait`, a closed one of the same class under the same trigger waits, the cap and an invalid pulse judge. Without `deliveries` the step is exactly as before. Nothing here wires a workflow, a ruleset or an App.

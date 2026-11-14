@@ -10,7 +10,7 @@ export const title = 'the lane function returns only advisory actions: never an 
 export async function run() {
   const mod = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
   assert.equal(typeof mod.laneStep, 'function', 'laneStep is not exported');
-  const allowed = new Set(['wait', 'judge', 'open-promotion', 'open-sync', 'ready-for-cpo']);
+  const allowed = new Set(['wait', 'judge', 'open-promotion', 'open-sync', 'ready-for-cpo', 'select']);
   const reports = [
     { qualifiers: [], next: { collector: null, reason: 'none' } },
     { qualifiers: ['col-a'], next: { collector: 'col-a' } },

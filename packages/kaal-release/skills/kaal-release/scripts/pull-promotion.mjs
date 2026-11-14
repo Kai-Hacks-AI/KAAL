@@ -113,6 +113,8 @@ export function chooseNext(qualifiers, entries, declaration) {
 // It returns wait, judge, open-promotion, open-sync or ready-for-cpo, and acts on nothing. A seat holder that fails re-qualification
 // is replaced by chooseNext (the pull/C9 rule) on the remaining qualifiers. Doubtful input fails closed to judge.
 const TEMPLATE = { 'open-promotion': { type: 'PROMOTION', chapters: ['Change', 'Why now'] }, 'open-sync': { type: 'SYNC', chapters: ['Change', 'Reason'] } };
+const CLASSES = { HOTFIX: { prefix: 'hotfix/', type: 'HOTFIX' }, WIRE: { prefix: 'wire/', type: 'WIRE' }, KAAL: { prefix: 'kaal/', type: 'PROMOTION' } };
+const ADMISSION = ['PROMOTION', 'HOTFIX', 'WIRE'];
 const isId = (v) => typeof v === 'string' && v.trim() !== '';
 const pulseProblem = (pulse) => {
   if (!pulse || typeof pulse !== 'object') return 'the lane has no pulse';
@@ -125,7 +127,7 @@ const pulseProblem = (pulse) => {
   return null;
 };
 export function laneStep(state = {}) {
-  const { seat = null, report = {}, declaration = {}, behind = false, requalification, pulse } = state;
+  const { seat = null, report = {}, declaration = {}, behind = false, requalification, pulse, deliveries } = state;
   const judge = (reason, judged) => ({ action: 'judge', reason, ...(judged?.length ? { judged } : {}) });
   const wait = (reason) => ({ action: 'wait', reason });
   const open = (action, collector) => {
@@ -142,7 +144,39 @@ export function laneStep(state = {}) {
     if (next?.collector) return open('open-promotion', next.collector);
     return next?.judged?.length ? judge(next.reason ?? 'judged by the Owner', next.judged) : wait('no qualifier is waiting');
   };
-  if (!seat) return fromNext(report.next);
+  // pull/F43, F45: with a free seat and deliveries, the highest class with an eligible candidate; within KAAL the C9 choice. One admission lane.
+  const fromDeliveries = (list) => {
+    if (!Array.isArray(list)) return judge('judged: the deliveries are not a list');
+    const unknown = [];
+    const eligible = { HOTFIX: [], WIRE: [], KAAL: [] };
+    for (const d of list) {
+      const valid = d && typeof d === 'object' && CLASSES[d.class] && isId(d.name) && typeof d.source === 'string' && d.source.startsWith(CLASSES[d.class].prefix);
+      if (!valid) { unknown.push(isId(d?.name) ? d.name : String(d?.name ?? d)); continue; }
+      if (d.out === 'FAIL' || d.in === 'FAIL') continue;
+      if (d.out === 'PASS' && d.in === 'PASS') eligible[d.class].push(d.name);
+      else unknown.push(d.name);
+    }
+    const note = unknown.length ? { unknown } : {};
+    const admit = (cls, result) => {
+      const bad = pulseProblem(pulse);
+      if (bad) return judge(`judged: ${bad}`);
+      if (pulse.open.some((p) => ADMISSION.includes(p.type))) return wait('a delivery is already open');
+      if (pulse.closed.some((p) => p.type === CLASSES[cls].type && p.trigger === pulse.trigger)) return wait(`a ${CLASSES[cls].type} was already opened under this trigger`);
+      if (pulse.attempts >= pulse.cap) return judge('judged: the attempt cap is reached');
+      return { ...result, ...note };
+    };
+    for (const cls of ['HOTFIX', 'WIRE']) {
+      if (eligible[cls].length > 1) return judge(`judged: more than one eligible ${cls}`, eligible[cls]);
+      if (eligible[cls].length === 1) return admit(cls, { action: 'select', class: cls, name: eligible[cls][0] });
+    }
+    if (eligible.KAAL.length) {
+      const next = chooseNext(eligible.KAAL, [], declaration);
+      if (!next.collector) return judge(next.reason ?? 'judged by the Owner', next.judged);
+      return admit('KAAL', { action: 'open-promotion', collector: next.collector, ...TEMPLATE['open-promotion'] });
+    }
+    return unknown.length ? judge('judged: no candidate is eligible and some are unknown', unknown) : wait('no delivery is eligible');
+  };
+  if (!seat) return deliveries === undefined ? fromNext(report.next) : fromDeliveries(deliveries);
   if (behind) return open('open-sync', seat.collector);
   if (requalification === 'PASS') return { action: 'ready-for-cpo', collector: seat.collector };
   if (requalification !== 'FAIL') return wait('the holder is not re-qualified at its exact head');
