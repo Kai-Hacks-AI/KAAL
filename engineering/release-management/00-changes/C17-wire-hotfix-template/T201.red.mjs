@@ -15,11 +15,24 @@ const draft = (text) => {
   assert.ok(m, 'the fenced draft is absent');
   return m[1];
 };
+// Visible text: everything outside <!-- ... --> spans, removed span by span, so no comment opener can survive.
+const stripComments = (text) => {
+  let out = '';
+  let rest = text;
+  for (;;) {
+    const open = rest.indexOf('<!--');
+    if (open === -1) return out + rest;
+    out += rest.slice(0, open);
+    const close = rest.indexOf('-->', open + 4);
+    assert.ok(close !== -1, 'a comment in the draft is not closed');
+    rest = rest.slice(close + 3);
+  }
+};
 export const id = 'release/T201';
 export const tests = ['release/G57'];
 export const title = 'gap release/G57 is closed: the Hotfix template draft opens its visible body with the one Change envelope cue, before the Change chapter';
 export function run() {
-  const visible = draft(read(interfaceDoc, 'the Hotfix interface')).replace(/<!--[\s\S]*?-->/g, '').split('\n').map((line) => line.trimEnd()).filter((line) => line !== '');
+  const visible = stripComments(draft(read(interfaceDoc, 'the Hotfix interface'))).split('\n').map((line) => line.trimEnd()).filter((line) => line !== '');
   assert.equal(visible[0], CUE, 'the Hotfix draft does not open its visible body with the Change envelope cue');
   assert.equal(visible.filter((line) => line === CUE).length, 1, 'the Hotfix draft holds the cue more than once');
   assert.equal(visible[1], '## Change', 'the cue is not followed directly by the Change chapter');
