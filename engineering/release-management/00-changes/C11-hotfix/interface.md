@@ -54,6 +54,8 @@ Every PR interface shares one formatting contract, separate from its meaning (se
 ```
 <!-- A HOTFIX pull request. Exactly four chapters in this order and nothing else: no extra headings, commentary, test results, CI status or execution logs. The Change, the Cases, the diff and the checks hold everything else; discussion goes into comments. -->
 
+**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.
+
 ## Change
 
 <!-- One line, `<id> <name>`: the stable id and the name of the Change. An identity, not a description; the Defect says what is broken. -->
