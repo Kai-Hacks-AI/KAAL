@@ -17,3 +17,7 @@ The host adapter that supplies trustworthy bytes of the source and the preimage 
 ## Longed For
 
 One reviewed DO for the WIRE enforcement on `main`, tested outside the live rulesets, failing closed for an unclassified pull request. The first real WIRE, C26's dispatcher, run end to end as the proof of the path.
+
+## Renumbering
+
+The Cases T209 to T212 collided with Guard's release C143 Cases T209, T210, T211 and T213, and Case ids are globally unique. They are renumbered T281 to T284 (T209 to T281, T210 to T282, T211 to T283, T212 to T284), with no change to their content. Ids T277 to T279 are used by the pull-declare PLAN; T281 to T284 were free on every remote branch when checked.

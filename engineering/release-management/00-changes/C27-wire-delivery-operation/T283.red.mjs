@@ -1,10 +1,10 @@
-// Case release/T211 tests: F22
+// Case release/T283 tests: F22
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T211';
+export const id = 'release/T283';
 export const tests = ['release/F22'];
 export const title = 'WIRE verification: the installed WIRE template equals its Engineering source';
 

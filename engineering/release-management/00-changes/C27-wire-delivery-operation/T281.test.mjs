@@ -1,10 +1,10 @@
-// Case release/T209 tests: F22
+// Case release/T281 tests: F22
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T209';
+export const id = 'release/T281';
 export const tests = ['release/F22'];
 export const title = 'the WIRE template source has exactly the chapters Source, Target and Verification, as drafted';
 

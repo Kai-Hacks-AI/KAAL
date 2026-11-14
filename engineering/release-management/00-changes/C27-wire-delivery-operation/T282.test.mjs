@@ -1,10 +1,10 @@
-// Case release/T210 tests: F22
+// Case release/T282 tests: F22
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T210';
+export const id = 'release/T282';
 export const tests = ['release/F22'];
 export const title = 'the install judge accepts only unchanged copies and declared moves, shown on good and bad installs';
 
