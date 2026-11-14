@@ -12,7 +12,7 @@ export const sha = (s) => createHash('sha256').update(s).digest('hex');
 export const requests = () => JSON.parse(read(`${C}requests.json`, 'the requests')).requests;
 export const requestsSha = () => sha(read(`${C}requests.json`, 'the requests'));
 export const TOPICS = ['agent hosting', 'Review installation', 'Pull Promotion', 'incident reporting', 'Testing and Review integration'];
-export const FIELDS = ['solution', 'delivery', 'mixed', 'unresolved', 'change'];
+export const FIELDS = ['solution', 'delivery', 'architecture', 'mixed', 'unresolved', 'change'];
 // A recorded arm: who observed it, the requests it saw, the prompt, and the raw output unedited.
 export function arm(name) {
   const meta = JSON.parse(read(`${C}trial/${name}.json`, `the ${name} record`));
