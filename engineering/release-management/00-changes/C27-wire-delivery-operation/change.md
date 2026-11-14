@@ -45,9 +45,9 @@ C18's workflows and ruleset JSON follow the same path: sources through the Engin
 
 1. A 4L retrospective of the Change, from the viewpoint of the agent that carried it, in `act.md`. It lands in the collector before the promotion.
 
-## Open for the CPO
+## Enforcement ruling (CPO, 14 Nov)
 
-GitHub rulesets match the target branch, which is `main` for PROMOTION, HOTFIX and WIRE alike. A distinct `wire/**` ruleset therefore cannot be told apart by the head branch. The planned design is that Branching classifies `wire/<name>` (as it classifies `hotfix/<name>`), and the WIRE judge is its own required check context; whether a separate ruleset, an additional rule in the main ruleset or a required-context set per classification is needed is the CPO's choice. Designing it is in scope; activating any ruleset or branching rule needs the Owner's explicit authorization.
+GitHub rulesets match the target branch, which is `main` for PROMOTION, HOTFIX and WIRE alike, so a separate "WIRE" ruleset targeting `main` cannot by itself tell a `wire/*` head apart. There is one protection policy on `main`, with mandatory checks and classification that depend on the delivery type. A later DO designs and tests that branch- and type-sensitive enforcement explicitly and fails closed for an unclassified pull request. The template bootstrap needs a separately reviewed, protected, existing delivery path and never weakens the protection of `main`. Activating any ruleset or branching rule needs the Owner's explicit authorization.
 
 ## Not in this Change
 
