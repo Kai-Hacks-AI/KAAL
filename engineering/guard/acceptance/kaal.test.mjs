@@ -103,7 +103,9 @@ describe("KAAL's own checks run through Guard", () => {
   });
 
   it("guard/T5 [guard/I4]: the pre-push hook runs the hook checks through Guard", () => {
-    assert.match(read(".githooks/pre-push"), /kaal-guard run --hook/);
+    // The hook may be split into a dispatcher plus the legacy hook (release/C26).
+    const legacy = existsSync(join(REPO, ".githooks/old/pre-push")) ? ".githooks/old/pre-push" : ".githooks/pre-push";
+    assert.match(read(legacy), /kaal-guard run --hook/);
   });
 
   it("guard/T34 [guard/A11]: every Guard-run job keeps its name and runs its check through Guard", () => {
