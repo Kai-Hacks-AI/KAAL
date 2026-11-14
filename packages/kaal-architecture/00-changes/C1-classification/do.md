@@ -30,3 +30,29 @@ What the DO delivered, and what was observed.
 
 - No `ownership.kaal.json`: this slice has no Node. The Cases are not listed in Engineering's CI, and the package is outside `workspaces`.
 - Nothing is deployed, published or promoted.
+
+## Next-move trial (architecture/F4, Case T9)
+
+The Owner decided T3/S4 on #1534: ask for the next move so that asking is observable, keep the original evidence, allow `ambiguous` where supported. The original T3 and run 3 are unchanged. T3 is still RED on S4 against run 3, which asked only for parts and finding.
+
+Run 4 (`trial/next/`), fresh subagents, the prompt asks for parts, finding and next move (keep, split, ask), recorded unedited:
+
+- With the Skill: S4 was answered delivery, finding none, next move ask. The key says delivery, ambiguous, ask.
+- Without the Skill: S4 was answered solution and delivery, ambiguous, ask.
+- Both arms chose ask for S4 and S5, so asking is now observable. On every other statement both arms equal the key.
+
+### What T9 verifies, and what it does not
+
+T9 verifies the objective contract: both arms were asked the same questions, the Skill prompt holds the Skill as shipped, provenance holds, every answer has allowed values for parts, finding and next move, S4 and S5 record the declared next move ask, and every difference from the declared key is named here, one line each. T9 is green when the contract holds. It does not claim the key is right: it does not decide whether S4 is ambiguous, whether delivery / none / ask is a defensible reading, or whether the Skill adds value over the baseline.
+
+The differences from the declared key:
+
+T9 disagreement: skill S4 finding none (key ambiguous)
+T9 disagreement: baseline S4 parts ["solution","delivery"] (key ["delivery"])
+
+### Left to judgment
+
+- Whether S4 needs the finding `ambiguous`, or `none` with next move ask is as defensible. The original T3 still holds the disagreement against the key.
+- The baseline is closer to the key than the Skill-only agent on S4's finding, and differs on S4's parts. This trial gives no ground to claim the Skill improves on the baseline.
+- Independence is limited: the author wrote the Skill, the key and the prompt; the observers are fresh subagent sessions. The independent Review is separate.
+- Neither the key nor the Skill was changed after seeing run 4.
