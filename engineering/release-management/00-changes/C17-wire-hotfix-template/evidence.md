@@ -38,3 +38,18 @@ T181 was run by calling `run()` over the effective target state of the wiring: t
 | Delta of `kaal/release/wire-hotfix` against its base | one commit, one file, 17 lines (#1525) |
 
 This is a manual run of the Case, not a CI check. The engineering collector alone does not hold the template, so the Case stays `.red.mjs` there; it is renamed to `.test.mjs` once the template is on `main`. The draft of release/C11 is unchanged by this run. A later amendment of the draft (release/C23) needs the installed template to follow it through its own wiring.
+
+## CHECK at the exact heads (14 Nov, after both SYNCs)
+
+Heads: `kaal/release/wire-hotfix` at e18c14f, `kaal/release/wire-hotfix-engineering` at 6b44cf5, `main` at 0b94738 (release/C24 included); neither collector is behind `main`. `kaal/release/wire-hotfix` differs from `main` by one file, `.github/PULL_REQUEST_TEMPLATE/hotfix.md`.
+
+| Item | Value |
+| --- | --- |
+| sha256 of `hotfix.md` at e18c14f | a3a14714357f1b2082449cfdfd5551f90df3782fff9510a03804a16f655909f3 |
+| sha256 of `hotfix.md` at 6b44cf5 | a3a14714357f1b2082449cfdfd5551f90df3782fff9510a03804a16f655909f3 |
+| sha256 of the fenced draft in `C11-hotfix/interface.md` at 6b44cf5 | a3a14714357f1b2082449cfdfd5551f90df3782fff9510a03804a16f655909f3 |
+| T181 draft/installed byte equality | green |
+| T201 the one envelope cue in the draft | green |
+| T150, T151, T152, T153, T154, T155, T157, T159, T160 (active `.test.mjs` at their original paths) | all green |
+
+Method: `run()` of each Case called over the tree of the engineering collector at 6b44cf5, which holds the installed `hotfix.md`; the `.github` collector's file was compared byte for byte. The engineering collector's CI runs the same Cases as active Cases.
