@@ -4,7 +4,7 @@ Runnable Cases `T40` and `T41`, `.red.mjs`. They are RED because `laneStep` does
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
-| pull/T40 | F39 | A free seat opens the PROMOTION of `next`; a judged `next` opens nothing and names the candidates. A held seat that is current waits. Only the holder is synced, and only when behind `main`. PASS is ready for the CPO; FAIL pulls the best other qualifier (never the failed one) or is judged; UNKNOWN and absent wait. |
+| pull/T40 | F39 | A free seat opens the PROMOTION of `next`; a judged `next` opens nothing and names the candidates. A held seat that is current waits. Only the holder is synced, and only when behind `main`. PASS is ready for the CPO; FAIL re-ranks the others with the pull/C9 rule: the failed holder being the original `next`, an alternative with a valid density is pulled, a tie or incomparable alternatives are judged with the candidates named, and none remaining waits; UNKNOWN and absent wait. |
 | pull/T40 | F41 | `open-sync` names a SYNC with the chapters Change and Reason; `open-promotion` names a PROMOTION with Change and Why now. |
 | pull/T41 | F40 | Over every combination of seat, behind, re-qualification and `next`, the action is one of the five advisory actions, and never an approval or a merge. |
 

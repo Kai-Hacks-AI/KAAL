@@ -12,7 +12,7 @@ One rule, pulled from the report. The lane has a seat (promotion WIP 1). A PROMO
 
 1. **Pull.** The freed seat pulls `next` (highest value density, pull/C9) and opens that collector's PROMOTION PR. If `next` is judged (no single collector), nothing is opened; the Owner chooses.
 2. **Sync on demand.** Only the seat holder, and only when its PROMOTION is behind `main`, gets a SYNC PR. No speculative syncs for collectors without the seat.
-3. **Re-qualify.** At the new exact head the Script reports the holder again. PASS: the PROMOTION is ready for the CPO. FAIL: the seat is released and pulls the next candidate, the failed one excluded. UNKNOWN never passes and holds the seat.
+3. **Re-qualify.** At the new exact head the Script reports the holder again. PASS: the PROMOTION is ready for the CPO. FAIL: the seat is released and the remaining qualifiers are ranked by the same pull/C9 rule (the Script's `chooseNext`, not a second algorithm), the failed one excluded; if they are tied or incomparable the Owner judges, and if none remain the lane waits. UNKNOWN never passes and holds the seat.
 4. **Land.** The merge queue squashes, the seat frees, and the cycle repeats.
 
 The step is a pure function of facts: `laneStep(state)` returns one advisory action (`wait`, `judge`, `open-promotion`, `open-sync`, `ready-for-cpo`) and never an approval, a merge or a ruleset change.

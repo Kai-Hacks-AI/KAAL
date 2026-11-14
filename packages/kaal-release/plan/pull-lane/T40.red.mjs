@@ -30,12 +30,26 @@ export async function run() {
   assert.equal(r.action, 'wait', 'a current holder without a result did not wait');
   r = laneStep({ seat: hold, behind: false, requalification: 'PASS', report: rep(['col-a']) });
   assert.deepEqual([r.action, r.collector], ['ready-for-cpo', 'col-a'], 'PASS was not ready for the CPO');
-  r = laneStep({ seat: hold, behind: false, requalification: 'FAIL', report: rep(['col-a', 'col-b', 'col-c'], 'col-a') });
-  assert.equal(r.action, 'open-promotion', 'FAIL did not pull another');
-  assert.notEqual(r.collector, 'col-a', 'the failed collector was pulled again');
-  assert.ok(['col-b', 'col-c'].includes(r.collector));
-  r = laneStep({ seat: hold, behind: false, requalification: 'FAIL', report: rep(['col-a']) });
-  assert.equal(r.action, 'judge', 'FAIL with no other candidate was not judged');
+  // FAIL: the others are ranked with the pull/C9 rule on the subset; the report's next (the failed holder) is not used.
+  const unit = 'Cases added';
+  const decl = (rows) => ({ collectors: rows.map(([name, value, size, u = unit]) => ({ name, ...(value === undefined ? {} : { value }), ...(size === undefined ? {} : { size }), ...(u ? { unit: u } : {}) })) });
+  const fail = (rows, names = rows.map((x) => x[0])) => laneStep({ seat: hold, behind: false, requalification: 'FAIL', report: rep(names, 'col-a'), declaration: decl(rows) });
+  r = fail([['col-a', 9, 1], ['col-b', 6, 2], ['col-c', 4, 2]]);
+  assert.deepEqual([r.action, r.collector], ['open-promotion', 'col-b'], 'the failed original next was pulled again or the best alternative was not');
+  r = fail([['col-a', 9, 1], ['col-b', 1, 1], ['col-c', 8, 1]]);
+  assert.equal(r.collector, 'col-c', 'the alternatives were not ranked by value density');
+  r = fail([['col-a', 9, 1], ['col-b', 5, 1]]);
+  assert.deepEqual([r.action, r.collector], ['open-promotion', 'col-b'], 'a single remaining qualifier was not pulled');
+  r = fail([['col-a', 9, 1], ['col-b', 2, 1], ['col-c', 4, 2]]);
+  assert.equal(r.action, 'judge', 'a tie among the alternatives was picked');
+  assert.deepEqual(r.judged, ['col-b', 'col-c']);
+  r = fail([['col-a', 9, 1], ['col-b', 5, undefined], ['col-c', 4, 2]]);
+  assert.equal(r.action, 'judge', 'an alternative with a missing size was compared');
+  assert.deepEqual(r.judged, ['col-b', 'col-c']);
+  r = fail([['col-a', 9, 1], ['col-b', 5, 1, 'IFPUG FP 4.3'], ['col-c', 4, 2, 'COSMIC CFP']]);
+  assert.equal(r.action, 'judge', 'alternatives of different units were compared');
+  r = fail([['col-a', 9, 1]]);
+  assert.equal(r.action, 'wait', 'FAIL with no remaining qualifier did not wait');
   r = laneStep({ seat: hold, behind: false, requalification: 'UNKNOWN', report: rep(['col-a']) });
   assert.equal(r.action, 'wait', 'UNKNOWN passed');
 }
