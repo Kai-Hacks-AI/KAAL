@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { baseline, cleanup, commit, hook, owner, rev, reg, scratch } from './lib.mjs';
 export const id = 'guard/T214';
 export const tests = ['guard/F47'];
-export const title = 'a pull request may register only for a capability it changes, judged by the ownership the base holds: a cross-owner addition, and an addition that first alters the ownership, are cannot judge';
+export const title = 'a pull request may register only for an owner whose tree it changes other than by the registration, judged by the ownership the base holds: a cross-owner addition, and an addition that first alters the ownership, are cannot judge';
 export function run() {
   const dir = scratch({ ...baseline, ...owner('alpha'), ...owner('beta'), 'packages/alpha/a.txt': '1\n' });
   try {

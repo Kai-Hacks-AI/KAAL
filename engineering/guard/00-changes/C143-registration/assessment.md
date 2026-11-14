@@ -40,24 +40,20 @@ Run with Node 24 against a checkout of `main`; all are RED for the reason named.
 
 | Case | Checks | Result on main |
 | --- | --- | --- |
-| guard/T209 | F43 sourced and installed registration runs; a differing or sourceless copy is refused | RED: registered check not run |
-| guard/T210 | F44 add allowed; delete, weaken, re-own refused | RED: added registration did not run |
-| guard/T211 | F45 selection from base ownership and dependencies; self-declared `depends` ignored; unknown expands to all; `--full` | RED: touched capability did not run |
+| guard/T209 | F43 three origins run; conflation, differing copy, sourceless copy refused | RED: registered check not run |
+| guard/T210 | F44 per origin: add allowed; delete, weaken, re-own refused | RED: added registration did not run |
+| guard/T211 | F45 Guard runs the given plan; unknown/absent/`--full` run all; hard-wired never selected away | RED: `--plan` unknown option |
 | guard/T212 | F46 no shadowing of a hard-wired check | RED: shadowing registration not cannot judge |
 | guard/T213 | G61 on par with the capability standard | RED: ownership.kaal.json absent |
 | guard/T214 | F47 cross-owner addition and altered ownership refused | RED: cross-owner addition not cannot judge |
+| guard/T215 | F48 Guard's namespace includes `guard/registered` (amends F1 and T30) | RED: boundary Case does not allow it |
 
-## 7. CPO answers (review 5906850527) and where they are applied
+## 7. CPO direction and where it is applied
 
-1. Guard's own declaration, owner resolved against trusted identity: requirements preamble, F44, F47.
-2. Capability-owned source, installed registration, explicit provenance, no second editable source: F43, T209.
-3. One runner, place strictness a separate Change: requirements closing paragraph. Which gate invokes `--full` and who owns it: still open.
-4. `docs/` retained: no restructuring.
-5. #1604 assessed: its `integration.kaal.json` declares a capability's *mechanisms* (`check`, `measure`, `remind`, `judgment`), names no hook, workflow or ruleset (its F6), and is separate from Guard's Installation Contract. A `check` mechanism could later be the source of a Guard registration; this PLAN asserts no equivalence and `installation.kaal.json` supersedes `contract.json` for installation semantics only.
-6. Selection from base-held relationships; unknown expands to full; `--full` unconditional: F45, T211. The authoritative edge source (Core, Graph or package dependencies) is still open; package dependencies are the stated first source.
-7. Ids provisional; one id is added (F47, T214).
-8. 0.0.5 intended; no publishing authorized: requirements closing paragraph.
-
-## 8. Finding while fixing CI
-
-Guard's own Case guard/T30 forbids `.kaal/` paths other than `config/guard` and `state/guard` in the package. The registrations' target `.kaal/guard/registered/` (proposed by me and kept by the CPO) therefore needs a content ruling on T30 in the DO. This Change moved out of the package for that reason.
+Earlier answers (review 5906850527) stand except where the re-review (5906885891) supersedes them:
+1. Three origins, not only a capability package; a Change's temporary registration is not a Solution one: F43, T209.
+2. Selection is the Engine's. Guard consumes a resolved plan, no package.json or graph policy in Guard; unknown handled at the Engine boundary: F45, T211.
+3. `--full` is an execution capability; no gate or schedule assumed; wiring has its own owner: F45.
+4. Base-trusted anti-delete, anti-weaken, anti-shadow kept; Guard is not a Change-lifecycle governor: F44, F46, F47.
+5. T30: the path is decided valid and the contract amended through this Change, with T30 left as history: F48, T215, `change.md`.
+6. #1604 is separate from the Installation Contract (it declares a capability's mechanisms, no hook or workflow); no equivalence asserted. 0.0.5 intended, no publication authorized.

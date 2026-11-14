@@ -42,7 +42,13 @@ export const baseline = { '.kaal/config/guard/delivery.md': decl('delivery.mjs')
 // A capability owns a tree; its registration is sourced in the tree and installed byte for byte under .kaal/guard/registered/.
 export const owner = (cap) => ({ [`packages/${cap}/ownership.kaal.json`]: JSON.stringify({ owner: { kind: 'capability', name: cap }, paths: [`packages/${cap}/`] }), [`packages/${cap}/package.json`]: JSON.stringify({ name: cap, dependencies: {} }) });
 export const dependsOn = (cap, ...deps) => ({ [`packages/${cap}/package.json`]: JSON.stringify({ name: cap, dependencies: Object.fromEntries(deps.map((d) => [d, '1.0.0'])) }) });
-export const reg = (cap, name, extra = {}) => {
-  const text = decl(`${name}.mjs`, `capability: ${cap}\n`);
-  return { [`packages/${cap}/guard/${name}.md`]: text, [`.kaal/guard/registered/${cap}/${name}.md`]: extra.installed ?? text, [`${name}.mjs`]: say(name) };
+// A registration has one of three origins: solution (a capability's tree), change (a Change's folder, temporary) or engineering (a remaining control).
+// Its source carries origin, owner and its own path; the installed copy is that file verbatim at .kaal/guard/registered/<origin>/<owner>/<name>.md.
+export const SOURCES = { solution: (o, n) => `packages/${o}/guard/${n}.md`, change: (o, n) => `engineering/changes/${o}/guard/${n}.md`, engineering: (o, n) => `engineering/${o}/guard/${n}.md` };
+export const regText = (origin, owner, name, src) => decl(`${name}.mjs`, `origin: ${origin}\nowner: ${owner}\nsource: ${src}\ncapability: ${owner}\n`);
+export const reg = (owner, name, { origin = 'solution', installed, installedAt } = {}) => {
+  const src = SOURCES[origin](owner, name);
+  const text = regText(origin, owner, name, src);
+  return { [src]: text, [installedAt ?? `.kaal/guard/registered/${origin}/${owner}/${name}.md`]: installed ?? text, [`${name}.mjs`]: say(name) };
 };
+export const plan = (dir, body) => { const p = join(dir, '.git', 'plan.json'); writeFileSync(p, JSON.stringify(body)); return p; };
