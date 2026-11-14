@@ -1,11 +1,11 @@
-// Case release/T212 tests: F22
+// Case release/T284 tests: F22
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T212';
+export const id = 'release/T284';
 export const tests = ['release/F22'];
 export const title = 'WIRE verification: the installed dispatcher equals its source and the legacy hook is the declared move';
 

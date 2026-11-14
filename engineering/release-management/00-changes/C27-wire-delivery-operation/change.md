@@ -3,8 +3,8 @@
 ## PLAN (revised 14 Nov after the CPO review of the first head)
 
 1. Add F22 and A47, the gap G61, the draft of the WIRE template and four Cases, all RED on `main`, in two groups that never wait for each other.
-   - **Collector CHECK Cases**, green in the collector with no install: T209 (the template source `05-src/wiring/templates/wire.md` equals the draft and has exactly the chapters Source, Target, Verification) and T210 (the install judge `05-src/wiring/wire-judge.mjs`, shown on known good and bad installs). Their deliverables are Engineering sources, absent today, so both are RED; the DO makes them green. The collector's ACT needs only these.
-   - **WIRE Cases**, executed at WIRE on the installed tree and never a prerequisite of the collector's ACT: T211 (`.github/PULL_REQUEST_TEMPLATE/wire.md` equals the template source) and T212 (the installed dispatcher equals its source, and the legacy hook moved unchanged). They stay `.red.mjs` through the collector's promotion and are renamed in their WIRE pull request.
+   - **Collector CHECK Cases**, green in the collector with no install: T281 (the template source `05-src/wiring/templates/wire.md` equals the draft and has exactly the chapters Source, Target, Verification) and T282 (the install judge `05-src/wiring/wire-judge.mjs`, shown on known good and bad installs). Their deliverables are Engineering sources, absent today, so both are RED; the DO makes them green. The collector's ACT needs only these.
+   - **WIRE Cases**, executed at WIRE on the installed tree and never a prerequisite of the collector's ACT: T283 (`.github/PULL_REQUEST_TEMPLATE/wire.md` equals the template source) and T284 (the installed dispatcher equals its source, and the legacy hook moved unchanged). They stay `.red.mjs` through the collector's promotion and are renamed in their WIRE pull request.
 2. The PLAN installs nothing, activates no ruleset or branching rule, promotes nothing and changes no existing delivery contract.
 
 ## Moves are shown by their preimage
@@ -13,7 +13,7 @@ A legacy move is not a generic exemption. A WIRE declares each move as `{from, t
 
 ## Bootstrap of the WIRE template
 
-The first install of `wire.md` cannot use a WIRE template that does not exist yet. It is one ordinary `.github`-only DO, whose verification is T211. After it, every install is a WIRE.
+The first install of `wire.md` cannot use a WIRE template that does not exist yet. It is one ordinary `.github`-only DO, whose verification is T283. After it, every install is a WIRE.
 
 ## Relation to PROMOTION and HOTFIX
 
@@ -29,7 +29,7 @@ An installation-dependent Case therefore has a second home: the collector holds 
 ## Revised sequence for release/C26
 
 1. Engineering collector: the dispatcher is committed as the source `05-src/wiring/hooks/pre-push-dispatcher`, and T206 judges that file in isolation (legacy preserved, arguments and refs forwarded, failures aggregated, fail-closed), together with #1645 (Guard acceptance T5, already in the collector). The final ACT is written once T206 is green, and the collector is promoted, so the source is on `main` before any WIRE. T207 and T208 move out of the collector's CHECK into the WIRE verification.
-2. WIRE: once that source is on `main`, #1646 is replaced by or re-based as the pull request from `wire/githooks-split` into `main`, protected by the WIRE checks. Its diff does not grow: the declared move of the legacy hook (by sha256), the dispatcher as a copy of its source and the README. T207, T208 and T212 are its verification, with Guard acceptance on the installed tree.
+2. WIRE: once that source is on `main`, #1646 is replaced by or re-based as the pull request from `wire/githooks-split` into `main`, protected by the WIRE checks. Its diff does not grow: the declared move of the legacy hook (by sha256), the dispatcher as a copy of its source and the README. T207, T208 and T284 are its verification, with Guard acceptance on the installed tree.
 3. The provisional ACT #1649 is closed unmerged. C26 therefore runs: Engineering PDCA, Engineering promotion, `wire/githooks-split`, protected `main`.
 
 ## `.github` installs
@@ -38,8 +38,8 @@ C18's workflows and ruleset JSON follow the same path: sources through the Engin
 
 ## DO
 
-1. In the Engineering collector: the template source `05-src/wiring/templates/wire.md` and the judge `05-src/wiring/wire-judge.mjs`; T209 and T210 are renamed to `.test.mjs` when green. Then the ACT, then the promotion.
-2. The bootstrap install of `wire.md`: an ordinary DO, alone in a `.github` collector, because no `wire/<name>` path exists yet; T211 is its verification. The title type, Branching and merge-method classification are a separate DO that needs review and the Owner's authorization.
+1. In the Engineering collector: the template source `05-src/wiring/templates/wire.md` and the judge `05-src/wiring/wire-judge.mjs`; T281 and T282 are renamed to `.test.mjs` when green. Then the ACT, then the promotion.
+2. The bootstrap install of `wire.md`: an ordinary DO, alone in a `.github` collector, because no `wire/<name>` path exists yet; T283 is its verification. The title type, Branching and merge-method classification are a separate DO that needs review and the Owner's authorization.
 
 ## ACT
 
