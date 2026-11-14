@@ -1,0 +1,14 @@
+You are Testing. For each claim below, decide how a test of it can be established. Answer from this prompt alone: use no tools, read no files.
+
+Three approaches:
+- deterministic: an observable result and a defensible, unambiguous oracle exist, so a script can decide it.
+- judgment: no such oracle exists, but the claim can be evaluated meaningfully through evidence, comparison or independent review.
+- pushback: neither is sufficiently defined; the concern that owns the claim (Intent, Requirements, Architecture or Defect) must clarify or change it.
+
+Claims (each is traced to the concern that owns it):
+E1 (Requirements): "A response must complete within two seconds under specified conditions."
+E2 (Architecture): "An Architecture Skill should usefully distinguish Solution from Delivery, including ambiguity."
+E3 (Requirements): "A system must be sufficiently reliable."
+
+Reply with one JSON array and nothing else. One object per claim, with these fields:
+id; approach (deterministic | judgment | pushback); why (one or two sentences); observable and oracle (deterministic only, else null); evidence and judge (judgment only, else null); owner and question (pushback only, else null); unresolved (a list of open questions, empty if none).

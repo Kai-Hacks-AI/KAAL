@@ -1,0 +1,103 @@
+{
+ "promptSha256": "83cc2cc2aea69878226326b465b27b0086e8048952c34419ac248b7f1b0d12e3",
+ "author": "CTO thread (Claude, authored the Skill, the key and the prompts)",
+ "observer": "independent observer subagent (Claude), blind to which reply used the Skill; it read only the task and the two replies",
+ "agent": "general-purpose subagent given only the prompt file, no repository access requested",
+ "model": "as configured for the session (claude-sonnet-5-5); the serving model was not verified",
+ "date": "2026-11-13",
+ "answers": [
+  {
+   "id": "S1",
+   "parts": [
+    "historical"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S2",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S3",
+   "parts": [
+    "enduring",
+    "historical"
+   ],
+   "finding": "mixed"
+  },
+  {
+   "id": "S4",
+   "parts": [
+    "target"
+   ],
+   "finding": "none"
+  },
+  {
+   "id": "S5",
+   "parts": [
+    "historical"
+   ],
+   "finding": "historical-as-target"
+  },
+  {
+   "id": "S6",
+   "parts": [
+    "historical",
+    "target"
+   ],
+   "finding": "historical-as-evidence"
+  },
+  {
+   "id": "S7",
+   "parts": [
+    "enduring",
+    "transition"
+   ],
+   "finding": "mixed"
+  },
+  {
+   "id": "S8",
+   "parts": [
+    "enduring"
+   ],
+   "finding": "retires-enduring"
+  },
+  {
+   "id": "S9",
+   "parts": [
+    "target"
+   ],
+   "finding": "no-transition-evidence"
+  }
+ ],
+ "decompositions": [
+  {
+   "id": "D1",
+   "changes": 1,
+   "boundaries": ""
+  },
+  {
+   "id": "D2",
+   "changes": 3,
+   "boundaries": "Boundary 1: after the export is replaced by JSON Lines and before the comma-separated reader is retired; it is crossed only once the outside consumer reads JSON Lines. Boundary 2: after the old reader is retired and before the transition option that served both is removed; each Change must be reached and verified before the next starts."
+  }
+ ],
+ "explanation": {
+  "current": "State A: the export writes a header row id,title,body followed by one comma-separated line per note. Three Cases are green today: H1 (header and comma-separated lines), H2 (every note written, none dropped) and H3 (an empty store exits 0 and writes only the header).",
+  "intended": "State B: the export writes one JSON object per line with no header (B1), still writes every note in the store (B2), and for an empty store still exits 0 but writes nothing (B3).",
+  "changes": "One Change replaces the comma-separated export with JSON Lines. B1 is introduced as new. The no-note-dropped behaviour and the exit code 0 on an empty store are kept. The header row and the 'only the header' output are removed.",
+  "superseded_and_protected": "Superseded: H1 (header row and comma-separated lines) and the 'writes only the header' part of H3, which are recorded as superseded and not kept green as protections of the target. Still valid: H2 / B2 (no note is dropped) and the exit code 0 of H3 / B3 for an empty store; these keep protecting the new export and must not be dropped.",
+  "evidence": "The transition is shown by comparing A and B on the same store: the old Cases H1 and the header part of H3 are red or retired, the old export and the new export yield the same set of notes, and B2 and the exit code 0 stay green across the change. The new B1 and B3 Cases being green is not enough by itself, and neither is the old Cases having been green; the evidence must show the change from the old behaviour to the new one and that the new export is actually reached."
+ },
+ "observerVerdict": {
+  "historicalKeptApartFromTarget": true,
+  "boundaryReasoning": "D2 is split into three Changes with two boundaries, and the order is justified (reader retired only after the consumer reads JSON Lines; option removed only after the reader is gone), with no detailed plan. It is thin on what each boundary hands over, it describes only two boundaries, and D1 is left at one Change with no reason given.",
+  "doubtfulLabels": [
+   "S6 parts [historical, target]: the statement uses history as proof, so 'target' is not carried, though the finding historical-as-evidence is right",
+   "S7 labelled mixed with parts [enduring, transition]: defensible, since the statement joins a same-notes comparison with a superseded record"
+  ]
+ }
+}

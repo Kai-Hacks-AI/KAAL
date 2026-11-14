@@ -1,0 +1,11 @@
+# Testability Assessment: Intent
+
+This is `testing/C59`, a PLAN Change. It ships no code and installs nothing in the Skill. `testing/C60` (DO, not yet authorized) installs the Skill section and records the trial.
+
+**What is missing.** The Testing Skill tells an agent how to design Cases and report findings. It never asks the step before: can the claim a Case is meant to verify be tested at all? The Architecture Skill's trial shows why that matters. Its Case T3 is RED on S4. The Skill-only agent answered `none`, the author's key says `ambiguous`, and nothing in KAAL says whether the key, the agent or the claim is at fault. Without this step an agent tends to supply an oracle, a threshold or a key so that a Case can go GREEN.
+
+- **testing/I38**: Before Testing designs a Case, it assesses the claim the Case would verify, traced to the concern that owns it (Intent, Requirements, Architecture or Defect). A claim with an observable result and a defensible, unambiguous oracle is verified by a deterministic Case. A claim too underspecified to decide goes back to its owner as a question, so that it can be made testable. A claim that is about soundness or fitness can only be judged: Testing points at it, names who should judge and the evidence, and records it as a judgement. A Case that checks incidental wording or an author's preferred answer is rejected. A claim that supports neither goes back, as a question, to its owner. Testing owns the assessment and the suitability of the method. It never owns or rewrites the claim.
+
+Principle: Testing serves verification (do defined criteria hold?), and judgement serves validation (are the criteria, decisions and outcomes sound and fit for their purpose?). A test is proof and a review is judgement. Some things can only be judged and some can be tested. Testing points at what can only be judged and never turns it into an oracle. Review, in its own Change, points at what could be tested. Neither relies on the other's Skill. The Skill exercises judgment, the Script verifies deterministic assertions.
+
+**Out of scope.** No new gate, no new capability, no new finding kind, no new export, no restructuring of kaal-testing, and no change to the Architecture package or its key.

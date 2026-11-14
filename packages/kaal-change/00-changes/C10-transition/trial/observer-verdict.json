@@ -1,0 +1,36 @@
+{
+  "reply1": {
+    "historicalKeptApartFromTarget": true,
+    "boundaryReasoning": "Two boundaries are named with ordering conditions (consumer must read JSON Lines first; each Change reached and verified before next), but neither Change is described as handing over a concrete state, and the third Change is not named or characterised as retiring what Change 1 introduced. D1 as one Change is correct and the explanation says so implicitly; no detailed plan is given.",
+    "transitionEvidence": "Vague: it lists same-set-of-notes comparison and H1 red or retired, then says evidence must show the change and that the export is 'actually reached' without a concrete discriminating Case, and 'H1 red' is loosely stated.",
+    "doubtfulLabels": [
+      "S6: parts include target, but the statement only leans on old green Cases as proof of reach, so historical alone is the better reading",
+      "S7: labelled mixed with enduring+transition, plausible but the 'same set of notes' half is enduring and the evidence half is transition, fine; no real doubt"
+    ]
+  },
+  "reply2": {
+    "historicalKeptApartFromTarget": true,
+    "boundaryReasoning": "Names two boundaries with sound ordering (consumer shown to read JSON Lines before the reader is retired; reader retired before the option is removed), but does not say what state each Change hands over and gives no detail on the third Change; D1 as one Change is right and no detailed plan is given.",
+    "transitionEvidence": "Most concrete and correct: RED then GREEN with a discriminating Case failing on the old export and passing on the new, enduring H2/B2 and exit code green across the change, and H1 and header-only part recorded as superseded.",
+    "doubtfulLabels": [
+      "S7: mixed is acceptable; no strong doubt",
+      "S3: mixed is right, but the explanation's claim that 'the no-header rule changes the empty-store output' is loose wording only"
+    ]
+  },
+  "reply3": {
+    "historicalKeptApartFromTarget": true,
+    "boundaryReasoning": "Best on D2: each of the three Changes is named and states the state it hands over (working JSON Lines plus transition option; no comma reader; option removed), ordering is justified (consumer must read JSON Lines; Change 3 retires what Change 1 introduced), and D1 as one Change is justified (one boundary, baseline and target); no detailed plan.",
+    "transitionEvidence": "Concrete and mostly correct (old and new export on same store give same notes, header Case recorded as superseded, H2 and exit-code Cases re-run), but it omits a discriminating red-to-green Case and admits it could not establish the outside consumer.",
+    "doubtfulLabels": [
+      "S7: labelled transition only with finding none; it also carries the enduring same-set-of-notes claim, so mixed is more accurate",
+      "Explanation says 'one Change suffices' for A to B, which is consistent with D1 but sits oddly beside its own three-Change D2"
+    ]
+  },
+  "preferred": "Reply 3, because its D2 decomposition names each Change with the state it hands over and why the order holds, and its evidence is concrete, despite mislabelling S7 as none.",
+  "difference": "The three replies agree on nearly every statement label and on the D1=1, D2=3 split. Reply 1 adds target to S6, and Reply 3 labels S7 as transition-only with no finding where the others call it mixed. The real differences are in depth. Reply 3 spells out what each of the three D2 Changes hands over and why Change 3 follows from Change 1, whereas Replies 1 and 2 only name two boundaries. Reply 2 has the sharpest evidence, requiring a discriminating RED then GREEN Case. Reply 1 is vaguest on evidence. Reply 3 also flags an honest unknown about the outside consumer.",
+  "mapping": {
+    "reply1": "baseline",
+    "reply2": "existing",
+    "reply3": "integrated, revised"
+  }
+}

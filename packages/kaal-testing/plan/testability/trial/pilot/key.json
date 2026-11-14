@@ -1,0 +1,9 @@
+{
+ "author": "testing thread session (wrote the draft section, the prompts and this key before any run)",
+ "status": "the author's judgment, not an oracle; each doubt is disclosed",
+ "key": [
+  {"id": "E1", "approach": "deterministic", "doubt": "'specified conditions' is not specified in the claim as given. A defensible reading is deterministic once the conditions are named; another is pushback to Requirements. Open: percentile or every response, and whose clock."},
+  {"id": "E2", "approach": "judgment", "doubt": "'usefully' has no threshold. Judgment through a Skill-versus-baseline trial and independent review is meaningful, but a reviewer may rightly push 'usefully' back to Architecture."},
+  {"id": "E3", "approach": "pushback", "owner": "Requirements", "doubt": "Intent may be the better owner if the need itself is unstated."}
+ ]
+}

@@ -1,0 +1,41 @@
+{
+  "focus": "capability",
+  "reference": {
+    "label": "the Intent of the capability",
+    "reads": "architecture/I1 and F1 to F3, N1 at bfee577",
+    "items": [
+      "I1",
+      "F1",
+      "F2",
+      "F3",
+      "N1",
+      "A1"
+    ]
+  },
+  "actual": {
+    "label": "what the capability delivers",
+    "reads": "The kaal-architecture Skill and its recorded trial, Architecture DO #1534 at bf42468",
+    "items": [
+      "SKILL.md",
+      "trial/skill.json",
+      "trial/baseline.json",
+      "trial/run1",
+      "T3",
+      "T4"
+    ]
+  },
+  "inspected": [
+    "skills/kaal-architecture/SKILL.md",
+    "scenarios.json at bfee577 and at bf42468",
+    "trial/skill.prompt.txt and trial/skill.json",
+    "trial/baseline.json",
+    "trial/run1 and trial/run2",
+    "T3.test.mjs",
+    "do.md"
+  ],
+  "questions": [
+    "Does S4 need the finding ambiguous?",
+    "What does the baseline comparison establish?",
+    "How independent of the Skill is the key?"
+  ]
+}

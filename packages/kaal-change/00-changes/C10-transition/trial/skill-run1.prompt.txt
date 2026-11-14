@@ -1,0 +1,107 @@
+---
+name: kaal-change-transition
+description: Explain a Change as the transition from the current state (A) to the intended outcome (B). Use when a Change is proposed, planned or reviewed and you must say what is replaced, what stays protected, how many Changes the transformation needs and what evidence shows it was reached.
+---
+
+# Reasoning about a Change as A to B
+
+A Change is the bounded transition from the current state (A) to the intended outcome (B). The intended outcome is described by its Intent, Requirements and Architecture. The current state is what exists today, including its behaviour and its Cases. The Change record keeps the transition itself. This Skill guides your reasoning and explanation. It executes nothing and decides nothing for the Owner.
+
+## The five questions
+
+Answer them in order, from the evidence you are given. Say "unknown" instead of inventing evidence.
+
+1. **Current state.** What exists today? List the behaviour and the Cases that show it.
+2. **Intended outcome.** What should become true? List the target expectations and the Cases they need.
+3. **What changes.** What is replaced, what is preserved and what is introduced to get from A to B?
+4. **Superseded and protected.** Which expectations of A stop being true, and which remain valid in B?
+5. **Evidence of the transition.** What would show that A became B, beyond B being true on its own?
+
+## The four kinds of truth
+
+Label every expectation, Case or claim with the kind of truth it carries.
+
+| Kind | True of | Role |
+| --- | --- | --- |
+| historical | A only | evidence of what was; superseded when B contradicts it |
+| enduring | A and B | a protection that remains; its Case stays and must stay green |
+| target | B only | what must become true; needs a Case of its own |
+| transition | the step from A to B | evidence that A became B and that the enduring parts were kept; it belongs to the Change record |
+
+An expectation can carry two kinds. Split it by kind and label each part. Do not decide by age: an old expectation that B still needs is enduring, not historical.
+
+## Rules
+
+1. **Split.** A statement that is partly historical and partly enduring (or any other pair) is mixed. Name each part.
+2. **History is not the target.** A Case that is green today proves A. It never proves B. Do not cite it as evidence that B holds, and do not keep a superseded Case as a protection of B.
+3. **Do not retire an enduring protection.** Replacing the subject of a Case does not retire an expectation that B still needs. Keep it and re-run it against B.
+4. **The target is not the transition.** B's own Cases being green shows that B holds. They do not show what was kept, what was superseded or that the step was taken. Ask for transition evidence.
+5. **Ask when it is unclear.** If you cannot tell whether an expectation survives, say so and name what would settle it.
+
+## One Change or several
+
+Ask whether one Change suffices. A transformation from A to D may need several independently manageable Changes (A to B, B to C, C to D), each carried through its own cycle of planning, doing and learning.
+
+- Prefer one Change when one boundary, one baseline and one target hold, and the work cannot leave a valid state half done.
+- Prefer several when an earlier step must be adopted before a later one can start, when each step leaves a valid state and has its own evidence, or when a later step retires what an earlier one introduced.
+- Name the boundaries between the Changes, and what each one hands over to the next. Do not write the detailed plan of any Change. Do not split a transformation that one Change carries, and do not carry a sequence as one Change.
+
+## Output
+
+For each expectation or statement you are given, give:
+
+- its kinds of truth (more than one if it is mixed);
+- the finding, one of: none; mixed (split it); historical used as the target; historical used as evidence of B; an enduring protection retired; the target mistaken for the transition;
+- the next move: split, keep, supersede, add a Case or ask.
+
+For the Change as a whole, give the answers to the five questions and the number of Changes the transformation needs, with their boundaries. Keep it short. State what you could not establish.
+
+---
+
+# Task
+
+A notes tool exports its store.
+
+Current state (A): three Cases are green today.
+- H1: export writes a header row id,title,body, then one comma-separated line per note.
+- H2: export writes every note in the store; none is dropped.
+- H3: export of an empty store exits with 0 and writes only the header.
+
+Intended outcome (B):
+- B1: export writes one JSON object per line and no header.
+- B2: export writes every note in the store; none is dropped.
+- B3: export of an empty store exits with 0 and writes nothing.
+
+Change (A to B): replace the comma-separated export by JSON Lines. Introduce B1. Keep B2 and the exit code of B3.
+
+## Statements
+
+For each statement below, say which kinds of truth it carries and whether it has a finding.
+
+S1. Export writes a header row id,title,body, then one comma-separated line per note.
+S2. Export writes every note in the store; none is dropped.
+S3. Export of an empty store exits with 0 and writes only the header.
+S4. Export writes one JSON object per line and no header.
+S5. The Case that checks the header row stays green after the change.
+S6. All three current Cases are green, so the new export is reached.
+S7. Both exports run on the same store give the same set of notes, and the header Case is recorded as superseded.
+S8. Drop the Case that no note is dropped, because the old export is being replaced.
+S9. The new export is shown to be reached because its own Cases are green.
+
+## Transformations
+
+For each transformation, say how many Changes it needs and, when more than one, name the boundaries between them.
+
+D1. Replace the comma-separated export of the notes tool by JSON Lines, keeping that no note is dropped.
+D2. Replace the comma-separated export by JSON Lines. Then retire the comma-separated reader that an outside consumer still depends on, once that consumer reads JSON Lines. Then remove the transition option that served both.
+
+## Explanation
+
+Explain the Change as the transition from A to B. Cover: the current state, the intended outcome, what changes, which expectations are superseded and which protections remain valid, and what evidence shows the transition.
+
+## Reply format
+
+Reply with one JSON object and nothing else: no code fence, no text before or after. Its fields are:
+- answers: a list with, for each statement, the fields id, parts and finding. parts is a list of kinds from: historical, enduring, target, transition. finding is one of: none, mixed, historical-as-target, historical-as-evidence, retires-enduring, no-transition-evidence. Meaning of the findings: none (nothing wrong), mixed (the statement carries more than one kind), historical-as-target (history kept as a protection of the target), historical-as-evidence (history cited as evidence of the target), retires-enduring (a protection that remains valid is dropped), no-transition-evidence (the target's own Cases are taken as proof of the transition).
+- decompositions: a list with, for each transformation, the fields id, changes (a number) and boundaries (text; empty when one Change suffices).
+- explanation: an object with the text fields current, intended, changes, superseded_and_protected and evidence.
