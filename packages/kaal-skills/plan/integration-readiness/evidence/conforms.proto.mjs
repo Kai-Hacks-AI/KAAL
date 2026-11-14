@@ -37,7 +37,7 @@ const classify = (r, o) => {
 export const verdict = (out) => Object.fromEntries(Object.entries(out).map(([k, v]) => [k, v.some((x) => x.status === 'FAIL') ? 'FAIL' : v.some((x) => x.status === 'UNKNOWN') ? 'UNKNOWN' : v.length ? 'PASS' : 'UNKNOWN']));
 
 export async function conforms({ declaration: decl, root, fixtures }) {
-  const out = { F1: [], F2: [], F3: [], F4: [], F5: [], F6: [] };
+  const out = { F1: [], F2: [], F3: [], F4: [], F5: [], F6: [], F7: [] };
   const add = (req, status, mechanism, detail) => out[req].push({ status, mechanism, detail });
   const pkg = resolve(root, decl.package ?? '.');
   const fixUrl = pathToFileURL(resolve(fixtures)).href;
@@ -113,6 +113,22 @@ export async function conforms({ declaration: decl, root, fixtures }) {
     if (!m.shape || !Array.isArray(m.shape.fields) || !m.shape.fields.length) probs.push('no result shape');
     if (m.outcome) probs.push('a judgment mechanism declares pass/fail outcomes');
     probs.length ? add('F5', 'FAIL', m.name, probs.join('; ')) : add('F5', 'PASS', m.name, 'Skill, section and result shape are declared, and no outcome is claimed');
+    // F7: the activation points an agent at the Skill; it decides nothing.
+    const a = m.activation; const skillName = text.match(/^name: (.+)$/m)?.[1]?.trim();
+    const ap = [];
+    if (!a || typeof a !== 'object') ap.push('no activation');
+    else {
+      if (typeof a.when !== 'string' || !a.when.trim()) ap.push('no situation (when)');
+      if (typeof a.reminder !== 'string' || !a.reminder.trim()) ap.push('no reminder');
+      else {
+        if (a.reminder.length > 280) ap.push('reminder longer than 280 characters');
+        if (!skillName) ap.push('no Skill file to point at');
+        else if (!a.reminder.includes(skillName)) ap.push('reminder does not name the Skill');
+        if (m.section && !a.reminder.includes(m.section)) ap.push('reminder does not point at the section');
+      }
+      if (a.outcome || a.gate) ap.push('an activation claims an outcome or a gate');
+    }
+    ap.length ? add('F7', 'FAIL', m.name, ap.join('; ')) : add('F7', 'PASS', m.name, 'a situation and a reminder naming the Skill are declared; the integrator chooses the trigger');
   }
   const hit = JSON.stringify(decl).match(HOST); // the declaration only: scanning prose false-positives (evidence.md)
   hit ? add('F6', 'FAIL', null, `names a host trigger: "${hit[0]}"`) : add('F6', 'PASS', null, 'the declaration names no hook, workflow, ruleset or queue');

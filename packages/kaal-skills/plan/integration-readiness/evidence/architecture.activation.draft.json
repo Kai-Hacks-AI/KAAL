@@ -1,0 +1,36 @@
+{
+  "format": "skills/integration-declaration (draft, PLAN skills/C1)",
+  "owner": {
+    "kind": "capability",
+    "name": "Architecture",
+    "id": "(Architecture's own Node id; the draft makes no claim, so F1 is not asserted)"
+  },
+  "package": "packages/kaal-skills/plan/integration-readiness/evidence/subjects/architecture",
+  "mechanisms": [
+    {
+      "name": "classify",
+      "level": "skill",
+      "kind": "judgment",
+      "skill": "skills/kaal-architecture/SKILL.md",
+      "section": "The test",
+      "shape": {
+        "parts": [
+          "solution",
+          "delivery"
+        ],
+        "fields": [
+          "finding",
+          "next"
+        ]
+      },
+      "docs": "skills/kaal-architecture/SKILL.md",
+      "activation": {
+        "when": "a statement is written or changed about what an intended solution is, or about how it is realized, operated or where a function is placed",
+        "reminder": "Before settling this design or placing this function, read kaal-architecture, 'The test': would the statement still hold if the means were replaced? Report its parts, your finding (none, mixed, ambiguous) and the next move (keep, split, ask)."
+      }
+    }
+  ],
+  "judgment": [
+    "whether a classification is right in a contested case: asked of the author, never decided by a Case"
+  ]
+}

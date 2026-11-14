@@ -2,7 +2,7 @@
 
 Method and limits. I read each capability's package or collector, its Skill and its tests. **I ran none of them** (this environment has Node 22, the repository needs 24 and a built Hosting). Compliance below is "as far as reading shows". Where I name a Change, it is the *smallest* that would make the capability conform, proposed for the CPO; I registered no Gap or Change id for any of them. Testing is the reference (`evidence.md`). Two state facts matter to every row: **Intent** and **Requirements** are not on `main` in the current layout, and **Architecture** and **Release** are on collectors that are not promoted yet.
 
-Reading: F1 Declare, F2 Call without an agent, F3 Say honestly, F4 The rule stays home, F5 Judgment stays judgment, F6 Name no host. "n/a" means the capability has no mechanism of that level, which the contract does not demand.
+Reading: F1 Declare, F2 Call without an agent, F3 Say honestly, F4 The rule stays home, F5 Judgment stays judgment, F6 Name no host, F7 Activate (for `skill` mechanisms; the table's F5 column covers it, and every judgment row below also needs one situation and one reminder, which the capability writes). "n/a" means the capability has no mechanism of that level, which the contract does not demand.
 
 | Capability | Where it is | Existing mechanism | F1 | F2 | F3 | F4 | F5 | F6 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -32,3 +32,7 @@ Reading: F1 Declare, F2 Call without an agent, F3 Say honestly, F4 The rule stay
 - Four of the seven (Intent, Requirements, Architecture, Review) are judgment capabilities. Their integration is an agent given a Skill and a result shape, not a script. The contract encodes that (F5) and does not push them toward a script they should not have.
 - Three have mechanical parts (Testing, Change, Release). Testing and Change are module APIs; Release is a command. The contract allows both forms.
 - No capability needs a refactor to conform. Every smallest Change is one declaration (data) and, for the mechanical ones, a fixtures module. Order, by readiness: Testing (reference), Change, Review, Release (after #1577), Architecture (after promotion), Intent, Requirements (after they land).
+
+## Activation, per judgment mechanism (F7)
+
+Each of these needs one `when` and one `reminder` written by its capability, in the same declaration, and nothing else. Proposed situations, for the capability to adopt or replace: **Intent**, an intention is raised that should outlive where it was said; **Architecture**, a statement about what a solution is or where a function is placed is written or changed (drafted and checked in `evidence.md`); **Review**, another Agent's work is to be reviewed, or an Agent is about to review its own; **Change**, a transition or an isolation is explained; **Release**, a release decision is prepared; **Requirements**, once it has a Skill. This is the only addition F7 asks of the existing assessment: no capability needs more than text.

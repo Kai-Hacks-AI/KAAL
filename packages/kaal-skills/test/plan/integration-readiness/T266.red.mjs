@@ -5,7 +5,7 @@ import { join, relative } from 'node:path';
 import { PKG, ROOT } from './lib.mjs';
 export const id = 'skills/T266';
 export const tests = ['skills/N1'];
-export const title = 'kaal-skills ships no export, command or dependency, no other package depends on it or imports it, and nothing in .github, .githooks or the Guard configuration names it';
+export const title = 'kaal-skills ships no export, command or dependency, no other package depends on it or imports it, and nothing in .github, .githooks or the Guard configuration names it or requires a declaration';
 const walk = (dir, out = []) => { for (const n of readdirSync(dir)) { if (n === 'node_modules' || n === '.git') continue; const p = join(dir, n); statSync(p).isDirectory() ? walk(p, out) : out.push(p); } return out; };
 export function run() {
   const manifest = join(PKG, 'package.json');
@@ -21,6 +21,6 @@ export function run() {
     for (const f of walk(join(ROOT, 'packages', dir)).filter((p) => /\.(mjs|js|ts|cjs)$/.test(p))) if (/from\s+['"]kaal-skills|require\(['"]kaal-skills/.test(readFileSync(f, 'utf8'))) users.push(relative(ROOT, f));
   }
   assert.deepEqual(users, [], 'no package depends on or imports kaal-skills');
-  const wired = ['.github', '.githooks', '.kaal/config'].filter((d) => existsSync(join(ROOT, d))).flatMap((d) => walk(join(ROOT, d))).filter((f) => /kaal-skills/.test(readFileSync(f, 'utf8')));
-  assert.deepEqual(wired.map((f) => relative(ROOT, f)), [], 'no hook, workflow or Guard check names kaal-skills');
+  const wired = ['.github', '.githooks', '.kaal/config'].filter((d) => existsSync(join(ROOT, d))).flatMap((d) => walk(join(ROOT, d))).filter((f) => /kaal-skills|integration\.kaal\.json/.test(readFileSync(f, "utf8")));
+  assert.deepEqual(wired.map((f) => relative(ROOT, f)), [], 'no hook, workflow or Guard check names kaal-skills or requires a declaration (the Cases gate no promotion)');
 }

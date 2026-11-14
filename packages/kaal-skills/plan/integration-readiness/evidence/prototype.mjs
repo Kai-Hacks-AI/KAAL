@@ -15,6 +15,10 @@ if (flag === '--selftest') {
     ['hook named in the declaration', (d) => { d.mechanisms[0].wire = '.githooks/pre-push'; }, 'F6'],
     ['judgment mechanism claims a gate outcome', (d) => { d.mechanisms[4].outcome = { at: 'x', clear: ['a'] }; }, 'F5'],
     ['non-clear result with no reason (report)', (d) => { d.mechanisms[1].reason = ['nothing[]']; }, 'F3'],
+    ['judgment mechanism with no activation', (d) => { delete d.mechanisms[4].activation; }, 'F7'],
+    ['reminder that does not name the Skill', (d) => { d.mechanisms[4].activation.reminder = 'Think carefully about tests before writing them.'; }, 'F7'],
+    ['reminder longer than 280 characters', (d) => { d.mechanisms[4].activation.reminder += ' kaal-testing'.repeat(40); }, 'F7'],
+    ['activation that claims a gate', (d) => { d.mechanisms[4].activation.gate = 'block'; }, 'F7'],
     ['owner differs from the ownership claim', (d) => { d.owner.id = '0'.repeat(64); }, 'F1'],
   ];
   console.log('\nSELFTEST: each mutant of the draft must fail the named requirement');

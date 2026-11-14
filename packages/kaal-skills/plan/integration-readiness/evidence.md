@@ -18,8 +18,9 @@ Testing's integration mechanism is not a command. It is a set of pure, host-free
 | F4 The rule stays home | UNKNOWN | three distinct outcomes for `duplicates` and `report`; `accept` unknown |
 | F5 Judgment stays judgment | PASS | `assess-claim`: Skill, section, result shape; no outcome claimed |
 | F6 Name no host | PASS | the declaration names no hook, workflow, ruleset or queue |
+| F7 Activate | PASS | `assess-claim` declares when it applies (a Case is being designed) and a reminder under 280 characters naming `kaal-testing` and its section |
 
-Nothing FAILS and nothing is forced: no Testing file changes, no result vocabulary is replaced, and Testing's four finding kinds stay Testing's (the declaration only says which kinds mean report and which mean unknown). The three UNKNOWNs are honest. They would turn PASS once Testing's `accept` fixtures exist and the Cases run where Hosting builds (the Workspaces lane). Seven mutants of the draft (a value under two outcomes, the undecidable value read as clear, a wrong export, a hook named, a judgment mechanism claiming an outcome, a result with no reason, another owner) are each caught, so a PASS is not free.
+Nothing FAILS and nothing is forced: no Testing file changes, no result vocabulary is replaced, and Testing's four finding kinds stay Testing's (the declaration only says which kinds mean report and which mean unknown). The three UNKNOWNs are honest. They would turn PASS once Testing's `accept` fixtures exist and the Cases run where Hosting builds (the Workspaces lane). Eleven mutants of the draft (a value under two outcomes, the undecidable value read as clear, a wrong export, a hook named, a judgment mechanism claiming an outcome, a result with no reason, no activation, a reminder naming no Skill, a reminder over 280 characters, an activation claiming a gate, another owner) are each caught, so a PASS is not free.
 
 ## Limits and gaps the validation exposed
 
@@ -29,3 +30,14 @@ Nothing FAILS and nothing is forced: no Testing file changes, no result vocabula
 4. **F2 observes only the package tree.** It does not see a write elsewhere, a network call or a long-lived process beyond the time limit. The contract says "changes nothing in its package", not "has no side effects".
 5. **The command form is shown on synthetic subjects only.** Testing has no command. The only command-shaped mechanism found (Release's `pull-promotion.mjs`) lives on a collector, not on `main`; I read it, I did not run it. T261 and T262 exercise the command form with throwaway commands.
 6. **One reference is a thin base.** Testing is a module-API capability. The assessment (`assessment.md`) reads six more, none run; the contract's generality across all seven is argued from reading, and the CPO should treat it as such until the first non-Testing declaration passes the same Cases.
+
+## Activation of a judgment Skill (CPO review of this PLAN)
+
+The CPO asked whether the contract shows how an integrating hook or CI step could cause an agent to consider a capability at the right point, without the human asking, for a Skill that decides nothing. F1 to F6 did not: they cover finding, calling and reading a mechanism. F7 and T267 are the smallest addition.
+
+Demonstrated on two judgment Skills (`evidence/prototype-run.txt` for Testing, `evidence/prototype-run-architecture.txt` for Architecture, F5 and F7 PASS on both):
+
+- **Testing, `assess-claim`** (on `main`). When: a test Case is being designed. Reminder: read `kaal-testing`, "Assessing a test against its claim", trace the claim to its owner, then verify, challenge or point at judgement; never invent an oracle to get GREEN.
+- **Architecture, `classify`** (functional placement). When: a statement is written or changed about what an intended solution is, or where a function is placed. Reminder: read `kaal-architecture`, "The test": would the statement hold if the means were replaced; report parts, finding (none, mixed, ambiguous) and next move (keep, split, ask). Architecture is on a collector, not on `main`, so the evaluation reads a snapshot of its Skill at `a9e19a9` (`evidence/subjects/architecture/`); the draft makes no ownership claim for Architecture.
+
+What a Case can and cannot show. It shows the pointer is declared, is short, names the Skill and the section, and decides nothing. It does not show that an agent shown the reminder decides better; that is judged from a trial like Testing's own (`testing/C59`), which belongs to the integrating Change, not to this contract. Nothing here picks the trigger: whether the reminder is surfaced on a pull request, in an agent's instructions or in a hook's output is the integrator's choice.

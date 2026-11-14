@@ -1,0 +1,13 @@
+F1  FAIL
+    FAIL    no ownership claim beside the declaration
+F2  UNKNOWN
+F3  UNKNOWN
+F4  UNKNOWN
+F5  PASS
+    PASS    classify: Skill, section and result shape are declared, and no outcome is claimed
+F6  PASS
+    PASS    the declaration names no hook, workflow, ruleset or queue
+F7  PASS
+    PASS    classify: a situation and a reminder naming the Skill are declared; the integrator chooses the trigger
+
+Note: Architecture is a draft with no ownership claim of its own, so F1 fails by construction and F2 to F4 have no script mechanism to judge. This run is for F5 and F7 only.

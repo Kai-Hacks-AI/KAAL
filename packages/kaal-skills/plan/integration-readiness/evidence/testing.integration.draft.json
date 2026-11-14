@@ -114,7 +114,11 @@
           "unresolved"
         ]
       },
-      "docs": "skills/kaal-testing/SKILL.md"
+      "docs": "skills/kaal-testing/SKILL.md",
+      "activation": {
+        "when": "a test Case is being designed, or an agent is asked what a test must prove",
+        "reminder": "Before writing the Case, read kaal-testing, 'Assessing a test against its claim': trace the claim to its owner, then verify it, challenge it or point at judgement. Never invent an oracle to get GREEN."
+      }
     }
   ],
   "judgment": [

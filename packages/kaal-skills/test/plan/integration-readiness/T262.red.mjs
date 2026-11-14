@@ -8,6 +8,8 @@ export async function run() {
   const { out, v } = await check(draft());
   assert.notEqual(v.F3, 'FAIL', `Testing's checks must not fail: ${JSON.stringify(out.F3.filter((x) => x.status === 'FAIL'))}`);
   for (const name of ['duplicates', 'report']) assert.ok(passes(out, 'F3', name), `${name} reads clear, report and unknown, with reasons`);
+  const accept = draft().mechanisms.find((m) => m.name === 'accept');
+  assert.ok(accept && accept.outcome && !/passed/.test(accept.outcome.at), "Testing's accept is read by its findings, never by passed, which stays true with unknown findings present");
   const mutants = {
     'a value under two outcomes': (d) => { d.mechanisms[0].outcome.clear.push('unknown'); },
     'the undecidable value read as clear': (d) => { const o = d.mechanisms[0].outcome; o.unknown = []; o.clear.push('unknown'); },

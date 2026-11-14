@@ -4,9 +4,10 @@ Architecture keeps two concerns apart, as the Architecture Skill states them: So
 
 ## Solution
 
-- **skills/A1: the contract.** A small set of Requirements (F1 to F6, N1, N2) and Cases (T260 to T266) that any capability can satisfy on its own. A capability depends on none of it.
+- **skills/A1: the contract.** A small set of Requirements (F1 to F7, N1, N2) and Cases (T260 to T267) that any capability can satisfy on its own. A capability depends on none of it.
 - **skills/A2: the declaration.** One file per capability, owned by that capability, beside its ownership claim. It is data: owner, mechanisms, and what a caller needs to read a result. It follows the pattern Testing already owns for `ownership.kaal.json` and `evidence.kaal.json` (the owner keeps the file; one format is read the same way for every owner), without Testing's help.
 - **skills/A3: the verdict.** For each Requirement a declaration gets PASS, FAIL or UNKNOWN, with a reason per mechanism. UNKNOWN never counts as PASS. The vocabulary is the CPO's, and no capability's own words are replaced.
+- **skills/A4: activation.** For a judgment capability the declaration also carries a situation and a reminder, as data. An integrator (Engineering, later) reads it and decides whether, where and how to surface it, for example in an agent's instructions or a hook's output. The reminder is the capability's words, so the integrator never has to restate the capability's rule to cause the agent to consider it. A script mechanism needs no reminder: calling it is its activation.
 - **Relations.** The declaration states what a caller may invoke; the *Installation Contract* (Core) states what an installer copies into a repository, and its `surface` assets are installed only by the capability's own lifecycle. They do not merge: a capability can be integration-ready and ship no installable asset. Guard owns the executing check (`command`, `runs`); a declared `script` mechanism is what such a check would call, and Engineering writes that check later. BASS gives the levels; Testing's own rule (verification is proof, validation is judgment, neither stands in for the other) is why `skill` mechanisms may not claim an outcome.
 
 ## Delivery

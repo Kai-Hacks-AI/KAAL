@@ -10,10 +10,12 @@ export const PKG = resolve(HERE, '../../..');
 export const ROOT = resolve(PKG, '../..');
 export const EVIDENCE = join(PKG, 'plan/integration-readiness/evidence');
 export const DRAFT = join(EVIDENCE, 'testing.integration.draft.json');
+export const ARCH_DRAFT = join(EVIDENCE, 'architecture.activation.draft.json');
 export const FIXTURES = join(EVIDENCE, 'testing.fixtures.mjs');
 export const CONFORMS = join(PKG, 'test/lib/conforms.mjs');
 export const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 export const draft = () => readJson(DRAFT);
+export const archDraft = () => readJson(ARCH_DRAFT);
 
 /** The common evaluator (DO). conforms({ declaration, root, fixtures }) -> { F1..F6: [{ status, mechanism, detail }] }; verdict(out) -> { F1..F6: 'PASS'|'FAIL'|'UNKNOWN' }; discover(root) -> [{ package, declaration, status? }]. */
 export async function load() {
