@@ -2,7 +2,7 @@
 // The collector is the unit, judged from its file state: the effective delta against main, the tree at its head and its history.
 // It qualifies when its delta is not empty, its head tree holds PLAN and DO files, every expected Test Case has a green latest execution at the exact head, and
 // exactly one 4L retrospective concludes the collected work (the Change-history retrospectives a declaration names are not counted). Order is the history's (ancestry), never a time. Missing, stale or
-// ambiguous evidence is "not judged" and never qualifies. Advisory: it names the qualifiers and the first one that moves next, and
+// ambiguous evidence is "not judged" and never qualifies. Advisory: it names the qualifiers and the one that moves next (the highest value density, else judged), and
 // authorizes or recommends nothing. Read-only, deterministic, no host access.
 // Usage: node pull-promotion.mjs <facts.json> <declaration.json>
 import { readFileSync } from 'node:fs';
@@ -88,8 +88,26 @@ export function walkCollectors(facts, declaration) {
   });
   const qualifiers = entries.filter((e) => e.status === 'qualifies').map((e) => e.name);
   const undeclared = uniq(host.map((c) => c.name).filter((n) => !declared.includes(n)));
-  const next = qualifiers.length ? { collector: qualifiers[0] } : { collector: null, reason: entries.length ? 'no declared collector qualifies; each says what is missing' : 'there are no declared collectors' };
-  return { collectors: entries, qualifiers, undeclared, next, problems };
+  for (const c of declaration.collectors ?? []) {
+    for (const f of ['value', 'size']) if (c[f] !== undefined && !(Number.isSafeInteger(c[f]) && c[f] > 0)) problems.push(`${c.name}: ${f} is not a positive integer`);
+    if (c.unit !== undefined && !(typeof c.unit === 'string' && c.unit.trim())) problems.push(`${c.name}: unit is not a non-empty text`);
+  }
+  return { collectors: entries, qualifiers, undeclared, next: chooseNext(qualifiers, entries, declaration), problems };
+}
+// next: the one qualifier; else the strictly highest value density (value / size, exact by cross-multiplication) when every qualifier
+// has a valid value, size and the same unit; else judged (collector null, the candidates named). A missing size is never defaulted.
+function chooseNext(qualifiers, entries, declaration) {
+  if (!qualifiers.length) return { collector: null, reason: entries.length ? 'no declared collector qualifies; each says what is missing' : 'there are no declared collectors' };
+  if (qualifiers.length === 1) return { collector: qualifiers[0] };
+  const by = new Map((declaration.collectors ?? []).map((c) => [c.name, c]));
+  const ok = (c) => c && [c.value, c.size].every((n) => Number.isSafeInteger(n) && n > 0) && typeof c.unit === 'string' && c.unit.trim();
+  const rows = qualifiers.map((n) => by.get(n));
+  if (!rows.every(ok)) return { collector: null, judged: qualifiers, reason: 'judged by the Owner: a qualifier lacks a valid value, size or unit' };
+  if (new Set(rows.map((c) => c.unit)).size > 1) return { collector: null, judged: qualifiers, reason: 'judged by the Owner: the qualifiers do not share one size unit and counting method' };
+  const beats = (a, b) => BigInt(a.value) * BigInt(b.size) > BigInt(b.value) * BigInt(a.size);
+  const best = rows.filter((c) => rows.every((o) => o === c || !beats(o, c)));
+  if (best.length === 1) return { collector: best[0].name };
+  return { collector: null, judged: best.map((c) => c.name), reason: 'judged by the Owner: the highest value densities tie' };
 }
 if (process.argv[1]?.endsWith('pull-promotion.mjs') && process.argv.length >= 4) {
   const read = (f) => { try { return JSON.parse(readFileSync(f, 'utf8')); } catch (e) { process.stderr.write(`could not read ${f}: ${e.message}\n`); process.exit(2); } };
