@@ -19,7 +19,7 @@ Provisional ids: C15 and T268-T276 were not checked for global uniqueness over e
 
 ## CPO follow-up (0409476)
 
-Report-only; no ruleset for collector legitimacy is activated. No Retro Capability Node is created merely to match `kaal/retro/*`: Learning first needs a legitimate capability identity and a viable branch migration, which this Change does not decide.
+Report-only; no ruleset for collector legitimacy is activated. No Retro Capability Node is created merely to match `kaal/retro/*`: Retro is its own capability (Owner decision on #1640), so it needs its own legitimate capability identity first, which this Change does not decide. The flat `kaal/learning` branch is not an immutable blocker: if a `kaal/learning/<name>` collector is needed, the CTO asks the Owner for that specific operation. No permanent exception or alternative registry is designed around it.
 
 ## Open, not decided here
 
