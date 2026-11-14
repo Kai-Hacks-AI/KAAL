@@ -44,3 +44,31 @@ The one Script change is the report naming a partial value, size and unit triple
 ## Order
 
 PLAN (this), then DO (the declaration edit; T47 to T50 to green), ACT, SYNC when it holds the seat, PROMOTION. Collector: `kaal/release/pull-declare`, from `main`.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- The CPO's review before the DO caught that the collectors were moving: the C27 Cases were renumbered and the Guard DO was in flight. The Cases now read two fixtures (the heads, and the heads with the open DO and ACT applied) and fix no id of another Change, so they hold across the renumbering.
+- Declaring is not qualifying. All five candidates were declared and the recorded live run still shows no collector qualifying, each saying what it lacks.
+- The WIRE installation branch stayed out of the declaration, which keeps PDCA with the collectors.
+
+### Learned
+
+- A scope that fits a collector today can overlap another tomorrow: the githooks dispatcher lives under the same wiring folder as the WIRE operation, so the WIRE scope needed a negative lookahead.
+- A default parameter can hide a missing value. T38's fixture meant "no fields" but its default supplied a unit, and the new partial-triple problem exposed it.
+- The recorded evidence (`collector-files.json`, the live report) has to be refreshed with the declaration, or the completeness Case in T14 fails.
+
+### Lacked
+
+- Executions: the collector-capability, githooks-split and wire-operation Cases have no execution at their heads, because the host's CI log does not report them under a scoped id.
+- Case files for the retro collector, and a concluding collector-level ACT on four of the five candidates.
+- Recorded value, size and unit, so `next` stays judged whenever several qualify.
+
+### Longed For
+
+- A runner that logs every Engineering Case under a scoped id, so the report can see executions.
+- The Owner's recorded value, size and unit for the candidates.
+- Fixtures that are read from the host at run time, not copied, so a layout change cannot make them stale.
