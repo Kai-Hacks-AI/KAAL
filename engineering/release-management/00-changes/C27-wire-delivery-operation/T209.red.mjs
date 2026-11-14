@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const id = 'release/T209';
 export const tests = ['release/F22'];
-export const title = 'the WIRE template has exactly the chapters Source, Target and Verification, and is installed as drafted';
+export const title = 'the WIRE template source has exactly the chapters Source, Target and Verification, as drafted';
 
 const CUE = '**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.';
 // A template is right when it opens with the envelope cue once and holds exactly these H2 chapters in this order.
@@ -34,7 +34,7 @@ export function run() {
   assert.ok(existsSync(iface), 'the interface is absent');
   const text = draft(readFileSync(iface, 'utf8'));
   assert.ok(judge(text), 'the draft is not a WIRE template');
-  const installed = join(repo, '.github/PULL_REQUEST_TEMPLATE/wire.md');
-  assert.ok(existsSync(installed), 'the WIRE template is not installed');
-  assert.equal(readFileSync(installed, 'utf8'), text, 'the installed template differs from the draft');
+  const src = join(repo, 'engineering/release-management/05-src/wiring/templates/wire.md');
+  assert.ok(existsSync(src), 'the WIRE template source is absent from the Engineering wiring sources');
+  assert.equal(readFileSync(src, 'utf8'), text, 'the template source differs from the draft');
 }
