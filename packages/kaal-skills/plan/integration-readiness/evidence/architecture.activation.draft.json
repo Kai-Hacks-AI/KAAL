@@ -26,8 +26,21 @@
       "docs": "skills/kaal-architecture/SKILL.md",
       "activation": {
         "when": "a statement is written or changed about what an intended solution is, or about how it is realized, operated or where a function is placed",
-        "reminder": "Before settling this design or placing this function, read kaal-architecture, 'The test': would the statement still hold if the means were replaced? Report its parts, your finding (none, mixed, ambiguous) and the next move (keep, split, ask)."
+        "invoke": "remind-classify"
       }
+    },
+    {
+      "name": "remind-classify",
+      "level": "script",
+      "kind": "remind",
+      "invoke": {
+        "command": [
+          "node",
+          "scripts/remind.mjs"
+        ]
+      },
+      "docs": "skills/kaal-architecture/SKILL.md",
+      "fixtures": "remind"
     }
   ],
   "judgment": [

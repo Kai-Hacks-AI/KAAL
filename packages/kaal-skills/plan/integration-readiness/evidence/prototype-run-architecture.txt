@@ -1,6 +1,7 @@
 F1  FAIL
     FAIL    no ownership claim beside the declaration
-F2  UNKNOWN
+F2  PASS
+    PASS    remind-classify: remind: ran as a command with stdin closed, returned exit and output, changed nothing in its package
 F3  UNKNOWN
 F4  UNKNOWN
 F5  PASS
@@ -8,6 +9,16 @@ F5  PASS
 F6  PASS
     PASS    the declaration names no hook, workflow, ruleset or queue
 F7  PASS
-    PASS    classify: a situation and a reminder naming the Skill are declared; the integrator chooses the trigger
+    PASS    classify: an integrator that invokes the declared remind mechanism receives a short reminder naming the Skill and the section, and decides nothing
 
-Note: Architecture is a draft with no ownership claim of its own, so F1 fails by construction and F2 to F4 have no script mechanism to judge. This run is for F5 and F7 only.
+SELFTEST: each mutant of the draft must fail the named requirement
+  CAUGHT  F7  a static reminder in the declaration, no invocable mechanism
+  CAUGHT  F7  activation names a mechanism that is not declared
+  CAUGHT  F7  activation names a mechanism that is not a remind
+  CAUGHT  F7  the remind mechanism claims an outcome
+  CAUGHT  F7  no situation
+  CAUGHT  F7  the activation claims a gate
+  CAUGHT  F1  the remind command does not exist
+
+Note: Architecture is a draft with no ownership claim of its own, so F1 fails by construction; F3 and F4 have no check mechanism to judge. This run is for F2, F5 and F7. Skill snapshot: collector kaal/architecture/classify at a9e19a9.
+node v22.23.4

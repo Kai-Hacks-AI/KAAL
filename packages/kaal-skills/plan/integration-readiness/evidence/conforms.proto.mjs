@@ -1,5 +1,5 @@
 // THROWAWAY PROTOTYPE (skills/C1 PLAN evidence). Not the DO, not delivered, not a runtime.
-// conforms({ declaration, root, fixtures }) applies requirements F1-F6 to a declaration and returns, per requirement,
+// conforms({ declaration, root, fixtures }) applies requirements F1-F7 to a declaration and returns, per requirement,
 // a list of { status: 'PASS'|'FAIL'|'UNKNOWN', mechanism, detail }. verdict() folds a list: any FAIL, else any UNKNOWN, else PASS.
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -10,7 +10,7 @@ import { pathToFileURL } from 'node:url';
 
 const HOST = /\.githooks|pre-push|pre-commit|\.github[\\/]|workflows?\b|ruleset|GITHUB_|merge[ _-]queue/i;
 const LEVELS = ['script', 'skill', 'agent'];
-const KINDS = ['check', 'measure', 'judgment'];
+const KINDS = ['check', 'measure', 'remind', 'judgment'];
 const REQUIRED = ['name', 'level', 'kind', 'docs'];
 const CHILD = `const [mod, exp, fix, name, which] = process.argv.slice(1);
 const m = await import(mod); const f = (await import(fix))[name]?.[which];
@@ -63,31 +63,36 @@ export async function conforms({ declaration: decl, root, fixtures }) {
   }
   if (!out.F1.length) add('F1', 'PASS', null, `${mechs.length} mechanisms read, owner matches the ownership claim`);
 
+  // Call a script mechanism with one fixture. Returns { result } or { status, detail } for UNKNOWN/FAIL.
+  const call = (m, which) => {
+    const before = treeHash(pkg);
+    const tmp = mkdtempSync(join(tmpdir(), 'skills-proto-'));
+    const cmd = m.invoke.command;
+    const sets = fx[m.fixtures] ?? {};
+    const run = cmd
+      ? spawnSync(cmd[0] === 'node' ? process.execPath : cmd[0], [...cmd.slice(1), ...sets[which].args], { cwd: pkg, stdio: ['ignore', 'pipe', 'pipe'], timeout: 20000, encoding: 'utf8' })
+      : spawnSync(process.execPath, ['--input-type=module', '-e', CHILD, pathToFileURL(join(pkg, m.invoke.module)).href, m.invoke.export, fixUrl, m.fixtures, which], { cwd: tmp, stdio: ['ignore', 'pipe', 'pipe'], timeout: 20000, encoding: 'utf8' });
+    if (before !== treeHash(pkg)) return { status: 'FAIL', detail: `${which}: changed its package tree` };
+    const err = (run.stderr || '').trim().split('\n').find((l) => /Error|NO[A-Z]+/.test(l)) ?? '';
+    if (cmd) {
+      // A command's result is { exit, stdout }: stdout parsed as JSON when it is JSON. Its exit status is part of the result, so a reader may use it.
+      if (run.error || run.status === null) return { status: 'FAIL', detail: `${which}: did not finish (${run.error?.code ?? run.signal})` };
+      let stdout = run.stdout; try { stdout = JSON.parse(run.stdout); } catch { /* text */ }
+      return { result: { exit: run.status, stdout }, detail: `${which}: ran as a command with stdin closed, returned exit and output, changed nothing in its package` };
+    }
+    if (run.status !== 0) return /ERR_MODULE_NOT_FOUND|Cannot find (package|module)/.test(run.stderr) ? { status: 'UNKNOWN', detail: `${which}: cannot load here (${err.slice(0, 90)})` } : { status: 'FAIL', detail: `${which}: exit ${run.status} ${err}` };
+    try { return { result: JSON.parse(run.stdout), detail: `${which}: ran with stdin closed, returned data, changed nothing in its package` }; }
+    catch { return { status: 'FAIL', detail: `${which}: result is not data` }; }
+  };
+
   const results = {};
   for (const m of mechs.filter((x) => x.level === 'script')) {
     const sets = fx[m.fixtures] ?? {};
-    for (const which of m.kind === 'check' ? ['clear', 'report', 'unknown'] : ['clear']) {
+    for (const which of m.kind === 'check' ? ['clear', 'report', 'unknown'] : m.kind === 'remind' ? ['remind'] : ['clear']) {
       if (!sets[which]) { add('F2', 'UNKNOWN', m.name, `${which}: no fixture offered`); continue; }
-      const before = treeHash(pkg);
-      const tmp = mkdtempSync(join(tmpdir(), 'skills-proto-'));
-      const cmd = m.invoke.command;
-      const run = cmd
-        ? spawnSync(cmd[0] === 'node' ? process.execPath : cmd[0], [...cmd.slice(1), ...sets[which].args], { cwd: pkg, stdio: ['ignore', 'pipe', 'pipe'], timeout: 20000, encoding: 'utf8' })
-        : spawnSync(process.execPath, ['--input-type=module', '-e', CHILD, pathToFileURL(join(pkg, m.invoke.module)).href, m.invoke.export, fixUrl, m.fixtures, which], { cwd: tmp, stdio: ['ignore', 'pipe', 'pipe'], timeout: 20000, encoding: 'utf8' });
-      const after = treeHash(pkg);
-      if (before !== after) { add('F2', 'FAIL', m.name, `${which}: changed its package tree`); continue; }
-      const err = (run.stderr || '').trim().split('\n').find((l) => /Error|NO[A-Z]+/.test(l)) ?? '';
-      if (cmd) {
-        // A command's result is { exit, stdout }: stdout parsed as JSON when it is JSON. Its exit status is part of the result, so a reader may use it.
-        if (run.error || run.status === null) { add('F2', 'FAIL', m.name, `${which}: did not finish (${run.error?.code ?? run.signal})`); continue; }
-        let stdout = run.stdout; try { stdout = JSON.parse(run.stdout); } catch { /* text */ }
-        results[`${m.name}/${which}`] = { exit: run.status, stdout };
-        add('F2', 'PASS', m.name, `${which}: ran as a command with stdin closed, returned exit and output, changed nothing in its package`);
-        continue;
-      }
-      if (run.status !== 0) { /ERR_MODULE_NOT_FOUND|Cannot find (package|module)/.test(run.stderr) ? add('F2', 'UNKNOWN', m.name, `${which}: cannot load here (${err.slice(0, 90)})`) : add('F2', 'FAIL', m.name, `${which}: exit ${run.status} ${err}`); continue; }
-      try { results[`${m.name}/${which}`] = JSON.parse(run.stdout); add('F2', 'PASS', m.name, `${which}: ran with stdin closed, returned data, changed nothing in its package`); }
-      catch { add('F2', 'FAIL', m.name, `${which}: result is not data`); }
+      const r = call(m, which);
+      if (r.result === undefined) { add('F2', r.status, m.name, r.detail); continue; }
+      results[`${m.name}/${which}`] = r.result; add('F2', 'PASS', m.name, r.detail);
     }
     if (m.kind !== 'check') continue;
     const lists = ['clear', 'report', 'unknown'].map((c) => m.outcome?.[c] ?? []);
@@ -113,22 +118,33 @@ export async function conforms({ declaration: decl, root, fixtures }) {
     if (!m.shape || !Array.isArray(m.shape.fields) || !m.shape.fields.length) probs.push('no result shape');
     if (m.outcome) probs.push('a judgment mechanism declares pass/fail outcomes');
     probs.length ? add('F5', 'FAIL', m.name, probs.join('; ')) : add('F5', 'PASS', m.name, 'Skill, section and result shape are declared, and no outcome is claimed');
-    // F7: the activation points an agent at the Skill; it decides nothing.
+    // F7: the activation is obtained by invoking a declared script mechanism of kind remind; it points and decides nothing.
     const a = m.activation; const skillName = text.match(/^name: (.+)$/m)?.[1]?.trim();
+    if (a === undefined) { add('F7', 'UNKNOWN', m.name, 'no activation declared yet: unknown, never conforming'); continue; }
     const ap = [];
-    if (!a || typeof a !== 'object') ap.push('no activation');
+    if (!a || typeof a !== 'object') ap.push('activation is not an object');
     else {
       if (typeof a.when !== 'string' || !a.when.trim()) ap.push('no situation (when)');
-      if (typeof a.reminder !== 'string' || !a.reminder.trim()) ap.push('no reminder');
-      else {
-        if (a.reminder.length > 280) ap.push('reminder longer than 280 characters');
-        if (!skillName) ap.push('no Skill file to point at');
-        else if (!a.reminder.includes(skillName)) ap.push('reminder does not name the Skill');
-        if (m.section && !a.reminder.includes(m.section)) ap.push('reminder does not point at the section');
-      }
+      if ('reminder' in a) ap.push('the reminder is data in the declaration; it must come from an invocable mechanism');
       if (a.outcome || a.gate) ap.push('an activation claims an outcome or a gate');
+      const r = mechs.find((x) => x.name === a.invoke);
+      if (!r) ap.push(`invoke names no declared mechanism (${JSON.stringify(a.invoke)})`);
+      else if (r.level !== 'script' || r.kind !== 'remind') ap.push(`${r.name} is not a script mechanism of kind remind`);
+      else if (r.outcome) ap.push(`${r.name} claims an outcome`);
+      else {
+        const got = results[`${r.name}/remind`];
+        const reminder = got === undefined ? undefined : (getAll(got, 'reminder')[0] ?? getAll(got, 'stdout.reminder')[0]);
+        if (got === undefined) ap.push(`${r.name} did not run (see F2)`);
+        else if (typeof reminder !== 'string' || !reminder.trim()) ap.push(`${r.name} returned no reminder`);
+        else {
+          if (reminder.length > 280) ap.push('reminder longer than 280 characters');
+          if (!skillName) ap.push('no Skill file to point at');
+          else if (!reminder.includes(skillName)) ap.push('reminder does not name the Skill');
+          if (m.section && !reminder.includes(m.section)) ap.push('reminder does not point at the section');
+        }
+      }
     }
-    ap.length ? add('F7', 'FAIL', m.name, ap.join('; ')) : add('F7', 'PASS', m.name, 'a situation and a reminder naming the Skill are declared; the integrator chooses the trigger');
+    ap.length ? add('F7', 'FAIL', m.name, ap.join('; ')) : add('F7', 'PASS', m.name, 'an integrator that invokes the declared remind mechanism receives a short reminder naming the Skill and the section, and decides nothing');
   }
   const hit = JSON.stringify(decl).match(HOST); // the declaration only: scanning prose false-positives (evidence.md)
   hit ? add('F6', 'FAIL', null, `names a host trigger: "${hit[0]}"`) : add('F6', 'PASS', null, 'the declaration names no hook, workflow, ruleset or queue');

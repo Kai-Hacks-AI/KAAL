@@ -23,8 +23,8 @@ F5  PASS
     PASS    assess-claim: Skill, section and result shape are declared, and no outcome is claimed
 F6  PASS
     PASS    the declaration names no hook, workflow, ruleset or queue
-F7  PASS
-    PASS    assess-claim: a situation and a reminder naming the Skill are declared; the integrator chooses the trigger
+F7  UNKNOWN
+    UNKNOWN assess-claim: no activation declared yet: unknown, never conforming
 
 SELFTEST: each mutant of the draft must fail the named requirement
   CAUGHT  F3  a value is listed under two outcomes (duplicates)
@@ -33,10 +33,6 @@ SELFTEST: each mutant of the draft must fail the named requirement
   CAUGHT  F6  hook named in the declaration
   CAUGHT  F5  judgment mechanism claims a gate outcome
   CAUGHT  F3  non-clear result with no reason (report)
-  CAUGHT  F7  judgment mechanism with no activation
-  CAUGHT  F7  reminder that does not name the Skill
-  CAUGHT  F7  reminder longer than 280 characters
-  CAUGHT  F7  activation that claims a gate
   CAUGHT  F1  owner differs from the ownership claim
 
 node v22.23.4, repository at 882416d

@@ -16,6 +16,7 @@ export const CONFORMS = join(PKG, 'test/lib/conforms.mjs');
 export const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 export const draft = () => readJson(DRAFT);
 export const archDraft = () => readJson(ARCH_DRAFT);
+export const ARCH_FIXTURES = join(EVIDENCE, 'architecture.fixtures.mjs');
 
 /** The common evaluator (DO). conforms({ declaration, root, fixtures }) -> { F1..F6: [{ status, mechanism, detail }] }; verdict(out) -> { F1..F6: 'PASS'|'FAIL'|'UNKNOWN' }; discover(root) -> [{ package, declaration, status? }]. */
 export async function load() {
@@ -60,3 +61,19 @@ export function commandSubject({ tool, fixtures, mechanism }) {
 }
 export const EXIT_OUTCOME = { at: 'exit', clear: [0], report: [1], unknown: [2] };
 export const HONEST_TOOL = `const k = process.argv[2];\nprocess.stdout.write(JSON.stringify({ why: 'because ' + k }));\nprocess.exit(k === 'c' ? 0 : k === 'r' ? 1 : 2);\n`;
+
+/** A throwaway judgment Skill with a remind command. `remind` is the body of scripts/remind.mjs. */
+export function judgmentSubject({ remind }) {
+  const s = subject({ module: 'export {};\n', fixtures: `export const remind = { remind: { args: ['a situation'] } };\n`, mechanism: {} });
+  const pkg = join(s.root, 'packages/kaal-subject');
+  mkdirSync(join(pkg, 'skills/x-skill'), { recursive: true });
+  mkdirSync(join(pkg, 'scripts'), { recursive: true });
+  writeFileSync(join(pkg, 'skills/x-skill/SKILL.md'), '---\nname: x-skill\n---\n# X\n\n## The section\n\ntext\n');
+  writeFileSync(join(pkg, 'scripts/remind.mjs'), remind);
+  s.declaration.mechanisms = [
+    { name: 'judge', level: 'skill', kind: 'judgment', skill: 'skills/x-skill/SKILL.md', section: 'The section', shape: { fields: ['finding'] }, docs: 'skills/x-skill/SKILL.md', activation: { when: 'a thing is written', invoke: 'remind' } },
+    { name: 'remind', level: 'script', kind: 'remind', invoke: { command: ['node', 'scripts/remind.mjs'] }, docs: 'skills/x-skill/SKILL.md', fixtures: 'remind' },
+  ];
+  return s;
+}
+export const GOOD_REMIND = `process.stdout.write(JSON.stringify({ reminder: "Read x-skill, 'The section', before you write this." }));\n`;

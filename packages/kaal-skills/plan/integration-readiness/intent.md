@@ -4,13 +4,13 @@ This is `skills/C1`, a PLAN Change. It ships no code and installs nothing. It st
 
 **What is missing.** Seven capabilities (Intent, Requirements, Architecture, Change, Review, Testing, Release) each guide an agent through a Skill. Some also have a mechanical part that a person or a machine can run. None says what a caller may rely on. Engineering and the Controls Change must decide, control by control, how to wire Skills into hooks and CI, and today each decision starts by reading a different README. The risk is the one the CI ownership map already found: a hook or workflow that carries its own copy of a capability's rule because the capability gave it no clean way to call that rule.
 
-- **skills/I1**: A KAAL Skill is *integration-ready* when a caller that is not an agent (a hook, a CI step, another tool) can invoke whatever the capability makes mechanical, can read an honest result, and has to add none of the capability's rules to do so; and when whatever stays judgment is declared as judgment, with the shape of what an agent gives back and a reminder an integrator can hand an agent at the point where that judgment matters. Each capability declares this in one small declaration that it owns and realizes in its own way. `kaal-skills` states the Intent, the Requirements and the Cases once, and checks every declaration against the same Cases. It runs nothing, installs nothing and decides how no capability is built.
+- **skills/I1**: A KAAL Skill is *integration-ready* when a caller that is not an agent (a hook, a CI step, another tool) can invoke whatever the capability makes mechanical, can read an honest result, and has to add none of the capability's rules to do so; and when whatever stays judgment is declared as judgment, with the shape of what an agent gives back and a mechanism the capability owns that gives an integrator the reminder to hand an agent at the point where that judgment matters. Each capability declares this in one small declaration that it owns and realizes in its own way. `kaal-skills` states the Intent, the Requirements and the Cases once, and checks every declaration against the same Cases. It runs nothing, installs nothing and decides how no capability is built.
 
 **The Owner's five readiness criteria, and where each is answered.**
 
 | Owner criterion | Answered by |
 | --- | --- |
-| 1. A documented mechanism suitable for invocation by hooks and CI | F1, F2, F7 (for judgment: a reminder an agent is given at the right point) |
+| 1. A documented mechanism suitable for invocation by hooks and CI | F1, F2, F7 (for judgment: an invocable mechanism that returns the reminder an agent is given at the right point) |
 | 2. Small and focused on the Skill's responsibility | F1 (one declaration, a handful of fields), N1 |
 | 3. Observable and testable | F3, F4 |
 | 4. Satisfies the common acceptance Tests | T260 to T267 |
