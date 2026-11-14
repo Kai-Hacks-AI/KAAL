@@ -5,9 +5,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { challenge4l } from './lib/record4l.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skillDir = path.resolve(here, '..', '..', 'skills', 'kaal-retro');
+const pkg = path.resolve(here, '..', '..');
+const skillDir = path.join(pkg, 'skills', 'kaal-retro');
+const fixture = (n) => fs.readFileSync(path.join(here, 'fixtures', n), 'utf8');
 
 function installAlone() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'retro-alone-'));
@@ -74,4 +77,49 @@ test('retro/T6 observations, interpretations and proposals are kept apart and no
   const text = read(installAlone(), 'SKILL.md');
   for (const w of ['observation', 'interpretation', 'improvement', 'owner', 'authoriz']) assert.match(text, new RegExp(w, 'i'), w);
   assert.match(text, /\b(not|never|no|nothing)\b[^.\n]*\b(Change|decision)/i, 'states that nothing is created or decided by the retro');
+});
+
+const EXPECTATIONS = [/method and subject/i, /all four/i, /label/i, /participants|views/i, /decision/i];
+function expectationsStated() {
+  const ref = read(installAlone(), 'references/4l.md');
+  const r = section(ref, 'Result');
+  assert.ok(r, 'references/4l.md has a Result section');
+  const bullets = r.split('\n').filter((l) => /^- /.test(l));
+  assert.ok(bullets.length >= 5, 'at least five expectations');
+  for (const b of bullets) assert.match(b, /\b(because|so that)\b/i, `reason given: ${b}`);
+  for (const e of EXPECTATIONS) assert.ok(bullets.some((b) => e.test(b)), `expectation ${e}`);
+}
+
+test('retro/T7 the 4L reference states what a result contains, with reasons', () => expectationsStated());
+
+test('retro/T8 a conforming 4L record raises no finding', () => {
+  expectationsStated();
+  assert.deepEqual(challenge4l(fixture('good.md')), []);
+});
+
+test('retro/T9 defective 4L records raise their findings', () => {
+  expectationsStated();
+  const expected = {
+    'missing-category.md': 'missing-category',
+    'unlabeled.md': 'unlabeled-entry',
+    'no-participants.md': 'no-participants',
+    'decision-recorded.md': 'decision-recorded',
+    'no-method.md': 'no-method',
+  };
+  for (const [f, id] of Object.entries(expected)) assert.deepEqual(challenge4l(fixture(f)), [id], f);
+});
+
+test('retro/T10 the trial accounts for lookups and context per arm', () => {
+  const t = JSON.parse(fs.readFileSync(path.join(pkg, 'plan', 'skill', 'trial.json'), 'utf8'));
+  assert.ok(Array.isArray(t.runs) && t.runs.length >= 2);
+  const arms = new Set(t.runs.map((r) => r.arm));
+  assert.deepEqual([...arms].sort(), ['baseline', 'skill-only']);
+  for (const r of t.runs) {
+    for (const k of ['subject', 'externalLookups', 'toolCalls', 'contextTokens']) assert.ok(k in r, `${r.arm} run has ${k}`);
+    if (r.arm === 'skill-only') assert.equal(r.externalLookups, 0);
+  }
+  for (const subject of new Set(t.runs.map((r) => r.subject))) {
+    assert.equal(new Set(t.runs.filter((r) => r.subject === subject).map((r) => r.arm)).size, 2, `${subject} has both arms`);
+  }
+  assert.ok(typeof t.limitations === 'string' && t.limitations.length > 0);
 });

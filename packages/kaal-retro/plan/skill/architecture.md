@@ -7,8 +7,8 @@ packages/kaal-retro/
   ownership.kaal.json
   skills/kaal-retro/SKILL.md
   skills/kaal-retro/references/4l.md
-  test/
-  plan/skill/
+  test/            Cases, fixture 4L records and the test-only record challenge
+  plan/skill/      this Change, and the trial accounting (trial.json)
 ```
 
 The installable unit is `skills/kaal-retro/` alone; the tests and the plan are outside it.
