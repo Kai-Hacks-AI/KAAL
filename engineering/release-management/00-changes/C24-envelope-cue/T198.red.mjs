@@ -15,7 +15,19 @@ function templates() {
   return files;
 }
 // The body text of a template is what is left once HTML comments are removed.
-const body = (text) => text.replace(/<!--[\s\S]*?-->/g, '').split('\n').map((line) => line.trimEnd()).filter((line, index, all) => line !== '' || all.slice(0, index).some((l) => l !== '')).join('\n');
+function withoutComments(text) {
+  let out = '';
+  let at = 0;
+  for (;;) {
+    const open = text.indexOf('<!--', at);
+    if (open === -1) return out + text.slice(at);
+    const close = text.indexOf('-->', open + 4);
+    if (close === -1) return out + text.slice(at, open);
+    out += text.slice(at, open);
+    at = close + 3;
+  }
+}
+const body = (text) => withoutComments(text).split('\n').map((line) => line.trimEnd()).filter((line, index, all) => line !== '' || all.slice(0, index).some((l) => l !== '')).join('\n');
 export function run() {
   const found = templates();
   assert.ok(found.length >= 6, `expected every template to be found, found ${found.length}`);
