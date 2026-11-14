@@ -9,7 +9,7 @@
 
 | Case | Tests | On the baseline |
 | --- | --- | --- |
-| release/T198 | G55 | RED: the envelope judge does not export the cue it accepts |
+| release/T198 | G55 | RED: `.github/PULL_REQUEST_TEMPLATE/plan.md` does not open its body with the Change envelope cue |
 | release/T199 | G55 | RED: the exact cue is rejected before the first chapter |
 
 ## Reproduce

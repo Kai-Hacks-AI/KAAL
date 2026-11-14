@@ -28,11 +28,11 @@ export async function run() {
   // The visible text is read by the same function the envelope judge uses, not by a copy.
   const { stripComments } = await import(pathToFileURL(join(cap, '05-src/plan-body/comments.mjs')).href);
   const envelope = await import(pathToFileURL(join(cap, '05-src/plan-body/envelope.mjs')).href);
-  assert.equal(envelope.CUE, CUE, 'the envelope judge does not export the cue it accepts, or accepts another one');
   for (const path of MANDATORY) assert.ok(existsSync(join(repo, path)), `the mandatory template ${path} is absent`);
   for (const path of new Set([...MANDATORY, ...discovered()])) {
     const lines = stripComments(readFileSync(join(repo, path), 'utf8')).split('\n').map((line) => line.trimEnd()).filter((line) => line !== '');
     assert.equal(lines[0], CUE, `${path} does not open its body with the Change envelope cue`);
     assert.equal(lines.filter((line) => line === CUE).length, 1, `${path} holds the cue more than once`);
   }
+  assert.equal(envelope.CUE, CUE, 'the envelope judge does not export the cue it accepts, or accepts another one');
 }
