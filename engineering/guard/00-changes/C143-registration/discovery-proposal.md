@@ -95,3 +95,8 @@ Effect on the PLAN: answers 1 and 5 replace the earlier reading of "add only" an
 ## `.kaal/` (Owner, 21:41)
 
 Deployed capabilities are always guarded. One `kaal-guard.json` sits at the `.kaal/` root and its checks run on **every** Guard run, whatever the diff selects. There are no Changes inside `.kaal/`; it changes only through the embed step (package, then `.kaal/`, then main). So `.kaal/` is a third place a `kaal-guard.json` lives (package root, open Change folder, `.kaal/` root), with the one difference that its checks are unconditional rather than selected by the diff. Note for the CPO: the earlier "exactly two kinds of folder" rule above is superseded by this.
+
+## Wiring split (Owner agreed, 21:43)
+
+- **Autowired through Guard** via `kaal-guard.json`: package roots, open Change folders and the `.kaal/` root.
+- **Explicit extra wiring step** for engineering areas (`engineering/<name>/`) that need standing checks: the source (hook script, workflow job) lives in the area folder and is installed into `.githooks/new/pre-push.d/<name>` and `.github/workflows/`, then becomes a required context in the new rulesets. This is Engineering's wiring, outside Guard; Guard does not read or register it.
