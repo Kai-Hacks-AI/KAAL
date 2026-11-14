@@ -1,28 +1,23 @@
 # C25 change
 
-## PLAN
+## PLAN (amended 14 Nov after the CPO ruling on #1621)
 
-1. Add C25 with its gap G58 and the Case T200. T200 is RED on `main` (`evidence.md`).
-2. The cue is exactly the line of release/C24 (`engineering/release-management/05-src/plan-body/cue.mjs`), written once as the first visible line of the body of each installed template, after any leading declaration or comment: `sync.md` and the default are byte-identical in that respect to the capability texts of release/C24 where they have one; `plan`, `do`, `act` and `promotion` take the line between their opening comment and their first chapter.
-3. T200 is independent of the capability-text Cases of release/C24. It reads the installed files with the judge's own `stripComments` and asserts: (a) the named mandatory templates `plan`, `do`, `act`, `sync`, `promotion` and `pull_request_template.md` exist and open their visible text with the cue exactly once; (b) discovery: every other `.md` in `.github/PULL_REQUEST_TEMPLATE/`, `hotfix.md` once it exists, meets the same rule; (c) release/T117 and T121 name neither the cue nor its stripping, so the transitional branch of release/C24 cannot remain.
-4. T117 and T121 compare the installed SYNC template with `sync-template.md` byte for byte, with no cue handling.
-
-## Split
-
-`.github` travels alone (Change Isolation), as for release/C16:
-
-- Collector `kaal/release/wire-envelope-cue`: `.github` only, the six installed files. It reaches `main` first.
-- Collector `kaal/release/wire-envelope-cue-engineering`: this Change's files, T200 renamed from `.red.mjs`, and T117 and T121 without the transitional branch. It is synchronized after the `.github` collector is on `main` and reaches `main` second.
+1. The gap is G58: the six installed templates carry no cue, and five of them have no Engineering source on `main` to install from.
+2. **Sources.** `plan`, `do`, `act`, `promotion` and the default template get an Engineering source each, `05-src/wiring/templates/<name>.md`, whose content is today's installed file plus the fixed cue of release/C24 as its first visible line, after the leading comment or declaration and nothing else changed. The default template keeps its older shape and path (no migration). `sync` keeps its source `sync-template.md` of release/C9, which already carries the cue.
+3. **Cases in the Engineering collector (CHECK), isolated, no install needed.** T200: each of the six sources exists, carries the cue exactly once as its first visible line, and equals today's installed file when the cue line is taken out. T215: release/T117 and T121 no longer compare an installed file, name no cue and keep no transitional branch; they judge the source. The comparison of installed with source moves to the WIRE Case.
+4. **WIRE Case, executed at WIRE.** T214: each of the six installed files equals its source byte for byte. It stays `.red.mjs` through the collector's promotion and is renamed in the WIRE pull request. It is not a prerequisite of the collector's ACT.
+5. Order: the Engineering collector `kaal/release/wire-envelope-cue-engineering` (PDCA with ACT) is promoted first. The WIRE `wire/envelope-cue` follows only once release/C27 and its protection are available and the Owner authorizes them. The `.github` collector `kaal/release/wire-envelope-cue` and #1621 are retired unmerged.
+6. The PLAN installs nothing, activates no ruleset and executes no WIRE.
 
 ## DO
 
-1. DO 1 (`.github` collector): insert the cue in the six files.
-2. DO 2 (engineering collector): after the synchronization, rename T200 to `T200.test.mjs` and delete the transitional branch from T117 and T121.
+1. Add the five sources and turn T200 and T215 green; rewrite T117 and T121 to judge the source only. T214 stays red.
+2. The ACT is written once T200 and T215 are green.
 
 ## ACT
 
-A 4L retrospective in `act.md`, with the rerun of the reader trial (same two links, a pull request opened from the new templates) recorded as validation evidence and not as an answer key.
+A 4L retrospective in `act.md`. The reader trial (the same two links, a pull request opened from the new templates) is rerun after the WIRE installs the cue and is recorded as validation evidence, not an answer key.
 
 ## Not in this Change
 
-A template registry, the declaration migration of the default template (it stays undeclared as it is), the `hotfix.md` template (HOTFIX delivery), hooks, CI, ruleset changes and merge blocking.
+Executing a WIRE, ruleset or branching-rule activation, a template registry, the migration of the default template, `hotfix.md` (it already carries the cue), and any change to the chapters or hints of a template.
