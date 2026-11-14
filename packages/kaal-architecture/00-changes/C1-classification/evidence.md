@@ -45,3 +45,7 @@ for (const f of process.argv.slice(2)) {
 JS
 node red.mjs $(find packages/kaal-architecture -name 'T*.red.mjs' | sort -V)
 ```
+
+## Amendment: T9 (architecture/F4, next move)
+
+Baseline: `kaal/architecture/classify` at `1585619`. T9 is RED there and in this PLAN: the `next/skill` record is absent. T3 and T1 to T8 are unchanged by this PLAN; T3 stays RED on S4 against the recorded run 3. The key gains a `next` field per statement, written before the trial it will judge, and the trial asks every agent for the next move so that choosing to ask is observable.
