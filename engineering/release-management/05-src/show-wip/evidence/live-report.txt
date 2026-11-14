@@ -1,0 +1,60 @@
+Integration
+#271 unknown claude/kaal-seal-definition → kaal/sealing WAIT approved, landing on its own
+#577 unknown claude/guard-c118-do → kaal/guard-release WORK behind what it goes into
+#605 unknown claude/project-thread-ho5ows-project-map → kaal/project REVIEW no approval at the current version
+#619 unknown claude/project-thread-cc6edd-has → kaal/old/controls WAIT approved, landing on its own
+#620 unknown claude/project-thread-ho5ows-process-assurance → kaal/process WORK behind what it goes into
+#659 unknown claude/project-thread-kt4lcb-graph-c5 → kaal/graph WORK draft
+#694 unknown claude/project-thread-l6zzep-exclude → kaal/hosting WORK behind what it goes into
+#739 unknown claude/change-isolation-c11-traceability-do → kaal/hosting WORK draft
+#747 unknown claude/project-thread-9m8l0r → kaal/foundation WORK 2 unresolved threads
+#751 unknown claude/project-thread-l6zzep-ownership-do → kaal/hosting WORK draft
+#810 unknown engineering/ci-gates-p2-do → kaal/ci-gates WORK draft
+#857 unknown claude/project-thread-wz1s57-testing-closure → kaal/engineering WORK behind what it goes into
+#892 unknown claude/project-thread-intent-c3-plan → kaal/intent WAIT approved, landing on its own
+#916 unknown claude/project-thread-intent-c4-roadmap → kaal/intent WAIT approved, landing on its own
+#935 unknown claude/project-thread-wz1s57-hygiene-inventory → kaal/engineering WORK behind what it goes into
+#948 unknown claude/project-thread-wz1s57-release-selector → kaal/hosting WORK behind what it goes into
+#953 unknown claude/project-thread-wz1s57-ledger-multi-entry → kaal/engineering WORK conflicts with what it goes into
+#955 unknown claude/project-thread-wz1s57-traceability-home → kaal/engineering WORK behind what it goes into
+#962 unknown claude/process-review-pilot-plan → kaal/process WORK behind what it goes into
+#965 unknown claude/project-thread-intent-sync-main → kaal/intent REVIEW no approval at the current version
+#967 unknown claude/project-thread-hev0vi-c12 → kaal/graph WORK behind what it goes into
+#968 unknown core/c51-acquisition-name → kaal/core WORK behind what it goes into
+#969 unknown claude/project-thread-intent-c5-love → kaal/intent WORK checks failing
+#986 unknown claude/project-thread-intent-c9-external → kaal/intent REVIEW no approval at the current version
+#994 unknown claude/project-thread-hev0vi-c14 → kaal/graph WORK behind what it goes into
+#1000 unknown claude/process-flat-layout-do → kaal/process WORK behind what it goes into
+#1005 unknown claude/requirements-c16-red → kaal/requirements REVIEW no approval at the current version
+#1016 unknown claude/testing-review-trial-plan → kaal/testing WORK behind what it goes into
+#1021 unknown claude/project-thread-sx7wdg-c10 → kaal/agents WORK behind what it goes into
+#1201 unknown hosting/d17-fix-r → kaal/hosting-r6 WORK behind what it goes into
+#1203 unknown hosting/d16-fix-r → kaal/hosting-r6 WORK conflicts with what it goes into
+#1210 unknown hosting/defects-d18-d19-red → kaal/hosting-r6 WORK behind what it goes into
+#1215 unknown hosting/defects-d20-red → kaal/hosting-r6 WORK behind what it goes into
+#1234 unknown claude/testing-foundation-pin → kaal/testing WORK behind what it goes into
+#1236 unknown core/pin-plan → kaal/foundation WORK behind what it goes into
+#1288 unknown claude/testing-pin-behind-do → kaal/testing WORK behind what it goes into
+#1319 unknown claude/engineering-controls-layout-plan → kaal/engineering-gate-ports REVIEW no approval at the current version
+#1361 unknown change/defect-release-duplicates-recut → kaal/change WORK behind what it goes into
+#1379 unknown claude/project-thread-nn0zwo → kaal/engineering-release-management WORK behind what it goes into
+#1382 unknown claude/project-thread-asvscx → kaal/release/approve-change WORK checks failing
+#1388 unknown claude/project-thread-7yt4b5-plan → kaal/release/verify-plan REVIEW no approval at the current version
+#1389 unknown claude/project-thread-7yt4b5-do → kaal/release/verify-plan WORK draft
+#1404 unknown claude/project-thread-vxspjg → kaal/release/change-isolation REVIEW no approval at the current version
+#1466 PLAN claude/project-thread-g6hmfd-wiring → kaal/release/plan WORK 1 unresolved thread
+#1476 DO claude/project-thread-sthale → kaal/release/plan WORK draft
+#1495 DO claude/project-thread-g6hmfd → kaal/release/plan REVIEW no approval at the current version
+#1500 unknown evidence/show-wip-final-head → kaal/release/plan WORK draft
+
+Promotion
+#328 unknown kaal/ci-names → main WORK behind what it goes into
+#560 unknown kaal/process → main WORK conflicts with what it goes into
+#610 unknown claude/engineering-c5-plan → main WORK conflicts with what it goes into
+#621 unknown kaal/graph → main WORK behind what it goes into
+#929 unknown change/far-plan-amend → main WORK conflicts with what it goes into
+#1109 unknown kaal/ledger-trial-2 → main WORK conflicts with what it goes into
+#1148 unknown kaal/ledger-trial-3 → main WORK conflicts with what it goes into
+#1313 unknown claude/project-thread-6i14tj → main WORK behind what it goes into
+#1461 PROMOTION kaal/release/wire-fallback-template → main WORK draft
+#1499 PROMOTION kaal/release/wire-sync-engineering → main WAIT checks running
