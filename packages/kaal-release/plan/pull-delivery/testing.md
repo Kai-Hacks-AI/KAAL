@@ -1,6 +1,6 @@
 # Pull Promotion: the next delivery by class (testing)
 
-Runnable Cases `T43` to `T46`, `.red.mjs`. They are RED because `laneStep` ignores `deliveries` today. They are not wired into any CI run; the DO moves them to `test/pull/` as `.test.mjs`. Run from the repository root: `node -e "import('./packages/kaal-release/plan/pull-delivery/T43.red.mjs').then(m => m.run())"`.
+Runnable Cases `T43` to `T46`. They were `.red.mjs` in the PLAN, RED because `laneStep` ignored `deliveries`; the DO moved them to `test/pull/T<n>.test.mjs`, where CI runs them from `pull.test.mjs`.
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |
