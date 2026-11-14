@@ -31,3 +31,29 @@ No weakening of any rule: scoped PLAN and DO, the exact-head CHECK, Case complet
 ## Order
 
 PLAN (this), then DO (the rule in the Script, the fields in the README and the T38 and T39 Cases moved to green), then ACT, then a concluding collector-level ACT, then SYNC and PROMOTION. Collector: `kaal/release/pull-next`, from `main`.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- The CPO's review turned a plain ranking into a rule that cannot guess. A missing size is judged, units must match, ties are named, and exact BigInt cross-multiplication avoids float ties. Each of those became a RED Case before any code.
+- Both Cases went from RED to GREEN by one function, `chooseNext`, with no change to qualification. Statuses, `missing` and `qualifiers` stayed identical, which T38 checks.
+- Naming the Owner as the owner of `value` kept the Script honest: it compares what is recorded and judges the rest.
+
+### Learned
+
+- Function point analysis measures size, not value. It can only feed `size`, and only when the unit and counting method match across the compared collectors.
+- Value ÷ size is a value-density heuristic, not WSJF, unless the Owner's value includes the cost-of-delay components.
+- An older Case can pin a rule a PLAN replaces. T30 asserted the first qualifier as next, and the DO updated it, as the PLAN's retired note said it would.
+
+### Lacked
+
+- No collector in `declaration.json` carries a value, size or unit, so today several qualifiers are judged. Recording them is an Owner decision and a separate Change.
+- A recorded way to keep size comparable over time, such as a named counting method and its version.
+
+### Longed For
+
+- The Owner's values and sizes recorded in the declaration, reviewed by the CPO, so `next` is deterministic.
+- The pull lane (`pull/C10`) calling the same `chooseNext` on the remaining qualifiers after a failed re-qualification.
