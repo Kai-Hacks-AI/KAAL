@@ -1,0 +1,12 @@
+{
+  "note": "Six single runs by one model, three subjects, two arms. Lookups are the agent's own report; toolCalls and context come from the harness that ran the agent. Subjects were fictional and given inline, so no run needed to gather evidence.",
+  "runs": [
+    { "arm": "skill-only", "subject": "docs-rewrite", "record": "trial/skill-only-docs.md", "instructionLookups": 0, "evidenceLookups": 0, "toolCalls": 2, "context": { "value": 60455, "basis": "measured" } },
+    { "arm": "baseline",   "subject": "docs-rewrite", "record": "trial/baseline-docs.md", "instructionLookups": 2, "evidenceLookups": 0, "toolCalls": 6, "context": { "value": 61402, "basis": "measured" } },
+    { "arm": "skill-only", "subject": "street-party", "record": "trial/skill-only-party.md", "instructionLookups": 0, "evidenceLookups": 0, "toolCalls": 2, "context": { "value": 60223, "basis": "measured" } },
+    { "arm": "baseline",   "subject": "street-party", "record": "trial/baseline-party.md", "instructionLookups": 2, "evidenceLookups": 0, "toolCalls": 6, "context": { "value": 61243, "basis": "measured" } },
+    { "arm": "skill-only", "subject": "freelance-decision", "record": "trial/skill-only-decision.md", "instructionLookups": 0, "evidenceLookups": 0, "toolCalls": 2, "context": { "value": 60287, "basis": "measured" } },
+    { "arm": "baseline",   "subject": "freelance-decision", "record": "trial/baseline-decision.md", "instructionLookups": 5, "evidenceLookups": 0, "toolCalls": 5, "context": { "value": 62635, "basis": "measured" } }
+  ],
+  "limitations": "One model, one run per cell, subjects written by the author. Token figures are the harness's total for the agent, which includes the pasted Skill text in the Skill-only arm and excludes nothing the agent read; the Skill-only saving is small (about 1,000 to 2,400 tokens per run) because the Skill text itself is in the prompt, and a real install may load it differently. toolCalls includes the final hand-back call and the single Write that saved the record. Instruction lookups are self-reported and differ in how they were counted (the third baseline counted five sources, the others two). Evidence lookups were not exercised. Whether the records are better is a judgment, reported in do.md, not a pass."
+}
