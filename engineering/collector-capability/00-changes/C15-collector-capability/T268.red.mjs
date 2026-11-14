@@ -32,4 +32,11 @@ describe("engineering/C15: collector capability", () => {
     assert.equal(r.exceptions.length, 4);
     assert.equal(r.exitStatus, 0);
   });
+  it("T275: a scope held by a Skill, not a Capability, fails", () => {
+    assert.equal(collectorCapability("kaal/release/x", { scopes: [{ scope: "release", holderKind: "skill" }] }).verdict, "FAIL");
+  });
+  it("T276: a scope claimed twice gives UNKNOWN", () => {
+    const scopes = [{ scope: "core", holderKind: "capability" }, { scope: "core", holderKind: "capability" }];
+    assert.equal(collectorCapability("kaal/core/x", { scopes }).verdict, "UNKNOWN");
+  });
 });

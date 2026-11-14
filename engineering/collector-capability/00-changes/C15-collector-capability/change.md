@@ -1,6 +1,6 @@
 # engineering/C15 change: collector capability check
 
-Provisional ids: C15 and T268-T274 were not checked for global uniqueness over every remote branch.
+Provisional ids: C15 and T268-T276 were not checked for global uniqueness over every remote branch.
 
 ## PLAN (revised after the CPO decision at c0a4a29)
 
@@ -10,6 +10,12 @@ Provisional ids: C15 and T268-T274 were not checked for global uniqueness over e
 4. Report-only. Refs that do not pass are listed as exceptions during migration: non-Node namespaces (`engineering`, `architecture`), flat legacy branches, `kaal/old/*`, and segments that name only a Skill (`release`, `review`, `retro`). Nothing enforces anything; no ruleset, workflow install or hook is part of this Change. Enforcement waits until bootstrap and owner identities are resolved and the Owner authorizes it.
 5. Explicit bootstrap path: a new capability's Node lands on main through a collector whose segment already passes (a registered owner), is promoted, and only then do collectors of the new capability pass. Before that they are reported exceptions. No parallel owner registry (option C is not accepted).
 6. Core stays ignorant of branches; Engineering owns the control and the Cases.
+
+## Earlier Core 0.0.1 work (added after the Owner's pointer)
+
+- Core's native capability identifier is the **registered scope** (core/F47-F49, shipped in 0.0.1 by the Owner's Option B on #600): a holder claims a scope, one scope has one holder, scopes are opaque text and Core derives nothing from spelling. The control should use a Capability's registered scope as the segment, not a lowercased Node name that Engineering invents. A segment passes only if its scope's holder resolves to an admitted KAAL Capability Node.
+- On main no Registration instance exists yet (only the Definition and README), so every segment is UNKNOWN or an exception until each Capability lands its own Registration. That Registration Change, owned by each Capability, is the bootstrap path of step 5.
+- `kaal/core` (stale, 5 Nov, not promoted) holds core/C50 (independent discovery and optional composition, T112-T114), core/C47, initialization plans and Windows defects D1-D3. It adds no branch or collector knowledge and no registered kind, so it changes the answer by evidence only: registration discovery is tested in fixtures there; this repo registers nothing.
 
 ## Open, not decided here
 
@@ -24,3 +30,5 @@ Which capability owns each existing Skill (Release, Review, Graph, Engineer Skil
 - T272: a Capability Node only in the pull request head does not make its segment PASS.
 - T273: bootstrap: before a Capability Node is on main its collector is FAIL; with the Node on main it is PASS; the registering Change's own ref passes through an already-registered owner.
 - T274: flat refs, `kaal/old/*` and non-Node namespaces are listed as exceptions; the report changes no exit status.
+- T275: a scope whose holder is not an admitted Capability Node (for example a Skill) is FAIL.
+- T276: two Registrations claiming one scope give UNKNOWN for that segment (Core's collision finding), never PASS.
