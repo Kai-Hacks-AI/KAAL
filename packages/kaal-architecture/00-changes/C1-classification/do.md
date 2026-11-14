@@ -30,3 +30,15 @@ What the DO delivered, and what was observed.
 
 - No `ownership.kaal.json`: this slice has no Node. The Cases are not listed in Engineering's CI, and the package is outside `workspaces`.
 - Nothing is deployed, published or promoted.
+
+## Next-move trial (architecture/F4, Case T9)
+
+The Owner decided T3/S4 on #1534: ask for the next move so that asking is observable, keep the original evidence, allow `ambiguous` where supported. The original T3 and run 3 are unchanged. T3 is still RED on S4 against run 3, which asked only for parts and finding.
+
+Run 4 (`trial/next/`), fresh subagents, the prompt now asks for parts, finding and next move (keep, split, ask), recorded unedited:
+
+- With the Skill, nine of ten equal the key in parts, finding and next move. S4 was answered delivery, finding none, next move ask. The key says delivery, ambiguous, ask.
+- Without the Skill, all ten equal the key in finding and next move, including S4 as solution and delivery, ambiguous, ask.
+- So asking is now observable, and the Skill-only agent chose to ask for S4 and S5. It did not call S4 ambiguous. T9 is RED on S4's finding.
+
+Not tuned: neither the key nor the Skill was changed after seeing run 4. The justification for `ambiguous` on S4 is the one the key states: the statement does not say whether the limit is an accepted Solution requirement. The Skill-only agent got to the same next move through "none". Whether T9 should judge the finding or only the next move, and whether `none` with ask is a defensible reading of S4, is the CPO's decision. The baseline agreeing with the key on all ten here, and the Skill adding no measurable difference on this set, is also a finding and is not hidden.
