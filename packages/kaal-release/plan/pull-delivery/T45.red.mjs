@@ -1,11 +1,11 @@
-// Case pull/T45 tests: pull/F43, pull/F44
+// Case pull/T45 tests: pull/F43
 import assert from 'node:assert/strict';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 export const id = 'pull/T45';
-export const tests = ['pull/F43', 'pull/F44'];
-export const title = 'unavailable and UNKNOWN candidates are not eligible, an UNKNOWN higher class with an eligible lower one is judged, and eligibility is never invented';
+export const tests = ['pull/F43'];
+export const title = 'FAIL is not eligible, UNKNOWN is not eligible and is reported without blocking a known eligible lower class, and judgment is asked only when no deterministic eligible choice exists';
 
 export async function run() {
   const mod = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
@@ -16,27 +16,38 @@ export async function run() {
   const kaal = (over = {}) => ({ class: 'KAAL', source: 'kaal/release/a', name: 'kaal/release/a', ...ok, ...over });
   const report = { qualifiers: ['kaal/release/a'], next: { collector: 'kaal/release/a' } };
   const step = (deliveries) => mod.laneStep({ seat: null, report, declaration: { collectors: [] }, deliveries, pulse: calm });
-  const judged = (r, names, why) => {
-    assert.equal(r.action, 'judge', `${why}: not judged`);
-    for (const n of names) assert.ok(r.judged?.includes(n), `${why}: ${n} is not named`);
-  };
 
-  // An UNKNOWN higher class with an eligible lower one is judged naming both.
-  judged(step([hot('fix-a', { out: 'UNKNOWN' }), wire()]), ['fix-a', 'hooks'], 'an UNKNOWN HOTFIX');
-  judged(step([hot('fix-a', { in: 'UNKNOWN' }), kaal()]), ['fix-a', 'kaal/release/a'], 'an UNKNOWN IN');
-  judged(step([wire({ out: 'UNKNOWN' }), kaal()]), ['hooks', 'kaal/release/a'], 'an UNKNOWN WIRE');
-  // Missing, invalid and mismatched evidence is UNKNOWN, never eligible.
-  for (const bad of [{ out: undefined }, { in: undefined }, { out: 'pass' }, { out: true }, { source: 'wire/fix-a' }, { source: 'hotfix' }, { class: 'OTHER' }]) {
-    const r = step([hot('fix-a', bad), kaal()]);
+  // An UNKNOWN higher class does not block a known eligible lower class; it is reported.
+  let r = step([hot('fix-a', { out: 'UNKNOWN' }), wire()]);
+  assert.deepEqual([r.action, r.class], ['select', 'WIRE'], 'an UNKNOWN HOTFIX stalled the eligible WIRE');
+  assert.deepEqual(r.unknown, ['fix-a'], 'the UNKNOWN HOTFIX was not reported');
+  r = step([hot('fix-a', { in: 'UNKNOWN' }), kaal()]);
+  assert.deepEqual([r.action, r.collector], ['open-promotion', 'kaal/release/a'], 'an UNKNOWN IN stalled the eligible collector');
+  assert.deepEqual(r.unknown, ['fix-a']);
+  r = step([wire({ out: 'UNKNOWN' }), hot('fix-a')]);
+  assert.deepEqual([r.action, r.class], ['select', 'HOTFIX'], 'an UNKNOWN WIRE changed the eligible HOTFIX');
+  // Missing, invalid and mismatched evidence is not eligible and is reported, never invented.
+  for (const bad of [{ out: undefined }, { in: undefined }, { out: 'pass' }, { out: true }, { source: 'wire/fix-a' }, { source: 'hotfix' }]) {
+    r = step([hot('fix-a', bad), kaal()]);
     assert.notEqual(r.action, 'select', `${JSON.stringify(bad)} was treated as eligible`);
-    judged(r, ['fix-a'], JSON.stringify(bad));
+    assert.deepEqual([r.action, r.collector], ['open-promotion', 'kaal/release/a'], `${JSON.stringify(bad)} stalled the eligible collector`);
+    assert.deepEqual(r.unknown, ['fix-a'], `${JSON.stringify(bad)} was not reported`);
   }
-  assert.equal(step([hot('fix-a'), 'x']).action, 'judge', 'an invalid candidate did not fail closed');
-  assert.equal(step('x').action, 'judge', 'an invalid list did not fail closed');
-  // FAIL is known and never blocks.
-  assert.equal(step([hot('fix-a', { out: 'FAIL' }), wire({ in: 'FAIL' }), kaal()]).action, 'open-promotion', 'FAIL blocked the lower class');
-  // Two eligible HOTFIXes are judged, not ordered.
-  judged(step([hot('fix-a'), hot('fix-b')]), ['fix-a', 'fix-b'], 'two HOTFIXes');
+  r = step([hot('fix-a'), 'x']);
+  assert.deepEqual([r.action, r.class], ['select', 'HOTFIX'], 'an invalid candidate stalled the eligible HOTFIX');
+  assert.equal(r.unknown?.length, 1, 'an invalid candidate was not reported');
+  // FAIL is known, not eligible, and not reported.
+  r = step([hot('fix-a', { out: 'FAIL' }), wire({ in: 'FAIL' }), kaal()]);
+  assert.equal(r.action, 'open-promotion', 'FAIL blocked the lower class');
+  assert.ok(!r.unknown?.length, 'FAIL was reported as unknown');
+  // Judgment only when no deterministic eligible choice exists.
+  r = step([hot('fix-a'), hot('fix-b')]);
+  assert.equal(r.action, 'judge', 'two eligible HOTFIXes were ordered');
+  assert.ok(r.judged.includes('fix-a') && r.judged.includes('fix-b'), 'the eligible HOTFIXes are not named');
+  r = step([hot('fix-a', { out: 'UNKNOWN' }), wire({ in: 'FAIL' })]);
+  assert.equal(r.action, 'judge', 'no eligible candidate with an UNKNOWN one was not judged');
+  assert.ok(r.judged.includes('fix-a'), 'the UNKNOWN candidate is not named');
+  assert.equal(step('x').action, 'judge', 'a non-list did not fail closed');
   // Nothing eligible and nothing unknown waits; no candidates wait.
   assert.equal(step([hot('fix-a', { out: 'FAIL' }), wire({ in: 'FAIL' })]).action, 'wait', 'all FAIL did not wait');
   assert.equal(mod.laneStep({ seat: null, report: { qualifiers: [], next: { collector: null, reason: 'none' } }, deliveries: [], pulse: calm }).action, 'wait', 'no candidates did not wait');

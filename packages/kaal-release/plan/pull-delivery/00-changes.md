@@ -16,14 +16,14 @@ The next delivery is always the next KAAL collector. Whether a HOTFIX or a WIRE 
 
 When the seat is free, `laneStep` decides in this order and no other:
 
-1. **Eligibility** (a fact about each candidate, at its exact head): the candidate's **OUT** qualification is PASS and **main's IN** requirement for that source is PASS. FAIL is not eligible. UNKNOWN, a missing field or a source that does not match its class is not eligible and is never invented as eligible.
-2. **Selection** (a choice among eligible candidates): by class, HOTFIX, then WIRE, then KAAL. A higher class that is not eligible does not block a lower class that is. Within KAAL the candidate is chosen by C9's `chooseNext` over the eligible collectors, so value density never competes with HOTFIX or WIRE. Within HOTFIX or WIRE, more than one eligible candidate is judged, not ordered: no rule has been given for it.
-3. **Admission** (opening the delivery's PR into `main`): unchanged for KAAL, which stays under C10's pulse and attempt cap. For HOTFIX and WIRE the step only selects; their own OUT contract opens their PR, so the lane creates no PR for them.
+1. **Eligibility** (a fact about each candidate, at its exact head): the candidate's **OUT** qualification is PASS and **main's IN** requirement for that source is PASS. Only PASS and PASS is eligible. FAIL is known not eligible. UNKNOWN, a missing field, an invalid candidate or a source that does not match its class is not eligible either and is reported as a finding; it is never invented as eligible, and it does not reserve priority.
+2. **Selection** (a choice among eligible candidates): the highest class that has an eligible candidate, HOTFIX, then WIRE, then KAAL. A higher class whose candidates are FAIL or UNKNOWN does not block a lower class that has an eligible candidate; the UNKNOWN candidates are reported alongside the choice. Within KAAL the candidate is chosen by C9's `chooseNext` over the eligible collectors, so value density never competes with HOTFIX or WIRE. Judgment is requested only when no deterministic eligible choice exists: more than one eligible candidate in HOTFIX or WIRE (no rule orders them), no eligible candidate while some are UNKNOWN (a person must check them), or an input that is not a list at all.
+3. **Admission** (a delivery PR into `main`): one admission lane. The facts that say it is occupied are the seat (the holder) and `pulse.open`, the PRs open or queued into `main` as the host reports them. Any open PROMOTION, HOTFIX or WIRE occupies the lane, so a selection of any class waits while one is open; a closed delivery of that class under the same trigger waits; the attempt cap and an invalid pulse go to `judge`. This is C10's pulse guard widened from "PROMOTION" to the three admission types, so a selected HOTFIX or WIRE cannot duplicate an open delivery or pass the boundary. The SYNC stays independent. For HOTFIX and WIRE, `select` is advisory: it does not open, reserve or queue anything, and the source's own OUT contract opens its PR.
 4. **Completion** (the PR lands on `main`): the seat is freed. That is the only trigger for the next selection.
 
 **Non-preemption.** While the seat is held, the holder's step is C10's, whatever else becomes eligible. A HOTFIX that appears is not selected over a holder, and nothing is cancelled or replaced.
 
-**UNKNOWN.** If a higher class holds a candidate whose eligibility is UNKNOWN and a lower class has an eligible candidate, selection cannot be determined without guessing. The step returns `judge`, naming the unknown and the eligible candidates. A FAIL (a known "not eligible") is different and never blocks. This is stated as an open question below.
+**UNKNOWN.** An UNKNOWN candidate is not PASS and so is not eligible, and it does not stall a known eligible lower class: the lower class is chosen and the UNKNOWN candidate is reported as a finding. One consequence is stated, not hidden: a HOTFIX that is UNKNOWN now and becomes eligible after a lower class was selected waits for the next free seat, because what is in stays in.
 
 ## SIPOC IN/OUT integration
 
@@ -47,8 +47,8 @@ No workflow, App, ruleset, hook or declaration change. The C10 implementation is
 
 ## Open questions for the CPO
 
-1. UNKNOWN in a higher class with an eligible lower candidate: `judge` (proposed), or skip it as not eligible?
-2. Two eligible HOTFIX (or WIRE) candidates: `judge` (proposed), or an order the Owner gives?
+1. Two eligible HOTFIX (or WIRE) candidates: `judge` (proposed), or an order the Owner gives?
+2. The lane-occupancy facts (`seat`, `pulse.open`) are given by a gatherer that does not exist yet. It is a separate read-only Change; until then nothing supplies them and the step stays advisory.
 
 ## Order
 

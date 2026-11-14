@@ -4,7 +4,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 export const id = 'pull/T44';
-export const tests = ['pull/F44'];
+export const tests = ['pull/F44', 'pull/F45'];
 export const title = 'what is in stays in: an eligible higher class never preempts the holder, and is selected once the seat is free';
 
 export async function run() {
@@ -31,4 +31,7 @@ export async function run() {
   // Once the seat is free the HOTFIX is selected.
   const free = mod.laneStep({ ...base, seat: null, deliveries: [hot] });
   assert.deepEqual([free.action, free.class], ['select', 'HOTFIX'], 'the HOTFIX was not selected once the seat was free');
+  // Selected only when the lane is not occupied: an open WIRE keeps the HOTFIX waiting.
+  const busy = mod.laneStep({ ...base, seat: null, deliveries: [hot], pulse: { ...calm, open: [{ type: 'WIRE', collector: 'wire/hooks' }] } });
+  assert.equal(busy.action, 'wait', 'a HOTFIX was selected while a WIRE was open');
 }
