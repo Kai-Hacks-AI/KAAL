@@ -3,8 +3,12 @@
 ## PLAN
 
 1. Add F21, A46 and the gap G60 with C26 and its Cases T206 (the dispatcher, judged by running it), T207 (the legacy hook moved unchanged) and T208 (the directory of new hooks holds only installed sources).
-2. The Cases are RED on `main`: there is no dispatcher, no `old/pre-push` and no `new/pre-push.d/`. T206 shows on known dispatchers that it can tell a good one from three bad ones.
+2. The Cases are RED on `main`: there is no dispatcher, no `old/pre-push` and no `new/pre-push.d/`. T206 shows on known dispatchers that it can tell a good one from six bad ones, among them one that skips a missing or non-executable legacy hook and one that skips a new hook that is not executable.
 3. The PLAN installs nothing, moves nothing and changes no behaviour.
+
+## Ownership
+
+The CPO decided to keep release/C26 for this first split. It is not renamed to an Engineering capability in this Change.
 
 ## DO
 
