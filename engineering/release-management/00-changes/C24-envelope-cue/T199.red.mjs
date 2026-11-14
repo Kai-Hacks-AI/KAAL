@@ -1,12 +1,12 @@
-// Case release/T199 tests: G55
+// Case release/T199 tests: G56
 import assert from 'node:assert/strict';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const CUE = '**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.';
 export const id = 'release/T199';
-export const tests = ['release/G55'];
-export const title = 'gap release/G55 is closed: the envelope check accepts exactly the cue before the first chapter and rejects any other text there';
+export const tests = ['release/G56'];
+export const title = 'gap release/G56 is closed: the envelope check accepts exactly the cue before the first chapter and rejects any other text there';
 const facts = (body) => ({ title: 'DO: add a thing', body, base: 'kaal/release/x', head: 'claude/x', commits: [], registry: { DO: ['Change', 'Implement', 'Refactor'] } });
 const chapters = '## Change\n\nrelease/C24 envelope cue: the cue.\n\n## Implement\n\nIt.\n\n## Refactor\n\nNone.\n';
 export async function run() {
