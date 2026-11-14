@@ -1,6 +1,6 @@
 # Pull Promotion: the declaration lists the candidates (testing)
 
-Runnable Cases `T47` to `T50`, `.red.mjs`, over the committed `declaration.json` and `fixtures/deltas.json`, which holds the real file lists each candidate added on the host at the heads in `00-changes.md`. They are RED because the declaration lists none of the three yet. They are not wired into any CI run; the DO moves them to `test/pull/` as `.test.mjs`. Run from the repository root: `node -e "import('./packages/kaal-release/plan/pull-declare/T47.red.mjs').then(m => m.run())"`.
+Runnable Cases `T47` to `T50` over the committed `declaration.json`. They were `.red.mjs` in the PLAN; the DO moved them to `test/pull/T<n>.test.mjs` (CI runs them from `pull.test.mjs`). Their fixtures are in `test/pull/declare/`: `deltas.json` holds the real file lists each candidate added on the host at the heads in `00-changes.md`, and `inflight.json` holds the same lists with the open DO and ACT pull requests (#1652, #1659, #1661) applied, so no scope or Case pattern is fitted to a layout about to change and no Case id of another Change is fixed here.
 
 | Case | Requirement | What it shows |
 | --- | --- | --- |

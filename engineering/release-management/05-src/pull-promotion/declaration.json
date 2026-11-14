@@ -78,6 +78,45 @@
       "scope": [
         "^\\.kaal/changes/"
       ]
+    },
+    {
+      "name": "kaal/engineering/collector-capability",
+      "scope": [
+        "^engineering/collector-capability/"
+      ]
+    },
+    {
+      "name": "kaal/guard/registration",
+      "scope": [
+        "^engineering/guard/00-changes/C143-registration/",
+        "^engineering/guard/acceptance/standard\\.test\\.mjs$",
+        "^packages/kaal-guard/"
+      ]
+    },
+    {
+      "name": "kaal/retro/skill",
+      "scope": [
+        "^packages/kaal-retro/"
+      ]
+    },
+    {
+      "name": "kaal/release/githooks-split",
+      "scope": [
+        "^engineering/release-management/00-changes/C26-githooks-split/",
+        "^engineering/release-management/02-requirements/F21-",
+        "^engineering/release-management/03-architecture/A46-",
+        "^engineering/release-management/05-src/wiring/hooks/",
+        "^engineering/guard/acceptance/kaal\\.test\\.mjs$"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-operation",
+      "scope": [
+        "^engineering/release-management/00-changes/C27-wire-delivery-operation/",
+        "^engineering/release-management/02-requirements/F22-",
+        "^engineering/release-management/03-architecture/A47-",
+        "^engineering/release-management/05-src/wiring/(?!hooks/)"
+      ]
     }
   ],
   "evidence": {
@@ -92,11 +131,14 @@
       "files": [
         "^packages/[^/]+/test/([a-z-]+/T\\d+)\\.test\\.mjs$",
         "^packages/[^/]+/plan/[^/]+/(T\\d+)\\.test\\.mjs$",
-        "^engineering/release-management/(?:00-changes|0[1-6]-[^/]+)/(?:[^/]+/)+(T\\d+)\\.test\\.mjs$"
+        "^engineering/release-management/(?:00-changes|0[1-6]-[^/]+)/(?:[^/]+/)+(T\\d+)\\.test\\.mjs$",
+        "^engineering/collector-capability/00-changes/[^/]+/(T\\d+)\\.test\\.mjs$"
       ],
       "other": [
         "^packages/[^/]+/test/[^/]+\\.test\\.mjs$",
-        "^packages/[^/]+/test/consumers/"
+        "^packages/[^/]+/test/consumers/",
+        "^packages/(kaal-guard|kaal-retro)/test/.+\\.test\\.mjs$",
+        "^engineering/guard/acceptance/[^/]+\\.test\\.mjs$"
       ]
     },
     "act": {

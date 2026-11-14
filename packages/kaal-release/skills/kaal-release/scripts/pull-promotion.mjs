@@ -89,6 +89,8 @@ export function walkCollectors(facts, declaration) {
   const qualifiers = entries.filter((e) => e.status === 'qualifies').map((e) => e.name);
   const undeclared = uniq(host.map((c) => c.name).filter((n) => !declared.includes(n)));
   for (const c of declaration.collectors ?? []) {
+    const given = ['value', 'size', 'unit'].filter((f) => c[f] !== undefined);
+    if (given.length && given.length < 3) problems.push(`${c.name}: value, size and unit come together; ${['value', 'size', 'unit'].filter((f) => c[f] === undefined).join(', ')} missing`);
     for (const f of ['value', 'size']) if (c[f] !== undefined && !(Number.isSafeInteger(c[f]) && c[f] > 0)) problems.push(`${c.name}: ${f} is not a positive integer`);
     if (c.unit !== undefined && !(typeof c.unit === 'string' && c.unit.trim())) problems.push(`${c.name}: unit is not a non-empty text`);
   }
@@ -96,7 +98,7 @@ export function walkCollectors(facts, declaration) {
 }
 // next: the one qualifier; else the strictly highest value density (value / size, exact by cross-multiplication) when every qualifier
 // has a valid value, size and the same unit; else judged (collector null, the candidates named). A missing size is never defaulted.
-function chooseNext(qualifiers, entries, declaration) {
+export function chooseNext(qualifiers, entries, declaration) {
   if (!qualifiers.length) return { collector: null, reason: entries.length ? 'no declared collector qualifies; each says what is missing' : 'there are no declared collectors' };
   if (qualifiers.length === 1) return { collector: qualifiers[0] };
   const by = new Map((declaration.collectors ?? []).map((c) => [c.name, c]));

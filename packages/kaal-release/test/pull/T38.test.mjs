@@ -9,7 +9,7 @@ export const title = 'next is the one qualifier, or the highest value density of
 
 export async function run() {
   const fx = await import(pathToFileURL(join(repo, 'packages/kaal-release/test/pull/fixtures.mjs')).href);
-  const col = (name, value, size, unit = 'Cases added') => ({ name, ...(value === undefined ? {} : { value }), ...(size === undefined ? {} : { size }), ...(unit === undefined ? {} : { unit }) });
+  const col = (name, value, size, ...rest) => { const unit = rest.length ? rest[0] : 'Cases added'; return { name, ...(value === undefined ? {} : { value }), ...(size === undefined ? {} : { size }), ...(unit === undefined ? {} : { unit }) }; };
   const walk = (cols) => fx.walkCollectors({ collectors: cols.map((c) => fx.good(c.name)) }, fx.declaration({ collectors: cols }));
 
   // Two qualifiers: 6/3 = 2 loses to 3/1 = 3, in either declared order.

@@ -1,6 +1,6 @@
 // Case pull/T49 tests: pull/F48
 import assert from 'node:assert/strict';
-import { declaration, script, NEW, entry } from './lib.mjs';
+import { declaration, script, NEW, entry } from './declare/lib.mjs';
 export const id = 'pull/T49';
 export const tests = ['pull/F48'];
 export const title = 'declaring does not weaken any rule: a candidate with no concluding ACT, no executed Case or no DO still does not qualify';
