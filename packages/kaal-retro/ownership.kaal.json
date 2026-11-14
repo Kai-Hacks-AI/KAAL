@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Learning", "id": "c1c78d475dec36f31ba3d41957d8b50bd6b5fa090568083db026460a0f2138bc" },
+  "paths": ["packages/kaal-retro/"]
+}
