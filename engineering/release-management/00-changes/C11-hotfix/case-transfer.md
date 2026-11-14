@@ -19,3 +19,5 @@ Nine Cases of this Change are not retired. Their ownership and activation moved 
 - **Why activation waits.** Each Case asserts that the Hotfix template exists or has a given shape. It was RED when it landed (see `evidence.md`) and stays RED until the template is on `main`. Now that CI runs every active engineering Case, an active RED Case would fail the `Engineering` check for every pull request.
 - **Event that restores them.** The HOTFIX DO that adds the template. In that DO, restore the nine files with `git checkout 929d4dd -- <path>` and show them green in the same pull request.
 - **RED evidence.** `evidence.md` of this Change keeps the RED observation of T150 to T160 against `main`; it is not edited. T156 and T158 stay active and green.
+
+- **Reactivated (14 Nov).** The nine are active `.test.mjs` Cases in the engineering collector of release/C17, at their original locations, together with T181 and T201. Each runs green against the installed `hotfix.md`, whose sha256 equals that of the draft (`a3a14714357f1b2082449cfdfd5551f90df3782fff9510a03804a16f655909f3`).
