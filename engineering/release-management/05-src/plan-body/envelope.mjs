@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { checkPlanBody } from './check.mjs';
 import { stripComments } from './comments.mjs';
+import { CUE } from './cue.mjs';
+
+export { CUE };
 
 const PROVENANCE = /https?:\/\/|\]\(|\p{Extended_Pictographic}|\b(generated (with|by)|co-authored-by|claude-session|claude code|requested by)\b/iu;
 const METADATA = /attribution|claude|session|thread|requested by|generated|co-authored|https?:\/\/|[{}]/i;
@@ -44,7 +47,7 @@ function sharedBodyRules(body) {
   const seen = [];
   const chapters = new Map();
   let current;
-  let before = '';
+  const before = [];
   for (const line of lines) {
     const heading = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
     if (heading) {
@@ -56,10 +59,12 @@ function sharedBodyRules(body) {
         chapters.set(current, chapters.get(current) ?? []);
       }
     } else if (current !== undefined) chapters.get(current).push(line);
-    else before += line;
+    else before.push(line);
   }
   const names = [...chapters.keys()];
-  if (before.trim() !== '') problems.push('the body has text before the first chapter');
+  // Only the Change envelope cue, as its exact line, may stand before the first chapter.
+  const early = before.map((line) => line.trim()).filter((line) => line !== '');
+  if (early.length > 0 && !(early.length === 1 && early[0] === CUE)) problems.push('the body has text before the first chapter');
   if (names[0] !== 'Change') problems.push('the first chapter of the body must be Change');
   else if (chapters.get('Change').join('\n').trim() === '') problems.push('the Change chapter is empty');
   for (const [name, content] of chapters) {

@@ -1,3 +1,5 @@
+**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.
+
 <!-- A PROMOTION pull request. Exactly two chapters in this order and nothing else: no source or destination (the pull request shows them), PLAN, test or check results, approvals, retrospective, attribution or merge method. The Changes, the checks and the review history hold the rest; discussion goes into comments. The title is `PROMOTION: <meaningful description>`. -->
 
 ## Change
