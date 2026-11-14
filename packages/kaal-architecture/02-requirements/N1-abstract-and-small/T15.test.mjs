@@ -1,9 +1,9 @@
-// Case architecture/T4 tests: architecture/N1
+// Case architecture/T15 tests: architecture/N1
 import assert from 'node:assert/strict';
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { dir, judged, key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
-export const id = 'architecture/T4';
+import { dir, read, SKILL } from '../../test/lib.mjs';
+export const id = 'architecture/T15';
 export const tests = ['architecture/N1'];
 export const title = "the Skill is small, names no organization, domain, tool or technology, and the package adds no gate";
 export function run() {

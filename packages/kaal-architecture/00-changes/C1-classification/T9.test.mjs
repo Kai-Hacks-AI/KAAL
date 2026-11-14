@@ -2,7 +2,7 @@
 // The contract is objective: what was asked, what was recorded and how it compares with the declared key.
 // Agreement with the key is reported and kept visible, not required: the key is an author's judgment.
 import assert from 'node:assert/strict';
-import { key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
+import { key, read, SKILL, trial } from './lib.mjs';
 export const id = 'architecture/T9';
 export const tests = ['architecture/F4'];
 export const title = "the next move is observable: both arms are asked for it, every answer is well formed, S4 and S5 record the declared next move, and every disagreement with the declared key is named";

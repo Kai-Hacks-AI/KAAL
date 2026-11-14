@@ -1,11 +1,11 @@
-// Case architecture/T10 tests: architecture/F5
+// Case architecture/T10 tests: architecture/F12
 import assert from 'node:assert/strict';
-import { arm, read, requests, TOPICS } from '../../00-changes/C2-realistic-trial/lib.mjs';
+import { arm, read, requests, TOPICS } from './lib.mjs';
 export const id = 'architecture/T10';
-export const tests = ['architecture/F5'];
+export const tests = ['architecture/F12'];
 export const title = "the five realistic requests cover the five topics, at least two mix in a move between states, at least two also speak of the architecture description itself, they carry no answer, and both recorded arms saw exactly these requests";
 export function run() {
-  read('02-requirements/F5-realistic-trial/F5.md', 'F5');
+  read('00-changes/C2-realistic-trial/F12.md', 'F12');
   const rs = requests();
   assert.equal(rs.length, 5, 'there are not five requests');
   assert.deepEqual(rs.map((r) => r.topic).sort(), [...TOPICS].sort(), 'the topics are not the five named');
