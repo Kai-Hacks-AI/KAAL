@@ -1,0 +1,123 @@
+{
+  "format": "skills/integration-declaration (draft, PLAN skills/C1)",
+  "owner": {
+    "kind": "capability",
+    "name": "Testing",
+    "id": "be4d4a38073318e46d1d9c7351a44fab69aeb2044780ac53af2c11c2d1a9a185"
+  },
+  "package": "packages/kaal-testing",
+  "mechanisms": [
+    {
+      "name": "duplicates",
+      "level": "script",
+      "kind": "check",
+      "invoke": {
+        "module": "lib/duplicates.mjs",
+        "export": "duplicates"
+      },
+      "docs": "README.md",
+      "outcome": {
+        "clear": [
+          "unchallenged"
+        ],
+        "report": [
+          "challenged"
+        ],
+        "unknown": [
+          "unknown"
+        ],
+        "at": "result"
+      },
+      "reason": [
+        "challenges[].statement",
+        "findings[]"
+      ],
+      "fixtures": "duplicates"
+    },
+    {
+      "name": "report",
+      "level": "script",
+      "kind": "check",
+      "invoke": {
+        "module": "lib/report.mjs",
+        "export": "report"
+      },
+      "docs": "README.md",
+      "outcome": {
+        "report": [
+          "verified failure",
+          "potential defect",
+          "architectural concern"
+        ],
+        "unknown": [
+          "unknown"
+        ],
+        "at": "findings[].kind",
+        "clear": []
+      },
+      "reason": [
+        "findings[].evidence"
+      ],
+      "fixtures": "report"
+    },
+    {
+      "name": "inventory",
+      "level": "script",
+      "kind": "measure",
+      "invoke": {
+        "module": "lib/inventory.mjs",
+        "export": "inventory"
+      },
+      "docs": "README.md",
+      "fixtures": "inventory"
+    },
+    {
+      "name": "accept",
+      "level": "script",
+      "kind": "check",
+      "invoke": {
+        "module": "lib/acceptance.mjs",
+        "export": "accept"
+      },
+      "docs": "README.md",
+      "outcome": {
+        "report": [
+          "verified failure",
+          "potential defect",
+          "architectural concern"
+        ],
+        "unknown": [
+          "unknown"
+        ],
+        "at": "findings[].kind",
+        "clear": []
+      },
+      "reason": [
+        "findings[].evidence"
+      ],
+      "fixtures": "accept"
+    },
+    {
+      "name": "assess-claim",
+      "level": "skill",
+      "kind": "judgment",
+      "skill": "skills/kaal-testing/SKILL.md",
+      "section": "Assessing a test against its claim",
+      "shape": {
+        "approach": [
+          "deterministic",
+          "judgment",
+          "pushback"
+        ],
+        "fields": [
+          "why",
+          "unresolved"
+        ]
+      },
+      "docs": "skills/kaal-testing/SKILL.md"
+    }
+  ],
+  "judgment": [
+    "whether a claim is sound and fit for its purpose: pointed at, never decided or turned into an oracle"
+  ]
+}

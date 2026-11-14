@@ -1,0 +1,21 @@
+# kaal-skills: integration readiness (Requirements)
+
+Each Requirement names, in brackets, the Intent it serves. Terms: a **mechanism** is one thing a capability lets a caller invoke. Its **level** follows BASS (Bare < Agent < Skill < Script): `script` is executable behaviour, `skill` and `agent` are guidance an agent is given. A **declaration** is the file `integration.kaal.json` at a package's root, beside `ownership.kaal.json`.
+
+## Functional
+
+- **skills/F1** [skills/I1]: **Declare.** A capability declares its integration in its declaration. It names its owner exactly as its ownership claim does, and lists one or more mechanisms. Each mechanism has a `name`, a `level` (`script`, `skill` or `agent`), a `kind` (`check`, `measure` or `judgment`), how it is invoked and where it is documented (`docs`). A `script` mechanism is invoked as a module export (`module`, `export`) or as a command (`command`, an argument list, no shell). A `skill` or `agent` mechanism names the Skill file and the section an agent is given. The declaration lists the behaviour it deliberately leaves to judgment. A capability that has no declaration is reported **unknown**, never conforming.
+- **skills/F2** [skills/I1]: **Call without an agent.** A `script` mechanism runs from its declaration with only the input a caller supplies as data: standard input closed, no prompt, a time limit, and nothing changed in its own package. Its result is data a caller can read: the returned value of a module export, or the exit status and standard output of a command.
+- **skills/F3** [skills/I1]: **Say honestly.** A `check` mechanism's result lets a caller tell three outcomes apart: **clear** (nothing found within what was covered), **report** (something to act on) and **unknown** (could not decide). The declaration states how to read the outcome from the result, as a path into the result and the values that mean each outcome; a value belongs to one outcome only. An input the mechanism cannot decide reads as unknown, never as clear. A result that is not clear carries a reason a caller can print. No outcome is an approval: whether it gates anything is for the caller. A `measure` mechanism reports a measurement and has no outcome.
+- **skills/F4** [skills/I1]: **The rule stays home.** A `check` mechanism offers three fixtures, one it decides as clear, one it reports on and one it cannot decide, and its declared invocation alone, given each, reaches three distinct outcomes. A caller that passes data in and reads the declared outcome out therefore holds none of the capability's rules. A fixture that is missing leaves the mechanism unknown, never conforming.
+- **skills/F5** [skills/I1]: **Judgment stays judgment.** A `skill` or `agent` mechanism names its Skill file and its section, and the shape of what comes back (its fields). It declares no clear, report or unknown outcome and is never offered as a check. Whether the guidance is good is judged by a reviewer from a seat other than its author's; no common Case judges it.
+- **skills/F6** [skills/I1]: **Name no host.** The declaration names no hook, workflow, ruleset, branch or queue. Where a mechanism is triggered is the integrator's decision and the integrator's file.
+
+## Nonfunctional
+
+- **skills/N1** [skills/I1]: **Inert.** `kaal-skills` ships no export, command, runtime or dependency. No other package depends on it or imports it. Nothing in `.github`, `.githooks` or the Guard configuration names it. Its Cases are the only thing that reads declarations, and they install, wire and retire nothing.
+- **skills/N2** [skills/I1]: **Not Testing's shape.** The contract names no Testing concept (loops, finding kinds, coverage, the four reports), and evaluating Testing needs no change to a delivered Testing file. This is judged by a reviewer from `evidence.md`, not tested: a Case on it would verify incidental wording.
+
+## Not required of a capability
+
+A command-line entry for every mechanism (Testing has none, and the contract does not demand one). A result vocabulary (the capability's own words stay; the declaration only maps them). A script at all: a capability whose behaviour is judgment declares `skill` mechanisms only. Installation of anything.
