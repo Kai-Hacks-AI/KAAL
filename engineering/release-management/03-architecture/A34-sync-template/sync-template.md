@@ -1,3 +1,5 @@
+**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.
+
 ## Change
 
 <!-- One line: the id and name of the primary incoming Change that drives this synchronization, for example release/C7 do template. The id stays here, not in the title. -->
