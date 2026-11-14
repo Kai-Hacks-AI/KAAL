@@ -1,6 +1,6 @@
 // Case coordination/T40 tests: F11 (the review sequence)
 import assert from 'node:assert/strict';
-import { config, showWip, typed } from './fixtures.mjs';
+import { config, showWip, typed } from './review-fixtures.mjs';
 export const id = 'coordination/T40';
 export const tests = ['coordination/F11'];
 export const title = 'the review sequence lists only REVIEW pieces, ranked from 1, by station order, then type order, then reference, and does not depend on the input order';

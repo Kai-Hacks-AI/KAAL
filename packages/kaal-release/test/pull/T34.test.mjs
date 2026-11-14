@@ -1,7 +1,7 @@
 // Case pull/T34 tests: pull/F35
 // Self-contained: it does not load the gatherer. It pins the log-line shape the gatherer reads
 // (a timestamp, then a mark and a scoped id) and shows that the Cases file produces it for a success, a RED Case and a Case with no id.
-// Compatibility with the real gatherer is shown by integration evidence (test/wire/evidence/), not by an import.
+// Compatibility with the real gatherer is shown by integration evidence (test/pull/evidence/), not by an import.
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';

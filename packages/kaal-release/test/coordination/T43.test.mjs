@@ -1,6 +1,6 @@
 // Case coordination/T43 tests: F15 (the rendered review sequence)
 import assert from 'node:assert/strict';
-import { config, render, showWip, typed } from './fixtures.mjs';
+import { config, render, showWip, typed } from './review-fixtures.mjs';
 export const id = 'coordination/T43';
 export const tests = ['coordination/F15'];
 export const title = 'the rendering shows a Review sequence section with a numbered line per entry, the head, CLEAN or NOT CLEAN with reasons, @unknown for an unobserved head, and a sentence when nothing waits';

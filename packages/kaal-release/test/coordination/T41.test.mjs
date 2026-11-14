@@ -1,6 +1,6 @@
 // Case coordination/T41 tests: F12 (clean for review)
 import assert from 'node:assert/strict';
-import { config, showWip, typed } from './fixtures.mjs';
+import { config, showWip, typed } from './review-fixtures.mjs';
 export const id = 'coordination/T41';
 export const tests = ['coordination/F12'];
 export const title = 'a REVIEW piece is clean when its checks passed, no sync is ahead and its head was observed; silent checks make it not clean with a reason; an unobserved head makes it unknown, never clean';
