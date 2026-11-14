@@ -65,7 +65,7 @@ export async function run() {
   const c = (sha, parent) => ({ sha, parents: [{ sha: parent }] });
   assert.deepEqual(read.historyOf([c('b', 'a'), c('c', 'b')], 'a'), ['b', 'c']);
   assert.throws(() => read.historyOf([c('c', 'b'), c('b', 'a')], 'a'), /could not order the history/, 'a history out of ancestry was accepted');
-  assert.throws(() => read.historyOf([c('b', 'x')], 'a'), /could not order the history/, 'a history that does not start at the merge base was accepted');
+  assert.deepEqual(read.historyOf([c('b', 'x')], 'a'), ['b'], 'the line starts at the first commit whose parent is not a collector commit (pull/F36)');
   // the delta keeps added, modified and removed apart, and a rename is a removal and an addition
   assert.deepEqual(read.deltaOf([{ filename: 'a', status: 'added' }, { filename: 'b', status: 'removed' }, { filename: 'n', status: 'renamed', previous_filename: 'o' }]), [{ path: 'a', status: 'added' }, { path: 'b', status: 'removed' }, { path: 'n', status: 'modified' }, { path: 'o', status: 'removed' }]);
 
