@@ -38,7 +38,7 @@ export function hook(dir, base, extra = []) {
   return { status: r.status, out: `${r.stdout}${r.stderr}` };
 }
 export const cleanup = (dir) => rmSync(dir, { recursive: true, force: true });
-export const baseline = { '.kaal/config/guard/delivery.md': decl('delivery.mjs'), 'delivery.mjs': say('delivery') };
+export const baseline = { '.kaal/config/guard/declared.md': decl('declared.mjs'), 'declared.mjs': say('declared') };
 // A capability owns a tree; its registration is sourced in the tree and installed byte for byte under .kaal/guard/registered/.
 export const owner = (cap) => ({ [`packages/${cap}/ownership.kaal.json`]: JSON.stringify({ owner: { kind: 'capability', name: cap }, paths: [`packages/${cap}/`] }), [`packages/${cap}/package.json`]: JSON.stringify({ name: cap, dependencies: {} }) });
 export const dependsOn = (cap, ...deps) => ({ [`packages/${cap}/package.json`]: JSON.stringify({ name: cap, dependencies: Object.fromEntries(deps.map((d) => [d, '1.0.0'])) }) });

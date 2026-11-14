@@ -3,7 +3,7 @@
 ## PLAN
 
 1. Adds F43 to F48, A21 and the gaps G61 and G62 (`requirements.md`, `gap.md`) and the Cases T209 to T215.
-2. The Cases are RED on `main` (evidence in `assessment.md`, last section). T209 to T212 and T214 run the Guard of the checkout in a scratch repository; T213 and T215 read the package.
+2. The Cases are RED on `main` (evidence in `assessment.md`, last section). T209 to T211 and T214 run the Guard of the checkout in a scratch repository; T213 and T215 read the package.
 3. The PLAN installs nothing, changes no behaviour and touches no hook, workflow or ruleset.
 
 ## Not in this Change (named so they are not lost)
