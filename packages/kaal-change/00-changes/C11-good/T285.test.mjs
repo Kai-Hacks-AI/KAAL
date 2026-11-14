@@ -4,11 +4,11 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 export const id = 'change/T285';
 export const tests = ['change/G3'];
-export const title = "gap change/G3 is closed";
+export const title = "gap change/G3 is closed (principle): each capability defines good";
 const REF = new URL('../../skills/kaal-change/references/good.md', import.meta.url);
 export function run() {
   assert.ok(existsSync(REF), 'the good reference is absent');
   const t = readFileSync(REF, 'utf8');
-  for (const w of [ the Skill reference states the principle that each capability defines good:'Quality is defined by the capability']) assert.ok(t.includes(w), 'missing: ' + w);
+  for (const w of ['Quality is defined by the capability']) assert.ok(t.includes(w), 'missing: ' + w);
 }
 test(id, () => run());
