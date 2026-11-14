@@ -4,16 +4,10 @@ R1 Installed alone, the Skill is complete: `SKILL.md` and `references/4l.md`, wi
 
 R2 The Skill depends on no KAAL package, WORK or PDCA definition, repository, GitHub, hook or CI, and names none as a prerequisite.
 
-R3 `SKILL.md` owns the general behavior: establish subject, purpose, scope and participants where relevant; choose a method and say which; separate observations, interpretations and proposals; keep context and provenance; size the result to the subject; leave decisions and authorization to their owners.
+R3 `SKILL.md` owns the general behavior: establish subject, purpose, scope and participants where relevant; choose a method and say which; separate observations, interpretations and potential improvements; keep context and provenance; size the result to the subject; leave decisions and authorization to their owners. It states no completed-work or lifecycle prerequisite: the subject may be finished or ongoing work, a decision, an event, an experience, a process or a product.
 
-R4 `references/4l.md` defines 4L (Liked, Learned, Lacked, Longed For) as one method, not as the definition of Retro. Every category may yield proposals; none is treated as more actionable.
+R4 `references/4l.md` defines 4L (Liked, Learned, Lacked, Longed For) as one method, not as the definition of Retro. Every category may yield potential improvements; none is ranked above another.
 
-R5 A retrospective record has one shape, so it can be checked: chapters `Subject`, `Method`, then the method's categories, then `Decisions`. Each entry is labeled `Observation:`, `Interpretation:` or `Proposal:`. `Decisions` reads `None made.` or `Decided by <owner>: <decision>`.
+R5 The Skill creates and authorizes nothing: no Change, decision or approval comes out of a retrospective.
 
-R6 No prerequisite of completed work, a Change or a cycle: an ongoing subject is valid.
-
-R7 Nothing creates or authorizes a Change. A record that does is reported.
-
-R8 An advisory checker, `scripts/check-retro.mjs`, reads a record and returns `clear`, `report` or `unknown` with reasons. An unreadable record is `unknown`, never `clear`. It reads text only and changes nothing. It is helper tooling: nothing runs it automatically.
-
-R9 Where the kaal-skills contract is on main by DO time, the package may declare `integration.kaal.json` with the checker and the Skill section as mechanisms. Nothing in R1 to R8 depends on it.
+Deliberately not required: a retrospective record schema, a validator or checker, and an `integration.kaal.json` declaration. Each is separate future work, judged only if a concrete requirement shows it is needed.

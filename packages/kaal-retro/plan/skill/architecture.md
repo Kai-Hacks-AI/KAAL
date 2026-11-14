@@ -1,17 +1,18 @@
 # Architecture (retro/C1)
 
-Capability: Retro, a new small capability that owns the Skill. Learning does not own it, so the Skill carries no Learning dependency. Learning, Process and ACT may consume it later, each by its own Change.
-
-Package `packages/kaal-retro/` (npm name decided in the DO), with its own `ownership.kaal.json`:
+The first increment is a package holding one Skill:
 
 ```
-skills/kaal-retro/SKILL.md
-skills/kaal-retro/references/4l.md
-scripts/check-retro.mjs        advisory checker, no dependencies
-test/                           Cases and fixtures
-plan/skill/                     this Change
+packages/kaal-retro/
+  ownership.kaal.json
+  skills/kaal-retro/SKILL.md
+  skills/kaal-retro/references/4l.md
+  test/
+  plan/skill/
 ```
 
-The installable unit is `skills/kaal-retro/` alone. The checker and tests are outside it, so installing the Skill never pulls them.
+The installable unit is `skills/kaal-retro/` alone; the tests and the plan are outside it.
 
-Collector `kaal/retro/skill`. Methods other than 4L are later files under `references/`.
+Ownership. Independence of installation does not make a capability. Retro is a learning practice, and Learning owns learning practices, so the proposal is that `ownership.kaal.json` claims the existing Learning capability for `packages/kaal-retro/`, with no new capability. Ownership is a claim, not a dependency: the Skill does not mention or require Learning, and the rest of Learning stays on `kaal/learning`. CPO decides; the alternative is a new Retro capability.
+
+Collector `kaal/retro/skill`, because `kaal/learning` exists and a branch `kaal/learning/<x>` cannot. Methods other than 4L are later files under `references/`.
