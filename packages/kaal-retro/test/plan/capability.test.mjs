@@ -50,10 +50,12 @@ describe('retro/C2 admission', () => {
 
 describe('retro/C2 ownership', () => {
   it('retro/T14 the claim names the Capability Node by kind, name and exact id and claims the package', () => {
-    const claim = readClaim(readFileSync(join(PACKAGE, CLAIM_FILE), 'utf8'));
+    const bytes = readFileSync(join(PACKAGE, CLAIM_FILE));
+    const { claim, finding } = readClaim(`packages/kaal-retro/${CLAIM_FILE}`, bytes);
+    assert.equal(finding, undefined);
     assert.deepEqual(claim.owner, { kind: 'capability', name: 'Retro', id: capability().id });
     assert.deepEqual(claim.paths, ['packages/kaal-retro/']);
-    assert.doesNotMatch(readFileSync(join(PACKAGE, CLAIM_FILE), 'utf8'), /Learning/);
+    assert.doesNotMatch(bytes.toString('utf8'), /Learning/);
   });
 
   it('retro/T15 the collector carries the Capability\'s name as its capability segment', () => {
