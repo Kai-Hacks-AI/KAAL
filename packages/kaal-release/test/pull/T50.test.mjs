@@ -1,6 +1,6 @@
 // Case pull/T50 tests: pull/F49
 import assert from 'node:assert/strict';
-import { script, NEW, entry } from './lib.mjs';
+import { script, NEW, entry } from './declare/lib.mjs';
 export const id = 'pull/T50';
 export const tests = ['pull/F49'];
 export const title = 'value, size and unit are all there or all absent, an absent triple is judged and never guessed, and a partial one is a problem';
