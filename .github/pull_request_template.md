@@ -1,5 +1,7 @@
 <!-- This pull request is a stable Change envelope. Execution history belongs in comments, reviews and checks. -->
 
+**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.
+
 ## Intent
 
 <!-- What this Change must achieve. -->
