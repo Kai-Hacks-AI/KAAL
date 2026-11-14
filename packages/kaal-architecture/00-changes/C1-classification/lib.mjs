@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 export const dir = join(dirname(fileURLToPath(import.meta.url)), '../..');
 export const read = (rel, what) => { const p = join(dir, rel); assert.ok(existsSync(p), `${what} is absent`); return readFileSync(p, 'utf8'); };
-export const KEY = '03-architecture/A1-architecture-package/scenarios.json';
+export const KEY = '00-changes/C1-classification/trial/key/scenarios.json';
 export const SKILL = 'skills/kaal-architecture/SKILL.md';
 const T = '00-changes/C1-classification/trial/';
 const sha = (s) => createHash('sha256').update(s).digest('hex');

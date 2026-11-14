@@ -1,6 +1,6 @@
 // Case architecture/T8 tests: architecture/G2
 import assert from 'node:assert/strict';
-import { dir, judged, key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
+import { dir, judged, key, read, SKILL, trial } from './lib.mjs';
 export const id = 'architecture/T8';
 export const tests = ['architecture/G2'];
 export const title = "gap architecture/G2 is closed: an independent Skill-only trial and a no-Skill baseline are recorded with provenance";

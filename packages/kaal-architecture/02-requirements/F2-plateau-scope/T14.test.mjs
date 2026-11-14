@@ -1,7 +1,7 @@
-// Case architecture/T2 tests: architecture/F2
+// Case architecture/T14 tests: architecture/F2
 import assert from 'node:assert/strict';
-import { dir, judged, key, read, SKILL, trial } from '../../00-changes/C1-classification/lib.mjs';
-export const id = 'architecture/T2';
+import { read, SKILL } from '../../test/lib.mjs';
+export const id = 'architecture/T14';
 export const tests = ['architecture/F2'];
 export const title = "the Skill scopes Architecture to the target state of a plateau and leaves transition and delivery of Changes to other capabilities";
 export function run() {

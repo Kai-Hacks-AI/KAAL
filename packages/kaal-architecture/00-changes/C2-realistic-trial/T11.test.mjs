@@ -1,8 +1,8 @@
-// Case architecture/T11 tests: architecture/F5
+// Case architecture/T11 tests: architecture/F12
 import assert from 'node:assert/strict';
-import { arm, FIELDS, read, requests, SKILL } from '../../00-changes/C2-realistic-trial/lib.mjs';
+import { arm, FIELDS, read, requests, SKILL } from './lib.mjs';
 export const id = 'architecture/T11';
-export const tests = ['architecture/F5'];
+export const tests = ['architecture/F12'];
 export const title = "an agent with the Skill and one without it were asked the same questions on all five requests, every answer is well formed, the outputs are unedited, and the comparison is left to the independent Review";
 export function run() {
   const skill = arm('skill'); const base = arm('baseline');
