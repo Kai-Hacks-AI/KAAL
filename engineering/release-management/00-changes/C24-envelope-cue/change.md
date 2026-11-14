@@ -15,7 +15,7 @@
 `.github` travels alone (Change Isolation), so this Change cannot also install the cue in the templates under `.github/`. A first DO that did both failed that check (#1592, closed). The split is the one used for release/C14 and release/C15:
 
 - release/C24 (this Change, collector `kaal/release/envelope-cue`): the capability. The cue, the envelope-check allowance, the cue in the capability texts `sync-template.md` and `fallback-template.md`, and the Cases T198 and T199. T198 reads those two capability texts, not `.github`. Nothing here depends on the wiring.
-- release/C25 (`wire envelope cue`, collector `kaal/release/wire-envelope-cue`): `.github` only. It installs the cue in the five typed templates, the default template and the sync template, and carries its own PLAN with its own Cases, including the named mandatory template locations the CPO required plus discovery of every other `.md` in `.github/PULL_REQUEST_TEMPLATE/`. It comes after this Change is delivered. `hotfix.md` receives the cue in its own delivery.
+- release/C25 (`wire envelope cue`, collector `kaal/release/wire-envelope-cue`): `.github` only. It installs the cue in the five typed templates, the default template and the sync template, and carries its own PLAN with its own Cases, including the named mandatory template locations the CPO required plus discovery of every other `.md` in `.github/PULL_REQUEST_TEMPLATE/`, and its own independent verification that the installed `.github` templates contain the cue: the capability-text Cases of this Change do not prove the wiring. It comes after this Change is delivered. `hotfix.md` receives the cue in its own delivery.
 
 ## DO
 
