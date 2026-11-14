@@ -25,7 +25,7 @@ Read-only analysis of `main` at a900273, with the earlier Guard work in the repo
 
 ## 4. What is missing against the capability standard (G61)
 
-Core and Testing carry `ownership.kaal.json`, `installation.kaal.json`, and `capability/<Name>.md`; Core also `registration`. Guard has none of the first and third, calls its contract `contract.json`, and installs only into `.githooks`, `.github` and `.agents`, nothing under `.kaal/`. Its docs are `docs/` (like Core), while Change uses `01-intent` to `03-architecture`. Which layout is the standard is open question 4. The kaal-skills integration contract (#1604, merged in `kaal/skills/contract`) was not found as `integration.kaal.json` in any package; I have not related it, see question 5.
+Core and Testing carry `ownership.kaal.json`, `installation.kaal.json`, and `capability/<Name>.md`; Core also `registration`. Guard has none of the first and third, calls its contract `contract.json`, and installs only into `.githooks`, `.github` and `.agents`, nothing under `.kaal/`. Its docs are `docs/` (like Core), while Change uses `01-intent` to `03-architecture`. Which layout is the standard is open question 4. The kaal-skills integration contract (#1604) is on `kaal/skills/contract`, not yet on `main`; it is related in section 7, answer 5.
 
 ## 5. Earlier work to reuse (nothing re-done)
 
@@ -36,23 +36,28 @@ Core and Testing carry `ownership.kaal.json`, `installation.kaal.json`, and `cap
 
 ## 6. Cases and their state on `main`
 
-Run with Node 24 against a checkout of `main`:
+Run with Node 24 against a checkout of `main`; all are RED for the reason named.
 
 | Case | Checks | Result on main |
 | --- | --- | --- |
-| guard/T209 | F43 registered check runs, hook unchanged | RED: the registered check was not run |
-| guard/T210 | F44 add allowed, delete or weaken refused | RED: an added registration did not run |
-| guard/T211 | F45 only in flight and dependents, `--full` all | RED: the touched capability did not run |
-| guard/T212 | F46 no shadowing a hard-wired check | RED: a shadowing registration was not cannot judge (exit 0) |
-| guard/T213 | G61 on par with the standard | RED: ownership.kaal.json is absent |
+| guard/T209 | F43 sourced and installed registration runs; a differing or sourceless copy is refused | RED: registered check not run |
+| guard/T210 | F44 add allowed; delete, weaken, re-own refused | RED: added registration did not run |
+| guard/T211 | F45 selection from base ownership and dependencies; self-declared `depends` ignored; unknown expands to all; `--full` | RED: touched capability did not run |
+| guard/T212 | F46 no shadowing of a hard-wired check | RED: shadowing registration not cannot judge |
+| guard/T213 | G61 on par with the capability standard | RED: ownership.kaal.json absent |
+| guard/T214 | F47 cross-owner addition and altered ownership refused | RED: cross-owner addition not cannot judge |
 
-## 7. Questions for the CPO (answer on this PR)
+## 7. CPO answers (review 5906850527) and where they are applied
 
-1. **Registration vs Core's Registration.** Is a Guard check registration a Core Registration instance (kind `check`, owned by Guard), or Guard's own declaration with a `capability` member as in T209? The Cases assume the second; the first would put admission in Core (#1638).
-2. **Where registrations live.** `.kaal/guard/registered/<capability>/<name>.md` is my proposal. A capability could instead ship it in its package and Guard read the installed copy.
-3. **Strictness by place.** Is it one `--place development|integration|promotion` option with a fixed table (same checks, stricter verdict handling on main), or different registrations per place? This PLAN leaves it for a later Change.
-4. **Layout.** Does Guard keep `docs/` or move to `01-intent` to `03-architecture`?
-5. **kaal-skills.** Does Guard's Skill need the integration contract of #1604, and does it replace or sit beside `contract.json`?
-6. **Selection input.** Dependency edges: from Core's Registration traces, from package.json `dependencies`, or from the registration's `depends`? T211 uses `depends`.
-7. **IDs.** I used F43 to F46, A21, G61 and G62, T209 to T213 and guard/C143 after the highest known ids; please confirm none is taken (#1639 uses G60).
-8. **Version.** Confirm 0.0.5 as the release for this and the move plan.
+1. Guard's own declaration, owner resolved against trusted identity: requirements preamble, F44, F47.
+2. Capability-owned source, installed registration, explicit provenance, no second editable source: F43, T209.
+3. One runner, place strictness a separate Change: requirements closing paragraph. Which gate invokes `--full` and who owns it: still open.
+4. `docs/` retained: no restructuring.
+5. #1604 assessed: its `integration.kaal.json` declares a capability's *mechanisms* (`check`, `measure`, `remind`, `judgment`), names no hook, workflow or ruleset (its F6), and is separate from Guard's Installation Contract. A `check` mechanism could later be the source of a Guard registration; this PLAN asserts no equivalence and `installation.kaal.json` supersedes `contract.json` for installation semantics only.
+6. Selection from base-held relationships; unknown expands to full; `--full` unconditional: F45, T211. The authoritative edge source (Core, Graph or package dependencies) is still open; package dependencies are the stated first source.
+7. Ids provisional; one id is added (F47, T214).
+8. 0.0.5 intended; no publishing authorized: requirements closing paragraph.
+
+## 8. Finding while fixing CI
+
+Guard's own Case guard/T30 forbids `.kaal/` paths other than `config/guard` and `state/guard` in the package. The registrations' target `.kaal/guard/registered/` (proposed by me and kept by the CPO) therefore needs a content ruling on T30 in the DO. This Change moved out of the package for that reason.

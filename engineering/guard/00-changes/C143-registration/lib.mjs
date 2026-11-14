@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-export const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
+export const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const bin = join(repo, 'packages/kaal-guard/bin/kaal-guard.mjs');
 const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
 
@@ -39,7 +39,10 @@ export function hook(dir, base, extra = []) {
 }
 export const cleanup = (dir) => rmSync(dir, { recursive: true, force: true });
 export const baseline = { '.kaal/config/guard/delivery.md': decl('delivery.mjs'), 'delivery.mjs': say('delivery') };
-export const reg = (capability, name, extra = '') => ({
-  [`.kaal/guard/registered/${capability}/${name}.md`]: decl(`${name}.mjs`, `capability: ${capability}\n${extra}`),
-  [`${name}.mjs`]: say(name),
-});
+// A capability owns a tree; its registration is sourced in the tree and installed byte for byte under .kaal/guard/registered/.
+export const owner = (cap) => ({ [`packages/${cap}/ownership.kaal.json`]: JSON.stringify({ owner: { kind: 'capability', name: cap }, paths: [`packages/${cap}/`] }), [`packages/${cap}/package.json`]: JSON.stringify({ name: cap, dependencies: {} }) });
+export const dependsOn = (cap, ...deps) => ({ [`packages/${cap}/package.json`]: JSON.stringify({ name: cap, dependencies: Object.fromEntries(deps.map((d) => [d, '1.0.0'])) }) });
+export const reg = (cap, name, extra = {}) => {
+  const text = decl(`${name}.mjs`, `capability: ${cap}\n`);
+  return { [`packages/${cap}/guard/${name}.md`]: text, [`.kaal/guard/registered/${cap}/${name}.md`]: extra.installed ?? text, [`${name}.mjs`]: say(name) };
+};
