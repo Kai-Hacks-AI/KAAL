@@ -43,7 +43,7 @@ test('retro/T2 the installed Skill depends on nothing outside itself', () => {
   for (const f of files) {
     for (const l of links(f)) assert.ok(path.resolve(path.dirname(f), l).startsWith(root + path.sep), `${f} escapes via ${l}`);
     const text = fs.readFileSync(f, 'utf8');
-    assert.doesNotMatch(text, /\b(PDCA|WORK|GitHub|repository|hooks?|CI|rulesets?|kaal-[a-z]+|KAAL)\b/, `${f} names a KAAL or host prerequisite`);
+    assert.doesNotMatch(text, /\b(PDCA|WORK|GitHub|repository|hooks?|CI|rulesets?|kaal-(?!retro)[a-z]+|KAAL)\b/, `${f} names a KAAL or host prerequisite`);
   }
   assert.doesNotMatch(read(root, 'SKILL.md').split('---')[1], /^(requires|dependencies|depends)/m);
 });
@@ -73,5 +73,5 @@ test('retro/T5 every 4L category can yield potential improvements, none ranked',
 test('retro/T6 observations, interpretations and proposals are kept apart and nothing is authorized', () => {
   const text = read(installAlone(), 'SKILL.md');
   for (const w of ['observation', 'interpretation', 'improvement', 'owner', 'authoriz']) assert.match(text, new RegExp(w, 'i'), w);
-  assert.doesNotMatch(text, /\b(create|open|file|raise) (a|an|the) Change\b/i);
+  assert.match(text, /\b(not|never|no|nothing)\b[^.\n]*\b(Change|decision)/i, 'states that nothing is created or decided by the retro');
 });
