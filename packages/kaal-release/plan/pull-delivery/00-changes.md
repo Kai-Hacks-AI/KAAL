@@ -53,3 +53,31 @@ No workflow, App, ruleset, hook or declaration change. The C10 implementation is
 ## Order
 
 PLAN (this), then DO (the extension in the Script, README, T43 to T46 to green and T41 updated), ACT, then it joins the pull-lane concluding ACT, SYNC and PROMOTION. Collector: `kaal/release/pull-lane`, which already carries `laneStep`.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- The CPO's two requests on the PLAN made the rules precise before any code: an UNKNOWN higher class is a finding and never blocks a known eligible lower class, and the lane is occupied by the seat plus any open PROMOTION, HOTFIX or WIRE. Both became RED Cases that went green by one function.
+- `deliveries` is optional. Without it every result equals the approved C10 result, which T46 checks, so the approved lane step could not regress.
+- What is in stays in came out of the structure: the seat check runs before `deliveries` is read.
+
+### Learned
+
+- A class prefix on the source (`hotfix/`, `wire/`, `kaal/`) is a cheap check that a candidate is what it says it is, and a mismatch is reported as unknown, never invented as eligible.
+- The same guard can serve every class once it counts any open admission type, not only the type being opened.
+- Collector DOs conflict least when the same one-word change (the `chooseNext` export) is made identically on both collectors.
+
+### Lacked
+
+- Anything that produces the `deliveries` list from the host: the branch classes, the OUT and IN verdicts of each HOTFIX and WIRE candidate. Nothing yet reads them, and a WIRE is not a PDCA collector, so the KAAL report is not the right test for it.
+- A caller and a GitHub App identity, so the step still acts on nothing.
+- Recorded values, sizes and units, so the KAAL choice is still judged.
+
+### Longed For
+
+- A read-only gatherer of the `deliveries` and the pulse, with its own PLAN and Cases, before any wiring.
+- The CPO's definition of the OUT and IN checks for a HOTFIX and a WIRE branch.
+- The Owner's go on the GitHub App identity as a separate gated Change.
