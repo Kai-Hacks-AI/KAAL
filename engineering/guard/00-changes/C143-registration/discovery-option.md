@@ -26,6 +26,16 @@ Following the existing convention (`ownership.kaal.json`, `installation.kaal.jso
 
 At run time Guard lists tracked files named `guard.kaal.json` in the candidate (`git ls-files` with one pathspec, deterministic and the same in the hook and CI) and reads each. The hook and workflow stay as they are. The repository's own `.kaal/config/guard/` keeps working as today. Malformed files, unreadable `checks`, or a command that cannot start are `cannot judge`, naming the file (F44, unchanged).
 
+## Discovery from the Change's own files (Owner refinement, 21:22)
+
+A Change's files are easy to identify even when they sit outside any folder structure, so the local setup does not need a conventional location. Guard finds `guard.kaal.json` **by name, anywhere in the tracked tree**, never by path convention. For a Change:
+
+1. The Change's own files identify the Change; how they do so (an id they carry, as Cases do with `tests:`) is kaal-change's, not Guard's, and Guard reads only the Change id that the local setup file itself names as `owner`.
+2. The Change is *in flight* when the candidate's diff touches any file that carries its id, or its local setup file. That is determined from the diff and the files alone: deterministic and the same in the hook and in CI.
+3. The in-flight Change's `guard.kaal.json` gives the checks that run; the Engine may narrow or widen that via the plan (F45), and the merge queue runs everything.
+
+This keeps "which Change is in flight" out of a registry and out of folder conventions. Open for the CPO and kaal-change: the identification of a Change's files is not specified in this repository by what I read, so this PLAN does not define it; a Case for it belongs with whoever owns that rule.
+
 ## What this removes and what it costs
 
 - **Removes:** the installed copy and the source/install consistency check (the install step is the Engine's problem and Guard no longer has one), and probably the T30 namespace amendment (F48, T215), since nothing is written to a new `.kaal/guard/registered/` path.
