@@ -17,6 +17,14 @@ One rule, pulled from the report. The lane has a seat (promotion WIP 1). A PROMO
 
 The step is a pure function of facts: `laneStep(state)` returns one advisory action (`wait`, `judge`, `open-promotion`, `open-sync`, `ready-for-cpo`) and never an approval, a merge or a ruleset change.
 
+## What it reuses
+
+Nothing new is invented. The lane reads what exists:
+
+- **Pull Promotion** supplies the facts: `qualifiers`, the exact-head re-qualification, and `next` by value density (pull/C9). `laneStep` consumes that report and adds no second qualification.
+- **The existing PR templates** shape the PRs it opens: a SYNC with the chapters Change and Reason, a PROMOTION with Change and Why now, titled `<TYPE>: <description>`, with the Change id in the body and the envelope cue the templates carry. There is no new template, no template registry and no new PR type.
+- **The existing rules** stay: one seat, SYNC only for the holder, the merge queue squashes, the CPO approves.
+
 ## Identity (a later slice, not this PLAN)
 
 A PR opened with `GITHUB_TOKEN` does not trigger other workflows, so the checks a PROMOTION needs would not run. Opening the PRs needs a GitHub App identity with narrowly scoped permissions (open PRs, no merge, no approve, no admin). Installing it is Owner-gated and happens only once `laneStep` is on `main`, per the sequencing rule: wiring starts when its ingredients are on `main`.

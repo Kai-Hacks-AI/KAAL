@@ -9,3 +9,4 @@ Scoped `pull/` (ids are global). No earlier rule is relaxed. Every action is adv
   - Seat held, current with `main`, re-qualification `PASS`: `ready-for-cpo`. `FAIL`: `open-promotion` for the best other qualifier (the holder excluded), or `judge` if none. `UNKNOWN` or absent: `wait`.
   - Seat held and nothing changed: `wait`.
 - **pull/F40. The function can neither approve nor merge.** Every action it can return is one of `wait`, `judge`, `open-promotion`, `open-sync`, `ready-for-cpo`. Approval stays a CPO act; an approval step is a separate, Owner-gated Change.
+- **pull/F41. The PRs it asks for are the existing SYNC and PROMOTION, in their existing templates.** An `open-sync` action names `type: 'SYNC'` with the chapters `Change` and `Reason`; an `open-promotion` action names `type: 'PROMOTION'` with `Change` and `Why now`. The title shape is `<TYPE>: <description>`. The function adds no PR type, template or chapter.
