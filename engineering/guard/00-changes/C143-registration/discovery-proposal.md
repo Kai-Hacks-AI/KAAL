@@ -75,3 +75,7 @@ A changed file with **no** nearest `guard.json` (an engineering area's own code,
 ## Boundary: Engineering's standing checks are not Guard's
 
 Idea from the Owner (21:30): Engineering needs its own, more permanent wiring. Read here as: Engineering's standing checks are hard-wired Delivery controls, installed through `.githooks/new/pre-push.d` and the new rulesets (the structure #1639 and the wiring sources of release/C18 build), never through Guard. Guard serves only package capabilities and Changes. This is a reading of the Owner's words, not a decision; the CPO classifies each control (#1639).
+
+## Trying a new Engineering idea (Owner, 21:31)
+
+Through a Change, a new Engineering idea can be checked in Guard while the existing Engineering controls stay hard-wired. The new check sits in that Change's `guard.json` and runs through Guard for as long as the Change is open; the existing controls are untouched. Read here as a path for a new control to prove itself under Guard first and only then be hard-wired by the wiring owner, in line with the standing rule to test outside the danger zone first (new controls beside the old rulesets, installed later). Again a reading, not a decision; when and how a proven check is hard-wired is the wiring owner's and the CPO's.
