@@ -1,17 +1,18 @@
 # C31 change
 
-## PLAN (revised 15 Nov after the CPO review of the first head)
+## PLAN (revised 15 Nov after two CPO reviews)
 
 The first head treated a test-shaped file in the diff as the Case of the defect and one capability root as the scope of a defect. Both are withdrawn: a single defect may need corrections across roots, a one-root diff may hold unrelated work, and an existing unchanged Case may already reproduce the defect.
 
 1. Add C31 with the gap G66 and two Cases, T380 (the judge) and T381 (the requirement text). Both are RED on `main` (`evidence.md`).
 2. The semantic boundary is one HOTFIX, one identified defect. The judge models the trace HOTFIX, Defect, reproducing Case, verified correction: `judgeHotfixTrace(facts)` in `05-src/plan-body/hotfix-trace.mjs`.
-3. Its facts: `defects` (the KAAL Defect references of the Defect chapter), `paths` (the paths the HOTFIX changes), and three lookups supplied by the caller, `lookupDefect(id)` (the recorded Defect with the Cases that reproduce it, or nothing), `caseExists(caseId)` and `caseResult(caseId)` (GREEN, RED or nothing, at the exact head). The judge holds no knowledge of where Defects or Cases are stored.
-4. Findings, each a broken link of the trace: no Defect reference; more than one; a Defect that is not recorded; a recorded Defect that names no reproducing Case; a named Case that does not exist; a Case whose result at the head is RED; an empty diff. The Case need not be in the diff, changed or not.
-5. Attention, not a finding: a diff that spans more than one capability root (`packages/<name>`, `engineering/<name>`, any other top-level path as its own root) is listed for the reviewer to justify. It never changes the verdict.
-6. The verdict is FAIL with a finding and UNKNOWN without one. It is never PASS. A missing Case result is listed under not judged.
-7. Always listed under not judged: that the correction is minimal, that the diff holds no work unrelated to the defect, that the Case really corresponds to the Defect, and that the correction genuinely repairs the reproduced behaviour.
-8. F16 states the trace and what the judge does not establish, in one short paragraph.
+3. Two judgments, kept apart in the result. **Trace validity** is structural: the links HOTFIX, Defect, reproducing Case exist. **Correction evidence** is revision-bound: the Case observed RED against the defect-bearing baseline and GREEN against the corrected revision. The first needs no run; the second needs evidence, and the judge only reads it.
+4. Its facts: `defects` (the KAAL Defect references of the Defect chapter), `paths` (the paths the HOTFIX changes), `baseRev` and `headRev` (the two revisions the HOTFIX connects), and three lookups supplied by the caller: `lookupDefect(id)` (the recorded Defect with the Cases that reproduce it, or nothing), `caseExists(caseId)` and `caseEvidence(caseId)` (`{ baseline: { rev, result }, head: { rev, result } }`, each result GREEN or RED, either part may be absent). The judge holds no knowledge of where Defects, Cases or runs are stored.
+5. Trace findings, each a broken link: no Defect reference; more than one; a Defect that is not recorded; a recorded Defect that names no reproducing Case; a named Case that does not exist; an empty diff. The Case need not be in the diff, changed or not.
+6. Correction evidence, one of three states. VERIFIED: the baseline result is RED at `baseRev` and the head result is GREEN at `headRev`. NOT VERIFIED, and a finding: the head result is RED (the correction is not verified), or the baseline result is GREEN (the Case did not reproduce the defect at the baseline). UNKNOWN, and listed under not judged: a part of the evidence is absent, or is bound to another revision than `baseRev` or `headRev` (stale). RED at the baseline is expected and never a finding. GREEN at the head alone is UNKNOWN: it does not show that the Case reproduced the defect.
+7. Attention, not a finding: a diff that spans more than one capability root (`packages/<name>`, `engineering/<name>`, any other top-level path as its own root) is listed for the reviewer to justify. It never changes the verdict.
+8. The verdict is FAIL with a finding and UNKNOWN without one, whatever the correction state. It is never PASS: even VERIFIED does not show that the Case corresponds to the Defect, that the diff is minimal, or that it holds no unrelated work, and these are always listed under not judged.
+9. F16 states the trace, the RED-then-GREEN evidence and what stays unjudged, in one short paragraph.
 
 ## DO
 
