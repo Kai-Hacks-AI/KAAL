@@ -1,6 +1,6 @@
 // Shared by the Cases of engineering/C16. The module under test is absent on main, so every Case fails until the DO.
 // The registry is the one pull/C14 returns for main's tip: { accepted, source, classRoutes, collectors, problems },
-// plus Engineering's `admission` section (stock -> { qualifier, routes?, migration? }).
+// plus the `admission` section of the sibling kaal-admission.json (stock -> { qualifier, routes?, migration? }).
 export const MODULE = new URL("../../admission.mjs", import.meta.url).href;
 export const load = () => import(MODULE);
 export const HEAD = "a".repeat(40);
