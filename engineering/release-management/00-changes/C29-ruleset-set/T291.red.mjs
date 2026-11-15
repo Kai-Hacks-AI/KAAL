@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const id = 'release/T291';
 export const tests = ['release/G65'];
-export const title = 'gap release/G65 is closed: the target set of five rulesets is recorded and Development is not one';
+export const title = 'gap release/G65 is closed: the target set of five rulesets is recorded Guard is required in all five, and Development is not one';
 export function run() {
   const path = join(repo, 'engineering/release-management/05-src/wiring/rulesets/set.md');
   assert.ok(existsSync(path), 'the ruleset set record is absent');
@@ -14,5 +14,6 @@ export function run() {
   for (const name of ['hotfixing', 'wiring', 'integration', 'promotion', 'publishing']) {
     assert.match(text, new RegExp(`\\|\\s*\`${name}\`\\s*\\|`), `the set names ${name}`);
   }
+  assert.match(text, /Guard[^\n]*required[^\n]*all five/i, 'Guard is required in all five');
   assert.match(text, /Development[^\n]*hooks[^\n]*not a ruleset/i, 'Development is the hooks and not a ruleset');
 }

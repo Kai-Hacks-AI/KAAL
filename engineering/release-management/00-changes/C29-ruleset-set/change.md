@@ -3,7 +3,7 @@
 ## PLAN
 
 1. Add C29 with the gap G65 and the Case T291, RED on `main`: the DO records the set in `05-src/wiring/rulesets/set.md`.
-2. The record names the five rulesets, what each protects, which delivery path reaches it, and that Development (the hooks) is not a ruleset.
+2. The record names the five rulesets, what each protects, which delivery path reaches it, and that Development (the hooks) is not a ruleset, and that Guard is a required check in all five (Owner: "guard everywhere"). The Guard context name and its fit to the tag-based `publishing` are left to the DO and the CPO.
 3. The PLAN changes no workflow, no live ruleset and no declaration.
 
 ## DO
