@@ -12,7 +12,8 @@
     "packages/kaal-review",
     "packages/kaal-testing",
     "packages/kaal-change",
-    "packages/kaal-release"
+    "packages/kaal-release",
+    "packages/kaal-requirements"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
