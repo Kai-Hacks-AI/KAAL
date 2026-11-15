@@ -10,7 +10,7 @@
 | Case | Tests | On the baseline |
 | --- | --- | --- |
 | release/T330 | F53 | RED: `05-src/scope/scope-judge.mjs` is absent |
-| release/T331 | F53 | RED: kaal-release 0.0.1 has no declared scope |
+| release/T331 | F53 | RED: kaal-release 0.0.1 has no declared delivery scope |
 
 ## Reproduce
 
