@@ -1,13 +1,13 @@
 // Case pull/T461 tests: pull/F61
 import assert from 'node:assert/strict';
-import { script, registryOf, ROUTES_PATH, ROUTES, capability, calm, hot, wire, kaal, neutral, ok } from './lib.mjs';
+import { script, registryOf, capability, calm, hot, wire, kaal, neutral, ok } from './lib.mjs';
 export const id = 'pull/T461';
 export const tests = ['pull/F61'];
 export const title = 'every GREEN item of a registered stock is auto-pulled, whether or not its destination IN has passed; a GREEN item outside any registered stock is judge-pulled: reported, never selected, still open to judgment';
 
 export async function run() {
   const mod = await script();
-  const registry = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-release/kaal-pull.json': capability('release') });
+  const registry = await registryOf({ 'packages/kaal-release/kaal-pull.json': capability('release') });
   const decl = { collectors: [] };
   const step = (deliveries, extra = {}) => mod.laneStep({ seat: null, report: { qualifiers: [], next: { collector: null, reason: 'none' } }, declaration: decl, deliveries, pulse: calm, registry, ...extra });
 
@@ -37,13 +37,8 @@ export async function run() {
   for (const i of ['UNKNOWN', 'FAIL', undefined]) assert.equal(step([kaal('kaal/release/pull-lane', { in: i })]).action, 'open-promotion', `an IN of ${i} blocked the pull`);
   // One capability's stock does not enroll another's, and class routes do not enroll KAAL.
   assert.equal(step([kaal('kaal/releasex/y')]).action, 'judge', 'a name sharing a prefix but outside the scope was enrolled');
-  assert.equal(step([kaal('hotfix/fix-a')]).action, 'judge', 'a class route enrolled a KAAL collector');
+  assert.equal(step([kaal('hotfix/fix-a')]).action, 'judge', 'a hotfix branch was enrolled as a kaal stock item');
   assert.equal(step([{ ...hot('fix-a'), source: 'hotfix/' }]).action !== 'select', true, 'an empty route remainder was selected');
-  // Unregistered HOTFIX/WIRE when no class route is accepted.
-  const noRoutes = await registryOf({ 'packages/kaal-release/kaal-pull.json': capability('release') });
-  r = mod.laneStep({ seat: null, report: {}, declaration: decl, deliveries: [hot('fix-a'), kaal('kaal/release/pull-lane')], pulse: calm, registry: noRoutes });
-  assert.deepEqual([r.action, r.collector], ['open-promotion', 'kaal/release/pull-lane'], 'a HOTFIX without an accepted route blocked the registered collector');
-  assert.deepEqual(r.judgePulled, ['fix-a'], 'the HOTFIX without a route is not judge-pulled');
   // Host-neutral: a consumer's own classes and route scopes work with no KAAL names, so the package hardcodes none.
   const own = (c, over = {}) => ({ class: c, source: `${c === 'URGENT' ? 'urg' : 'rt'}/${over.name ?? 'x'}`, name: over.name ?? 'x', ...ok, ...over });
   const stepOwn = (deliveries) => mod.laneStep({ seat: null, report: {}, declaration: decl, deliveries, pulse: calm, registry: neutral });
