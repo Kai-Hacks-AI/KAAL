@@ -4,5 +4,6 @@ export async function script() {
   if (typeof mod.gatherDeliveries !== 'function') throw new Error('gatherDeliveries is not exported by the Script');
   return mod;
 }
-export const ok = (sha, name) => ({ sha, name, status: 'completed', conclusion: 'success' });
-export const classes = { HOTFIX: { out: ['Hotfix'], in: ['Admission'] }, WIRE: { out: ['Wire'], in: ['Admission'] }, KAAL: { out: [], in: ['Branching'] } };
+export const authorities = { HOTFIX: 'hotfix-authority', WIRE: 'wire-authority', KAAL: 'kaal-authority' };
+export const verdict = (source, v, revision, authority) => ({ source, verdict: v, revision, authority });
+export const done = (sha, name, conclusion = 'success') => ({ sha, name, status: 'completed', conclusion });
