@@ -1,0 +1,24 @@
+{
+  "note": "What the control needs from the rulesets: one required context per language and target, and nothing else. This Change applies nothing. Applied only on the Owner's go, as new rulesets beside the old ones.",
+  "control": "analyze Code",
+  "contexts": ["CodeQL (actions)", "CodeQL (javascript-typescript)"],
+  "per_target": [
+    {
+      "ruleset": "Integration",
+      "target": "refs/heads/kaal/**",
+      "contexts": ["CodeQL (actions)", "CodeQL (javascript-typescript)"],
+      "integration_id": 15368,
+      "change": "add the contexts to required_status_checks, nothing else",
+      "precondition": "both contexts observed on a pull request into a kaal/** collector"
+    },
+    {
+      "ruleset": "Promotion",
+      "target": "main",
+      "contexts": ["CodeQL (actions)", "CodeQL (javascript-typescript)"],
+      "integration_id": 15368,
+      "change": "add the contexts to required_status_checks, nothing else",
+      "precondition": "both contexts observed on a merge group (release/G64). Without it this entry is left out and the scope is Integration alone"
+    }
+  ],
+  "later": "A single check that fans in many controls may replace per-control contexts. It is not part of this Change."
+}
