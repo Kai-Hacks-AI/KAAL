@@ -1,7 +1,7 @@
 // Case graph/T2 tests: graph/F1, graph/I1
 import assert from 'node:assert/strict';
 import { exported, map, shuffled } from './lib.mjs';
-export const id = 'graph/T2';
+export const id = 'graph/T351';
 export const tests = ['graph/F1', 'graph/I1'];
 export const title = "a cycle is reported with its members sorted, disjoint cycles apart and in order, cycles sharing a member as one component";
 export function run() {

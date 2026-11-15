@@ -1,7 +1,7 @@
 // Case graph/T6 tests: graph/N2, graph/A2
 import assert from 'node:assert/strict';
 import { exported, map, shuffled } from './lib.mjs';
-export const id = 'graph/T6';
+export const id = 'graph/T355';
 export const tests = ['graph/N2', 'graph/A2'];
 export const title = "a 100 000-member chain and ring finish without exhausting the stack, and the ring is one cycle";
 export function run() {

@@ -1,7 +1,7 @@
 // Case graph/T5 tests: graph/N1
 import assert from 'node:assert/strict';
 import { exported, map, shuffled } from './lib.mjs';
-export const id = 'graph/T5';
+export const id = 'graph/T354';
 export const tests = ['graph/N1'];
 export const title = "the same structure in any key and successor order gives the same cycles, reach and reverse";
 export function run() {

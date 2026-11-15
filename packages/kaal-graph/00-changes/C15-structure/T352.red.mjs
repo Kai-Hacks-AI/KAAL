@@ -1,7 +1,7 @@
 // Case graph/T3 tests: graph/F2, graph/F4
 import assert from 'node:assert/strict';
 import { exported, map, shuffled } from './lib.mjs';
-export const id = 'graph/T3';
+export const id = 'graph/T352';
 export const tests = ['graph/F2', 'graph/F4'];
 export const title = "reach yields each identity once, includes start, terminates on a cycle and reaches a successor that is not a key";
 export function run() {

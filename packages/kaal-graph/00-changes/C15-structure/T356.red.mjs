@@ -1,7 +1,7 @@
 // Case graph/T7 tests: graph/N3, graph/F4
 import assert from 'node:assert/strict';
 import { exported, map, shuffled } from './lib.mjs';
-export const id = 'graph/T7';
+export const id = 'graph/T356';
 export const tests = ['graph/N3', 'graph/F4'];
 export const title = "the input is unchanged, the results are frozen, and a plain object works like a Map";
 export function run() {
