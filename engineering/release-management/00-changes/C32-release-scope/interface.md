@@ -1,4 +1,4 @@
-# C31 interface
+# C32 interface
 
 ## Draft of the manifest
 
