@@ -9,8 +9,8 @@
 
 | Case | Tests | On the baseline |
 | --- | --- | --- |
-| release/T380 | G66 | RED: `05-src/plan-body/hotfix-scope.mjs` is absent |
-| release/T381 | G66 | RED: F16 does not state the defect-only rule |
+| release/T380 | G66 | RED: `05-src/plan-body/hotfix-trace.mjs` is absent |
+| release/T381 | G66 | RED: F16 does not state the trace or what the judge leaves unjudged |
 
 ## Reproduce
 
