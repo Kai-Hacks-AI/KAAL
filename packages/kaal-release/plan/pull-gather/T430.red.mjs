@@ -1,23 +1,23 @@
 // Case pull/T430 tests: pull/F50
 import assert from 'node:assert/strict';
-import { script, authorities } from './lib.mjs';
+import { pkg, facts, cand } from './lib.mjs';
 export const id = 'pull/T430';
 export const tests = ['pull/F50'];
-export const title = 'every head of a delivery class is a candidate and nothing else is';
+export const title = 'normalized candidates become the deliveries laneStep takes, and nothing is guessed';
 
 export async function run() {
-  const { gatherDeliveries } = await script();
-  const heads = ['hotfix/x', 'wire/y', 'kaal/a/b', 'feature/z', 'claude/t', 'hotfix/'].map((ref, i) => ({ ref, sha: `s${i}` }));
-  const r = gatherDeliveries({ heads, verdicts: [], authorities, prs: [], checks: [], destination: { required: [] } });
-  const got = r.deliveries.map((d) => [d.class, d.source, d.name, d.sha]);
-  assert.deepEqual(got, [['HOTFIX', 'hotfix/x', 'x', 's0'], ['WIRE', 'wire/y', 'y', 's1'], ['KAAL', 'kaal/a/b', 'a/b', 's2']]);
-  for (const d of r.deliveries) assert.ok(['PASS', 'FAIL', 'UNKNOWN'].includes(d.out) && ['PASS', 'FAIL', 'UNKNOWN'].includes(d.in), 'a side is not a verdict');
-  for (const d of r.deliveries) for (const f of ['value', 'size', 'unit']) assert.equal(d[f], undefined, `${f} was invented`);
-  const bad = gatherDeliveries({ heads: 'nope' });
-  assert.deepEqual(bad.deliveries, []);
-  assert.ok(bad.findings.length > 0, 'a finding was not given');
-  const input = { heads, verdicts: [], authorities, prs: [], checks: [], destination: { required: [] } };
+  const { resolveDeliveries } = await pkg();
+  const input = facts({ candidates: [cand('a', 'HOTFIX'), cand('b', 'WIRE'), cand('c', 'KAAL'), cand('d', 'OTHER')] });
   const copy = JSON.stringify(input);
-  gatherDeliveries(input);
+  const r = resolveDeliveries(input);
+  assert.deepEqual(r.deliveries.map((d) => [d.class, d.source, d.name]), [['HOTFIX', 'a', 'a'], ['WIRE', 'b', 'b'], ['KAAL', 'c', 'c']]);
+  assert.ok(r.findings.some((f) => /OTHER/.test(f)), 'the undeclared class was not reported');
+  for (const d of r.deliveries) {
+    assert.ok(['PASS', 'FAIL', 'UNKNOWN'].includes(d.out) && ['PASS', 'FAIL', 'UNKNOWN'].includes(d.in));
+    for (const f of ['value', 'size', 'unit']) assert.equal(d[f], undefined, `${f} was invented`);
+  }
   assert.equal(JSON.stringify(input), copy, 'the input was changed');
+  const bad = resolveDeliveries({ classes: 'nope' });
+  assert.deepEqual(bad.deliveries, []);
+  assert.ok(bad.findings.length > 0);
 }
