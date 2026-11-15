@@ -1,10 +1,10 @@
-// Case release/T293 tests: F53
+// Case release/T331 tests: F53
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T293';
+export const id = 'release/T331';
 export const tests = ['release/F53'];
 export const title = 'readiness: kaal-release 0.0.1 has a declared scope and every required Change in it is delivered on main';
 

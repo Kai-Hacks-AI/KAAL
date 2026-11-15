@@ -1,10 +1,10 @@
-// Case release/T292 tests: F53
+// Case release/T330 tests: F53
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T292';
+export const id = 'release/T330';
 export const tests = ['release/F53'];
 export const title = 'the scope judge classifies each Change as delivered or missing and is ready only when no required Change is missing';
 
