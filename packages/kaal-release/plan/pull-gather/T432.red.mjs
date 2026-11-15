@@ -6,13 +6,13 @@ export const title = 'the adapter lists only this installation\'s stock branches
 
 export async function run() {
   const mod = await import('../../../../engineering/release-management/05-src/pull-promotion/gather.mjs');
-  // The routes come from the Engineering-owned kaal-pull.json, never from the adapter.
-  const routes = { 'kaal/': 'KAAL', 'hotfix/': 'HOTFIX', 'wire/': 'WIRE' };
+  // The heads main accepts, and their class, are this installation's; the registry is #1708's output, passed through.
   const heads = ['main', 'kaal/hosting/a', 'hotfix/x', 'wire/y', 'feature/z', 'claude/t', 'hotfix/'].map((ref, i) => ({ ref, sha: `s${i}` }));
-  const f = mod.toFacts({ heads, verdicts: [], routes, registrations: [] });
+  const registry = { accepted: true, stocks: [{ name: 'HOTFIX', routes: ['hotfix/*'] }] };
+  const f = mod.toFacts({ heads, verdicts: [], registry });
   assert.deepEqual(f.candidates.map((c) => [c.class, c.id, c.revision]), [['KAAL', 'kaal/hosting/a', 's1'], ['HOTFIX', 'hotfix/x', 's2'], ['WIRE', 'wire/y', 's3']], 'main, development branches or an empty name became stock');
-  const alt = mod.toFacts({ heads, verdicts: [], routes: { 'feature/': 'KAAL' }, registrations: [] });
-  assert.deepEqual(alt.candidates.map((c) => c.id), ['feature/z'], 'the adapter used a literal prefix');
+  assert.deepEqual(f.registry, registry, 'the registry was changed, built or derived from Core');
+  assert.equal(mod.toFacts({ heads, verdicts: [] }).registry, undefined, 'a registry was invented');
   const seen = [];
   const client = async (method, path) => { seen.push(method); if (/verdict|check-runs/.test(path)) throw new Error('unreachable'); return []; };
   const facts = await mod.readFacts({ client, owner: 'o', repo: 'r' });
