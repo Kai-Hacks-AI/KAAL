@@ -1,0 +1,38 @@
+{
+  "name": "kaal-agents",
+  "version": "0.0.1",
+  "description": "KAAL Agents: an Agent's readiness and operation within KAAL, reconstructing its working context with little or no prompting.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "kaal-agents": "bin/kaal-agents.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "skills",
+    "docs",
+    "capability",
+    "test/consumer",
+    "test/verify.mjs",
+    "test/verify.json"
+  ],
+  "scripts": {
+    "test": "node test/verify.mjs",
+    "pretest:publisher": "npm run build -w kaal-core -w @kaihacksai/kaal-hosting",
+    "test:publisher": "node --test test/agents.test.mjs && node --test test/plan/release.test.mjs && node --test test/plan/external.test.mjs",
+    "manifest": "node test/publisher/manifest.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "kaal-core": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "@kaihacksai/kaal-hosting": "0.0.1",
+    "kaal-testing": "0.0.1"
+  }
+}
