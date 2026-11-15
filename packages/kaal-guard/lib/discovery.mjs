@@ -66,7 +66,8 @@ export function parse(file, text) {
     if (typeof c.run !== "string" || !words(c.run)?.length) throw new Refusal(`${file}: ${c.id}: run: names no program, or a quote in it is not closed`, "write a program and its arguments as words");
     if (c.when !== undefined && !(Array.isArray(c.when) && c.when.length && c.when.every((g) => typeof g === "string"))) throw new Refusal(`${file}: ${c.id}: when: must be a list of globs`, "write when as a list of globs relative to the file, or leave it out");
   }
-  return body.checks;
+  // Each `when` glob is compiled once here, not once per changed path.
+  return body.checks.map((c) => ({ ...c, matchers: c.when?.map(glob) }));
 }
 
 /** The plan the Engine gave: { unknown: true } or { inFlight: [folders] }, or a Refusal. */
@@ -153,7 +154,7 @@ export function runDiscovered(root, facts, options = {}) {
   const supplied = Object.fromEntries(Object.entries(facts).filter(([, v]) => v !== undefined));
   for (const [file, paths] of touched) {
     for (const c of files.get(file)) {
-      if (paths !== null && c.when && !paths.some((p) => c.when.some((g) => glob(g).test(p)))) continue;
+      if (paths !== null && c.matchers && !paths.some((p) => c.matchers.some((m) => m.test(p)))) continue;
       const name = `${file}:${c.id}`;
       results.push(runCheck(root, { checks: { [name]: { command: c.run, runs: ["hook", "ci"], facts: [] } } }, name, supplied));
     }
