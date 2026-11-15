@@ -9,4 +9,6 @@ test("engineering/T459 [engineering/C16]: the Guard declaration trusts admission
   assert.match(text, /^type: Guard\/Check$/m);
   assert.match(text, /^trusted: engineering\/delivery-admission\/admission\.mjs$/m);
   assert.match(text, /^facts: \[.*base-ref.*\]$/m);
+  const src = readFileSync(fileURLToPath(new URL("../../admission.mjs", import.meta.url)), "utf8");
+  assert.ok(!/promotionFreshness|merge-?tree|mergeTree|contains.*tip/i.test(src), "freshness (F2) is not absorbed into admission");
 });
