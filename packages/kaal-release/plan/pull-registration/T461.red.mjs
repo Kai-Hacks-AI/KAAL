@@ -32,7 +32,7 @@ export async function run() {
   r = step([kaal('kaal/release/other')]);
   assert.deepEqual([r.action, r.collector], ['open-promotion', 'kaal/release/other'], 'a GREEN item of the registered stock was not pulled');
   // Not GREEN at the exact head: a stock item, but not ready, so not pulled.
-  for (const out of ['FAIL', 'UNKNOWN']) assert.notEqual(step([kaal('kaal/release/wip', { out })]).action, 'open-promotion', `a stock item with OUT ${out} was pulled`);
+  for (const stock of ['FAIL', 'UNKNOWN']) assert.notEqual(step([kaal('kaal/release/wip', { stock })]).action, 'open-promotion', `a stock item with STOCK ${stock} was pulled`);
   // The destination IN is applied after the pull, never a precondition of it.
   for (const i of ['UNKNOWN', 'FAIL', undefined]) assert.equal(step([kaal('kaal/release/pull-lane', { in: i })]).action, 'open-promotion', `an IN of ${i} blocked the pull`);
   // One capability's stock does not enroll another's, and class routes do not enroll KAAL.

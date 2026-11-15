@@ -15,10 +15,10 @@ export async function run() {
   assert.deepEqual([step([kaal('kaal/release/b'), wire(), hot()]).action, step([kaal('kaal/release/b'), wire(), hot()]).class], ['select', 'HOTFIX'], 'HOTFIX did not come first');
   assert.equal(step([kaal('kaal/release/a'), kaal('kaal/release/b')]).collector, 'kaal/release/b', 'value density no longer chooses inside KAAL');
   // UNKNOWN does not block a known eligible lower class and is reported.
-  const u = step([hot('fix-a', { out: 'UNKNOWN' }), wire()]);
+  const u = step([hot('fix-a', { stock: 'UNKNOWN' }), wire()]);
   assert.deepEqual([u.action, u.class, u.unknown], ['select', 'WIRE', ['fix-a']], 'UNKNOWN changed');
-  // A stock item that is not GREEN (OUT FAIL) is not ready, is not pulled, and is not judge-pulled either.
-  const f = step([hot('fix-a', { out: 'FAIL' }), kaal('kaal/release/b')]);
+  // A stock item that is not GREEN (STOCK FAIL) is not ready, is not pulled, and is not judge-pulled either.
+  const f = step([hot('fix-a', { stock: 'FAIL' }), kaal('kaal/release/b')]);
   assert.equal(f.action, 'open-promotion', 'FAIL blocked a lower class');
   assert.ok(!f.judgePulled?.length, 'a FAIL candidate was reported as judge-pulled');
   // Non-preemption.
