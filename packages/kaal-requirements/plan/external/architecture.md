@@ -1,0 +1,10 @@
+# Requirements stands alone (External use): Architecture
+
+Each element names, in brackets, the Requirements it answers.
+
+- **requirements/A16. Skill first, Node deeper** [requirements/F25, requirements/F26]. The Skill carries the working meaning and the how; the Nodes carry the full definition and Requirements' scope. An Engine-equipped reader gets both. This is the pattern the portfolio view names as working for Review and `intent/A11` applies to Intent.
+- **requirements/A17. Judged by the general profile, not a new engine** [requirements/F28, requirements/N10]. Whether a Skill stands alone (needs the Engine, a command, or a write) is a general question across capabilities. The natural home is Packaging's general conformance profile (#907). Requirements states its own answers and supplies its Skill as a case. It builds no stand-alone checker of its own.
+- **requirements/A18. Delivery** [requirements/N11]. The DO adds `skills/kaal-requirements/` (`SKILL.md` and, if the plain form needs it, one `references/` file), names the Skill in `provides`, adds the assets to `contract.json` with their catalogue, and lists them in `files`, the README and the packed-file test. The Capability Node's sentence about what it provides gains the Skill, so its id changes and `ownership.kaal.json` follows. The Definitions do not change.
+- **requirements/A19. No second source** [requirements/N9]. The Skill quotes or derives its meaning sentences from `Requirement.md`, and a test compares them, as `intent/N6` plans for Intent.
+- **requirements/A20. Order** [requirements/I15]. This PLAN, then its tests written RED, then the DO. It lands on `kaal/requirements`, independent of `requirements/C8` and `C9` (which wait for `core/C29`). Whether and when the knowledge reaches main is the Owner's promotion call, not asked here, and it does not join the release-critical path.
+- **requirements/A21. Open point** [requirements/F25]. A Skill is new Requirements content, not a Node. Whether `provides` carrying a Skill needs a surface (as Guard's does) is Core's contract format to answer, and the DO asks Core, not assumes.
