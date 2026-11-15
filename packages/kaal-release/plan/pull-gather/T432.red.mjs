@@ -6,11 +6,14 @@ export const title = 'the adapter maps this installation to declared classes and
 
 export async function run() {
   const mod = await import('../../../../engineering/release-management/05-src/pull-promotion/gather.mjs');
+  // The class routes come from the Engineering-owned kaal-pull.json (pull/C14), never from the adapter.
   const naming = { 'hotfix/': 'HOTFIX', 'wire/': 'WIRE', 'kaal/': 'KAAL' };
   const done = (sha, name, conclusion = 'success') => ({ sha, name, status: 'completed', conclusion });
   const heads = ['hotfix/x', 'wire/y', 'kaal/a/b', 'feature/z', 'claude/t', 'hotfix/'].map((ref, i) => ({ ref, sha: `s${i}` }));
   const f0 = mod.toFacts({ heads, prs: [], checks: [], destination: { required: [] }, naming, registrations: [] });
   assert.deepEqual(f0.candidates.map((c) => [c.class, c.id, c.name, c.revision]), [['HOTFIX', 'hotfix/x', 'x', 's0'], ['WIRE', 'wire/y', 'y', 's1'], ['KAAL', 'kaal/a/b', 'a/b', 's2']]);
+  const alt = mod.toFacts({ heads, prs: [], checks: [], destination: { required: [] }, naming: { 'feature/': 'KAAL' }, registrations: [] });
+  assert.deepEqual(alt.candidates.map((c) => c.id), ['feature/z'], 'the adapter used a literal prefix');
   const inn = (prs, checks, destination) => {
     const f = mod.toFacts({ heads: [{ ref: 'wire/y', sha: 'h' }], prs, checks, destination, naming, registrations: [] });
     return f.verdicts.find((v) => v.side === 'in' && v.candidate === 'wire/y');
