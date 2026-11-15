@@ -15,3 +15,7 @@
 ## Reproduce
 
 Run from a checkout of this branch, with Node 22 and no dependencies. For each of the two `.red.mjs` files import it, call `run()` and report RED-observed when it throws an assertion error.
+
+## After the DO
+
+T380 and T381 are renamed to `.test.mjs` and GREEN with `hotfix-trace.mjs` and the F16 paragraph. Nothing calls the judge.
