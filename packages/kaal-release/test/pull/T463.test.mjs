@@ -1,6 +1,6 @@
 // Case pull/T463 tests: pull/F63
 import assert from 'node:assert/strict';
-import { script, registryOf, optIn, calm, ok, hot, wire, kaal } from './lib.mjs';
+import { script, registryOf, optIn, calm, ok, hot, wire, kaal } from './registration/lib.mjs';
 export const id = 'pull/T463';
 export const tests = ['pull/F63'];
 export const title = 'with a registry that covers the stock every agreed rule still holds: class order, non-preemption, UNKNOWN, the pulse guard, and no approval or merge';

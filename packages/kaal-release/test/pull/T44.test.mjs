@@ -2,15 +2,17 @@
 import assert from 'node:assert/strict';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { registry } from './fixtures.mjs';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 export const id = 'pull/T44';
 export const tests = ['pull/F44', 'pull/F45'];
 export const title = 'what is in stays in: an eligible higher class never preempts the holder, and is selected once the seat is free';
 
 export async function run() {
-  const mod = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
+  const raw = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
+  const mod = { ...raw, laneStep: (st) => raw.laneStep({ registry, ...st }) };
   const calm = { open: [], closed: [], trigger: 't1', attempts: 0, cap: 2 };
-  const hot = { class: 'HOTFIX', source: 'hotfix/fix-a', name: 'fix-a', out: 'PASS', in: 'PASS' };
+  const hot = { class: 'HOTFIX', source: 'hotfix/fix-a', name: 'fix-a', stock: 'PASS', in: 'PASS' };
   const report = { qualifiers: ['kaal/release/a', 'kaal/release/b'], next: { collector: 'kaal/release/a' } };
   const holder = { collector: 'kaal/release/a', pr: 1 };
   const base = { seat: holder, report, declaration: { collectors: [] }, pulse: calm };

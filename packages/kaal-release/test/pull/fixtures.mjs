@@ -72,3 +72,14 @@ export function carried(name, over = {}) {
     ...over,
   };
 }
+
+// A registry as the package consumes it (pull/C14). This is a test fixture, not an accepted operational registration.
+// The stock names, routes and pulls here are the fixture's: the Script reads them from the registry and holds none of its own.
+export const registry = {
+  accepted: true,
+  stocks: [
+    { name: 'HOTFIX', routes: ['hotfix/*'] },
+    { name: 'WIRE', routes: ['wire/*'] },
+    { name: 'KAAL', routes: ['kaal/*', 'col-a', 'col-b', 'col-c'], pull: 'open-promotion', type: 'PROMOTION' },
+  ],
+};

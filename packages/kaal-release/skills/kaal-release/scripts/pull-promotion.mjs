@@ -113,9 +113,25 @@ export function chooseNext(qualifiers, entries, declaration) {
 // It returns wait, judge, open-promotion, open-sync or ready-for-cpo, and acts on nothing. A seat holder that fails re-qualification
 // is replaced by chooseNext (the pull/C9 rule) on the remaining qualifiers. Doubtful input fails closed to judge.
 const TEMPLATE = { 'open-promotion': { type: 'PROMOTION', chapters: ['Change', 'Why now'] }, 'open-sync': { type: 'SYNC', chapters: ['Change', 'Reason'] } };
-const CLASSES = { HOTFIX: { prefix: 'hotfix/', type: 'HOTFIX' }, WIRE: { prefix: 'wire/', type: 'WIRE' }, KAAL: { prefix: 'kaal/', type: 'PROMOTION' } };
-const ADMISSION = ['PROMOTION', 'HOTFIX', 'WIRE'];
+// The registry (pull/F60 to F62) is the only source of stocks, routes and the pull type: the package holds no branch convention.
+// {accepted: true, stocks: [{name, routes: [route...], pull?: 'select' | 'open-promotion', type?: <pull request type>}, ...]}, in delivery priority.
+// A route is an exact name or a prefix ending in '/*' with something after it. Anything else makes the registry doubtful (fail closed).
 const isId = (v) => typeof v === 'string' && v.trim() !== '';
+const PULLS = ['select', 'open-promotion'];
+const registryProblem = (reg) => {
+  if (!reg || typeof reg !== 'object' || reg.accepted !== true) return 'the registry is missing or not accepted';
+  if (!Array.isArray(reg.stocks)) return 'the registry stocks are not a list';
+  for (const st of reg.stocks) {
+    if (!st || typeof st !== 'object' || !isId(st.name)) return 'a registry stock has no name';
+    if (!Array.isArray(st.routes) || !st.routes.every(isId)) return 'a registry stock has routes that are not a list of names';
+    if (st.pull !== undefined && !PULLS.includes(st.pull)) return 'a registry stock has an unknown pull';
+    if (st.type !== undefined && !isId(st.type)) return 'a registry stock has a type that is not a name';
+  }
+  return null;
+};
+const routed = (route, source) => (route.endsWith('/*') ? source.length > route.length - 1 && source.startsWith(route.slice(0, -1)) : source === route);
+const stockOf = (reg, name) => (registryProblem(reg) ? undefined : reg.stocks.find((st) => st.name === name));
+const typeOf = (st) => st.type ?? st.name;
 const pulseProblem = (pulse) => {
   if (!pulse || typeof pulse !== 'object') return 'the lane has no pulse';
   const { open, closed, trigger, attempts, cap } = pulse;
@@ -127,7 +143,7 @@ const pulseProblem = (pulse) => {
   return null;
 };
 export function laneStep(state = {}) {
-  const { seat = null, report = {}, declaration = {}, behind = false, requalification, pulse, deliveries } = state;
+  const { seat = null, report = {}, declaration = {}, behind = false, requalification, pulse, deliveries, registry } = state;
   const judge = (reason, judged) => ({ action: 'judge', reason, ...(judged?.length ? { judged } : {}) });
   const wait = (reason) => ({ action: 'wait', reason });
   const open = (action, collector) => {
@@ -140,40 +156,51 @@ export function laneStep(state = {}) {
     return { action, collector, ...TEMPLATE[action] };
   };
   const qualifiers = Array.isArray(report.qualifiers) ? report.qualifiers : [];
+  // pull/F61, F62: the legacy next collector is auto-pulled only when a registered stock that opens promotions routes it; else it is judge-pulled.
   const fromNext = (next) => {
-    if (next?.collector) return open('open-promotion', next.collector);
+    if (next?.collector) {
+      const covered = !registryProblem(registry) && registry.stocks.some((st) => st.pull === 'open-promotion' && st.routes.some((r) => routed(r, next.collector)));
+      if (!covered) return { ...judge('judged: the collector is not covered by a registered stock', [next.collector]), judgePulled: [next.collector] };
+      return open('open-promotion', next.collector);
+    }
     return next?.judged?.length ? judge(next.reason ?? 'judged by the Owner', next.judged) : wait('no qualifier is waiting');
   };
-  // pull/F43, F45: with a free seat and deliveries, the highest class with an eligible candidate; within KAAL the C9 choice. One admission lane.
+  // pull/F43, F45, F61: with a free seat and deliveries, the first registered stock (in registry order) with a candidate whose stock verdict is PASS and whose
+  // source a route of that stock covers. Several candidates in one stock go to the C9 choice, which judges without value and size. One admission lane.
+  // A PASSing candidate no registered stock covers is judge-pulled: reported, never selected. The destination IN is not read (it applies at merge).
   const fromDeliveries = (list) => {
     if (!Array.isArray(list)) return judge('judged: the deliveries are not a list');
     const unknown = [];
-    const eligible = { HOTFIX: [], WIRE: [], KAAL: [] };
+    const judgePulled = [];
+    const sound = !registryProblem(registry);
+    const eligible = new Map((sound ? registry.stocks : []).map((st) => [st.name, []]));
     for (const d of list) {
-      const valid = d && typeof d === 'object' && CLASSES[d.class] && isId(d.name) && typeof d.source === 'string' && d.source.startsWith(CLASSES[d.class].prefix);
+      const valid = d && typeof d === 'object' && isId(d.class) && isId(d.name) && typeof d.source === 'string';
       if (!valid) { unknown.push(isId(d?.name) ? d.name : String(d?.name ?? d)); continue; }
-      if (d.out === 'FAIL' || d.in === 'FAIL') continue;
-      if (d.out === 'PASS' && d.in === 'PASS') eligible[d.class].push(d.name);
-      else unknown.push(d.name);
+      if (d.stock === 'FAIL') continue;
+      if (d.stock !== 'PASS') { unknown.push(d.name); continue; }
+      const st = stockOf(registry, d.class);
+      if (st && st.routes.some((r) => routed(r, d.source))) eligible.get(d.class).push(d.name);
+      else judgePulled.push(d.name);
     }
-    const note = unknown.length ? { unknown } : {};
-    const admit = (cls, result) => {
+    const note = { ...(unknown.length ? { unknown } : {}), ...(judgePulled.length ? { judgePulled } : {}) };
+    const admit = (st, result) => {
       const bad = pulseProblem(pulse);
       if (bad) return judge(`judged: ${bad}`);
-      if (pulse.open.some((p) => ADMISSION.includes(p.type))) return wait('a delivery is already open');
-      if (pulse.closed.some((p) => p.type === CLASSES[cls].type && p.trigger === pulse.trigger)) return wait(`a ${CLASSES[cls].type} was already opened under this trigger`);
+      if (pulse.open.some((p) => registry.stocks.some((x) => typeOf(x) === p.type))) return wait('a delivery is already open');
+      if (pulse.closed.some((p) => p.type === typeOf(st) && p.trigger === pulse.trigger)) return wait(`a ${typeOf(st)} was already opened under this trigger`);
       if (pulse.attempts >= pulse.cap) return judge('judged: the attempt cap is reached');
       return { ...result, ...note };
     };
-    for (const cls of ['HOTFIX', 'WIRE']) {
-      if (eligible[cls].length > 1) return judge(`judged: more than one eligible ${cls}`, eligible[cls]);
-      if (eligible[cls].length === 1) return admit(cls, { action: 'select', class: cls, name: eligible[cls][0] });
+    for (const st of sound ? registry.stocks : []) {
+      const names = eligible.get(st.name);
+      if (!names.length) continue;
+      const next = chooseNext(names, [], declaration);
+      if (!next.collector) return judge(next.reason ?? 'judged by the Owner', next.judged ?? names);
+      if (st.pull === 'open-promotion') return admit(st, { action: 'open-promotion', collector: next.collector, ...TEMPLATE['open-promotion'] });
+      return admit(st, { action: 'select', class: st.name, name: next.collector });
     }
-    if (eligible.KAAL.length) {
-      const next = chooseNext(eligible.KAAL, [], declaration);
-      if (!next.collector) return judge(next.reason ?? 'judged by the Owner', next.judged);
-      return admit('KAAL', { action: 'open-promotion', collector: next.collector, ...TEMPLATE['open-promotion'] });
-    }
+    if (judgePulled.length) return { ...judge('judged: only candidates no registered stock covers are ready', judgePulled), judgePulled, ...(unknown.length ? { unknown } : {}) };
     return unknown.length ? judge('judged: no candidate is eligible and some are unknown', unknown) : wait('no delivery is eligible');
   };
   if (!seat) return deliveries === undefined ? fromNext(report.next) : fromDeliveries(deliveries);

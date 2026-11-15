@@ -2,13 +2,15 @@
 import assert from 'node:assert/strict';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { registry } from './fixtures.mjs';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 export const id = 'pull/T40';
 export const tests = ['pull/F39', 'pull/F41'];
 export const title = 'a freed seat pulls next in the existing PROMOTION and SYNC shapes, only the holder is synced and only when behind, and FAIL or UNKNOWN never passes';
 
 export async function run() {
-  const mod = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
+  const raw = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
+  const mod = { ...raw, laneStep: (st) => raw.laneStep({ registry, ...st }) };
   assert.equal(typeof mod.laneStep, 'function', 'laneStep is not exported');
   const calm = { open: [], closed: [], trigger: 't1', attempts: 0, cap: 2 };
   const laneStep = (st) => mod.laneStep({ pulse: calm, ...st });
