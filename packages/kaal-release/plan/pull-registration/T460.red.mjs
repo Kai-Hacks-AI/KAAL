@@ -1,8 +1,8 @@
-// Case pull/T51 tests: pull/F50
+// Case pull/T460 tests: pull/F60
 import assert from 'node:assert/strict';
 import { registration, ROUTES_PATH, ROUTES, capability, main } from './lib.mjs';
-export const id = 'pull/T51';
-export const tests = ['pull/F50'];
+export const id = 'pull/T460';
+export const tests = ['pull/F60'];
 export const title = 'the accepted registration is discovered on main and validated: wildcards, other capabilities, class routes in a capability file, duplicates and bad JSON invalidate only their own file';
 
 export async function run() {

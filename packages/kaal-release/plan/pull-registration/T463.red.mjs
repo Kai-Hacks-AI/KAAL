@@ -1,8 +1,8 @@
-// Case pull/T54 tests: pull/F53
+// Case pull/T463 tests: pull/F63
 import assert from 'node:assert/strict';
 import { script, registryOf, ROUTES_PATH, ROUTES, capability, calm, ok, hot, wire, kaal } from './lib.mjs';
-export const id = 'pull/T54';
-export const tests = ['pull/F53'];
+export const id = 'pull/T463';
+export const tests = ['pull/F63'];
 export const title = 'with a registry that registers the candidates every agreed rule still holds: class order, non-preemption, UNKNOWN, the pulse guard, and no approval or merge';
 
 export async function run() {

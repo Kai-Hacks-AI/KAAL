@@ -1,6 +1,6 @@
 # Pull Promotion: pull only what is registered (Change A to B)
 
-This is `pull/C13`, a PLAN Change. It ships no code and installs nothing: no workflow, App, ruleset or hook. It answers the CPO's bounded correction on the pull-lane PROMOTION (#1707, 15 Nov 2026): the tooling that lands on `main` must already tell **auto-pulled** from **judge-pulled** candidates, capability by capability. It authorizes preparation, not promotion or publication.
+This is `pull/C14`, a PLAN Change. It ships no code and installs nothing: no workflow, App, ruleset or hook. It answers the CPO's bounded correction on the pull-lane PROMOTION (#1707, 15 Nov 2026): the tooling that lands on `main` must already tell **auto-pulled** from **judge-pulled** candidates, capability by capability. It authorizes preparation, not promotion or publication.
 
 ## Assessment
 
@@ -34,4 +34,4 @@ No capability is registered, including `release`. No gatherer reads `main` yet: 
 
 ## Order
 
-PLAN (this), then DO (the module, the README chapter, the Script change, T51 to T54 to green, T40 to T46 updated to supply a registry), then ACT, an updated concluding ACT, SYNC if `main` moved, a fresh exact-head report and the PROMOTION #1707 at its new head. Collector: `kaal/release/pull-lane`.
+PLAN (this), then DO (the module, the README chapter, the Script change, T460 to T463 to green, T40 to T46 updated to supply a registry), then ACT, an updated concluding ACT, SYNC if `main` moved, a fresh exact-head report and the PROMOTION #1707 at its new head. Collector: `kaal/release/pull-lane`.

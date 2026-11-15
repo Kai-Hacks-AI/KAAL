@@ -1,8 +1,8 @@
-// Case pull/T52 tests: pull/F51
+// Case pull/T461 tests: pull/F61
 import assert from 'node:assert/strict';
 import { script, registryOf, ROUTES_PATH, ROUTES, capability, calm, hot, wire, kaal } from './lib.mjs';
-export const id = 'pull/T52';
-export const tests = ['pull/F51'];
+export const id = 'pull/T461';
+export const tests = ['pull/F61'];
 export const title = 'registered candidates are auto-pulled and an eligible unregistered capability is judge-pulled: reported, never selected, still open to judgment';
 
 export async function run() {

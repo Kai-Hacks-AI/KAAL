@@ -1,8 +1,8 @@
-// Case pull/T53 tests: pull/F52
+// Case pull/T462 tests: pull/F62
 import assert from 'node:assert/strict';
 import { script, registryOf, ROUTES_PATH, ROUTES, capability, calm, hot, kaal } from './lib.mjs';
-export const id = 'pull/T53';
-export const tests = ['pull/F52'];
+export const id = 'pull/T462';
+export const tests = ['pull/F62'];
 export const title = 'no accepted registry means everything is judge-pulled, an ad hoc declaration is not an accepted registration, and the legacy next path is held the same way';
 
 export async function run() {
