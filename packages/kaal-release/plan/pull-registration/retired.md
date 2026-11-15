@@ -1,0 +1,1 @@
+Nothing is retired. pull/F39 to F42 and pull/F43 to F45 hold when the registry registers the candidates (pull/F53); without a registry nothing is auto-pulled (pull/F52). pull/T40 to T46 are updated in the DO to supply a registry. No control is removed.
