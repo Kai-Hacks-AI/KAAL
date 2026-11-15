@@ -1,12 +1,15 @@
-// Case engineering/T453 (engineering/C16): the mechanism is stock-neutral: an invented stock with a conforming record passes with no code change
+// Case engineering/T453 (engineering/C16): the script gives exit 2 (cannot judge) when a hotfix or wire head has no sha to read checks at
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, okQual, REGISTRY, HEAD } from "./helper.mjs";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-test("engineering/T453 [engineering/C16]: the mechanism is stock-neutral: an invented stock with a conforming record passes with no code change", async () => {
-  const { admit } = await load();
-  const registry = { ...REGISTRY, admission: { ...REGISTRY.admission, INVENTED: { qualifier: "invented-q", routes: ["invented/*"] } } };
-  const v = admit(facts("invented/y", "INVENTED", { registry }));
-  assert.equal(v.kind, "pass");
-  assert.equal(v.stock, "INVENTED");
+const sh = fileURLToPath(new URL("../../../github/promotion-source.sh", import.meta.url));
+const lineage = fileURLToPath(new URL("../../../github/lineage.ts", import.meta.url));
+const run = (headRef, env = {}) => spawnSync("bash", [sh, lineage], { encoding: "utf8", env: { PATH: process.env.PATH, GUARD_BASE_REF: "main", KAAL_REPO: "o/r", KAAL_DEFAULT: "main", KAAL_HEAD_REPO: "o/r", KAAL_HEAD_REF: headRef, ...env } });
+
+test("engineering/T453 [engineering/C16]: no head sha for a hotfix or wire head is exit 2, never a pass or a plain fail", () => {
+  assert.equal(run("wire/x").status, 2);
+  assert.equal(run("hotfix/x").status, 2);
+  assert.equal(run("kaal/a/b").status, 0, "kaal/* needs no sha");
 });

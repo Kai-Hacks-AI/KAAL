@@ -1,16 +1,18 @@
-// Case engineering/T451 (engineering/C16): no claiming route, ambiguous claims, or an absent, unaccepted or non-main registry fail closed
+// Case engineering/T451 (engineering/C16): a hotfix or wire head is admitted only when every check its own branch ruleset requires is green on the exact head
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, okQual, REGISTRY, HEAD } from "./helper.mjs";
+import { load, base, green } from "./helper.mjs";
 
-test("engineering/T451 [engineering/C16]: no claiming route, ambiguous claims, or an absent, unaccepted or non-main registry fail closed", async () => {
-  const { admit } = await load();
-  assert.equal(admit(facts("feature/x", "HOTFIX")).kind, "fail", "no route claims it");
-  const twice = { ...REGISTRY, admission: { ...REGISTRY.admission, OTHER: { qualifier: "o-q", routes: ["hotfix/*"] } } };
-  assert.equal(admit(facts("hotfix/x", "HOTFIX", { registry: twice })).kind, "fail", "two stocks claim one route");
-  for (const registry of [null, undefined, { ...REGISTRY, accepted: false }, { ...REGISTRY, source: "kaal/release/pull-lane" }, { ...REGISTRY, admission: "x" }]) {
-    assert.equal(admit(facts("hotfix/x", "HOTFIX", { registry })).kind, "unknown");
+test("engineering/T451 [engineering/C16]: hotfix/* and wire/* need every check their ruleset requires green on the head sha, and fail closed otherwise", async () => {
+  const { promotionSource } = await load();
+  for (const headRef of ["hotfix/x", "wire/x"]) {
+    const v = (checks) => promotionSource({ ...base, headRef, checks });
+    assert.equal(v(green("Guard")).kind, "pass");
+    assert.equal(v(undefined).kind, "fail", "no check facts: fail closed");
+    assert.equal(v({ required: [], runs: [] }).kind, "fail", "a ruleset requiring nothing proves nothing");
+    assert.equal(v({ required: ["Guard", "WIRE"], runs: [{ name: "Guard", conclusion: "success" }] }).kind, "fail", "a required check with no run");
+    assert.equal(v({ required: ["Guard"], runs: [{ name: "Guard", conclusion: "failure" }] }).kind, "fail");
+    assert.equal(v({ required: ["Guard"], runs: [{ name: "Guard", conclusion: null }] }).kind, "fail", "still running is not green");
+    assert.match(v({ required: ["Guard"], runs: [{ name: "Guard", conclusion: "failure" }] }).message, /Guard/, "the message names the check");
   }
-  const noEntry = { ...REGISTRY, admission: { KAAL: REGISTRY.admission.KAAL } };
-  assert.equal(admit(facts("hotfix/x", "HOTFIX", { registry: noEntry })).kind, "fail", "a class route without an admission entry has no qualifier");
 });
