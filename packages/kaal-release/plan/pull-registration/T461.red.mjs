@@ -1,13 +1,13 @@
 // Case pull/T461 tests: pull/F61
 import assert from 'node:assert/strict';
-import { script, registryOf, capability, calm, hot, wire, kaal, neutral, ok } from './lib.mjs';
+import { script, registryOf, optIn, calm, hot, wire, kaal, neutral, ok } from './lib.mjs';
 export const id = 'pull/T461';
 export const tests = ['pull/F61'];
 export const title = 'every GREEN item of a registered stock is auto-pulled, whether or not its destination IN has passed; a GREEN item outside any registered stock is judge-pulled: reported, never selected, still open to judgment';
 
 export async function run() {
   const mod = await script();
-  const registry = await registryOf({ 'packages/kaal-release/kaal-pull.json': capability('release') });
+  const registry = await registryOf({ 'packages/kaal-release/kaal-pull.json': optIn('release') });
   const decl = { collectors: [] };
   const step = (deliveries, extra = {}) => mod.laneStep({ seat: null, report: { qualifiers: [], next: { collector: null, reason: 'none' } }, declaration: decl, deliveries, pulse: calm, registry, ...extra });
 

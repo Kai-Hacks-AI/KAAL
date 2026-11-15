@@ -1,13 +1,13 @@
 // Case pull/T463 tests: pull/F63
 import assert from 'node:assert/strict';
-import { script, registryOf, capability, calm, ok, hot, wire, kaal } from './lib.mjs';
+import { script, registryOf, optIn, calm, ok, hot, wire, kaal } from './lib.mjs';
 export const id = 'pull/T463';
 export const tests = ['pull/F63'];
 export const title = 'with a registry that covers the stock every agreed rule still holds: class order, non-preemption, UNKNOWN, the pulse guard, and no approval or merge';
 
 export async function run() {
   const mod = await script();
-  const registry = await registryOf({ 'packages/kaal-release/kaal-pull.json': capability('release') });
+  const registry = await registryOf({ 'packages/kaal-release/kaal-pull.json': optIn('release') });
   const decl = { collectors: [{ name: 'kaal/release/a', value: 1, size: 1, unit: 'u' }, { name: 'kaal/release/b', value: 9, size: 1, unit: 'u' }] };
   const step = (deliveries, extra = {}) => mod.laneStep({ seat: null, report: { qualifiers: [], next: { collector: null } }, declaration: decl, deliveries, pulse: calm, registry, ...extra });
 
