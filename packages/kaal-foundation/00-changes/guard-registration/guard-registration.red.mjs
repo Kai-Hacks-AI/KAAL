@@ -67,7 +67,7 @@ test("foundation/T303 [foundation/F46]: Guard discovers the registration and the
   assert.ok(!existsSync(join(root, PATH, "dist")), "the fixture starts with no dist/");
   const r = guard(root);
   assert.equal(r.status, 0, r.stdout + r.stderr);
-  assert.match(r.stdout, new RegExp(`^pass: ${CHECK.replace(/[.]/g, "\\.")}`, "m"));
+  assert.ok(r.stdout.split("\n").some((l) => l.startsWith(`pass: ${CHECK}`)), r.stdout);
   assert.ok(existsSync(join(root, PATH, "dist")), "the check built dist/ itself");
 });
 
@@ -77,6 +77,6 @@ test("foundation/T304 [foundation/F46]: a failing step is a fail that names the 
   rmSync(join(root, PATH, "04-test", "engineering-check", "cases.json"));
   const r = guard(root);
   assert.equal(r.status, 1, r.stdout + r.stderr);
-  assert.match(r.stdout, new RegExp(`^fail: ${CHECK.replace(/[.]/g, "\\.")}`, "m"));
+  assert.ok(r.stdout.split("\n").some((l) => l.startsWith(`fail: ${CHECK}`)), r.stdout);
   assert.match(r.stderr, /build\.mjs|collect\.mjs|verify\.mjs/, "names the failing step");
 });
