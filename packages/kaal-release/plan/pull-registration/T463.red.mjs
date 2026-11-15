@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { script, registryOf, ROUTES_PATH, ROUTES, capability, calm, ok, hot, wire, kaal } from './lib.mjs';
 export const id = 'pull/T463';
 export const tests = ['pull/F63'];
-export const title = 'with a registry that registers the candidates every agreed rule still holds: class order, non-preemption, UNKNOWN, the pulse guard, and no approval or merge';
+export const title = 'with a registry that covers the stock every agreed rule still holds: class order, non-preemption, UNKNOWN, the pulse guard, and no approval or merge';
 
 export async function run() {
   const mod = await script();
-  const registry = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-release/kaal-pull.json': capability('release', ['kaal/release/a', 'kaal/release/b']) });
+  const registry = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-release/kaal-pull.json': capability('release') });
   const decl = { collectors: [{ name: 'kaal/release/a', value: 1, size: 1, unit: 'u' }, { name: 'kaal/release/b', value: 9, size: 1, unit: 'u' }] };
   const step = (deliveries, extra = {}) => mod.laneStep({ seat: null, report: { qualifiers: [], next: { collector: null } }, declaration: decl, deliveries, pulse: calm, registry, ...extra });
 
@@ -17,8 +17,8 @@ export async function run() {
   // UNKNOWN does not block a known eligible lower class and is reported.
   const u = step([hot('fix-a', { out: 'UNKNOWN' }), wire()]);
   assert.deepEqual([u.action, u.class, u.unknown], ['select', 'WIRE', ['fix-a']], 'UNKNOWN changed');
-  // A registered candidate with FAIL evidence is not eligible and is not judge-pulled either.
-  const f = step([hot('fix-a', { in: 'FAIL' }), kaal('kaal/release/b')]);
+  // A stock item that is not GREEN (OUT FAIL) is not ready, is not pulled, and is not judge-pulled either.
+  const f = step([hot('fix-a', { out: 'FAIL' }), kaal('kaal/release/b')]);
   assert.equal(f.action, 'open-promotion', 'FAIL blocked a lower class');
   assert.ok(!f.judgePulled?.length, 'a FAIL candidate was reported as judge-pulled');
   // Non-preemption.

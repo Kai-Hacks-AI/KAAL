@@ -7,7 +7,7 @@ export const title = 'no accepted registry means everything is judge-pulled, an 
 
 export async function run() {
   const mod = await script();
-  const registry = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-release/kaal-pull.json': capability('release', ['kaal/release/pull-lane']) });
+  const registry = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-release/kaal-pull.json': capability('release') });
   const decl = { collectors: [] };
   const report = { qualifiers: ['kaal/release/pull-lane'], next: { collector: 'kaal/release/pull-lane' } };
   const step = (extra) => mod.laneStep({ seat: null, report, declaration: decl, deliveries: [hot('fix-a'), kaal('kaal/release/pull-lane')], pulse: calm, ...extra });
@@ -23,9 +23,9 @@ export async function run() {
     'an empty authority': { ...registry, authority: '' },
     'a non-object': 'main',
     'classes that are not a list': { ...registry, classes: 'HOTFIX' },
-    'routes that are not a list': { ...registry, classes: [{ name: 'HOTFIX', routes: 'hotfix/*', optIn: 'all' }] },
-    'an opt-in that is neither all nor a list': { ...registry, classes: [{ name: 'HOTFIX', routes: ['hotfix/*'], optIn: true }, { name: 'KAAL', routes: ['kaal/*'], optIn: 'kaal/release/pull-lane' }] },
-    'the old unnormalized shape (an ad hoc declaration)': { accepted: true, source: 'adhoc', collectors: ['kaal/release/pull-lane'], classRoutes: { HOTFIX: ['hotfix/*'] } },
+    'routes that are not a list': { ...registry, classes: [{ name: 'HOTFIX', routes: 'hotfix/*' }] },
+    'a class without routes': { ...registry, classes: [{ name: 'KAAL' }] },
+    'the old per-branch shape (an ad hoc declaration)': { accepted: true, source: 'adhoc', collectors: ['kaal/release/pull-lane'], classRoutes: { HOTFIX: ['hotfix/*'] } },
   };
   for (const [what, bad] of Object.entries(doubtful)) {
     const r = step({ registry: bad });
@@ -41,7 +41,7 @@ export async function run() {
   // A tree that is not main's tip yields a registry that is not accepted, so the adapter's output fails closed too.
   const nonMain = (await (await import('./lib.mjs')).registration()).discoverRegistrations({ ref: 'kaal/release/pull-lane', files: { [ROUTES_PATH]: ROUTES } }).registry;
   assert.equal(step({ registry: nonMain }).action, 'judge', 'a registry from a collector tree was used');
-  const other = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-retro/kaal-pull.json': capability('retro', ['kaal/retro/skill']) });
+  const other = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-retro/kaal-pull.json': capability('retro') });
   assert.equal(legacy({ registry: other }).action, 'judge', 'an unregistered next was opened');
   // The holder's own steps do not need a registration: what is in stays in.
   const held = mod.laneStep({ seat: { collector: 'kaal/release/pull-lane', pr: 1 }, behind: true, report, declaration: decl, pulse: calm });
