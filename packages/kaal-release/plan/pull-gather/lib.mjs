@@ -10,6 +10,6 @@ export const authorities = {
   WIRE: { out: 'wire-out', in: 'merge-checks' },
   KAAL: { out: 'kaal-out', in: 'merge-checks' },
 };
-export const cand = (id, cls, revision = 'r1', owner = 'cap-a') => ({ id, class: cls, name: id, revision, owner });
+export const cand = (id, cls, revision = 'r1', stock = 'cap-a') => ({ id, class: cls, name: id, revision, stock });
 export const verdict = (candidate, side, v, revision, authority) => ({ candidate, side, verdict: v, revision, authority });
 export const facts = (over = {}) => ({ classes, candidates: [], authorities, verdicts: [], registrations: [], ...over });
