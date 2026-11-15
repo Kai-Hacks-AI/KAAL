@@ -1,0 +1,38 @@
+# Review owner's judgement of Review's Cases (for testing/C61, PR #1693)
+
+Judged by the Review thread, 15 Nov 2026, by reading the Cases and the nodes they declare on `kaal/review/applications` at 83f459b. No Case file was changed. Verdicts are the Review owner's judgement, not proof.
+
+Common finding. Every Case runs over the review records under `00-changes/C1-focused-review/applications/` through `lib.mjs`. They test that a record has the agreed shape (chapters, marks, phrases). They do not test that the review was good, independent or true. Most of what the nodes claim is judgement, so a shape check cannot make a Case adequate for the whole node. I call a Case adequate only when it covers what a Case can cover of the claim.
+
+## review/I7 (independent-review), Case T21: inadequate
+Evidence read: 01-intent/I7-independent-review/I7.md, T21.test.mjs, lib.mjs.
+Reasoning: I7 claims an Agent other than the author compares, challenges, separates proof from judgement, judges, points at the testable and names Owner decisions. T21 only checks that each record has a Comparison, a For the Owner chapter and the phrase "grants no authority". Independence of the reviewer has no oracle and is a judged claim; T21 does not point at it. The proof-and-judgement and challenge parts are left to F21 and F22. Suggested: keep T21 as the structural check and state that independence is Judged.
+
+## review/F20 (focus), Case T22: inadequate
+Evidence: F20.md, T22.test.mjs, lib.mjs.
+Reasoning: T22 checks the record names its focus, reference, actual and everything in `subject.json` as inspected, by substring. F20 also claims the reference and actual are read at exact commits. Nothing checks that a commit or equivalent identifier is named. That is testable.
+
+## review/F21 (compare-and-challenge), Case T23: inadequate
+Evidence: F21.md, T23.test.mjs, lib.mjs.
+Reasoning: T23 checks both directions are mentioned, each finding carries Checked: or Inferred:, and each question string appears somewhere in the Comparison or Evidence. The substring check is weak: a question can be copied without being answered. The claim to judge the evidence relied on (failing Case intent, baseline, key independence) is not tested and is Judged.
+
+## review/F22 (proof-and-judgement), Case T24: inadequate
+Evidence: F22.md, T24.test.mjs, T29.test.mjs, lib.mjs.
+Reasoning: T24 checks every finding is marked and that a Proven finding cites a Case id or recorded trial, and that no trial chapter exists. It does not check that the cited Case exists or that its result is stated, though F22 requires the result. The "opens by stating the three marks" and "exactly one mark" parts are covered by T29.
+
+## review/F23 (limits-and-owner), Case T25: inadequate
+Evidence: F23.md, T25.test.mjs.
+Reasoning: T25 checks the Not checked and Limits chapters, the words Agent, judgement and human, and at least two Owner list items with the word option. The "at least two" is arbitrary and pushes padding. F23 also requires what each decision would mean and what a human should observe; neither is checked.
+
+## review/N4 (no-authority-no-change), Case T26: inadequate
+Evidence: N4.md, T26.test.mjs; also my own T292 and test/standalone.mjs added by review/C2.
+Reasoning: T26 checks a "changed nothing" phrase, no mention of kaal-testing in the record text, and no Verdict: approve line. N4 claims that Review changes nothing, names no subject outside application data, and depends on no other capability's Skill or package. T26 inspects only the record text. A textual mention is not a dependency, and the ban on the name "kaal-testing" is brittle. The product-boundary half is now covered by T292 (review/F24) as behaviour; N4's own Case is not.
+
+## review/A1 (review-record), Case T27: inadequate
+Evidence: A1.md, T27.test.mjs, lib.mjs.
+Reasoning: T27 checks the nine chapters. `lib.mjs` also validates `subject.json` and requires at least one application, so those parts are covered indirectly. The check that FOCI defines promotion and capability reads a constant in the harness. A1 also says there is no script and no test or trial folder in an application; nothing checks it.
+
+## T28 and T29 (review/G1, review/G2)
+Outcome: existing-node-should-own. Not missing-node.
+Reasoning: the gaps are defined in the Gaps table of `00-changes/C1-focused-review/C1.md` and in its `closes: [review/G1, review/G2]` front matter. They are not node files, which is why no document in the scope declares them as a node. review/C2 defines G3 the same way in its C2.md. The Change review/C1 owns them.
+Ask: the CPO, if gaps are to become nodes with files of their own; otherwise the Change file is the definition and the link is valid. I have no evidence of a convention either way.
