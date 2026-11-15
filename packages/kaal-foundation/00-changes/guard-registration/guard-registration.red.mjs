@@ -9,7 +9,7 @@ const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const FILE = join(PACKAGE, "kaal-guard.json");
 const REPOSITORY_PATH = "packages/kaal-foundation/";
 
-test("foundation/T78 [foundation/F45]: the package root holds a kaal-guard.json in Guard's shape", () => {
+test("foundation/T300 [foundation/F45]: the package root holds a kaal-guard.json in Guard's shape", () => {
   assert.ok(existsSync(FILE), "packages/kaal-foundation/kaal-guard.json is missing");
   const body = JSON.parse(readFileSync(FILE, "utf8"));
   assert.deepEqual(Object.keys(body), ["checks"]);
@@ -23,7 +23,7 @@ test("foundation/T78 [foundation/F45]: the package root holds a kaal-guard.json 
   }
 });
 
-test("foundation/T79 [foundation/F45]: every check runs a file of this package, from the repository root, without npx or a shell", () => {
+test("foundation/T301 [foundation/F45]: every check runs a file of this package, from the repository root, without npx or a shell", () => {
   assert.ok(existsSync(FILE), "packages/kaal-foundation/kaal-guard.json is missing");
   for (const c of JSON.parse(readFileSync(FILE, "utf8")).checks) {
     assert.doesNotMatch(c.run, /\bnpx\b|npm exec|&&|\|\||[|;><`$]/, `${c.id}: no npx and no shell feature`);
@@ -33,7 +33,7 @@ test("foundation/T79 [foundation/F45]: every check runs a file of this package, 
   }
 });
 
-test("foundation/T80 [foundation/N25]: the file ships nowhere", () => {
+test("foundation/T302 [foundation/N25]: the file ships nowhere", () => {
   const pkg = JSON.parse(readFileSync(join(PACKAGE, "package.json"), "utf8"));
   assert.deepEqual(pkg.files, ["dist"], "files stays the dist folder");
   assert.ok(existsSync(FILE), "packages/kaal-foundation/kaal-guard.json is missing");
