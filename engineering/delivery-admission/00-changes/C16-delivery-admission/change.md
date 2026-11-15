@@ -1,50 +1,51 @@
-# engineering/C16 change: class-aware Delivery Admission
+# engineering/C16 change: Delivery Admission by stock (OUT from the stock, IN at the destination)
 
-Owner ruling (15 Nov 2026): no one-off route; do it right and plan for it. Source: CTO assessment `/mnt/project-files/pull-promotion/true-pull-architecture-assessment.md`, change 2 (`engineering/C16`). Ids C16 and T450-T459 were checked on `main` only (code search finds none); not checked against every collector and open PR.
+Revised at the CPO review of `0fd0838` (15 Nov 2026), which replaced the first design (class-aware extension of Promotion Source). Owner ruling: no one-off route; do it right. Source: CTO assessment `/mnt/project-files/pull-promotion/true-pull-architecture-assessment.md`, change 2. Ids C16 and T450-T459 were checked on `main` only, not against every collector and open PR.
 
 ## From, to, because
 
-- **From:** a pull request into `main` is admitted only from `kaal/*` of this repository (`lineage.ts` `promotionSource`, run by the required check Promotion Source). `hotfix/<name>` and `wire/<name>` heads fail, so the first WIRE (#1705, githooks split) and every hotfix are blocked. Hotfix is realized today as a `kaal/hotfix` collector (`branching.md`).
-- **To:** one control, **Delivery Admission**, classifies the head ref into exactly one of `kaal/**`, `hotfix/<name>`, `wire/<name>` and requires that class's evidence. Anything else fails; anything that cannot be established is "cannot judge" (exit 2). The class comes from the head ref and head repository alone, never from a title, label or body.
-- **Because:** `main` needs three delivery paths with one gate each, enforced by Engineering's controls and not by convention.
+- **From:** a pull request into `main` is admitted by one rule, `promotionSource` (`lineage.ts`): the head starts with `kaal/`. `hotfix/<name>` and `wire/<name>` cannot enter, so the first WIRE (#1705) and every hotfix are blocked. The rule judges a branch name, not the quality of what the stock delivers.
+- **To:** the stock model. A **registered stock** owns its delivery semantics and its authoritative **OUT** qualification. Engineering's common **IN** mechanism, Delivery Admission, (1) routes the head to the one stock whose accepted registration claims it, (2) consumes that stock's OUT evidence bound to the exact head, and (3) applies the destination's IN requirements. Nothing in the mechanism knows what a hotfix, a WIRE or a collector is.
+- **Because:** KAAL, HOTFIX and WIRE establish OUT differently. Branch names are routing and host facts, not definitions of stock quality. Existing Branching controls are headed for control-by-control retirement, so the target must not bake in their assumptions.
+
+## Separation: stock OUT versus destination IN
+
+| Part | Owner | Does | Does not |
+| --- | --- | --- | --- |
+| **Stock OUT** | the registered stock (the capability for its collectors; Engineering for WIRE; the Hotfix capability for hotfix delivery) | establishes that this head is a qualified delivery and publishes the record, bound to the exact head, from its registered qualifier | decide admission, merge or approve |
+| **Registration** | accepted on `main`, read from `main`'s tip only | says which route belongs to which stock and which qualifier is its OUT | carry quality, or the auto-pull choice |
+| **Destination IN** (Delivery Admission, this Change) | Engineering | route resolves to exactly one registered stock; head is from this repository; the evidence is from that stock's registered qualifier, bound to this head, passing | recompute, reinterpret or replace any stock's OUT; read a title, label or body to classify |
+
+`kaal/hotfix/*` (developing the Hotfix capability through ordinary KAAL PDCA, a KAAL stock) and `hotfix/*` (delivering an actual hotfix, the hotfix stock) are distinct legitimate purposes with distinct routes and stocks; neither replaces the other. A route name only identifies the candidate.
 
 ## Design
 
-1. **Pure verdict** `admit(facts)` in `engineering/delivery-admission/admission.mjs`, verdict `{ kind: pass | fail | unknown | not-applicable, class, message }`. Exit mapping as today: pass 0, fail 1, not-applicable 3, unknown 2.
-2. **Classes** (head repo must equal this repository, else fail):
+1. **Pure verdict** `admit(facts)` in `engineering/delivery-admission/admission.mjs`: `{ kind: pass | fail | unknown | not-applicable, stock, message, findings }`. Exit: pass 0, fail 1, not-applicable 3, unknown 2 (cannot judge). Built from three small functions: `route(routing, registration)`, `inRequirements(destination, routing)` and `consume(out, stock, head)`.
+2. **Facts**, gathered read-only by trusted code from the default branch's tip (the posture of Promotion Source and Change Isolation: nothing of the head is checked out or run):
+   - routing and host facts: `repo`, `defaultBranch`, `baseRef`, `headRepo`, `headRef`, `head` (sha);
+   - `registration`: the accepted admission entries read from `main`'s tip, or null when absent or unreadable. A registration present only in the head does not count;
+   - `out`: the check run (or record) the stock's registered qualifier published **at this exact head sha**, with its verdict and record; absent, on another sha or from another qualifier is not evidence.
+3. **Routing.** An entry is `{ stock, route, out: { qualifier } }`. `route` is an exact ref or a prefix pattern: `*` is one path segment, `**` one or more. Zero matching entries: fail. More than one: fail closed (ambiguous), never first-match.
+4. **Consuming OUT.** No record: unknown. Record for a different sha is unknown; a record from another stock or qualifier than the routed stock's registered one fails (T450, T452). Verdict fail: fail. Verdict pass, bound to the head, from the registered qualifier: OUT is satisfied. Admission checks the record's binding, not its content.
+5. **Stock-specific content stays with the stock.** HOTFIX: the hotfix stock's qualifier establishes that a Defect is identified, a reproducing Case is **RED against the defective baseline**, the same Case is **GREEN after correction**, each revision-bound, with traceability. Neither the Defect nor the Case has to exist on `main`; a `.red.mjs` to `.test.mjs` rename is a lifecycle step, not proof. WIRE: the existing WIRE judge (release/C27) and its contract produce the record, in the normal KAAL objects and traceability with a minimal envelope (the Change, what is installed, authoritative source and target, evidence of correct install). Admission consumes the judgment; it parses no PR body and defines no WIRE declaration format. KAAL: the capability's collector qualification (PDCA).
+6. **Destination IN requirements** (the only policy Delivery Admission owns): base is the default branch (else not applicable); head repository is this repository (no forks); one stock; OUT satisfied for this head. Freshness, isolation, review, the merge queue and code scanning stay with their own controls and the ruleset.
+7. **Migration, explicit.** Legacy controls stay effective until replacements are verified. An accepted entry may carry `migration: "legacy-promotion-source"`: for that route only, the legacy rule (`promotionSource`) stands in for OUT and the verdict reports the migration. There is no implicit fallback: a route with no entry fails. Migration entries are listed and are expected to retire.
+8. **Alignment with auto-pull (#1707, #1708) without conflation.** One accepted registration surface and one discovery and acceptance contract, owned by Engineering (`kaal-pull.json`: Engineering's for the `hotfix/*` and `wire/*` routes, each capability's own at its package root for its collectors, as pull/C13 plans). Admission reads only the `admission` section; selection reads only the `pull` section. Auto-selection never admits and admission never selects: a judge-pulled candidate is still admissible, and an auto-pulled one still needs OUT evidence. Neither approves or merges. The exact shape is provisional until pull/C13 settles; this PLAN fixes only that the two sections are independent.
+9. **Check, not a new authority.** A Guard check `Delivery-Admission` (`.kaal/config/guard/Delivery-Admission.md`), `trusted: admission.mjs` from the base revision, run by a `pull_request_target` job and the merge-group job.
 
-   | Class | Head ref | Evidence required to pass |
-   | --- | --- | --- |
-   | `kaal` | `kaal/` + anything | none beyond today's rule: the verdict is `promotionSource`'s, imported from `lineage.ts`, not copied. Freshness, isolation, review and the queue stay with Branching, Change Isolation and the ruleset. |
-   | `hotfix` | `hotfix/<name>`, one segment of `[a-z0-9._-]`, starting with a letter or digit | (a) the body has the four hotfix chapters in order; (b) the Defect chapter names a KAAL Defect `<capability>/D<n>` that exists on `main`'s tip; (c) the Defect's RED Case is `.red.mjs` on `main`'s tip and `.test.mjs` at the head (the hotfix turns it green; the lanes that run `.test.mjs` are required checks already). |
-   | `wire` | `wire/<name>`, same shape | `engineering/release-management/05-src/wiring/wire-judge.mjs` (release/C27, on `main`) returns true over the head's changed files and the pairs the body declares. The judge is reused, not reimplemented. |
+## Sequence (each its own Change)
 
-3. **Fail closed.** A head ref in no class (`feature/x`, `hotfix/`, `hotfix/a/b`, upper case, a fork) fails. Evidence that is absent, unreadable or ambiguous is `unknown`, never a pass. A title, label or body that says "hotfix" or "wire" does not change the class.
-4. **Facts** are gathered read-only by trusted code from the default branch's tip, the same posture as Promotion Source and Change Isolation: the event's refs, the PR body, and git object reads of the head (changed paths and blobs). Nothing of the head is checked out or run. Evidence is data (`facts.evidence`); the verdict function takes no functions and reads no files.
-5. **One rule source.** The `kaal` verdict is `promotionSource`; T458 pins that the two cannot diverge while Promotion Source exists.
-6. **Check, not a new authority.** A Guard check `Delivery-Admission` (`.kaal/config/guard/Delivery-Admission.md`), `trusted: admission.mjs` taken from the base revision, run by a `pull_request_target` job and by the merge-group job, like Promotion Source.
-7. **Declared pairs of a WIRE** are read from the Source and Target chapters with a Markdown parser (never regex): `source -> target` lines for copies, `move <from> -> <target> sha256:<hex>` lines for moves. A line that does not parse makes the verdict `unknown`.
-
-## Sequence (each step its own Change; none is a one-off route)
-
-1. **This PLAN**, CPO review at the exact head. Cases T450-T459 are RED on `main` (the module does not exist).
-2. **DO 1, Engineering source only** (collector `kaal/engineering/delivery-admission`): `admission.mjs`, the facts reader, the CLI, the Guard declaration. T450-T459 green. No `.github`, no ruleset. Then the ACT and the promotion.
-3. **Bootstrap install of the workflow**: the workflow cannot arrive as a WIRE (no `wire/*` path exists yet), so it is one ordinary `.github`-only DO on a collector, like the WIRE template's bootstrap. It adds the job `Delivery Admission` to a workflow and to the merge-group workflow. It reports but is not yet required.
-4. **Dry run on live pull requests**: the context appears on real PRs (#1705 is the first `wire/*` candidate) and is compared with Promotion Source's verdicts on every `kaal/*` PR. No step blocks a promotion in flight.
-5. **Activation, Owner only** (needs Kai's go; changes `main`'s protection): add the `Delivery Admission` context to the required checks, then remove `Promotion Source` in the same edit or the next. Add-new, then remove-old. Nothing in this PLAN touches a ruleset.
-6. Retire the Promotion Source workflow and `promotionSource` call site in a later Change.
+1. This PLAN, CPO review at the exact head. T450-T459 RED on `main` (the module does not exist).
+2. DO 1, Engineering source only (collector `kaal/engineering/delivery-admission`): the module, the facts reader, the CLI, the Guard declaration. T450-T459 green. Then ACT and promotion.
+3. Stock OUT Changes, separate and owned by their stocks: WIRE record publication (Engineering, reusing the judge); the hotfix qualifier (Hotfix capability); each capability's collector qualification (assessment change 3). Until a stock's OUT exists, its route fails closed or runs under an explicit migration entry.
+4. Registration entries accepted on `main`.
+5. Non-blocking installation of the job (an ordinary `.github`-only DO: no `wire/*` route exists yet), then a live dry run next to Promotion Source on real PRs (#1705 is the first WIRE candidate).
+6. Activation, Owner only: add the `Delivery Admission` context, then retire `Promotion Source` from the required list. Nothing in this PLAN touches a ruleset.
 
 ## Cases (all RED on `main`: `admission.mjs` does not exist)
 
-T450 `kaal/**` unchanged. T451 hotfix passes only with all of (a)-(c). T452 wire passes only when the judge accepts. T453 unclassified or malformed heads fail. T454 title, body and labels cannot select the class. T455 absent or unreadable evidence is `unknown`, exit 2, never pass. T456 not applicable when the base is not the default branch. T457 the CLI reads a facts file and exits per verdict; an unreadable file is exit 2. T458 the `kaal` verdict equals `promotionSource` over a table of refs. T459 the Guard declaration exists and trusts `admission.mjs` from the base revision.
-
-## Open for the CPO
-
-1. Hotfix target: is `hotfix/<name>` straight to `main`, replacing the `kaal/hotfix` collector of `branching.md`? This PLAN assumes yes (assessment question 2). If a hotfix may still travel as `kaal/hotfix`, that path stays admitted unchanged.
-2. Hotfix evidence (c) reads "RED Case now GREEN" as a rename `.red.mjs` to `.test.mjs` on the Defect's Case, as in release/C23's DO. Confirm, or name the signal.
-3. WIRE pair declaration in the body chapters (design 7), or a declaration file in the PR.
-4. Whether Branching needs a change for non-`kaal/*` heads: freshness reads the head generically; T-level check in the DO, not assumed.
+T450 routing by accepted registration: a head resolves to the one stock claiming its route; `hotfix/x` and `kaal/hotfix/x` are different stocks; the name decides routing only. T451 no entry, ambiguous entries or an absent, unreadable or head-only registration: fail, fail, unknown. T452 OUT consumption: absent or stale sha is unknown, another qualifier fails, verdict fail fails, a head-bound pass from the registered qualifier passes. T453 stock-neutral: an invented stock with a conforming record passes with no code change. T454 destination IN: forks fail, a base other than the default is not applicable, and a pass record cannot override either. T455 a title, label or body cannot select a stock or supply evidence. T456 migration: only an accepted `migration` entry applies the legacy rule, reported as migration; with no entry there is no fallback. T457 the CLI reads a facts file and exits per verdict; an unreadable file is exit 2. T458 the `pull` section and its `auto` flag are never read by admission: a judge-pulled candidate is admissible, an auto-pulled one still needs evidence. T459 the Guard declaration trusts `admission.mjs` from the base revision.
 
 ## Not in this Change
 
-No workflow, ruleset, hook or Guard activation; no change to Branching, Change Isolation or Promotion Source; no rename of an existing check; no GitHub App, auto-approval or lane caller (assessment changes 1, 3, 4, 5).
+No workflow, ruleset, hook or Guard activation; no hotfix qualifier, WIRE record publisher or capability qualifier (separate Changes of their stocks); no change to Branching, Change Isolation or Promotion Source; no rename of an existing check; no GitHub App, automatic approval or merge, or lane caller.

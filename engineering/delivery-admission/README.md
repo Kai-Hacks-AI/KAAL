@@ -1,5 +1,5 @@
 # Delivery admission (Engineering)
 
-Engineering's IN control for `main`: one required context, **Delivery Admission**, that judges a pull request into `main` by the class of its head ref and fails closed on anything it cannot classify or evidence. Today's Promotion Source admits only `kaal/*` heads (`engineering/github/lineage.ts`, `promotionSource`), so `hotfix/<name>` and `wire/<name>` cannot enter `main`.
+Engineering's common **IN** mechanism for `main`: one required context, **Delivery Admission**. It does not define what a good delivery is. A registered source **stock** owns its delivery semantics and establishes its own **OUT** qualification; Delivery Admission routes a head to its stock, consumes that stock's evidence bound to the exact head, and applies the destination's IN requirements. Missing, stale or unaccepted registration or evidence fails closed.
 
-PLAN stage: nothing here is built or installed. Changes: `00-changes/C16-delivery-admission/` (engineering/C16, Cases T450 to T459).
+PLAN stage: nothing here is built or installed. Change: `00-changes/C16-delivery-admission/` (engineering/C16, Cases T450 to T459).

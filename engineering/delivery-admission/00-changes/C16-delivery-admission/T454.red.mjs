@@ -1,12 +1,10 @@
-// Case engineering/T454 (engineering/C16): a title, label or body cannot select the class; the head ref alone does
+// Case engineering/T454 (engineering/C16): destination IN: a fork fails, a base other than the default is not applicable, and a passing record overrides neither
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, base, HOTFIX_OK, WIRE_OK } from "./helper.mjs";
+import { load, facts, okOut, entry, REGISTRATION, HEAD } from "./helper.mjs";
 
-test("engineering/T454 [engineering/C16]: a title, label or body cannot select the class; the head ref alone does", async () => {
+test("engineering/T454 [engineering/C16]: destination IN: a fork fails, a base other than the default is not applicable, and a passing record overrides neither", async () => {
   const { admit } = await load();
-  const lying = { title: "hotfix: urgent", labels: ["hotfix", "wire"], body: "## Defect" };
-  assert.equal(admit({ ...facts("feature/x", HOTFIX_OK), ...lying }).kind, "fail");
-  const v = admit({ ...facts("kaal/x", WIRE_OK), ...lying });
-  assert.equal(v.class, "kaal");
+  assert.equal(admit(facts("hotfix/x", "hotfix", { headRepo: "fork/r" })).kind, "fail");
+  assert.equal(admit(facts("hotfix/x", "hotfix", { baseRef: "kaal/foundation/0.0.2" })).kind, "not-applicable");
 });

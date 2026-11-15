@@ -1,13 +1,12 @@
-// Case engineering/T453 (engineering/C16): heads that belong to no class, or are malformed, or come from a fork, fail closed
+// Case engineering/T453 (engineering/C16): the mechanism is stock-neutral: an invented stock with a conforming record passes with no code change
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, base, HOTFIX_OK, WIRE_OK } from "./helper.mjs";
+import { load, facts, okOut, entry, REGISTRATION, HEAD } from "./helper.mjs";
 
-test("engineering/T453 [engineering/C16]: heads that belong to no class, or are malformed, or come from a fork, fail closed", async () => {
+test("engineering/T453 [engineering/C16]: the mechanism is stock-neutral: an invented stock with a conforming record passes with no code change", async () => {
   const { admit } = await load();
-  for (const ref of ["feature/x", "hotfix/", "hotfix/a/b", "wire/", "HOTFIX/x", "Wire/x", "main", "kaal", "refs/heads/kaal/x"]) {
-    assert.equal(admit(facts(ref, { ...HOTFIX_OK, ...WIRE_OK })).kind, "fail", ref);
-  }
-  assert.equal(admit({ ...facts("hotfix/fix-x", HOTFIX_OK), headRepo: "fork/r" }).kind, "fail");
-  assert.equal(admit({ ...facts("kaal/x", undefined), headRepo: "fork/r" }).kind, "fail");
+  const registration = { accepted: true, entries: [entry("invented", "invented/*", "invented-q")] };
+  const v = admit(facts("invented/y", "invented", { registration, out: okOut("invented", "invented-q") }));
+  assert.equal(v.kind, "pass");
+  assert.equal(v.stock, "invented");
 });
