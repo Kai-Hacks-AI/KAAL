@@ -16,16 +16,24 @@ import {
 const A = "a".repeat(40), B = "b".repeat(40), C = "c".repeat(40), D = "d".repeat(40);
 
 describe("promotionSource", () => {
-  const f = { repo: "o/r", defaultBranch: "main", baseRef: "main", headRepo: "o/r", headRef: "kaal/x" };
-  it("passes a kaal/* branch of this repository", () => assert.equal(promotionSource(f).kind, "pass"));
+  const f = { repo: "o/r", defaultBranch: "main", baseRef: "main", headRepo: "o/r", headRef: "kaal/x/y", head: A };
+  const green = { required: [{ context: "Guard", integrationId: 15368 }], runs: [{ id: 1, name: "Guard", status: "completed", conclusion: "success", appId: 15368, headSha: A }] };
+  it("passes a green kaal/<capability>/*, hotfix/* or wire/* branch of this repository", () => {
+    for (const headRef of ["kaal/x/y", "hotfix/z", "wire/w"]) assert.equal(promotionSource({ ...f, headRef, checks: green }).kind, "pass", headRef);
+  });
+  it("does not admit a delivery branch whose checks are unknown, red or empty", () => {
+    assert.equal(promotionSource(f).kind, "fail");
+    assert.equal(promotionSource({ ...f, checks: { ...green, runs: [{ ...green.runs[0], conclusion: "failure" }] } }).kind, "fail");
+    assert.equal(promotionSource({ ...f, checks: { required: [], runs: [] } }).kind, "fail");
+  });
   it("does not apply outside the default branch", () => assert.equal(promotionSource({ ...f, baseRef: "kaal/y", headRef: "claude/z" }).kind, "not-applicable"));
   it("fails a working branch, pointing to the guide", () => {
-    const v = promotionSource({ ...f, headRef: "claude/z" });
+    const v = promotionSource({ ...f, headRef: "claude/z", checks: green });
     assert.equal(v.kind, "fail");
-    assert.match(v.message, /only from kaal\/\* branches of o\/r, not from o\/r:claude\/z/);
+    assert.match(v.message, /only from kaal\/<capability>\/\*, hotfix\/\* and wire\/\* branches of o\/r, not from o\/r:claude\/z/);
     assert.ok(v.message.endsWith(`${GUIDE}#promote`));
   });
-  it("fails a kaal/* branch of a fork", () => assert.equal(promotionSource({ ...f, headRepo: "fork/r" }).kind, "fail"));
+  it("fails a delivery branch of a fork", () => assert.equal(promotionSource({ ...f, headRepo: "fork/r", checks: green }).kind, "fail"));
 });
 
 describe("promotionFreshness", () => {
@@ -737,7 +745,12 @@ describe("command line", () => {
   r.land("main", { "a.txt": "1\n2\nM\n" });
 
   it("exits 0, 1 and 3 for pass, fail and not applicable", () => {
-    assert.equal(cli(r.dir, "source", "o/r", "main", "main", "o/r", "kaal/x").status, 0);
+    const rules = join(r.dir, "..", `rules-${process.pid}.ndjson`), runs = join(r.dir, "..", `runs-${process.pid}.ndjson`);
+    writeFileSync(rules, JSON.stringify({ type: "required_status_checks", parameters: { required_status_checks: [{ context: "Guard", integration_id: 15368 }] } }) + "\n");
+    writeFileSync(runs, JSON.stringify({ id: 1, name: "Guard", status: "completed", conclusion: "success", appId: 15368, headSha: A }) + "\n");
+    assert.equal(cli(r.dir, "source", "o/r", "main", "main", "o/r", "kaal/x/y", A, rules, runs).status, 0);
+    assert.equal(cli(r.dir, "source", "o/r", "main", "main", "o/r", "kaal/x/y").status, 1, "no check facts: not admitted");
+    assert.equal(cli(r.dir, "source", "o/r", "main", "main", "o/r", "kaal/x/y", A, join(r.dir, "missing"), runs).status, 2, "unreadable rules: cannot judge");
     const f = cli(r.dir, "source", "o/r", "main", "main", "o/r", "claude/x");
     assert.equal(f.status, 1);
     assert.match(f.stderr, /#promote/);
