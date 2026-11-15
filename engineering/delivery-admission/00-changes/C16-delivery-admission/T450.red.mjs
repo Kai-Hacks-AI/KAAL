@@ -1,7 +1,7 @@
 // Case engineering/T450 (engineering/C16): a head resolves to the one stock whose accepted route claims it; the name decides routing only
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, okOut, REGISTRY, HEAD } from "./helper.mjs";
+import { load, facts, okQual, REGISTRY, HEAD } from "./helper.mjs";
 
 test("engineering/T450 [engineering/C16]: a head resolves to the one stock whose accepted route claims it; the name decides routing only", async () => {
   const { admit } = await load();

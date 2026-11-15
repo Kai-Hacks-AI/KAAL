@@ -1,7 +1,7 @@
 // Case engineering/T451 (engineering/C16): no claiming route, ambiguous claims, or an absent, unaccepted or non-main registry fail closed
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, okOut, REGISTRY, HEAD } from "./helper.mjs";
+import { load, facts, okQual, REGISTRY, HEAD } from "./helper.mjs";
 
 test("engineering/T451 [engineering/C16]: no claiming route, ambiguous claims, or an absent, unaccepted or non-main registry fail closed", async () => {
   const { admit } = await load();

@@ -9,14 +9,14 @@ export const REGISTRY = {
   source: "main",
   classRoutes: { HOTFIX: ["hotfix/*"], WIRE: ["wire/*"] },
   stocks: [{ capability: "release", stock: "kaal/release/*" }],
-  admission: { HOTFIX: { qualifier: "hotfix-out" }, WIRE: { qualifier: "wire-out" }, KAAL: { qualifier: "kaal-out", routes: ["kaal/**"] } },
+  admission: { HOTFIX: { qualifier: "hotfix-qual" }, WIRE: { qualifier: "wire-qual" }, KAAL: { qualifier: "kaal-qual", routes: ["kaal/**"] } },
   problems: [],
 };
-export const okOut = (stock, qualifier, head = HEAD) => ({ stock, qualifier, head, verdict: "pass", record: {} });
-const Q = { HOTFIX: "hotfix-out", WIRE: "wire-out", KAAL: "kaal-out" };
+export const okQual = (stock, qualifier, head = HEAD) => ({ stock, qualifier, head, verdict: "pass", record: {} });
+const Q = { HOTFIX: "hotfix-qual", WIRE: "wire-qual", KAAL: "kaal-qual" };
 export const facts = (headRef, stock, extra = {}) => ({
   repo: "o/r", defaultBranch: "main", baseRef: "main", headRepo: "o/r", headRef, head: HEAD,
   registry: REGISTRY,
-  out: stock === undefined ? null : okOut(stock, Q[stock] ?? `${stock}-q`),
+  qualification: stock === undefined ? null : okQual(stock, Q[stock] ?? `${stock}-q`),
   ...extra,
 });

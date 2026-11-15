@@ -1,7 +1,7 @@
 // Case engineering/T453 (engineering/C16): the mechanism is stock-neutral: an invented stock with a conforming record passes with no code change
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, okOut, REGISTRY, HEAD } from "./helper.mjs";
+import { load, facts, okQual, REGISTRY, HEAD } from "./helper.mjs";
 
 test("engineering/T453 [engineering/C16]: the mechanism is stock-neutral: an invented stock with a conforming record passes with no code change", async () => {
   const { admit } = await load();

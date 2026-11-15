@@ -1,7 +1,7 @@
 // Case engineering/T454 (engineering/C16): destination IN: a fork fails, a base other than the default is not applicable, and a passing record overrides neither
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, okOut, REGISTRY, HEAD } from "./helper.mjs";
+import { load, facts, okQual, REGISTRY, HEAD } from "./helper.mjs";
 
 test("engineering/T454 [engineering/C16]: destination IN: a fork fails, a base other than the default is not applicable, and a passing record overrides neither", async () => {
   const { admit } = await load();

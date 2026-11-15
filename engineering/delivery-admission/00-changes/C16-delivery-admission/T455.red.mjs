@@ -1,7 +1,7 @@
 // Case engineering/T455 (engineering/C16): a title, label or body cannot select a stock or supply evidence
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { load, facts, okOut, REGISTRY, HEAD } from "./helper.mjs";
+import { load, facts, okQual, REGISTRY, HEAD } from "./helper.mjs";
 
 test("engineering/T455 [engineering/C16]: a title, label or body cannot select a stock or supply evidence", async () => {
   const { admit } = await load();
