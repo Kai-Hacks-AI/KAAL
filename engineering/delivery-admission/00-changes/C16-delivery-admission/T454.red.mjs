@@ -7,4 +7,6 @@ test("engineering/T454 [engineering/C16]: destination IN: a fork fails, a base o
   const { admit } = await load();
   assert.equal(admit(facts("hotfix/x", "HOTFIX", { headRepo: "fork/r" })).kind, "fail");
   assert.equal(admit(facts("hotfix/x", "HOTFIX", { baseRef: "kaal/foundation/0.0.2" })).kind, "not-applicable");
+  const noisy = { freshness: { kind: "fail" }, isolation: { kind: "fail" }, ci: "red" };
+  assert.equal(admit(facts("hotfix/x", "HOTFIX", noisy)).kind, "pass", "other controls' verdicts are neither consumed nor recomputed");
 });
