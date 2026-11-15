@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Add C31 with the gap G66 and two Cases, T292 (the judge) and T293 (the requirement text). Both are RED on `main` (`evidence.md`).
+1. Add C31 with the gap G66 and two Cases, T380 (the judge) and T381 (the requirement text). Both are RED on `main` (`evidence.md`).
 2. The judge is `judgeHotfixScope(paths)` in `05-src/plan-body/hotfix-scope.mjs`. `paths` is the list of paths a HOTFIX pull request changes. It returns `{ verdict, findings, notJudged }`.
 3. Findings, from the paths alone:
    - the diff holds no Case file `T<n>.test.mjs` (the Case of the defect, GREEN after the correction; a rename from `.red.mjs` shows as the new path);
@@ -13,7 +13,7 @@
 
 ## DO
 
-1. Add `hotfix-scope.mjs` and make T292 and T293 green; rename both to `.test.mjs`.
+1. Add `hotfix-scope.mjs` and make T380 and T381 green; rename both to `.test.mjs`.
 2. Add the one F16 sentence.
 3. Nothing calls the judge from the envelope check, a hook, CI or a ruleset: calling it is the Hotfix delivery path and its admission, separate Changes.
 

@@ -1,10 +1,10 @@
-// Case release/T292 tests: G66
+// Case release/T380 tests: G66
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T292';
+export const id = 'release/T380';
 export const tests = ['release/G66'];
 export const title = 'the HOTFIX scope judge finds a diff without the Case of its defect or across two capability roots, and never answers PASS';
 
