@@ -6,9 +6,9 @@ export async function pkg() {
 }
 export const classes = ['HOTFIX', 'WIRE', 'KAAL'];
 export const authorities = {
-  HOTFIX: { out: 'hotfix-out', in: 'merge-checks' },
-  WIRE: { out: 'wire-out', in: 'merge-checks' },
-  KAAL: { out: 'kaal-out', in: 'merge-checks' },
+  HOTFIX: { stock: 'hotfix-stock', out: 'creation-rules', in: 'merge-checks' },
+  WIRE: { stock: 'wire-stock', out: 'creation-rules', in: 'merge-checks' },
+  KAAL: { stock: 'kaal-stock', out: 'creation-rules', in: 'merge-checks' },
 };
 export const cand = (id, cls, revision = 'r1', stock = 'cap-a') => ({ id, class: cls, name: id, revision, stock });
 export const verdict = (candidate, side, v, revision, authority) => ({ candidate, side, verdict: v, revision, authority });

@@ -13,7 +13,7 @@ export async function run() {
   assert.deepEqual(r.deliveries.map((d) => [d.class, d.source, d.name]), [['HOTFIX', 'a', 'a'], ['WIRE', 'b', 'b'], ['KAAL', 'c', 'c']]);
   assert.ok(r.findings.some((f) => /OTHER/.test(f)), 'the undeclared class was not reported');
   for (const d of r.deliveries) {
-    assert.ok(['PASS', 'FAIL', 'UNKNOWN'].includes(d.out) && ['PASS', 'FAIL', 'UNKNOWN'].includes(d.in));
+    assert.ok(['PASS', 'FAIL', 'UNKNOWN'].includes(d.stock) && ['PASS', 'FAIL', 'UNKNOWN'].includes(d.in));
     for (const f of ['value', 'size', 'unit']) assert.equal(d[f], undefined, `${f} was invented`);
   }
   assert.equal(JSON.stringify(input), copy, 'the input was changed');
