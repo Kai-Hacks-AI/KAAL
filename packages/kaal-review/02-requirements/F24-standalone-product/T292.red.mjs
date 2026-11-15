@@ -5,7 +5,7 @@ export const id = 'review/T292';
 export const tests = ['review/F24', 'review/G3'];
 export const title = 'the delivered kaal-review package, packed and extracted in isolation, needs only its permitted shared dependencies and still works';
 const PACKAGE = fileURLToPath(new URL('../../', import.meta.url));
-const PERMITTED = new Set(['kaal-hosting', '@kaihacksai/kaal-hosting', 'kaal-foundation', 'kaal-review']);
+const PERMITTED = new Set(['@kaihacksai/kaal-hosting', 'kaal-foundation', 'kaal-review']);
 const KAAL = /(?:@kaihacksai\/)?kaal-[a-z][a-z-]*/g;
 export async function run() {
   const { inspectDelivered } = await import('../../test/standalone.mjs');
