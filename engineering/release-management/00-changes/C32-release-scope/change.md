@@ -3,7 +3,7 @@
 ## PLAN
 
 1. Add I25, F53, A48, the gap G67 and two Cases, both RED on `main`.
-   - T330 (collector CHECK, a judge Case): the judge `05-src/scope/scope-judge.mjs` accepts a well-formed manifest and rejects a malformed one, and classifies Changes as delivered or missing. Its deliverable is absent today, so the Case is RED; the DO makes it green.
+   - T330 (collector CHECK, a judge Case): the judge `05-src/scope/scope-judge.mjs` accepts a well-formed manifest and rejects a malformed one, and classifies Changes as delivered or missing. Its deliverable is absent today, so the Case is RED and is kept as `.red.mjs`; the DO makes it green and renames it to `.test.mjs`.
    - T331 (readiness Case, `.red.mjs`): the real manifest `05-src/scope/kaal-release-0.0.1.json` exists and every `required` Change in it is delivered. It stays RED until the scope is delivered, and it is never a prerequisite of the collector's ACT.
 2. The PLAN declares no real scope, installs nothing, changes no existing delivery contract, wires no workflow or ruleset, bumps no version and publishes nothing.
 
