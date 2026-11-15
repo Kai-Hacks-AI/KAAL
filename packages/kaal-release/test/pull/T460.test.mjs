@@ -1,6 +1,6 @@
 // Case pull/T460 tests: pull/F60
 import assert from 'node:assert/strict';
-import { registration, optIn, main, coreOf, CORE } from './lib.mjs';
+import { registration, optIn, main, coreOf, CORE } from './registration/lib.mjs';
 export const id = 'pull/T460';
 export const tests = ['pull/F60'];
 export const title = "a Pull opt-in is valid only for a scope the accepted Core Registration on main claims for an admitted Capability; Engineering turns it into stock routes, and no PR head authorizes itself";

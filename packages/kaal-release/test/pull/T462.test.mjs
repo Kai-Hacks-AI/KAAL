@@ -1,6 +1,6 @@
 // Case pull/T462 tests: pull/F62
 import assert from 'node:assert/strict';
-import { script, registryOf, optIn, calm, hot, kaal } from './lib.mjs';
+import { script, registryOf, optIn, calm, hot, kaal } from './registration/lib.mjs';
 export const id = 'pull/T462';
 export const tests = ['pull/F62'];
 export const title = 'no accepted registry means everything is judge-pulled, an ad hoc declaration is not an accepted registration, and the legacy next path is held the same way';
@@ -37,7 +37,7 @@ export async function run() {
   assert.equal(legacy({}).action, 'judge', 'the legacy path opened a collector without a registry');
   assert.deepEqual(legacy({}).judgePulled, ['kaal/release/pull-lane'], 'the legacy candidate is not judge-pulled');
   // A tree that is not main's tip yields a registry that is not accepted, so the adapter's output fails closed too.
-  const nonMain = (await (await import('./lib.mjs')).registration()).discoverRegistrations({ ref: 'kaal/release/pull-lane', files: {} }).registry;
+  const nonMain = (await (await import('./registration/lib.mjs')).registration()).discoverRegistrations({ ref: 'kaal/release/pull-lane', files: {} }).registry;
   assert.equal(step({ registry: nonMain }).action, 'judge', 'a registry from a collector tree was used');
   const other = await registryOf({ 'packages/kaal-retro/kaal-pull.json': optIn('retro') });
   assert.equal(legacy({ registry: other }).action, 'judge', 'an unregistered next was opened');

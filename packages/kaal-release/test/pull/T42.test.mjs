@@ -2,13 +2,15 @@
 import assert from 'node:assert/strict';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { join } from 'node:path';
+import { registry } from './fixtures.mjs';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 export const id = 'pull/T42';
 export const tests = ['pull/F42'];
 export const title = 'the lane cannot spam PRs: one open PR per type, WIP 1 lane-wide, at most one PR per trigger and type across collectors, an attempt cap, and fail closed to judge';
 
 export async function run() {
-  const mod = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
+  const raw = await import(pathToFileURL(join(repo, 'packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs')).href);
+  const mod = { ...raw, laneStep: (st) => raw.laneStep({ registry, ...st }) };
   assert.equal(typeof mod.laneStep, 'function', 'laneStep is not exported');
   const rep = { qualifiers: ['col-a', 'col-b'], next: { collector: 'col-b' } };
   const calm = { open: [], closed: [], trigger: 't1', attempts: 0, cap: 2 };

@@ -1,6 +1,6 @@
 // Case pull/T461 tests: pull/F61
 import assert from 'node:assert/strict';
-import { script, registryOf, optIn, calm, hot, wire, kaal, neutral, ok } from './lib.mjs';
+import { script, registryOf, optIn, calm, hot, wire, kaal, neutral, ok } from './registration/lib.mjs';
 export const id = 'pull/T461';
 export const tests = ['pull/F61'];
 export const title = 'every GREEN item of a registered stock is auto-pulled, whether or not its destination IN has passed; a GREEN item outside any registered stock is judge-pulled: reported, never selected, still open to judgment';
