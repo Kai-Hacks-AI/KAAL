@@ -1,0 +1,92 @@
+{
+  "files": {
+    "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
+    "README.md": "f8931d6c258cb1f8812570b54e3c3b2bd5ff958ed6bdecea11aaf5300dbfb396",
+    "bin/kaal-foundation.mjs": "84c58cb09911b17bf7bd1746119e14c6d5f0ee84b1a454092af58550ba73038a",
+    "docs/architecture.md": "7504122069a124a347f54a7dc1e95bf6c7448ab8e0f73d42c5979c5735a4238c",
+    "docs/intent.md": "ca12b84a3719339a64d85ca17eb9b0aff72445e3bb409e065bd5ede0eb4a2c0b",
+    "docs/limitations.md": "0eb32ce0ca38a4c21e284b200e4919c820981e639f3493c3c8a6507dd9f89c6a",
+    "docs/operations.md": "6bfedb33b8f1f37fb815df6afc774adc4e646e55a99818a81d1b429156654add",
+    "docs/requirements.md": "f4ed6f393c5d63a5135d66e08293ec1b094a17859e8ccabefb3098dfef1264bb",
+    "docs/testing.md": "c97a7bca464604fbb085e95456473aa51a9d41844b2495f5ebc881144523ae4d",
+    "lib/sha256.d.ts": "e0b71d43eb02726e7ed9fa05cf1c60c4b88224f99a5120de56bb54b3da303a16",
+    "lib/sha256.mjs": "c504c09d231c8a58f2ae2dbf346edbdf4dd544bdbdba1161515875d051df5ee0",
+    "package.json": "2f716c29fe0605d7e960bfcb3fc91954981b24ef062bf37d2061d1bfcb306a3b",
+    "skills/kaal-foundation/SKILL.md": "dfdb8e497699757a62b430ec6b642a345cc42afb8b9ac48ff80412e0ecaac7f6",
+    "test/embed/architecture.test.mjs": "6474607ec98ed4a9e520969b328ba152b59b09d417749256e07160b2c5a881c8",
+    "test/embed/commands.test.mjs": "7d951861adf04383a73fb3589a6d86aa677004f2c8df1aec7e95b44db067ab91",
+    "test/embed/requirements.test.mjs": "a07722fccf855d2d0a3ca5f4804d162d5d04e3d6b5e573178eaa764f7092f382",
+    "test/run.mjs": "6d1f14afd86281d02f137a1165de49e8d7bffedc352716d540d86e707f816c6b",
+    "test/verify.mjs": "dc887377f6bc5e0856b0ce99b422322ff28423790389510dbe6a9711abb55cb0"
+  },
+  "cases": [
+    "foundation/T27",
+    "foundation/T28",
+    "foundation/T31",
+    "foundation/T29",
+    "foundation/T30",
+    "foundation/T23",
+    "foundation/T24",
+    "foundation/T25",
+    "foundation/T26"
+  ],
+  "model": {
+    "cases": [
+      {
+        "id": "foundation/T27",
+        "tests": [
+          "foundation/N1",
+          "foundation/N2"
+        ]
+      },
+      {
+        "id": "foundation/T28",
+        "tests": [
+          "foundation/N4"
+        ]
+      },
+      {
+        "id": "foundation/T31",
+        "tests": [
+          "foundation/F15"
+        ]
+      },
+      {
+        "id": "foundation/T29",
+        "tests": [
+          "foundation/F14"
+        ]
+      },
+      {
+        "id": "foundation/T30",
+        "tests": [
+          "foundation/F14"
+        ]
+      },
+      {
+        "id": "foundation/T23",
+        "tests": [
+          "foundation/F1"
+        ]
+      },
+      {
+        "id": "foundation/T24",
+        "tests": [
+          "foundation/F1"
+        ]
+      },
+      {
+        "id": "foundation/T25",
+        "tests": [
+          "foundation/F2"
+        ]
+      },
+      {
+        "id": "foundation/T26",
+        "tests": [
+          "foundation/F3"
+        ]
+      }
+    ]
+  }
+}

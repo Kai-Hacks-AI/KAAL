@@ -18,7 +18,7 @@
 // into one directory at once each add their own, and a second capture of a
 // workspace is refused.
 import { join } from "node:path";
-import { execute, HostingError, initialize, kind, update } from "kaal-hosting";
+import { execute, HostingError, initialize, kind, update } from "@kaihacksai/kaal-hosting";
 
 const ROOT = process.cwd();
 

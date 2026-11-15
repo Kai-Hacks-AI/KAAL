@@ -1,0 +1,62 @@
+[
+    {
+      "id": "E1",
+      "approach": "deterministic",
+      "why": "The claim gives a numeric threshold (two seconds) and an observable (response completion time), so two readers would accept the same pass/fail oracle. It can be tested, automated or not, once the specified conditions are applied.",
+      "observable": "Elapsed time from request sent to response complete, measured under the specified conditions.",
+      "oracle": "Pass if the measured completion time is at most 2 seconds under the specified conditions, otherwise fail.",
+      "evidence": null,
+      "judge": null,
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "What exactly are the 'specified conditions' (load, data size, environment)?",
+        "Is the two-second limit applied to every response or to a percentile of responses?"
+      ]
+    },
+    {
+      "id": "E2",
+      "approach": "judgment",
+      "why": "'Usefully distinguish' asks whether a Skill's distinction between Solution and Delivery is sound and fit for its purpose. No test can settle that, so it can only be judged.",
+      "observable": null,
+      "oracle": null,
+      "evidence": "The Architecture Skill text, worked examples of Solution versus Delivery including ambiguous cases, and how an agent behaves when it applies the Skill to those examples.",
+      "judge": "A reviewer who is not the Skill's author, such as an Architecture reviewer or the project owner, who judges whether the distinction is useful. It is recorded as a judgement, not a passing test.",
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "What would count as 'usefully' distinguishing them?",
+        "How is ambiguity expected to be handled: flagged, resolved, or escalated?"
+      ]
+    },
+    {
+      "id": "E3",
+      "approach": "pushback",
+      "why": "'Sufficiently reliable' has no measure, threshold or conditions, so no defensible oracle exists. Requirements could reasonably make it decidable. I will not invent a threshold.",
+      "observable": null,
+      "oracle": null,
+      "evidence": null,
+      "judge": null,
+      "owner": "Requirements",
+      "question": "What reliability measure, threshold and operating conditions define 'sufficiently reliable' (for example availability or failure rate over a stated period)? Reported as unknown until then.",
+      "unresolved": [
+        "Which reliability measure applies?",
+        "What threshold and operating conditions apply?"
+      ]
+    },
+    {
+      "id": "E4",
+      "approach": "judgment",
+      "why": "Case T3 rests on the author's preferred answer ('ambiguous') for one statement, not on a concept or an independent oracle, so as written it is brittle and proves nothing. Whether the statement is ambiguous, and whether that is the right answer, is a matter of judgement. Reject the Case as a test and have a non-author judge it.",
+      "observable": null,
+      "oracle": null,
+      "evidence": "The statement 'The kitchen serves only the dishes that travel well in the delivery van.', its plausible readings (for example whether dishes that don't travel well are excluded from the menu or only from delivery), and independent agents' or reviewers' answers alongside the author's.",
+      "judge": "A reviewer who is not the Case's author, from Architecture or the project owner. Record the author's key ('ambiguous') and the independent answer separately if they differ. The result is a judgement, not a pass.",
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "Should the Case verify the concept (does the agent identify the competing readings?) instead of the single word 'ambiguous'?",
+        "Does an independent judge agree with the author's answer?"
+      ]
+    }
+  ]

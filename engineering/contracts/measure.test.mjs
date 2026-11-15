@@ -8,7 +8,7 @@ import { describe, it } from "node:test";
 
 const REPO = join(import.meta.dirname, "../..");
 const DRIVER = join(import.meta.dirname, "measure.mjs");
-const PKG = "packages/skills/kaal-testing";
+const PKG = "packages/kaal-testing";
 const MAPPING = `${PKG}/evidence.kaal.json`;
 const SOURCE = `${PKG}/README.md`;
 const TEST = `${PKG}/test/boundary.test.mjs`;

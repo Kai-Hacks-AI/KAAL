@@ -1,0 +1,66 @@
+{
+  "inspected": {
+    "run": 41309509369,
+    "attempt": 1,
+    "event": "push",
+    "branch": "main",
+    "head": "ef78dcadf11007fb5826b41f47814299ebe8ddb9",
+    "conclusion": "success",
+    "workflow": ".github/workflows/ci.yml",
+    "jobs": [
+      {
+        "id": 124856748931,
+        "name": "Workspaces",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41309509369/job/124856748931"
+      },
+      {
+        "id": 124856749103,
+        "name": "Acceptance",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41309509369/job/124856749103"
+      },
+      {
+        "id": 124856749163,
+        "name": "Guard",
+        "url": "https://github.com/Kai-Hacks-AI/KAAL/actions/runs/41309509369/job/124856749163"
+      }
+    ],
+    "checkoutLog": [
+      "2026-11-01T13:04:58.4766622Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +ef78dcadf11007fb5826b41f47814299ebe8ddb9:refs/remotes/origin/main",
+      "2026-11-01T13:04:59.0191021Z  * [new ref]         ef78dcadf11007fb5826b41f47814299ebe8ddb9 -> origin/main",
+      "2026-11-01T13:04:59.0250428Z ef78dcadf11007fb5826b41f47814299ebe8ddb9",
+      "2026-11-01T13:04:59.0632188Z [command]/usr/bin/git log -1 --format=%H",
+      "2026-11-01T13:04:59.0654770Z ef78dcadf11007fb5826b41f47814299ebe8ddb9"
+    ]
+  },
+  "coverage": "selected log inspection and matching promoted source; not authoritative per-Case execution qualification",
+  "findings": [
+    {
+      "candidate": "Core boundary five labels",
+      "disposition": "rejected by accepted D1; retain both invocations",
+      "eligible": false
+    },
+    {
+      "candidate": "Graph/Core Form labels",
+      "disposition": "different files and package subjects: packages/skills/kaal-graph/test/graph.test.mjs and packages/kaal-core/test/core.test.ts",
+      "eligible": false
+    },
+    {
+      "candidate": "Guard full-clean-consumer repeated diagnostics",
+      "disposition": "C136 already shares one full observation; repeated diagnostics are not proof of extra executions; all negative consumer variants and intentional repetitions retained",
+      "eligible": false
+    },
+    {
+      "candidate": "Acceptance installations",
+      "disposition": "three scenarios use distinct fresh installations/subjects; no independently qualified redundant group established",
+      "eligible": false
+    }
+  ],
+  "missingEvidence": [
+    "loaded-file receipts for purported equal executions",
+    "independent wider-condition equivalence",
+    "owner authorization for any additional proposed shared group"
+  ],
+  "qualifiedCandidates": [],
+  "measuredSavings": null,
+  "limitations": "one promoted run, three Linux jobs; not all CI, platforms or nested processes; no new recorder, rerun or benchmark"
+}

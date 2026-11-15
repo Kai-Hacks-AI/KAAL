@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "capability", "name": "Core", "id": "06f759e5f656d34492ab86fac95a9ee6171fecc5e7292fb6366527f9d2a3c724" },
+  "paths": ["packages/kaal-core/"]
+}

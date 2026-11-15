@@ -1,0 +1,78 @@
+{
+  "original": {
+    "source": "dc9bec4ca58b6527c9aae136f86fb5a7b01094cb",
+    "sha256": "d0cf0d208b706d22b836126e7cbb18fd86ff3f9f41022f7d28fe227e0bb5a335"
+  },
+  "proposed": {
+    "sha256": "8e1cdbe5f3fc05ad0d454715fc981714673d14750d7383f42b525ffee521298b"
+  },
+  "onlyChanges": [
+    {
+      "from": "import { createHash } from \"node:crypto\";",
+      "to": "import { sha256 } from \"@kaihacksai/kaal-foundation/sha256\";"
+    },
+    {
+      "from": "const sha = (p) => createHash(\"sha256\").update(readFileSync(join(PACKAGE, p))).digest(\"hex\");",
+      "to": "const sha = (p) => sha256(readFileSync(join(PACKAGE, p)));"
+    }
+  ],
+  "allOtherBytesIdentical": true,
+  "node": "v24.22.1",
+  "comparison": "historical T109 helper vs Foundation; scratch-only reference evaluation",
+  "files": [
+    {
+      "path": "test/testing.test.mjs",
+      "bytes": 3103,
+      "sha256": "01fbff1eece5f253474f3ae76e6e05ac20cc718096147ad77afbe0950cac4421",
+      "equal": true
+    },
+    {
+      "path": "test/acceptance.test.mjs",
+      "bytes": 9840,
+      "sha256": "4def46e9cef9911d16d66389286c36342b39657d051404dce5dd6debc009c69b",
+      "equal": true
+    },
+    {
+      "path": "test/coverage.test.mjs",
+      "bytes": 2578,
+      "sha256": "dcfcc31ff6dd36d15ce4e901656db24cd80e610262fabdd34a0a8f5ce064dd72",
+      "equal": true
+    },
+    {
+      "path": "test/boundary.test.mjs",
+      "bytes": 3254,
+      "sha256": "f8a6b1af4519c42be986592124167a1470972aed1fe2392326da09f5ad2b4cce",
+      "equal": true
+    },
+    {
+      "path": "test/inventory.test.mjs",
+      "bytes": 2153,
+      "sha256": "1862b12ffe3a2f966b2f68ac604ec8a69e316594ffeb1cdfd1dd99fe5fef88d6",
+      "equal": true
+    },
+    {
+      "path": "test/attribution.test.mjs",
+      "bytes": 11412,
+      "sha256": "1132584521073102d1f3e7019c9c3f9af9a94c835bfa798a90452a7b79db8dad",
+      "equal": true
+    },
+    {
+      "path": "test/report.test.mjs",
+      "bytes": 10004,
+      "sha256": "5e31d995eaa75fe7125b6b57a1b8e9144723246fa3d5c35bb8bd75231c0aeb7d",
+      "equal": true
+    },
+    {
+      "path": "test/contracts.test.mjs",
+      "bytes": 7241,
+      "sha256": "7effaaa8177cf70271026210456ca553341805f1d55b0ccf64e0dd0944ac719f",
+      "equal": true
+    },
+    {
+      "path": "test/plan/duplicates.test.mjs",
+      "bytes": 12113,
+      "sha256": "8e1cdbe5f3fc05ad0d454715fc981714673d14750d7383f42b525ffee521298b",
+      "equal": true
+    }
+  ]
+}

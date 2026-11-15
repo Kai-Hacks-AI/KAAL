@@ -7,7 +7,7 @@
 // A run's directory holds packages/ (the tarballs, packed once) and run/
 // (Testing's run: its manifest, ledger and hosts).
 import { join } from "node:path";
-import { execute, initialize, kind, read, readFile } from "kaal-hosting";
+import { execute, initialize, kind, read, readFile } from "@kaihacksai/kaal-hosting";
 import { accept, integrity, sha256 } from "kaal-testing/acceptance";
 
 async function npm(args, cwd) {

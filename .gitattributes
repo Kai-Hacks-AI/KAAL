@@ -1,3 +1,5 @@
 # Node identity is the SHA-256 of exact bytes: Git must never rewrite payload bytes on any host.
 packages/**/payload/** -text
 .kaal/** -text
+# The reviewed execution boundary and its evidence bind exact committed bytes.
+engineering/execution/** -text

@@ -1,0 +1,18 @@
+{
+  "gatherer": "engineering/release-management/05-src/pull-promotion/read.mjs from kaal/release/plan",
+  "real": {
+    "count": 82,
+    "successes": 82,
+    "failures": []
+  },
+  "fixture": [
+    [
+      "demo/T901",
+      "success"
+    ],
+    [
+      "demo/T902",
+      "failure"
+    ]
+  ]
+}

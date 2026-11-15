@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "strict": true,
     "declaration": true,
+    "newLine": "lf",
     "tsBuildInfoFile": "dist/.tsbuildinfo",
     "rootDir": "src",
     "outDir": "dist",
@@ -12,5 +13,5 @@
     "skipLibCheck": true
   },
   "include": ["src"],
-  "references": [{ "path": "../extensions/kaal-hosting" }]
+  "references": [{ "path": "../kaal-hosting" }]
 }
