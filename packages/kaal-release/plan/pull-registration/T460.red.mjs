@@ -15,6 +15,12 @@ export async function run() {
   assert.deepEqual(r.classRoutes, { HOTFIX: ['hotfix/*'], WIRE: ['wire/*'] }, 'the class routes were not read');
   assert.deepEqual([...r.collectors].sort(), ['kaal/release/plan', 'kaal/release/pull-lane'], 'the registered collectors were not read');
   assert.deepEqual(r.problems, [], 'a valid tree has problems');
+  // The adapter produces the normalized, host-neutral registry the package consumes: ordered classes, routes, opt-in, authority.
+  assert.deepEqual(r.registry, { accepted: true, authority: 'main', classes: [
+    { name: 'HOTFIX', routes: ['hotfix/*'], optIn: 'all' },
+    { name: 'WIRE', routes: ['wire/*'], optIn: 'all' },
+    { name: 'KAAL', routes: ['kaal/*'], optIn: ['kaal/release/plan', 'kaal/release/pull-lane'] },
+  ] }, 'the normalized registry is not what the adapter should produce');
 
   // Each invalid file contributes nothing and is named; a valid neighbour still counts.
   const bad = (path, text) => discoverRegistrations(main({ ...good, [path]: text }));
@@ -44,4 +50,5 @@ export async function run() {
   // Only main's tip counts.
   assert.equal(discoverRegistrations({ ref: 'kaal/release/pull-lane', files: good }).accepted, false, 'a collector tree was accepted');
   assert.equal(discoverRegistrations(undefined).accepted, false, 'a missing tree was accepted');
+  assert.notEqual(discoverRegistrations({ ref: 'kaal/release/pull-lane', files: good }).registry?.accepted, true, 'a collector tree produced an accepted registry');
 }

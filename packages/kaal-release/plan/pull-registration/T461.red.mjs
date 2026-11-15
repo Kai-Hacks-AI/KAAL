@@ -1,6 +1,6 @@
 // Case pull/T461 tests: pull/F61
 import assert from 'node:assert/strict';
-import { script, registryOf, ROUTES_PATH, ROUTES, capability, calm, hot, wire, kaal } from './lib.mjs';
+import { script, registryOf, ROUTES_PATH, ROUTES, capability, calm, hot, wire, kaal, neutral, ok } from './lib.mjs';
 export const id = 'pull/T461';
 export const tests = ['pull/F61'];
 export const title = 'registered candidates are auto-pulled and an eligible unregistered capability is judge-pulled: reported, never selected, still open to judgment';
@@ -37,4 +37,14 @@ export async function run() {
   r = mod.laneStep({ seat: null, report: {}, declaration: decl, deliveries: [hot('fix-a'), kaal('kaal/release/pull-lane')], pulse: calm, registry: noRoutes });
   assert.deepEqual([r.action, r.collector], ['open-promotion', 'kaal/release/pull-lane'], 'a HOTFIX without an accepted route blocked the registered collector');
   assert.deepEqual(r.judgePulled, ['fix-a'], 'the HOTFIX without a route is not judge-pulled');
+  // Host-neutral: a consumer's own classes, routes and opt-in work with no KAAL names, so the package hardcodes none.
+  const own = (c, over = {}) => ({ class: c, source: `${c === 'URGENT' ? 'urg' : 'rt'}/${over.name ?? 'x'}`, name: over.name ?? 'x', ...ok, ...over });
+  const stepOwn = (deliveries) => mod.laneStep({ seat: null, report: {}, declaration: decl, deliveries, pulse: calm, registry: neutral });
+  r = stepOwn([own('URGENT', { name: 'a' })]);
+  assert.deepEqual([r.action, r.class], ['select', 'URGENT'], "a consumer's own class on its own route was not auto-pulled");
+  assert.equal(stepOwn([own('ROUTINE', { name: 'one' })]).action, 'select', 'a subset opt-in did not cover its member');
+  r = stepOwn([own('ROUTINE', { name: 'two' })]);
+  assert.deepEqual([r.action, r.judgePulled], ['judge', ['two']], 'a subset opt-in covered a non-member');
+  assert.equal(stepOwn([{ ...own('URGENT', { name: 'a' }), source: 'rt/a' }]).action, 'judge', "a source outside the class's routes was auto-pulled");
+  assert.equal(stepOwn([{ class: 'HOTFIX', source: 'hotfix/x', name: 'x', ...ok }]).action, 'judge', 'a KAAL class name was built into the package');
 }

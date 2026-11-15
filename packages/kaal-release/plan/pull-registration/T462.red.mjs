@@ -19,11 +19,13 @@ export async function run() {
     'no registry': undefined,
     'null': null,
     'not accepted': { ...registry, accepted: false },
-    'not from main': { ...registry, source: 'kaal/release/pull-lane' },
+    'no authority': { ...registry, authority: undefined },
+    'an empty authority': { ...registry, authority: '' },
     'a non-object': 'main',
-    'collectors that are not a list': { ...registry, collectors: 'kaal/release/pull-lane' },
-    'class routes that are not lists': { ...registry, classRoutes: { HOTFIX: 'hotfix/*' } },
-    'an ad hoc declaration': { accepted: true, source: 'adhoc', collectors: ['kaal/release/pull-lane'], classRoutes: { HOTFIX: ['hotfix/*'] } },
+    'classes that are not a list': { ...registry, classes: 'HOTFIX' },
+    'routes that are not a list': { ...registry, classes: [{ name: 'HOTFIX', routes: 'hotfix/*', optIn: 'all' }] },
+    'an opt-in that is neither all nor a list': { ...registry, classes: [{ name: 'HOTFIX', routes: ['hotfix/*'], optIn: true }, { name: 'KAAL', routes: ['kaal/*'], optIn: 'kaal/release/pull-lane' }] },
+    'the old unnormalized shape (an ad hoc declaration)': { accepted: true, source: 'adhoc', collectors: ['kaal/release/pull-lane'], classRoutes: { HOTFIX: ['hotfix/*'] } },
   };
   for (const [what, bad] of Object.entries(doubtful)) {
     const r = step({ registry: bad });
@@ -36,6 +38,9 @@ export async function run() {
   assert.deepEqual([legacy({ registry }).action, legacy({ registry }).collector], ['open-promotion', 'kaal/release/pull-lane'], 'the legacy path no longer pulls a registered next');
   assert.equal(legacy({}).action, 'judge', 'the legacy path opened a collector without a registry');
   assert.deepEqual(legacy({}).judgePulled, ['kaal/release/pull-lane'], 'the legacy candidate is not judge-pulled');
+  // A tree that is not main's tip yields a registry that is not accepted, so the adapter's output fails closed too.
+  const nonMain = (await (await import('./lib.mjs')).registration()).discoverRegistrations({ ref: 'kaal/release/pull-lane', files: { [ROUTES_PATH]: ROUTES } }).registry;
+  assert.equal(step({ registry: nonMain }).action, 'judge', 'a registry from a collector tree was used');
   const other = await registryOf({ [ROUTES_PATH]: ROUTES, 'packages/kaal-retro/kaal-pull.json': capability('retro', ['kaal/retro/skill']) });
   assert.equal(legacy({ registry: other }).action, 'judge', 'an unregistered next was opened');
   // The holder's own steps do not need a registration: what is in stays in.
