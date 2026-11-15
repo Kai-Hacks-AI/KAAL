@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const id = 'release/T331';
 export const tests = ['release/F53'];
-export const title = 'readiness: kaal-release 0.0.1 has a declared delivery scope and every required Change in it is delivered on main';
+export const title = 'readiness: kaal-release 0.0.1 has a declared delivery scope and every Change in it is delivered on main';
 
 // A readiness Case: it stays RED until the scope is delivered and is never a prerequisite of a collector's ACT.
 const changeIds = () => {
@@ -27,6 +27,6 @@ export function run() {
   assert.ok(existsSync(file), 'kaal-release 0.0.1 has no declared delivery scope');
   const manifest = JSON.parse(readFileSync(file, 'utf8'));
   const have = changeIds();
-  const missing = manifest.delivery.changes.filter((c) => c.role === 'required' && !have.has(c.id)).map((c) => c.id);
-  assert.deepEqual(missing, [], `required Changes not on main: ${missing.join(', ')}`);
+  const missing = manifest.delivery.changes.filter((c) => !have.has(c.id)).map((c) => c.id);
+  assert.deepEqual(missing, [], `declared Changes not on main: ${missing.join(', ')}`);
 }

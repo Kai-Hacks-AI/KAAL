@@ -15,21 +15,21 @@ export async function run() {
   const manifest = {
     package: 'p', version: '0.0.1',
     contract: { intents: [{ id: 'release/I1', status: 'retained' }, { id: 'release/I2', status: 'new' }, { id: 'release/I3', status: 'new' }] },
-    delivery: { changes: [{ id: 'release/C1', capability: 'release', role: 'required' }, { id: 'release/C2', capability: 'release', role: 'optional' }] },
+    delivery: { changes: [{ id: 'release/C1', capability: 'release' }, { id: 'release/C2', capability: 'release' }] },
   };
   const serves = (c) => (c === 'release/C1' ? ['release/I2'] : []);
   const r = judge(manifest, new Set(['release/C1']), serves);
-  assert.deepEqual(r.deliveryScope, { complete: true, delivered: ['release/C1'], missing: ['release/C2'] });
+  assert.deepEqual(r.deliveryScope, { complete: false, delivered: ['release/C1'], missing: ['release/C2'] }, 'a scope with an undelivered Change is complete');
+  assert.equal(judge(manifest, new Set(['release/C1', 'release/C2']), serves).deliveryScope.complete, true);
   assert.deepEqual(r.contract.unserved, ['release/I3'], 'a new Intent no Change serves is not found, or a retained one is counted');
   assert.equal(r.productVerification, 'UNKNOWN', 'a complete scope is taken for a verified product');
   assert.equal(r.publicationReadiness, 'UNKNOWN', 'a complete scope is taken for publication readiness');
   assert.ok(!('ready' in r), 'a single ready answer is given');
-  assert.equal(judge(manifest, new Set(['release/C2']), serves).deliveryScope.complete, false, 'a missing required Change is accepted');
   assert.equal(judge(manifest, new Set(['release/C1'])).contract.unserved, 'UNKNOWN', 'unserved Intents are claimed without traceability');
   const bad = (m) => assert.throws(() => judge(m, new Set()));
   bad({ ...manifest, version: undefined });
   bad({ ...manifest, contract: { intents: [{ id: 'release/I1', status: 'maybe' }] } });
   bad({ ...manifest, contract: { intents: [manifest.contract.intents[0], manifest.contract.intents[0]] } });
-  bad({ ...manifest, delivery: { changes: [{ id: 'release/C1', role: 'maybe' }] } });
+  bad({ ...manifest, delivery: { changes: [{ id: 'release/C1', role: 'optional' }] } }); // no role distinction exists
   bad({ ...manifest, delivery: { changes: [manifest.delivery.changes[0], manifest.delivery.changes[0]] } });
 }
