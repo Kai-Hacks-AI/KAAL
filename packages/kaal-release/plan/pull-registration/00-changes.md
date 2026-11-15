@@ -41,3 +41,31 @@ No capability is opted in and no Core Registration is added, including `release`
 ## Order
 
 PLAN (this), then DO (the adapter with its Core-scope validation, its README chapter, the Script change, T460 to T463 to green, T40 to T46 updated to supply a registry and to `stock`), then ACT, an updated concluding ACT, SYNC if `main` moved, a fresh exact-head report and PROMOTION #1707 at its new head. Collector: `kaal/release/pull-lane`.
+
+## ACT: retrospective (4L)
+
+Written by the agent that carried the Change.
+
+### Liked
+
+- The CPO's reviews moved the design three times before any code, each time toward less: no hardcoded prefixes in the package, then the stock instead of a branch list, then Core owning identity instead of a Pull registry. The RED Cases followed each move, and the DO went green on the final shape without a rewrite of the Script.
+- The seam stayed small: the package reads one `registry` fact, the KAAL adapter produces it, and a consumer can bring its own. A Case with stocks named URGENT and ROUTINE proves the package holds no KAAL convention.
+- Reusing engineering/C15's assessment meant no second identity authority and a fail-closed answer for free (UNKNOWN never passes).
+
+### Learned
+
+- Where a check sits matters more than how it is named: the C11 `out` and `in` were a readiness verdict and a merge rule in the wrong order. Under STOCK, OUT and IN the readiness verdict is STOCK, and IN is the target's ruleset at merge, so it must not gate selection.
+- A candidate whose stock is green but that no registered stock covers is neither eligible nor invalid: it is judge-pulled. That third state is what lets manual promotion stay open without enrolling anyone.
+- Checking Core evidence and opt-in files only from `main`'s tip is what stops a PR head from authorizing itself.
+
+### Lacked
+
+- Anything that reads `main`'s tip and Core's evidence at selection time. The adapter is pure and tested on fixtures; nothing yet feeds it the real tree, so no capability can be opted in and the lane still acts on nothing.
+- An authoritative exact-head STOCK verdict. The legacy `report.next` remains a recommendation, not proof of readiness.
+- A binding between an opt-in file and the Capability that holds the scope, beyond Core's claim for the scope.
+
+### Longed For
+
+- The gatherer (#1694) producing `deliveries` with a `stock` verdict that needs full PDCA, and reading `main` and Core evidence for the adapter.
+- The CPO's go on the first opt-in, as its own Change, once those exist.
+- Wiring, a caller and a GitHub App identity, each a separate gated Change.

@@ -6,7 +6,8 @@ This is the **concluding collector-level retrospective** of `kaal/release/pull-l
 
 - **The pull lane** (`pull/C10`): `laneStep(state)` in the Script, a pure advisory function. A freed seat pulls `next`; only the holder is synchronized; a failed re-qualification re-ranks the remaining qualifiers with `chooseNext`; the anti-spam rules of `pull/F42` bound the PRs it would open. It returns `wait`, `judge`, `open-promotion`, `open-sync` or `ready-for-cpo`.
 - **The next delivery by class** (`pull/C11`): with an optional `deliveries` list, the eligible candidate of the highest class, HOTFIX then WIRE then KAAL, with the C9 choice inside KAAL, `select` for HOTFIX and WIRE, UNKNOWN reported and never blocking a known eligible lower class, the holder never preempted, and one admission lane over PROMOTION, HOTFIX and WIRE.
-- **Cases** `pull/T40` to `pull/T46` (green), the README chapters "The lane step" and "The next delivery by class", and the exported `chooseNext`.
+- **Pull only what is registered** (`pull/C14`): `laneStep` takes a host-neutral `registry` (stocks, routes, priority), selects on the `stock` verdict at the exact head and does not read the destination `in`; a green candidate no registered stock covers is `judgePulled`, and a missing or malformed registry fails closed. KAAL's adapter `registration.mjs` in Engineering validates a Pull opt-in against Core's accepted Registration on `main` (engineering/C15). No capability is opted in.
+- **Cases** `pull/T40` to `pull/T46` and `pull/T460` to `pull/T463` (green), the README chapters "The lane step" and "The next delivery by class", and the exported `chooseNext`.
 
 ## Liked
 
@@ -23,7 +24,7 @@ This is the **concluding collector-level retrospective** of `kaal/release/pull-l
 ## Lacked
 
 - A statement from the host that this collector qualifies. This file does not claim it: the qualification is a separate run at the exact head after the SYNC, and its raw output is what counts, not this text.
-- A gatherer that produces the pulse and the `deliveries` from the host, a caller, and a GitHub App identity. Nothing runs the step today.
+- A gatherer that produces the pulse and the `deliveries` from the host (with an authoritative exact-head `stock` verdict), something that reads `main`'s tip and Core's evidence for the registry, a caller, and a GitHub App identity. Nothing runs the step today and no capability is opted in.
 - Recorded values, sizes and units, so the KAAL choice is judged whenever several qualify.
 
 ## Longed For
