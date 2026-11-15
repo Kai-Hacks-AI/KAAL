@@ -1,16 +1,22 @@
 // Shared by the Cases of engineering/C16. The module under test is absent on main, so every Case fails until the DO.
+// The registry is the one pull/C14 returns for main's tip: { accepted, source, classRoutes, collectors, problems },
+// plus Engineering's `admission` section (stock -> { qualifier, routes?, migration? }).
 export const MODULE = new URL("../../admission.mjs", import.meta.url).href;
 export const load = () => import(MODULE);
 export const HEAD = "a".repeat(40);
-export const entry = (stock, route, qualifier = `${stock}-out`, extra = {}) => ({ stock, route, out: { qualifier }, ...extra });
-export const REGISTRATION = {
+export const REGISTRY = {
   accepted: true,
-  entries: [entry("hotfix", "hotfix/*"), entry("wire", "wire/*"), entry("hotfix-capability", "kaal/hotfix/**"), entry("kaal-foundation", "kaal/foundation/**")],
+  source: "main",
+  classRoutes: { HOTFIX: ["hotfix/*"], WIRE: ["wire/*"] },
+  collectors: ["kaal/release/pull-lane"],
+  admission: { HOTFIX: { qualifier: "hotfix-out" }, WIRE: { qualifier: "wire-out" }, KAAL: { qualifier: "kaal-out", routes: ["kaal/**"] } },
+  problems: [],
 };
-export const okOut = (stock, qualifier = `${stock}-out`, head = HEAD) => ({ stock, qualifier, head, verdict: "pass", record: {} });
+export const okOut = (stock, qualifier, head = HEAD) => ({ stock, qualifier, head, verdict: "pass", record: {} });
+const Q = { HOTFIX: "hotfix-out", WIRE: "wire-out", KAAL: "kaal-out" };
 export const facts = (headRef, stock, extra = {}) => ({
   repo: "o/r", defaultBranch: "main", baseRef: "main", headRepo: "o/r", headRef, head: HEAD,
-  registration: REGISTRATION,
-  out: stock === undefined ? null : okOut(stock),
+  registry: REGISTRY,
+  out: stock === undefined ? null : okOut(stock, Q[stock] ?? `${stock}-q`),
   ...extra,
 });
