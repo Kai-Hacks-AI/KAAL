@@ -1,30 +1,33 @@
-# kaal/release/pull-next: concluding ACT of the collector (4L)
+# kaal/release/pull-declare: concluding ACT of the collector (4L)
 
-This is the **concluding collector-level retrospective** of `kaal/release/pull-next` (`pull/F34`): the qualification retrospective for the whole collected work. It replaces the file that concluded `kaal/release/plan`, which has been promoted to `main`. The retrospective of the individual Change stays where it is, as Change history: `plan/pull-next`. It is written after the last PLAN, DO and Case change of the collector, by the agent that carried `pull/C9`.
+This is the **concluding collector-level retrospective** of `kaal/release/pull-declare` (`pull/F46` to `pull/F49`): the qualification retrospective for the whole collected work. It replaces the file that concluded `kaal/release/pull-next`, which has been promoted to `main`. The retrospective of the individual Change stays where it is, as Change history: `plan/pull-declare`. It is written after the last PLAN, DO and Case change of the collector, by the agent that carried `pull/C12`.
 
 ## What the collector holds
 
-- **The value-density rule for next** (`pull/C9`, `pull/F38`): `next` is the one qualifier, or the strictly highest `value ÷ size` when every qualifier carries a valid `value`, `size` and the same `unit`, compared exactly. A tie, a missing or invalid input, or different units are judged and name the candidates. The Owner owns `value`; the CPO advises and reviews the recorded declaration. It is a value-density heuristic, not WSJF.
-- **Cases** `pull/T38` and `pull/T39` (green), `pull/T30` updated to the new rule, and the README chapter "Which qualifier is next".
+- **The declaration of the candidate collectors** (`pull/C12`): `kaal/engineering/collector-capability`, `kaal/guard/registration`, `kaal/retro/skill`, `kaal/release/githooks-split` and `kaal/release/wire-operation` in `declaration.json`, each with a scope that fits its real layout and excludes the others. Declaring a collector does not make it qualify.
+- **Evidence patterns** for the Engineering Cases of the collector-capability, with the retro and Guard node tests declared `other`. No `.github`-only installation branch is declared.
+- **A partial value, size and unit triple is named in `problems`**, and `chooseNext` is exported. No value, size or unit is recorded.
+- **Cases** `pull/T47` to `pull/T50` (green), their fixtures at the heads and with the open DO and ACT applied, the refreshed recorded live run, and the README chapter "Candidate collectors in the declaration".
 
 ## Liked
 
-- The CPO's review made the rule refuse to guess: a missing size is judged, never defaulted, and units must match. Each refusal became a RED Case before any code, and each went green with one function.
-- Qualification, `missing` and `qualifiers` stayed exactly as they were, which T38 checks.
+- The CPO's review before the DO caught that the candidates were moving. The Cases now fix no Case id of another Change and read two fixtures, so they hold when a layout changes.
+- Declaring is not qualifying: the recorded live run lists all 17 collectors and none qualifies, each saying what it lacks.
 
 ## Learned
 
-- Function point analysis measures size, not value. It can only inform `size`, and only under one unit and counting method.
-- An older Case can pin a rule that a PLAN replaces. T30 asserted the first qualifier as next, and the DO updated it as the PLAN foresaw.
-- A first-run Branching failure on a new PR clears on the auto-merge re-run, so it was not read as a defect.
+- A scope that fits one collector today can reach another tomorrow, so the scopes are checked against each other, not only against their own files.
+- The recorded evidence must be refreshed with the declaration, or the completeness Case fails.
+- A default parameter in a fixture can hide an absent field.
 
 ## Lacked
 
 - A statement from the host that this collector qualifies. This file does not claim it: the qualification is a separate run at the exact head after the SYNC, and its raw output is what counts, not this text.
-- Recorded values, sizes and units in `declaration.json`. Until the Owner records them, several qualifiers are judged. That is a separate Change and an Owner decision.
+- Executions of the Engineering Cases under a scoped id, so the candidates show "no execution".
+- Recorded values, sizes and units, so `next` is judged whenever several qualify.
 
 ## Longed For
 
-- The Owner's values and sizes recorded and reviewed, so `next` is deterministic.
-- The pull lane (`pull/C10`) calling the same `chooseNext` after a failed re-qualification.
+- A runner that logs every Engineering Case under a scoped id.
+- The Owner's values, sizes and units recorded and reviewed.
 - Promotion decided by the Owner on the advisory report, not by the report.
