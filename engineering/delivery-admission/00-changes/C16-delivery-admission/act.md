@@ -23,3 +23,7 @@ Written by the agent that carried the Change.
 ## Longed For
 
 - The `.github` Change (head sha, read-only token) on `main`, then promotion of this DO, then the Owner's `wire/*` ruleset so #1705 can travel.
+
+## Follow-ups
+
+- **C16 is a bridge, to be replaced.** Owner (15 Nov 2026): keep this trajectory, extending the existing Promotion Source check, but it will be replaced by a control in the new ruleset structure (one ruleset per target: promotion = `main`, integration = `kaal/**`, hotfixing = `hotfix/*`, wiring = `wire/*`, publishing = tags, each with its own checks). When that structure exists, the route table and the GREEN rule move into the promotion ruleset's own control and `Promotion Source` retires with F2 freshness getting its own required home. Nothing here should be built to outlive that.
