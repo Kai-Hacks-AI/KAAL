@@ -28,4 +28,4 @@ No admission of `hotfix/*` or `wire/*` heads (that is the Engineering Change tha
 
 ## Order
 
-PLAN (this), then DO (the gatherer in the Script, the GET-only reader beside `read.mjs`, README, T51 to T54 to green), ACT, a concluding collector-level ACT, SYNC and PROMOTION. Collector: `kaal/release/pull-gather`, from `main`. Calling the gatherer on a schedule is the later dry-run caller, a separate Change.
+PLAN (this), then DO (the gatherer in the Script, the GET-only reader beside `read.mjs`, README, T430 to T433 to green), ACT, a concluding collector-level ACT, SYNC and PROMOTION. Collector: `kaal/release/pull-gather`, from `main`. Calling the gatherer on a schedule is the later dry-run caller, a separate Change.

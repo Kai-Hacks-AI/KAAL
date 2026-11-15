@@ -1,7 +1,7 @@
-// Case pull/T52 tests: pull/F51
+// Case pull/T431 tests: pull/F51
 import assert from 'node:assert/strict';
 import { script, ok, classes } from './lib.mjs';
-export const id = 'pull/T52';
+export const id = 'pull/T431';
 export const tests = ['pull/F51'];
 export const title = 'a side passes only on completed successes at the exact head; UNKNOWN never passes';
 

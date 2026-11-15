@@ -1,7 +1,7 @@
-// Case pull/T51 tests: pull/F50
+// Case pull/T430 tests: pull/F50
 import assert from 'node:assert/strict';
 import { script, classes } from './lib.mjs';
-export const id = 'pull/T51';
+export const id = 'pull/T430';
 export const tests = ['pull/F50'];
 export const title = 'every head of a delivery class is a candidate and nothing else is';
 

@@ -1,7 +1,7 @@
-// Case pull/T53 tests: pull/F52
+// Case pull/T432 tests: pull/F52
 import assert from 'node:assert/strict';
 import { script, classes } from './lib.mjs';
-export const id = 'pull/T53';
+export const id = 'pull/T432';
 export const tests = ['pull/F52'];
 export const title = 'nothing is invented: KAAL out follows the report at the same head, facts are not guessed';
 

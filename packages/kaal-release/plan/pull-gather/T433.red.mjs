@@ -1,6 +1,6 @@
-// Case pull/T54 tests: pull/F53
+// Case pull/T433 tests: pull/F53
 import assert from 'node:assert/strict';
-export const id = 'pull/T54';
+export const id = 'pull/T433';
 export const tests = ['pull/F53'];
 export const title = 'the reader makes only GET requests and an unreadable fact stays UNKNOWN';
 
