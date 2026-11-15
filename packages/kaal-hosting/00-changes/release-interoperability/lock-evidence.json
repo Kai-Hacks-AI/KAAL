@@ -1,0 +1,21 @@
+{
+  "verdict": "passed",
+  "errors": [],
+  "derivation": {
+    "npm": "11.9.0",
+    "node": "24.22.1",
+    "base": "5f982b88b5a46c07acd9ef6e439810325b4233fc09359d482d67d5c94f75c156",
+    "manifests": {
+      "package.json": "2246a3b0c01645ed7eec211258f7ebe0f5291eea1ac660288c7eb0a40d5c742a",
+      "packages/extensions/kaal-hosting/package.json": "53b78b67ff1b9b4f2e0161c88a3fb0dd577ece2083f2a37bca0463fb450705ae",
+      "packages/kaal-core/package.json": "c059298b0d74b7086aad58c4469714fb14e44a4c5ff2071e873c8bab2b1fe4cf",
+      "packages/kaal-foundation/package.json": "2f716c29fe0605d7e960bfcb3fc91954981b24ef062bf37d2061d1bfcb306a3b",
+      "packages/kaal-guard/package.json": "6b4bc2770c6085b47db171a94709225aa5a8587050c7567e15603748a3fcecce",
+      "packages/skills/kaal-engineer-skill/package.json": "99598f7b13b159336c9ad16adadbb6d21cb35feddc63a2320f4620feb3f40574",
+      "packages/skills/kaal-graph/package.json": "53a8caa5e1c42e22b93f9b19b1314c69fa3e15df7cb3eae1989559f59d51fd1e",
+      "packages/skills/kaal-testing/package.json": "1fff125ae1a20f79231205cfb499cefa9f6fb263c086ff5e493e93e43103675a"
+    },
+    "candidate": "65b91b53e84641af2252d5c304074cc72c63254c86376f5e9b2face1d3f55424",
+    "derived": "65b91b53e84641af2252d5c304074cc72c63254c86376f5e9b2face1d3f55424"
+  }
+}

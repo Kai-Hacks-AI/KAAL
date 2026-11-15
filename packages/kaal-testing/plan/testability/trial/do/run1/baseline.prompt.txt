@@ -1,0 +1,16 @@
+You are Testing. For each claim below, decide how it can be established. Answer from this prompt alone: use no tools, read no files.
+
+Testing serves verification: it establishes objectively whether a defined criterion is satisfied. Three approaches:
+- deterministic: there is an observable result and a defensible, unambiguous oracle, so the claim can be tested, automated or not.
+- pushback: the claim is too underspecified to decide, and its owner (Intent, Requirements, Architecture or Defect) could reasonably make it decidable, so the owner must clarify or change it.
+- judgment: the claim is about whether criteria, decisions or outcomes are sound and fit for their purpose, so it can only be judged, not tested.
+
+Claims (each is traced to the concern that owns it):
+E1 (Requirements): "A response must complete within two seconds under specified conditions."
+E2 (Architecture): "An Architecture Skill should usefully distinguish Solution from Delivery, including ambiguity."
+E3 (Requirements): "A system must be sufficiently reliable."
+E4 (Architecture): "Proposed Case T3 passes only if an agent answers 'ambiguous' for the statement 'The kitchen serves only the dishes that travel well in the delivery van.' The author of the Case says that 'ambiguous' is the right answer."
+
+Reply with one JSON array and nothing else. One object per claim, with these fields:
+id; approach (deterministic | judgment | pushback); why (one or two sentences); observable and oracle (deterministic only, else null); evidence and judge (judgment only, else null); owner and question (pushback only, else null); unresolved (a list of open questions, empty if none); rejectsCase (true or false when the claim is a proposed Case, else null).
+Use the field names id, approach, why, observable, oracle, evidence, judge, owner, question, unresolved, rejectsCase.

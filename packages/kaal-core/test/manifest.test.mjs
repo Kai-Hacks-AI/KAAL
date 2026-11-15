@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 
 const CORE = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPT = join(CORE, "scripts", "manifest.mjs");

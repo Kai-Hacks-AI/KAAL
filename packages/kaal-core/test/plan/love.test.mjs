@@ -28,7 +28,7 @@ const FOUNDATION = {
 };
 
 /** The KAAL packages Core may depend on (core/N11). */
-const ALLOWED = ["kaal-graph", "kaal-hosting", "@kaihacksai/kaal-foundation"];
+const ALLOWED = ["kaal-graph", "@kaihacksai/kaal-hosting", "@kaihacksai/kaal-foundation"];
 const isKaal = (name) => /^(@kaihacksai\/)?kaal-/.test(name) && name !== "kaal-core";
 
 function files(dir) {

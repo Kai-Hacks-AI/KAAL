@@ -8,7 +8,7 @@
 // directory, which Hosting does not offer: it is made and removed with Node's portable calls, never
 // by a platform decision. SHA-256 is Foundation's.
 import { sha256 } from "@kaihacksai/kaal-foundation/sha256";
-import { execute, read, readFile } from "kaal-hosting";
+import { execute, read, readFile } from "@kaihacksai/kaal-hosting";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";

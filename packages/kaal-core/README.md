@@ -2,7 +2,7 @@
 
 KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Capabilities, Agents, Skills and Extensions by one mechanism, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
-Core depends on no Git host and no agent provider. Its KAAL runtime dependencies are `@kaihacksai/kaal-foundation`, for SHA-256, and `kaal-hosting`, and neither depends on Core. Core installs and works without `kaal-graph`. A Node's Form and identity are Graph's contract, and Core delivers Graph's own `form.mjs` and `node.mjs` inside the package, byte for byte, in `dist/node/`. `dist/node/provenance.json` names the Graph version they came from and each file's SHA-256. Graph's navigation and analysis are not part of Core; install `kaal-graph` beside Core for them. `kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
+Core depends on no Git host and no agent provider. Its KAAL runtime dependencies are `@kaihacksai/kaal-foundation`, for SHA-256, and `@kaihacksai/kaal-hosting`, and neither depends on Core. Core installs and works without `kaal-graph`. A Node's Form and identity are Graph's contract, and Core delivers Graph's own `form.mjs` and `node.mjs` inside the package, byte for byte, in `dist/node/`. `dist/node/provenance.json` names the Graph version they came from and each file's SHA-256. Graph's navigation and analysis are not part of Core; install `kaal-graph` beside Core for them. `@kaihacksai/kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
 
 ## Release status
 
@@ -262,7 +262,7 @@ Core is a Capability of its own. `capability/Core.md` is its Node, typed by `KAA
 
 It owns none of the domain semantics of Intent, Requirements, Architecture, Code, Testing or Operating. `ownership.kaal.json` claims `packages/kaal-core/` for that Node, in the claim format Testing reads. Both files are repository data, not delivered.
 
-Core depends on no discipline. Its only KAAL runtime dependencies are `@kaihacksai/kaal-foundation` and `kaal-hosting`; `kaal-graph` is used only to build it. Its interface is what `exports` lists and the `kaal` command, each named in this README, and nothing else resolves.
+Core depends on no discipline. Its only KAAL runtime dependencies are `@kaihacksai/kaal-foundation` and `@kaihacksai/kaal-hosting`; `kaal-graph` is used only to build it. Its interface is what `exports` lists and the `kaal` command, each named in this README, and nothing else resolves.
 
 ## License
 

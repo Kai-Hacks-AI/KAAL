@@ -1,0 +1,9 @@
+{
+ "note": "Earlier Skill-only run on the Skill before one sentence was added to the kinds section. Reported, not corrected: it differed from the key at S7 (enduring and transition, mixed), where the key says transition, none.",
+ "promptSha256": "c5790156dfde15f1bedb4f09c159ff09977a16419d9dab1a60e1394fe2286731",
+ "author": "CTO thread (Claude, authored the Skill, the key and the prompts)",
+ "observer": "independent observer subagent (Claude), blind to which reply used the Skill; it read only the task and the two replies",
+ "agent": "general-purpose subagent given only the prompt file, no repository access requested",
+ "model": "as configured for the session (claude-sonnet-5-5); the serving model was not verified",
+ "date": "2026-11-13"
+}

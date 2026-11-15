@@ -6,12 +6,12 @@ This document says how kaal-core is built. Each element names, in brackets, the 
 
 ```
 build time:  kaal-graph (devDependency) --copies Node Form and identity--> dist/node/
-run time:    kaal-core --> @kaihacksai/kaal-foundation, kaal-hosting, yaml
+run time:    kaal-core --> @kaihacksai/kaal-foundation, @kaihacksai/kaal-hosting, yaml
 optional:    kaal-graph, installed beside kaal-core, for navigation and analysis
 ```
 
 - **Foundation** (`@kaihacksai/kaal-foundation`) provides SHA-256. Every digest kaal-core computes or checks, Node ids included, is Foundation's.
-- **Hosting** (`kaal-hosting`) is KAAL's only operating-system boundary (core/F88, core/A44). Every file read, staging step, guarded write, removal and process start goes through it. kaal-core makes no platform decision of its own.
+- **Hosting** (`@kaihacksai/kaal-hosting`) is KAAL's only operating-system boundary (core/F88, core/A44). Every file read, staging step, guarded write, removal and process start goes through it. kaal-core makes no platform decision of its own.
 - **yaml** is needed by the delivered Node support, which reads YAML 1.2 frontmatter.
 - **Graph** (`kaal-graph`) is a build-time source only (core/F76–core/F80, core/A37). The build copies Graph's Node Form and identity into the package. No source file imports Graph, and a consumer never needs it installed.
 
@@ -71,7 +71,7 @@ A registration is a typed artifact of Core's Type `Core/Registration` (core/A25)
 - **Layout** (core/A33). The package ships `test/embed/`, kaal-core's own cases (one file for each loop: Intent, Requirements, Architecture and Code), which its own `npm test` runs against the installed copy, `test/verify.mjs`, `test/run.mjs` and the manifest `test/verify.json`. The delivered tests are plain `node:test` files that import kaal-core by its package name.
 - **The runner** (core/A34). `npm test` is `node test/run.mjs`. In an installation, which it recognizes when the package directory sits directly in a `node_modules` directory, it runs `test:consumer` alone. In the source workspace it runs every declared `test:<name>` suite. An ambiguous or damaged layout, or a missing suite, is `cannot verify` before any suite runs.
 - **The verifier** (core/A43). `test:consumer` is `node test/verify.mjs`. It checks every file against the manifest, then runs each delivered test file in a scratch directory, compares the cases that ran with the declared cases, and prints one execution record and one result line. Details are in [Testing](testing.md).
-- **The OS boundary** (core/A44). The runner and verifier reach the host only through kaal-hosting and hash only through Foundation. The one exception is the verifier's scratch directory, made with Node's portable temporary-directory call and removed afterwards, because Hosting offers no scratch directory today.
+- **The OS boundary** (core/A44). The runner and verifier reach the host only through @kaihacksai/kaal-hosting and hash only through Foundation. The one exception is the verifier's scratch directory, made with Node's portable temporary-directory call and removed afterwards, because Hosting offers no scratch directory today.
 
 ## Release acceptance
 

@@ -10,7 +10,7 @@ This is research for the Owner, not a Definition, a PLAN or an authorization. It
 
 ## What exists
 
-- **Graph** (main). An Edge goes out from the Node it is embedded in. Its meaning belongs to the Node its type names. A target needs no reference back, and every incoming view is derived (`packages/skills/kaal-graph/payload/Graph.md`). Graph imposes no hierarchy, so a tree is a convention its owner defines.
+- **Graph** (main). An Edge goes out from the Node it is embedded in. Its meaning belongs to the Node its type names. A target needs no reference back, and every incoming view is derived (`packages/kaal-graph/payload/Graph.md`). Graph imposes no hierarchy, so a tree is a convention its owner defines.
 - **Core** (`core/C24`, #518, merged into `kaal/core` 2026-10-29). It already follows the clarification:
   - A kind's owner registers its kind and outgoing rule, which may be `any`.
   - The holder of the content, a Capability or a consuming repository, registers its instances and their identities.

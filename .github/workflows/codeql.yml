@@ -9,6 +9,8 @@ on:
     branches: [main, "kaal/**"]
   pull_request:
     branches: [main, "kaal/**"]
+  merge_group:
+    types: [checks_requested]
   schedule:
     - cron: "17 4 * * 1"
 

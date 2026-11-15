@@ -27,7 +27,7 @@ These four files ship in the package. They are plain `node:test` files that impo
   The record speaks only for the candidate it names. kaal-core stores no evidence in your environment: the record lives in your terminal or CI log.
 - **`test/run.mjs`** is `npm test` (core/F75). In an installation, recognized when the package directory sits directly inside a `node_modules` directory, it runs `test:consumer` alone and exits with its result. In the source workspace it runs every declared `test:<name>` suite. If it cannot tell which place it is in, or a required suite is missing, it reports `cannot verify` with exit 2 and runs nothing.
 
-Both scripts reach the host only through `kaal-hosting` and hash only through Foundation (core/F88). How to run the verification is in [Operations](operations.md).
+Both scripts reach the host only through `@kaihacksai/kaal-hosting` and hash only through Foundation (core/F88). How to run the verification is in [Operations](operations.md).
 
 ## Publisher tests: not delivered
 

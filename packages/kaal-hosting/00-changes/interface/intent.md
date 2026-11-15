@@ -1,0 +1,7 @@
+# Package Interface Contract: Intent
+
+This is `hosting/C15`, a PLAN correction. It corrects two planned tests of `hosting/C10`, which froze Hosting's package interface as a hard-coded list, and replaces that list with a contract the Architecture declares. It ships no product code. It authorizes no DO, sync, promotion or publication.
+
+On #657 (comment 6533937580, 2026-10-30) the Owner ruled that hosting/T21's conflict with `hosting/C13` and `hosting/C14` is Test Case brittleness. T21 pins `exports` to exactly `.`, `./conformance` and `./package.json`, and limits `files` to today's entries plus what `hosting/C12` ships. hosting/T24 pins the tarball's contents in the same way. The approved `./boundary` entry, the `kaal-hosting-boundary` command and the `bin` and `skills` directories (hosting/A13) would turn both RED, although the Architecture authorizes them: a false RED. And neither test checks that a declared export actually ships and loads, so an export pointing at a missing file passes: a false GREEN.
+
+- **hosting/I9.** Hosting exposes exactly the package interfaces its Architecture declares and supports, no more and no fewer, and each one it exposes ships and loads. The test that guards this takes the permitted interface from the Architecture, never from the candidate's own `package.json`, so an undeclared entry cannot authorize itself, and an approved extension needs no edit to the test.

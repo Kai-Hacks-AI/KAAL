@@ -1,6 +1,6 @@
 import { Admitted } from "./admitted.js";
 import { FormError, readFrontmatter } from "#node/form";
-import { read } from "kaal-hosting";
+import { read } from "@kaihacksai/kaal-hosting";
 import { isTypeName, validate, type Finding, type Types } from "./frontmatter.js";
 import { claimsForm, compareRefs, readNode, type Identity } from "./node.js";
 import { foundation, type Files } from "./payload.js";

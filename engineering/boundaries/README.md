@@ -39,7 +39,7 @@ Engineering adds no boundary rule of its own, owns none of a provider's semantic
 
 ## Today's evidence, enumerated
 
-Core (`packages/kaal-core/test/boundary.test.ts`), Testing (`packages/skills/kaal-testing/test/boundary.test.mjs`) and Engineering (`engineering/boundary.test.mjs`) each run Hosting's existing conformance inspection, `kaal-hosting/conformance`, on their own declaration. The DO lists them in the matrix as they are. Every other Capability's cell starts as a finding, never as passing, until its owner declares a boundary or the Plan records a justified exclusion.
+Core (`packages/kaal-core/test/boundary.test.ts`), Testing (`packages/kaal-testing/test/boundary.test.mjs`) and Engineering (`engineering/boundary.test.mjs`) each run Hosting's existing conformance inspection, `kaal-hosting/conformance`, on their own declaration. The DO lists them in the matrix as they are. Every other Capability's cell starts as a finding, never as passing, until its owner declares a boundary or the Plan records a justified exclusion.
 
 ## Dependencies
 

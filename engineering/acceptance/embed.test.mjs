@@ -11,7 +11,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
-import { execute } from "kaal-hosting";
+import { execute } from "@kaihacksai/kaal-hosting";
 import { install } from "kaal-testing/acceptance";
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -138,7 +138,7 @@ let kaal;
 before(async () => {
   tarball = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"))["kaal-core"].tarball;
   // kaal-hosting has registry dependencies, so the cache is preferred but not required.
-  host = await install(["kaal-core", "@kaihacksai/kaal-foundation", "kaal-hosting"]);
+  host = await install(["kaal-core", "@kaihacksai/kaal-foundation", "@kaihacksai/kaal-hosting"]);
   kaal = join(host, "node_modules", ".bin", "kaal");
 });
 
@@ -158,13 +158,37 @@ describe("package", () => {
 
   it("depends at runtime on kaal-foundation, kaal-hosting and yaml, not on kaal-graph, and no workspace dependency depends on kaal-core", () => {
     const core = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
-    assert.deepEqual(core.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "kaal-hosting": "0.0.1", yaml: "2.9.1" });
+    assert.deepEqual(core.dependencies, { "@kaihacksai/kaal-foundation": "0.0.1", "@kaihacksai/kaal-hosting": "0.0.1", yaml: "2.9.1" });
     for (const graph of ["kaal-graph", "@kaihacksai/kaal-graph"]) assert.ok(!existsSync(join(host, "node_modules", graph)), `the host holds no ${graph}`);
-    for (const dependency of ["@kaihacksai/kaal-foundation", "kaal-hosting"]) {
+    for (const dependency of ["@kaihacksai/kaal-foundation", "@kaihacksai/kaal-hosting"]) {
       const pkg = JSON.parse(readFileSync(join(host, "node_modules", dependency, "package.json"), "utf8"));
       for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) assert.equal(pkg[field]?.["kaal-core"], undefined, `${dependency} ${field}`);
     }
     assert.ok(!existsSync(join(host, "node_modules", "kaal-core", "node_modules")), "one kaal-foundation, one kaal-hosting and one yaml, not copies inside kaal-core");
+  });
+
+  it("runs installed Core npm test against every declared Case without Graph or a publisher suite", async (t) => {
+    const installed = join(host, "node_modules", "kaal-core");
+    const declaration = JSON.parse(readFileSync(join(installed, "test", "verify.json"), "utf8"));
+    assert.ok(declaration.cases.length > 0, "installed Core declares Cases");
+    const env = { ...process.env, npm_config_audit: "false", npm_config_fund: "false" };
+    delete env.NODE_TEST_CONTEXT;
+    const observed = await execute("npm", ["test"], { cwd: installed, env });
+    assert.equal(observed.status, 0, observed.stdout + observed.stderr);
+    assert.doesNotMatch(observed.stdout, /test:publisher/, "an installed consumer runs no publisher suite");
+    const lines = observed.stdout.trim().split(/\r?\n/);
+    const records = lines.filter((line) => line.startsWith("kaal-core-execution: "));
+    assert.equal(records.length, 1, "one attributable execution record");
+    const record = JSON.parse(records[0].slice("kaal-core-execution: ".length));
+    assert.equal(record.candidate.name, "kaal-core");
+    assert.equal(record.candidate.version, "0.0.1");
+    const key = (c) => `${c.file}\0${c.name}`;
+    assert.deepEqual(record.cases.map(key).sort(), declaration.cases.map(key).sort(), "every declared Case executes exactly once");
+    assert.ok(record.cases.every((c) => c.outcome === "passed"), "no failed, skipped, todo or missing Case is verified");
+    assert.equal(lines.at(-1), `kaal-core: verified: kaal-core@0.0.1: ${declaration.cases.length} declared, ${declaration.cases.length} executed`);
+    t.diagnostic(`installed Core: ${declaration.cases.length} declared / ${record.cases.length} passed; candidate ${JSON.stringify(record.candidate)}`);
+    const packed = JSON.parse(readFileSync(join(process.env.KAAL_ACCEPTANCE_RUN, "manifest.json"), "utf8"));
+    t.diagnostic(`installed artifact SHA-256: ${JSON.stringify(Object.fromEntries(["kaal-core", "@kaihacksai/kaal-hosting"].map((name) => [name, packed[name].sha256])))}`);
   });
 });
 

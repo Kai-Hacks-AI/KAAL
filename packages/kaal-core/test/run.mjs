@@ -3,7 +3,7 @@
 // explicitly, then runs the declared `test:<name>` suites that apply there, never `test` itself.
 // Installed: `test:consumer` alone, with its result. Source: every declared suite, in order.
 // Every host operation, running npm included, goes through kaal-hosting, KAAL's only OS boundary.
-import { execute, kind, readFile } from "kaal-hosting";
+import { execute, kind, readFile } from "@kaihacksai/kaal-hosting";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 

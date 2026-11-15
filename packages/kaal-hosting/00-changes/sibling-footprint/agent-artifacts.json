@@ -1,0 +1,54 @@
+{
+  "candidate": "b77a0b4e5edb6dbf6ff419952ad029829b3fccb9",
+  "scope": "Post-evaluation filesystem snapshots; see agent-validation.md for independently observed before/after checks and consumer limitations.",
+  "tasks": {
+    "task-a": {
+      "parentEntries": [
+        "root",
+        "unrelated.txt"
+      ],
+      "rootEntries": [
+        "keep.txt",
+        "notes.md"
+      ],
+      "files": {
+        "root/notes.md": {
+          "hex": "6f726967696e616c206e6f7465730a",
+          "sha256": "a5043fcdf99dda638f5568737abe8e836922c6dd627feb3d7ce6d8d3649dae90"
+        },
+        "root/keep.txt": {
+          "hex": "726f6f742073656e74696e656c000a",
+          "sha256": "86f33fb6d53c89e43f17b648b86e7e134c8e9fd129bdc017a1175caac2bcf652"
+        },
+        "unrelated.txt": {
+          "hex": "7369626c696e672073656e74696e656c000a",
+          "sha256": "360e6cb9db21c68a5da84694d556171e0678fd461ba7881df58d68a45a858e7e"
+        }
+      }
+    },
+    "task-b": {
+      "parentEntries": [
+        "root",
+        "unrelated.txt"
+      ],
+      "rootEntries": [
+        "keep.txt",
+        "notes.md"
+      ],
+      "files": {
+        "root/notes.md": {
+          "hex": "75706461746564206e6f7465730a",
+          "sha256": "5d726db25803fa0c7da705361e0d2ddb93024a55bb506065d3b1818fb4e7d534"
+        },
+        "root/keep.txt": {
+          "hex": "726f6f742073656e74696e656c000a",
+          "sha256": "86f33fb6d53c89e43f17b648b86e7e134c8e9fd129bdc017a1175caac2bcf652"
+        },
+        "unrelated.txt": {
+          "hex": "7369626c696e672073656e74696e656c000a",
+          "sha256": "360e6cb9db21c68a5da84694d556171e0678fd461ba7881df58d68a45a858e7e"
+        }
+      }
+    }
+  }
+}

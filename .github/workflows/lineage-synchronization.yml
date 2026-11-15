@@ -48,6 +48,20 @@ jobs:
 
       - run: npm ci --ignore-scripts
 
+      # Under a merge queue GitHub reports every auto-merge method as "merge", so the checker judges the method
+      # the trusted ruleset configures instead (engineering/github/lineage.ts, effectiveMethod). The rules are read
+      # from GitHub's rules/branches response for the base branch, only when the base is the default branch, and
+      # a response that cannot be read fails the job (closed). Without KAAL_RULES the checker uses the reported label.
+      - name: Read the base branch's rules
+        if: github.event.pull_request.base.ref == github.event.repository.default_branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/rules/branches/$BASE_REF" > "$RUNNER_TEMP/rules.json" \
+            || { echo "::error title=Branching: cannot judge::the rules of $BASE_REF cannot be read"; exit 2; }
+          echo "KAAL_RULES=$RUNNER_TEMP/rules.json" >> "$GITHUB_ENV"
+
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
       - name: Judge the proposed result with the default branch's checker
         env:

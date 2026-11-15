@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { tmpdir } from "node:os";
 import { join, sep } from "node:path";
 import { before, describe, it } from "node:test";
-import { initialize, read, readFile } from "kaal-hosting";
+import { initialize, read, readFile } from "@kaihacksai/kaal-hosting";
 import { comprehensive, select } from "./suites.mjs";
 
 const base = join(tmpdir(), `kaal-lanes-test-${Date.now()}-${process.pid}`);

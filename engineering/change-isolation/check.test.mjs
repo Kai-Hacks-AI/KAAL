@@ -146,7 +146,7 @@ describe("transition ledger", () => {
   const PATHS = [
     "packages/kaal-foundation/package.json",
     "packages/kaal-core/package.json",
-    "packages/skills/kaal-change/package.json",
+    "packages/kaal-change/package.json",
     "package-lock.json",
   ];
   const entry = (over = {}) => ({

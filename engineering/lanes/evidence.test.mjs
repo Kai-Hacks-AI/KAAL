@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
-import { execute, read } from "kaal-hosting";
+import { execute, read } from "@kaihacksai/kaal-hosting";
 import { lane } from "./evidence.mjs";
 
 const base = join(tmpdir(), `kaal-evidence-test-${Date.now()}-${process.pid}`);
@@ -15,7 +15,7 @@ const passed = (workspace, extra = {}) => ({ workspace, tests: "pass", delivered
 /** The captures under `dir`, parsed, by workspace. */
 async function captures(dir) {
   const files = await read(dir);
-  return Object.fromEntries(Object.entries(files).map(([path, bytes]) => [path.split("/")[0], JSON.parse(bytes.toString("utf8"))]));
+  return Object.fromEntries(Object.entries(files).map(([path, bytes]) => [path.split("/").slice(0, -1).join("/"), JSON.parse(bytes.toString("utf8"))]));
 }
 
 describe("the evidence lane's gate", () => {
@@ -58,14 +58,14 @@ const ok = await lane(${JSON.stringify(names)}, ${JSON.stringify(dir)}, async (n
 });
 process.exit(ok ? 0 : 1);`;
     const env = { ...process.env, GITHUB_RUN_ID: "7", GITHUB_RUN_ATTEMPT: "3" };
-    const runs = await Promise.all([["kaal-hosting"], ["a", "b", "c"]].map((names) => execute(process.execPath, ["--input-type=module", "-e", script(names)], { cwd: process.cwd(), env })));
+    const runs = await Promise.all([["@kaihacksai/kaal-hosting"], ["a", "b", "c"]].map((names) => execute(process.execPath, ["--input-type=module", "-e", script(names)], { cwd: process.cwd(), env })));
     assert.deepEqual(
       runs.map((r) => r.status),
       [0, 0],
       runs.map((r) => r.stderr).join("\n"),
     );
     const found = await captures(dir);
-    assert.deepEqual(Object.keys(found).sort(), ["a", "b", "c", "kaal-hosting"]);
+    assert.deepEqual(Object.keys(found).sort(), ["@kaihacksai/kaal-hosting", "a", "b", "c"]);
     for (const [name, capture] of Object.entries(found)) {
       assert.equal(capture.workspace, name);
       assert.equal(capture.result.workspace, name);

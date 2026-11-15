@@ -1,0 +1,17 @@
+name: Set up the job environment
+description: The environment every KAAL job shares. For now it puts the temporary directory on the runner's temp on Windows.
+
+runs:
+  using: composite
+  steps:
+    # On the Windows runner the default temporary directory is on the C: drive, which is about seven times slower
+    # for many small files than the D: drive that holds the workspace and the runner's temp directory (guard/C142).
+    # Tests create their scratch repositories and installs under the temporary directory, so put it on the runner's
+    # temp. The value is only known inside a step (RUNNER_TEMP is not available in workflow-level env), so it is
+    # written to GITHUB_ENV for the steps after this one. Linux and macOS keep their defaults.
+    - if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        echo "TEMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
+        echo "TMP=$RUNNER_TEMP" >> "$GITHUB_ENV"
+        echo "TMPDIR=$RUNNER_TEMP" >> "$GITHUB_ENV"

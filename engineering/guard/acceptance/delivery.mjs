@@ -11,7 +11,7 @@ export const HERE = dirname(fileURLToPath(import.meta.url));
 export const DELIVER = resolve(HERE, "..", "external", "deliver.mjs");
 export const REPO = resolve(HERE, "../../..");
 /** KAAL's Skill checker (guard/A9): it reads through kaal-hosting, so it needs KAAL's installed workspace. */
-export const CHECK_SKILL = join(REPO, "packages", "skills", "kaal-engineer-skill", "skills", "kaal-engineer-skill", "scripts", "check-skill.mjs");
+export const CHECK_SKILL = join(REPO, "packages", "kaal-engineer-skill", "skills", "kaal-engineer-skill", "scripts", "check-skill.mjs");
 
 export function run(cwd, file, args, env) {
   const r = spawnSync(file, args, { cwd, env: { ...process.env, ...env }, encoding: "utf8" });
