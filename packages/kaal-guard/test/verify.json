@@ -781,7 +781,7 @@
     "installation.kaal.json": "fcfa9645e793c14bd9c3512b0c018a5f6d1c2cdef7d6dd20b7ff3450ddc48a3e",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/config.mjs": "a252eef814f0acfebd426d46c4dde25092df58419a3e20fd76a1523e2880b964",
-    "lib/discovery.mjs": "125d4f3602847f228a151ab9b93fe8393004b6fa671647af6025721a0b89eb14",
+    "lib/discovery.mjs": "40b26131c893f79259d29676a45eba577b27c0bc24d2dcd7c804059e28827431",
     "lib/git.mjs": "82fa39e379816053be5263a88e8a7afbf6da214521bb4d7ab3524faafdb07f25",
     "lib/github.mjs": "6d5198ac24a8e444294683213860bf79644b08185d0ff25ba391923996aa1b98",
     "lib/lifecycle.mjs": "05600e087cb17b5b61ba4982be5c3b25e1a8082aa4fe5b4afe2ad42134edd081",

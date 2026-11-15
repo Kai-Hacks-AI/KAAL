@@ -1,12 +1,14 @@
 // Guard outer acceptance, Engineering part: Guard is on par with the capability standard (guard/G61, guard/C143).
 // The claim, the Node file and the contract are repository data of the capability, not shipped, so the publisher checks them.
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 
+// Import the checked-in public module: KAAL digests use Foundation's SHA-256, not node:crypto.
+const FOUNDATION_SHA256 = ["packages/kaal-foundation/05-src/skills/kaal-foundation/scripts/sha256.mjs", "packages/kaal-foundation/lib/sha256.mjs"].find((p) => existsSync(new URL("../../../" + p, import.meta.url)));
+const { sha256 } = await import(new URL("../../../" + FOUNDATION_SHA256, import.meta.url).href);
 const PACKAGE = resolve(dirname(fileURLToPath(import.meta.url)), "../../../packages/kaal-guard");
 const CONTRACT_FORMAT = "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b";
 
@@ -19,7 +21,7 @@ describe("guard/G61 capability standard", () => {
     assert.match(front, /^name: Guard$/m);
     assert.match(front, /^type:\r?\n  name: KAAL Capability$/m);
     const own = JSON.parse(readFileSync(join(PACKAGE, "ownership.kaal.json"), "utf8"));
-    assert.deepEqual(own.owner, { kind: "capability", name: "Guard", id: createHash("sha256").update(node).digest("hex") });
+    assert.deepEqual(own.owner, { kind: "capability", name: "Guard", id: sha256(node) });
     assert.deepEqual(own.paths, ["packages/kaal-guard/"]);
     const c = JSON.parse(readFileSync(join(PACKAGE, "installation.kaal.json"), "utf8"));
     assert.equal(c.format?.id, CONTRACT_FORMAT, "the contract is not an instance of the Installation Contract");
