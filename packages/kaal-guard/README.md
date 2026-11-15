@@ -31,7 +31,7 @@ Your CI is yours: you decide which job runs each check. `init` writes only what 
 - the hook in `.githooks` is the one Guard installed,
 - Git runs no hooks of the repository's own from `.git/hooks`, which setting it would turn off.
 
-Every file Guard writes is content the package catalogues in its `contract.json`, an instance of KAAL Core's Installation Contract format and the one list of the files Guard installs, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. The record also lists the surfaces you activated. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Only Guard writes the record and the state.
+Every file Guard writes is content the package catalogues in its `installation.kaal.json`, an instance of KAAL Core's Installation Contract format and the one list of the files Guard installs, written byte for byte. Guard registers each one, with its SHA-256 and the version that wrote it, in `.kaal/state/guard/installation.json`, which you commit with the files. The record also lists the surfaces you activated. A file is Guard's only while that record registers it and its SHA-256 is unchanged; matching bytes alone never make a file Guard's. When Guard sets `core.hooksPath`, it records that in its checkout state in Git's metadata (`kaal/guard/state.json` there), never in a tracked file. Only Guard writes the record and the state.
 
 Each directory Guard writes into gets a `.gitattributes` of Guard's own: `.githooks/.gitattributes` beside the hook, `.github/workflows/.gitattributes` beside the workflow, and one in the Skill's directory. Each one marks only Guard's own files `-text`, so a clone with `core.autocrlf=true` keeps them byte for byte and they stay Guard's. It is a catalogued, registered file like the others. Beside a hook or workflow of the repository's own, or in a Skill directory that holds files of the repository's own, it is not installed, and `init` says why.
 
@@ -68,6 +68,16 @@ The frontmatter is a strict subset of YAML that Guard reads itself: one `key: va
 **Limitation: `Guard/Check` is not registered.** `type: Guard/Check` names the type Guard owns, and Guard's own validation above decides whether a declaration is valid; it always runs and is always required. KAAL Core reads each declaration as a typed artifact. It reports the artifact *registered* only when the Engine admits a Type Definition named `Guard/Check` that the Guard Capability owns. Guard installs no such Type Definition, so your declarations are *unregistered*: `kaal verify` lists them with that state and passes, and no Core verification has checked them beyond Guard. That is not a defect in your declarations, and it does not make them globally verified. Once a `Guard/Check` Type Definition is registered, Core reports the same unchanged declarations as registered, and Guard runs them as before.
 
 A `guard.json` from `0.0.1` is refused, with the steps to set Guard up afresh: remove what `0.0.1` installed, declare each of its checks as a file, delete `guard.json` and run `kaal-guard init`.
+
+## Checks beside the code: kaal-guard.json
+
+A check can also sit beside the code it guards, in a file named `kaal-guard.json`: at a package's root, in an open change's folder (remove it when the change closes), and at the root of the repository's `.kaal` directory. It lists checks:
+
+```json
+{ "checks": [ { "id": "unit", "run": "node --test test/unit" }, { "id": "boundary", "run": "node test/boundary.mjs", "when": ["lib/**"] } ] }
+```
+
+For the files that changed, Guard takes the nearest `kaal-guard.json` of each and runs its checks, each narrowed by its optional `when` (globs relative to the file). The file at the root of `.kaal` runs on every run. A package may change or shorten its own file; Guard runs it as the candidate has it and says cannot judge, naming the file, only when it is malformed, a check has no command, or a command cannot start. When the changed files are not supplied, with `--full`, or when `--plan <file>` holds `{ "unknown": true }`, Guard runs every file and says the selection is unknown; `{ "in-flight": [folders] }` adds those folders. Declarations in the configuration directory work as before.
 
 ## Verdicts
 

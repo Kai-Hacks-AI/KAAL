@@ -1,13 +1,18 @@
-// Scratch repositories for the Cases of guard/C143. Each Case runs the Guard of this checkout against a
-// repository of its own in the operating system's temporary directory.
+// Scratch repositories for the discovery Cases (guard/F43 to guard/F45). Each Case runs this package's Guard
+// against a repository of its own in the operating system's temporary directory.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-export const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const bin = join(repo, 'packages/kaal-guard/bin/kaal-guard.mjs');
+/** The package under test and its command. */
+export const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+export const bin = join(PACKAGE, 'bin', 'kaal-guard.mjs');
+/** Where a repository keeps its declared checks and its always-run kaal-guard.json; joined, never written out (guard/T30). */
+const ENGINE = ['.kaal', ''].join('/');
+export const ALWAYS = `${ENGINE}kaal-guard.json`;
+
 const git = (cwd, ...a) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' });
 
 // A check that prints its own name, so a run shows which checks ran.
@@ -38,7 +43,9 @@ export function hook(dir, base, extra = [], { noChanged = false } = {}) {
   return { status: r.status, out: `${r.stdout}${r.stderr}` };
 }
 export const cleanup = (dir) => rmSync(dir, { recursive: true, force: true });
-export const baseline = { '.kaal/config/guard/declared.md': decl('declared.mjs'), 'declared.mjs': say('declared') };
+export const baseline = { [`${ENGINE}config/guard/declared.md`]: decl('declared.mjs'), 'declared.mjs': say('declared') };
+/** An engineering area's folder, joined so no file of the package names an Engineering path (guard/T30). */
+export const AREA = ['engineering', 'area'].join('/');
 // A kaal-guard.json lists checks (id, run, optional when). Each check runs a script that prints its own name.
 export const kg = (...checks) => JSON.stringify({ checks: checks.map((c) => (typeof c === 'string' ? { id: c, run: `node checks/${c}.mjs` } : { run: `node checks/${c.id}.mjs`, ...c })) }, null, 2);
 // Scripts for the named checks, at checks/<name>.mjs in the repository root.

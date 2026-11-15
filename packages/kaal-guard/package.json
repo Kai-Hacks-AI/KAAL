@@ -17,7 +17,7 @@
     "lib",
     "templates",
     "skills",
-    "contract.json",
+    "installation.kaal.json",
     "docs",
     "test/acceptance",
     "test/unit",
