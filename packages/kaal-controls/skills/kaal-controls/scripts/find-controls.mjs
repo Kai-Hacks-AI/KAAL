@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Finds the controls in a repository. A control is a Markdown file whose frontmatter id is <capability>/CTL<n>
-// and whose frontmatter holds exactly id, title, description and has. It only finds: it resolves no Intent,
+// and whose frontmatter holds exactly id, title, description, type and has. It only finds: it resolves no Intent,
 // walks no chain, runs no Case and checks no gate.
 //
 //   node find-controls.mjs [directory]     prints { controls, refused } as JSON
@@ -9,7 +9,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CONTROL_ID = /^[a-z][a-z0-9-]*\/CTL\d+$/;
-const FIELDS = ['id', 'title', 'description', 'has'];
+const FIELDS = ['id', 'title', 'description', 'type', 'has'];
+const TYPES = ['directive', 'preventive', 'detective', 'corrective'];
 
 function frontmatter(text) {
   const m = /^---\n([\s\S]*?)\n---/.exec(text.replace(/\r\n/g, '\n'));
@@ -48,12 +49,13 @@ export function findControls(files) {
     const extra = Object.keys(fields).filter((k) => !FIELDS.includes(k));
     const reason = count[fields.id] > 1 ? 'duplicate id'
       : missing ? `${missing} is missing`
+      : !TYPES.includes(fields.type) ? `type is not one of ${TYPES.join(', ')}`
       : !has?.length ? 'has lists no Intent'
       : extra.length ? `${extra.join(', ')} is not a field of a control`
       : null;
     if (reason) { refused.push({ path: file.path, id: fields.id, reason }); continue; }
     controls.push({
-      id: fields.id, title: fields.title, description: fields.description, has, path: file.path,
+      id: fields.id, title: fields.title, description: fields.description, type: fields.type, has, path: file.path,
       tests: cases.filter((c) => c.tests.includes(fields.id)).map((c) => ({ id: c.id, path: c.path })),
     });
   }
