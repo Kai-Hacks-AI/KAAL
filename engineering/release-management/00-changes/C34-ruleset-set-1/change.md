@@ -43,3 +43,7 @@ Per the Owner (16 Nov): the rulesets belong in release management. Set 1 therefo
 ## DO
 
 The five ruleset sources `promotion.json`, `integration.json`, `hotfixing.json`, `wiring.json` and `publishing.json` and `controls.md` in `05-src/wiring/rulesets/`, derived from the live capture in `baseline-old.json`; T454-T459 renamed to `.test.mjs`, GREEN, and converted to the Case form (`id`, `tests`, `title`, `run`). T455 also reads `target` and `bypass_actors` from the JSON. No live ruleset is touched. `act.md` is the 4L retrospective.
+
+## Superseded in part by release/C35
+
+The Owner ruled this set too large: it carried legacy controls. release/C35 replaces its five ruleset sources with the six minimal ones (`integrating`, `collecting`, `hotfixing`, `wiring`, `promoting`, `publishing`) and reduces `controls.md`. The Cases T454-T459 judged the legacy copies, so they are retired there; `baseline-old.json` (the live capture of the old three) and this record stay.
