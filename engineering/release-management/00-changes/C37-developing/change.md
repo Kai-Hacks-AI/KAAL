@@ -56,3 +56,7 @@ No live ruleset is created, changed or retired (step 8 is the Owner's, after the
 ## DO-A
 
 `05-src/stages/stages.json` declares Developing as judged and exact with its four files, and Integrating's `requires` (Integrating only for now). `05-src/stages/judge.mjs` judges the `.githooks` facts under `verify Stages (Developing)` alone, reads what Integrating must require from `stages.json`, and its CLI reads the checkout's `.githooks` (`readHooks`). `05-src/wiring/hooks/verify-stages-developing` is the local script (POSIX sh, exit 0, 1 or 2 as the judge). T510, T511, T512, T515 and T517 are GREEN. C35: T484 is retired (Developing is judged now) and the C35 Cases helper carries the Developing facts. T513, T514 and T516 (the second check in `integrating`) ship RED and turn GREEN with DO-B; T518 ships RED and turns GREEN with the WIRE. On the live tree the Developing judgement is RED until the WIRE of step 4 installs the script, so no workflow runs it before then. Level 1 on `main` stays green for the other five jobs.
+
+## DO-B
+
+`stages.json` declares that Integrating requires `Integrating` and `Developing`, and `integrating.json` requires `verify Stages (Integrating)` and `verify Stages (Developing)` (strict false, empty bypass). `controls.md` and the README name the second check. C35: T481, T485 and T486 name it. T513, T514 and T516 are GREEN. Nothing is installed: the live `integrating` ruleset is updated by the Owner, only after the workflow runs `verify Stages (Developing)` on `main` once green.
