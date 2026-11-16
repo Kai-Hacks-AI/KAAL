@@ -1,0 +1,46 @@
+# Engineering / verify Stages (release/C35, level 1): do the delivery stages exist in Engineering? One job per ruleset,
+# named `verify Stages (<Ruleset>)`; a ruleset binds the job name alone, so each ruleset of set 1 requires its own.
+# The judge is the default branch's own (trusted); the candidate's sources are only read, never run. A job reads the
+# ruleset sources and stages.json of the head commit and fails closed when they cannot be read. It runs on every
+# pull request so that, once required, it reports on every one. Nothing requires these checks until the Owner
+# installs the rulesets, so until then they report harmlessly. The merge queue counterpart is engineering-merge-group.yml.
+name: Engineering
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  verify-stages:
+    name: verify Stages (${{ matrix.ruleset }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        ruleset: [Integrating, Collecting, Hotfixing, Wiring, Promoting]
+    steps:
+      - name: Check out the default branch (the trusted judge)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: trusted
+          persist-credentials: false
+
+      - name: Check out the head commit (only read)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: candidate
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Judge the stages with the default branch's judge
+        env:
+          RULESET: ${{ matrix.ruleset }}
+        run: node trusted/engineering/release-management/05-src/stages/judge.mjs candidate "$RULESET"
