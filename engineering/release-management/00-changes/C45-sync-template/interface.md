@@ -19,10 +19,11 @@ The draft of the template, as it is added in the DO. Case T650 reads it. It is n
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | The promotion or the work that needs main, named with its pull request | pending | — |
-| 1 | Worker | Branch from the collector's tip, merge a main commit, resolve every conflict explicitly in that merge commit | open | — |
-| 2 | Reviewer | Confirm the merge commit names the main commit and holds only the conflict resolutions | open | — |
-| 3 | Successor | The PROMOTION or the unblocked work starts on merge | pending | — |
+| 0 | Predecessor | The promotion or the work that needs main is named, with its pull request | pending | — |
+| 1 | Worker | Create the SYNC branch from the collector's tip, the workspace, and open a draft PR | open | — |
+| 2 | Worker | Merge a main commit into it and resolve every conflict explicitly in that merge commit | open | — |
+| 3 | Reviewer | Confirm the merge commit names the main commit and holds only the conflict resolutions | open | — |
+| 4 | Successor | Merge the approved SYNC with a merge commit; the PROMOTION or the unblocked work starts on merge | pending | — |
 `````
 
 ## Where it lives
@@ -31,8 +32,8 @@ The draft of the template, as it is added in the DO. Case T650 reads it. It is n
 
 ## What the chapter says
 
-The table has the four default rows: Predecessor, Worker, Reviewer, Successor. The Action of the rows:
-  - step 1 names `tip`
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 1 names `tip` and `draft PR`
   - step 2 names `merge commit`
-  - step 3 names `PROMOTION`
-
+  - step 3 names `merge commit`
+  - step 4 names `PROMOTION`
