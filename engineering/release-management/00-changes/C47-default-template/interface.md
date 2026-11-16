@@ -30,9 +30,10 @@ The draft of the template, as it is added in the DO. Case T670 reads it. It is n
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
 | 0 | Predecessor | Whatever this pull request follows, with its pull request, or none | pending | — |
-| 1 | Worker | Do the work the title names, to the Intent | open | — |
-| 2 | Reviewer | Review the diff against the Intent, the verification and the validation named above | open | — |
-| 3 | Successor | Whatever starts on merge, with its pull request, or none | pending | — |
+| 1 | Worker | Create the branch, the workspace, and open a draft PR | open | — |
+| 2 | Worker | Do the work the title names, to the Intent | open | — |
+| 3 | Reviewer | Review the diff against the Intent, the verification and the validation named above | open | — |
+| 4 | Successor | Merge the approved pull request; whatever starts on merge, with its pull request, or none | pending | — |
 `````
 
 ## Where it lives
@@ -41,7 +42,7 @@ The draft of the template, as it is added in the DO. Case T670 reads it. It is n
 
 ## What the chapter says
 
-The table has the four default rows: Predecessor, Worker, Reviewer, Successor. The Action of the rows:
-  - step 1 names `Intent`
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 1 names `draft PR`
   - step 2 names `Intent`
-
+  - step 3 names `Intent`
