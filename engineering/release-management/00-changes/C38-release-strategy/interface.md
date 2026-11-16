@@ -16,7 +16,7 @@ A change walks four stages. Each stage has one gate that must pass before the ch
 2 Integrating: Collecting, Hotfixing, Wiring
 3 Promoting
 4 Publishing
-challenges: Integrating > Developing, Promoting > Publishing
+challenges: Integrating > Developing (backward), Promoting > Integrating (backward), Promoting > Publishing (forward)
 ```
 
 - **Developing:** work on any branch; the `.githooks` check runs before a push.
@@ -26,7 +26,13 @@ challenges: Integrating > Developing, Promoting > Publishing
 
 ## Challenge model
 
-Each stage checks itself, and a neighbour checks the one it depends on: Integrating challenges Developing, and Promoting challenges Publishing. Whatever a later stage finds could have been found earlier, so a finding is a gap in the earlier stage to fix.
+Each stage checks itself. Three challenges cross a stage boundary, and nothing else does:
+
+- **Integrating > Developing (backward):** Integrating challenges the completed Developing work, for example that the `.githooks` ran.
+- **Promoting > Integrating (backward):** before admission to `main`, Promoting challenges Integrating's declared requirements. It does not repeat all of Integrating's tests.
+- **Promoting > Publishing (forward):** Promoting challenges that Publishing is ready, on purpose, because Publishing is a tag and no later stage can challenge it.
+
+Verifying readiness is not proving that a later publication occurred. Whatever a later stage finds could have been found earlier, so a finding is a gap in the earlier stage to fix.
 
 ## IN, STOCK and OUT
 
