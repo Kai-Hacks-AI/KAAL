@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { load, readerPath } from './fixtures.mjs';
 export const id = 'release/T558';
 export const tests = ['release/C39'];
-export const title = 'the reader lists every branch, reads package tags and npmjs for each package including private ones, takes <package>@<version> from a tag, and names a gap for what it could not read';
+export const title = 'the reader lists every branch, reads package tags and npmjs for each package including private ones, takes @kaihacksai/<name>@<version> (and a still unscoped <name>@<version>) from a tag, and names a gap for what it could not read';
 export async function run() {
   const { readBranches, readPackages, parseTag } = await load(readerPath);
   assert.deepEqual(parseTag('kaal-core@0.0.1'), { name: 'kaal-core', version: '0.0.1' });

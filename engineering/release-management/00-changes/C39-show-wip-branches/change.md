@@ -9,7 +9,7 @@
 5. **Two views.** The overview is a count per place (branches, branches with a transport, transports) and per package state. A dive-in lists one place in full. `renderInventory(report, { place })` renders both from the same report; an unknown place is an error, not an empty list.
 6. **The package rule.** For each package on main, from what the reader observed:
 
-| npmjs `latest` | tags (`<package>@<version>`) | state | main holds stock |
+| npmjs `latest` | tags (`@kaihacksai/<name>@<version>`) | state | main holds stock |
 | --- | --- | --- | --- |
 | none (never published) | any | `unpublished`, next `0.0.1` | yes (a private package carries a note saying so) |
 | a version | a tag equal to `latest` only | `current` | no; yes when main is beyond that tag; UNKNOWN when that was not observed |

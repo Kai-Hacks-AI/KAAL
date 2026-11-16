@@ -6,7 +6,7 @@
 branches: [ { name } ]                                   // every branch of the repository, main included
 packages: [ { name, version, private, latest, tags, beyondTag } ]
   latest:    a version string, null for never published, absent for not observed
-  tags:      [ "0.0.1", "0.0.2-rc.1" ]  // versions of tags named <package>@<version>, absent for not observed
+  tags:      [ "0.0.1", "0.0.2-rc.1" ]  // versions of tags named @kaihacksai/<name>@<version> (six packages are still unscoped), absent for not observed
   beyondTag: true | false                // main has commits the newest tag equal to latest does not; absent for not observed
 ```
 
