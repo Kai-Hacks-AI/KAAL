@@ -21,10 +21,11 @@ The draft of the template, as it is added in the DO. Case T640 reads it. It is n
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | The DO is merged into the collector | pending | — |
-| 1 | Worker | Write the 4L retrospective in act.md, from the viewpoint of the agent that carried the Change | open | — |
-| 2 | Reviewer | Approve the Records | open | — |
-| 3 | Successor | The PROMOTION starts when the collector is complete | pending | — |
+| 0 | Predecessor | The DO has merged into the collector, which enables the ACT | pending | — |
+| 1 | Worker | Create the ACT branch, the workspace, and open a draft PR | open | — |
+| 2 | Worker | Write the 4L retrospective in act.md, from the viewpoint of the agent that carried the Change | open | — |
+| 3 | Reviewer | Review and approve the ACT records | open | — |
+| 4 | Successor | Merge the approved ACT; the collector is then eligible for PROMOTION when complete, and the merge does not promote | pending | — |
 `````
 
 ## Where it lives
@@ -33,8 +34,9 @@ The draft of the template, as it is added in the DO. Case T640 reads it. It is n
 
 ## What the chapter says
 
-The table has the four default rows: Predecessor, Worker, Reviewer, Successor. The Action of the rows:
-  - step 0 names `DO`
-  - step 1 names `4L`
-  - step 3 names `PROMOTION`
-
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 0 names `The DO has merged`
+  - step 1 names `Create the ACT branch` and `draft PR`
+  - step 2 names `4L`
+  - step 3 names `approve the ACT records`
+  - step 4 names `Merge the approved ACT` and `PROMOTION`

@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { FIXED, REAL, WHO, table } from './fixtures.mjs';
 export const id = 'release/T641';
 export const tests = ['release/C44'];
-export const title = 'the HOW TO WORK table of the ACT template has the five columns, a Predecessor first, a Successor last, sequential steps and a Who from the allowed set, and the four default rows';
+export const title = 'the HOW TO WORK table of the ACT template has the five columns, a Predecessor first, a Successor last, sequential steps and a Who from the allowed set, and the five default rows';
 export async function run() {
   assert.ok(existsSync(REAL), 'act.md is absent from 05-src/wiring/templates');
   const rows = table(readFileSync(REAL, 'utf8'));
@@ -20,5 +20,5 @@ export async function run() {
   });
   assert.equal(body[0][1], 'Predecessor');
   assert.equal(body.at(-1)[1], 'Successor');
-  assert.deepEqual(body.map((r) => r[1]), ['Predecessor', 'Worker', 'Reviewer', 'Successor'], 'the default rows are not the four');
+  assert.deepEqual(body.map((r) => r[1]), ['Predecessor', 'Worker', 'Worker', 'Reviewer', 'Successor'], 'the default rows are not the five');
 }
