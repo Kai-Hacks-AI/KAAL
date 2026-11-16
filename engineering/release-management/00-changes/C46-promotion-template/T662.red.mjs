@@ -9,9 +9,15 @@ const MUST = [
   [0, 'kaal/'],
   [0, 'hotfix/'],
   [0, 'wire/'],
-  [1, 'draft'],
-  [3, 'head'],
-  [4, 'WIRE'],
+  [0, 'single-promotion seat'],
+  [1, "main's tip"],
+  [1, 'SYNC for PROMOTION'],
+  [1, 'omit'],
+  [2, 'draft PROMOTION PR'],
+  [2, 'exact head'],
+  [3, 'exact head'],
+  [4, 'releasing the seat'],
+  [4, 'nothing starts automatically'],
 ];
 export async function run() {
   assert.ok(existsSync(REAL), 'promotion.md is absent from 05-src/wiring/templates');

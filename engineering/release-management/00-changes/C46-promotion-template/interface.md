@@ -17,15 +17,15 @@ The draft of the template, as it is added in the DO. Case T660 reads it. It is n
 
 ## HOW TO WORK
 
-<!-- The process between work and review, one row per step. The table keeps this format: Step | Who | Action | Status | Details; step 0 is the Predecessor and the last step the Successor; Who is Predecessor, Worker, Owner, Reviewer, Dependency or Successor; a Dependency row carries its pull request as #<number> in Details. Status is open or done on a Worker, Owner or Reviewer row and merged or pending on a border or Dependency row; a stale Status is accepted. The wording of a step is judged by the Reviewer. -->
+<!-- The process between work and review, one row per step. The table keeps this format: Step | Who | Action | Status | Details; step 0 is the Predecessor and the last step the Successor; Who is Predecessor, Worker, Owner, Reviewer, Dependency or Successor; a Dependency row carries its pull request as #<number> in Details. Status is open or done on a Worker, Owner or Reviewer row and merged or pending on a border or Dependency row; a stale Status is accepted. The wording of a step is judged by the Reviewer. The SYNC row is conditional: when the source is behind main's tip it is a Dependency row, renumbered in sequence, for the SYNC for PROMOTION; when the source is current the row is omitted. -->
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | Name the source kind (a kaal/<capability>/* collector, a hotfix/* branch or a wire/* branch) and its last merged pull request | pending | — |
-| 1 | Worker | Create the PROMOTION branch or pull request from the source, and open it as a draft | open | — |
-| 2 | Worker | List the Changes delivered; confirm the head holds main's tip | open | — |
+| 0 | Predecessor | The source (kaal/, hotfix/ or wire/) and its last merged PR are named and ready, and this promotion holds the single-promotion seat | pending | — |
+| 1 | Worker | Check the source holds main's tip; if behind, add a Dependency row for SYNC for PROMOTION (C45) with its #<PR> in Details and finish it first; else omit it | open | — |
+| 2 | Worker | Create the draft PROMOTION PR from the ready source; verify the Changes delivered and the exact head | open | — |
 | 3 | Reviewer | Approve the exact head | open | — |
-| 4 | Successor | Merge the approved PROMOTION; the WIRE or the next promotion starts on merge | pending | — |
+| 4 | Successor | Merge the approved PROMOTION, releasing the seat; WIRE or the next promotion is eligible on its own prerequisites, nothing starts automatically | pending | — |
 `````
 
 ## Where it lives
@@ -39,3 +39,9 @@ The table has the five default rows: Predecessor, Worker (creates the branch and
   - step 1 names `draft`
   - step 3 names `head`
   - step 4 names `WIRE`
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 0 names `kaal/` and `hotfix/` and `wire/` and `single-promotion seat`
+  - step 1 names `main's tip` and `SYNC for PROMOTION` and `omit`
+  - step 2 names `draft PROMOTION PR` and `exact head`
+  - step 3 names `exact head`
+  - step 4 names `releasing the seat` and `nothing starts automatically`
