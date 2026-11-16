@@ -48,3 +48,7 @@ T480 the stages declaration holds the stages (Developing, Integrating with Colle
 ## Not in this Change
 
 No live ruleset is created, changed or retired; no install steps are issued; the live rulesets are not read (levels 2 and 3); no Guard, approval, merge queue, scanning or other legacy control; no replacement for `Promotion Source` (C16 is a bridge); the release/C18 sources are reconciled later.
+
+## DO
+
+`05-src/stages/stages.json` (the declaration) and `05-src/stages/judge.mjs` (`judge()` and a small CLI, `node judge.mjs <root> <Ruleset>`: exit 0 pass, 1 this job fails, 2 cannot judge). The six ruleset sources replace C34's five in `05-src/wiring/rulesets/` (`integration.json` and `promotion.json` renamed `integrating.json` and `promoting.json`, `collecting.json` added, `hotfixing.json`, `wiring.json` and `publishing.json` reduced), `controls.md` reduced to the same, README updated. C34's Cases T454-T459 are retired (they judged the legacy copies); T480-T487 are GREEN. On `main` today `verify Stages (Wiring)` fails by design, because the `.githooks` structure is not there yet: it passes on #1705's head. No workflow, no live ruleset, no install.

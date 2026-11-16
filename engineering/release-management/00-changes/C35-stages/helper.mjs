@@ -13,4 +13,4 @@ export const judge = () => import(new URL("../../05-src/stages/judge.mjs", impor
 export const source = (n) => JSON.parse(readFileSync(join(RULESETS, `${n.toLowerCase()}.json`), "utf8"));
 export const ctx = (n) => `verify Stages (${n})`;
 export const contexts = (r) => (r.rules.find((x) => x.type === "required_status_checks")?.parameters.required_status_checks ?? []).map((c) => c.context);
-export const GOOD = () => ({ stages: stages(), rulesets: Object.fromEntries([...NAMES, "Publishing"].map((n) => [n, source(n)])), githooks: ["pre-push", "old/pre-push", "new/.gitkeep"] });
+export const GOOD = () => ({ stages: stages(), rulesets: Object.fromEntries([...NAMES, "Publishing"].map((n) => [n, source(n)])), githooks: ["pre-push", "old/pre-push", "new/pre-push.d/README.md"] });
