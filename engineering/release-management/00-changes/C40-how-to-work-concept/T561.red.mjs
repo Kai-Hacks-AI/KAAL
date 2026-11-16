@@ -22,4 +22,5 @@ export function run() {
   assert.ok(!/Agents Review Each-other|Durable Observations|With Experience/.test(text), 'the Definition HOW ARE WE DOING? is copied');
   for (const k of ['**TO**', '**WORK**', '**Worker**', '**Owner**', '**Reviewer**', '**Knowledge**', 'engineering/VIVA-AQUA.md']) assert.ok(text.includes(k), `the Definition lacks ${k}`);
   assert.ok(!/^\d+\. /m.test(text) && !/\b(PLAN|DO|ACT|PROMOTION|HOTFIX|WIRE)\b.*\b(step|first|then)\b/.test(text), 'the Definition prescribes a step for a type of work');
+  assert.ok(!/template|chapter|trailer/i.test(text), 'the concept knows about the templates');
 }
