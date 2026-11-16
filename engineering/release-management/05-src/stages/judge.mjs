@@ -3,7 +3,7 @@
 // stages is stages.json; rulesets maps a ruleset name (Integrating, Collecting, Hotfixing, Wiring, Promoting, Publishing)
 // to its source; hooks holds the facts of the .githooks tree: { files: { <path>: { sha256, mode } }, sources: { <path>: sha256 } }.
 // Developing is judged by its own job, verify Stages (Developing), and by no other: the declared .githooks tree is exact.
-// Integrating requires that check beside its own, so Integration challenges Developing. Publishing is reported by the
+// stages.json says what Integrating requires (`requires`; Integration challenges Developing once it lists Developing, release/C37). Publishing is reported by the
 // Promoting job (a tag ruleset cannot require a check). Anything unreadable fails closed.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { createHash } from "node:crypto";
@@ -40,7 +40,7 @@ export function judge(facts) {
     if (!same(r.bypass_actors, [])) add(name, `${name}: the bypass list is not empty`);
     const rules = r.rules ?? [];
     const checks = rules[0]?.parameters;
-    const expected = name === "Integrating" ? [job(name), job("Developing")] : [job(name)];
+    const expected = (name === "Integrating" ? integrating.requires ?? [name] : [name]).map(job); // what stages.json declares Integrating to require
     if (!same(rules.map((x) => x.type), ["required_status_checks"])) add(name, `${name}: the only rule must be required_status_checks`);
     else if (!same((checks.required_status_checks ?? []).map((c) => c.context), expected)) add(name, `${name}: the required checks must be ${expected.join(" and ")}`);
     else if (checks.strict_required_status_checks_policy !== false) add(name, `${name}: "up to date" must not be required`);

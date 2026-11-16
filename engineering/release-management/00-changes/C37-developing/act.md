@@ -10,6 +10,7 @@ Written by the agent that carried the Change.
 ## Learned
 
 - The Owner's first correction (a neighbour must not judge `.githooks`) was cheaper at the PLAN than in the code: the Wiring job already stood without it, so the move only added a job.
+- The judge that CI runs is the one on `main`, so a change to what Integrating must require cannot land in the same PR as the judge that reads it. The DO split into DO-A (the judge reads `requires`) and DO-B (the second check), found when the first PR's Integrating job went red against the old rule.
 - A check that judges the real tree is red until its own install lands. The WIRE therefore comes before the workflow, and the Case that reads the real tree (T518) ships RED with the DO and turns GREEN with the WIRE.
 - File modes are not reliable on Windows checkouts, so the mode comparison is skipped there; the sha256 comparison always runs.
 

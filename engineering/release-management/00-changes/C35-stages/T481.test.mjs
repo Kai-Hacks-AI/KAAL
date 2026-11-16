@@ -11,7 +11,7 @@ export async function run() {
     assert.equal(r.name, n.toLowerCase());
     assert.deepEqual(r.bypass_actors, [], `${n}: no bypass`);
     assert.deepEqual(r.rules.map((x) => x.type), ["required_status_checks"], `${n}: nothing but one status-check rule`);
-    assert.deepEqual(contexts(r), n === "Integrating" ? [ctx(n), ctx("Developing")] : [ctx(n)], `${n}: exactly its own check (Integrating also requires Developing, release/C37)`);
+    assert.deepEqual(contexts(r), [ctx(n)], `${n}: exactly its own check`);
     assert.equal(r.rules[0].parameters.strict_required_status_checks_policy, false, `${n}: no up to date`);
   }
   assert.deepEqual(source("Integrating").conditions.ref_name.include, ["refs/heads/kaal/**", "refs/heads/hotfix/**", "refs/heads/wire/**"]);

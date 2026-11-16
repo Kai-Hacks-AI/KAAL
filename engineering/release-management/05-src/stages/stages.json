@@ -47,6 +47,9 @@
           "name": "Wiring",
           "target": "wire/**"
         }
+      ],
+      "requires": [
+        "Integrating"
       ]
     },
     {
