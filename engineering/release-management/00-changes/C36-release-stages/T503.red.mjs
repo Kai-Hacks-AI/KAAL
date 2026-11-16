@@ -19,11 +19,11 @@ export function run() {
   const iface = join(repo, 'engineering/release-management/00-changes/C36-release-stages/interface.md');
   assert.ok(existsSync(iface), 'the interface is absent');
   const text = draft(readFileSync(iface, 'utf8'));
-  const src = join(repo, 'engineering/release-management/05-src/stages/stages-reference.md');
+  const src = join(repo, 'engineering/release-management/05-src/stage-declaration/reference.md');
   assert.ok(existsSync(src), 'the vocabulary reference is absent from the Engineering sources');
   const ref = readFileSync(src, 'utf8');
   assert.equal(ref, text, 'the reference differs from the draft');
-  for (const term of ['Stage', 'Subject', 'gate', 'Evidence', 'UNKNOWN never passes', 'authority', 'transition', 'route', 'binding']) {
+  for (const term of ['Stage', 'Subject', 'gate', 'Evidence', 'UNKNOWN never passes', 'authority', 'transition', 'destination', 'part', 'binding']) {
     assert.ok(ref.includes(term), `the reference does not state "${term}"`);
   }
   assert.ok(!/github|githooks|\bnpm\b|ruleset/i.test(ref), 'the reference names a platform');

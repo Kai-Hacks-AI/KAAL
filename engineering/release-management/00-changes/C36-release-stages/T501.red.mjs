@@ -6,16 +6,19 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const id = 'release/T501';
 export const tests = ['release/F54'];
-export const title = 'a Stage declaration names no platform, tool or registry: the binding is separate';
+export const title = 'a Stage declaration holds no platform data: no platform word, no path, no glob pattern, no branch or check name';
 
-const file = (extra) => ({ name: 'S', text: `---\ntype: Release/Stage\norder: 1\nname: Build\nsubject: candidate\ngates: [Check]\nauthority: owner-approval\ntransition: merge\ntarget: ${extra}\n---\nbody\n` });
+const file = (destination, gate = 'checked') => ({ name: 'S', text: `---\ntype: Release/Stage\norder: 1\nname: Build\nsubject: candidate\ngates: [${gate}]\nauthority: owner-approval\ntransition: integrate\ndestination: ${destination}\n---\nbody\n` });
 
 export async function run() {
-  const src = join(repo, 'engineering/release-management/05-src/stages/stage-judge.mjs');
-  assert.ok(existsSync(src), 'the stage judge is absent from the Engineering sources');
-  const { judgeStages } = await import(pathToFileURL(src).href);
-  assert.equal(judgeStages([file('next')]).valid, true);
-  for (const word of ['GitHub ruleset', 'githooks', 'npm registry', 'branch main', 'workflow']) {
-    assert.equal(judgeStages([file(word)]).valid, false, `a Stage naming "${word}" is accepted`);
+  const src = join(repo, 'engineering/release-management/05-src/stage-declaration/declaration-judge.mjs');
+  assert.ok(existsSync(src), 'the declaration judge is absent from the Engineering sources');
+  const { judgeDeclaration } = await import(pathToFileURL(src).href);
+  assert.equal(judgeDeclaration([file('next-line')]).structure, 'SOUND');
+  for (const bad of ['GitHub-ruleset', 'githooks', 'npm-registry', 'kaal/**', 'wire/*', 'trial-*@*', 'src/main.js']) {
+    assert.equal(judgeDeclaration([file(bad)]).structure, 'UNSOUND', `a destination "${bad}" is accepted`);
+  }
+  for (const bad of ['Promotion Source', 'Engineering / verify Stages (Promoting)']) {
+    assert.equal(judgeDeclaration([file('next-line', bad)]).structure, 'UNSOUND', `a gate "${bad}" is accepted`);
   }
 }
