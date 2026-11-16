@@ -11,6 +11,9 @@ export async function run() {
   bad(body(GOOD).replace('| Status |', '| State |'), 'a renamed column is accepted');
   bad(body(GOOD).replace('| 1 | Worker | does something | open | — |', '| 1 | Worker | does something | open |'), 'a row with four cells is accepted');
   bad(body(GOOD).replace('| 1 | Worker | does something | open | — |', '| 1 | Worker | does something | open | — | extra |'), 'a row with six cells is accepted');
+  bad(body(GOOD).replace('| --- | --- | --- | --- | --- |', '| --- | --- | --- | --- |'), 'a separator of four cells is accepted');
+  bad(body(GOOD).replace('| --- | --- | --- | --- | --- |', '| --- | --- | --- | --- | --- | --- |'), 'a separator of six cells is accepted');
+  bad(body(GOOD).replace('| --- | --- | --- | --- | --- |', '| --- | --- | -- | --- | --- |'), 'a separator cell of two dashes is accepted');
   bad(body(GOOD, 'Some words first.\n\n'), 'text before the table is accepted');
   bad(`${body(GOOD)}\nSome words after.\n`, 'text after the table is accepted');
   bad(`${body(GOOD)}\n${HEADER}\n${row(0, 'Predecessor')}\n${row(1, 'Successor')}\n`, 'a second table is accepted');
