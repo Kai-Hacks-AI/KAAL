@@ -39,3 +39,7 @@ No live ruleset is created, changed, enabled or retired; no required check is ad
 ## Home and relation to release/C18
 
 Per the Owner (16 Nov): the rulesets belong in release management. Set 1 therefore lives in `engineering/release-management/05-src/wiring/rulesets/`, the same `<target>.json` layout release/C18 uses. release/C18's `integration.json` and `promotion.json` (analyze Vulnerabilities contexts) are the same files: this Change's DO builds on them after that collector is synchronized with `main`, so the two contexts become rows of `controls.md` and no competing file exists. The id is release/C34, allocated by the coordinator (C17 is taken by `C17-wire-hotfix-template`).
+
+## DO
+
+The five ruleset sources `promotion.json`, `integration.json`, `hotfixing.json`, `wiring.json` and `publishing.json` and `controls.md` in `05-src/wiring/rulesets/`, derived from the live capture in `baseline-old.json`; T454-T459 renamed to `.test.mjs`, GREEN, and converted to the Case form (`id`, `tests`, `title`, `run`). T455 also reads `target` and `bypass_actors` from the JSON. No live ruleset is touched. `act.md` is the 4L retrospective.

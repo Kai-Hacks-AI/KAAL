@@ -1,11 +1,14 @@
 // Case release/T458 (release/C34): nothing of the old three is lost without a listed reason
-import { test } from "node:test";
 import assert from "node:assert/strict";
 import { set1, controls, baseline, contexts } from "./helper.mjs";
 
 const SUCCESSOR = { "old promotion": "promotion", "old integration": "integration", "old publishing": "publishing" };
 
-test("release/T458 [release/C34]: every rule type, parameter and required context of each old ruleset is in its successor or is a listed changed row", () => {
+
+export const id = "release/T458";
+export const tests = ["release/C34"];
+export const title = 'every rule type, parameter and required context of each old ruleset is in its successor or is a listed changed row';
+export async function run() {
   const s = set1(), table = controls();
   for (const old of baseline()) {
     const next = s[SUCCESSOR[old.name]];
@@ -23,4 +26,4 @@ test("release/T458 [release/C34]: every rule type, parameter and required contex
       }
     }
   }
-});
+}
