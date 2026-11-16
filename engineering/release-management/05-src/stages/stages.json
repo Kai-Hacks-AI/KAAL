@@ -3,9 +3,7 @@
     {
       "name": "Developing",
       "kind": ".githooks",
-      "dispatcher": "pre-push",
-      "old": "old/",
-      "new": "new/"
+      "judged": "later"
     },
     {
       "name": "Integrating",
