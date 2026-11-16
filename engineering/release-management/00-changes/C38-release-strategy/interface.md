@@ -28,7 +28,7 @@ challenges: Integrating > Developing (backward), Promoting > Integrating (backwa
 
 Each stage checks itself. Three challenges cross a stage boundary, and nothing else does:
 
-- **Integrating > Developing (backward):** Integrating challenges the completed Developing work, for example that the `.githooks` ran.
+- **Integrating > Developing (backward):** Integrating challenges the completed Developing work, for example that the declared `.githooks` are installed and intact. That is not evidence that the local hook executed.
 - **Promoting > Integrating (backward):** before admission to `main`, Promoting challenges Integrating's declared requirements. It does not repeat all of Integrating's tests.
 - **Promoting > Publishing (forward):** Promoting challenges that Publishing is ready, on purpose, because Publishing is a tag and no later stage can challenge it.
 
