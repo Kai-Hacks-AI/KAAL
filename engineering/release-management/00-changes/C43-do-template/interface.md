@@ -25,10 +25,11 @@ The draft of the template, as it is added in the DO. Case T630 reads it. It is n
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | The PLAN has merged; create the DO branch, the workspace, and a draft PR may open from here | pending | — |
-| 1 | Worker | Implement and refactor against the approved PLAN until the Cases are GREEN; keep to the files of the Change | open | — |
-| 2 | Reviewer | Verify the GREEN evidence and approve the DO | open | — |
-| 3 | Successor | Merge the approved DO; approval alone does not start the ACT, the merge does: the ACT starts on merge | pending | — |
+| 0 | Predecessor | The PLAN has merged into the collector, which authorizes the DO | pending | — |
+| 1 | Worker | Create the DO branch, the workspace, and open a draft PR | open | — |
+| 2 | Worker | Implement and refactor against the approved PLAN until the Cases are GREEN; keep to the files of the Change | open | — |
+| 3 | Reviewer | Verify the GREEN evidence and approve the DO | open | — |
+| 4 | Successor | Merge the approved DO; approval alone does not start the ACT, the merge does: the ACT starts on merge | pending | — |
 `````
 
 ## Where it lives
@@ -37,9 +38,9 @@ The draft of the template, as it is added in the DO. Case T630 reads it. It is n
 
 ## What the chapter says
 
-The table has the four default rows: Predecessor, Worker, Reviewer, Successor. The Action of the rows:
-  - step 0 names `The PLAN has merged` and `create the DO branch`
-  - step 1 names `GREEN`
-  - step 2 names `approve the DO`
-  - step 3 names `Merge the approved DO` and `the ACT starts on merge`
-
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 0 names `The PLAN has merged`
+  - step 1 names `Create the DO branch` and `draft PR`
+  - step 2 names `GREEN`
+  - step 3 names `approve the DO`
+  - step 4 names `Merge the approved DO` and `the ACT starts on merge`
