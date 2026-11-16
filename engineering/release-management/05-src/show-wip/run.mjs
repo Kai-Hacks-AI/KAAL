@@ -1,5 +1,6 @@
 // The Show WIP command: read the open pieces of a repository through the host's command line the environment is signed in to, show where each one is.
-// Usage: node run.mjs <owner/repo> <show-wip.json> [place]   (a place lists its branches in full; without one the overview shows counts)
+// Usage: node run.mjs <owner/repo> <show-wip.json> [overview|<place>]
+// Without a view it shows the open pieces only. `overview` adds the inventory as counts, a place name lists the branches of that place in full.
 // Read-only: it only asks the host's API. A gateway failure is read again a few times. Exit 0 when a report was printed; 2 naming what could not be read.
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -56,14 +57,17 @@ async function readPackageFacts(repoName, base) {
 }
 
 try {
-  const [repoName, configFile, place] = process.argv.slice(2);
-  if (!repoName || !configFile) throw new Error('could not start: expected <owner/repo> <show-wip.json> [place]');
+  const [repoName, configFile, view] = process.argv.slice(2);
+  if (!repoName || !configFile) throw new Error('could not start: expected <owner/repo> <show-wip.json> [overview|<place>]');
   const config = JSON.parse(readFileSync(configFile, 'utf8'));
   const { pieces, gaps } = await readOpenPulls(repoName, gh);
-  const { branches, gaps: branchGaps } = await readBranches(repoName, branchPage);
-  const { packages, gaps: packageGaps } = await readPackageFacts(repoName, config.default ?? 'main');
-  const report = showWip({ pieces, branches, packages, gaps: [...gaps, ...branchGaps, ...packageGaps] }, config);
-  process.stdout.write(render(report) + '\n' + renderInventory(report, place === undefined ? {} : { place }));
+  if (view === undefined) process.stdout.write(render(showWip({ pieces, gaps }, config)));
+  else {
+    const { branches, gaps: branchGaps } = await readBranches(repoName, branchPage);
+    const { packages, gaps: packageGaps } = await readPackageFacts(repoName, config.default ?? 'main');
+    const report = showWip({ pieces, branches, packages, gaps: [...gaps, ...branchGaps, ...packageGaps] }, config);
+    process.stdout.write(render(report) + '\n' + renderInventory(report, view === 'overview' ? {} : { place: view }));
+  }
 } catch (error) {
   console.error(`show WIP: ${error.message}`);
   process.exitCode = 2;

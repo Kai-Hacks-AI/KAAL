@@ -26,3 +26,5 @@ Run from a checkout of this branch with Node 22 and no dependencies. For each of
 ## After the DO
 
 `showWip` builds the inventory when the facts carry branches, `renderInventory` renders the overview and a dive-in, and `read.mjs` reads branches, tags and npmjs. T550 to T558 are renamed to `.test.mjs` and pass.
+
+The host-term list of `coordination/T36` no longer holds the word `branch`: the Script now names branches by design (`facts.branches`, the places). Every other host term (pull request, merge, PR, git, commit) stays forbidden. `run.mjs` reads branches and packages only when asked for a view (`overview` or a place), so the command of `coordination/T38` still reads the open pieces and nothing else.

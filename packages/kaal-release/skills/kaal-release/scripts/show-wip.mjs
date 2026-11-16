@@ -49,7 +49,7 @@ export function showWip(facts, config) {
 // The inventory: one entry per branch in its place, its pieces as transports, and per package whether main holds stock. Built only when the facts carry branches.
 const VERSION = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
 const compareVersions = (a, b) => {
-  const [x, y] = [a, b].map((v) => VERSION.exec(v) ?? []);
+  const [x, y] = [a, b].map((v) => String(v).match(VERSION) ?? []);
   for (let i = 1; i <= 3; i++) if (Number(x[i]) !== Number(y[i])) return Number(x[i]) - Number(y[i]);
   return x[4] === y[4] ? 0 : x[4] === undefined ? 1 : y[4] === undefined ? -1 : x[4] < y[4] ? -1 : 1;
 };
