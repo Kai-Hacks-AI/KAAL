@@ -14,7 +14,7 @@ const draft = () => {
 };
 export const id = 'release/T561';
 export const tests = ['release/C40'];
-export const title = 'the Definition equals its draft, names HOW without copying it, states TO and the four parts of WORK, and prescribes no step for a type';
+export const title = 'the Definition equals its draft, names HOW without copying it, states TO and the four parts of WORK, prescribes no step for a type and does not know about the templates';
 export function run() {
   const text = read();
   assert.equal(text, draft(), 'HOW-TO-WORK.md differs from the draft');

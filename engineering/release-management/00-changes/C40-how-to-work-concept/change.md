@@ -7,7 +7,7 @@
 3. **Because.** The concept is the entry point every template will point to later. Landing it first lets each template Change be PLANned on its own against a definition that already exists.
 4. **Cases.** T560 to T562, all RED on `main`:
    - T560: the Definition exists at the new place, has the Definition frontmatter and the exact sentence, says Orchestrates and not Orchestrated, and no `engineering/HOW-TO-WORK.md` exists.
-   - T561: it equals the draft; HOW is named as the first word of `HOW ARE WE DOING?` and none of that Definition's text is copied; TO and WORK state their parts; it prescribes no step for a type.
+   - T561: it equals the draft; HOW is named as the first word of `HOW ARE WE DOING?` and none of that Definition's text is copied; TO and WORK state their parts; it prescribes no step for a type and does not mention any template, chapter or trailer.
    - T562: it states the resolution rule once, every path it names exists, none points into `packages/`, and it stays under 30 lines.
 5. **Not in this Change.** The eight guidance files, any trailer in a PR template, the envelope check, requirement F23, installing anything into `.github`, moving TO into Testing and WORK into a roles Definition, and deploying Review into `.kaal/`. Each template is a later Change with its own PLAN, in the order the Owner sets.
 
