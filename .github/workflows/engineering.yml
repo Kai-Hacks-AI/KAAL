@@ -1,5 +1,6 @@
-# Engineering / verify Stages (release/C35, level 1): do the delivery stages exist in Engineering? One job per ruleset,
+# Engineering / verify Stages (release/C35, level 1; release/C37 adds Developing): do the delivery stages exist in Engineering? One job per ruleset,
 # named `verify Stages (<Ruleset>)`; a ruleset binds the job name alone, so each ruleset of set 1 requires its own.
+# `Developing` is the stage before Integration (.githooks); `integrating` requires it beside its own check.
 # The judge is the default branch's own (trusted); the candidate's sources are only read, never run. A job reads the
 # ruleset sources and stages.json of the head commit and fails closed when they cannot be read. It runs on every
 # pull request so that, once required, it reports on every one. Nothing requires these checks until the Owner
@@ -20,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruleset: [Integrating, Collecting, Hotfixing, Wiring, Promoting]
+        ruleset: [Integrating, Developing, Collecting, Hotfixing, Wiring, Promoting]
     steps:
       - name: Check out the default branch (the trusted judge)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
