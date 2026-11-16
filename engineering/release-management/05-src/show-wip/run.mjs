@@ -30,7 +30,7 @@ const branchPage = async ([, repoName, after]) => {
 };
 // npmjs is public: a package it does not know is never published (404); any other failure is not read.
 const npm = async (name) => {
-  const answer = await fetch(`https://registry.npmjs.org/${name.replace('/', '%2F')}`);
+  const answer = await fetch(`https://registry.npmjs.org/${name.replace(/\//g, '%2F')}`);
   if (answer.status === 404) return null;
   if (!answer.ok) throw new Error(`npmjs answered ${answer.status}`);
   const body = await answer.json();
