@@ -1,6 +1,6 @@
 # release/C34 change: ruleset set 1, as source in Engineering, built from controls
 
-Owner direction (16 Nov 2026): rulesets are in Engineering; we get set 1 together; the rulesets are set up from controls (ruleset settings are controls, not only required checks). Baseline 0 is `.githooks` on `main`; the `wiring` ruleset of this set is what admits it (C16 reads the head branch's own rulesets). This builds on release/C29 (the target set of five, PLAN merged into `kaal/release/ruleset-set`, DO not authorized) and replaces nothing of it: C29 names the five; this Change delivers them as source. Ids C17 and T454-T459 were checked on `main` only, not against every collector and open PR.
+Owner direction (16 Nov 2026): rulesets are in Engineering; we get set 1 together; the rulesets are set up from controls (ruleset settings are controls, not only required checks). Baseline 0 is `.githooks` on `main`; the `wiring` ruleset of this set is what admits it (C16 reads the head branch's own rulesets). This builds on release/C29 (the target set of five, PLAN merged into `kaal/release/ruleset-set`, DO not authorized) and replaces nothing of it: C29 names the five; this Change delivers them as source. Ids C34 (coordinator-allocated) and T454-T459 were checked against all branches on 16 Nov.
 
 ## From, to, because
 
