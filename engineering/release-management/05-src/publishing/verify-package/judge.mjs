@@ -1,8 +1,8 @@
-// release/CTL3 readiness before pack: the judge (release/C50). Pure: it judges facts handed to it and
+// release/CTL3 verify Package: the judge (release/C50). Pure: it judges facts handed to it and
 // touches no host, registry or file. The scope and the repository come from the declaration.
 const EXACT = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
-export function judgeReadiness({ manifest, directory, registry }, declaration) {
+export function judgePackage({ manifest, directory, registry }, declaration) {
   const findings = [];
   const add = (rule, message, kind = 'failed') => findings.push({ rule, kind, message });
   const { name, version } = manifest;

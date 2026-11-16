@@ -12,6 +12,6 @@ export function manifest(change = {}) {
 }
 export const registry = (change = {}) => ({ '@kaihacksai/kaal-example': [], '@kaihacksai/kaal-foundation': ['0.0.1'], ...change });
 export async function judge() {
-  const mod = await import('../../05-src/publishing/readiness/judge.mjs').catch(() => null);
+  const mod = await import('../../05-src/publishing/verify-package/judge.mjs').catch(() => null);
   return mod;
 }
