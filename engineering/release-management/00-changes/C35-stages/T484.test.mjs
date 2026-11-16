@@ -8,7 +8,7 @@ export const title = "the judge reads Developing, the .githooks stage that Wirin
 export async function run() {
   const { judge: j } = await judge();
   assert.equal(j(GOOD()).kind, "pass");
-  for (const missing of ["pre-push", "old/pre-push", "new/.gitkeep"]) {
+  for (const missing of ["pre-push", "old/pre-push", "new/pre-push.d/README.md"]) {
     const g = GOOD(); g.githooks = g.githooks.filter((f) => f !== missing);
     const r = j(g);
     assert.equal(r.kind, "fail", `${missing} missing`);
