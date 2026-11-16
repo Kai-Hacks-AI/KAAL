@@ -6,11 +6,16 @@ export const id = 'release/T652';
 export const tests = ['release/C45'];
 export const title = 'the rows of the SYNC template say what this type of pull request needs: each named word is in the Action of its row, and every Action is one short line';
 const MUST = [
+  [0, 'For PROMOTION'],
+  [0, 'to unblock'],
   [1, 'tip'],
   [1, 'draft PR'],
   [2, 'merge commit'],
-  [3, 'merge commit'],
-  [4, 'PROMOTION'],
+  [3, 'purpose'],
+  [3, 'evidence'],
+  [4, 'for PROMOTION the promotion review'],
+  [4, 'not an automatic promotion'],
+  [4, 'the blocked development resumes'],
 ];
 export async function run() {
   assert.ok(existsSync(REAL), 'sync.md is absent from 05-src/wiring/templates');

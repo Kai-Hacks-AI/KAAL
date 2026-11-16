@@ -11,7 +11,7 @@ The draft of the template, as it is added in the DO. Case T650 reads it. It is n
 
 ## Reason
 
-<!-- Why this Change needs the synchronization now: to make a promotion fresh, to unblock development, or another specific purpose. One short paragraph. If several Changes would benefit, say why this one is the primary driver and name another only with its relationship. If it decides something itself at a conflict, say what here. -->
+<!-- Why this Change needs the synchronization now. Start with the purpose, exactly one of: `for PROMOTION` or `to unblock development`. A SYNC is never routine branch maintenance. For PROMOTION: the collector is ready for promotion and must take in current main; name the promotion candidate and its place in the promotion queue, preferring one promotion at a time. To unblock development: the branch is blocked because it lacks specific changes of main; name the concrete blocker and why a SYNC is necessary, and use it only for an otherwise blocked branch. One short paragraph. If several Changes would benefit, say why this one is the primary driver and name another only with its relationship. If it decides something itself at a conflict, say what here. -->
 
 ## HOW TO WORK
 
@@ -19,11 +19,11 @@ The draft of the template, as it is added in the DO. Case T650 reads it. It is n
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | The promotion or the work that needs main is named, with its pull request | pending | — |
+| 0 | Predecessor | For PROMOTION: the candidate and its place in the queue; to unblock: the blocked branch and its concrete blocker; each with its pull request | pending | — |
 | 1 | Worker | Create the SYNC branch from the collector's tip, the workspace, and open a draft PR | open | — |
 | 2 | Worker | Merge a main commit into it and resolve every conflict explicitly in that merge commit | open | — |
-| 3 | Reviewer | Confirm the merge commit names the main commit and holds only the conflict resolutions | open | — |
-| 4 | Successor | Merge the approved SYNC with a merge commit; the PROMOTION or the unblocked work starts on merge | pending | — |
+| 3 | Reviewer | Confirm the purpose and the evidence of its trigger, and that the merge commit names the main commit and holds only conflict resolutions | open | — |
+| 4 | Successor | Merge the approved SYNC; for PROMOTION the promotion review starts, not an automatic promotion; to unblock, the blocked development resumes | pending | — |
 `````
 
 ## Where it lives
@@ -37,3 +37,10 @@ The table has the five default rows: Predecessor, Worker (creates the branch and
   - step 2 names `merge commit`
   - step 3 names `merge commit`
   - step 4 names `PROMOTION`
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 0 names `For PROMOTION` and `to unblock`
+  - step 1 names `tip` and `draft PR`
+  - step 2 names `merge commit`
+  - step 3 names `purpose` and `evidence`
+  - step 4 names `for PROMOTION the promotion review` and `not an automatic promotion` and `the blocked development resumes`
+  - the Reason chapter of the draft (Case T653) names the purposes `for PROMOTION` and `to unblock development`, the evidence each needs (`promotion queue`, `concrete blocker`) and that a SYNC is `never routine branch maintenance`

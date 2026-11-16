@@ -12,6 +12,7 @@
 | release/T650 | release/C45 | RED: sync.md is absent from 05-src/wiring/templates |
 | release/T651 | release/C45 | RED: sync.md is absent from 05-src/wiring/templates |
 | release/T652 | release/C45 | RED: sync.md is absent from 05-src/wiring/templates |
+| release/T653 | release/C45 | RED: sync.md is absent from 05-src/wiring/templates |
 
 3 RED-observed, 0 error, 0 green. Each fails on its own assertion, not on a missing module.
 

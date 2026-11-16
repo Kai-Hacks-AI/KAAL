@@ -2,13 +2,13 @@
 
 ## PLAN
 
-1. Add the draft of the template in `interface.md`, and the Cases T650 to T652 (RED).
+1. Add the draft of the template in `interface.md`, and the Cases T650 to T653 (RED).
 2. Observe the expected RED, and that each Case can pass with the DO's content (`evidence.md`).
 3. The PLAN adds no template file, no `.github` file, no check and no ruleset.
 
 ## Ids
 
-Allocated by the coordinator on 16 Nov 2026: Change `release/C45`, Cases T650 to T659 (three used). The gap `release/G77` is the next free in release.
+Allocated by the coordinator on 16 Nov 2026: Change `release/C45`, Cases T650 to T659 (four used). The gap `release/G77` is the next free in release.
 
 ## DO
 
