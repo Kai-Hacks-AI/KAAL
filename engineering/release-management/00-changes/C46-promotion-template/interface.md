@@ -22,9 +22,10 @@ The draft of the template, as it is added in the DO. Case T660 reads it. It is n
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
 | 0 | Predecessor | Name the source kind (a kaal/<capability>/* collector, a hotfix/* branch or a wire/* branch) and its last merged pull request | pending | — |
-| 1 | Worker | List the Changes delivered; confirm the head holds main's tip | open | — |
-| 2 | Reviewer | Approve the exact head | open | — |
-| 3 | Successor | The WIRE or the next promotion starts on merge | pending | — |
+| 1 | Worker | Create the PROMOTION branch or pull request from the source, and open it as a draft | open | — |
+| 2 | Worker | List the Changes delivered; confirm the head holds main's tip | open | — |
+| 3 | Reviewer | Approve the exact head | open | — |
+| 4 | Successor | Merge the approved PROMOTION; the WIRE or the next promotion starts on merge | pending | — |
 `````
 
 ## Where it lives
@@ -33,9 +34,8 @@ The draft of the template, as it is added in the DO. Case T660 reads it. It is n
 
 ## What the chapter says
 
-The table has the four default rows: Predecessor, Worker, Reviewer, Successor. The Action of the rows:
-  - step 0 names `kaal/`
-  - step 0 names `hotfix/`
-  - step 0 names `wire/`
-  - step 2 names `head`
-
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 0 names `kaal/` and `hotfix/` and `wire/`
+  - step 1 names `draft`
+  - step 3 names `head`
+  - step 4 names `WIRE`
