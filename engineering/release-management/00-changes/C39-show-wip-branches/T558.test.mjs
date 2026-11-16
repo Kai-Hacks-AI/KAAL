@@ -18,12 +18,14 @@ export async function run() {
   const failing = await readBranches('o/r', async () => { throw new Error('gateway'); }).then(() => 'read', (e) => e.message);
   assert.match(failing, /gateway/, 'a failed read is not reported');
 
-  const pkgs = [{ name: 'kaal-a', version: '0.0.1', private: true }, { name: 'kaal-b', version: '0.0.1', private: false }];
-  const out = await readPackages({ packages: pkgs, tags: ['kaal-a@0.0.1', 'other-tag'], npm: async (name) => (name === 'kaal-a' ? null : { versions: ['0.0.1'], distTags: { latest: '0.0.1' } }), changedSince: async (name) => name === 'kaal-b' });
+  const pkgs = [{ name: 'kaal-a', version: '0.0.1', private: true }, { name: 'kaal-b', version: '0.0.1', private: false }, { name: 'kaal-c', version: '0.0.1', private: false }];
+  const out = await readPackages({ packages: pkgs, tags: ['kaal-a@0.0.1', 'kaal-c@0.0.1', 'other-tag'], npm: async (name) => (name === 'kaal-a' ? null : { versions: ['0.0.1'], distTags: { latest: '0.0.1' } }), changedSince: async (name) => name === 'kaal-c' });
   assert.equal(out.packages[0].published, null, 'a never-published private package was not read as unpublished');
   assert.deepEqual(out.packages[0].tags, ['0.0.1']);
   assert.deepEqual(out.packages[1].published, { versions: ['0.0.1'], distTags: { latest: '0.0.1' } }, 'every published version and dist-tag is read, not latest alone');
-  assert.equal(out.packages[1].changedSinceTag, true, 'the package-specific comparison was not read');
+  assert.ok(!('changedSinceTag' in out.packages[1]), 'a package with no tag was compared with a tag');
+  assert.deepEqual(out.packages[2].tags, ['0.0.1']);
+  assert.equal(out.packages[2].changedSinceTag, true, 'the package-specific comparison was not read');
   assert.deepEqual(out.packages[1].tags, [], 'a tag of another package was attached');
   const lost = await readPackages({ packages: pkgs, tags: undefined, npm: async () => { throw new Error('npmjs down'); }, changedSince: async () => undefined });
   assert.ok(lost.gaps.some((g) => g.includes('npmjs')) && lost.gaps.some((g) => g.includes('tags')), 'what could not be read is not named');
