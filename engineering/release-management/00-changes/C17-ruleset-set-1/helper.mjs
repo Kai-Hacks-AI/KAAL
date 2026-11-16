@@ -12,4 +12,4 @@ export const rule = (r, type) => r.rules.find((x) => x.type === type);
 export const contexts = (r) => (rule(r, "required_status_checks")?.parameters.required_status_checks ?? []).map((c) => c.context);
 export const GUARD = ["Guard", "Guard (macOS)", "Guard (Windows)"];
 export const have = (p) => existsSync(join(ROOT, p));
-export const listed = () => (existsSync(join(ROOT, "set-1")) ? readdirSync(join(ROOT, "set-1")).sort() : []);
+export const listed = () => (existsSync(ROOT) ? readdirSync(ROOT).filter((f) => NAMES.includes(f.replace(/\.json$/, "")) && f.endsWith(".json")).sort() : []);

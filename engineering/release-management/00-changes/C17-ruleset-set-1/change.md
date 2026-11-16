@@ -35,3 +35,7 @@ T454 set 1 is exactly five rulesets (promotion, integration, hotfixing, wiring, 
 ## Not in this Change
 
 No live ruleset is created, changed, enabled or retired; no required check is added beyond Guard in promotion; no hotfix qualifier, WIRE judge check or Guard-for-tags design (their own Changes); no replacement for `Promotion Source` (C16 is a bridge); no change to release/C29's record.
+
+## Home and relation to release/C18
+
+Per the Owner (16 Nov): the rulesets belong in release management. Set 1 therefore lives in `engineering/release-management/05-src/wiring/rulesets/`, the same `<target>.json` layout release/C18 uses. release/C18's `integration.json` and `promotion.json` (analyze Vulnerabilities contexts) are the same files: this Change's DO builds on them after that collector is synchronized with `main`, so the two contexts become rows of `controls.md` and no competing file exists. The folder id `C17` also exists in release-management (`C17-wire-hotfix-template`); the coordinator is asked for a free id before the DO.
