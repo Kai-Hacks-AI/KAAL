@@ -1,9 +1,8 @@
-// Shared reading for the release/C37 Cases. The Developing judgement, the local script and the second Integrating check are
-// sources of this Change; they do not exist on main, so every Case is RED at the PLAN.
-import { readFileSync, readdirSync, statSync, mkdtempSync, cpSync, rmSync, writeFileSync, chmodSync, existsSync } from "node:fs";
+// Shared reading for the release/C37 Cases.
+import { readFileSync, mkdtempSync, cpSync, rmSync, writeFileSync, chmodSync, existsSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 import { tmpdir } from "node:os";
 
 export const ROOT = fileURLToPath(new URL("../../../../", import.meta.url));
@@ -17,16 +16,14 @@ export const ctx = (n) => `verify Stages (${n})`;
 export const contexts = (r) => (r.rules.find((x) => x.type === "required_status_checks")?.parameters.required_status_checks ?? []).map((c) => c.context);
 export const sha = (file) => createHash("sha256").update(readFileSync(file)).digest("hex");
 
-// the facts the Developing job reads from a checkout: every file under .githooks with its sha256 and mode,
-// and the sha256 of every source the declaration names
-const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]));
-export function hooksFacts(root = ROOT) {
-  const base = join(root, ".githooks");
-  const files = {};
-  for (const f of walk(base)) files[relative(base, f).split("\\").join("/")] = { sha256: sha(f), mode: (statSync(f).mode & 0o777).toString(8) };
-  const sources = {};
-  for (const d of stages().stages.find((s) => s.name === "Developing").files ?? []) {
-    if (d.source) sources[d.source] = sha(join(root, "engineering/release-management/05-src", d.source));
+// the facts of the agreed .githooks tree, built from the declaration and the sources it names (the real tree equals it once
+// the local script is installed by the WIRE of this Change; the Cases that read a real tree install the script first)
+export function hooksFacts() {
+  const dev = stages().stages.find((s) => s.name === "Developing");
+  const files = {}, sources = {};
+  for (const d of dev.files) {
+    if (d.source) sources[d.source] = sha(join(SRC, d.source));
+    files[d.path] = { sha256: d.sha256 ?? sources[d.source] ?? sha(join(ROOT, ".githooks", d.path)), mode: d.mode };
   }
   return { files, sources };
 }
@@ -41,6 +38,9 @@ export function tmpTree(change = () => {}) {
   const dir = mkdtempSync(join(tmpdir(), "c37-"));
   cpSync(join(ROOT, ".githooks"), join(dir, ".githooks"), { recursive: true });
   cpSync(SRC, join(dir, "engineering/release-management/05-src"), { recursive: true });
+  const script = "new/pre-push.d/verify-stages-developing"; // installed by the WIRE of this Change; present here so the tree is the agreed one
+  if (!existsSync(join(dir, ".githooks", script))) cpSync(join(SRC, "wiring/hooks/verify-stages-developing"), join(dir, ".githooks", script));
+  chmodSync(join(dir, ".githooks", script), 0o755);
   change(dir);
   return { dir, done: () => rmSync(dir, { recursive: true, force: true }) };
 }

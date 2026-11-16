@@ -33,19 +33,26 @@ The judge reads the candidate's `.githooks` (sha256 and mode of every file) and 
 
 ## Landing order (each its own PR; the Owner's step is last)
 
-1. **PLAN** into collector `kaal/engineering/developing`, CPO exact-head approval; T510-T517 RED.
-2. **DO + ACT** into the same collector: `stages.json`, the judge, `integrating.json` with the second check, the script source, `controls.md` and README updated, the affected C35 Cases adapted (T481, T484, T485, T486 name `Developing` and the second integrating check), T510-T517 GREEN.
-3. **PROMOTION** of the collector to `main`: source only; no workflow, no install.
-4. **WIRE** `wire/githooks-developing`: installs the script into `.githooks/new/pre-push.d/` from the source on `main`, verified against it. It is admitted on `(Integrating)` and `(Wiring)` as before.
-5. **`.github` alone** on collector `kaal/engineering/developing-workflow`, cut from `main` after step 3: the `Developing` entry in the matrix of `engineering.yml`.
-6. **SYNC** `main` into that collector, only if `main` moved.
-7. **PROMOTION** of the workflow to `main`. The first Developing run is green because step 4 has landed.
-8. **Owner:** update the live ruleset `integrating` to require both checks, from the new `integrating.json`, only after one green Developing run. Only this step touches GitHub settings.
+The judge that CI runs is always the one on `main` (trusted), so a PR that changes what Integrating must require is judged by the old rule and cannot be green. The rule therefore changes in two steps: first the judge learns to read what `stages.json` says Integrating requires (`requires`, default Integrating alone), then a second small DO declares the second check and changes `integrating.json` together.
 
-## Cases (all RED on `main`)
+1. **PLAN** into collector `kaal/engineering/developing`, CPO exact-head approval; T510-T518 RED. (Done, #1741.)
+2. **DO-A + ACT** into the same collector: `stages.json` (Developing judged and exact, `requires` for Integrating), the judge with the Developing job and the `requires` reading, the script source, the affected C35 helper, T510, T511, T512, T515, T517 GREEN; T513, T514, T516 (the second check) and T518 (the installed tree) stay RED. `integrating.json` is unchanged, so the trusted judge stays green.
+3. **PROMOTION A** of the collector to `main`: source only.
+4. **WIRE** `wire/githooks-developing`: installs the script into `.githooks/new/pre-push.d/` from the source on `main`; T518 turns GREEN.
+5. **DO-B** into the same collector (synced with `main` first if it moved): `requires` becomes Integrating and Developing, `integrating.json` requires both, `controls.md` and README, T481, T485 and T486 name the second check, T513, T514 and T516 turn GREEN.
+6. **PROMOTION B** of the collector to `main`: source only.
+7. **`.github` alone** on collector `kaal/engineering/developing-workflow`, cut from `main` after step 6: the `Developing` entry in the matrix of `engineering.yml`.
+8. **PROMOTION** of the workflow to `main`. The first Developing run is green because step 4 has landed.
+9. **Owner:** update the live ruleset `integrating` to require both checks, from the new `integrating.json`, only after one green Developing run. Only this step touches GitHub settings.
 
-T510 the declaration judges Developing with the exact expected files, modes and the legacy sha256. T511 the judge passes the agreed tree and fails each departure under the Developing job alone, and fails closed. T512 a broken `.githooks` fails only `verify Stages (Developing)`; the other five jobs do not judge it. T513 `integrating` requires both checks, the other four rulesets only their own. T514 C16 admits a `wire/*` head only when `(Integrating)`, `(Developing)` and `(Wiring)` are green on the exact head. T515 the local script is POSIX sh, runs the Developing judgement of the same judge, passes the agreed tree and fails a changed dispatcher or an unreadable declaration. T516 the check names are unique and follow the naming guidance, distinct from `Guard` and the CI job `Engineering`. T517 `node judge.mjs <root> Developing` exits 0, 1 and 2.
+## Cases (all RED on `main` at the PLAN)
+
+T510 the declaration judges Developing with the exact expected files, modes and the legacy sha256. T511 the judge passes the agreed tree and fails each departure under the Developing job alone, and fails closed. T512 a broken `.githooks` fails only `verify Stages (Developing)`; the other five jobs do not judge it. T513 `integrating` requires both checks, the other four rulesets only their own. T514 C16 admits a `wire/*` head only when `(Integrating)`, `(Developing)` and `(Wiring)` are green on the exact head. T515 the local script is POSIX sh, runs the Developing judgement of the same judge, passes the agreed tree and fails a changed dispatcher or an unreadable declaration. T516 the check names are unique and follow the naming guidance, distinct from `Guard` and the CI job `Engineering`. T517 `node judge.mjs <root> Developing` exits 0, 1 and 2. T518 the installed `.githooks` tree of the repository passes the Developing judgement: shipped RED with the DO, renamed to `.test.mjs` by the WIRE that installs the script.
 
 ## Not in this Change
 
 No live ruleset is created, changed or retired (step 8 is the Owner's, after the Change landed); no `post-checkout` hook; no level 2 or 3 test (a standalone test, separate); no change to `.github` outside step 5; no judgement of how a branch skipped the hooks beyond requiring the check (a later Change may add evidence that the hook ran); no replacement for `Promotion Source`.
+
+## DO-A
+
+`05-src/stages/stages.json` declares Developing as judged and exact with its four files, and Integrating's `requires` (Integrating only for now). `05-src/stages/judge.mjs` judges the `.githooks` facts under `verify Stages (Developing)` alone, reads what Integrating must require from `stages.json`, and its CLI reads the checkout's `.githooks` (`readHooks`). `05-src/wiring/hooks/verify-stages-developing` is the local script (POSIX sh, exit 0, 1 or 2 as the judge). T510, T511, T512, T515 and T517 are GREEN. C35: T484 is retired (Developing is judged now) and the C35 Cases helper carries the Developing facts. T513, T514 and T516 (the second check in `integrating`) ship RED and turn GREEN with DO-B; T518 ships RED and turns GREEN with the WIRE. On the live tree the Developing judgement is RED until the WIRE of step 4 installs the script, so no workflow runs it before then. Level 1 on `main` stays green for the other five jobs.

@@ -6,11 +6,20 @@ import { join } from "node:path";
 
 export const SRC = fileURLToPath(new URL("../../05-src/", import.meta.url));
 export const RULESETS = join(SRC, "wiring/rulesets");
-// the six GitHub rulesets of set 1 that carry a check, then Publishing, which is tag based and carries none
+// the five branch rulesets of set 1 (Integrating also requires Developing, release/C37); Publishing is tag based and carries no check
 export const NAMES = ["Integrating", "Collecting", "Hotfixing", "Wiring", "Promoting"];
 export const stages = () => JSON.parse(readFileSync(join(SRC, "stages/stages.json"), "utf8"));
 export const judge = () => import(new URL("../../05-src/stages/judge.mjs", import.meta.url).href);
 export const source = (n) => JSON.parse(readFileSync(join(RULESETS, `${n.toLowerCase()}.json`), "utf8"));
 export const ctx = (n) => `verify Stages (${n})`;
 export const contexts = (r) => (r.rules.find((x) => x.type === "required_status_checks")?.parameters.required_status_checks ?? []).map((c) => c.context);
-export const GOOD = () => ({ stages: stages(), rulesets: Object.fromEntries([...NAMES, "Publishing"].map((n) => [n, source(n)])) });
+// the Developing facts are the agreed .githooks tree as the declaration states it (release/C37 judges the real tree)
+const hooks = () => {
+  const files = {}, sources = {};
+  for (const d of stages().stages.find((s) => s.name === "Developing").files) {
+    if (d.source) sources[d.source] = "s".repeat(1) + d.source;
+    files[d.path] = { sha256: d.sha256 ?? sources[d.source] ?? "0", mode: d.mode };
+  }
+  return { files, sources };
+};
+export const GOOD = () => ({ stages: stages(), rulesets: Object.fromEntries([...NAMES, "Publishing"].map((n) => [n, source(n)])), hooks: hooks() });
