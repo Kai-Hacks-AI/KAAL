@@ -1,5 +1,5 @@
 {
-  "note": "What the control needs from set 1: one required context per stage, and nothing else. Applies nothing. Applied only on the Owner's go, additively, never to the old three rulesets.",
+  "note": "What the control needs from set 1: one required context per stage, and nothing else. Applies nothing. The control stays detective whether or not a ruleset consumes it; requiring it is a separate preventive control with its own explicit Owner decision, additive, never to the old three rulesets.",
   "control": "analyze Vulnerabilities",
   "per_stage": [
     {

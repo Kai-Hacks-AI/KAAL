@@ -14,7 +14,7 @@ Not authorized by this PLAN. Each step is its own reviewed Change or DO, in this
 2. PROMOTION of that collector, then a WIRE (`wire/analyze-vulnerabilities`) that installs the workflow into `.github/workflows/`. `.github` travels alone.
 3. Record one real merge-queue run: the run URL and the two check-run names as GitHub reports them, with the integration ID, in `acceptance.md` (A4). Text alone is not proof. Closes G71 (T583).
 4. The CTL item `release/CTL<n>` (id, title, description, `has: [I4]`, control test beside it pointing back), declared once controls/C9 and controls/C10 are on `main`. Its gap and Case are added in that step, once the CTL format is on `main`; this PLAN names no gap for it because it has no Case that can run RED yet.
-5. The Owner's go: add the contexts to the live `integrating` and `promoting`; only then retire `dependency-review.yml`. Nothing here installs a ruleset.
+5. Retire `dependency-review.yml` only once the equivalence evidence of `transition.md` step 2 is recorded (every target route, a finding and a clean case, and the merge-queue behavior); one clean run is not enough. Requiring the contexts in a live ruleset is enforcement, a separate preventive control with its own explicit Owner decision, and is not part of this Change. Nothing here installs a ruleset.
 
 ## ACT
 
