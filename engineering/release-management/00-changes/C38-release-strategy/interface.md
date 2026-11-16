@@ -19,7 +19,7 @@ A change walks four stages. Each stage has one gate that must pass before the ch
 challenges: Integrating > Developing (backward), Promoting > Integrating (backward), Promoting > Publishing (forward)
 ```
 
-- **Developing:** work on any branch; the `.githooks` check runs before a push.
+- **Developing:** work on any branch; the `.githooks` check is intended to run before a push, for early developer feedback. Execution on a developer-controlled machine cannot be guaranteed, so CI is the first enforceable boundary.
 - **Integrating:** work lands on a collector `kaal/<capability>/<concern>` (Collecting), on `hotfix/*` (Hotfixing) or on `wire/*` (Wiring). Wiring installs approved tooling from `main` and develops nothing.
 - **Promoting:** a PR into `main` through the merge queue, squashed, one at a time, with the CPO's approval of the exact head.
 - **Publishing:** a tag, then npmjs only on the Owner's go.
