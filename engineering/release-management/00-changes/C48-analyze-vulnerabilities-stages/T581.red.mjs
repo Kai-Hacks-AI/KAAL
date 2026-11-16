@@ -15,7 +15,7 @@ export function run() {
   const text = read(join(wiring, 'rulesets/controls.md'), 'the controls table');
   assert.match(text, /detective reports/i, 'controls.md has no section of detective reports');
   for (const p of needs().per_stage) {
-    assert.ok(new RegExp(`${p.stage}[^\\n]*${p.context.replace(/[()]/g, '\\$&')}|${p.context.replace(/[()]/g, '\\$&')}[^\\n]*${p.stage}`).test(text), `controls.md does not tie ${p.context} to ${p.stage}`);
+    assert.ok(text.split('\n').some((line) => line.includes(p.stage) && line.includes(p.context)), `controls.md does not tie ${p.context} to ${p.stage}`);
   }
   for (const name of ['integrating', 'collecting', 'hotfixing', 'wiring', 'promoting', 'publishing']) {
     const file = join(wiring, `rulesets/${name}.json`);
