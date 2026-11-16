@@ -119,7 +119,8 @@ export function howToWorkProblems(body) {
   if (at.some((i, n) => n > 0 && i !== at[n - 1] + 1)) problems.push(found('holds more than one table'));
   const table = at.map((i) => raw[i]);
   if (JSON.stringify(cellsOf(table[0])) !== JSON.stringify(HOW_TO_WORK)) problems.push(found(`must have the five columns ${HOW_TO_WORK.join(', ')} as its header`));
-  if (table.length < 2 || !cellsOf(table[1]).length || !cellsOf(table[1]).every((c) => /^:?-{3,}:?$/.test(c))) problems.push(found('has no separator line under its header'));
+  const separator = table.length < 2 ? [] : cellsOf(table[1]);
+  if (separator.length !== HOW_TO_WORK.length || !separator.every((c) => /^:?-{3,}:?$/.test(c))) problems.push(found(`has no separator line of ${HOW_TO_WORK.length} cells under its header`));
   const rows = table.slice(2).map(cellsOf);
   if (rows.length < 2) problems.push(found('needs at least a Predecessor row and a Successor row'));
   rows.forEach((cells, n) => {
