@@ -8,6 +8,6 @@ export const title = "the check names are unique and exactly verify Stages (<Nam
 export async function run() {
   const all = NAMES.flatMap((n) => contexts(source(n)));
   assert.deepEqual(all.slice().sort(), NAMES.map(ctx).sort());
-  assert.equal(new Set(all).size, all.length, "unique");
+  assert.equal(new Set(all).size, all.length, "unique: no shared control is duplicated across rulesets");
   for (const c of all) assert.ok(c !== "Engineering" && !/^Guard/.test(c), `${c} is distinct from the CI job and from Guard`);
 }

@@ -14,5 +14,7 @@ export async function run() {
   assert.deepEqual(r.rules.map((x) => x.type), ["update"], "a tag ruleset needs a rule; update is the smallest: a published tag cannot be moved");
   const { judge: j } = await judge();
   const g = GOOD(); delete g.rulesets.Publishing;
-  assert.equal(j(g).kind, "fail", "Publishing missing");
+  const out = j(g);
+  assert.equal(out.kind, "fail", "Publishing missing");
+  assert.deepEqual(out.checks, ["verify Stages (Promoting)"], "Publishing is judged by the Promoting job");
 }

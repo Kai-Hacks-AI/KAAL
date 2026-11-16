@@ -6,7 +6,8 @@ import { join } from "node:path";
 
 export const SRC = fileURLToPath(new URL("../../05-src/", import.meta.url));
 export const RULESETS = join(SRC, "wiring/rulesets");
-export const NAMES = ["Collectors", "Hotfixing", "Wiring", "Promotion"];
+// the six GitHub rulesets of set 1 that carry a check, then Publishing, which is tag based and carries none
+export const NAMES = ["Integrating", "Collecting", "Hotfixing", "Wiring", "Promoting"];
 export const stages = () => JSON.parse(readFileSync(join(SRC, "stages/stages.json"), "utf8"));
 export const judge = () => import(new URL("../../05-src/stages/judge.mjs", import.meta.url).href);
 export const source = (n) => JSON.parse(readFileSync(join(RULESETS, `${n.toLowerCase()}.json`), "utf8"));

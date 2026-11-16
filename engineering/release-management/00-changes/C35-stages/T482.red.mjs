@@ -1,10 +1,10 @@
-// Case release/T482 (release/C35): no legacy control is in any ruleset source, and no stage-owned check is anything but verify Stages
+// Case release/T482 (release/C35): no legacy control is in any ruleset source
 import assert from "node:assert/strict";
 import { NAMES, source, contexts } from "./helper.mjs";
 
 export const id = "release/T482";
 export const tests = ["release/C35"];
-export const title = "no legacy control is in any ruleset source, and no stage-owned check is anything but verify Stages";
+export const title = "no legacy control is in any ruleset source";
 export async function run() {
   const legacy = ["deletion", "non_fast_forward", "pull_request", "code_scanning", "merge_queue", "creation"];
   for (const n of NAMES) {
