@@ -8,7 +8,7 @@
 4. **Cases.** T570 to T573, all RED on `main`:
    - T570: a well-formed table gives no finding, with Dependency rows in the middle and Status and Details free; a body without the chapter gives none.
    - T571: a table with other than five columns or a different header is a finding; so is anything but one table in the chapter.
-   - T572: step 0 not a Predecessor, the last row not a Successor, a Predecessor or Successor in the middle, a numbering gap, repeat or non-number, and a Who outside the five values are each a finding.
+   - T572: step 0 not a Predecessor, the last row not a Successor, a Predecessor or Successor in the middle, a numbering gap, repeat or non-number, and a Who outside the six values are each a finding. `Owner` is an allowed Who in the middle (an explicit step where a work plan needs direction or a decision); the check never requires it, and an Owner as the first or last step is a finding.
    - T573: a Dependency row without a `#<number>` is a finding; a `#<number>` reference is not rejected as a link by the existing rules, while a URL in Details still is; the wording of an Action changes no verdict; `verifyEnvelope` reports the findings of the rule.
 5. **Interplay noted, not changed here.** `check.mjs` requires the PLAN body to hold exactly Change, From, To and Because, so a PLAN template with the new chapter needs its own Change for that rule. That is the PLAN template Change, not this one.
 6. **Not in this Change.** Any template, any `.github` file, the chapter's text in a template, the requirement that a type must carry the chapter, the PLAN body check, and the HOW TO WORK Definition (release/C40).
