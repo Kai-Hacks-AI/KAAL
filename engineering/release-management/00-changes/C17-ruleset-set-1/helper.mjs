@@ -1,11 +1,11 @@
-// Shared reading for the engineering/C17 Cases: set 1 is engineering/rulesets/set-1/*.json and engineering/rulesets/controls.md.
+// Shared reading for the engineering/C17 Cases: set 1 is engineering/release-management/05-src/wiring/rulesets/<target>.json and .../controls.md.
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 
-export const ROOT = fileURLToPath(new URL("../../", import.meta.url)); // engineering/rulesets/
+export const ROOT = fileURLToPath(new URL("../../05-src/wiring/rulesets/", import.meta.url)); // engineering/release-management/05-src/wiring/rulesets/
 export const NAMES = ["promotion", "integration", "hotfixing", "wiring", "publishing"];
-export const set1 = () => Object.fromEntries(NAMES.map((n) => [n, JSON.parse(readFileSync(join(ROOT, "set-1", `${n}.json`), "utf8"))]));
+export const set1 = () => Object.fromEntries(NAMES.map((n) => [n, JSON.parse(readFileSync(join(ROOT, `${n}.json`), "utf8"))]));
 export const controls = () => readFileSync(join(ROOT, "controls.md"), "utf8");
 export const baseline = () => JSON.parse(readFileSync(new URL("./baseline-old.json", import.meta.url), "utf8")).rulesets;
 export const rule = (r, type) => r.rules.find((x) => x.type === type);
