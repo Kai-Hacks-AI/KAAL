@@ -41,7 +41,72 @@ export function showWip(facts, config) {
   }
   notObserved.push(...(facts.gaps ?? []));
   const stations = order.filter((s) => placed.has(s)).map((station) => ({ station, pieces: placed.get(station) }));
-  return { stations, notObserved, review: reviewSequence(facts.pieces ?? [], stations, order, config, typeOf, stationOf) };
+  const report = { stations, notObserved, review: reviewSequence(facts.pieces ?? [], stations, order, config, typeOf, stationOf) };
+  if (facts.branches) report.inventory = inventoryOf(facts, config, typeOf, notObserved);
+  return report;
+}
+
+// The inventory: one entry per branch in its place, its pieces as transports, and per package whether main holds stock. Built only when the facts carry branches.
+const VERSION = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/;
+const compareVersions = (a, b) => {
+  const [x, y] = [a, b].map((v) => VERSION.exec(v) ?? []);
+  for (let i = 1; i <= 3; i++) if (Number(x[i]) !== Number(y[i])) return Number(x[i]) - Number(y[i]);
+  return x[4] === y[4] ? 0 : x[4] === undefined ? 1 : y[4] === undefined ? -1 : x[4] < y[4] ? -1 : 1;
+};
+
+function packageState(pkg) {
+  const base = { name: pkg.name, private: Boolean(pkg.private), version: pkg.version };
+  const unknown = (what) => ({ ...base, state: 'UNKNOWN', stock: 'UNKNOWN', reason: `not observed: ${what}` });
+  if (pkg.published === undefined) return unknown('published (npmjs)');
+  if (pkg.tags === undefined) return unknown('tags');
+  if (pkg.published === null) return { ...base, state: 'unpublished', next: '0.0.1', stock: true, ...(pkg.private ? { note: 'private package, not published' } : {}) };
+  const versions = pkg.published.versions ?? [];
+  const coming = pkg.tags.filter((t) => !versions.includes(t)).map((tag) => ({ tag, kind: /-rc\.\d+$/.test(tag) ? 'release candidate' : 'tagged, not on npmjs' }));
+  if (coming.length) return { ...base, state: 'coming', coming, stock: true };
+  const newest = [...versions].sort(compareVersions).at(-1);
+  if (newest === undefined || !pkg.tags.includes(newest)) return { ...base, state: 'current', stock: 'UNKNOWN', reason: 'no tag for the newest published version, nothing is guessed from package.json' };
+  return { ...base, state: 'current', stock: pkg.changedSinceTag === undefined ? 'UNKNOWN' : pkg.changedSinceTag, ...(pkg.changedSinceTag === undefined ? { reason: 'not observed: changedSinceTag' } : {}) };
+}
+
+function inventoryOf(facts, config, typeOf, notObserved) {
+  const main = config.default ?? 'main', pieces = facts.pieces ?? [], listed = new Set((facts.branches ?? []).map((b) => b.name));
+  const rules = config.places ?? [];
+  const placeOf = (branch) => rules.find((r) => matches(r.branch, branch))?.place ?? config.development ?? 'unknown place';
+  const names = new Set([...listed, ...pieces.map((p) => p.from).filter((from) => from !== undefined)]);
+  names.delete(main);
+  const entries = [...names].sort().map((branch) => {
+    if (!listed.has(branch)) notObserved.push(`${branch}: branch not in the list read`);
+    const transports = pieces.filter((p) => p.from === branch).sort(byRef).map((p) => { const { missing, ...d } = disposition(p); return { ref: p.ref, into: p.into, type: typeOf(p.title), ...d }; });
+    return { branch, place: placeOf(branch), listed: listed.has(branch), transports };
+  });
+  const order = [...new Set([...rules.map((r) => r.place), ...(config.development ? [config.development] : [])])];
+  for (const e of entries) if (!order.includes(e.place)) order.push(e.place);
+  const places = order.map((place) => ({ place, branches: entries.filter((e) => e.place === place) }));
+  const packages = (facts.packages ?? []).map(packageState);
+  const counts = {};
+  for (const p of packages) counts[p.state] = (counts[p.state] ?? 0) + 1;
+  const overview = {
+    places: places.map(({ place, branches }) => ({ place, branches: branches.length, withTransport: branches.filter((b) => b.transports.length).length, transports: branches.reduce((n, b) => n + b.transports.length, 0) })),
+    packages: counts,
+  };
+  return { places, packages, overview };
+}
+
+export function renderInventory(report, { place } = {}) {
+  const inv = report.inventory;
+  if (!inv) return '';
+  const lines = [];
+  if (place === undefined) {
+    const width = Math.max(...inv.overview.places.map((p) => p.place.length), 0);
+    for (const p of inv.overview.places) lines.push(`${p.place.padEnd(width)}  ${p.branches} branches, ${p.withTransport} with a transport, ${p.transports} transports`);
+    lines.push('', 'packages', ...Object.entries(inv.overview.packages).map(([state, n]) => `${state}  ${n}`));
+    for (const p of inv.packages.filter((x) => x.stock === true || x.stock === 'UNKNOWN')) lines.push(`${p.name} ${p.state} stock ${p.stock}${p.reason ? ` (${p.reason})` : ''}${p.note ? ` (${p.note})` : ''}`);
+  } else {
+    const found = inv.places.find((p) => p.place === place);
+    if (!found) throw new Error(`unknown place: ${place}`);
+    for (const b of found.branches) lines.push(`${b.branch}${b.listed ? '' : ' (not in the list read)'}`, ...b.transports.map((t) => `  ${t.ref} ${t.type} into ${t.into} ${t.disposition} ${t.reason}`));
+  }
+  return lines.join('\n').trimEnd() + '\n';
 }
 
 // The pieces that wait for a reviewer, in reading order, each clean, not clean or unknown for review at this moment.

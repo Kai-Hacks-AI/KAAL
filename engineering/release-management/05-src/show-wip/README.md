@@ -13,3 +13,5 @@ The disposition is WORK, REVIEW, WAIT or UNKNOWN, from what the host reports. Th
 - `evidence/` holds the run on the real repository (coordination/T39).
 
 It observes and shows only. It makes no release-policy judgment and authorizes nothing.
+
+With `branches` in the facts, the report also holds an `inventory`: one entry per branch in its place (`places`, `development` and `default` of the config), its open pieces as transports, and per package whether main holds stock (tags `@kaihacksai/<name>@<version>` against what npmjs publishes, the package's own changes after the tag; missing evidence is UNKNOWN). `run.mjs <owner/repo> <show-wip.json> [place]` prints the overview of counts, or the full list of one place.

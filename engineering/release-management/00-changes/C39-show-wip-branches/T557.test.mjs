@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { config, load, scriptPath } from './fixtures.mjs';
 export const id = 'release/T557';
 export const tests = ['release/C39'];
-export const title = 'a tag equal to what npmjs has is current, any other tag is coming (a -rc.N one a release candidate), the package's own changes after its tag are stock (not the repository's commits), a version published under any dist-tag counts as published, and no tag says nothing about advance';
+export const title = 'a tag equal to what npmjs has is current, any other tag is coming (a -rc.N one a release candidate), changes of the package itself after its tag are stock, not commits of the repository, a version published under any dist-tag counts as published, and no tag says nothing about advance';
 export async function run() {
   const { showWip } = await load(scriptPath);
   const p = (name, o) => ({ name, version: '0.0.2', private: false, published: { versions: ['0.0.1'], distTags: { latest: '0.0.1' } }, ...o });

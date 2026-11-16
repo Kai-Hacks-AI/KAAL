@@ -22,3 +22,7 @@
 ## Reproduce
 
 Run from a checkout of this branch with Node 22 and no dependencies. For each of the nine `.red.mjs` files import it, await `run()` and report RED-observed when it throws.
+
+## After the DO
+
+`showWip` builds the inventory when the facts carry branches, `renderInventory` renders the overview and a dive-in, and `read.mjs` reads branches, tags and npmjs. T550 to T558 are renamed to `.test.mjs` and pass.
