@@ -100,6 +100,42 @@ function hotfixBodyRules(body) {
   return problems;
 }
 
+// The format of a HOW TO WORK chapter (release/C41): one table of five columns, a Predecessor first and a Successor last, sequential steps,
+// a known Who, a PR reference on a Dependency. The wording of a step, Status and Details is not judged. Silent without the chapter.
+const HOW_TO_WORK = ['Step', 'Who', 'Action', 'Status', 'Details'];
+const WHO = new Set(['Predecessor', 'Worker', 'Owner', 'Reviewer', 'Dependency', 'Successor']);
+const cellsOf = (line) => line.replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((c) => c.trim());
+
+export function howToWorkProblems(body) {
+  if (typeof body !== 'string') return [];
+  const texts = chapterTexts(body);
+  if (!texts.has('HOW TO WORK')) return [];
+  const raw = texts.get('HOW TO WORK').map((l) => l.trim());
+  const at = raw.map((l, i) => (l.startsWith('|') ? i : -1)).filter((i) => i >= 0);
+  const found = (what) => `the HOW TO WORK chapter ${what}`;
+  if (at.length === 0) return [found('holds no table')];
+  const problems = [];
+  if (raw.some((l, i) => l !== '' && !at.includes(i))) problems.push(found('holds text outside its table'));
+  if (at.some((i, n) => n > 0 && i !== at[n - 1] + 1)) problems.push(found('holds more than one table'));
+  const table = at.map((i) => raw[i]);
+  if (JSON.stringify(cellsOf(table[0])) !== JSON.stringify(HOW_TO_WORK)) problems.push(found(`must have the five columns ${HOW_TO_WORK.join(', ')} as its header`));
+  if (table.length < 2 || !cellsOf(table[1]).length || !cellsOf(table[1]).every((c) => /^:?-{3,}:?$/.test(c))) problems.push(found('has no separator line under its header'));
+  const rows = table.slice(2).map(cellsOf);
+  if (rows.length < 2) problems.push(found('needs at least a Predecessor row and a Successor row'));
+  rows.forEach((cells, n) => {
+    if (cells.length !== HOW_TO_WORK.length) { problems.push(found(`has a row of ${cells.length} cells, not ${HOW_TO_WORK.length}`)); return; }
+    const [step, who, , , details] = cells;
+    if (step !== String(n)) problems.push(found(`has step "${step}" where step ${n} is expected: steps count up from 0 without a gap`));
+    if (!WHO.has(who)) problems.push(found(`has the Who "${who}", which is none of ${[...WHO].join(', ')}`));
+    else if (n === 0 && who !== 'Predecessor') problems.push(found('must start with a Predecessor at step 0'));
+    else if (n === rows.length - 1 && who !== 'Successor') problems.push(found('must end with a Successor'));
+    else if (who === 'Predecessor' && n > 0) problems.push(found('has a Predecessor that is not at step 0'));
+    else if (who === 'Successor' && n < rows.length - 1) problems.push(found('has a Successor that is not the last step'));
+    if (who === 'Dependency' && !/#\d+/.test(details)) problems.push(found(`has a Dependency row (step ${step}) without a #<number> reference of its pull request`));
+  });
+  return [...new Set(problems)];
+}
+
 export function verifyEnvelope(facts, registry = {}, options = {}) {
   const problems = [];
   const notJudged = [];
@@ -108,6 +144,7 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
   else if (CHANGE_ID.test(title[2]) || PROVENANCE.test(title[2])) problems.push('the title carries a Change id, a link, an emoji or attribution wording');
   const type = title?.[1];
   problems.push(...sharedBodyRules(facts.body));
+  problems.push(...howToWorkProblems(facts.body));
   const headings = typeof facts.body === 'string' ? [...stripComments(facts.body).matchAll(/^##\s+(.*?)\s*#*\s*$/gm)].map((m) => m[1]) : [];
   if (type) {
     if (registry[type]) {

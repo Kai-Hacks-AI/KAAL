@@ -17,3 +17,7 @@
 ## Reproduce
 
 Run from a checkout of this branch with Node 22 and no dependencies. Import each `.red.mjs`, await `run()` and report RED-observed when it throws an assertion error.
+
+## After the DO
+
+`howToWorkProblems` is exported from `05-src/plan-body/envelope.mjs` and called by `verifyEnvelope`. T570 to T573 are renamed to `.test.mjs` and pass; the existing envelope Cases (C12, C24, F17, A33) still pass.
