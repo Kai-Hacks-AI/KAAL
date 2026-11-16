@@ -23,6 +23,10 @@
           {
             "context": "verify Stages (Integrating)",
             "integration_id": 15368
+          },
+          {
+            "context": "verify Stages (Developing)",
+            "integration_id": 15368
           }
         ]
       }

@@ -3,7 +3,28 @@
     {
       "name": "Developing",
       "kind": ".githooks",
-      "judged": "later"
+      "exact": true,
+      "files": [
+        {
+          "path": "pre-push",
+          "source": "wiring/hooks/pre-push-dispatcher",
+          "mode": "755"
+        },
+        {
+          "path": "old/pre-push",
+          "sha256": "df18ff0179e9a10ae340cd463d7012305c438b7148f0217348974b7ab56c8c06",
+          "mode": "755"
+        },
+        {
+          "path": "new/pre-push.d/README.md",
+          "mode": "644"
+        },
+        {
+          "path": "new/pre-push.d/verify-stages-developing",
+          "source": "wiring/hooks/verify-stages-developing",
+          "mode": "755"
+        }
+      ]
     },
     {
       "name": "Integrating",

@@ -56,3 +56,7 @@ No live ruleset is created, changed or retired; no install steps are issued; the
 ## DO correction (16 Nov, after the Owner's catch)
 
 The first DO made `verify Stages (Wiring)` judge the `.githooks` structure, which fails on `main` until #1705 lands, so no head could be green and the sequence was a cycle. The correction removes that part: Developing stays declared and is judged by a later Change. The judge no longer reads `.githooks`, and T484 now asserts that nothing fails without it.
+
+## Superseded in part by release/C37
+
+Developing is judged now, by its own job `verify Stages (Developing)`, and `integrating` requires it beside `verify Stages (Integrating)`. The `.githooks` judgement is not a part of the Wiring job (see `../C37-developing/change.md`). T484 (Developing declared but not judged) is retired; T481, T485 and T486 name the second check of `integrating`.
