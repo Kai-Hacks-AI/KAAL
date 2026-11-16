@@ -6,9 +6,11 @@ export const id = 'release/T622';
 export const tests = ['release/C42'];
 export const title = 'the rows of the PLAN template say what this type of pull request needs: each named word is in the Action of its row, and every Action is one short line';
 const MUST = [
+  [0, 'Create the PLAN branch'],
   [1, 'RED'],
   [2, 'PLAN only'],
-  [3, 'DO'],
+  [3, 'Merge the approved PLAN'],
+  [3, 'the DO starts on merge'],
 ];
 export async function run() {
   assert.ok(existsSync(REAL), 'plan.md is absent from 05-src/wiring/templates');
