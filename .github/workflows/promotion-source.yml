@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # checks: read lets the checker read the check runs on the head (engineering/C16)
+      checks: read
     steps:
       - name: Check out the default branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -43,4 +45,8 @@ jobs:
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           KAAL_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          # kaal/<capability>/*, hotfix/* and wire/* heads are admitted only when the checks their rulesets require are
+          # green on this exact commit; the checker reads the rules and check runs through the API (engineering/C16)
+          KAAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
         run: npx --no kaal-guard run --check Promotion-Source --github --base "$(git rev-parse HEAD)" --base-ref "$BASE_REF"
