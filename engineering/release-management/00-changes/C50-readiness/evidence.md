@@ -32,3 +32,7 @@ for f in engineering/release-management/04-controls/CTL3-readiness-before-pack/T
   node -e "import('./$f').then(async m=>{try{await m.run();console.log('GREEN',m.id)}catch(x){console.log(x.code==='ERR_ASSERTION'?'RED-observed':'ERROR',m.id,String(x.message).split('\n')[0])}})"
 done
 ```
+
+## After the DO
+
+CTL3, I28, the judge and readiness.json are added. T610 to T614 are green.
