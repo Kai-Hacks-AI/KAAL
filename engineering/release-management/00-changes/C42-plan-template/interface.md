@@ -29,10 +29,11 @@ The draft of the template, as it is added in the DO. Case T620 reads it. It is n
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | Create the PLAN branch; the branch is the workspace, and a draft PR may open from here | pending | — |
-| 1 | Worker | Develop the PLAN on that branch: state the chapters, write the Cases and verify they are RED | open | — |
-| 2 | Reviewer | Approve the PLAN only; its DO and ACT are not approved with it | open | — |
-| 3 | Successor | Merge the approved PLAN; approval alone does not start the DO, the merge does: the DO starts on merge | pending | — |
+| 0 | Predecessor | The PLAN request is available; no PLAN comes before it | pending | — |
+| 1 | Worker | Create the PLAN branch, the workspace, and open a draft PR | open | — |
+| 2 | Worker | Develop the PLAN and verify the Cases are RED | open | — |
+| 3 | Reviewer | Review and approve the PLAN only; its DO and ACT are not approved with it | open | — |
+| 4 | Successor | Merge the approved PLAN; approval alone does not start the DO, the merge does: the DO starts on merge | pending | — |
 `````
 
 ## Where it lives
@@ -41,9 +42,9 @@ The draft of the template, as it is added in the DO. Case T620 reads it. It is n
 
 ## What the chapter says
 
-The table has the four default rows: Predecessor, Worker, Reviewer, Successor. The Action of the rows:
-  - step 0 names `Create the PLAN branch`
-  - step 1 names `RED`
-  - step 2 names `PLAN only`
-  - step 3 names `Merge the approved PLAN` and `the DO starts on merge`
-
+The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
+  - step 0 names `PLAN request`
+  - step 1 names `Create the PLAN branch` and `draft PR`
+  - step 2 names `RED`
+  - step 3 names `PLAN only`
+  - step 4 names `Merge the approved PLAN` and `the DO starts on merge`
