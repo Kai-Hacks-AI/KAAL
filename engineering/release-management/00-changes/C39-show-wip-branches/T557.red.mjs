@@ -1,0 +1,30 @@
+// Case release/T557 tests: C39 (the package rule: tags against npmjs)
+import assert from 'node:assert/strict';
+import { config, load, scriptPath } from './fixtures.mjs';
+export const id = 'release/T557';
+export const tests = ['release/C39'];
+export const title = 'a tag equal to what npmjs has is current, any other tag is coming (a -rc.N one a release candidate), main beyond the tag is stock, and no tag says nothing about advance';
+export async function run() {
+  const { showWip } = await load(scriptPath);
+  const p = (name, o) => ({ name, version: '0.0.2', private: false, latest: '0.0.1', ...o });
+  const facts = {
+    pieces: [], branches: [], gaps: [],
+    packages: [
+      p('current', { tags: ['0.0.1'], beyondTag: false }),
+      p('beyond', { tags: ['0.0.1'], beyondTag: true }),
+      p('unknown-beyond', { tags: ['0.0.1'] }),
+      p('rc', { tags: ['0.0.1', '0.0.2-rc.1'], beyondTag: false }),
+      p('tagged', { tags: ['0.0.1', '0.0.2'], beyondTag: false }),
+      p('notag', { tags: [] }),
+    ],
+  };
+  const by = Object.fromEntries(showWip(facts, config()).inventory.packages.map((x) => [x.name, x]));
+  assert.deepEqual([by.current.state, by.current.stock], ['current', false], 'a tag equal to npmjs and main not beyond it is not stock');
+  assert.deepEqual([by.beyond.state, by.beyond.stock], ['current', true], 'main beyond the tag is not stock');
+  assert.deepEqual([by['unknown-beyond'].state, by['unknown-beyond'].stock], ['current', 'UNKNOWN'], 'an unread advance was guessed');
+  assert.deepEqual([by.rc.state, by.rc.stock], ['coming', true]);
+  assert.deepEqual(by.rc.coming, [{ tag: '0.0.2-rc.1', kind: 'release candidate' }], 'the release candidate is not named as coming');
+  assert.deepEqual(by.tagged.coming, [{ tag: '0.0.2', kind: 'tagged, not on npmjs' }], 'a plain tag npmjs does not have is not coming');
+  assert.deepEqual([by.notag.state, by.notag.stock], ['current', 'UNKNOWN'], 'no tag says where current ended, nothing may be guessed from package.json');
+  assert.match(by.notag.reason, /no tag/);
+}
