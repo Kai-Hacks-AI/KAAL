@@ -1,0 +1,43 @@
+{
+  "stages": [
+    {
+      "name": "Developing",
+      "kind": ".githooks",
+      "judged": "later"
+    },
+    {
+      "name": "Integrating",
+      "kind": "ruleset",
+      "targets": [
+        "kaal/**",
+        "hotfix/**",
+        "wire/**"
+      ],
+      "parts": [
+        {
+          "name": "Collecting",
+          "target": "kaal/**"
+        },
+        {
+          "name": "Hotfixing",
+          "target": "hotfix/**"
+        },
+        {
+          "name": "Wiring",
+          "target": "wire/**"
+        }
+      ]
+    },
+    {
+      "name": "Promoting",
+      "kind": "ruleset",
+      "target": "~DEFAULT_BRANCH"
+    },
+    {
+      "name": "Publishing",
+      "kind": "tag",
+      "target": "trial-*@*",
+      "rule": "update"
+    }
+  ]
+}
