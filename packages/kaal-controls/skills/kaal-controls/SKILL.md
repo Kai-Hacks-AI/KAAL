@@ -21,7 +21,7 @@ The type is a matter of design. It does not change with what you have seen the c
 
 ## How they work together
 
-They cooperate. A directive says what is wanted, a detective control shows when it is not met, a preventive control stops the action it governs, and a corrective control restores what was lost. Keep them independent while they do:
+A directive says what is wanted, a detective control shows when it is not met, a preventive control stops the action it governs, and a corrective control restores what was lost. Keep them independent while they do:
 
 - One being present is no evidence of another. A written rule is not a check, a clean report is not a block, and a block is not a repair.
 - A gate that requires a detective control's result joins the two. The detective control still only reveals. The gate prevents only the action it governs, and only where it is enforced.
@@ -41,3 +41,5 @@ A claim is no stronger than what has been observed.
 What verification, validation and a finding are is Testing's. Follow the `kaal-testing` Skill for them.
 
 When you describe a control, say its type and what it does when the rule is broken, then what you have observed and what you have not.
+
+Declaring controls: `references/declaring-controls.md`.
