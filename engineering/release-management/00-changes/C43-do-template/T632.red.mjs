@@ -6,9 +6,12 @@ export const id = 'release/T632';
 export const tests = ['release/C43'];
 export const title = 'the rows of the DO template say what this type of pull request needs: each named word is in the Action of its row, and every Action is one short line';
 const MUST = [
-  [0, 'PLAN'],
-  [1, 'Cases'],
-  [3, 'ACT'],
+  [0, 'The PLAN has merged'],
+  [0, 'create the DO branch'],
+  [1, 'GREEN'],
+  [2, 'approve the DO'],
+  [3, 'Merge the approved DO'],
+  [3, 'the ACT starts on merge'],
 ];
 export async function run() {
   assert.ok(existsSync(REAL), 'do.md is absent from 05-src/wiring/templates');

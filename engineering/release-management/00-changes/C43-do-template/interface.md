@@ -25,10 +25,10 @@ The draft of the template, as it is added in the DO. Case T630 reads it. It is n
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | The PLAN is approved and merged into the collector | pending | — |
-| 1 | Worker | Implement until the Cases pass; refactor; keep to the files of the Change | open | — |
-| 2 | Reviewer | Verify the Cases are green and the Change is complete | open | — |
-| 3 | Successor | The ACT starts on merge | pending | — |
+| 0 | Predecessor | The PLAN has merged; create the DO branch, the workspace, and a draft PR may open from here | pending | — |
+| 1 | Worker | Implement and refactor against the approved PLAN until the Cases are GREEN; keep to the files of the Change | open | — |
+| 2 | Reviewer | Verify the GREEN evidence and approve the DO | open | — |
+| 3 | Successor | Merge the approved DO; approval alone does not start the ACT, the merge does: the ACT starts on merge | pending | — |
 `````
 
 ## Where it lives
@@ -38,7 +38,8 @@ The draft of the template, as it is added in the DO. Case T630 reads it. It is n
 ## What the chapter says
 
 The table has the four default rows: Predecessor, Worker, Reviewer, Successor. The Action of the rows:
-  - step 0 names `PLAN`
-  - step 1 names `Cases`
-  - step 3 names `ACT`
+  - step 0 names `The PLAN has merged` and `create the DO branch`
+  - step 1 names `GREEN`
+  - step 2 names `approve the DO`
+  - step 3 names `Merge the approved DO` and `the ACT starts on merge`
 
