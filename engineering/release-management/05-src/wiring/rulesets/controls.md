@@ -7,7 +7,7 @@ The minimal set 1 (release/C35): six rulesets, each carrying only what is listed
 | integrating | `kaal/**`, `hotfix/**`, `wire/**` | required_status_checks | `verify Stages (Integrating)` | the integration stages exist in Engineering; the shared home of future common controls |
 | collecting | `kaal/**` | required_status_checks | `verify Stages (Collecting)` | the collector stage exists in Engineering |
 | hotfixing | `hotfix/**` | required_status_checks | `verify Stages (Hotfixing)` | the hotfix stage exists in Engineering |
-| wiring | `wire/**` | required_status_checks | `verify Stages (Wiring)` | the wiring stage exists in Engineering; the job also judges Developing (`.githooks` dispatcher with `old/` and `new/`, which WIRE installs) |
+| wiring | `wire/**` | required_status_checks | `verify Stages (Wiring)` | the wiring stage exists in Engineering |
 | promoting | the default branch (`main`) | required_status_checks | `verify Stages (Promoting)` | the promoting stage exists in Engineering; the job also judges Publishing |
 | publishing | tags `trial-*@*` | update | none (a tag ruleset cannot require a check) | a published tag cannot be moved; the smallest rule that makes the stage exist |
 

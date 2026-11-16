@@ -1,9 +1,10 @@
 // Engineering / verify Stages, level 1: do the delivery stages exist in Engineering? (release/C35)
-// judge({ stages, rulesets, githooks }) -> { kind: "pass" | "fail", findings: [{ check, message }], checks: [job names that fail] }.
+// judge({ stages, rulesets }) -> { kind: "pass" | "fail", findings: [{ check, message }], checks: [job names that fail] }.
 // stages is stages.json; rulesets maps a ruleset name (Integrating, Collecting, Hotfixing, Wiring, Promoting, Publishing)
-// to its source; githooks lists the files under .githooks. Developing is reported by the Wiring job (WIRE installs
-// it) and Publishing by the Promoting job (a tag ruleset cannot require a check). Anything unreadable fails closed.
-import { readFileSync, readdirSync, statSync } from "node:fs";
+// to its source. Level 1 judges only what exists before the .githooks migration (#1705): Developing is declared in
+// stages.json but judged by a later Change, so no job is red on main. Publishing is reported by the Promoting job
+// (a tag ruleset cannot require a check). Anything unreadable fails closed.
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -14,9 +15,9 @@ const heads = (targets) => targets.map((t) => `refs/heads/${t}`);
 export function judge(facts) {
   const findings = [];
   const add = (check, message) => findings.push({ check: job(check), message });
-  const { stages, rulesets, githooks } = facts ?? {};
-  if (!stages?.stages || !rulesets || !Array.isArray(githooks)) {
-    return { kind: "fail", findings: [{ check: "*", message: "the stages, the ruleset sources or .githooks cannot be read" }], checks: ["*"] };
+  const { stages, rulesets } = facts ?? {};
+  if (!stages?.stages || !rulesets) {
+    return { kind: "fail", findings: [{ check: "*", message: "the stages or the ruleset sources cannot be read" }], checks: ["*"] };
   }
   const by = (n) => stages.stages.find((s) => s.name === n);
   const integrating = by("Integrating"), promoting = by("Promoting"), publishing = by("Publishing"), developing = by("Developing");
@@ -51,16 +52,8 @@ export function judge(facts) {
     if (!same(p.bypass_actors, [])) pub("the bypass list is not empty");
     if (!same((p.rules ?? []).map((x) => x.type), [publishing.rule])) pub(`the only rule must be ${publishing.rule}`);
   }
-  const has = (f) => githooks.includes(f);
-  if (!has(developing.dispatcher)) add("Wiring", `Developing: .githooks/${developing.dispatcher} (the dispatcher) is missing`);
-  if (!githooks.some((f) => f.startsWith(developing.old))) add("Wiring", `Developing: .githooks/${developing.old} is missing`);
-  if (!githooks.some((f) => f.startsWith(developing.new))) add("Wiring", `Developing: .githooks/${developing.new} is missing`);
   return { kind: findings.length ? "fail" : "pass", findings, checks: [...new Set(findings.map((f) => f.check))] };
 }
-
-const files = (dir, base = "") => {
-  try { return readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? files(join(dir, f), `${base}${f}/`) : [`${base}${f}`])); } catch { return null; }
-};
 
 // reads the sources of a checkout: node judge.mjs <root> <Ruleset>; exit 0 pass, 1 this job fails, 2 cannot judge
 export function read(root) {
@@ -71,8 +64,7 @@ export function read(root) {
     for (const n of ["Integrating", "Collecting", "Hotfixing", "Wiring", "Promoting", "Publishing"]) {
       try { rulesets[n] = JSON.parse(readFileSync(join(dir, `wiring/rulesets/${n.toLowerCase()}.json`), "utf8")); } catch (e) { if (e.code !== "ENOENT") return null; }
     }
-    const githooks = files(join(root, ".githooks"));
-    return githooks ? { stages, rulesets, githooks } : { stages, rulesets, githooks: [] };
+    return { stages, rulesets };
   } catch { return null; }
 }
 

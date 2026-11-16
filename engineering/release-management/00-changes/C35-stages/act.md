@@ -10,7 +10,7 @@ Written by the agent that carried the Change.
 ## Learned
 
 - Three rounds of naming and scope (legacy controls, one check, the activity vocabulary) were each cheaper before any code: the Owner's rulings came as questions about what the check checks, and the answer was the structure itself.
-- Putting the `.githooks` judgement in the Wiring job (WIRE installs it) and Publishing in the Promoting job (a tag ruleset cannot carry a check) kept every other ruleset free of the bootstrap order.
+- A check that is red on `main` cannot be green on any head, so judging `.githooks` in level 1 made a cycle with #1705. The Owner caught it; level 1 now judges only what exists before #1705 and Developing is judged by a later Change. Publishing is judged by the Promoting job because a tag ruleset cannot carry a check.
 - A tag ruleset cannot be empty; the smallest rule (`update`) is what lets the stage exist.
 
 ## Lacked
@@ -25,6 +25,7 @@ Written by the agent that carried the Change.
 
 ## Follow-ups
 
+- A later Change adds the `.githooks` judgement (dispatcher, `old/`, `new/`) to the Wiring job, after #1705 has landed.
 - `.github`: workflow `Engineering` with the five jobs.
 - Level 2 (wired up in GitHub) and level 3 (Engineering = GitHub) as their own Changes.
 - Controls migrate one at a time into these rulesets, analyze Vulnerabilities first; each with verification before the old enforcement retires.
