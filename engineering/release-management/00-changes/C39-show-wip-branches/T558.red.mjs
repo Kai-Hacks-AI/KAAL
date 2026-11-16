@@ -19,12 +19,13 @@ export async function run() {
   assert.match(failing, /gateway/, 'a failed read is not reported');
 
   const pkgs = [{ name: 'kaal-a', version: '0.0.1', private: true }, { name: 'kaal-b', version: '0.0.1', private: false }];
-  const out = await readPackages({ packages: pkgs, tags: ['kaal-a@0.0.1', 'other-tag'], npm: async (name) => (name === 'kaal-a' ? null : { latest: '0.0.1' }), beyond: async () => true });
-  assert.equal(out.packages[0].latest, null, 'a never-published private package was not read as unpublished');
+  const out = await readPackages({ packages: pkgs, tags: ['kaal-a@0.0.1', 'other-tag'], npm: async (name) => (name === 'kaal-a' ? null : { versions: ['0.0.1'], distTags: { latest: '0.0.1' } }), changedSince: async (name) => name === 'kaal-b' });
+  assert.equal(out.packages[0].published, null, 'a never-published private package was not read as unpublished');
   assert.deepEqual(out.packages[0].tags, ['0.0.1']);
-  assert.equal(out.packages[1].latest, '0.0.1');
+  assert.deepEqual(out.packages[1].published, { versions: ['0.0.1'], distTags: { latest: '0.0.1' } }, 'every published version and dist-tag is read, not latest alone');
+  assert.equal(out.packages[1].changedSinceTag, true, 'the package-specific comparison was not read');
   assert.deepEqual(out.packages[1].tags, [], 'a tag of another package was attached');
-  const lost = await readPackages({ packages: pkgs, tags: undefined, npm: async () => { throw new Error('npmjs down'); }, beyond: async () => undefined });
+  const lost = await readPackages({ packages: pkgs, tags: undefined, npm: async () => { throw new Error('npmjs down'); }, changedSince: async () => undefined });
   assert.ok(lost.gaps.some((g) => g.includes('npmjs')) && lost.gaps.some((g) => g.includes('tags')), 'what could not be read is not named');
-  assert.ok(!('latest' in lost.packages[0]) && !('tags' in lost.packages[0]), 'an unread fact was filled in');
+  assert.ok(!('published' in lost.packages[0]) && !('tags' in lost.packages[0]), 'an unread fact was filled in');
 }

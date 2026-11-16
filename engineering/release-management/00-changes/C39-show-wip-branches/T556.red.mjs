@@ -9,10 +9,10 @@ export async function run() {
   const facts = {
     pieces: [], branches: [], gaps: [],
     packages: [
-      { name: 'kaal-a', version: '0.0.1', private: false, latest: null, tags: [] },
-      { name: 'kaal-b', version: '0.0.1', private: true, latest: null, tags: [] },
+      { name: 'kaal-a', version: '0.0.1', private: false, published: null, tags: [] },
+      { name: 'kaal-b', version: '0.0.1', private: true, published: null, tags: [] },
       { name: 'kaal-c', version: '0.0.1', private: false },
-      { name: 'kaal-d', version: '0.0.1', private: false, latest: null },
+      { name: 'kaal-d', version: '0.0.1', private: false, published: null },
     ],
   };
   const [a, b, c, d] = showWip(facts, config()).inventory.packages;
@@ -21,7 +21,7 @@ export async function run() {
   assert.equal(b.state, 'unpublished');
   assert.match(b.note ?? '', /private/, 'a private package has no note saying so');
   assert.equal(c.state, 'UNKNOWN'); assert.equal(c.stock, 'UNKNOWN');
-  assert.match(c.reason, /latest/, 'the unread npmjs fact is not named');
+  assert.match(c.reason, /published/, 'the unread npmjs fact is not named');
   assert.equal(d.state, 'UNKNOWN', 'unread tags were taken as none');
   assert.match(d.reason, /tags/);
 }

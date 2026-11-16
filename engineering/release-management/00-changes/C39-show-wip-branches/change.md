@@ -7,18 +7,18 @@
 3. **Because.** Branches hold stock, a PR transports it (CPO handover, Owner 16 Nov 2026). Flow becomes visible by location first, and C38's IN, STOCK and OUT get a view that reads the same words.
 4. **Places.** Development is any other branch; Integration is split into hotfix, wire and kaal; `main` is not a place but a destination, and stock only by the package rule. The consumer's config says which branch pattern is which place (`places`, first match wins, `development` for the rest, `default` for main). No default mapping is assumed; a branch no place matches is `unknown place`.
 5. **Two views.** The overview is a count per place (branches, branches with a transport, transports) and per package state. A dive-in lists one place in full. `renderInventory(report, { place })` renders both from the same report; an unknown place is an error, not an empty list.
-6. **The package rule.** For each package on main, from what the reader observed:
+6. **The package rule.** The model is tag, then npmjs release: when the files of a package change on `main` after the content its release tag identifies, that is WIP toward its next version, even before a next version is chosen. The comparison is per package, never the commits of the repository beyond a tag. For each package on main, from what the reader observed:
 
-| npmjs `latest` | tags (`@kaihacksai/<name>@<version>`) | state | main holds stock |
+| npmjs (`published`: every published version and its dist-tags) | tags (`@kaihacksai/<name>@<version>`) | state | main holds stock |
 | --- | --- | --- | --- |
 | none (never published) | any | `unpublished`, next `0.0.1` | yes (a private package carries a note saying so) |
-| a version | a tag equal to `latest` only | `current` | no; yes when main is beyond that tag; UNKNOWN when that was not observed |
-| a version | a tag that is not `latest` (an `-rc.N` one is a release candidate, another one is tagged and not on npmjs) | `coming` | yes |
-| a version | none | `current` | UNKNOWN: no tag says where current ended, and nothing is guessed from `package.json` |
+| versions | a tag for the newest published version, and none for an unpublished one | `current` | `changedSinceTag`: yes when this package's own files changed on main after the commit of that tag, no when not, UNKNOWN when that was not observed |
+| versions | a tag for a version npmjs does not have (an `-rc.N` one is a release candidate, another is tagged and not published) | `coming` | yes |
+| versions | no tag for the newest published version | `current` | UNKNOWN: no tag says where current ended, and nothing is guessed from `package.json` |
 | not observed | any | UNKNOWN | UNKNOWN, naming what was not observed |
 
-   "Beyond the tag" is a single observed fact (`beyondTag`: main has commits the tag does not), not a count.
-7. **The reader.** `read.mjs` gains `readBranches` (every branch, following the cursor), `parseTag` (the version is after the last `@`, so a scoped name stays whole) and `readPackages` (`latest` from npmjs, tags, `beyondTag`; a private package is read like any other). Anything it could not read is a gap, never a silent drop and never filled in.
+   `latest` alone is never taken as proof of what is published: a version under another dist-tag (`next`) or a prerelease counts as published, and the newest published version is the one a tag is compared with. `changedSinceTag` is a single observed fact about the package's own directory, not a count and not a repository-wide comparison. GitHub Releases as a bridge are left open and are no dependency of this Change.
+7. **The reader.** `read.mjs` gains `readBranches` (every branch, following the cursor), `parseTag` (the version is after the last `@`, so a scoped name stays whole) and `readPackages` (`published` from npmjs with all versions and dist-tags, tags, `changedSinceTag` for the package's own path; a private package is read like any other). Anything it could not read is a gap, never a silent drop and never filled in.
 8. **Cases.** T550 to T558, all RED on `main`: the five acceptance examples (T550 branch without PR, T551 one and three PRs, T552 a PR that is no longer open, example 5 reduced to "no BOM"), the places (T553), the two views (T554), the retained PR observations (T555), the package rule (T556, T557) and the reader (T558).
 9. **Boundaries.** Read-only, no enforcement, no authorization. No lifecycle or activity inference, no unique-commit counting, no deduplication, no WIP limits or scheduling, no BOM. Branch existence alone proves no outstanding work. Missing evidence is UNKNOWN.
 
