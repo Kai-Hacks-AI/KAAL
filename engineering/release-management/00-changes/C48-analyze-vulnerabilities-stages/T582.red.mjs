@@ -7,7 +7,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const wiring = join(repo, 'engineering/release-management/05-src/wiring');
 const here = join(repo, 'engineering/release-management/00-changes/C48-analyze-vulnerabilities-stages');
 const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
-const needs = () => JSON.parse(read(join(here, 'ruleset-needs.json'), 'the proposed needs'));
+const needs = () => JSON.parse(read(join(here, 'stage-reports.json'), 'the proposed needs'));
 export const id = 'release/T582';
 export const tests = ['release/G70'];
 export const title = 'gap release/G70 is closed: the workflow source reports each stage-named check on a pull request and a merge group';
