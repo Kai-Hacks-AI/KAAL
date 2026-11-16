@@ -1,8 +1,8 @@
-# C42 change
+# C48 change
 
 ## PLAN
 
-1. Add C42 with the gaps G69 to G71 and the Cases T580 to T583, RED on `main`.
+1. Add C48 with the gaps G69 to G71 and the Cases T580 to T583, RED on `main`.
 2. State what the control needs per stage, in `ruleset-needs.json`, and the sequence in `transition.md`.
 3. The PLAN moves nothing and touches no `.github` path, no live ruleset and no declaration.
 

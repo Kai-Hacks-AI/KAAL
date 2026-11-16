@@ -1,4 +1,4 @@
-# C42 baseline
+# C48 baseline
 
 The baseline is `main`. Work that is not on `main` is not delivered functionality.
 
