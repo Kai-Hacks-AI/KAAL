@@ -1,9 +1,9 @@
-// Case engineering/T454 (engineering/C17): set 1 is exactly five rulesets in import shape, named beside the old ones, with no id
+// Case release/T454 (release/C34): set 1 is exactly five rulesets in import shape, named beside the old ones, with no id
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { NAMES, set1, listed } from "./helper.mjs";
 
-test("engineering/T454 [engineering/C17]: set 1 is promotion, integration, hotfixing, wiring and publishing, in import shape, without the old prefix and without ids", () => {
+test("release/T454 [release/C34]: set 1 is promotion, integration, hotfixing, wiring and publishing, in import shape, without the old prefix and without ids", () => {
   assert.deepEqual(listed(), NAMES.map((n) => `${n}.json`).sort());
   for (const [n, r] of Object.entries(set1())) {
     assert.equal(r.name, n);

@@ -1,4 +1,4 @@
-// Case engineering/T455 (engineering/C17): source and table agree
+// Case release/T455 (release/C34): source and table agree
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { NAMES, set1, controls } from "./helper.mjs";
@@ -6,7 +6,7 @@ import { NAMES, set1, controls } from "./helper.mjs";
 // A row is `| <ruleset> | <rule type> | <parameter or context> | <value> | ...`.
 const rows = (text) => text.split("\n").filter((l) => /^\| (promotion|integration|hotfixing|wiring|publishing) \|/.test(l)).map((l) => l.split("|").map((c) => c.trim()).slice(1, 5));
 
-test("engineering/T455 [engineering/C17]: every rule type, parameter and required context in the JSON is a row of controls.md, and every row is in the JSON", () => {
+test("release/T455 [release/C34]: every rule type, parameter and required context in the JSON is a row of controls.md, and every row is in the JSON", () => {
   const table = rows(controls());
   const fromJson = [];
   for (const n of NAMES) {

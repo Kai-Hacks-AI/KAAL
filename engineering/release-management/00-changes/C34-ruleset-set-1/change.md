@@ -1,4 +1,4 @@
-# engineering/C17 change: ruleset set 1, as source in Engineering, built from controls
+# release/C34 change: ruleset set 1, as source in Engineering, built from controls
 
 Owner direction (16 Nov 2026): rulesets are in Engineering; we get set 1 together; the rulesets are set up from controls (ruleset settings are controls, not only required checks). Baseline 0 is `.githooks` on `main`; the `wiring` ruleset of this set is what admits it (C16 reads the head branch's own rulesets). This builds on release/C29 (the target set of five, PLAN merged into `kaal/release/ruleset-set`, DO not authorized) and replaces nothing of it: C29 names the five; this Change delivers them as source. Ids C17 and T454-T459 were checked on `main` only, not against every collector and open PR.
 
@@ -38,4 +38,4 @@ No live ruleset is created, changed, enabled or retired; no required check is ad
 
 ## Home and relation to release/C18
 
-Per the Owner (16 Nov): the rulesets belong in release management. Set 1 therefore lives in `engineering/release-management/05-src/wiring/rulesets/`, the same `<target>.json` layout release/C18 uses. release/C18's `integration.json` and `promotion.json` (analyze Vulnerabilities contexts) are the same files: this Change's DO builds on them after that collector is synchronized with `main`, so the two contexts become rows of `controls.md` and no competing file exists. The folder id `C17` also exists in release-management (`C17-wire-hotfix-template`); the coordinator is asked for a free id before the DO.
+Per the Owner (16 Nov): the rulesets belong in release management. Set 1 therefore lives in `engineering/release-management/05-src/wiring/rulesets/`, the same `<target>.json` layout release/C18 uses. release/C18's `integration.json` and `promotion.json` (analyze Vulnerabilities contexts) are the same files: this Change's DO builds on them after that collector is synchronized with `main`, so the two contexts become rows of `controls.md` and no competing file exists. The id is release/C34, allocated by the coordinator (C17 is taken by `C17-wire-hotfix-template`).

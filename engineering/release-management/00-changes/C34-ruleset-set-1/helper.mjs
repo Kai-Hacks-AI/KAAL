@@ -1,4 +1,4 @@
-// Shared reading for the engineering/C17 Cases: set 1 is engineering/release-management/05-src/wiring/rulesets/<target>.json and .../controls.md.
+// Shared reading for the release/C34 Cases: set 1 is engineering/release-management/05-src/wiring/rulesets/<target>.json and .../controls.md.
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";

@@ -1,9 +1,9 @@
-// Case engineering/T457 (engineering/C17): no up-to-date, no bypass, enforce-on-create only where agreed
+// Case release/T457 (release/C34): no up-to-date, no bypass, enforce-on-create only where agreed
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { NAMES, set1, rule } from "./helper.mjs";
 
-test("engineering/T457 [engineering/C17]: strict is false everywhere, bypass lists are empty, and do_not_enforce_on_create is set only for the branch stocks", () => {
+test("release/T457 [release/C34]: strict is false everywhere, bypass lists are empty, and do_not_enforce_on_create is set only for the branch stocks", () => {
   const s = set1();
   for (const n of NAMES) {
     assert.deepEqual(s[n].bypass_actors, [], `${n}: no bypass`);
