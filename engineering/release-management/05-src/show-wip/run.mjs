@@ -5,7 +5,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { render, renderInventory, showWip } from '../../../../packages/kaal-release/skills/kaal-release/scripts/show-wip.mjs';
-import { readBranches, readOpenPulls, readPackages } from './read.mjs';
+import { packageChanged, readBranches, readOpenPulls, readPackages, readTags } from './read.mjs';
 
 const PAUSE_MS = Number(process.env.SHOW_WIP_PAUSE_MS ?? 2000);
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,14 +46,11 @@ async function readPackageFacts(repoName, base) {
     packages.push({ name: json.name, version: json.version, private: Boolean(json.private) });
     dirOf.set(json.name, dir);
   }
-  let tags;
-  try { tags = (await gh([`repos/${repoName}/git/matching-refs/tags`, '-F', 'per_page=100'])).map((r) => r.ref.replace('refs/tags/', '')); } catch { tags = undefined; }
-  const changedSince = async (name, version) => {
-    const compared = await gh([`repos/${repoName}/compare/${encodeURIComponent(`${name}@${version}`)}...${base}`]);
-    const own = (compared.files ?? []).some((f) => f.filename.startsWith(`packages/${dirOf.get(name)}/`));
-    return own ? true : (compared.files ?? []).length >= 300 ? undefined : false;
-  };
-  return readPackages({ packages, tags, npm, changedSince });
+  let tags, tagGaps = [];
+  try { ({ tags, gaps: tagGaps } = await readTags(repoName, gh)); } catch { tags = undefined; }
+  const changedSince = async (name, version) => packageChanged(await gh([`repos/${repoName}/compare/${encodeURIComponent(`${name}@${version}`)}...${base}`]), dirOf.get(name));
+  const facts = await readPackages({ packages, tags, npm, changedSince });
+  return { ...facts, gaps: [...tagGaps, ...facts.gaps] };
 }
 
 try {

@@ -127,3 +127,24 @@ function compareVersions(a, b) {
   for (let i = 1; i <= 3; i++) if (Number(x[i]) !== Number(y[i])) return Number(x[i]) - Number(y[i]);
   return x[4] === y[4] ? 0 : x[4] === undefined ? 1 : y[4] === undefined ? -1 : x[4] < y[4] ? -1 : 1;
 }
+
+// Every release tag, page by page. A list that could not be read to its end is not "all tags": it is not returned, and a gap says so.
+// `gh(args)` returns the parsed answer of one read call; the args carry `page=<n>` and `per_page=<n>`.
+export async function readTags(repoName, gh, perPage = 100) {
+  const tags = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const refs = await gh([`repos/${repoName}/git/matching-refs/tags`, '-F', `per_page=${perPage}`, '-F', `page=${page}`]);
+    tags.push(...refs.map((r) => r.ref.replace('refs/tags/', '')));
+    if (refs.length < perPage) return { tags, gaps: [] };
+  }
+  return { tags: undefined, gaps: [`tags: more than ${MAX_PAGES * perPage} were listed, the rest are not read`] };
+}
+
+// Whether a package itself changed in a comparison of its tag with main. The host cuts the list of files; a cut list can show a change but never its absence.
+export const COMPARE_FILE_LIMIT = 300;
+export function packageChanged(compared, dir) {
+  const files = compared?.files;
+  if (!Array.isArray(files)) return undefined;
+  if (files.some((f) => String(f.filename).startsWith(`packages/${dir}/`))) return true;
+  return files.length >= COMPARE_FILE_LIMIT ? undefined : false;
+}
