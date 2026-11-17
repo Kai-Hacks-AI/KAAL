@@ -16,9 +16,9 @@ A check that a SYNC pull request names one of the two purposes. The Cases judge 
 
 ## Longed For
 
-The promotion of this collector, and then its own WIRE, defined and reviewed on its own. The Owner has ruled that WIRE travels alone and that approval does not install anything.
+The promotion of this collector, and then the WIRE that installs the template under `.github`. The Owner has ruled that WIRE travels alone, that approval does not install anything, and that the templates can be installed in one WIRE.
 
 ## Follow-ups
 
 - Promote C45 with the other template collectors, in the CPO's order.
-- Define the WIRE of the SYNC template as its own operation, with its own scope and review.
+- Install the SYNC template in the WIRE of the templates, after the promotion; the WIRE travels alone and its scope is reviewed on its own.
