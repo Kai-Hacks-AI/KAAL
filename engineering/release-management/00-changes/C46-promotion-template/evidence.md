@@ -12,12 +12,13 @@
 | release/T660 | release/C46 | RED: promotion.md is absent from 05-src/wiring/templates |
 | release/T661 | release/C46 | RED: promotion.md is absent from 05-src/wiring/templates |
 | release/T662 | release/C46 | RED: promotion.md is absent from 05-src/wiring/templates |
+| release/T663 | release/C46 | RED: promotion.md is absent from 05-src/wiring/templates |
 
-3 RED-observed, 0 error, 0 green. Each fails on its own assertion, not on a missing module.
+4 RED-observed (T660 to T663), 0 error, 0 green. Each fails on its own assertion, not on a missing module.
 
 ## Can each Case pass
 
-With the draft of `interface.md` written to `05-src/wiring/templates/promotion.md` and the three Cases renamed to `.test.mjs` in a working tree, all three were green. The file and the renames were reverted and are not part of this PLAN.
+With the draft of `interface.md` written to `05-src/wiring/templates/promotion.md` and the four Cases (T660 to T663) copied to `.test.mjs` in a working tree, all four were green. T663 was also seen to fail on a Dependency row without a `#number` and on a non-sequential step number, in a copy of `interface.md` that was then restored. The file and the renames were reverted and are not part of this PLAN.
 
 ## What this shows and does not show
 
