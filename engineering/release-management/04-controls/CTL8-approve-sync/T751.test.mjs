@@ -23,5 +23,6 @@ export async function run() {
   const draft = readFileSync(join(RM, '00-changes/C58-sync-review/interface.md'), 'utf8').split(/^## Draft of CTL8\.md$/m)[1].match(/^````\n([\s\S]*?)\n````$/m)[1];
   const real = join(RM, '04-controls/CTL8-approve-sync/CTL8.md');
   assert.ok(existsSync(real), 'CTL8.md is absent');
-  assert.equal(readFileSync(real, 'utf8'), `${draft}\n`, 'CTL8.md differs from the draft');
+  // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${draft}\n`, 'CTL8.md differs from the draft');
 }
