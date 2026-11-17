@@ -1,4 +1,4 @@
-# kaal-controls
+# @kaihacksai/kaal-controls
 
 KAAL Controls: the semantics of directive, preventive, detective and corrective controls. This first slice is a candidate Agent Skill and the scenarios that show an agent using it. It is not published, not deployed where agents discover skills, and not part of the workspaces.
 
