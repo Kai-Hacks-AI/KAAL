@@ -1,0 +1,30 @@
+# scan Vulnerabilities (release/C57), as a source in Engineering: the detective report of the control release/CTL6.
+# One job, `scan Vulnerabilities (main)`, reads the lockfile of the default branch daily and on request and reports every runtime
+# dependency with a known advisory of severity low or above, with no exemption. A finding or an unreadable result is a red run.
+# It is detective: no ruleset requires it. Requiring it is a separate preventive control with its own explicit Owner decision.
+# A scheduled workflow runs from the default branch, so it reads `main` by construction.
+# This is a source; a WIRE installs it under .github/workflows/ (`.github` travels alone).
+name: scan Vulnerabilities
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  main:
+    name: scan Vulnerabilities (main)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Audit the lockfile
+        # shell without -e: npm audit exits non-zero when it finds something, and the next step judges the result
+        shell: bash {0}
+        run: npm audit --package-lock-only --omit=dev --json > "$RUNNER_TEMP/audit.json"
+      - name: Interpret the result
+        env:
+          KAAL_SCAN_AUDIT: ${{ runner.temp }}/audit.json
+        run: node engineering/release-management/05-src/vulnerability-scan/scan.mjs
