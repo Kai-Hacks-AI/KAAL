@@ -21,6 +21,25 @@ Any file this Change changes is changed identically in controls/C12, or its SYNC
 
 A 4L retrospective in `act.md` before the promotion.
 
+## Where this DO sits (architecture)
+
+Engineering is the X+1 lab; the Package (`packages/kaal-controls`) is the consumer-agnostic product and owns `AGENTS.md`, `SKILL.md`, references and scripts; `.kaal/` is the operational copy of a published package and stays on the released version until a new package reaches npmjs. This DO changes only the Package (the finder, `check-controls.mjs`, the Skill and two references) and Engineering's own controls and Cases. It does not touch `.kaal/`. The Package depends on nothing in Engineering, and the finder names no consumer.
+
+The four ways to reach the same Controls framework, and where each stands:
+
+| Way | What it is | Where it stands |
+| --- | --- | --- |
+| SCRIPT | deterministic discovery and validation of declared controls, reproducible findings with a recovery line, no agent judgement | this DO: the finder lists every declared control, complete or not, with `valid`, `problems` and `rank`; `check-controls.mjs` validates and exits 1 on a problem |
+| SKILL | an agent guided by `SKILL.md`, references and scripts; judges what a script cannot, such as the status from evidence | exists, and this DO adds `judging-status.md` and the status in `declaring-controls.md`; undeclared candidates are not yet investigated |
+| AGENT | an agent guided by a package `AGENTS.md` that knows when and how to use the framework and the Skill | not yet: the Package has no `AGENTS.md`; a later Change |
+| BARE | an unguided prompt, the last resort when KAAL offers no help | stays the fallback |
+
+SKILL and AGENT are guided entry points into the same framework, not competing implementations. BASS (script, skill, agent, bare) is a general KAAL concept, not specific to Controls.
+
+Deferred, each its own Change: finding possible undeclared controls (`list-candidates`) and controls without coverage (`list-uncovered`), the Package `AGENTS.md`, and recovery that an agent can begin. Deployment into `.kaal/` follows only a publication on npmjs.
+
+Incomplete declarations stay visible: before, a control with a missing field or an unknown type was dropped into `refused` and was not in `controls`; now it is in `controls` with `valid:false` and each problem names its field, reason and recovery. Consumers of the finder stay compatible: nothing is removed, `refused` is kept with the first reason as before, and the new fields are additive. The one behaviour that changes is for a consumer that read `controls` as only the valid ones. In this repository those are the release control Cases (T540, T600, T750 to T752) and the Package's own Cases, which this DO amends for `status`. This file is not part of the patch of controls/C12, so the pure SYNC is not affected.
+
 ## Left open
 
 - Whether the status of a control is checked at a gate: controls/C12 and the Owner decide, not this Change.
