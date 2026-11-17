@@ -1,0 +1,25 @@
+name: exp-a-baseline
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+permissions: {}
+jobs:
+  approve:
+    if: startsWith(github.event.pull_request.title, 'EXPERIMENT-DO-NOT-RUN:')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      KAAL_PR: ${{ github.event.pull_request.number }}
+      KAAL_BASE: ${{ github.event.pull_request.base.ref }}
+      KAAL_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the candidate as Git data
+        run: git fetch --no-tags origin "+refs/pull/${KAAL_PR}/head:refs/kaal/pr" "+refs/heads/${KAAL_BASE}:refs/kaal/base"
+      - run: node cli.mjs approve
