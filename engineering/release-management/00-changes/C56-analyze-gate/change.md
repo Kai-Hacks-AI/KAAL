@@ -3,13 +3,13 @@
 ## PLAN
 
 1. Add the drafts in `interface.md`: the control `release/CTL5`, the Intent `release/I30`, the settings of the workflow source and the ruleset source.
-2. Add the Cases T730 to T734, all RED: the control test (T730, beside the control), the Intent's answer (T731, beside the Intent), the workflow settings (T732), the promoting ruleset source (T733) and the unchanged other rulesets and the table of controls (T734).
+2. Add the Cases T730 to T735, all RED: the control test (T730, beside the control), the Intent's answer (T731, beside the Intent), the workflow settings (T732), the promoting ruleset source (T733), the unchanged other rulesets and the table of controls (T734), and the fail-closed behavior for an analysis that cannot be made (T735).
 3. Observe the expected RED (`evidence.md`), and that each Case can pass with the DO's content (`evidence.md`).
 4. The PLAN changes no workflow, no ruleset source, no control item and no Intent item, and nothing under `.github`.
 
 ## Ids
 
-Allocated by the coordinator on 17 Nov 2026: Change `release/C56`, Cases T730 to T739 (five used), Intent `release/I30`, control `release/CTL5`. The gap `release/G85` is the next free in release.
+Allocated by the coordinator on 17 Nov 2026: Change `release/C56`, Cases T730 to T739 (six used), Intent `release/I30`, control `release/CTL5`. The gap `release/G85` is the next free in release.
 
 ## Design
 
@@ -25,7 +25,7 @@ Not authorized by this PLAN. On the go of the Owner, into the collector of this 
 
 1. Change the workflow source and `promoting.json` as in `interface.md`, and `controls.md` for the new row.
 2. Add `04-controls/CTL5-gate-analyze-vulnerabilities/CTL5.md` and `01-intent/I30-no-vulnerable-promotion/I30.md`, equal to the drafts.
-3. Amend the Cases that pin Promoting to its own check only, observed in the trial of this PLAN: release/T481, T483, T485 (C35), T513, T516 (C37) and T581 (C48, which says that a ruleset requiring a detective report is a separate control, now this one). Rename T730 to T734 from `.red.mjs` to `.test.mjs` when green.
+3. Amend the Cases that pin Promoting to its own check only, observed in the trial of this PLAN: release/T481, T483, T485 (C35), T513, T516 (C37) and T581 (C48, which says that a ruleset requiring a detective report is a separate control, now this one). Rename T730 to T735 from `.red.mjs` to `.test.mjs` when green.
 
 ## ACT
 
