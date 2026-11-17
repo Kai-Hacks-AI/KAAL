@@ -5,15 +5,23 @@
 // git(args) -> { status, stdout }
 // refs: baseTipRef (the base branch's current tip), mainRef (main), headSha (the pull request head, fetched as Git data)
 
+// Removes HTML comments by scanning, not by pattern: a comment ends at `-->` or `--!>`, an unterminated one swallows the rest, and
+// the scan repeats until no opener is left, so a comment built around another cannot survive.
+function withoutComments(text) {
+  let t = text;
+  for (let i = t.indexOf('<!--'); i >= 0; i = t.indexOf('<!--')) {
+    const ends = ['-->', '--!>'].map((e) => [t.indexOf(e, i + 4), e.length]).filter(([at]) => at >= 0).sort((x, y) => x[0] - y[0]);
+    t = ends.length ? t.slice(0, i) + t.slice(ends[0][0] + ends[0][1]) : t.slice(0, i);
+  }
+  return t;
+}
+
 export function reasonOf(body) {
   if (typeof body !== 'string') return null;
   const text = body.replace(/\r\n/g, '\n');
   const m = /^## Reason[^\S\n]*\n([\s\S]*?)(?=\n## |\n---[^\S\n]*(?:\n|(?![\s\S]))|(?![\s\S]))/m.exec(text);
   if (!m) return null;
-  // remove comments until none is left, so a comment built around another cannot survive, then any stray opener or closer
-  let text2 = m[1];
-  for (let before = null; before !== text2;) { before = text2; text2 = text2.replace(/<!--[\s\S]*?-->/g, ''); }
-  return text2.replace(/<!--|-->/g, '').trim();
+  return withoutComments(m[1]).trim();
 }
 
 export function gatherFacts({ git, baseRef, baseTipRef, mainRef, headSha, currentHead, body }) {
