@@ -16,9 +16,9 @@ A check that the Dependency row's pull request is a merged SYNC. The Case judges
 
 ## Longed For
 
-The promotion of this collector, and then its own WIRE, defined and reviewed on its own. The Owner has ruled that WIRE travels alone, so no WIRE carries more than one template.
+The promotion of this collector, and then the WIRE that installs the template under `.github`. The Owner has ruled that WIRE travels alone and that the templates can be installed in one WIRE.
 
 ## Follow-ups
 
 - Promote C46 with the other template collectors, in the CPO's order.
-- Define the WIRE of the PROMOTION template as its own operation, with its own scope and review.
+- Install the PROMOTION template in the WIRE of the templates, after the promotion; the WIRE travels alone and its scope is reviewed on its own.
