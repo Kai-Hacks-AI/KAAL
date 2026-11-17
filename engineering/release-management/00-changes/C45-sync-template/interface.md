@@ -23,7 +23,7 @@ The draft of the template, as it is added in the DO. Case T650 reads it. It is n
 | 1 | Worker | Create the SYNC branch from the collector's tip, the workspace, and open a draft PR | open | — |
 | 2 | Worker | Merge a main commit into it and resolve every conflict explicitly in that merge commit | open | — |
 | 3 | Reviewer | Confirm the purpose and the evidence of its trigger, and that the merge commit names the main commit and holds only conflict resolutions | open | — |
-| 4 | Successor | Merge the approved SYNC; for PROMOTION the promotion review starts, not an automatic promotion; to unblock, the blocked development resumes | pending | — |
+| 4 | Successor | Merge the approved SYNC into its branch, which requires a merge commit of main and green checks; the merge starts nothing | pending | — |
 `````
 
 ## Where it lives
@@ -37,5 +37,5 @@ The table has the five default rows: Predecessor, Worker (creates the branch and
   - step 1 names `tip` and `draft PR`
   - step 2 names `merge commit`
   - step 3 names `purpose` and `evidence`
-  - step 4 names `for PROMOTION the promotion review` and `not an automatic promotion` and `the blocked development resumes`
+  - step 4 names `which requires` and `starts nothing`
   - the Reason chapter of the draft (Case T653) names the purposes `for PROMOTION` and `to unblock development`, the evidence each needs (`promotion queue`, `concrete blocker`) and that a SYNC is `never routine branch maintenance`
