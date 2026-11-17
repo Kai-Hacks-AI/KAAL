@@ -29,3 +29,7 @@ for f in engineering/release-management/04-controls/CTL2-analyze-vulnerabilities
   node -e "import('./$f').then(async m=>{try{await m.run();console.log('GREEN',m.id)}catch(x){console.log(x.code==='ERR_ASSERTION'?'RED-observed':'ERROR',m.id,String(x.message).split('\n')[0])}})"
 done
 ```
+
+## After the DO
+
+`CTL2.md` is added equal to the draft. T600 and T601 are renamed to `.test.mjs` and pass, and the finder refuses nothing. The Cases of release/C48 (T580 to T582) and of release/CTL1 (T540, T541) still pass.
