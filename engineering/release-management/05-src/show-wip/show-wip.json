@@ -1,12 +1,51 @@
 {
-  "types": ["PLAN", "DO", "ACT", "SYNC", "PROMOTION", "HOTFIX"],
+  "types": [
+    "PLAN",
+    "DO",
+    "ACT",
+    "SYNC",
+    "PROMOTION",
+    "HOTFIX"
+  ],
   "stations": [
-    { "station": "Integration", "into": "kaal/*" },
-    { "station": "Promotion", "into": "main" }
+    {
+      "station": "Integration",
+      "into": "kaal/*"
+    },
+    {
+      "station": "Promotion",
+      "into": "main"
+    }
   ],
   "review": {
-    "stations": ["Promotion", "Integration"],
-    "types": ["SYNC", "PROMOTION", "HOTFIX", "ACT", "DO", "PLAN"],
+    "stations": [
+      "Promotion",
+      "Integration"
+    ],
+    "types": [
+      "SYNC",
+      "PROMOTION",
+      "HOTFIX",
+      "ACT",
+      "DO",
+      "PLAN"
+    ],
     "sync": "SYNC"
-  }
+  },
+  "default": "main",
+  "places": [
+    {
+      "place": "hotfix",
+      "branch": "hotfix/*"
+    },
+    {
+      "place": "wire",
+      "branch": "wire/*"
+    },
+    {
+      "place": "kaal",
+      "branch": "kaal/*"
+    }
+  ],
+  "development": "development"
 }
