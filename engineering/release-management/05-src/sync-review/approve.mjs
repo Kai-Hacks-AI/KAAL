@@ -29,3 +29,8 @@ export function decideApproveNow({ verdict, fresh, ...rest }) {
   if (!same) return skip('the base or main moved since verification');
   return decideApprove({ ...rest, verdict: fresh });
 }
+
+// release/C60: the refusal of the approving call that names a setting. Any other text is `other`.
+export function classifyRefusal(message) {
+  return typeof message === 'string' && /github actions (is|are) not permitted to approve pull requests/i.test(message) ? 'actions-not-permitted' : 'other';
+}

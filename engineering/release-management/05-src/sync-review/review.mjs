@@ -4,17 +4,18 @@
 // approves, merges or edits a branch.
 export const LABEL = 'sync: needs review';
 
-export function decideReview({ verdict, currentHead, existing }) {
+export function decideReview({ verdict, currentHead, existing, approval }) {
   const seen = existing ?? { labelled: false, commentedHead: null, reviewRequested: false };
   const passes = verdict && typeof verdict === 'object' && verdict.outcome === 'PASS' && verdict.passes === true && verdict.analyzed?.head === currentHead;
-  if (passes) return seen.labelled ? [{ action: 'unlabel', label: LABEL }] : [];
-  const lines = verdict?.reasons?.length
+  const refused = passes && approval === 'refused';
+  if (passes && !refused) return seen.labelled ? [{ action: 'unlabel', label: LABEL }] : [];
+  const lines = refused ? ['- approval-refused: the approval was refused, so this pure SYNC waits for a person'] : verdict?.reasons?.length
     ? verdict.reasons.map((r) => `- ${r.code}: ${r.detail}`)
     : [`- ${verdict?.outcome ?? 'no verdict'}: verify Sync did not pass at this head`];
   const actions = [];
   if (!seen.labelled) actions.push({ action: 'label', label: LABEL });
   if (seen.commentedHead !== currentHead) {
-    actions.push({ action: 'comment', body: `<!-- review-sync:${currentHead} -->\nThis SYNC needs a person's review. verify Sync did not pass at \`${String(currentHead).slice(0, 7)}\`:\n${lines.join('\n')}` });
+    actions.push({ action: 'comment', body: `<!-- review-sync:${currentHead} -->\nThis SYNC needs a person's review. ${refused ? 'verify Sync passed, but the approval was refused' : 'verify Sync did not pass'} at \`${String(currentHead).slice(0, 7)}\`:\n${lines.join('\n')}` });
   }
   if (!seen.reviewRequested) actions.push({ action: 'request-review' });
   return actions;

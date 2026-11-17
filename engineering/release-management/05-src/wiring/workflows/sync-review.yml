@@ -57,6 +57,8 @@ jobs:
   approve:
     name: approve Sync
     needs: verify
+    outputs:
+      approval: ${{ steps.approve.outputs.approval }}
     if: ${{ always() && startsWith(github.event.pull_request.title, 'SYNC:') && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/')) }}
     runs-on: ubuntu-latest
     permissions:
@@ -88,11 +90,12 @@ jobs:
         run: git fetch --no-tags origin "+refs/pull/${KAAL_PR}/head:refs/kaal/pr" "+refs/heads/${KAAL_BASE}:refs/kaal/base"
 
       - name: Approve what verify Sync passed, or say what would be approved
+        id: approve
         run: node engineering/release-management/05-src/sync-review/cli.mjs approve
 
   review:
     name: review Sync
-    needs: verify
+    needs: [verify, approve]
     if: ${{ always() && startsWith(github.event.pull_request.title, 'SYNC:') && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/')) }}
     runs-on: ubuntu-latest
     permissions:
@@ -105,6 +108,7 @@ jobs:
       KAAL_BASE: ${{ github.event.pull_request.base.ref }}
       KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
       KAAL_VERDICT: ${{ needs.verify.outputs.verdict }}
+      KAAL_APPROVAL: ${{ needs.approve.outputs.approval }}
       # The person to ask when CODEOWNERS names nobody but the author. Without one, a SYNC that needs a person fails this job.
       KAAL_SYNC_REVIEWER: ${{ vars.KAAL_SYNC_REVIEWER }}
     steps:
