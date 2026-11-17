@@ -27,6 +27,10 @@ export async function run() {
   const scan = (d) => { for (const n of readdirSync(d, { withFileTypes: true })) { const q = join(d, n.name); if (n.isDirectory()) scan(q); else if (/\.(md|mjs)$/.test(n.name) && /engineering\/|packages\/|\.github|@kaihacksai|\bKAAL\b/.test(readFileSync(q, 'utf8'))) known.push(n.name); } };
   scan(skill);
   assert.deepEqual(known, [], 'the Skill names a path, a scope or the repository of KAAL');
+  const deps = [];
+  const depscan = (d) => { for (const n of readdirSync(d, { withFileTypes: true })) { const q = join(d, n.name); if (n.isDirectory()) depscan(q); else if (/\.(md|mjs)$/.test(n.name)) { const t = readFileSync(q, 'utf8'); if (/kaal-(?!controls|foundation|hosting)[a-z-]+/.test(t) || /(?:from|import\()\s*['"](?!node:|\.)/.test(t) && !/(?:from|import\()\s*['"]@kaihacksai\/kaal-(?:foundation|hosting)/.test(t)) deps.push(n.name); } } };
+  depscan(skill);
+  assert.deepEqual(deps, [], 'the Skill depends on a package or Skill other than foundation and hosting');
   const lone = join(mkdtempSync(join(tmpdir(), 'c12-skill-')), 'skill');
   cpSync(skill, lone, { recursive: true });
   const run = (d) => { try { return { code: 0, out: execFileSync(process.execPath, [join(lone, 'scripts/check-controls.mjs'), d], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) }; } catch (e) { return { code: e.status, err: String(e.stderr), out: String(e.stdout) }; } };
