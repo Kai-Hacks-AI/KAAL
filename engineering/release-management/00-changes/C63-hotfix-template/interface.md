@@ -32,10 +32,10 @@ The draft of the template, as it is added in the DO. Case T830 reads it. It is n
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
 | 0 | Predecessor | The hotfix branch exists, started at main's tip, and a RED Case shows the Defect | pending | — |
-| 1 | Worker | Open a draft HOTFIX PR from the hotfix branch | open | — |
+| 1 | Worker | Open a draft HOTFIX PR into the hotfix branch | open | — |
 | 2 | Worker | Make the RED Case GREEN with the smallest change; keep to the files of the Change; every check the hotfix branch requires is green on its exact head | open | — |
 | 3 | Reviewer | Verify the RED to GREEN evidence, that the Defect names its state and that the Urgency holds, and approve the exact head | open | — |
-| 4 | Successor | Merge the approved HOTFIX; approval alone does not merge | pending | — |
+| 4 | Successor | Merge the approved HOTFIX into the hotfix branch; approval alone does not merge | pending | — |
 `````
 
 ## Where it lives
@@ -44,11 +44,11 @@ The draft of the template, as it is added in the DO. Case T830 reads it. It is n
 
 ## What the chapter says
 
-The table has the five default rows: Predecessor, Worker (opens a draft PR), Worker (does the work), Reviewer, Successor. It is argued from the `hotfix/*` branch the pull request comes from: that branch starts at main's tip, carries one correction, and its required checks are green on the exact head. The Action of the rows:
+The table has the five default rows: Predecessor, Worker (opens a draft PR), Worker (does the work), Reviewer, Successor. It is argued from the `hotfix/*` branch the pull request goes into: that branch starts at main's tip, carries one correction, and accepts a pull request only when every check it requires is green on the exact head. The Action of the rows:
   - step 0 names `hotfix branch`, `main's tip` and `RED Case`
-  - step 1 names `draft HOTFIX PR`
+  - step 1 names `draft HOTFIX PR into the hotfix branch`
   - step 2 names `smallest change`, `GREEN` and `exact head`
   - step 3 names `RED to GREEN`, `Urgency` and `approve the exact head`
-  - step 4 names `Merge the approved HOTFIX` and `approval alone does not merge`
+  - step 4 names `Merge the approved HOTFIX into the hotfix branch` and `approval alone does not merge`
 
 No row names a PLAN, a DO, an ACT, a SYNC, a PROMOTION or a WIRE: the template argues from its own branch and does not name another process.

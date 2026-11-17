@@ -21,7 +21,7 @@ With the draft of `interface.md` written to `05-src/wiring/templates/hotfix.md` 
 
 ## What this shows and does not show
 
-The Cases show that the template is the current one plus a `HOW TO WORK` chapter of the agreed format, that its rows say what a correction from a hotfix branch needs, and that no row names another process. They do not show that the envelope check accepts a body of the template: that is the WIRE's step.
+The Cases show that the template is the current one plus a `HOW TO WORK` chapter of the agreed format, that its rows say what a correction into a hotfix branch needs, and that no row names another process. They do not show that the envelope check accepts a body of the template: that is the WIRE's step.
 
 ## Reproduce
 

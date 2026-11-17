@@ -9,14 +9,14 @@ const MUST = [
   [0, 'hotfix branch'],
   [0, "main's tip"],
   [0, 'RED Case'],
-  [1, 'draft HOTFIX PR'],
+  [1, 'draft HOTFIX PR into the hotfix branch'],
   [2, 'smallest change'],
   [2, 'GREEN'],
   [2, 'exact head'],
   [3, 'RED to GREEN'],
   [3, 'Urgency'],
   [3, 'approve the exact head'],
-  [4, 'Merge the approved HOTFIX'],
+  [4, 'Merge the approved HOTFIX into the hotfix branch'],
   [4, 'approval alone does not merge'],
 ];
 export async function run() {

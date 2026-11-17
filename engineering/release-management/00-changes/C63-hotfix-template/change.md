@@ -24,4 +24,5 @@ A 4L retrospective in `act.md` before the promotion.
 ## Left open
 
 - The WIRE that installs the template under `.github` is its own step, alone, after the promotion, in the one WIRE of all templates. Until then the template in `.github` stays as it is.
-- Which branch a HOTFIX pull request goes into is not decided by the template. The rows speak of the `hotfix/*` branch it comes from.
+- The way from a `hotfix/*` branch into main is a promotion, with the one promotion template; this template does not describe it.
+- The checker of the pull request body (`check PR Envelope`) still treats a HOTFIX pull request as one from a `hotfix/*` branch into main (its Case T189). That is legacy and not changed here.
