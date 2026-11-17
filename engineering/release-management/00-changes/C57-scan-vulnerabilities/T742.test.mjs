@@ -28,6 +28,15 @@ export async function run() {
   assert.equal(fail.outcome, 'FAIL');
   assert.equal(fail.passes, false);
   assert.deepEqual(fail.findings, [{ package: 'glob', severity: 'low', advisory: 'https://github.com/advisories/GHSA-aaaa-bbbb-cccc', range: '<10.5.0' }]);
+  const incomplete = (counts) => JSON.stringify({ auditReportVersion: 2, vulnerabilities: {}, metadata: { vulnerabilities: counts, dependencies: { total: 120 } } });
+  for (const bad of [incomplete({}), incomplete({ low: 0, moderate: 0, high: 0 }), incomplete({ low: 0, moderate: 0, high: 0, critical: null }),
+    incomplete({ low: 0, moderate: '0', high: 0, critical: 0 }), incomplete({ low: 0, moderate: 'x', high: 0, critical: 0 }), incomplete({ low: -1, moderate: 0, high: 0, critical: 0 }),
+    incomplete({ low: 0, moderate: 0.5, high: 0, critical: 0 }), incomplete({ low: 0, moderate: 0, high: 0, critical: Number.NaN })]) {
+    const r = interpret(bad);
+    assert.equal(r.outcome, 'UNKNOWN', `${bad.slice(60, 140)} is not UNKNOWN`);
+    assert.equal(r.passes, false);
+  }
+  assert.equal(interpret(incomplete({ low: 0, moderate: 0, high: 0, critical: 0 })).outcome, 'PASS', 'complete zero counts without info still pass');
   for (const bad of [undefined, '', 'not json', '[]', JSON.stringify({ error: { code: 'ENOAUDIT', summary: 'registry unreachable' } }), JSON.stringify({ auditReportVersion: 2 }), audit({ high: 1 }, {})]) {
     const r = interpret(bad);
     assert.equal(r.outcome, 'UNKNOWN', `${String(bad).slice(0, 30)} is not UNKNOWN`);

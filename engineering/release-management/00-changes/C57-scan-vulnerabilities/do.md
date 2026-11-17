@@ -10,3 +10,7 @@
 ## Not done, as planned
 
 No `.github` file, ruleset or check changed. Nothing requires the scan. The WIRE that installs the workflow is a later step with the Owner's go; the first scheduled run is expected to be red (4 moderate advisories, see `evidence.md`).
+
+## CPO revision at 2454c60
+
+The interpreter turned a missing or malformed severity count into zero (`Number(counts[s]) || 0`), so an incomplete audit with the other counts at zero could say PASS. It now requires `low`, `moderate`, `high` and `critical` each to be present as a non-negative integer and says UNKNOWN otherwise. T742 gained eight cases (empty counts, a missing count, null, a string, a non-numeric string, negative, fractional, NaN) and one that complete zero counts without `info` still pass. Before the fix T742 was RED on the first new case; after it, T740 to T743 are green.
