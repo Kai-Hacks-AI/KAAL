@@ -19,3 +19,16 @@ export function decideReview({ verdict, currentHead, existing }) {
   if (!seen.reviewRequested) actions.push({ action: 'request-review' });
   return actions;
 }
+
+// The first eligible person to ask for a review: an owner from the CODEOWNERS catch-all, then the repository's fallback, who is
+// not the author of the pull request (GitHub does not let the author review it). Teams are not eligible. Null when there is none.
+export function chooseReviewer({ owners = [], fallback = null, author = null }) {
+  const same = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toLowerCase() === b.toLowerCase();
+  const users = [...owners, fallback].filter((o) => typeof o === 'string' && o && !o.includes('/')).map((o) => o.replace(/^@/, ''));
+  return users.find((u) => !same(u, author)) ?? null;
+}
+
+export function ownersOf(codeowners) {
+  const line = typeof codeowners === 'string' ? codeowners.split('\n').find((l) => /^\*\s/.test(l)) : null;
+  return line ? line.trim().split(/\s+/).slice(1).map((o) => o.replace(/^@/, '')) : [];
+}

@@ -67,6 +67,7 @@ jobs:
       KAAL_REPO: ${{ github.repository }}
       KAAL_PR: ${{ github.event.pull_request.number }}
       KAAL_BASE: ${{ github.event.pull_request.base.ref }}
+      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
       KAAL_VERDICT: ${{ needs.verify.outputs.verdict }}
       # Exactly `on` approves; anything else, or nothing, is a dry run that only says what it would do.
       KAAL_SYNC_APPROVE: ${{ vars.KAAL_SYNC_APPROVE }}
@@ -75,11 +76,16 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
           persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+
+      # The facts are read again here, as Git data fetched now: the approval is decided on them, not on what verify Sync saw earlier.
+      - name: Fetch the candidate as Git data
+        run: git fetch --no-tags origin "+refs/pull/${KAAL_PR}/head:refs/kaal/pr" "+refs/heads/${KAAL_BASE}:refs/kaal/base"
 
       - name: Approve what verify Sync passed, or say what would be approved
         run: node engineering/release-management/05-src/sync-review/cli.mjs approve
@@ -97,17 +103,25 @@ jobs:
       KAAL_REPO: ${{ github.repository }}
       KAAL_PR: ${{ github.event.pull_request.number }}
       KAAL_BASE: ${{ github.event.pull_request.base.ref }}
+      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
       KAAL_VERDICT: ${{ needs.verify.outputs.verdict }}
+      # The person to ask when CODEOWNERS names nobody but the author. Without one, a SYNC that needs a person fails this job.
+      KAAL_SYNC_REVIEWER: ${{ vars.KAAL_SYNC_REVIEWER }}
     steps:
       - name: Check out the default branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
           persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+
+      # The facts are read again here, as Git data fetched now, so the judgment does not rest on what an earlier job saw.
+      - name: Fetch the candidate as Git data
+        run: git fetch --no-tags origin "+refs/pull/${KAAL_PR}/head:refs/kaal/pr" "+refs/heads/${KAAL_BASE}:refs/kaal/base"
 
       - name: Put a SYNC that needs a person in front of one
         run: node engineering/release-management/05-src/sync-review/cli.mjs review
