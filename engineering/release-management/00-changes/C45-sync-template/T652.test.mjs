@@ -13,9 +13,8 @@ const MUST = [
   [2, 'merge commit'],
   [3, 'purpose'],
   [3, 'evidence'],
-  [4, 'for PROMOTION the promotion review'],
-  [4, 'not an automatic promotion'],
-  [4, 'the blocked development resumes'],
+  [4, 'which requires'],
+  [4, 'starts nothing'],
 ];
 export async function run() {
   assert.ok(existsSync(REAL), 'sync.md is absent from 05-src/wiring/templates');

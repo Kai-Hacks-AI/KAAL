@@ -16,4 +16,4 @@
 | 1 | Worker | Create the SYNC branch from the collector's tip, the workspace, and open a draft PR | open | — |
 | 2 | Worker | Merge a main commit into it and resolve every conflict explicitly in that merge commit | open | — |
 | 3 | Reviewer | Confirm the purpose and the evidence of its trigger, and that the merge commit names the main commit and holds only conflict resolutions | open | — |
-| 4 | Successor | Merge the approved SYNC; for PROMOTION the promotion review starts, not an automatic promotion; to unblock, the blocked development resumes | pending | — |
+| 4 | Successor | Merge the approved SYNC into its branch, which requires a merge commit of main and green checks; the merge starts nothing | pending | — |
