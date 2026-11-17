@@ -1,6 +1,6 @@
 // Case release/T802 tests: release/C61
 import assert from 'node:assert/strict';
-import { config, facts, load, merged, closed, placeOf, scriptPath } from './fixtures.mjs';
+import { config, facts, load, merged, discarded, placeOf, scriptPath } from './fixtures.mjs';
 export const id = 'release/T802';
 export const tests = ['release/C61'];
 export const title = 'the overview counts the delivered and the discarded branches of each place, and the overview lines show them';
@@ -8,7 +8,7 @@ export async function run() {
   const { showWip, renderInventory } = await load(scriptPath);
   const names = [
     facts('kaal/release/delivered', { head: 'a1', ahead: 2, settled: merged('a1') }),
-    facts('kaal/release/discarded', { head: 'b1', ahead: 2, settled: closed('b1') }),
+    facts('kaal/release/discarded', { head: 'b1', ahead: 2, settled: discarded('b1') }),
     facts('kaal/release/wip', { head: 'c1', ahead: 2, settled: false }),
     facts('hotfix/a', { head: 'd1', ahead: 1, settled: merged('d1') }),
   ];
