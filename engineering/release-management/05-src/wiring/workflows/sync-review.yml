@@ -5,9 +5,12 @@
 # it says what it would do. `review Sync` puts every other outcome in front of a person: a label, a request for review and one
 # comment per head. Nothing here merges, pushes or edits a branch or a body.
 #
-# pull_request_target runs this workflow from the default branch. The jobs check out the default branch and fetch the candidate's
-# commits as Git data only: nothing of the candidate is checked out, built, installed or run. Title and body are read through the
-# API and handed to scripts only as data, never interpolated into a command.
+# pull_request_target runs this workflow from the default branch. release/C65 splits the jobs by what a token can do. `verify Sync`
+# holds no token (`permissions: {}`) and is the only job that reads the candidate: it checks out the default branch and fetches the
+# candidate's commits as Git data, and nothing of the candidate is checked out, built, installed or run. `approve Sync` and
+# `review Sync` can write to the pull request and never fetch the candidate: they take the verdict of verify Sync as data and
+# check it against the pull request and the base as GitHub says they are now. A candidate that could change what the code does
+# still could not reach a token. Title and body are handed to scripts only as data, never interpolated into a command.
 # This is a source; a WIRE installs it under .github/workflows/ (`.github` travels alone), and the repository setting that lets
 # Actions approve a pull request is the Owner's.
 name: sync review
@@ -23,16 +26,14 @@ jobs:
     name: verify Sync
     if: startsWith(github.event.pull_request.title, 'SYNC:') && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/'))
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    permissions: {}
     outputs:
       verdict: ${{ steps.verify.outputs.verdict }}
     env:
-      GH_TOKEN: ${{ github.token }}
-      KAAL_REPO: ${{ github.repository }}
       KAAL_PR: ${{ github.event.pull_request.number }}
       KAAL_BASE: ${{ github.event.pull_request.base.ref }}
       KAAL_HEAD: ${{ github.event.pull_request.head.sha }}
+      KAAL_BODY: ${{ github.event.pull_request.body }}
       KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
     steps:
       - name: Check out the default branch
@@ -69,7 +70,6 @@ jobs:
       KAAL_REPO: ${{ github.repository }}
       KAAL_PR: ${{ github.event.pull_request.number }}
       KAAL_BASE: ${{ github.event.pull_request.base.ref }}
-      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
       KAAL_VERDICT: ${{ needs.verify.outputs.verdict }}
       # Exactly `on` approves; anything else, or nothing, is a dry run that only says what it would do.
       KAAL_SYNC_APPROVE: ${{ vars.KAAL_SYNC_APPROVE }}
@@ -78,16 +78,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-
-      # The facts are read again here, as Git data fetched now: the approval is decided on them, not on what verify Sync saw earlier.
-      - name: Fetch the candidate as Git data
-        run: git fetch --no-tags origin "+refs/pull/${KAAL_PR}/head:refs/kaal/pr" "+refs/heads/${KAAL_BASE}:refs/kaal/base"
 
       - name: Approve what verify Sync passed, or say what would be approved
         id: approve
@@ -106,7 +101,6 @@ jobs:
       KAAL_REPO: ${{ github.repository }}
       KAAL_PR: ${{ github.event.pull_request.number }}
       KAAL_BASE: ${{ github.event.pull_request.base.ref }}
-      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
       KAAL_VERDICT: ${{ needs.verify.outputs.verdict }}
       KAAL_APPROVAL: ${{ needs.approve.outputs.approval }}
       # The person to ask when CODEOWNERS names nobody but the author. Without one, a SYNC that needs a person fails this job.
@@ -116,16 +110,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.repository.default_branch }}
-          fetch-depth: 0
           persist-credentials: false
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-
-      # The facts are read again here, as Git data fetched now, so the judgment does not rest on what an earlier job saw.
-      - name: Fetch the candidate as Git data
-        run: git fetch --no-tags origin "+refs/pull/${KAAL_PR}/head:refs/kaal/pr" "+refs/heads/${KAAL_BASE}:refs/kaal/base"
 
       - name: Put a SYNC that needs a person in front of one
         run: node engineering/release-management/05-src/sync-review/cli.mjs review
