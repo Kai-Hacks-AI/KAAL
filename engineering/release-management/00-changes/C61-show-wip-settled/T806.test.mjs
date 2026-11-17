@@ -24,7 +24,7 @@ export async function run() {
   const { branches, gaps } = await readBranches('o/r', branchPager('main', gh));
   const by = Object.fromEntries(branches.map((b) => [b.name, b]));
   assert.deepEqual(by['kaal/x/done'], { name: 'kaal/x/done', head: 'd1', ahead: 3, settled: { outcome: 'delivered', head: 'd1' } });
-  assert.deepEqual(by['kaal/x/gone'], { name: 'kaal/x/gone', head: 'g1', ahead: 2, settled: { outcome: 'discarded', head: 'g1' } }, 'ahead is not the commits of the branch beyond main');
+  assert.deepEqual(by['kaal/x/gone'], { name: 'kaal/x/gone', head: 'g1', ahead: 2, settled: { outcome: 'closed', head: 'g1' } }, 'ahead is not the commits of the branch beyond main');
   assert.deepEqual(by['kaal/x/fork'], { name: 'kaal/x/fork', head: 'f1', ahead: 1, settled: false }, 'a piece from a fork of the same name settled the branch');
   assert.deepEqual(by['kaal/x/broken'], { name: 'kaal/x/broken', head: 'b1' }, 'a failed read was filled in');
   assert.deepEqual(by.main, { name: 'main', head: 'm1' }, 'the default branch was compared with itself');

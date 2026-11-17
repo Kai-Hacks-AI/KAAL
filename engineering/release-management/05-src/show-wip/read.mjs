@@ -78,7 +78,7 @@ export async function readOpenPulls(repoName, gh) {
 }
 
 // The newest closed or merged piece of a branch from the host's list of the pieces whose head is the branch (REST pull requests, any state):
-// false when it lists none that closed, absent (not observed) when the list is missing or cut at one page. A piece closed unmerged is discarded, a merged one delivered.
+// false when it lists none that closed, absent (not observed) when the list is missing or cut at one page. A merged piece is delivered; a piece closed unmerged is only closed: a transport's outcome, not a decision to discard the work, so it never settles the branch as discarded.
 const PAGE = 100;
 export function settledOf(pulls) {
   if (!Array.isArray(pulls) || pulls.length >= PAGE) return undefined;
@@ -86,7 +86,7 @@ export function settledOf(pulls) {
   if (!done.length) return false;
   const when = (p) => p.merged_at ?? p.closed_at ?? '';
   const newest = done.reduce((a, b) => (when(b) >= when(a) ? b : a));
-  return { outcome: newest.merged_at ? 'delivered' : 'discarded', head: newest.head?.sha };
+  return { outcome: newest.merged_at ? 'delivered' : 'closed', head: newest.head?.sha };
 }
 
 // The facts of each branch the host answers: its tip (from the branch list), the commits it holds beyond the default branch (the comparison runs

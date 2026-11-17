@@ -68,13 +68,14 @@ function packageState(pkg) {
   return { ...base, state: 'current', stock: pkg.changedSinceTag === undefined ? 'UNKNOWN' : pkg.changedSinceTag, ...(pkg.changedSinceTag === undefined ? { reason: 'not observed: changedSinceTag' } : {}) };
 }
 
-// What became of the work of a branch (release/C61), advisory: an open piece is wip; a piece that settled the work (outcome delivered or discarded) settles the branch only
-// when the branch tip is that piece's head (a squash leaves the work off the destination by ancestry, so ancestry proves nothing); missing evidence is UNKNOWN.
+// What became of the work of a branch (release/C61), advisory: an open piece is wip; a piece that delivered the work (outcome delivered) or an explicit decision to discard (outcome discarded)
+// settles the branch only when the branch tip is that piece's head (a squash leaves the work off the destination by ancestry, so ancestry proves nothing). A piece that only closed
+// carries the transport's outcome, not a decision about the work (it may be superseded, moved or reorganized): it stays UNKNOWN. Missing evidence is UNKNOWN.
 function stateOf(transports, { head, ahead, settled }) {
   let state;
   if (transports.length) state = 'wip';
   else if (head === undefined || settled === undefined) state = 'UNKNOWN';
-  else if (settled && settled.head === head) state = settled.outcome === 'delivered' ? 'delivered' : 'discarded';
+  else if (settled && settled.head === head) state = settled.outcome === 'delivered' || settled.outcome === 'discarded' ? settled.outcome : 'UNKNOWN';
   else state = ahead > 0 ? 'wip' : 'UNKNOWN';
   return { state, settled: state === 'delivered' || state === 'discarded' };
 }
