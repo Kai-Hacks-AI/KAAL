@@ -3,5 +3,5 @@ export { branches, config, entryOf, load, piece, placeOf, scriptPath, readerPath
 // a branch with the facts the host answered
 export const facts = (name, over = {}) => ({ name, ...over });
 // the newest closed or merged piece of a branch
-export const merged = (head) => ({ outcome: 'merged', head });
-export const closed = (head) => ({ outcome: 'closed', head });
+export const merged = (head) => ({ outcome: 'delivered', head });
+export const closed = (head) => ({ outcome: 'discarded', head });

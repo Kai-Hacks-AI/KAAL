@@ -84,7 +84,7 @@ export function settledOf(pulls) {
   if (!done.length) return false;
   const when = (p) => p.mergedAt ?? p.closedAt ?? '';
   const newest = done.reduce((a, b) => (when(b) >= when(a) ? b : a));
-  return { outcome: newest.state === 'MERGED' ? 'merged' : 'closed', head: newest.headRefOid };
+  return { outcome: newest.state === 'MERGED' ? 'delivered' : 'discarded', head: newest.headRefOid };
 }
 
 // The branches of a repository. `page(args)` returns one page as { nodes: [{ name, head?, ahead?, settled? }], next } (next is null on the last page); run.mjs builds it from the host's answer.

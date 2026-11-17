@@ -10,6 +10,6 @@ export async function run() {
   assert.equal(settledOf({ pageInfo: { hasNextPage: false }, nodes: [] }), false);
   assert.equal(settledOf(undefined), undefined, 'a missing list was read as none');
   assert.equal(settledOf({ pageInfo: { hasNextPage: true }, nodes: [pull('MERGED', '2026-11-01', 'a1')] }), undefined, 'a cut list was read as complete');
-  assert.deepEqual(settledOf({ pageInfo: { hasNextPage: false }, nodes: [pull('CLOSED', '2026-11-01', 'a1'), pull('MERGED', '2026-11-03', 'b1')] }), { outcome: 'merged', head: 'b1' });
-  assert.deepEqual(settledOf({ pageInfo: { hasNextPage: false }, nodes: [pull('MERGED', '2026-11-01', 'a1'), pull('CLOSED', '2026-11-03', 'b1')] }), { outcome: 'closed', head: 'b1' }, 'an older merge outranked a newer close');
+  assert.deepEqual(settledOf({ pageInfo: { hasNextPage: false }, nodes: [pull('CLOSED', '2026-11-01', 'a1'), pull('MERGED', '2026-11-03', 'b1')] }), { outcome: 'delivered', head: 'b1' });
+  assert.deepEqual(settledOf({ pageInfo: { hasNextPage: false }, nodes: [pull('MERGED', '2026-11-01', 'a1'), pull('CLOSED', '2026-11-03', 'b1')] }), { outcome: 'discarded', head: 'b1' }, 'an older merge outranked a newer close');
 }
