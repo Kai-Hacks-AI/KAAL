@@ -26,7 +26,7 @@ Release/T161, T188, T189, T190, T191 and T192 fail, each because it asserts the 
 
 ## What this shows and does not show
 
-The Cases show the corrected route rows and F17. They do not show that the live check accepts a real HOTFIX pull request: that follows the promotion of this Change and the installation of the check as it runs on the host.
+The Cases show the corrected route rows and F17. They do not show a gate: the check is not wired (it runs by hand), so what it would decide on the host is for the Change that makes it a gate.
 
 ## Reproduce
 

@@ -25,6 +25,6 @@ A 4L retrospective in `act.md` before the promotion.
 
 ## Left open
 
-- The promotion of this Change has delivery priority: a HOTFIX cannot pass the live check until it is on `main`.
+- The promotion of this Change has delivery priority because the check would refuse the agreed flow as soon as it is made a gate (a separate step, not decided here). Until then it runs by hand.
 - The templates WIRE does not proceed until this Defect is answered. The ACT of release/C63 references release/D1 and this Change.
 - A WIRE pull request (from `wire/*`) has no route row; it is reported as not judged and is not changed here.

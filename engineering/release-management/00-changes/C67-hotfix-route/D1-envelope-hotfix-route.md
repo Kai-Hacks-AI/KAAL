@@ -18,7 +18,7 @@ Owner: the release capability thread. Raised on 17 November 2026 from the CPO's 
 
 ## Where the defect lies
 
-Both. The control states the old route in code. The Cases fix the old route as the expected result: release/T161, T188, T189, T190, T191 and T192 assert that a HOTFIX comes from a hotfix/ head, that its base is not judged, or that F17 says so. The requirement F17 states it in words. The check is live, so a real HOTFIX into hotfix/* is refused today.
+Both. The control states the old route in code. The Cases fix the old route as the expected result: release/T161, T188, T189, T190, T191 and T192 assert that a HOTFIX comes from a hotfix/ head, that its base is not judged, or that F17 says so. The requirement F17 states it in words. The check is not wired: it runs by hand (`node envelope.mjs <facts file>`, release/A33) and no workflow, ruleset or hook runs it, so nothing refuses a real HOTFIX today. The route would be refused as soon as the check is made a gate, which is a separate step and not decided here.
 
 ## Cases
 
