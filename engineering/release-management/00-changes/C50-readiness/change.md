@@ -15,7 +15,7 @@ Allocated by the coordinator on 16 Nov 2026: Change `release/C50`, Cases T610 to
 
 The judge is rebuilt clean and not wrapped. What changes against `engineering/release/release.mjs`:
 
-- The scope and the repository come from a declaration (`readiness.json`), not from constants in the code, so the judge names no repository (T614).
+- The scope and the repository come from a declaration (`verify-package.json`), not from constants in the code, so the judge names no repository (T614).
 - The result is `verified`, `failed` or `unknown`. A registry that was not asked about the package or one of its dependencies is `unknown`, never a pass. The old engine reported that as one more finding.
 - Each finding names its rule, so a ruleset, a report or a later Change can refer to it.
 
@@ -25,8 +25,8 @@ The rules are the ones of engineering/F29. The package-locating step (F28) and t
 
 Not authorized by this PLAN. On the go of the Owner, into the collector of this Change:
 
-1. Add `05-src/publishing/readiness/judge.mjs` and `readiness.json` (the scope `@kaihacksai/` and the repository of this project).
-2. Add `04-controls/CTL3-readiness-before-pack/CTL3.md` and `01-intent/I28-publishing-intact/I28.md`, equal to the drafts.
+1. Add `05-src/publishing/verify-package/judge.mjs` and `verify-package.json` (the scope `@kaihacksai/` and the repository of this project).
+2. Add `04-controls/CTL3-verify-package/CTL3.md` and `01-intent/I28-publishing-intact/I28.md`, equal to the drafts.
 3. Rename T610 to T614 from `.red.mjs` to `.test.mjs` when they are green.
 
 ## ACT
@@ -35,6 +35,6 @@ A 4L retrospective in `act.md` before the promotion.
 
 ## Left open
 
-- Which run calls the judge. Today engineering/F29 in `engineering/release/` does, through the old workflow. A run in release-management that calls it is a later Change of the migration, after which the old engine's readiness leaves.
+- Which run calls the judge. Today engineering/F29 in `engineering/release/` does, through the old workflow. A run in release-management that calls it is a later Change of the migration, after which the old engine's readiness step leaves.
 - The order of the remaining controls of `engineering/release/` (source tests first, pack once, installed verification, publish gate, registry acceptance), each its own Change.
-- Whether CTL3 should also be required by a ruleset: a separate decision.
+- A preventive control that wires CTL3 into a release run or a ruleset: a separate, second control.

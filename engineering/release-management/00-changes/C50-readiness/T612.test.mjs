@@ -18,17 +18,17 @@ const WRONG = {
 export async function run() {
   const mod = await judge();
   assert.ok(mod, 'judge.mjs is absent');
-  const good = mod.judgeReadiness({ manifest: manifest(), directory, registry: registry() }, declaration);
+  const good = mod.judgePackage({ manifest: manifest(), directory, registry: registry() }, declaration);
   assert.deepEqual(good, { result: 'verified', findings: [], path: 'trusted' });
   for (const [rule, [change, , known]] of Object.entries(WRONG)) {
     const m = manifest(change);
     const before = JSON.stringify(m);
-    const out = mod.judgeReadiness({ manifest: m, directory, registry: registry(known) }, declaration);
+    const out = mod.judgePackage({ manifest: m, directory, registry: registry(known) }, declaration);
     assert.equal(out.result, 'failed', `${rule}: not failed`);
     assert.deepEqual(out.findings.map((f) => f.rule), [rule], `${rule}: the finding is not the one rule`);
     assert.equal(out.findings[0].kind, 'failed');
     assert.equal(before, JSON.stringify(m), `${rule}: the input changed`);
   }
-  const two = mod.judgeReadiness({ manifest: manifest({ license: undefined, files: [] }), directory, registry: registry() }, declaration);
+  const two = mod.judgePackage({ manifest: manifest({ license: undefined, files: [] }), directory, registry: registry() }, declaration);
   assert.deepEqual(two.findings.map((f) => f.rule), ['license', 'files'], 'the order is not fixed');
 }

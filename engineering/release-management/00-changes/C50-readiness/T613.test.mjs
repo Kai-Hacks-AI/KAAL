@@ -7,7 +7,7 @@ export const title = 'the registry decides the version and the dependencies: a p
 export async function run() {
   const mod = await judge();
   assert.ok(mod, 'judge.mjs is absent');
-  const judged = (m, r) => mod.judgeReadiness({ manifest: m, directory, registry: r }, declaration);
+  const judged = (m, r) => mod.judgePackage({ manifest: m, directory, registry: r }, declaration);
   const published = judged(manifest(), registry({ '@kaihacksai/kaal-example': ['0.0.1'] }));
   assert.equal(published.result, 'failed');
   assert.deepEqual(published.findings.map((f) => f.rule), ['own-version-published']);

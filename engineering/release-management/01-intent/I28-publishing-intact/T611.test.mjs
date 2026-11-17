@@ -18,6 +18,6 @@ export async function run() {
   const out = JSON.parse(execFileSync(process.execPath, [FINDER, RM], { encoding: 'utf8' }));
   const owners = out.controls.filter((c) => c.has.includes('release/I28'));
   assert.deepEqual(owners.map((c) => c.id), ['release/CTL3'], 'no control has release/I28');
-  assert.equal(owners[0].type, 'preventive');
+  assert.equal(owners[0].type, 'detective');
   assert.ok(owners[0].tests.length >= 1, 'the control has no control test');
 }

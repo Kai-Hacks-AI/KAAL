@@ -6,7 +6,7 @@ import { declaration, directory, manifest, registry, judge } from './fixtures.mj
 export const id = 'release/T614';
 export const tests = ['release/CTL3'];
 export const title = 'the judge is pure and host-neutral: it imports nothing, calls no network, process or write API, and holds no scope or repository of its own, so another declaration gives another judgment';
-const JUDGE = new URL('../../05-src/publishing/readiness/judge.mjs', import.meta.url);
+const JUDGE = new URL('../../05-src/publishing/verify-package/judge.mjs', import.meta.url);
 export async function run() {
   const mod = await judge();
   assert.ok(mod, 'judge.mjs is absent');
@@ -16,8 +16,8 @@ export async function run() {
   assert.ok(!/kaihacksai|Kai-Hacks-AI/.test(source), 'the judge holds a scope or a repository');
   const other = { scope: '@other/', repository: 'git+https://example.org/other.git' };
   const input = { manifest: manifest(), directory, registry: registry() };
-  assert.equal(mod.judgeReadiness(input, declaration).result, 'verified');
-  const rules = mod.judgeReadiness(input, other).findings.map((f) => f.rule);
+  assert.equal(mod.judgePackage(input, declaration).result, 'verified');
+  const rules = mod.judgePackage(input, other).findings.map((f) => f.rule);
   assert.ok(rules.includes('scope') && rules.includes('repository-url'), 'another declaration does not change the judgment');
-  assert.deepEqual(mod.judgeReadiness(input, declaration), mod.judgeReadiness(JSON.parse(JSON.stringify(input)), declaration), 'the judgment is not deterministic');
+  assert.deepEqual(mod.judgePackage(input, declaration), mod.judgePackage(JSON.parse(JSON.stringify(input)), declaration), 'the judgment is not deterministic');
 }
