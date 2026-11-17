@@ -40,7 +40,7 @@ export function judge(facts) {
     if (!same(r.bypass_actors, [])) add(name, `${name}: the bypass list is not empty`);
     const rules = r.rules ?? [];
     const checks = rules[0]?.parameters;
-    const expected = (name === "Integrating" ? integrating.requires ?? [name] : [name]).map(job); // what stages.json declares Integrating to require
+    const expected = [...(name === "Integrating" ? integrating.requires ?? [name] : [name]).map(job), ...(by(name)?.also ?? [])]; // what stages.json declares: Integrating requires, and `also` of a stage adds checks by their full name (release/C59)
     if (!same(rules.map((x) => x.type), ["required_status_checks"])) add(name, `${name}: the only rule must be required_status_checks`);
     else if (!same((checks.required_status_checks ?? []).map((c) => c.context), expected)) add(name, `${name}: the required checks must be ${expected.join(" and ")}`);
     else if (checks.strict_required_status_checks_policy !== false) add(name, `${name}: "up to date" must not be required`);
