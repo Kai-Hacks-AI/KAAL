@@ -18,6 +18,7 @@ export const title = 'the Skill reference declares the status and names the four
 export async function run() {
   const ref = readFileSync(join(dir, 'skills/kaal-controls/references/declaring-controls.md'), 'utf8');
   assert.match(ref, /^status: /m, 'the reference shows no status line');
+  assert.ok(ref.includes('check-controls.mjs'), 'the reference does not show the check command');
   const at = STATUSES.map((s) => ref.indexOf(s));
   at.forEach((i, k) => assert.ok(i >= 0, `the reference does not name ${STATUSES[k]}`));
   assert.deepEqual([...at].sort((a, b) => a - b), at, 'the reference does not name the four in order');

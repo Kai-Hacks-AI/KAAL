@@ -11,12 +11,12 @@ This PLAN authorizes no publication and no promotion.
 
 ## Smallest coherent promotion
 
-Everything under `packages/kaal-controls/` that this Change adds or edits. Nothing outside the folder changes. The controls of other capabilities that are on `main` are not edited here.
+Everything under `packages/kaal-controls/` and `engineering/controls/` that this Change adds or edits, and the one `status:` line of `release/CTL1` and of `release/CTL2` that release adds so that both are valid when the finder lands. No workflow, ruleset or required check changes.
 
 ## Evidence before promotion
 
 | Kind | Evidence | Strength |
 | --- | --- | --- |
-| Structural | Cases T770 to T775 green, and the Cases of C8 and C9 still green with a status | verified by Cases |
-| Validated | The CPO reads F19 and A10 and judges that the four words are right and nothing more was added | judgment, not a Case |
-| Operational | None. The finder lists and checks a value and enforces nothing | not applicable |
+| Structural | Cases T770 to T779 green, and the Cases of C8 and C9 still green with a status | verified by Cases |
+| Validated | The CPO reads F19 to F23 and A10 and A11 and judges that the four words are right, that Product and Engineering are kept apart, and that nothing more was added | judgment, not a Case |
+| Operational | None. The check runs only inside a Case; nothing in GitHub requires it | not applicable |
