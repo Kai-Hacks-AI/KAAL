@@ -6,17 +6,17 @@ export const id = 'release/T662';
 export const tests = ['release/C46'];
 export const title = 'the rows of the PROMOTION template say what this type of pull request needs: each named word is in the Action of its row, and every Action is one short line';
 const MUST = [
-  [0, 'kaal/'],
-  [0, 'hotfix/'],
-  [0, 'wire/'],
+  [0, 'Main requires'],
+  [0, 'source branch'],
+  [0, 'branch quality'],
   [0, 'single-promotion seat'],
   [1, "main's tip"],
-  [1, 'SYNC for PROMOTION'],
   [1, 'omit'],
   [2, 'draft PROMOTION PR'],
   [2, 'exact head'],
   [3, 'exact head'],
-  [4, 'releasing the seat'],
+  [4, 'into main, which requires'],
+  [4, 'releases the seat'],
   [4, 'nothing starts automatically'],
 ];
 export async function run() {

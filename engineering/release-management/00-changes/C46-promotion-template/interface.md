@@ -17,15 +17,15 @@ The draft of the template, as it is added in the DO. Case T660 reads it. It is n
 
 ## HOW TO WORK
 
-<!-- The process between work and review, one row per step. The table keeps this format: Step | Who | Action | Status | Details; step 0 is the Predecessor and the last step the Successor; Who is Predecessor, Worker, Owner, Reviewer, Dependency or Successor; a Dependency row carries its pull request as #<number> in Details. Status is open or done on a Worker, Owner or Reviewer row and merged or pending on a border or Dependency row; a stale Status is accepted. The wording of a step is judged by the Reviewer. The SYNC row is conditional: when the source is behind main's tip it is a Dependency row, renumbered in sequence, for the SYNC for PROMOTION; when the source is current the row is omitted. -->
+<!-- The process between work and review, one row per step. The table keeps this format: Step | Who | Action | Status | Details; step 0 is the Predecessor and the last step the Successor; Who is Predecessor, Worker, Owner, Reviewer, Dependency or Successor; a Dependency row carries its pull request as #<number> in Details. Status is open or done on a Worker, Owner or Reviewer row and merged or pending on a border or Dependency row; a stale Status is accepted. The wording of a step is judged by the Reviewer. The Dependency row is conditional: when the source is behind main's tip it is a Dependency row, renumbered in sequence, for the pull request that brings main's tip in; when the source is current the row is omitted. -->
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | The source (kaal/, hotfix/ or wire/) and its last merged PR are named and ready, and this promotion holds the single-promotion seat | pending | — |
-| 1 | Worker | Check the source holds main's tip; if behind, add a Dependency row for SYNC for PROMOTION (C45) with its #<PR> in Details and finish it first; else omit it | open | — |
+| 0 | Predecessor | Main requires the branch quality of the source branch: name it and its last merged PR; this promotion holds the single-promotion seat | pending | — |
+| 1 | Worker | Check the source holds main's tip; if behind, add a Dependency row with the #<PR> bringing it in, in Details, and finish it first; else omit it | open | — |
 | 2 | Worker | Create the draft PROMOTION PR from the ready source; verify the Changes delivered and the exact head | open | — |
 | 3 | Reviewer | Approve the exact head | open | — |
-| 4 | Successor | Merge the approved PROMOTION, releasing the seat; WIRE or the next promotion is eligible on its own prerequisites, nothing starts automatically | pending | — |
+| 4 | Successor | Merge the approved PROMOTION into main, which requires the approved exact head; this releases the seat and nothing starts automatically | pending | — |
 `````
 
 ## Where it lives
@@ -35,23 +35,23 @@ The draft of the template, as it is added in the DO. Case T660 reads it. It is n
 ## What the chapter says
 
 The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
-  - step 0 names `kaal/` and `hotfix/` and `wire/` and `single-promotion seat`
-  - step 1 names `main's tip` and `SYNC for PROMOTION` and `omit`
+  - step 0 names `Main requires`, `source branch`, `branch quality` and `single-promotion seat`
+  - step 1 names `main's tip` and `omit`
   - step 2 names `draft PROMOTION PR` and `exact head`
   - step 3 names `exact head`
-  - step 4 names `releasing the seat` and `nothing starts automatically`
+  - step 4 names `into main, which requires`, `releases the seat` and `nothing starts automatically`
 
 ## The expanded table (the source is behind main)
 
-When the source does not hold main's tip, the Worker adds one Dependency row for the SYNC for PROMOTION (C45) after the freshness check, with the number of its pull request in Details, and the steps after it are renumbered in sequence. When the source is current the row is omitted and the table is the five default rows. Case T663 reads this example (`#1234` stands for the pull request of the SYNC):
+When the source does not hold main's tip, the Worker adds one Dependency row for the pull request that brings main's tip in after the freshness check, with the number of its pull request in Details, and the steps after it are renumbered in sequence. When the source is current the row is omitted and the table is the five default rows. Case T663 reads this example (`#1234` stands for the pull request that brings main's tip in):
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |
-| 0 | Predecessor | The source (kaal/, hotfix/ or wire/) and its last merged PR are named and ready, and this promotion holds the single-promotion seat | pending | — |
-| 1 | Worker | Check the source holds main's tip; if behind, add a Dependency row for SYNC for PROMOTION (C45) with its #<PR> in Details and finish it first; else omit it | open | — |
-| 2 | Dependency | SYNC for PROMOTION (C45): the source takes in main's tip | pending | #1234 |
+| 0 | Predecessor | Main requires the branch quality of the source branch: name it and its last merged PR; this promotion holds the single-promotion seat | pending | — |
+| 1 | Worker | Check the source holds main's tip; if behind, add a Dependency row with the #<PR> bringing it in, in Details, and finish it first; else omit it | open | — |
+| 2 | Dependency | The pull request that brings main's tip into the source | pending | #1234 |
 | 3 | Worker | Create the draft PROMOTION PR from the ready source; verify the Changes delivered and the exact head | open | — |
 | 4 | Reviewer | Approve the exact head | open | — |
-| 5 | Successor | Merge the approved PROMOTION, releasing the seat; WIRE or the next promotion is eligible on its own prerequisites, nothing starts automatically | pending | — |
+| 5 | Successor | Merge the approved PROMOTION into main, which requires the approved exact head; this releases the seat and nothing starts automatically | pending | — |
 
 Case T663 names: the Dependency role at step 2, an actual `#<number>` in its Details, steps 0 to 5 in sequence, the other rows equal to the default rows in the template, and the five-row path (no Dependency row) in the template itself.
