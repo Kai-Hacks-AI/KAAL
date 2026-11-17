@@ -10,7 +10,10 @@ export function reasonOf(body) {
   const text = body.replace(/\r\n/g, '\n');
   const m = /^## Reason[^\S\n]*\n([\s\S]*?)(?=\n## |\n---[^\S\n]*(?:\n|(?![\s\S]))|(?![\s\S]))/m.exec(text);
   if (!m) return null;
-  return m[1].replace(/<!--[\s\S]*?-->/g, '').trim();
+  // remove comments until none is left, so a comment built around another cannot survive, then any stray opener or closer
+  let text2 = m[1];
+  for (let before = null; before !== text2;) { before = text2; text2 = text2.replace(/<!--[\s\S]*?-->/g, ''); }
+  return text2.replace(/<!--|-->/g, '').trim();
 }
 
 export function gatherFacts({ git, baseRef, baseTipRef, mainRef, headSha, currentHead, body }) {

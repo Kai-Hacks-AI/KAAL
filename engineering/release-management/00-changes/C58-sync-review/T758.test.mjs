@@ -32,6 +32,8 @@ export async function run() {
 
     assert.equal(reasonOf(REASON), 'to unblock development', 'the Reason chapter is read without comments or footer');
     assert.equal(reasonOf('## Change\n\nx\n'), null);
+    assert.equal(reasonOf('## Reason\n\n<!<!-- a -->-- b -->\nreal\n'), 'real', 'a comment built around another is removed too');
+    assert.equal(reasonOf('## Reason\n\n<!<!-- a -->--\n'), '', 'a Reason that is only a comment is empty');
 
     // a pure SYNC of main into the collector, whose conflict-free parts merge on their own
     must(['checkout', '-q', '-b', 'pure', 'collector']);
