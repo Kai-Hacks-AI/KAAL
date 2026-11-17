@@ -15,7 +15,7 @@
 
 ## Can each Case pass
 
-With the rows of `interface.md` written to `05-src/wiring/templates/promotion.md` and the Cases copied to a scratch name in a working tree: GREEN release/T710; RED-observed release/T711 the Dependency row names the SYNC process or C45. The edit and the copies were reverted and are not part of this PLAN.
+With the rows of `interface.md` written to `05-src/wiring/templates/promotion.md` and the Cases copied to a scratch name in a working tree: GREEN release/T710; GREEN release/T711 once the Dependency row of the expanded table in the `interface.md` of release/C46 is the row of this Change. The edit and the copies were reverted and are not part of this PLAN.
 
 ## Reproduce
 
