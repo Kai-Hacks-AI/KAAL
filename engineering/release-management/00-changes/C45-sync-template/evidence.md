@@ -14,11 +14,11 @@
 | release/T652 | release/C45 | RED: sync.md is absent from 05-src/wiring/templates |
 | release/T653 | release/C45 | RED: sync.md is absent from 05-src/wiring/templates |
 
-3 RED-observed, 0 error, 0 green. Each fails on its own assertion, not on a missing module.
+4 RED-observed (T650 to T653), 0 error, 0 green. Each fails on its own assertion, not on a missing module.
 
 ## Can each Case pass
 
-With the draft of `interface.md` written to `05-src/wiring/templates/sync.md` and the three Cases renamed to `.test.mjs` in a working tree, all three were green. The file and the renames were reverted and are not part of this PLAN.
+With the draft of `interface.md` written to `05-src/wiring/templates/sync.md` and the four Cases (T650 to T653) copied to `.test.mjs` in a working tree, all four were green (T650, T651, T652 and T653). The file and the renames were reverted and are not part of this PLAN.
 
 ## What this shows and does not show
 

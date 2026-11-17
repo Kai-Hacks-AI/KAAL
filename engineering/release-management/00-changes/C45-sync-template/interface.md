@@ -33,11 +33,6 @@ The draft of the template, as it is added in the DO. Case T650 reads it. It is n
 ## What the chapter says
 
 The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
-  - step 1 names `tip` and `draft PR`
-  - step 2 names `merge commit`
-  - step 3 names `merge commit`
-  - step 4 names `PROMOTION`
-The table has the five default rows: Predecessor, Worker (creates the branch and opens a draft PR), Worker (does the work), Reviewer, Successor. The Action of the rows:
   - step 0 names `For PROMOTION` and `to unblock`
   - step 1 names `tip` and `draft PR`
   - step 2 names `merge commit`
