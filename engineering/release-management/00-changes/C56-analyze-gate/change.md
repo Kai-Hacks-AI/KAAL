@@ -25,7 +25,7 @@ Not authorized by this PLAN. On the go of the Owner, into the collector of this 
 
 1. Change the workflow source and `promoting.json` as in `interface.md`, and `controls.md` for the new row.
 2. Add `04-controls/CTL5-gate-analyze-vulnerabilities/CTL5.md` and `01-intent/I30-no-vulnerable-promotion/I30.md`, equal to the drafts.
-3. Amend the Cases that pin Promoting to its own check only, observed in the trial of this PLAN: release/T481, T483, T485 (C35), T513, T516 (C37) and T581 (C48, which says that a ruleset requiring a detective report is a separate control, now this one). Rename T730 to T735 from `.red.mjs` to `.test.mjs` when green.
+3. Amend the judge of verify Stages so that Promoting may require the check named in `also` of its stage in `stages.json` (`05-src/stages/judge.mjs`, `stages.json`), and the Cases that pin Promoting to its own check only: release/T481, T482, T483, T485 (C35), T513, T516 (C37) and T581 (C48, which says that a ruleset requiring a detective report is a separate control, now this one). Rename T730 to T735 from `.red.mjs` to `.test.mjs` when green.
 
 ## ACT
 
