@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { FIXED, REAL, RM, WHO, table } from './fixtures.mjs';
 export const id = 'release/T663';
 export const tests = ['release/C46'];
-export const title = 'the PROMOTION table has two paths: five rows when the source is current, and with a Dependency row for the SYNC (a real #number, sequential steps, the other rows unchanged) when the source is behind main';
+export const title = 'the PROMOTION table has two paths: five rows when the source is current, and with a Dependency row (a real #number, sequential steps, the other rows unchanged) when the source is behind main';
 export async function run() {
   assert.ok(existsSync(REAL), 'promotion.md is absent from 05-src/wiring/templates');
   const current = table(readFileSync(REAL, 'utf8')).slice(2);
