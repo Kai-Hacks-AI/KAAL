@@ -18,4 +18,4 @@
 | 1 | Worker | Create the ACT branch, the workspace, and open a draft PR | open | — |
 | 2 | Worker | Write the 4L retrospective in act.md, from the viewpoint of the agent that carried the Change | open | — |
 | 3 | Reviewer | Review and approve the ACT records | open | — |
-| 4 | Successor | Merge the approved ACT; the collector is then eligible for PROMOTION when complete, and the merge does not promote | pending | — |
+| 4 | Successor | Merge the approved ACT into the collector, which requires the 4L retrospective recorded and green checks; the merge starts nothing | pending | — |

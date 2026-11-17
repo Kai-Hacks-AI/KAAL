@@ -12,7 +12,8 @@ const MUST = [
   [2, '4L'],
   [3, 'approve the ACT records'],
   [4, 'Merge the approved ACT'],
-  [4, 'PROMOTION'],
+  [4, 'which requires'],
+  [4, 'starts nothing'],
 ];
 export async function run() {
   assert.ok(existsSync(REAL), 'act.md is absent from 05-src/wiring/templates');
