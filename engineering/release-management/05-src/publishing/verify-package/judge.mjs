@@ -1,6 +1,8 @@
 // release/CTL3 verify Package: the judge (release/C50). Pure: it judges facts handed to it and
 // touches no host, registry or file. The scope and the repository come from the declaration.
-const EXACT = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+// Semantic Versioning 2.0.0 (semver.org, the official expression) without build metadata: numeric parts and
+// numeric prerelease identifiers carry no leading zero. A build suffix (+...) is refused, since the registry ignores it.
+const EXACT = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?$/;
 
 export function judgePackage({ manifest, directory, registry }, declaration) {
   const findings = [];
