@@ -9,7 +9,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { verifySync } from './verify.mjs';
-import { decideApproveNow } from './approve.mjs';
+import { decideApproveNow, classifyRefusal } from './approve.mjs';
 import { decideReview, chooseReviewer, ownersOf, LABEL } from './review.mjs';
 import { gatherFacts } from './facts.mjs';
 
@@ -80,11 +80,20 @@ export function approve(env, deps = realDeps()) {
   const line = `approve Sync: ${decision.action}: ${decision.because}`;
   deps.log(line);
   deps.summary([line]);
-  if (decision.action !== 'approve') return 0;
+  if (decision.action !== 'approve') { deps.out('approval', decision.action === 'would-approve' ? 'would-approve' : 'skipped'); return 0; }
   // read the head once more immediately before submitting, and attach the approval to exactly that commit
   const last = readPull(env, deps);
-  if (last.head !== pull.head) { deps.log('approve Sync: skip: the head moved while deciding'); return 0; }
-  deps.api(['-X', 'POST', `repos/${env.KAAL_REPO}/pulls/${env.KAAL_PR}/reviews`, '-f', 'event=APPROVE', '-f', `commit_id=${pull.head}`, '-f', 'body=approve Sync: verify Sync passes at this head.']);
+  if (last.head !== pull.head) { deps.log('approve Sync: skip: the head moved while deciding'); deps.out('approval', 'skipped'); return 0; }
+  try {
+    deps.api(['-X', 'POST', `repos/${env.KAAL_REPO}/pulls/${env.KAAL_PR}/reviews`, '-f', 'event=APPROVE', '-f', `commit_id=${pull.head}`, '-f', 'body=approve Sync: verify Sync passes at this head.']);
+  } catch (e) {
+    // Only the refusal that names a setting is named; every other failure stays what it is.
+    if (classifyRefusal(e?.message) !== 'actions-not-permitted') throw e;
+    deps.out('approval', 'refused');
+    deps.error('approve Sync: Actions may not approve', 'turn on "Allow GitHub Actions to create and approve pull requests" in the repository settings, or in the organization settings if it is blocked there; this SYNC is put in front of a person meanwhile');
+    return 1;
+  }
+  deps.out('approval', 'approved');
   return 0;
 }
 
@@ -99,7 +108,7 @@ export function review(env, deps = realDeps()) {
   const comments = lines(deps.api([`repos/${repo}/issues/${n}/comments`, '--paginate', '--jq', '.[] | tojson']) || '').map((l) => JSON.parse(l));
   const markers = comments.flatMap((c) => [...(c.body ?? '').matchAll(/<!-- review-sync:([0-9a-f]{7,40}) -->/g)].map((m) => m[1]));
   const existing = { labelled: labels.includes(LABEL), commentedHead: markers.includes(pull.head) ? pull.head : null, reviewRequested: reviewer ? pull.requested.some((r) => r.toLowerCase() === reviewer.toLowerCase()) : false };
-  const actions = decideReview({ verdict: fresh, currentHead: pull.head, existing });
+  const actions = decideReview({ verdict: fresh, currentHead: pull.head, existing, approval: env.KAAL_APPROVAL });
   for (const a of actions) {
     deps.log(`review Sync: ${a.action}`);
     if (a.action === 'label') deps.api(['-X', 'POST', `repos/${repo}/issues/${n}/labels`, '-f', `labels[]=${a.label}`]);
