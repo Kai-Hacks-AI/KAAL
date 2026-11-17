@@ -28,6 +28,10 @@ A 4L retrospective in `act.md` before the promotion.
 
 C61 adds no way to delete, close or move a branch and takes no action on what it shows. Deleting a settled branch stays with someone who has delete rights, by decision.
 
+## Boundary of the evidence
+
+`delivered` and `discarded` are an exploratory, conservative inference, advisory only. A branch tip, the closure of a piece and its merge history are evidence, not an authoritative lifecycle state: a branch is a workspace, not a Change; it may hold several Changes, and a Change spans several pieces. Ambiguous or incomplete evidence never yields `delivered` or `discarded`; it yields `wip` or `UNKNOWN` (T801 conflicting and missing facts, T805 a cut or missing list of pieces, T806 a failed read). The remaining gap: the state is derived from Git, not recorded by KAAL. The direction is that PLAN, DO, ACT, PROMOTION and an explicit discard outcome produce a KAAL-owned lifecycle record, with Git and the host supplying evidence rather than defining the state. That record is not built here; it is a later Change, and the ACT carries this gap.
+
 ## Left open
 
 - A branch protected by a ruleset or still checked out somewhere: the report cannot tell, and says nothing about it.
