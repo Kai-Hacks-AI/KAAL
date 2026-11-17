@@ -3,6 +3,7 @@ id: release/CTL7
 title: verify Sync
 description: It reveals whether a SYNC is a pure merge of main, at its exact head.
 type: detective
+status: implemented
 has: [release/I32]
 ---
 # release/CTL7 verify Sync
