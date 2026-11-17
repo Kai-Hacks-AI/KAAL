@@ -85,8 +85,10 @@ It has one Intent, release/I36.
 
 ## Draft of the stage declaration
 
-The `Integrating` entry of `stages.json` gains one key; the name follows the precursor Change.
+The `Integrating` entry of `stages.json` declares its rules as release/C70 defines (a rule, its control and every setting). The approval is a second rule beside the status checks:
 
 `````
-"alsoRules": ["pull_request"]
+{ "type": "pull_request", "control": "release/CTL10",
+  "parameters": { "required_approving_review_count": 1, "dismiss_stale_reviews_on_push": true,
+    "require_code_owner_review": false, "require_last_push_approval": false, "required_review_thread_resolution": false } }
 `````

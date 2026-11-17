@@ -8,7 +8,7 @@
 
 ## Mechanism
 
-One rule added to the `integrating` ruleset source: `pull_request` with `required_approving_review_count` 1 and `dismiss_stale_reviews_on_push` true, no Code Owner requirement, no last-push or thread rule. The targets stay `kaal/**`, `hotfix/**` and `wire/**`; the bypass list stays empty, so no actor, bot or person skips it. `collecting.json`, `hotfixing.json` and `wiring.json` stay checks-only. The stage declaration in `stages.json` names the extra rule so `verify Stages` judges the source against it.
+One rule added to the `integrating` ruleset source: `pull_request` with `required_approving_review_count` 1 and `dismiss_stale_reviews_on_push` true, no Code Owner requirement, no last-push or thread rule. The targets stay `kaal/**`, `hotfix/**` and `wire/**`; the bypass list stays empty, so no actor, bot or person skips it. `collecting.json`, `hotfixing.json` and `wiring.json` stay checks-only. The stage declaration in `stages.json` names the rule, its settings and the control that answers for it (release/CTL10), so `verify Stages` (release/C70) judges the source against it. This is the first setting of the new rulesets that is the answer to a control: control to Intent (release/I36), the Intent's Requirements and Architecture after it, the control's Cases (T860 to T864) covering it, and `integrating.json` the code that turns them from red to green.
 
 What follows when it is live (to be stated in the control and read by the Owner):
 
@@ -30,7 +30,7 @@ Change `release/C66`, Cases T860 to T864, control `release/CTL10`, Intent `relea
 
 ## DO
 
-Not authorized by this PLAN. On the go of the Owner, into the collector of this Change, and only after the precursor (a Change that makes `verify Stages` accept the rules a stage declares) is on `main`: add `I36.md` and `CTL10.md` equal to the drafts, the `pull_request` rule in `integrating.json`, the declaration in `stages.json`; rename T860 to T864 from `.red.mjs` to `.test.mjs` when green. A `status` line waits for release/C62.
+Not authorized by this PLAN. On the go of the Owner, into the collector of this Change, and only after the precursor release/C70 (`verify Stages` judges a ruleset against the rules its stage declares, traced to controls) is on `main`: add `I36.md` and `CTL10.md` equal to the drafts, the `pull_request` rule in `integrating.json`, the declaration in `stages.json`; rename T860 to T864 from `.red.mjs` to `.test.mjs` when green. A `status` line waits for release/C62.
 
 ## ACT
 
@@ -38,12 +38,11 @@ A 4L retrospective in `act.md`.
 
 ## Left open
 
-- **The precursor Change** (judge and `stages.json` accept a declared extra rule) is requested from the coordinator. Without it the PROMOTION fails `verify Stages`, which uses main's judge.
-- **The key** `alsoRules` in the draft follows whatever name the precursor chooses.
+- **The precursor is release/C70** (PR #1897). Without it the PROMOTION fails `verify Stages`, which uses main's judge. The declaration here follows its format.
 - **Approver login** and the unattributed-changes setting: the Owner confirms both before loading.
 - **DIRT.** On main this is Implemented. Running needs the load by the Owner and a real refusal; Tested needs the failure evidence above.
 - **Hotfix latency** is accepted by the Owner's ruling; a faster path is not designed here.
 
 ## Old Cases the drafts make fail
 
-Eight Cases read the real ruleset sources or `stages.json` through the judge, which still accepts one rule per branch ruleset: release/T481, T482, T483, T487, T511, T512, T760 and T761. They fail with the drafts until the precursor makes the judge accept a declared extra rule, and are amended there or in the DO, never skipped.
+Eight Cases read the real ruleset sources or `stages.json` through the judge, which still accepts one rule per branch ruleset: release/T481, T482, T483, T487, T511, T512, T760 and T761. They fail with the drafts until release/C70 makes the judge interpret declared rules, and are amended there, never skipped.
