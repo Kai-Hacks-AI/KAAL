@@ -14,9 +14,9 @@ The PLAN of C12 observes its RED against `main`. C12 cites nothing that is not o
 | T770, T771 | F19 | RED: a control with a status is refused, one without is listed |
 | T772 | F20 | RED: a control with a status is not listed |
 | T773 | G89 | RED: the finder lists no status |
-| T774 | A10 | RED: the reference shows no status line |
+| T774 | A10, F24 | RED: the reference shows no status line, and the Skill has no judgment help |
 | T775 | I7 | RED: the command refuses a control with a status |
-| T776, T777 | F21, F22 | RED: the product check is absent |
+| T776, T777 | F21, F22 | RED: the product check is absent, and none lives outside the Skill folder |
 | T778 | F23 | RED: the product check is absent |
 | T779 | A11 | RED: the migration guidance is absent |
 
@@ -24,7 +24,7 @@ The PLAN of C12 observes its RED against `main`. C12 cites nothing that is not o
 
 ## Can each Case pass
 
-Against a throwaway copy of the package and of `engineering/` outside the repository, with the finder taking `status`, a check script that wraps the finder, the reference lines, a migration note and a `status` on the two release controls, all ten Cases were green. The copy is not part of this PLAN and implies no wording of the DO.
+Against a throwaway copy of the package and of `engineering/` outside the repository, with the finder taking `status`, a check script in the Skill's scripts folder that wraps the finder, the reference lines, a judging reference, a migration note and a `status` on the two release controls, all ten Cases were green. The copy is not part of this PLAN and implies no wording of the DO.
 
 ## What this shows and does not show
 

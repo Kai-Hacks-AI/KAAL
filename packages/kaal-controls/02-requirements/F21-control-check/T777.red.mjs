@@ -1,6 +1,6 @@
 // Case controls/T777 tests: controls/F21, controls/F22
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -18,6 +18,10 @@ export const tests = ['controls/F21', 'controls/F22'];
 export const title = 'the command checks whichever controls exist in any directory, fails visibly and never writes a status';
 export async function run() {
   assert.ok(existsSync(CHECK), 'the product check is absent');
+  const stray = [];
+  const walk = (d) => { for (const n of readdirSync(d, { withFileTypes: true })) { if (n.name === 'node_modules') continue; const q = join(d, n.name); if (n.isDirectory()) walk(q); else if (/^check-controls/.test(n.name) && !q.startsWith(join(dir, 'skills/kaal-controls/scripts/'))) stray.push(q); } };
+  walk(join(repo, 'packages')); walk(join(repo, 'engineering'));
+  assert.deepEqual(stray, [], 'a check script lives outside the folder of the Skill');
   const run = (d) => { try { return { code: 0, out: execFileSync(process.execPath, [CHECK, d], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) }; } catch (e) { return { code: e.status, err: String(e.stderr) }; } };
   const tmp = mkdtempSync(join(tmpdir(), 'c12-check-'));
   assert.equal(run(tmp).code, 0, 'a directory with no control failed');
