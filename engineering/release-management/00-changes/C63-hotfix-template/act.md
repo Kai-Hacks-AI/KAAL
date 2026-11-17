@@ -8,7 +8,7 @@ The HOW TO WORK rows are argued from the branch the pull request goes into. A ho
 
 ## Learned
 
-I first read the HOTFIX scope as a pull request from `hotfix/*` into main and drafted the rows for that. The coordinator corrected it: a HOTFIX pull request goes into `hotfix/*`, and the way from there to main is a promotion with the one promotion template. The PLAN was rewritten before the Cases were written. The legacy `check PR Envelope` Case T189 still assumes the old direction, so the template's reality and the checker differ until the WIRE.
+I first read the HOTFIX scope as a pull request from `hotfix/*` into main and drafted the rows for that. The coordinator corrected it: a HOTFIX pull request goes into `hotfix/*`, and the way from there to main is a promotion with the one promotion template. The PLAN was rewritten before the Cases were written. The `check PR Envelope` control and its Cases (T161, T188 to T192) still assume the old direction, so the template's reality and the checker differ; that is the Defect release/D1, answered by release/C67.
 
 ## Lacked
 
@@ -21,4 +21,5 @@ A way to see, before the WIRE, whether the envelope check accepts a body of the 
 ## Follow-ups
 
 - Promote this collector, then install the template with the other templates in the one templates WIRE. Until then `.github/PULL_REQUEST_TEMPLATE/hotfix.md` stays as it is.
-- `check PR Envelope` (T189) still treats a HOTFIX as hotfix/* into main. That is legacy and not changed here; whoever changes it decides.
+- The mismatch is a Defect with an owner: release/D1, `check PR Envelope` refuses the agreed hotfix route (a HOTFIX into `hotfix/*` from a Development branch, a PROMOTION from `hotfix/*`, a SYNC into `hotfix/*` and `wire/*`). It lies in both the control and the Cases that fixed the old route (T161, T188 to T192). Owner: the release capability thread. The corrective Change is release/C67, PLAN #1893, with acceptance criteria and verification in `D1-envelope-hotfix-route.md`: its RED Cases T870 to T873, then the amended Cases run GREEN, and the body of this template run through the corrected check.
+- The templates WIRE does not proceed until release/D1 is answered and checked. The promotion of release/C67 has delivery priority.
