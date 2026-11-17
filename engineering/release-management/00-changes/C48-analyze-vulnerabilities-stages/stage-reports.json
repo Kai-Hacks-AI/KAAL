@@ -1,0 +1,27 @@
+{
+  "note": "What the control reports per stage, as detective checks. Applies nothing and requires nothing: no ruleset consumes these contexts in this Change. Requiring them would be a separate preventive control with its own explicit Owner decision.",
+  "control": "analyze Vulnerabilities",
+  "type": "detective",
+  "per_stage": [
+    {
+      "stage": "Integrating",
+      "targets": [
+        "kaal/**",
+        "hotfix/**",
+        "wire/**"
+      ],
+      "context": "analyze Vulnerabilities (Integrating)",
+      "integration_id": 15368,
+      "precondition": "reported on pull requests into each target"
+    },
+    {
+      "stage": "Promoting",
+      "targets": [
+        "~DEFAULT_BRANCH"
+      ],
+      "context": "analyze Vulnerabilities (Promoting)",
+      "integration_id": 15368,
+      "precondition": "reported on a merge group (A4): a real merge-queue run recorded with its run URL"
+    }
+  ]
+}
