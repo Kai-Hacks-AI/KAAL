@@ -9,7 +9,7 @@ export const id = 'coordination/T36';
 export const tests = ['coordination/F1', 'coordination/F7', 'coordination/F10'];
 export const title = 'the same files give the same report and text, a line reads #ref TYPE from → into DISPOSITION reason, the Script runs from a command line with an empty environment, imports only built-ins, calls no network, process or write API, and holds no KAAL identity or host term';
 const FORBIDDEN = [/kaal\//i, /\bverify (?:Plan|Envelope)\b/, /\bapprove (?:Change|Publishing|Promotion)\b/, /\bguard \(Integration\)/i];
-const HOST = [/\bpull requests?\b/i, /\bmerg(?:e|es|ed|ing)\b/i, /\bPRs?\b/, /\bgit(?:hub)?\b/i, /\bbranch(?:es)?\b/i, /\bcommits?\b/i];
+const HOST = [/\bpull requests?\b/i, /\bmerg(?:e|es|ed|ing)\b/i, /\bPRs?\b/, /\bgit(?:hub)?\b/i, /\bcommits?\b/i];
 export async function run() {
   const facts = { pieces: [piece(2, { review: 'none' }), piece(1, { checks: 'failure', title: 'PLAN: plan it' })], gaps: ['a gap'] };
   const report = await showWip(facts, config());

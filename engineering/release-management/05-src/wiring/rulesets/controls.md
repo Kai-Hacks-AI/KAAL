@@ -12,3 +12,12 @@ The minimal set 1 (release/C35): six rulesets, each carrying only what is listed
 | publishing | tags `trial-*@*` | update | none (a tag ruleset cannot require a check) | a published tag cannot be moved; the smallest rule that makes the stage exist |
 
 All six: bypass list empty, no "up to date" (`strict_required_status_checks_policy` false), enforcement active. The branch rulesets that gate integration branches set `do_not_enforce_on_create` so a new branch can be pushed before its first check; `promoting` enforces on create.
+
+## Detective reports
+
+A detective report is a check a stage reports and no ruleset requires. It does not appear in the table above and gates nothing; requiring one would be enforcement, a separate preventive control with its own explicit Owner decision. The workflow source is `05-src/wiring/workflows/` and a WIRE installs it.
+
+| control | stage | check | status |
+| --- | --- | --- | --- |
+| analyze Vulnerabilities (release/C5, release/C48) | Integrating | `analyze Vulnerabilities (Integrating)` | detective, required by no ruleset |
+| analyze Vulnerabilities (release/C5, release/C48) | Promoting | `analyze Vulnerabilities (Promoting)` | detective, required by no ruleset |

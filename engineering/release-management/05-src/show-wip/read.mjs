@@ -76,3 +76,75 @@ export async function readOpenPulls(repoName, gh) {
   }
   return { pieces: nodes.map(toFacts), gaps };
 }
+
+// The branches of a repository. `page(args)` returns one page as { nodes: [{ name }], next } (next is null on the last page); run.mjs builds it from the host's answer.
+export async function readBranches(repoName, page) {
+  const branches = [], gaps = [];
+  let after = '';
+  for (let n = 1; ; n++) {
+    const { nodes, next } = await page(['branches', repoName, `after=${after}`]);
+    branches.push(...nodes.map(({ name }) => ({ name })));
+    if (!next) break;
+    if (n >= MAX_PAGES) { gaps.push(`more branches than were read (${branches.length}): the rest are not read`); break; }
+    after = next;
+  }
+  return { branches, gaps };
+}
+
+// A release tag is `<package>@<version>`; the version is after the last `@`, so a scoped name stays whole. Anything else is no package tag.
+export function parseTag(tag) {
+  const at = String(tag).lastIndexOf('@');
+  const name = String(tag).slice(0, at), version = String(tag).slice(at + 1);
+  return at > 0 && /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version) ? { name, version } : null;
+}
+
+// The facts of each package: what npmjs publishes (`npm(name)` returns null for never published, else { versions, distTags }), its tags,
+// and whether the package itself changed on main after the tag of its newest published version (`changedSince(name, tagVersion)`).
+// A private package is read like any other. What could not be read is a gap and is left out of the package, never filled in.
+export async function readPackages({ packages, tags, npm, changedSince }) {
+  const gaps = [], parsed = tags === undefined ? undefined : tags.map(parseTag).filter(Boolean);
+  if (parsed === undefined) gaps.push('tags: could not be read');
+  const out = [];
+  for (const pkg of packages) {
+    const facts = { name: pkg.name, version: pkg.version, private: Boolean(pkg.private) };
+    if (parsed !== undefined) facts.tags = parsed.filter((t) => t.name === pkg.name).map((t) => t.version);
+    try {
+      const published = await npm(pkg.name);
+      facts.published = published === null ? null : { versions: published.versions ?? [], distTags: published.distTags ?? {} };
+    } catch (error) { gaps.push(`npmjs: ${pkg.name} could not be read (${error.message})`); }
+    const newest = facts.published?.versions?.slice().sort(compareVersions).at(-1);
+    if (newest !== undefined && facts.tags?.includes(newest)) {
+      try { const changed = await changedSince(pkg.name, newest); if (changed !== undefined) facts.changedSinceTag = Boolean(changed); }
+      catch (error) { gaps.push(`${pkg.name}: change since tag ${newest} could not be read (${error.message})`); }
+    }
+    out.push(facts);
+  }
+  return { packages: out, gaps };
+}
+
+function compareVersions(a, b) {
+  const [x, y] = [a, b].map((v) => /^(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/.exec(v) ?? []);
+  for (let i = 1; i <= 3; i++) if (Number(x[i]) !== Number(y[i])) return Number(x[i]) - Number(y[i]);
+  return x[4] === y[4] ? 0 : x[4] === undefined ? 1 : y[4] === undefined ? -1 : x[4] < y[4] ? -1 : 1;
+}
+
+// Every release tag, page by page. A list that could not be read to its end is not "all tags": it is not returned, and a gap says so.
+// `gh(args)` returns the parsed answer of one read call; the args carry `page=<n>` and `per_page=<n>`.
+export async function readTags(repoName, gh, perPage = 100) {
+  const tags = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const refs = await gh([`repos/${repoName}/git/matching-refs/tags`, '-F', `per_page=${perPage}`, '-F', `page=${page}`]);
+    tags.push(...refs.map((r) => r.ref.replace('refs/tags/', '')));
+    if (refs.length < perPage) return { tags, gaps: [] };
+  }
+  return { tags: undefined, gaps: [`tags: more than ${MAX_PAGES * perPage} were listed, the rest are not read`] };
+}
+
+// Whether a package itself changed in a comparison of its tag with main. The host cuts the list of files; a cut list can show a change but never its absence.
+export const COMPARE_FILE_LIMIT = 300;
+export function packageChanged(compared, dir) {
+  const files = compared?.files;
+  if (!Array.isArray(files)) return undefined;
+  if (files.some((f) => String(f.filename).startsWith(`packages/${dir}/`))) return true;
+  return files.length >= COMPARE_FILE_LIMIT ? undefined : false;
+}
