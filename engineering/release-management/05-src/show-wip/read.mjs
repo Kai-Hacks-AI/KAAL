@@ -77,13 +77,24 @@ export async function readOpenPulls(repoName, gh) {
   return { pieces: nodes.map(toFacts), gaps };
 }
 
-// The branches of a repository. `page(args)` returns one page as { nodes: [{ name }], next } (next is null on the last page); run.mjs builds it from the host's answer.
+// The newest closed or merged piece of a branch from the host's list of them: false when the host lists none, absent (not observed) when the list is cut.
+export function settledOf(pulls) {
+  if (!pulls || pulls.pageInfo?.hasNextPage) return undefined;
+  const done = pulls.nodes.filter((p) => p.state === 'MERGED' || p.state === 'CLOSED');
+  if (!done.length) return false;
+  const when = (p) => p.mergedAt ?? p.closedAt ?? '';
+  const newest = done.reduce((a, b) => (when(b) >= when(a) ? b : a));
+  return { outcome: newest.state === 'MERGED' ? 'merged' : 'closed', head: newest.headRefOid };
+}
+
+// The branches of a repository. `page(args)` returns one page as { nodes: [{ name, head?, ahead?, settled? }], next } (next is null on the last page); run.mjs builds it from the host's answer.
+// head, ahead and settled are passed through as the host answered and stay absent when it did not (release/C61).
 export async function readBranches(repoName, page) {
   const branches = [], gaps = [];
   let after = '';
   for (let n = 1; ; n++) {
     const { nodes, next } = await page(['branches', repoName, `after=${after}`]);
-    branches.push(...nodes.map(({ name }) => ({ name })));
+    branches.push(...nodes.map(({ name, head, ahead, settled }) => ({ name, ...(head !== undefined && { head }), ...(ahead !== undefined && { ahead }), ...(settled !== undefined && { settled }) })));
     if (!next) break;
     if (n >= MAX_PAGES) { gaps.push(`more branches than were read (${branches.length}): the rest are not read`); break; }
     after = next;
