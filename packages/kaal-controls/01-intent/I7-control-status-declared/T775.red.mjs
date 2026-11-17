@@ -14,13 +14,19 @@ const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'verify Stages (D
 const file = (path, text) => ({ path, text });
 export const id = 'controls/T775';
 export const tests = ['controls/I7'];
-export const title = 'the command prints the status of a control it finds';
+export const title = 'the command prints every control it finds, valid or not, with its status';
 export async function run() {
   assert.ok(existsSync(FINDER), 'the finder is absent');
   const tmp = mkdtempSync(join(tmpdir(), 'c12-'));
   mkdirSync(join(tmp, 'demo'));
   writeFileSync(join(tmp, 'demo', 'CTL1.md'), item({ status: 'implemented' }));
+  writeFileSync(join(tmp, 'demo', 'CTL2.md'), item({ id: 'demo/CTL2', status: undefined }));
   const out = JSON.parse(execFileSync('node', [FINDER, tmp], { encoding: 'utf8' }));
-  assert.deepEqual(out.refused, [], 'the control was refused');
-  assert.equal(out.controls[0]?.status, 'implemented', 'the command prints no status');
+  assert.equal(out.controls.length, 2, 'the command dropped a control');
+  const one = out.controls.find((c) => c.id === 'demo/CTL1');
+  assert.equal(one?.status, 'implemented', 'the command prints no status');
+  assert.equal(one.valid, true);
+  const two = out.controls.find((c) => c.id === 'demo/CTL2');
+  assert.equal(two?.valid, false, 'the incomplete control is not marked invalid');
+  assert.ok(two.problems.some((p) => p.field === 'status'), 'the missing status is not named');
 }

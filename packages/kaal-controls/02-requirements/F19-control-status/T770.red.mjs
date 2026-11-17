@@ -14,13 +14,19 @@ const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'verify Stages (D
 const file = (path, text) => ({ path, text });
 export const id = 'controls/T770';
 export const tests = ['controls/F19'];
-export const title = 'each of the four statuses is accepted and listed on the control';
+export const title = 'each of the four statuses is listed on a valid control with its rank, and a tested control is also running';
 export async function run() {
   const find = await finder();
+  const ranks = [];
   for (const s of STATUSES) {
     const r = find([file('x/CTL1.md', item({ status: s }))]);
-    assert.deepEqual(r.refused, [], `a ${s} control was refused`);
     assert.equal(r.controls.length, 1, `a ${s} control was not listed`);
-    assert.equal(r.controls[0].status, s);
+    const c = r.controls[0];
+    assert.equal(c.status, s);
+    assert.equal(c.valid, true, `a ${s} control was not valid`);
+    assert.deepEqual(c.problems, []);
+    ranks.push(c.rank);
   }
+  assert.deepEqual(ranks, [1, 2, 3, 4], 'the ranks do not follow designed, implemented, running, tested');
+  assert.ok(ranks[3] >= ranks[2], 'a tested control does not rank as running');
 }

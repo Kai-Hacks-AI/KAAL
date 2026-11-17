@@ -29,7 +29,7 @@ export async function run() {
   assert.deepEqual(known, [], 'the Skill names a path, a scope or the repository of KAAL');
   const lone = join(mkdtempSync(join(tmpdir(), 'c12-skill-')), 'skill');
   cpSync(skill, lone, { recursive: true });
-  const run = (d) => { try { return { code: 0, out: execFileSync(process.execPath, [join(lone, 'scripts/check-controls.mjs'), d], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) }; } catch (e) { return { code: e.status, err: String(e.stderr) }; } };
+  const run = (d) => { try { return { code: 0, out: execFileSync(process.execPath, [join(lone, 'scripts/check-controls.mjs'), d], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) }; } catch (e) { return { code: e.status, err: String(e.stderr), out: String(e.stdout) }; } };
   const tmp = mkdtempSync(join(tmpdir(), 'c12-check-'));
   assert.equal(run(tmp).code, 0, 'a directory with no control failed');
   mkdirSync(join(tmp, 'a'));
@@ -43,6 +43,7 @@ export async function run() {
   writeFileSync(bad, text);
   const r = run(tmp);
   assert.equal(r.code, 1, 'a control without a status passed');
+  assert.ok(r.out.includes('a/CTL1') && r.out.includes('a/CTL2') && r.out.includes('other/CTL7'), 'the failing run dropped a control from the inventory it prints');
   assert.ok(r.err.includes('CTL2.md') && r.err.includes('a/CTL2') && /status/.test(r.err), 'the failure does not name the control and the status');
   for (const s of STATUSES) assert.ok(r.err.includes(s), `the failure does not name ${s}`);
   assert.equal(readFileSync(bad, 'utf8'), text, 'the check wrote to the declaration');

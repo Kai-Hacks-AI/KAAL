@@ -11,11 +11,11 @@ The PLAN of C12 observes its RED against `main`. C12 cites nothing that is not o
 
 | Case | Tests | In the tree of this PLAN |
 | --- | --- | --- |
-| T770, T771 | F19 | RED: a control with a status is refused, one without is listed |
-| T772 | F20 | RED: a control with a status is not listed |
+| T770, T771 | F19 | RED: a control with a status is refused, a control without one is listed as valid, and no rank is listed |
+| T772 | F20 | RED: an incomplete control drops out of the inventory, and no problem names its field |
 | T773 | G89 | RED: the finder lists no status |
 | T774 | A10, F24 | RED: the reference shows no status line, and the Skill has no judgment help |
-| T775 | I7 | RED: the command refuses a control with a status |
+| T775 | I7 | RED: the command drops a control and marks none invalid |
 | T776, T777 | F21, F22, N8 | RED: the product check is absent. Once present, it must run copied alone and the Skill must name no KAAL path |
 | T778 | F23 | RED: the product check is absent |
 | T779 | A11 | RED: the migration guidance is absent |
@@ -28,7 +28,7 @@ Against a throwaway copy of the package and of `engineering/` outside the reposi
 
 ## What this shows and does not show
 
-The Cases show that the status is declared, checked and listed, that the check fails visibly with a recovery and writes nothing, that it judges whichever controls exist, and that Engineering runs it without a copy of the rule. They do not show that a status is true. No operational claim is made, and nothing is wired into GitHub.
+The Cases show that the status is declared, checked and listed, that an incomplete declaration stays in the inventory and fails validation, that the check fails visibly with a recovery and writes nothing, that it judges whichever controls exist, and that Engineering runs it without a copy of the rule. They do not show that a status is true. No operational claim is made, and nothing is wired into GitHub.
 
 ## Reproduce
 

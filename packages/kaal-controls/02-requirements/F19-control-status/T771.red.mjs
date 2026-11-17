@@ -14,14 +14,23 @@ const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'verify Stages (D
 const file = (path, text) => ({ path, text });
 export const id = 'controls/T771';
 export const tests = ['controls/F19'];
-export const title = 'a missing, empty or other status is refused whole and the reason names the status';
+export const title = 'a missing, empty or other status stays listed, fails validation and the problem names the status with a recovery';
 export async function run() {
   const find = await finder();
-  assert.equal(find([file('x/CTL1.md', item({ status: 'running' }))]).controls.length, 1, 'a running control was not listed');
-  for (const bad of [undefined, '""', 'Running', 'defined', 'enforced', 'proven', 'effective', 'running, tested']) {
+  for (const [bad, declared] of [[undefined, undefined], ['""', '""'], ['Running', 'Running'], ['defined', 'defined'], ['enforced', 'enforced'], ['proven', 'proven'], ['running, tested', 'running, tested']]) {
     const r = find([file('x/CTL1.md', item({ status: bad }))]);
-    assert.equal(r.controls.length, 0, `status ${bad} was listed`);
-    assert.equal(r.refused.length, 1);
-    assert.match(r.refused[0].reason, /status/);
+    assert.equal(r.controls.length, 1, `status ${bad} dropped the control from the inventory`);
+    const c = r.controls[0];
+    assert.equal(c.id, 'demo/CTL1');
+    assert.equal(c.title, 'verify Stages (Developing)', 'the listed control lost its other fields');
+    assert.equal(c.valid, false, `status ${bad} passed validation`);
+    assert.ok(!c.status || c.status === declared, 'the listing invents a status');
+    assert.equal(c.rank ?? null, null, 'an invalid status has a rank');
+    assert.equal(c.problems.length, 1);
+    const p = c.problems[0];
+    assert.equal(p.field, 'status');
+    assert.match(p.reason, /status/);
+    for (const s of STATUSES) assert.ok(p.recovery.includes(s), `the recovery does not name ${s}`);
+    assert.equal(r.refused.length, 1, 'the control is not among those that fail validation');
   }
 }
