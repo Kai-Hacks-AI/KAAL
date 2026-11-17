@@ -10,7 +10,7 @@ const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`);
 const needs = () => JSON.parse(read(join(here, 'stage-reports.json'), 'the proposed needs'));
 export const id = 'release/T581';
 export const tests = ['release/G69'];
-export const title = 'gap release/G69 is closed: the detective report is stated per stage and no ruleset source requires it';
+export const title = 'gap release/G69 is closed: the detective report is stated per stage and no ruleset source requires it but the promoting one (release/CTL5)';
 export function run() {
   const text = read(join(wiring, 'rulesets/controls.md'), 'the controls table');
   assert.match(text, /detective reports/i, 'controls.md has no section of detective reports');
@@ -20,6 +20,8 @@ export function run() {
   for (const name of ['integrating', 'collecting', 'hotfixing', 'wiring', 'promoting', 'publishing']) {
     const file = join(wiring, `rulesets/${name}.json`);
     if (!existsSync(file)) continue;
+    // the promoting ruleset requires the Promoting check: that is the separate preventive control release/CTL5
+    if (name === 'promoting') continue;
     assert.ok(!/analyze Vulnerabilities/.test(readFileSync(file, 'utf8')), `${name} requires a detective report: that is enforcement, a separate control`);
   }
 }

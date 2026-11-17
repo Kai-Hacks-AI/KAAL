@@ -18,5 +18,7 @@ export async function run() {
   assert.equal(j(rule).kind, "fail", "an extra rule");
   const extra = GOOD(); extra.rulesets.Promoting.rules[0].parameters.required_status_checks.push({ context: "Guard", integration_id: 15368 });
   assert.equal(j(extra).kind, "fail", "an extra context");
+  const gate = GOOD(); gate.rulesets.Promoting.rules[0].parameters.required_status_checks.pop();
+  assert.equal(j(gate).kind, "fail", "a promoting without the analyze Vulnerabilities check (release/CTL5)");
   assert.equal(j({}).kind, "fail", "unreadable input fails closed");
 }
