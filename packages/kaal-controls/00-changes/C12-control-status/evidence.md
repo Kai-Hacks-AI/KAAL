@@ -16,7 +16,7 @@ The PLAN of C12 observes its RED against `main`. C12 cites nothing that is not o
 | T773 | G89 | RED: the finder lists no status |
 | T774 | A10, F24 | RED: the reference shows no status line, and the Skill has no judgment help |
 | T775 | I7 | RED: the command refuses a control with a status |
-| T776, T777 | F21, F22 | RED: the product check is absent, and none lives outside the Skill folder |
+| T776, T777 | F21, F22, N8 | RED: the product check is absent. Once present, it must run copied alone and the Skill must name no KAAL path |
 | T778 | F23 | RED: the product check is absent |
 | T779 | A11 | RED: the migration guidance is absent |
 

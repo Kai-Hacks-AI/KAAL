@@ -2,14 +2,14 @@
 
 ## PLAN
 
-1. Add I7, F19, F20, F21, F22, F24, N7 and A10 under `packages/kaal-controls/`, F23 and A11 under `engineering/controls/`, with their Cases T770 to T779 and the gap G89. The Cases are `T<n>.red.mjs`.
+1. Add I7, F19, F20, F21, F22, F24, N7, N8 and A10 under `packages/kaal-controls/`, F23 and A11 under `engineering/controls/`, with their Cases T770 to T779 and the gap G89. The Cases are `T<n>.red.mjs`.
 2. Observe the expected RED against `main` (`evidence.md`).
 3. State the route to `main` (`promotion.md`).
 4. The PLAN adds no finder change, no check, no control item and no Skill text, and cites nothing that is not on `main`.
 
 ## Boundary
 
-Product defines, Engineering deploys. In the product, scripts live in the Skill's `scripts/` folder and judgment help in its `references/` folder. The package holds the rule, the diagnostics and the recovery. `engineering/controls` runs the package's check and holds the migration guidance, never a second copy of the rule (T779). T777 proves the package boundary with fixtures of its own. T778 proves the Engineering boundary on the controls that exist in `engineering/` when it runs.
+Product defines, Engineering deploys. The Skill and its scripts are setup-agnostic (N8): the directory to check is the only input, and everything specific to KAAL is Engineering's. In the product, scripts live in the Skill's `scripts/` folder and judgment help in its `references/` folder. The package holds the rule, the diagnostics and the recovery. `engineering/controls` runs the package's check and holds the migration guidance, never a second copy of the rule (T779). T777 proves the package boundary with fixtures of its own. T778 proves the Engineering boundary on the controls that exist in `engineering/` when it runs.
 
 ## DO
 
@@ -28,5 +28,6 @@ Not authorized by this PLAN. On the merge of this PLAN into the collector, which
 ## Left open
 
 - Controls on other collectors (CTL3 to CTL9) declare their `status` when they next sync with `main`. Until then the check names each one it finds, with the recovery, and invents nothing.
+- The Skill points at the `kaal-testing` Skill for what verification and validation mean. That is another Skill, not the repository, and it is left as it is.
 - Whether a claimed status is true is decided by evidence the owner can show (controls/F12), judged with the help of the Skill (F24), not by the check.
 - Running the check on GitHub, requiring it, or any enforcement are separate Changes and are not authorized here.

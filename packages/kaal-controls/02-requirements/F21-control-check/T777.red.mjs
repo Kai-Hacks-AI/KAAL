@@ -1,6 +1,6 @@
-// Case controls/T777 tests: controls/F21, controls/F22
+// Case controls/T777 tests: controls/F21, controls/F22, controls/N8
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -14,20 +14,30 @@ const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'verify Stages (D
 const file = (path, text) => ({ path, text });
 const CHECK = join(dir, 'skills/kaal-controls/scripts/check-controls.mjs');
 export const id = 'controls/T777';
-export const tests = ['controls/F21', 'controls/F22'];
-export const title = 'the command checks whichever controls exist in any directory, fails visibly and never writes a status';
+export const tests = ['controls/F21', 'controls/F22', 'controls/N8'];
+export const title = 'the command, copied alone out of the repository, checks whichever controls exist in any directory, fails visibly and never writes a status';
 export async function run() {
   assert.ok(existsSync(CHECK), 'the product check is absent');
   const stray = [];
   const walk = (d) => { for (const n of readdirSync(d, { withFileTypes: true })) { if (n.name === 'node_modules') continue; const q = join(d, n.name); if (n.isDirectory()) walk(q); else if (/^check-controls/.test(n.name) && !q.startsWith(join(dir, 'skills/kaal-controls/scripts/'))) stray.push(q); } };
   walk(join(repo, 'packages')); walk(join(repo, 'engineering'));
   assert.deepEqual(stray, [], 'a check script lives outside the folder of the Skill');
-  const run = (d) => { try { return { code: 0, out: execFileSync(process.execPath, [CHECK, d], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) }; } catch (e) { return { code: e.status, err: String(e.stderr) }; } };
+  const skill = join(dir, 'skills/kaal-controls');
+  const known = [];
+  const scan = (d) => { for (const n of readdirSync(d, { withFileTypes: true })) { const q = join(d, n.name); if (n.isDirectory()) scan(q); else if (/\.(md|mjs)$/.test(n.name) && /engineering\/|packages\/|\.github|@kaihacksai|\bKAAL\b/.test(readFileSync(q, 'utf8'))) known.push(n.name); } };
+  scan(skill);
+  assert.deepEqual(known, [], 'the Skill names a path, a scope or the repository of KAAL');
+  const lone = join(mkdtempSync(join(tmpdir(), 'c12-skill-')), 'skill');
+  cpSync(skill, lone, { recursive: true });
+  const run = (d) => { try { return { code: 0, out: execFileSync(process.execPath, [join(lone, 'scripts/check-controls.mjs'), d], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }) }; } catch (e) { return { code: e.status, err: String(e.stderr) }; } };
   const tmp = mkdtempSync(join(tmpdir(), 'c12-check-'));
   assert.equal(run(tmp).code, 0, 'a directory with no control failed');
   mkdirSync(join(tmp, 'a'));
   writeFileSync(join(tmp, 'a', 'CTL1.md'), item({ id: 'a/CTL1' }));
   assert.equal(run(tmp).code, 0, 'a valid control failed');
+  mkdirSync(join(tmp, 'x', 'y', 'z'), { recursive: true });
+  writeFileSync(join(tmp, 'x', 'y', 'z', 'anything.md'), item({ id: 'other/CTL7', status: 'tested' }));
+  assert.equal(run(tmp).code, 0, 'a control in any folder layout failed');
   const bad = join(tmp, 'a', 'CTL2.md');
   const text = item({ id: 'a/CTL2', status: undefined });
   writeFileSync(bad, text);

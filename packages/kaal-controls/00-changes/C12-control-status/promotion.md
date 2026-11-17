@@ -18,5 +18,5 @@ Everything under `packages/kaal-controls/` and `engineering/controls/` that this
 | Kind | Evidence | Strength |
 | --- | --- | --- |
 | Structural | Cases T770 to T779 green, and the Cases of C8 and C9 still green with a status | verified by Cases |
-| Validated | The CPO reads F19 to F24 and A10 and A11 and judges that the four words are right, that Product and Engineering are kept apart, and that nothing more was added | judgment, not a Case |
+| Validated | The CPO reads F19 to F24, N8 and A10 and A11 and judges that the four words are right, that Product and Engineering are kept apart, and that nothing more was added | judgment, not a Case |
 | Operational | None. The check runs only inside a Case; nothing in GitHub requires it | not applicable |
