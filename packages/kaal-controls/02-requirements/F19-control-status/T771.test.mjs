@@ -31,6 +31,7 @@ export async function run() {
     assert.equal(p.field, 'status');
     assert.match(p.reason, /status/);
     for (const s of STATUSES) assert.ok(p.recovery.includes(s), `the recovery does not name ${s}`);
-    assert.equal(r.refused.length, 1, 'the control is not among those that fail validation');
+    // A control that only lacks a status line is listed and invalid, but not refused: its declaration predates the status.
+    assert.equal(r.refused.length, bad === undefined ? 0 : 1, bad === undefined ? 'a control that only lacks a status is refused' : 'the control is not among those that fail validation');
   }
 }

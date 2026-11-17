@@ -24,7 +24,7 @@ has: [<capability>/I3]
 
 ## Finding
 
-To list every control in a directory, run `node scripts/find-controls.mjs <directory>` from this Skill. It lists **every** control, complete or not, so an incomplete declaration never disappears from the inventory. Each control carries its fields, its `status` as declared, a `rank` from 1 (`designed`) to 4 (`tested`) when the status is valid, `valid`, and `problems`. A problem names the `field`, the `reason` and a `recovery`. `refused` is the view of the controls that fail validation. It only finds: it does not resolve an Intent, walk to Requirements or Architecture, run a Case or check a gate, so a listed control is not a checked one.
+To list every control in a directory, run `node scripts/find-controls.mjs <directory>` from this Skill. It lists **every** control, complete or not, so an incomplete declaration never disappears from the inventory. Each control carries its fields, its `status` as declared, a `rank` from 1 (`designed`) to 4 (`tested`) when the status is valid, `valid`, and `problems`. A problem names the `field`, the `reason` and a `recovery`. `refused` is the view of the controls that fail validation, except a control that only lacks a `status` line: that one is listed with `valid: false` and its recovery. It only finds: it does not resolve an Intent, walk to Requirements or Architecture, run a Case or check a gate, so a listed control is not a checked one.
 
 ## Checking
 

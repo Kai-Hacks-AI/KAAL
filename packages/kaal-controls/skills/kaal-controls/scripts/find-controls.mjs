@@ -62,7 +62,7 @@ export function findControls(files) {
     return { id: fields.id, title: fields.title, description: fields.description, type: fields.type, status: fields.status, rank, has: has ?? [], path: file.path,
       tests: cases.filter((c) => c.tests.includes(fields.id)).map((c) => ({ id: c.id, path: c.path })), valid: problems.length === 0, problems };
   });
-  const refused = controls.filter((c) => !c.valid).map((c) => ({ path: c.path, id: c.id, reason: c.problems[0].reason }));
+  const refused = controls.filter((c) => !c.valid && !(c.problems.length === 1 && c.problems[0].field === 'status' && !c.status)).map((c) => ({ path: c.path, id: c.id, reason: c.problems[0].reason }));
   return { controls, refused };
 }
 
