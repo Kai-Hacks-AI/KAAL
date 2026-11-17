@@ -10,6 +10,6 @@ export async function run() {
   for (const n of NAMES) {
     const r = source(n);
     for (const t of legacy) assert.ok(!r.rules.some((x) => x.type === t), `${n}: no ${t}`);
-    for (const c of contexts(r)) assert.match(c, /^verify Stages \(/, `${n}: only verify Stages, got ${c}`);
+    for (const c of contexts(r)) assert.ok(/^verify Stages \(/.test(c) || (n === "Promoting" && c === "analyze Vulnerabilities (Promoting)"), `${n}: only verify Stages (and for Promoting analyze Vulnerabilities, release/CTL5), got ${c}`);
   }
 }

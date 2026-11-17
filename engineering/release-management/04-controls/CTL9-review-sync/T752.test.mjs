@@ -9,7 +9,7 @@ const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/f
 const RM = join(repo, 'engineering/release-management');
 export const id = 'release/T752';
 export const tests = ['release/CTL9'];
-export const title = 'the finder lists release/CTL9 as a corrective control that has release/I32, equal to its draft';
+export const title = 'the finder lists release/CTL9 as a corrective control that has release/I32 and release/I33, equal to its C58 draft with what release/C60 adds';
 export async function run() {
   assert.ok(existsSync(FINDER), 'the finder is absent');
   const out = JSON.parse(execFileSync(process.execPath, [FINDER, RM], { encoding: 'utf8' }));
@@ -17,12 +17,12 @@ export async function run() {
   const c = out.controls.find((x) => x.id === 'release/CTL9');
   assert.ok(c, 'release/CTL9 is not listed');
   assert.equal(c.type, 'corrective');
-  assert.deepEqual(c.has, ['release/I32']);
+  assert.deepEqual(c.has, ['release/I32', 'release/I33']); // release/C60 adds release/I33
   assert.equal(c.title, 'review Sync');
   assert.deepEqual(c.tests.map((t) => t.id), ['release/T752'], 'the control test is not found from the control');
   const draft = readFileSync(join(RM, '00-changes/C58-sync-review/interface.md'), 'utf8').split(/^## Draft of CTL9\.md$/m)[1].match(/^````\n([\s\S]*?)\n````$/m)[1];
   const real = join(RM, '04-controls/CTL9-review-sync/CTL9.md');
   assert.ok(existsSync(real), 'CTL9.md is absent');
-  // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
-  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${draft}\n`, 'CTL9.md differs from the draft');
+  // The drafts predate the mandatory status of controls/C12, so the status line is left out of the comparison.
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${draft.replace('has: [release/I32]', 'has: [release/I32, release/I33]')}\n`, 'CTL9.md differs from the draft with what release/C60 adds');
 }

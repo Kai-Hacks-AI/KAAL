@@ -56,7 +56,10 @@
     {
       "name": "Promoting",
       "kind": "ruleset",
-      "target": "~DEFAULT_BRANCH"
+      "target": "~DEFAULT_BRANCH",
+      "also": [
+        "analyze Vulnerabilities (Promoting)"
+      ]
     },
     {
       "name": "Publishing",
