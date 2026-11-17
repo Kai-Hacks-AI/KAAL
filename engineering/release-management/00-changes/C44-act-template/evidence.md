@@ -30,3 +30,7 @@ for f in engineering/release-management/00-changes/C44-act-template/T*.red.mjs; 
   node -e "import('./$f').then(async m=>{try{await m.run();console.log('GREEN',m.id)}catch(x){console.log(x.code==='ERR_ASSERTION'?'RED-observed':'ERROR',m.id,String(x.message).split('\n')[0])}})"
 done
 ```
+
+## After the DO
+
+The template is added equal to its draft; T640 to T642 are green.
