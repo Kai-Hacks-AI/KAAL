@@ -7,7 +7,7 @@ export const id = 'release/T711';
 export const tests = ['release/C54'];
 export const title = 'the Dependency row of the expanded PROMOTION table does not name the SYNC process or its Change';
 export async function run() {
-  const text = readFileSync(join(RM, '00-changes/C54-promotion-decoupled/interface.md'), 'utf8');
+  const text = readFileSync(join(RM, '00-changes/C46-promotion-template/interface.md'), 'utf8');
   const section = text.split(/^## The expanded table \(the source is behind main\)$/m)[1];
   assert.ok(section, 'the expanded table is absent from interface.md');
   const dep = section.split('\n').filter((l) => l.trim().startsWith('|') && l.includes('| Dependency |'));

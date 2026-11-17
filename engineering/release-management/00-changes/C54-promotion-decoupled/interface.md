@@ -17,7 +17,7 @@ T662 (step 0 `kaal/`, `hotfix/`, `wire/`; step 1 `SYNC for PROMOTION`) and T663 
 
 ## The expanded table (the source is behind main)
 
-When the source does not hold main's tip the Worker adds one Dependency row after the freshness check, with the number of its pull request in Details, and the steps after it are renumbered in sequence. Case T711 reads this table.
+When the source does not hold main's tip the Worker adds one Dependency row after the freshness check, with the number of its pull request in Details, and the steps after it are renumbered in sequence. Case T711 reads the expanded table of release/C46 (its interface.md), which the DO rewrites to this one.
 
 | Step | Who | Action | Status | Details |
 | --- | --- | --- | --- | --- |

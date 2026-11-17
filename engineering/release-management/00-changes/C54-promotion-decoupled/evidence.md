@@ -9,13 +9,13 @@
 | Case | Tests | In the tree of this PLAN |
 | --- | --- | --- |
 | release/T710 | release/C54 | RED-observed: step 0 does not name Main requires |
-| release/T711 | release/C54 | GREEN:  |
+| release/T711 | release/C54 | RED-observed: the Dependency row names the SYNC process or C45 |
 
 2 RED-observed, 0 error, 0 green. Each fails on its own assertion, not on a missing module.
 
 ## Can each Case pass
 
-With the rows of `interface.md` written to `05-src/wiring/templates/promotion.md` and the Cases copied to a scratch name in a working tree: GREEN release/T710; GREEN release/T711. The edit and the copies were reverted and are not part of this PLAN.
+With the rows of `interface.md` written to `05-src/wiring/templates/promotion.md` and the Cases copied to a scratch name in a working tree: GREEN release/T710; RED-observed release/T711 the Dependency row names the SYNC process or C45. The edit and the copies were reverted and are not part of this PLAN.
 
 ## Reproduce
 

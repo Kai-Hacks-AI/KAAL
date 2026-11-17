@@ -15,7 +15,7 @@ Change `release/C54`, Cases T710, T711, gap `release/G83`; taken by the thread f
 Not authorized by this PLAN. On the go of the Owner, into the collector of this Change:
 
 1. Change the rows in `05-src/wiring/templates/promotion.md` to the rows of `interface.md`.
-2. Reword the Cases of release/C46 that judge the old rows: T662 (step 0 `kaal/`, `hotfix/`, `wire/`; step 1 `SYNC for PROMOTION`) and T663 (the expanded table) are reworded in the DO to the new rows.
+2. Rewrite the expanded table in the `interface.md` of release/C46 to the Dependency row of this Change, and reword the Cases of release/C46 that judge the old rows: T662 (step 0 `kaal/`, `hotfix/`, `wire/`; step 1 `SYNC for PROMOTION`) and T663 (the expanded table) are reworded in the DO to the new rows.
 3. Rename the new Cases from `.red.mjs` to `.test.mjs` when they are green.
 
 ## ACT
