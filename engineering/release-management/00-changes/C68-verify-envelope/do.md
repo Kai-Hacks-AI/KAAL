@@ -7,7 +7,7 @@
 
 ## Checked beside the Cases
 
-The Cases runner (`engineering/cases/cases.test.mjs`): 190 pass, 12 fail. The 12 are the unnamed Cases of `collector-capability/00-changes/C15-collector-capability` (T268 to T279), which fail on `main` too. This is not a clean full-suite run.
+The Cases runner (`engineering/cases/cases.test.mjs`): 189 pass, 12 fail (201 tests, run on the merged collector 98541f7; an earlier figure of 190 is not kept). The 12 are the unnamed Cases of `collector-capability/00-changes/C15-collector-capability` (T268 to T279), which fail on `main` too. This is not a clean full-suite run.
 
 ## Not done, as planned
 
