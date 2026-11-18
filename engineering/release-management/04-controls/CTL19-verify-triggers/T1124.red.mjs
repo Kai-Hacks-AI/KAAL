@@ -1,0 +1,34 @@
+// Case release/T1124 tests: release/F67
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
+const RM = join(repo, 'engineering/release-management');
+const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
+const MOD = join(RM, '05-src/triggers/verify-triggers.mjs');
+const load = () => import(pathToFileURL(MOD).href);
+const draft = (name) => readFileSync(join(RM, '00-changes/C90-no-pull-request-target/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+export const id = 'release/T1124';
+export const tests = ['release/F67'];
+export const title = 'the workflow source runs on plain pull_request, reads the base commit and the head ref as Git data, runs only the base judge, with no secret and no pull_request_target';
+export async function run() {
+  const { uses } = await load();
+  const real = join(RM, '05-src/wiring/workflows/verify-triggers.yml');
+  assert.ok(existsSync(real), 'the workflow source is absent');
+  const t = readFileSync(real, 'utf8');
+  assert.equal(t, `${draft('verify-triggers.yml')}\n`, 'the workflow source differs from the draft');
+  assert.equal(uses(t), false, 'the check must not use pull_request_target itself');
+  assert.match(t, /^on:\n  pull_request:/m);
+  assert.match(t, /permissions:\n  contents: read/);
+  assert.doesNotMatch(t, /secrets\./);
+  assert.match(t, /ref: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/, 'the checkout is not the base commit');
+  assert.doesNotMatch(t, /ref: \$\{\{ github\.event\.pull_request\.head/, 'a checkout of the pull request head would run its code');
+  assert.doesNotMatch(t, /github\.head_ref|pull_request\.head\.(ref|sha)/, 'the head is read by its pull request ref only');
+  assert.match(t, /fetch-depth: 0/);
+  assert.match(t, /persist-credentials: false/);
+  assert.match(t, /git fetch --no-tags origin "\+refs\/pull\/\$\{PR_NUMBER\}\/head:refs\/remotes\/pull\/head"/, 'the head is not fetched from its pull request ref');
+  assert.match(t, /--head refs\/remotes\/pull\/head/);
+  assert.match(t, /UNKNOWN: the judge is absent on the base[\s\S]*exit 2/);
+}
