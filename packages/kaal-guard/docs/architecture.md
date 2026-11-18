@@ -38,7 +38,7 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
     - `causes`.
   - **What it uses.** It imports nothing from `lib/`, so a broken runtime cannot mask itself, and uses only Node's built-ins. The cases and their harness are reused unchanged.
   - **Where its own tests live.** The Test Cases of the verification itself are the publisher's and are not in the package, so a delivered run never verifies its own verifier.
-- **guard/A21 Discovery** [guard/F43, guard/F44, guard/F45]. `lib/discovery.mjs` lists the `kaal-guard.json` files of the working tree, reads each, selects the nearest one of every changed file (plus the one at the root of `.kaal`, and the folders a plan names), and runs the selected checks through the runner (guard/A3) with the facts the run was given. It reads the working tree and the list of changed paths, and the adapters are unchanged: `run` gives it the same facts.
+- **guard/A21 Discovery** [guard/F43, guard/F44, guard/F45, guard/F49]. `lib/discovery.mjs` lists the `kaal-guard.json` files of the working tree, reads each, selects the nearest one of every changed file (plus the one at the root of `.kaal`, and the folders a plan names), and runs the selected checks through the runner (guard/A3) with the facts the run was given. It reads the working tree and the list of changed paths, and the adapters are unchanged: `run` gives it the same facts.
 - **guard/A19 Product contract** [guard/F37, guard/F38, guard/F39, guard/F40].
   - **The contract's files.** In the package:
     - `docs/intent.md`, `docs/requirements.md` and `docs/architecture.md`, holding the product identifiers;

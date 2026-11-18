@@ -128,9 +128,16 @@ export function runDiscovered(root, facts, options = {}) {
   }
   const changed = changedPaths(facts.changed);
   const everything = options.full || plan.unknown || changed === undefined;
-  if (everything) notes.push(`kaal-guard: selection unknown (${options.full ? "--full" : plan.unknown ? "the plan is unknown" : "no changed files supplied"}); running every ${NAME}`);
+  if (everything) {
+    const why = options.full ? "--full" : plan.unknown ? "the plan is unknown" : "no changed files supplied";
+    notes.push(`kaal-guard: selection unknown (${why}); running every ${NAME}`);
+    // Registration (guard/F49) is judged against the changed files, so an unknown selection cannot judge it, and says so.
+    notes.push(`kaal-guard: registration was not judged (selection unknown: ${why})`);
+  }
   // For each file, the changed paths relative to it that select its checks; null selects all of them.
   const touched = new Map();
+  // The changed existing paths that no check of their nearest kaal-guard.json covers, by that file (guard/F49).
+  const uncovered = new Map();
   for (const file of files.keys()) {
     const dir = posix.dirname(file);
     if (file === ALWAYS || everything || plan.inFlight?.includes(dir)) touched.set(file, null);
@@ -146,10 +153,26 @@ export function runDiscovered(root, facts, options = {}) {
         const inside = dir === "." || path.startsWith(`${dir}/`);
         if (inside && (!nearest || depth(file) > depth(nearest))) nearest = file;
       }
-      if (!nearest || touched.get(nearest) === null) continue;
+      if (!nearest) continue;
       const dir = posix.dirname(nearest);
-      touched.set(nearest, [...(touched.get(nearest) ?? []), dir === "." ? path : path.slice(dir.length + 1)]);
+      const relative = dir === "." ? path : path.slice(dir.length + 1);
+      // guard/F49: Guard guards only a folder that has a declaration. Inside one, an existing changed file that
+      // none of its checks cover is not registered. A removed path has nothing to register and is not judged.
+      const checks = files.get(nearest);
+      if (checks.length && existsSync(`${root}/${path}`) && !checks.some((c) => !c.matchers || c.matchers.some((m) => m.test(relative)))) {
+        uncovered.set(nearest, [...(uncovered.get(nearest) ?? []), path]);
+      }
+      if (touched.get(nearest) === null) continue;
+      touched.set(nearest, [...(touched.get(nearest) ?? []), relative]);
     }
+  }
+  // guard/F49: no empty registrations. A kaal-guard.json that declares no check is a fail wherever Guard discovers it.
+  for (const [file, paths] of touched) {
+    if (paths !== null && paths.length === 0) continue;
+    if (files.get(file).length === 0) results.push(result(file, "fail", `${file}: registers no check; a registration declares at least one`, `add a check to ${file} for the folder it guards, or remove the file`));
+  }
+  for (const [file, paths] of uncovered) {
+    results.push(result("registration", "fail", `${file}: no check covers ${paths.length === 1 ? "this changed file" : "these changed files"}: ${paths.join(", ")}`, `register ${paths.length === 1 ? "it" : "them"}: add a check for ${paths.length === 1 ? "it" : "them"} to ${file}, or widen the when of one of its checks`));
   }
   const supplied = Object.fromEntries(Object.entries(facts).filter(([, v]) => v !== undefined));
   for (const [file, paths] of touched) {
