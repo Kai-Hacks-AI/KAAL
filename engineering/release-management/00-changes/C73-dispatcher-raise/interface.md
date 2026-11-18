@@ -1,6 +1,6 @@
 # C73 interface
 
-Drafts as they are added in the DO. T942 to T949 read them. None of them is on the collector until the DO.
+Drafts as they are added in the DO. T942 to T950 read them. None of them is on the collector until the DO.
 
 ## Draft of I40.md
 
@@ -19,9 +19,9 @@ Owner: release management.
 ## Source contracts (`05-src/promotion-raise/`)
 
 - `gather.mjs`: `listCollectors(api, repo)` returns the branches `kaal/<capability>/<concern>` from `GET git/matching-refs/heads/kaal/`. `gatherFacts(api, repo, collector)` returns the facts `decideRaise` reads (release/C72): `aheadOfMain` from `GET compare/main...<collector>`, `merged` (merged pull requests into the collector, newest first) from `GET pulls?state=closed&base=<collector>`, `open` (open pull requests from the collector) from `GET pulls?state=open&head=<owner>:<collector>`. GET only.
-- `raise.mjs`: `readDecision(d)` accepts only action `raise`, a head that is a collector, base `main`, a 40-hex lowercase `revision`, a one-line title starting `PROMOTION: `; the title is cut to plain characters (200) and the body likewise (2000). `raiseAll({ api, repo, decisions, live })` returns one result per decision: `none`, `refused`, `would-raise` (not live), `already-raised` (the look `GET pulls?state=all&head=<owner>:<head>&base=main` finds a pull request whose body holds the marker `<!-- kaal-dispatch: <head>@<revision> -->`, no write), `raised` after exactly one `POST repos/<repo>/pulls` whose body is the cut body plus the marker, or `exists` when that POST is refused with status 422 and a message containing `pull request already exists` (no retry). Any other error is thrown.
+- `raise.mjs`: `readDecision(d)` accepts only action `raise`, a head that is a collector, base `main`, a 40-hex lowercase `revision`, a one-line title starting `PROMOTION: `; the title is cut to plain characters (200) and the body likewise (2000). `raiseAll({ api, repo, decisions, live })` returns one result per decision: `none`, `refused`, `would-raise` (not live), `already-raised` (the look `GET pulls?state=all&head=<owner>:<head>&base=main` finds a pull request whose body holds the marker `<!-- kaal-dispatch: <head>@<revision> -->`, no write), `moved` (no write: `GET git/ref/heads/<head>` read after the look is not the `revision`, or cannot be read; also in a dry run), `raised` after exactly one `POST repos/<repo>/pulls` whose body is the cut body plus the marker and whose answer has `head.sha` equal to the `revision`, `raised-moved` (`number`, `evaluated`, `found`) when the answer has another `head.sha` (no second write), or `exists` when that POST is refused with status 422 and a message containing `pull request already exists` (no retry). Any other error is thrown.
 - `seat.mjs`: `readCapacity(value)` returns the whole number 1 to 9 in the string, otherwise 1. `oneAtATime({ decisions, openPromotions, capacity = 1 })` keeps every skip as it is and keeps the first `raise` decisions while `openPromotions.length` plus the kept ones stays within `capacity`; every other `raise` becomes a skip with reason `seat-taken` (the detail names the open pull request when there is one). It is a policy that C89 and C75 may replace. `gather.mjs` also has `openPromotions(api, repo)`: `GET pulls?state=open&base=main&per_page=50`, every open pull request into main, since an enqueued one is still open. `gatherFacts` also returns `tip`, the revision from `GET git/ref/heads/<collector>`.
-- `dispatch.mjs`: `decide` prints the decisions for every collector, passed through `oneAtATime` with the capacity of `KAAL_DISPATCH_CAPACITY`, each raise carrying the `tip` as `revision`; `raise` reads `KAAL_DECISIONS` and raises when `KAAL_DISPATCH_RAISE` is `on`. Its API function refuses everything but GET and the POST of a pull request.
+- `dispatch.mjs`: `withRevision(decision, facts)` sets `revision` to `facts.tip` on a `raise` and leaves any other decision as it is. `decide` prints the decisions for every collector, passed through `oneAtATime` with the capacity of `KAAL_DISPATCH_CAPACITY`, each raise carrying the `tip` as `revision`; `raise` reads `KAAL_DECISIONS` and raises when `KAAL_DISPATCH_RAISE` is `on`. `raise` exits non-zero when any result is `raised-moved` or an error. Its API function refuses everything but GET and the POST of a pull request.
 
 ## Draft of `app-manifest.json`
 
@@ -32,7 +32,7 @@ Owner: release management.
   "public": false,
   "hook_attributes": { "url": "https://example.invalid", "active": false },
   "default_events": [],
-  "default_permissions": { "contents": "write", "metadata": "read", "pull_requests": "write" }
+  "default_permissions": { "metadata": "read", "pull_requests": "write" }
 }
 ````
 

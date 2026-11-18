@@ -10,12 +10,13 @@ export async function run() {
   assert.equal(typeof m.readDecision, 'function', 'raise.mjs has no readDecision');
   const look = `GET repos/${R}/pulls?state=all&head=Kai-Hacks-AI:kaal/release/small-thing&base=main&per_page=30`;
   const post = `POST repos/${R}/pulls`;
-  const live = fakeApi({ [look]: [], [post]: { number: 99, html_url: 'u' } });
+  const ref = `GET repos/${R}/git/ref/heads/kaal/release/small-thing`, tipAt = { object: { sha: REV } };
+  const live = fakeApi({ [look]: [], [ref]: tipAt, [post]: { number: 99, html_url: 'u', head: { sha: REV } } });
   const r = await m.raiseAll({ api: live, repo: R, decisions: [decision()], live: true });
-  assert.deepEqual(live.calls.map((c) => c.method), ['GET', 'POST'], 'a raise is one look and one creation');
-  assert.deepEqual(live.calls[1].body, { title: decision().title, head: 'kaal/release/small-thing', base: 'main', body: decision().body + marker() });
+  assert.deepEqual(live.calls.map((c) => c.method), ['GET', 'GET', 'POST'], 'a raise is one look, one reading of the tip and one creation');
+  assert.deepEqual(live.calls[2].body, { title: decision().title, head: 'kaal/release/small-thing', base: 'main', body: decision().body + marker() });
   assert.equal(r[0].result, 'raised');
-  const dry = fakeApi({ [look]: [] });
+  const dry = fakeApi({ [look]: [], [ref]: tipAt });
   const r2 = await m.raiseAll({ api: dry, repo: R, decisions: [decision()], live: false });
   assert.ok(dry.calls.every((c) => c.method === 'GET'), 'a dry run wrote');
   assert.equal(r2[0].result, 'would-raise');
