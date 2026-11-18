@@ -7,7 +7,7 @@ Template: `.github/PULL_REQUEST_TEMPLATE/do.md`. Global model: [metamodel.md](..
 
 A DO implements a planned Change: the RED Cases turn GREEN and nothing else changes.
 
-**Purpose.** This view anchors semantic reasoning about a DO pull request, both when it is written and when it is understood afterwards, along the chain Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** Case to Source: the Cases that ran RED turn GREEN against the Source the DO adds or changes, which is the evidence about the Intent at the start of the chain.
+**Purpose.** This view anchors semantic reasoning about a DO pull request, both when it is written and when it is understood afterwards, along the INFORMED chain, Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** Case to Source: the Cases that ran RED turn GREEN against the Source the DO adds or changes, which is the evidence about the Intent at the start of the chain.
 
 ```mermaid
 flowchart LR

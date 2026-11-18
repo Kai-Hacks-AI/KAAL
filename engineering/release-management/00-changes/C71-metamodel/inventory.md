@@ -55,6 +55,10 @@ Types seen in recent merged PRs: PLAN, DO, ACT, PROMOTION, SYNC, WIRE. WIRE has 
 
 Proposed, Accepted, Withdrawn, Promoted; read from facts and never stored. Classes Normal, Standard, Emergency. Approval, verification and validation are not states.
 
+## Mnemonics
+
+Definitions with front matter `type: KAAL Definition` and a one-line expansion: `engineering/DISCO.md`, `VIVA-AQUA.md`, `MOVE.md`, `GLUE.md` and others, and `engineering/release-management/HOW-TO-WORK.md` (an expansion, one line per word, and the statement that it is a mnemonic, not a procedure). INFORMED follows that shape.
+
 ## Layout
 
 Packaging's layout numbers the folders in GLUE order: `01-intent`, `02-requirements`, `03-architecture`, `04-test`, `05-src`, `06-defects`. Release management has `04-controls` where Packaging has `04-test`, and keeps its Cases beside the objects they test.

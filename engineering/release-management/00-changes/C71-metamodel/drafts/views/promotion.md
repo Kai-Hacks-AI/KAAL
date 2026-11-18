@@ -7,7 +7,7 @@ Template: `.github/PULL_REQUEST_TEMPLATE/promotion.md`. Global model: [metamodel
 
 A PROMOTION delivers the Changes a collector holds to `main`.
 
-**Purpose.** This view anchors semantic reasoning about a PROMOTION pull request, both when it is written and when it is understood afterwards, along the chain Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** the whole chain, for each Change: every Change named arrives with its Intent, its answers and its GREEN Cases already in its record.
+**Purpose.** This view anchors semantic reasoning about a PROMOTION pull request, both when it is written and when it is understood afterwards, along the INFORMED chain, Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** the whole chain, for each Change: every Change named arrives with its Intent, its answers and its GREEN Cases already in its record.
 
 ```mermaid
 flowchart LR

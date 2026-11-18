@@ -7,7 +7,7 @@ Template: `.github/PULL_REQUEST_TEMPLATE/act.md`. Global model: [metamodel.md](.
 
 An ACT adds the records that close the Change in its collector, today the 4L retrospective.
 
-**Purpose.** This view anchors semantic reasoning about a ACT pull request, both when it is written and when it is understood afterwards, along the chain Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** the whole chain, afterwards: the ACT records what the Change taught about it, for the next reader.
+**Purpose.** This view anchors semantic reasoning about a ACT pull request, both when it is written and when it is understood afterwards, along the INFORMED chain, Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** the whole chain, afterwards: the ACT records what the Change taught about it, for the next reader.
 
 ```mermaid
 flowchart LR

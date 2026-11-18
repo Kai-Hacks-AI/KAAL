@@ -9,7 +9,7 @@ Every row says how far it can be trusted: **normative** (stated by an owner's De
 
 ## Purpose
 
-The tracing chain gives an anchor for semantic reasoning, both when a Change is created and when it is understood afterwards. Reasoning starts from one fixed point and moves along the chain: **Intent**, **Requirement**, **Architecture**, **Control**, **Case**, and then the **code or ruleset** the Case runs. Each step answers the one before it, so a reader or an agent can ask at any object what it answers and what answers it, and a Case that turns from RED to GREEN is evidence about the Intent at the start of the chain. The model exists so that this reasoning needs no reconstruction of KAAL's architecture from scattered documents. Where the repository does not yet carry a link of the chain, the model says so under Mismatches.
+The tracing chain, named INFORMED ([INFORMED.md](INFORMED.md): Implementation Navigates Forward: Observed Results Mirror Earlier Decisions), gives an anchor for semantic reasoning, both when a Change is created and when it is understood afterwards. Reasoning starts from one fixed point and moves along the chain: **Intent**, **Requirement**, **Architecture**, **Control**, **Case**, and then the **code or ruleset** the Case runs. Each step answers the one before it, so a reader or an agent can ask at any object what it answers and what answers it, and a Case that turns from RED to GREEN is evidence about the Intent at the start of the chain. The model exists so that this reasoning needs no reconstruction of KAAL's architecture from scattered documents. Where the repository does not yet carry a link of the chain, the model says so under Mismatches.
 
 ## Trace chain
 
@@ -94,6 +94,7 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 
 - **Lifecycle of a Change**, read from facts and never stored: Proposed, Accepted, Withdrawn, Promoted (`packages/kaal-change/capability/Change-Lifecycle.md`). Approval, verification and validation are not states.
 - **PR title TYPE**: PLAN, DO, ACT, PROMOTION, SYNC, HOTFIX, DEFAULT, and WIRE in use. The PDCA phase a PR carries is its TYPE; it is not the state of the Change.
+- **INFORMED**, the mnemonic of the trace chain: [INFORMED.md](INFORMED.md). It owns no instruction, capability or control.
 - **Change class**: Normal, Standard, Emergency (`Change-Classification.md`).
 
 ## Views
