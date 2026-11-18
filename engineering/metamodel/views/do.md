@@ -16,11 +16,10 @@ flowchart LR
   Change -->|delivers| Intent
   TestCase["Test Case"] -->|verifies| Requirement
   TestCase -->|verifies| Architecture
-  TestCase -->|verifies| Gap
 ```
 
 ## Objects
-Change, Intent, Requirement, Architecture, Gap, Test Case.
+Change, Intent, Requirement, Architecture, Test Case.
 
 ## Relationships
 delivers, verifies.

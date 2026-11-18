@@ -6,8 +6,8 @@ import { read, model, section, rows, frontmatter, walk, RM, REPO } from "./helpe
 
 export const id = "release/T917";
 export const tests = ["release/C71"];
-export const title = "following only the relationships the model names for Q1 to Q5, a reviewer answers, from the repository alone, which Intent release/C65 delivers, what supports the Intent, which Controls pursue it, what each Case verifies and which Gap the Change closes";
-const USED = { Q1: ["delivers", "solves"], Q2: ["answers", "addresses", "objective"], Q3: ["objective"], Q4: ["verifies"], Q5: ["closes", "manifests", "verifies", "addresses"] };
+export const title = "following only the relationships the model names for Q1 to Q5, a reviewer answers, from the repository alone, which Intent release/C65 delivers, what supports the Intent, which Controls pursue it, what each Case verifies and which Defects are addressed";
+const USED = { Q1: ["delivers", "solves"], Q2: ["answers", "addresses", "objective"], Q3: ["objective"], Q4: ["verifies"], Q5: ["addresses", "solves"] };
 
 export async function run() {
   const text = model();
@@ -29,6 +29,5 @@ export async function run() {
   const tested = {};
   for (const f of walk(RM).filter((f) => /\/T85[0-5]\.test\.mjs$/.test(f))) { const t = readFileSync(f, "utf8"); tested[t.match(/export const id = ['"]([^'"]+)/)[1]] = t.match(/export const tests = \[([^\]]*)\]/)[1].replace(/['"\s]/g, ""); }
   assert.deepEqual(tested, { "release/T850": "release/I35", "release/T851": "release/C65", "release/T852": "release/C65", "release/T853": "release/C65", "release/T854": "release/C65", "release/T855": "release/C65" }, "Q4: what T850 to T855 test");
-  // Q5: the Gap the Change closes (key closes); no Defect is addressed
-  assert.deepEqual(node.closes, ["release/G93"], "Q5: C65 closes release/G93");
+  // Q5: no Defect is addressed by an Architecture of this capability (M3)
 }
