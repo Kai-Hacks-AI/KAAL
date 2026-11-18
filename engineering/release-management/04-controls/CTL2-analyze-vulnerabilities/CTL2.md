@@ -3,6 +3,7 @@ id: release/CTL2
 title: analyze Vulnerabilities
 description: It reveals when a change brings a dependency with a known vulnerability, per stage.
 type: detective
+status: implemented
 has: [release/I4]
 ---
 # release/CTL2 analyze Vulnerabilities
