@@ -18,6 +18,8 @@
 
 ## Open for the CPO
 
+- **Where it runs is decided (Owner, 14:19).** A `kaal-guard.json` declares what is checked, never where. It has no surface member, and F43's file already refuses one. No Case changes: T217 to T221 run the ownership judgement without naming a surface, and the existing parse refusal of undefined members (C143, T210) already pins that a file cannot choose its own stage.
+
 - **Two layers (Owner, 14:18).** Guard is wired and what it guards is declared. A local hook can be skipped, so the judgement matters as a required CI check; this PLAN does not wire it. Which surface requires it is the wiring owner's decision.
 
 - **Engineering areas are Solution** (the Owner's 14:17 correction, as the coordinator read it): they register through their own `kaal-guard.json`, and an area becomes engine only through a WIRE. This is not yet confirmed by the Owner, and it reverses C143's "an engineering area root carries none".
