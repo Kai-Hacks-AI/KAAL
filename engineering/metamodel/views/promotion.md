@@ -13,26 +13,25 @@ Effect on the model: none. A PROMOTION carries what the collector holds onward a
 
 ```mermaid
 flowchart LR
-  Change -->|succeeds| Change
+  Change
 ```
 
 ## Objects
 Change.
 
 ## Relationships
-succeeds.
+
 
 ## Information the template expects
 One line per Change delivered, `<id> <name>: <phases carried>`; why now.
 
 ## What the reviewer should be able to verify
-That each Change named is Accepted in the collector and no Change it succeeds is missing; that nothing else travels with it.
+That each Change named is Accepted in the collector; that nothing else travels with it.
 
 ## The INFORMED chapter
 The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. It holds one box for each concern below. Each box is ticked, or marked n/a with a reason. A tick is the author's claim, not evidence.
 
 - [ ] Each Change named is Accepted in the collector and carries the phases it names
-- [ ] No Change it succeeds is missing
 - [ ] Nothing else travels with it
 
 **Process control** (verify Envelope, on the filled template): the chapter exists, the view link is right, the Change exists, and every box above is present and either ticked or n/a with a reason. It never judges the work and does not repeat the trace.

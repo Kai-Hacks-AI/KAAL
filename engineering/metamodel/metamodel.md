@@ -40,7 +40,6 @@ flowchart LR
   Control -->|objective| Intent
   Change -->|delivers| Intent
   Change -->|solves| Defect
-  Change -->|succeeds| Change
 ```
 
 Solid arrows are normative, dashed arrows observed.
@@ -67,7 +66,6 @@ Solid arrows are normative, dashed arrows observed.
 | objective | Control → Intent | `has` | normative | Owner, 18 Nov 2026 (1..n Intents); `packages/kaal-controls/02-requirements/F13-control-shape/F13.md` |
 | delivers | Change → Intent | `implements` | normative | Owner, 18 Nov 2026; Delivers Definition (`packages/kaal-change/capability/Delivers.md`) |
 | solves | Change → Defect | none found | normative | Owner, 18 Nov 2026 (two distinct verbs, deliberately: delivers for Intent, solves for Defect) |
-| succeeds | Change → Change | none found | normative | Succeeds Definition (`packages/kaal-change/capability/Succeeds.md`) |
 
 ## Vocabularies
 

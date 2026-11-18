@@ -13,14 +13,14 @@ Effect on the model: none. A SYNC moves content and adds no object and no relati
 
 ```mermaid
 flowchart LR
-  Change -->|succeeds| Change
+  Change
 ```
 
 ## Objects
 Change.
 
 ## Relationships
-succeeds.
+
 
 ## Information the template expects
 The primary incoming Change that drives the synchronization; the reason it is needed now.

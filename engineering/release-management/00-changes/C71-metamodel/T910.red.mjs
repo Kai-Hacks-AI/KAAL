@@ -26,7 +26,7 @@ export async function run() {
   const blocks = mermaid(text);
   assert.equal(blocks.length, 1, "the global metamodel holds exactly one Mermaid diagram");
   const es = edges(blocks[0]);
-  assert.ok(es.length >= 11, `the diagram holds ${es.length} labelled edges, fewer than the 11 of the Owner-decided model`);
+  assert.ok(es.length >= 10, `the diagram holds ${es.length} labelled edges, fewer than the 10 of the Owner-decided model`);
   const names = new Set(objects(text).map((o) => norm(o.name)));
   for (const e of es) for (const n of [e.from, e.to]) assert.ok(names.has(n), `${n} is a node of the diagram and is not defined in the Objects table`);
 }
