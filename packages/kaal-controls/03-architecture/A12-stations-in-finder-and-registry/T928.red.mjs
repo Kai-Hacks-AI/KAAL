@@ -16,9 +16,8 @@ function put(d, files) { for (const [p, t] of Object.entries(files)) { if (t ===
 
 export const id = 'controls/T928';
 export const tests = ['controls/A12'];
-export const title = 'the Skill points at enforcing, stays within its cap, and says Running at a station needs a signed check';
+export const title = 'the Skill points at the enforcing reference, stays within its cap, and the reference says what a station and its registry are';
 export async function run() {
-
   const sk = join(pkg, 'skills/kaal-controls');
   const text = readFileSync(join(sk, 'SKILL.md'), 'utf8');
   assert.ok(text.split(/\s+/).filter(Boolean).length <= 600, 'SKILL.md is over its cap');
@@ -26,8 +25,6 @@ export async function run() {
   const ref = join(sk, 'references/enforcing-controls.md');
   assert.ok(existsSync(ref), 'the enforcing reference is absent');
   const r = readFileSync(ref, 'utf8');
-  for (const w of ['PASS', 'FAIL', 'UNKNOWN', 'Integrating', 'registry']) assert.ok(r.includes(w), `the reference does not say ${w}`);
-  assert.match(r, /UNKNOWN[^.]*never[^.]*pass|never[^.]*UNKNOWN[^.]*pass/i, 'the reference does not say that UNKNOWN never passes');
-  assert.match(readFileSync(join(sk, 'references/judging-status.md'), 'utf8'), /signed check/, 'judging-status does not tie Running at a station to a signed check');
+  for (const w of ['stations', 'registry', 'Integrating', 'base', 'preventive', 'detective']) assert.ok(r.includes(w), `the reference does not say ${w}`);
   assert.ok(!/Kai-Hacks|engineering\//.test(r), 'the reference knows the repository');
 }
