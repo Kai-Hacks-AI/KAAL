@@ -19,6 +19,10 @@ INFORMED names the tracing chain of the [KAAL object metamodel](metamodel.md): I
 
 INFORMED names how the chain is read. It is a mnemonic, not a procedure: it owns no instruction, no capability and no control, prescribes no step for a type of work, and does not say how a link is written in a file. The links are defined once, in the metamodel.
 
+## In a pull request
+
+Each PR template carries an INFORMED chapter: a link to its metamodel view, the Change, and one tickbox per concern that the view expects. A box is ticked, or n/a with a reason; a tick is the author's claim, not evidence. The chapter is checked as process (it is complete) and, separately, as content (the claims match the evidence, in both directions).
+
 ## Resolution
 
 A reference to this Definition is the path `engineering/release-management/metamodel/INFORMED.md`.

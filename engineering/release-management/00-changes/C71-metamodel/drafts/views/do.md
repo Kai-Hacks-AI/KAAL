@@ -30,5 +30,16 @@ The Change line; what the DO implements; the refactoring intended while behaviou
 ## What the reviewer should be able to verify
 That the Change is the one the merged PLAN planned (Q2); which Cases turned GREEN and what each explicitly tests (Q4); that the files changed are the objects the PLAN named (Q1); the evidence in the record (Q6).
 
+## The INFORMED chapter
+The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. It holds one box for each concern below. Each box is ticked, or marked n/a with a reason. A tick is the author's claim, not evidence.
+
+- [ ] The Change is the one the merged PLAN planned
+- [ ] Each Case that turned GREEN names what it tests
+- [ ] The files changed are the objects the PLAN named
+- [ ] The evidence is in the Change Record
+
+**Process control** (verify Envelope, on the pull request): the chapter exists, the view link is right, the Change exists, and every box above is present and either ticked or n/a with a reason. It never judges the work and does not repeat the trace.
+**Content control** (on the Change's files): the chain links exist, Cases name what they test and ran RED then GREEN, Controls are declared, and each claim is compared with the evidence in both directions: ticked without evidence is "claimed but not found"; evidence present but the box not ticked, or marked n/a, is "done but not claimed". Both are findings.
+
 ## Outside this template
 New Requirements or Intent (a change to those is a new PLAN); the retrospective; delivery to `main`.

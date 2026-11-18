@@ -9,7 +9,7 @@ export const RM = join(REPO, "engineering/release-management");
 // and evidence.md runs them against drafts/ with KAAL_METAMODEL_DIR
 export const DIR = process.env.KAAL_METAMODEL_DIR ? resolve(process.env.KAAL_METAMODEL_DIR) : join(RM, "metamodel");
 export const GH = join(REPO, ".github");
-export const VIEW_HEADINGS = ["Objects", "Relationships", "Information the template expects", "What the reviewer should be able to verify", "Outside this template"];
+export const VIEW_HEADINGS = ["Objects", "Relationships", "Information the template expects", "What the reviewer should be able to verify", "The INFORMED chapter", "Outside this template"];
 export const STYLE = { "-->": "normative", "-.->": "observed", "==>": "proposed" };
 
 export const norm = (s) => s.replace(/\s+/g, "");
