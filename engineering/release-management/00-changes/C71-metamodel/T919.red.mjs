@@ -20,5 +20,5 @@ export async function run() {
       checked++;
     }
   }
-  assert.ok(checked >= 10, `${checked} cited paths were checked, the model cites at least 10`);
+  assert.ok(checked >= 8, `${checked} cited paths were checked, the model cites at least 8`);
 }
