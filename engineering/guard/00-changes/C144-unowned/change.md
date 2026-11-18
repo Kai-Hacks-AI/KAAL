@@ -10,16 +10,15 @@
 
 | Case | Obligation | Judges |
 | --- | --- | --- |
-| guard/T217 | F49 | a Solution file with no covering `kaal-guard.json`, and an engineering area not on the Delivery list, are a fail naming them and where to register; the selected checks still run; root files, `.github`, `.githooks`, `.kaal` and a listed area are neither owned nor refused |
+| guard/T217 | F49 | a package file and an engineering-area file with no covering `kaal-guard.json` are a fail naming them and where to register; the selected checks still run; root files, `.github`, `.githooks` and `.kaal` are neither owned nor refused |
 | guard/T218 | F49 | a nearest `kaal-guard.json` whose checks do not cover the file does not own it, while a covered file beside it passes |
 | guard/T219 | F49, F45 | a repository with no `kaal-guard.json` behaves as before; an unknown selection runs everything and prints that ownership was not judged |
 | guard/T220 | F49, F43 | removing a Change's folder and its `kaal-guard.json` is not refused; a path that no longer exists is not judged |
-| guard/T221 | F49 | the Delivery list is read from the base: a change cannot exempt its own files by editing it, and a listing the base has is honoured |
+| guard/T221 | F49, F43 | an engineering area registers through its own `kaal-guard.json` like a product; the copy of its content into `.github` or `.githooks` is Delivery and not judged; an area that never registered is a fail |
 
 ## Open for the CPO
 
-- **The Delivery list is my reading** of the Owner's "products and Changes register as they go, the engine is harder to change": a list of Delivery areas at `.kaal/delivery.json`, read from the base, instead of a `kaal-guard.json` per engineering area. The Owner has not confirmed it. The name and place of the file are provisional.
-
+- **Engineering areas are Solution** (the Owner's 14:17 correction, as the coordinator read it): they register through their own `kaal-guard.json`, and an area becomes engine only through a WIRE. This is not yet confirmed by the Owner, and it reverses C143's "an engineering area root carries none".
 - **Owned by coverage.** F49 counts a file owned only if a check of its nearest file applies to it. A package that narrows every check with `when` then has files it does not own. The alternative is a package-level "this folder is mine" member in `kaal-guard.json`. I chose the smaller one that adds no member; the CPO may prefer the other.
 - **Verdict.** I use `fail` (exit 1), not `cannot judge` (exit 2), because the repository can fix it by registering. The CPO may prefer another.
 - **Closing a Change** passes only because removed paths are not judged. A Change that leaves a file behind after its `kaal-guard.json` goes is refused, which is the intent.
