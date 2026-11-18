@@ -10,6 +10,8 @@
 
 The settings are answered by one control, release/CTL15, that has one Intent, release/I43. The Requirement release/F60 states the settings; the Architecture release/A55 states where the declaration and the judge hold them. T992 to T994 cover each setting; the ruleset source is the code.
 
+The control's draft declares `status: implemented`, the status a control has once it is on `main` (DIRT: Implemented only; Running and Tested need the Owner's loading and real runs). T992 requires the file to equal the draft and the status line to be there. Feasibility of the DO is demonstrated in `evidence.md` (a throwaway implementation on a tree with `main` merged, three Cases green, nothing committed).
+
 ## Order with the other settings Changes
 
 release/C76 (standing), release/C77 (check policy) and release/C78 (tag) each change `judge.mjs` and `stages.json`. They are planned in parallel and delivered one after the other, each as a collector from `main` once the one before it is promoted, so that their DOs do not collide. `verify Stages` runs `main`'s judge on a PROMOTION: the keys added here are ignored by the judge on `main`, so the PROMOTION passes (the pattern of release/C59 and release/C70).

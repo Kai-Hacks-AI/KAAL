@@ -16,5 +16,6 @@ export async function run() {
   }
   const control = readFileSync(join(RM, '04-controls/CTL15-hold-published-tag/CTL15.md'), 'utf8');
   assert.match(control, /^type: preventive$/m);
+  assert.match(control, /^status: implemented$/m, 'the control does not declare the status it has on main (DIRT: Implemented)');
   assert.match(control, /^has: \[release\/I43\]$/m, 'the control does not have exactly the Intent');
 }

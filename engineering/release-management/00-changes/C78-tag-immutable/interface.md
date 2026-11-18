@@ -22,6 +22,7 @@ id: release/CTL15
 title: hold Published Tag
 description: It stops a published trial tag from being moved to another commit.
 type: preventive
+status: implemented
 has: [release/I43]
 ---
 # release/CTL15 hold Published Tag

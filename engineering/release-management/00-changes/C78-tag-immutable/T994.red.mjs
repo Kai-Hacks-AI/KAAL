@@ -6,7 +6,7 @@ export const tests = ['release/C78'];
 export const title = 'the declared update rule of Publishing passes; a rule the source holds and the stage does not declare, a declared rule the source lacks, and a rule traced to an undeclared control or to a control without an Intent each fail';
 function withTag() {
   const f = declared();
-  f.controls.push({ id: 'release/CTL15', has: ['release/I43'] });
+  f.controls = f.controls.filter((c) => c.id !== 'release/CTL15'); f.controls.push({ id: 'release/CTL15', has: ['release/I43'] });
   stageOf(f, 'Publishing').rules = [{ type: 'update', control: 'release/CTL15', parameters: {} }];
   return f;
 }
