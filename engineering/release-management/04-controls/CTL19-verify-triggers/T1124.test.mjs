@@ -18,12 +18,12 @@ export async function run() {
   const real = join(RM, '05-src/wiring/workflows/verify-triggers.yml');
   assert.ok(existsSync(real), 'the workflow source is absent');
   const t = readFileSync(real, 'utf8');
-  assert.equal(t, `${draft('verify-triggers.yml')}\n`, 'the workflow source differs from the draft');
+  // the equality with the draft of release/C90 is superseded: release/C91 amends the source for merge_group, and release/T1134 holds the source to its own draft
   assert.equal(uses(t), false, 'the check must not use pull_request_target itself');
   assert.match(t, /^on:\n  pull_request:/m);
   assert.match(t, /permissions:\n  contents: read/);
   assert.doesNotMatch(t, /secrets\./);
-  assert.match(t, /ref: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/, 'the checkout is not the base commit');
+  assert.match(t, /ref: \$\{\{ github\.event\.pull_request\.base\.sha( \|\| github\.event\.merge_group\.base_sha)? \}\}/, 'the checkout is not the base commit');
   assert.doesNotMatch(t, /ref: \$\{\{ github\.event\.pull_request\.head/, 'a checkout of the pull request head would run its code');
   assert.doesNotMatch(t, /github\.head_ref|pull_request\.head\.(ref|sha)/, 'the head is read by its pull request ref only');
   assert.match(t, /fetch-depth: 0/);
