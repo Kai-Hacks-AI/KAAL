@@ -1,0 +1,38 @@
+# C61 change
+
+## PLAN
+
+1. Add the drafts in `interface.md`: the facts per branch, the `state` and `settled` of an inventory entry, the counts of the overview and the `settled` view.
+2. Add the Cases T800 to T804, all RED (`evidence.md`).
+3. Observe the expected RED, and that each Case can pass with the DO's content.
+4. The PLAN changes no script, no reader and no config.
+
+## Ids
+
+Allocated by the coordinator on 17 Nov 2026: Change `release/C61`, Cases T800 to T809 (five used). No gap id is allocated: like release/C39 it closes none.
+
+## DO
+
+On the merged PLAN, into the collector of this Change:
+
+1. In `show-wip.mjs`: the `state` and `settled` of each entry, the counts, the markers and the `settled` view (`interface.md`).
+2. In `read.mjs` and `run.mjs`: read `head`, `ahead` and `settled` of each branch from the host (the branch's tip, its comparison with main, and its newest closed or merged piece). What the host did not answer stays absent.
+3. In `README.md`: the new view.
+4. Rename T800 to T804 from `.red.mjs` to `.test.mjs` when green.
+
+## ACT
+
+A 4L retrospective in `act.md` before the promotion.
+
+## Advisory only
+
+C61 adds no way to delete, close or move a branch and takes no action on what it shows. Deleting a settled branch stays with someone who has delete rights, by decision.
+
+## Boundary of the evidence
+
+`delivered` and `discarded` are an exploratory, conservative inference, advisory only. A branch tip, the closure of a piece and its merge history are evidence, not an authoritative lifecycle state: a branch is a workspace, not a Change; it may hold several Changes, and a Change spans several pieces. A piece closed unmerged is a transport's outcome, not a decision about the work (it may be superseded, moved or reorganized), so it stays `UNKNOWN` (T807); `discarded` is reserved for an explicit, separate decision, which nothing reads yet. Ambiguous or incomplete evidence never yields `delivered` or `discarded`; it yields `wip` or `UNKNOWN` (T801 conflicting and missing facts, T805 a cut or missing list of pieces, T806 a failed read). The remaining gap: the state is derived from Git, not recorded by KAAL. The direction is that PLAN, DO, ACT, PROMOTION and an explicit discard outcome produce a KAAL-owned lifecycle record, with Git and the host supplying evidence rather than defining the state. That record is not built here; it is a later Change, and the ACT carries this gap.
+
+## Left open
+
+- A branch protected by a ruleset or still checked out somewhere: the report cannot tell, and says nothing about it.
+- A branch whose newest piece closed unmerged stays UNKNOWN: the report does not tell a dropped branch from a superseded, moved or reorganized one. A discard becomes visible only with an explicit decision, which is a later Change.

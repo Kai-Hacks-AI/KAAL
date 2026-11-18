@@ -38,8 +38,8 @@ A claim is no stronger than what has been observed.
 - A preventive claim names the action, the actor or interface, and the boundary. Anything outside it, such as another route or someone who can override it, is not covered. Never say an action is impossible.
 - A report that finds nothing shows only that nothing was found in what it examined. What you could not observe stays unknown.
 
-What verification, validation and a finding are is Testing's. Follow the `kaal-testing` Skill for them.
+Verification is a Case, validation a judgment, a finding what either reveals.
 
 When you describe a control, say its type and what it does when the rule is broken, then what you have observed and what you have not.
 
-Declaring controls: `references/declaring-controls.md`.
+Declaring: `references/declaring-controls.md`. Judging a status: `references/judging-status.md`.
