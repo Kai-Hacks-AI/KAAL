@@ -3,6 +3,7 @@ id: release/CTL1
 title: verify Stages
 description: It reveals when a delivery stage differs from the stages declaration.
 type: detective
+status: running
 has: [release/I27]
 ---
 # release/CTL1 verify Stages

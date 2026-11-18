@@ -28,7 +28,7 @@ export function pureSync() {
   must(['update-ref', 'refs/kaal/base', must(['rev-parse', 'collector'])]);
   must(['update-ref', 'refs/remotes/origin/main', must(['rev-parse', 'main'])]);
   must(['update-ref', 'refs/kaal/pr', head]);
-  const state = { head, author: 'author', requested: [], codeowners: '* @kaihacksai\n', body: BODY, labels: [], comments: [] };
+  const state = { head, baseTip: must(['rev-parse', 'collector']), author: 'author', requested: [], codeowners: '* @kaihacksai\n', body: BODY, labels: [], comments: [] };
   const calls = [], outs = {}, logs = [], errors = [];
   let failOn = null;
   const api = (args) => {
@@ -37,12 +37,13 @@ export function pureSync() {
     if (failOn && failOn.re.test(a)) throw new Error(failOn.message);
     if (/-X (POST|DELETE)/.test(a)) return '{}';
     if (/pulls\/7\/reviews/.test(a)) return '';
+    if (/git\/ref\/heads\/kaal\/release\/x$/.test(a)) return JSON.stringify({ object: { sha: state.baseTip } });
     if (/pulls\/7$/.test(a)) return JSON.stringify({ head: { sha: state.head }, base: { ref: 'kaal/release/x' }, title: 'SYNC: x', body: state.body, user: { login: state.author }, requested_reviewers: state.requested.map((login) => ({ login })) });
     if (/issues\/7\/labels/.test(a)) return JSON.stringify(state.labels.map((name) => ({ name })));
     return '';
   };
   const deps = () => ({ git, api, codeowners: () => state.codeowners, out: (n, v) => { outs[n] = v; }, summary() {}, log: (l) => logs.push(l), error: (t, l) => errors.push(`${t}: ${l}`) });
-  const env = (extra = {}) => ({ KAAL_REPO: 'o/r', KAAL_PR: '7', KAAL_BASE: 'kaal/release/x', KAAL_HEAD: head, KAAL_DEFAULT: 'main', ...extra });
+  const env = (extra = {}) => ({ KAAL_REPO: 'o/r', KAAL_PR: '7', KAAL_BASE: 'kaal/release/x', KAAL_HEAD: head, KAAL_BODY: BODY, KAAL_DEFAULT: 'main', ...extra });
   return {
     head, state, calls, outs, logs, errors, deps, env,
     failOn: (re, message) => { failOn = { re, message }; },
