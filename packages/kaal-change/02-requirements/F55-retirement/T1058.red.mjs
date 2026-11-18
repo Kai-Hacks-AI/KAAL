@@ -1,18 +1,30 @@
 // Case change/T1058 tests: change/F55
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { load, view, from, done, acted, kase, P, FOLDER, REGISTRATION } from '../../test/folder-control-support.mjs';
+import { load, view, from, done, acted, kase, green, evidence, evaluation, CAPABILITY_PLAN, CHANGE_PLAN, P, FOLDER, REGISTRATION } from '../../test/folder-control-support.mjs';
 export const id = 'change/T1058';
 export const tests = ['change/F55'];
-export const title = 'a deleted Change registration fails retirement when the folder holds no act.md, when a file of the folder is removed, or when a touched element has no target Case';
+export const title = 'a deleted Change registration is a finding when the folder holds no act.md, when a record of the Change is removed, when there is no counted evidence, when a touched element has no passing Case in a surviving check, and when a retiring check is not evaluated or fails; removing an executable Case is not a finding';
 export async function run() {
   const c = await load();
-  const run = (head, before = done()) => c.judgeRetirement({ before: view(before), head: view(head), from: view(from()) });
+  const run = (head, { before = done(), evidence = green() } = {}) => c.judgeRetirement({ before: view(before), head: view(head), from: view(from()), evidence });
+  const rules = (found) => found.map((f) => f.rule).sort();
   const { [`${FOLDER}/kaal-guard.json`]: _gone, ...noAct } = done();
-  assert.deepEqual(run(noAct).map((f) => f.rule), ['not-closed']);
-  const { [`${FOLDER}/T11.test.mjs`]: _t, ...lost } = acted();
-  assert.deepEqual(run(lost).map((f) => [f.rule, f.path]), [['history-removed', `${FOLDER}/T11.test.mjs`]]);
-  const bare = done(); delete bare[`${P}/02-requirements/F2-new/T12.test.mjs`];
-  assert.deepEqual(run(acted(bare), bare).map((f) => [f.rule, f.path]), [['touched-element-without-target-case', `${P}/02-requirements/F2-new`]]);
+  assert.deepEqual(rules(run(noAct)), ['not-closed']);
+  // history is the records; the executable Cases and helpers are free to go
+  const withRecords = { ...done(), [`${FOLDER}/evidence.md`]: 'x' };
+  const { [`${FOLDER}/evidence.md`]: _e, ...lostRecord } = acted(withRecords);
+  assert.deepEqual(run(lostRecord, { before: withRecords }).map((f) => [f.rule, f.path]), [['history-removed', `${FOLDER}/evidence.md`]]);
+  const { [`${FOLDER}/T11.test.mjs`]: _t, ...fewerCases } = acted();
+  assert.deepEqual(run(fewerCases), [], 'removing an executable Case was a finding');
+  assert.deepEqual(rules(run(acted(), { evidence: null })), ['no-evidence']);
+  assert.deepEqual(rules(run(acted(), { evidence: { by: 'ci', evaluations: [{ ...green().evaluations[0], findings: ['x'] }, green().evaluations[1]] } })), ['touched-element-unverified'], 'an evaluation with findings counted');
+  assert.deepEqual(rules(run(acted(), { evidence: evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed', 'p/T12': 'failed' }), evaluation(CHANGE_PLAN, { 'p/T10': 'passed' })) })), ['touched-element-unverified']);
+  assert.deepEqual(rules(run(acted(), { evidence: evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed', 'p/T12': 'passed' })) })), ['retiring-check-not-evaluated']);
+  const failing = evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed', 'p/T12': 'passed' }), evaluation(CHANGE_PLAN, { 'p/T10': 'passed', 'p/T11': 'failed' }));
+  assert.deepEqual(run(acted(), { evidence: failing }).map((f) => [f.rule, f.path]), [['retiring-check-failing', CHANGE_PLAN]]);
+  // a Case that claims the element but sits only in the retiring check does not verify it
+  const onlyRetiring = evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed' }), evaluation(CHANGE_PLAN, { 'p/T10': 'passed', 'p/T11': 'passed', 'p/T12': 'passed' }));
+  assert.ok(rules(run(acted(), { evidence: onlyRetiring })).includes('touched-element-unverified'), 'verification by the retiring check counted');
 }
 test(id, () => run());

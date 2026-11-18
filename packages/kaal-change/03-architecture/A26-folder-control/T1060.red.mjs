@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { PACKAGE, CONTROL } from '../../test/folder-control-support.mjs';
 export const id = 'change/T1060';
 export const tests = ['change/A26'];
-export const title = 'the folder control is one pure module that imports only node:path, writes and executes nothing, takes its views from the caller, depends on no Guard package, and the wrapper reaches Git only through Hosting';
+export const title = 'the folder control is one pure module that imports only node:path, writes and executes nothing, takes its views from the caller, depends on no Guard package, and the wrapper reaches Git only through Hosting, reads the evaluations a run produced and runs no test';
 export async function run() {
   assert.ok(existsSync(CONTROL), 'the folder control is absent');
   const src = readFileSync(CONTROL, 'utf8');
@@ -18,6 +18,7 @@ export async function run() {
   assert.ok(existsSync(cli), 'the wrapper is absent');
   const wrapper = readFileSync(cli, 'utf8');
   assert.ok(/@kaihacksai\/kaal-hosting/.test(wrapper) && !/node:child_process/.test(wrapper), 'the wrapper does not reach Git through Hosting');
-  assert.ok(/--replay/.test(wrapper), 'the wrapper cannot replay the retiring checks');
+  assert.ok(/--evidence/.test(wrapper), 'the wrapper does not read the evaluations of a run');
+  assert.ok(!/replay|node --test|spawn/.test(wrapper), 'the wrapper runs tests itself');
 }
 test(id, () => run());

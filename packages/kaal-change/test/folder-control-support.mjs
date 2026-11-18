@@ -18,6 +18,7 @@ export const FOLDER = `${P}/00-changes/C1-move`;
 export const REGISTRATION = JSON.stringify({ checks: [{ id: 'cases', run: `node --test "${FOLDER}/T*.test.mjs"` }] });
 /** Before the Change: one element with its own target Case. */
 export const from = () => ({
+  [`${P}/kaal-guard.json`]: JSON.stringify({ checks: [{ id: 'enduring-cases', run: 'node --test "packages/p/0[1-6]-*/**/T*.test.mjs"' }] }),
   [`${P}/02-requirements/F1-old/F1.md`]: '# p/F1\n',
   [`${P}/02-requirements/F1-old/T1.test.mjs`]: kase('p/T1', 'p/F1'),
 });
@@ -30,4 +31,11 @@ export const done = () => ({
 });
 /** The ACT: act.md is added and the registration deleted; no Case and no evidence is removed. */
 export const acted = (files = done()) => { const { [`${FOLDER}/kaal-guard.json`]: _gone, ...rest } = files; return { ...rest, [`${FOLDER}/act.md`]: '# act\n' }; };
+/** Execution evidence as `assess` reads it: one evaluation per Plan, here a registered check as Guard names it. */
+export const CAPABILITY_PLAN = `${P}/kaal-guard.json:enduring-cases`;
+export const CHANGE_PLAN = `${FOLDER}/kaal-guard.json:cases`;
+export const evaluation = (plan, cases) => ({ run: 'r1', plan, result: Object.values(cases).every((r) => r === 'passed') ? 'passed' : 'failed', cases, findings: [] });
+export const evidence = (...evaluations) => ({ by: 'ci', evaluations });
+/** The run that judged the correct ACT: every Case passed in both checks. */
+export const green = () => evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed', 'p/T12': 'passed' }), evaluation(CHANGE_PLAN, { 'p/T10': 'passed', 'p/T11': 'passed' }));
 export { kase };
