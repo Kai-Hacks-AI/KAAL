@@ -7,7 +7,7 @@ export const tests = ["release/C35"];
 export const title = "the check names are unique and exactly verify Stages (<Name>), distinct from Guard and from the CI job Engineering";
 export async function run() {
   const all = NAMES.flatMap((n) => contexts(source(n)));
-  assert.deepEqual([...new Set(all)].sort(), [...[...NAMES, "Developing"].map(ctx), "analyze Vulnerabilities (Promoting)"].sort()); // Developing is required by Integrating (release/C37), analyze Vulnerabilities by Promoting (release/CTL5)
+  assert.deepEqual([...new Set(all)].sort(), [...[...NAMES, "Developing"].map(ctx), "analyze Vulnerabilities (Promoting)", "verify Triggers"].sort()); // Developing is required by Integrating (release/C37), analyze Vulnerabilities by Promoting (release/CTL5), verify Triggers by Promoting (release/CTL20)
   assert.equal(new Set(all).size, all.length, "unique: no shared control is duplicated across rulesets");
   for (const c of all) assert.ok(c !== "Engineering" && !/^Guard/.test(c), `${c} is distinct from the CI job and from Guard`);
 }
