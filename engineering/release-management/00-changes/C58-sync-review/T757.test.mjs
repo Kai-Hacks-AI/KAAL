@@ -19,7 +19,8 @@ export async function run() {
   for (const name of ['verify Sync', 'approve Sync', 'review Sync']) assert.ok(code.includes(`name: ${name}`), `the job ${name} is absent`);
   assert.equal([...code.matchAll(/startsWith\(github\.event\.pull_request\.title, 'SYNC:'\)/g)].length, 3, 'a job does not run only for a SYNC');
   for (const lane of ['kaal/', 'hotfix/', 'wire/']) assert.ok(code.includes(`startsWith(github.event.pull_request.base.ref, '${lane}')`), `the ${lane} base is not named`);
-  assert.equal([...code.matchAll(/needs: verify/g)].length, 2, 'approve and review do not both need verify');
+  assert.equal([...code.matchAll(/needs: verify$/gm)].length, 1, 'approve does not need verify'); // release/C60: review also waits for approve
+  assert.ok(code.includes('needs: [verify, approve]'), 'review does not need verify and approve');
   assert.ok(code.includes('ref: ${{ github.event.repository.default_branch }}'), 'the default branch is not checked out');
   assert.ok(code.includes('persist-credentials: false'), 'credentials persist');
   assert.ok(!/ref: \$\{\{ github\.event\.pull_request/.test(code), 'the candidate is checked out');
