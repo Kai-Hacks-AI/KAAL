@@ -7,6 +7,8 @@ Template: `.github/pull_request_template.md`. Global model: [metamodel.md](../me
 
 The fallback envelope, used only when no specialized TYPE fits. Its chapters are Intent, Design, Verified by and Validated by.
 
+**Purpose.** This view anchors semantic reasoning about a DEFAULT pull request, both when it is written and when it is understood afterwards, along the chain Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** Intent to Case: the Verified by and Validated by chapters say how the Intent is to be shown met.
+
 ```mermaid
 flowchart LR
   Change -->|delivers| Intent

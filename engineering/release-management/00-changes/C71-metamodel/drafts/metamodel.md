@@ -7,6 +7,24 @@ The one authoritative reference for the objects of a Change and the relationship
 
 Every row says how far it can be trusted: **normative** (stated by an owner's Definition or confirmed by the Owner), **observed** (a convention found in the repository, with the path that shows it), or **proposed** (an extension for the Owner to decide). Existing identifiers and keys are kept as they are; where the Owner's word and the repository's key differ, both are shown and the difference is listed under Mismatches.
 
+## Purpose
+
+The tracing chain gives an anchor for semantic reasoning, both when a Change is created and when it is understood afterwards. Reasoning starts from one fixed point and moves along the chain: **Intent**, **Requirement**, **Architecture**, **Control**, **Case**, and then the **code or ruleset** the Case runs. Each step answers the one before it, so a reader or an agent can ask at any object what it answers and what answers it, and a Case that turns from RED to GREEN is evidence about the Intent at the start of the chain. The model exists so that this reasoning needs no reconstruction of KAAL's architecture from scattered documents. Where the repository does not yet carry a link of the chain, the model says so under Mismatches.
+
+## Trace chain
+
+| Step | Object | Answers the previous step by | Status in the repository |
+| --- | --- | --- | --- |
+| 1 | Intent | the start of the chain | exists |
+| 2 | Requirement | answers Intent (`serves`) | exists |
+| 3 | Architecture | answers Requirement (`addresses`) | exists |
+| 4 | Control | has Intent (`has`); no link from Architecture to a Control is found | exists, linked to Intent only |
+| 5 | Case | tests any of the above by the ids it exports | exists |
+| 6 | Source | a Case exercises it, RED to GREEN; no key declares the relation | exists, undeclared |
+
+Every view below shows the part of this chain its template carries.
+
+
 ## Diagram
 
 ```mermaid
@@ -26,6 +44,7 @@ flowchart LR
   Control -.->|has| Intent
   Case -.->|tests| Change
   Case -.->|tests| Control
+  Case -.->|exercises| Source
   Change -.->|closes| Gap
   Change -.->|walks| Stage
   Control ==>|gates| Stage
@@ -47,6 +66,7 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 | Evidence | what a record references: Case results, checks, `evidence.md`, the 4L retrospective, a Review judgment | normative | kaal-change (tracks, never owns); Testing (verification); Review (validation) |
 | PR | a GitHub pull request, with a title TYPE and a body in the envelope of its template | normative | Change Definition: one realization of a Change; Branching |
 | Control | `<capability>/CTL<n>`, with `type` and `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md`; six in `engineering/release-management/04-controls/` |
+| Source | the code, workflow or ruleset a Case exercises, under `05-src/` | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` imports the judge it runs |
 | Gap | `<capability>/G<n>`, a row of a Change's `gap.md` | observed | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
 | Stage | a stage of `05-src/stages/stages.json` (Developing, Integrating, Promoting, Publishing) | observed | `engineering/release-management/strategy.md` |
 
@@ -65,6 +85,7 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 | realizes | PR → Change | the Change line of the body | normative | Change Definition |
 | has | Control → Intent | `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md` |
 | tests | Case → Change, Control | `export const tests` | observed | `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs`, `engineering/release-management/04-controls/CTL7-verify-sync/T750.test.mjs` |
+| exercises | Case → Source | none | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` |
 | closes | Change → Gap | `closes` | observed | `engineering/release-management/00-changes/C65-sync-split/C65.md` |
 | walks | Change → Stage | none | observed | `engineering/release-management/strategy.md` |
 | gates | Control → Stage | none | proposed | `strategy.md` says each stage has one gate; no file names the control |
@@ -114,3 +135,4 @@ Recorded, not corrected. Each names the Owner's word or the model's claim, what 
 | M6 | the PR names the Intent | the Change chapter names the Change only; the Intent appears, when it does, in prose (the PLAN #1889 mentions release/I35 in To, the ACT #1891 and PROMOTION #1892 do not) | `engineering/release-management/00-changes/C65-sync-split/C65.md` |
 | M7 | every PR TYPE has a template | WIRE has none on `main` | `engineering/release-management/03-architecture/A47-wire-install/A47.md` |
 | M8 | a Change closes a Defect | the Change closes a Gap, a different object | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
+| M9 | the chain runs Intent, Requirement, Architecture, Control, Case | a Control has an Intent only; no file links an Architecture to a Control or a Control to its Source | `engineering/release-management/04-controls/CTL1-verify-stages/CTL1.md` |

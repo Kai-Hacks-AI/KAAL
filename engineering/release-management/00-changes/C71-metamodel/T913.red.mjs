@@ -16,6 +16,8 @@ export async function run() {
     const heads = [...text.matchAll(/^## (.+)$/gm)].map((m) => m[1]);
     assert.deepEqual(heads, VIEW_HEADINGS, `${t.name}: the sections of the view`);
     assert.ok(text.includes(`\`${t.path}\``), `${t.name}: the view does not name ${t.path}`);
+    assert.match(text, /\*\*Purpose\.\*\* .*semantic reasoning/, `${t.name}: the view does not state its purpose`);
+    assert.match(text, /\*\*In the chain:\*\* /, `${t.name}: the view does not say which part of the chain it carries`);
     assert.equal([...text.matchAll(/```mermaid/g)].length, 1, `${t.name}: a view holds one diagram`);
   }
 }

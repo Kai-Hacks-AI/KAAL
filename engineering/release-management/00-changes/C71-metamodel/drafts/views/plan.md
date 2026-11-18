@@ -7,6 +7,8 @@ Template: `.github/PULL_REQUEST_TEMPLATE/plan.md`. Global model: [metamodel.md](
 
 A PLAN proposes a Change: it adds drafts and Cases that run RED, and no behaviour.
 
+**Purpose.** This view anchors semantic reasoning about a PLAN pull request, both when it is written and when it is understood afterwards, along the chain Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** Intent, Requirement, Architecture, Control and Case: a PLAN sets the chain down to Cases that run RED, with no Source yet.
+
 ```mermaid
 flowchart LR
   Change -->|delivers| Intent

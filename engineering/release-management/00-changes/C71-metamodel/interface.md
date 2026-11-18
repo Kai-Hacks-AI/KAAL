@@ -4,14 +4,14 @@ The drafts the DO will install. The model and the views are in `drafts/`. The it
 
 ## Intent release/I38
 
-A reviewer or an agent who opens a pull request can follow the reference in its template to a view, and from the view to one global model, and understand the objects and relationships involved without reconstructing KAAL's architecture from scattered documentation.
+A reviewer or an agent who opens a pull request can follow the reference in its template to a view, and from the view to one global model, and reason from the tracing chain (Intent, Requirement, Architecture, Control, Case, then code or ruleset) as one anchor, both when creating a Change and when understanding it afterwards, without reconstructing KAAL's architecture from scattered documentation.
 
 Owner: release management, until a capability is chosen.
 
 ## Requirements
 
-- **release/F55** (functional, serves release/I38). There is one authoritative global metamodel: one Markdown file with one Mermaid diagram. Each object and each relationship is defined exactly once, with a status (normative, observed or proposed) and its source. Existing identifiers and keys are preserved. The Owner-confirmed relationships are drawn as normative. Differences between the model and the repository are recorded as mismatches, each with a path that exists, and are not corrected. A pull request is not the authority for the lifecycle state of a Change.
-- **release/F56** (functional, serves release/I38). Each PR template has a view with the sections Objects, Relationships, Information the template expects, What the reviewer should be able to verify, and Outside this template. A view defines nothing, draws only edges of the global model and links to it. The global model indexes every view.
+- **release/F55** (functional, serves release/I38). There is one authoritative global metamodel that states its purpose, an anchor for semantic reasoning along the trace chain, and carries the chain in order: one Markdown file with one Mermaid diagram. Each object and each relationship is defined exactly once, with a status (normative, observed or proposed) and its source. Existing identifiers and keys are preserved. The Owner-confirmed relationships are drawn as normative. Differences between the model and the repository are recorded as mismatches, each with a path that exists, and are not corrected. A pull request is not the authority for the lifecycle state of a Change.
+- **release/F56** (functional, serves release/I38). Each PR template has a view that states the same purpose, says which part of the chain it carries, and has the sections Objects, Relationships, Information the template expects, What the reviewer should be able to verify, and Outside this template. A view defines nothing, draws only edges of the global model and links to it. The global model indexes every view.
 - **release/F57** (functional, serves release/I38). Each PR template names its view by the path `engineering/release-management/metamodel/views/<TYPE>.md`, and a reviewer can answer six questions (what the Change affects, which Intent it delivers, what supports the Intent, what each Case tests, which Defects it addresses, what evidence supports the decision) by following the relationships the model names.
 
 ## Architecture

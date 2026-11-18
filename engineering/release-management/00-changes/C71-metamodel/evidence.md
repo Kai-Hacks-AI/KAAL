@@ -10,7 +10,7 @@
 
 | Case | On `main` | Against `drafts/` |
 | --- | --- | --- |
-| T910 | RED: the global metamodel is absent | GREEN |
+| T910 | RED: the global metamodel is absent | GREEN (purpose, trace chain in order, one diagram) |
 | T911 | RED: absent | GREEN |
 | T912 | RED: absent | GREEN |
 | T913 | RED: the view of `pull_request_template.md` is absent | GREEN |
@@ -43,6 +43,7 @@ Using the global model's Reviewer questions on the four pull requests of release
 - Q3 finds nothing in the Requirements and Architecture folders: the chain is Control has Intent (M4).
 - Q5: no Defect; the repository closes a Gap (M8). Nothing in the Architecture addresses a Defect anywhere (M3).
 - A reviewer cannot find the Change Node of release/C37 (M5) and cannot find a WIRE template (M7).
+- Q3 and the chain: Kai's chain places a Control between Architecture and Case; the repository links a Control to an Intent only, and no file links a Control to its Source (M9).
 - The reference in a template reaches an author, not a reviewer, because a template's leading comment is not part of the authored body (open question 3).
 
 HOTFIX, SYNC and DEFAULT are given views from their templates and the Definitions, but are not walked here: the sample is one Change. The DO walks one of each.

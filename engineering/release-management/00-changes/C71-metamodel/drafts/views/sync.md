@@ -7,6 +7,8 @@ Template: `.github/PULL_REQUEST_TEMPLATE/sync.md`. Global model: [metamodel.md](
 
 A SYNC brings a newer `main` into a collector and claims no Change Record of its own.
 
+**Purpose.** This view anchors semantic reasoning about a SYNC pull request, both when it is written and when it is understood afterwards, along the chain Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** none: a SYNC carries chains already accepted elsewhere and adds no link to any chain.
+
 ```mermaid
 flowchart LR
   Change -->|succeeds| Change

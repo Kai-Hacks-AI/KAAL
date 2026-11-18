@@ -7,6 +7,8 @@ Template: `.github/PULL_REQUEST_TEMPLATE/hotfix.md`. Global model: [metamodel.md
 
 A HOTFIX is an Emergency Change that corrects a Defect by the fastest safe path.
 
+**Purpose.** This view anchors semantic reasoning about a HOTFIX pull request, both when it is written and when it is understood afterwards, along the chain Intent, Requirement, Architecture, Control, Case, then code or ruleset. **In the chain:** Defect to Architecture to Case to Source: the Defect is addressed by Architecture, a Case fails RED on it and turns GREEN with the correction.
+
 ```mermaid
 flowchart LR
   Architecture -->|addresses| Defect

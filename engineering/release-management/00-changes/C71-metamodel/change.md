@@ -1,10 +1,14 @@
 # C71 change
 
+## Purpose
+
+Owner direction (18 Nov 2026): the tracing chain and the split of concerns exist to give an anchor for semantic reasoning, both in creating a Change and in understanding it afterwards. The chain runs Intent, Requirement, Architecture, Control, Case, and then the code or ruleset the Case runs. The global model states this as its purpose and carries the chain as a table; each view states the same purpose and says which part of the chain its template carries.
+
 ## From, to, because
 
 - **From:** the objects of a Change (Intent, Requirement, Architecture, Defect, Case, Change, Control, Gap, Stage, PR) are defined in separate documents, sometimes with different words (the Owner says "delivers" and "answers", the files say `implements`, `serves` and `addresses`), and a PR template gives a reviewer no way to find any of them.
 - **To:** one authoritative Markdown metamodel with one Mermaid diagram, a short view for each of the seven PR templates, and each template naming its view. Every object and relationship is defined once, with a status: normative, observed or proposed. Differences between the model and the repository are recorded, not corrected.
-- **Because:** a CPO, human or agent, can then open a PR and trace what it affects, which Intent it delivers, what supports that Intent, what each Case tests, which Defect it addresses and what evidence there is, from the PR to the model, without reconstructing the architecture.
+- **Because:** the chain gives reasoning one fixed anchor, so a CPO, human or agent, can then open a PR and trace what it affects, which Intent it delivers, what supports that Intent, what each Case tests, which Defect it addresses and what evidence there is, from the PR to the model, without reconstructing the architecture.
 
 ## What the PLAN proposes
 
@@ -26,7 +30,7 @@
 
 ## Cases (all RED on `main`; evidence.md has the run against the drafts)
 
-T910 the global model is one file with one Mermaid diagram and every node is a defined object. T911 the Owner-confirmed relationships are drawn as normative. T912 each object and relationship has one definition and a status, arrow styles agree with statuses, the repository's identifiers and keys are kept. T913 each template has a view with the five sections. T914 the views link to the model and the model indexes the views, both resolving. T915 a view defines nothing and draws only edges of the model. T916 each template names its view. T917 a reviewer answers Q1 to Q6 on release/C65's PLAN, DO, ACT and PROMOTION by following the model. T918 the mismatches are recorded, each with a path that exists and a fact that still holds. T919 every path the model cites exists.
+T910 the global model states its purpose and the trace chain in order, and is one file with one Mermaid diagram whose nodes are all defined objects. T911 the Owner-confirmed relationships are drawn as normative. T912 each object and relationship has one definition and a status, arrow styles agree with statuses, the repository's identifiers and keys are kept. T913 each template has a view with the five sections, a purpose and the part of the chain it carries. T914 the views link to the model and the model indexes the views, both resolving. T915 a view defines nothing and draws only edges of the model. T916 each template names its view. T917 a reviewer answers Q1 to Q6 on release/C65's PLAN, DO, ACT and PROMOTION by following the model. T918 the nine mismatches are recorded, each with a path that exists and a fact that still holds. T919 every path the model cites exists.
 
 ## Not in this Change
 
@@ -40,4 +44,5 @@ No change to a PR template, hook, workflow, ruleset or the envelope judge; no re
 4. **Gap and Defect.** Release management closes Gaps (`closes: [release/G<n>]`); the Owner's model addresses Defects. The model keeps both, as different objects. Confirm, or say that a Gap is a Defect.
 5. **Intents answered by Controls.** release/I35 has no Requirement or Architecture; Controls have it. Recommendation: accept Control has Intent as a second normative path beside Requirement answers Intent, as kaal-controls' chain already says.
 6. **Architecture addresses Defect.** No Architecture file does this today (mismatch M3). Confirm the repository key stays `addresses`, with a Defect id as the target.
-7. **Controls and Stages.** Control has Intent and Change walks Stage are drawn as observed. Control gates Stage is proposed (`strategy.md` says each stage has one gate). Confirm or drop `gates`.
+7. **Controls in the chain.** The chain places a Control between Architecture and Case. The repository links a Control to an Intent only (`has`); no file links an Architecture to a Control, or a Control to the Source it judges (mismatch M9). The model draws what exists. Recommendation: keep it so, and decide in a later Change whether a Control declares the Architecture it places or the Source it judges.
+8. **Controls and Stages.** Control has Intent and Change walks Stage are drawn as observed. Control gates Stage is proposed (`strategy.md` says each stage has one gate). Confirm or drop `gates`.
