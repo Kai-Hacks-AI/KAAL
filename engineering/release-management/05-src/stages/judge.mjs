@@ -43,6 +43,14 @@ export function judge(facts) {
     if (r.target !== "branch") add(name, `${name}: the target is ${r.target}, not branch`);
     if (!same(r.conditions?.ref_name?.include, include)) add(name, `${name}: the refs are ${JSON.stringify(r.conditions?.ref_name?.include)}, not ${JSON.stringify(include)}`);
     if (!same(r.bypass_actors, [])) add(name, `${name}: the bypass list is not empty`);
+    const stage = name === "Integrating" ? integrating : name === "Promoting" ? promoting : integrating.parts.find((q) => q.name === name);
+    const sg = stage?.standing;
+    if (!sg || typeof sg !== "object") add(name, `${name}: the stage declares no standing`);
+    else {
+      if (r.enforcement !== sg.enforcement) add(name, `${name}: the enforcement is ${JSON.stringify(r.enforcement)}, the declaration says ${JSON.stringify(sg.enforcement)}`);
+      if (!same(r.bypass_actors, sg.bypass ?? [])) add(name, `${name}: the bypass list is not the declared one`);
+      traced(name, "the standing", sg.control);
+    }
     const declared = declaredFor(name);
     if (!Array.isArray(declared) || declared.some((d) => !d || typeof d.type !== "string")) { add(name, `${name}: the stage does not declare its rules as a list`); continue; }
     const have = (r.rules ?? []).map((x) => x.type).sort();
@@ -68,6 +76,12 @@ export function judge(facts) {
     if (p.target !== "tag") pub(`the target is ${p.target}, not tag`);
     if (!same(p.conditions?.ref_name?.include, [`refs/tags/${publishing.target}`])) pub("the tag pattern is not the agreed one");
     if (!same(p.bypass_actors, [])) pub("the bypass list is not empty");
+    const sg = publishing.standing;
+    if (!sg || typeof sg !== "object") pub("the stage declares no standing");
+    else {
+      if (p.enforcement !== sg.enforcement) pub(`the enforcement is ${JSON.stringify(p.enforcement)}, the declaration says ${JSON.stringify(sg.enforcement)}`);
+      const c = controls.get(sg.control); if (!c) pub(`the standing is traced to ${sg.control ?? "no control"}, which is not a declared control`); else if (!(c.has ?? []).length) pub(`the standing is traced to ${sg.control}, which has no Intent`);
+    }
     if (!same((p.rules ?? []).map((x) => x.type), [publishing.rule])) pub(`the only rule must be ${publishing.rule}`);
   }
   return { kind: findings.length ? "fail" : "pass", findings, checks: [...new Set(findings.map((f) => f.check))] };
