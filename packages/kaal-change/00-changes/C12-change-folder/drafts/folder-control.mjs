@@ -77,7 +77,7 @@ export function judgeRetirement({ before, head, from, evidence }) {
     if (!ev.length) out.push(finding("retiring-check-not-evaluated", r.plan, "the head was not judged by the check being retired"));
     for (const e of ev) for (const [id, result] of Object.entries(e.cases)) if (result !== "passed") out.push(finding("retiring-check-failing", r.plan, `${id} is ${result}`));
   }
-  // Continuity: each touched element is verified at the head by a surviving registered check.
+  // Continuity: each touched element is verified at the head by a surviving registered check, and no relevant Case of such a check fails.
   const surviving = new Set(head.files.filter((p) => p.endsWith("/kaal-guard.json")).flatMap((p) => checksOf(head, p).map((c) => plan(p, c.id))));
   const retiringPlans = new Set(retired.map((r) => r.plan));
   const changed = new Set([...head.files.filter((p) => !from.files.includes(p) || from.read(p) !== head.read(p)), ...from.files.filter((p) => !headFiles.has(p))]);
@@ -87,8 +87,10 @@ export function judgeRetirement({ before, head, from, evidence }) {
   for (const dir of touched) {
     const elementId = ELEMENT_FOLDER.exec(`${dir}/x`)[2];
     const mine = [...claims].filter(([t]) => t.endsWith(`/${elementId}`)).flatMap(([, ids]) => ids);
-    const verified = evaluations.some((e) => surviving.has(e.plan) && !retiringPlans.has(e.plan) && mine.some((cid) => e.cases[cid] === "passed"));
-    if (!verified) out.push(finding("touched-element-unverified", dir, `${elementId}: no Case that claims it passed in a counted evaluation of a registered check that survives`));
+    // Every result a surviving registered check reports for a Case that claims the element counts: one pass never covers another Case's failure.
+    const results = evaluations.filter((e) => surviving.has(e.plan) && !retiringPlans.has(e.plan)).flatMap((e) => mine.filter((cid) => cid in e.cases).map((cid) => [cid, e.cases[cid], e.plan]));
+    for (const [cid, result, evaluated] of results.filter(([, r]) => r !== "passed")) out.push(finding("touched-element-failing", dir, `${elementId}: ${cid} is ${result} in ${evaluated}`));
+    if (!results.some(([, r]) => r === "passed")) out.push(finding("touched-element-unverified", dir, `${elementId}: no Case that claims it passed in a counted evaluation of a registered check that survives`));
   }
   return out;
 }

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { load, view, from, done, acted, kase, green, evidence, evaluation, CAPABILITY_PLAN, CHANGE_PLAN, P, FOLDER, REGISTRATION } from '../../test/folder-control-support.mjs';
 export const id = 'change/T1059';
 export const tests = ['change/F55'];
-export const title = "retirement passes a complete ACT on counted execution evidence, lets an element's Cases be moved, split, consolidated or replaced as long as a surviving check passes one that claims it, is not applied when no registration is deleted, and names the retiring checks as Guard names them";
+export const title = "retirement passes a complete ACT on counted execution evidence, lets an element's Cases be moved, split, consolidated or replaced as long as a surviving check passes every Case that claims it, is not applied when no registration is deleted, and names the retiring checks as Guard names them";
 export async function run() {
   const c = await load();
   const ok = (head, ev = green()) => c.judgeRetirement({ before: view(done()), head: view(head), from: view(from()), evidence: ev });
@@ -12,7 +12,7 @@ export async function run() {
   // split: two Cases now claim F2; consolidate: one Case claims F1 and F2
   const split = acted(); delete split[`${P}/02-requirements/F2-new/T12.test.mjs`];
   split[`${P}/02-requirements/F2-new/T20.test.mjs`] = kase('p/T20', 'p/F2'); split[`${P}/02-requirements/F2-new/T21.test.mjs`] = kase('p/T21', 'p/F2');
-  assert.deepEqual(ok(split, evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed', 'p/T20': 'passed', 'p/T21': 'failed' }), evaluation(CHANGE_PLAN, { 'p/T10': 'passed' }))), [], 'a split whose one Case passes was judged lost');
+  assert.deepEqual(ok(split, evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed', 'p/T20': 'passed', 'p/T21': 'passed' }), evaluation(CHANGE_PLAN, { 'p/T10': 'passed' }))), [], 'a split whose Cases all pass was judged lost');
   // replaced identity: the evidence names the new id only
   const rewritten = acted(); rewritten[`${P}/02-requirements/F2-new/T12.test.mjs`] = kase('p/T77', 'p/F2');
   assert.deepEqual(ok(rewritten, evidence(evaluation(CAPABILITY_PLAN, { 'p/T1': 'passed', 'p/T77': 'passed' }), evaluation(CHANGE_PLAN, { 'p/T10': 'passed' }))), [], 'a rewritten Case with a new identity was judged lost');
