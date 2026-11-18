@@ -33,3 +33,18 @@ export function ownersOf(codeowners) {
   const line = typeof codeowners === 'string' ? codeowners.split('\n').find((l) => /^\*\s/.test(l)) : null;
   return line ? line.trim().split(/\s+/).slice(1).map((o) => o.replace(/^@/, '')) : [];
 }
+
+// release/C65: the verdict reaches review Sync as data from a job that read the candidate. Only the fields review Sync acts on are kept,
+// and the text that may reach a comment is cut to plain characters: no markup, no mention, no link. Null when it is not a verdict.
+const plain = (text, max) => String(text ?? '').replace(/[^A-Za-z0-9 .,'/*:()_-]/g, '').slice(0, max);
+export function cleanVerdict(v) {
+  if (!v || typeof v !== 'object' || v.control !== 'verify Sync') return null;
+  const head = typeof v.analyzed?.head === 'string' && /^[0-9a-f]{40}$/.test(v.analyzed.head) ? v.analyzed.head : null;
+  return {
+    control: 'verify Sync',
+    outcome: ['PASS', 'FAIL', 'UNKNOWN'].includes(v.outcome) ? v.outcome : 'UNKNOWN',
+    passes: v.passes === true,
+    reasons: (Array.isArray(v.reasons) ? v.reasons : []).slice(0, 20).map((r) => ({ code: plain(r?.code, 40), detail: plain(r?.detail, 200) })),
+    analyzed: head ? { head, base: { tip: /^[0-9a-f]{40}$/.test(v.analyzed?.base?.tip ?? '') ? v.analyzed.base.tip : null } } : null,
+  };
+}

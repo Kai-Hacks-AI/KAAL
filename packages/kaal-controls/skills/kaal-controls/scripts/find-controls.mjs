@@ -1,7 +1,8 @@
 #!/usr/bin/env node
-// Finds the controls in a repository. A control is a Markdown file whose frontmatter id is <capability>/CTL<n>
-// and whose frontmatter holds exactly id, title, description, type and has. It only finds: it resolves no Intent,
-// walks no chain, runs no Case and checks no gate.
+// Finds the controls in a directory. A control is a Markdown file whose frontmatter id is <capability>/CTL<n>.
+// It lists every control, complete or not: a control declares id, title, description, type, status and has, and an
+// incomplete declaration stays listed with its problems named. It only finds: it resolves no Intent, walks no chain,
+// runs no Case and checks no gate.
 //
 //   node find-controls.mjs [directory]     prints { controls, refused } as JSON
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -9,7 +10,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CONTROL_ID = /^[a-z][a-z0-9-]*\/CTL\d+$/;
-const FIELDS = ['id', 'title', 'description', 'type', 'has'];
+const FIELDS = ['id', 'title', 'description', 'type', 'status', 'has'];
 const TYPES = ['directive', 'preventive', 'detective', 'corrective'];
 
 function frontmatter(text) {
@@ -28,7 +29,13 @@ function idList(value) {
   return m ? m[1].split(',').map((s) => s.trim()).filter(Boolean) : null;
 }
 
-// files: [{ path, text }]. Returns { controls, refused }. Pure: it reads nothing and imports nothing.
+const STATUSES = ['designed', 'implemented', 'running', 'tested'];
+const REF = 'references/declaring-controls.md';
+const recovery = (field) => field === 'status' ? `Add or correct the \`status:\` line as one of ${STATUSES.join(', ')}, as the evidence supports. See ${REF}.`
+  : field === 'id' ? `Give the control an id of its own. See ${REF}.`
+  : FIELDS.includes(field) ? `Add or correct the \`${field}:\` line. See ${REF}.`
+  : `Remove the \`${field}:\` line, a control declares only ${FIELDS.join(', ')}. See ${REF}.`;
+
 export function findControls(files) {
   const candidates = [];
   const cases = [];
@@ -41,24 +48,21 @@ export function findControls(files) {
   }
   const count = {};
   for (const { fields } of candidates) count[fields.id] = (count[fields.id] ?? 0) + 1;
-  const controls = [];
-  const refused = [];
-  for (const { file, fields } of candidates) {
-    const missing = FIELDS.find((k) => !fields[k]);
+  const controls = candidates.map(({ file, fields }) => {
     const has = idList(fields.has);
-    const extra = Object.keys(fields).filter((k) => !FIELDS.includes(k));
-    const reason = count[fields.id] > 1 ? 'duplicate id'
-      : missing ? `${missing} is missing`
-      : !TYPES.includes(fields.type) ? `type is not one of ${TYPES.join(', ')}`
-      : !has?.length ? 'has lists no Intent'
-      : extra.length ? `${extra.join(', ')} is not a field of a control`
-      : null;
-    if (reason) { refused.push({ path: file.path, id: fields.id, reason }); continue; }
-    controls.push({
-      id: fields.id, title: fields.title, description: fields.description, type: fields.type, has, path: file.path,
-      tests: cases.filter((c) => c.tests.includes(fields.id)).map((c) => ({ id: c.id, path: c.path })),
-    });
-  }
+    const bad = [];
+    if (count[fields.id] > 1) bad.push(['id', 'duplicate id']);
+    for (const k of FIELDS) if (!fields[k]) bad.push([k, `${k} is missing`]);
+    if (fields.type && !TYPES.includes(fields.type)) bad.push(['type', `type is not one of ${TYPES.join(', ')}`]);
+    if (fields.status && !STATUSES.includes(fields.status)) bad.push(['status', `status is not one of ${STATUSES.join(', ')}`]);
+    if (fields.has && !has?.length) bad.push(['has', 'has lists no Intent']);
+    for (const k of Object.keys(fields).filter((k) => !FIELDS.includes(k))) bad.push([k, `${k} is not a field of a control`]);
+    const problems = bad.map(([field, reason]) => ({ field, reason, recovery: recovery(field) }));
+    const rank = STATUSES.indexOf(fields.status) + 1 || null;
+    return { id: fields.id, title: fields.title, description: fields.description, type: fields.type, status: fields.status, rank, has: has ?? [], path: file.path,
+      tests: cases.filter((c) => c.tests.includes(fields.id)).map((c) => ({ id: c.id, path: c.path })), valid: problems.length === 0, problems };
+  });
+  const refused = controls.filter((c) => !c.valid).map((c) => ({ path: c.path, id: c.id, reason: c.problems[0].reason }));
   return { controls, refused };
 }
 

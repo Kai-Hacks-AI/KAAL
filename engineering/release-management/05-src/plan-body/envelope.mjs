@@ -15,13 +15,14 @@ const CHANGE_ID = /\b[\w-]+\/[A-Z]\d+\b/;
 
 // Rows keyed by TYPE, for what headings cannot give. A TYPE without a row is reported as not judged.
 const ROUTE = {
-  PLAN: (f) => f.base.startsWith('kaal/'), DO: (f) => f.base.startsWith('kaal/'), ACT: (f) => f.base.startsWith('kaal/'), SYNC: (f) => f.base.startsWith('kaal/'),
-  PROMOTION: (f) => f.base === 'main' && f.head.startsWith('kaal/'),
-  HOTFIX: (f) => typeof f.head === 'string' && /^hotfix\/\S/.test(f.head),
+  PLAN: (f) => f.base.startsWith('kaal/'), DO: (f) => f.base.startsWith('kaal/'), ACT: (f) => f.base.startsWith('kaal/'),
+  SYNC: (f) => /^(kaal|hotfix|wire)\//.test(f.base),
+  PROMOTION: (f) => f.base === 'main' && (f.head.startsWith('kaal/') || f.head.startsWith('hotfix/')),
+  HOTFIX: (f) => typeof f.base === 'string' && /^hotfix\/\S/.test(f.base) && !(typeof f.head === 'string' && f.head.startsWith('hotfix/')),
 };
 // What a route row leaves unjudged on purpose, reported on every result of that TYPE.
-const ROUTE_HINT = { HOTFIX: 'a HOTFIX takes a head under hotfix/' };
-const ROUTE_UNJUDGED = { HOTFIX: 'the base of a HOTFIX is not judged: the Hotfix delivery path, a separate Change, decides it' };
+const ROUTE_HINT = { HOTFIX: 'a HOTFIX goes into a base under hotfix/ from a head that is not under hotfix/' };
+const ROUTE_UNJUDGED = {};
 // What the envelope cannot show about a HOTFIX, reported on every HOTFIX result.
 const HOTFIX_UNJUDGED = [
   'whether a HOTFIX corrects only its defect is not judged: the diff, the Case and the review decide it',
@@ -158,8 +159,8 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
     if (type === 'HOTFIX') {
       problems.push(...hotfixBodyRules(facts.body));
       notJudged.push(...HOTFIX_UNJUDGED);
-    } else if (typeof facts.head === 'string' && facts.head.startsWith('hotfix/')) {
-      problems.push(`a pull request from the head ${facts.head} must be a HOTFIX: a hotfix/ head takes the TYPE HOTFIX, not ${type}`);
+    } else if (typeof facts.head === 'string' && facts.head.startsWith('hotfix/') && type !== 'PROMOTION') {
+      problems.push(`a pull request from the head ${facts.head} must be a PROMOTION into main: a hotfix/ head is promoted, not ${type}`);
     }
     if (ROUTE[type]) {
       if (!ROUTE[type](facts)) problems.push(`the route of a ${type} (base ${facts.base}, head ${facts.head}) does not fit its TYPE${ROUTE_HINT[type] ? `: ${ROUTE_HINT[type]}` : ''}`);
