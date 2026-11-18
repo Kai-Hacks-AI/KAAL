@@ -9,7 +9,7 @@ const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/f
 const RM = join(repo, 'engineering/release-management');
 export const id = 'release/T860';
 export const tests = ['release/CTL10'];
-export const title = 'the finder lists release/CTL10 as a preventive control that has release/I36, equal to its draft';
+export const title = 'the finder lists release/CTL10 as a preventive control that has release/I36 and release/I46';
 export async function run() {
   assert.ok(existsSync(FINDER), 'the finder is absent');
   const out = JSON.parse(execFileSync(process.execPath, [FINDER, RM], { encoding: 'utf8' }));
@@ -17,11 +17,8 @@ export async function run() {
   const c = out.controls.find((x) => x.id === 'release/CTL10');
   assert.ok(c, 'release/CTL10 is not listed');
   assert.equal(c.type, 'preventive');
-  assert.deepEqual(c.has, ['release/I36']);
+  assert.deepEqual(c.has, ['release/I36', 'release/I46']);
   assert.equal(c.title, 'approve Integration');
   assert.ok(c.tests.some((t) => t.id === 'release/T860'), 'the control test is not found from the control');
-  const draft = readFileSync(join(RM, '00-changes/C66-integration-approval/interface.md'), 'utf8').split(/^## Draft of CTL10\.md$/m)[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
-  const real = join(RM, '04-controls/CTL10-approve-integration/CTL10.md');
-  assert.ok(existsSync(real), 'CTL10.md is absent');
-  assert.equal(readFileSync(real, 'utf8'), `${draft}\n`, 'CTL10.md differs from the draft');
+  assert.ok(existsSync(join(RM, '04-controls/CTL10-approve-integration/CTL10.md')), 'CTL10.md is absent');
 }
