@@ -19,12 +19,11 @@
 
 ## Open for the CPO
 
-- **Guard in context (Owner, 14:21).** "Registration of guard in context where it is guarded." This PLAN does not yet model it: Guard has no notion of a stage, and the Delivery declaration is one repository-wide file. The coordinator reads it as each context (stage) holding its own declared registration of what Guard runs there, with a `kaal-guard.json` saying what to check and the stage placing it. If the Owner confirms, F49 would be judged in a context that the stage supplies, and the Delivery declaration would be that context's. That is a new input to `run` and belongs with the Enforcement Unit (controls - 0.0.1), so it is a separate Change; nothing here blocks it.
+- **A stage is guarded; the declaration is capability driven (Owner, 14:24).** There is no per-stage registration and no separate "guard in context" Change. Guard is wired into a stage's ruleset or CI, and what it checks is decided only by `kaal-guard.json`, by folder in practice and by capability in concept. Guard runs the same at every stage it is wired into, so F49 takes no stage.
 
-- **Nothing here is hard-coded (Owner, 14:21).** Delivery paths are a repository declaration, read from the base: generic reading in `packages/kaal-guard`, KAAL's instance in `engineering/guard/` deployed to `.kaal/`. The stage list and the stage-to-placement mapping are declared configuration too (generic in `packages/controls`, KAAL's in `engineering/controls`). The declaration's name, place and shape are provisional.
+- **Nothing here is hard-coded (Owner, 14:21).** Delivery paths are a repository declaration, read from the base: generic reading in `packages/kaal-guard`, KAAL's instance in `engineering/guard/` deployed to `.kaal/`. The declaration's name, place and shape are provisional.
 - **Already built in, not changed here:** C143 fixes the always-run file at `.kaal/kaal-guard.json` (`ALWAYS` in `lib/discovery.mjs`) and F43 reads `kaal-guard.json` by name. Making those declared as well is a possible later Change; this PLAN does not touch them.
 
-- **Placement axis: the stage (Owner, 14:20).** Where a check is guarded is decided per stage: Developing, Integration (Collectors, Hotfixes, Wiring), Promotion, Publishing. This is recorded as the axis and wires nothing. Scope is unchanged: no Case names a stage, and choosing the stages that require the ownership judgement is a later wiring decision for the Owner.
 
 - **Where it runs is decided (Owner, 14:19).** A `kaal-guard.json` declares what is checked, never where. It has no surface member, and F43's file already refuses one. No Case changes: T217 to T221 run the ownership judgement without naming a surface, and the existing parse refusal of undefined members (C143, T210) already pins that a file cannot choose its own stage.
 
