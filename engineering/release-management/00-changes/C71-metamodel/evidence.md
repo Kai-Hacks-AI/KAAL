@@ -3,7 +3,7 @@
 ## Provenance
 
 - Baseline: `main` at c8291dbd.
-- Method: each Case's `run()` is imported and called in this tree. Observed 18 Nov 2026, Node on Linux. With no variable the Cases read `engineering/release-management/metamodel/`, which does not exist; with `KAAL_METAMODEL_DIR` set to `drafts/` they read the drafts.
+- Method: each Case's `run()` is imported and called in this tree. Observed 18 Nov 2026, Node on Linux. With no variable the Cases read `engineering/metamodel/`, which does not exist; with `KAAL_METAMODEL_DIR` set to `drafts/` they read the drafts.
 - Sample: the PLAN #1889, DO #1890, ACT #1891 and PROMOTION #1892 of release/C65, recorded in `sample-c65.json` from the GitHub API (title, Change line, files). The walk below uses them and the repository.
 
 ## Result

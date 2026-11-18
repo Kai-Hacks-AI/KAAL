@@ -15,14 +15,14 @@ Owner direction (18 Nov 2026): the tracing chain and the split of concerns exist
 1. **Inventory** of the objects and relationships found in the repository: `inventory.md`.
 2. **Global model**: `drafts/metamodel.md`, one Mermaid diagram, the Objects, Relationships, Vocabularies, Views, Reviewer questions and Mismatches. It starts from the Owner's five confirmed relationships and adds what the repository shows, marked observed or proposed.
 3. **Views**: `drafts/views/<TYPE>.md` for default, plan, do, act, promotion, hotfix and sync. Each has the same five sections, one small diagram of edges that exist in the global model, and defines nothing. There is no view for WIRE because `main` has no WIRE template (mismatch M7).
-4. **References**: the destination is `engineering/release-management/metamodel/metamodel.md` and `engineering/release-management/metamodel/views/<TYPE>.md`. Each template names its view by that path; the global model indexes the views and each view links back. The name of a view is the template's file name, so an agent finds it from the TYPE alone.
+4. **References**: the destination is `engineering/metamodel/metamodel.md` and `engineering/metamodel/views/<TYPE>.md`. Each template names its view by that path; the global model indexes the views and each view links back. The name of a view is the template's file name, so an agent finds it from the TYPE alone.
 5. **Cases** T910 to T919, all RED on `main`; they turn GREEN with the DO and, for T916, with the `.github` Change that follows it.
 6. **No new tooling and no second source of truth.** The Cases read files. The model lives in Markdown. Nothing generates the views from the model.
 
 ## Landing order (each its own PR)
 
 1. **PLAN** (this PR) into collector `kaal/engineering/metamodel`, CPO exact-head approval.
-2. **DO** into the same collector: the files of `drafts/` become `engineering/release-management/metamodel/`; T910 to T915, T917, T918, T919 GREEN. No `.github` file changes.
+2. **DO** into the same collector: the files of `drafts/` become `engineering/metamodel/`; T910 to T915, T917, T918, T919 GREEN. No `.github` file changes.
 3. **ACT**: the 4L retrospective.
 4. **PROMOTION** of the collector to `main`.
 5. **`.github` alone** on its own collector: each template gains the reference to its view; T916 GREEN. It travels alone (Change Isolation, as release/C25 did for the cue).
@@ -38,13 +38,13 @@ No change to a PR template, hook, workflow, ruleset or the envelope judge; no re
 
 ## Open questions for the Owner
 
-1. **Where does the model belong?** Until a capability is chosen the PLAN puts it in release management (`engineering/release-management/metamodel/`), because the templates and the envelope are there. The model is about Change, so kaal-change could own it; it is also engineering-wide. Recommendation: keep it in release management for the DO and decide the capability afterwards; the paths in the templates change if it moves.
+1. **Where does the model belong?** Settled by the CPO review (18 Nov): the authoritative model is engineering-wide and lives at `engineering/metamodel/`. Release Management owns the PR-template integration (the template references and the envelope controls), not the model. There is one authoritative model; the views are projections of it and define nothing.
 2. **Words or keys.** The Owner's words (delivers, answers) differ from the keys in the files (`implements`, `serves`, `addresses`). Recommendation: keep the keys, show both in the model, and treat a rename as its own Change.
 3. **A reference a reviewer can see.** Answered by the Owner's direction (18 Nov): every template carries an INFORMED chapter that links its view and names the Change, with one tickbox per expected concern (ticked, or n/a with a reason; a tick is a claim, not evidence). The process control (verify Envelope, on the pull request) checks the chapter, the link, the Change and that every box is present and ticked or n/a with a reason; it never judges the work. A separate content control on the Change's files checks the chain and compares claims with evidence both ways (claimed but not found, done but not claimed). Semantic truth stays with the CPO. The template edits travel in release's template alignment Change after C69, and the control changes are their own Changes; the PLAN touches neither.
 4. **Gap and Defect.** Release management closes Gaps (`closes: [release/G<n>]`); the Owner's model addresses Defects. The model keeps both, as different objects. Confirm, or say that a Gap is a Defect.
 5. **Intents answered by Controls.** release/I35 has no Requirement or Architecture; Controls have it. Recommendation: accept Control has Intent as a second normative path beside Requirement answers Intent, as kaal-controls' chain already says.
 6. **Architecture addresses Defect.** No Architecture file does this today (mismatch M3). Confirm the repository key stays `addresses`, with a Defect id as the target.
 7. **Controls in the chain.** The chain places a Control between Architecture and Case. The repository links a Control to an Intent only (`has`); no file links an Architecture to a Control, or a Control to the Source it judges (mismatch M9). The model draws what exists. Recommendation: keep it so, and decide in a later Change whether a Control declares the Architecture it places or the Source it judges.
-8. **Where INFORMED lives.** The PLAN installs it beside the model (`engineering/release-management/metamodel/INFORMED.md`), as HOW TO WORK sits in release management. If a capability is chosen for the model, the mnemonic moves with it.
+8. **Where INFORMED lives.** The PLAN installs it beside the model (`engineering/metamodel/INFORMED.md`); if a capability is later chosen for the model, the mnemonic moves with it.
 9. **Controls and Stages.** Control has Intent and Change walks Stage are drawn as observed. Control gates Stage is proposed (`strategy.md` says each stage has one gate). Confirm or drop `gates`.
 10. **Decomposition.** C71 stays documents only: the model, INFORMED and the views, with no enforcement. Recommendation: the DO splits in two small steps if it grows: first the global model with INFORMED (T910-T912, T919), then the views (T913-T915, T917, T918). The INFORMED chapter in the templates, the verify Envelope process control and the content control are each their own later Change, not part of C71.

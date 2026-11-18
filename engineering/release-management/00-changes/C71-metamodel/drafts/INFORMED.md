@@ -25,4 +25,4 @@ Each PR template carries an INFORMED chapter: a link to its metamodel view, the 
 
 ## Resolution
 
-A reference to this Definition is the path `engineering/release-management/metamodel/INFORMED.md`.
+A reference to this Definition is the path `engineering/metamodel/INFORMED.md`.

@@ -5,10 +5,10 @@ import { read, templates, REPO } from "./helper.mjs";
 
 export const id = "release/T916";
 export const tests = ["release/C71"];
-export const title = "each PR template under .github names its view by the path engineering/release-management/metamodel/views/<TYPE>.md";
+export const title = "each PR template under .github names its view by the path engineering/metamodel/views/<TYPE>.md";
 export async function run() {
   for (const t of templates()) {
-    const want = `engineering/release-management/metamodel/views/${t.name}.md`;
+    const want = `engineering/metamodel/views/${t.name}.md`;
     assert.ok(read(join(REPO, t.path)).includes(want), `${t.path} does not name ${want}`);
   }
 }

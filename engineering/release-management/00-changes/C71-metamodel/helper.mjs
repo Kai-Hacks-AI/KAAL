@@ -7,7 +7,7 @@ export const REPO = fileURLToPath(import.meta.url).split("/engineering/")[0];
 export const RM = join(REPO, "engineering/release-management");
 // the directory that holds metamodel.md and views/; the Cases of the PLAN are RED because it does not exist yet,
 // and evidence.md runs them against drafts/ with KAAL_METAMODEL_DIR
-export const DIR = process.env.KAAL_METAMODEL_DIR ? resolve(process.env.KAAL_METAMODEL_DIR) : join(RM, "metamodel");
+export const DIR = process.env.KAAL_METAMODEL_DIR ? resolve(process.env.KAAL_METAMODEL_DIR) : join(REPO, "engineering", "metamodel");
 export const GH = join(REPO, ".github");
 export const VIEW_HEADINGS = ["Objects", "Relationships", "Information the template expects", "What the reviewer should be able to verify", "The INFORMED chapter", "Outside this template"];
 export const STYLE = { "-->": "normative", "-.->": "observed", "==>": "proposed" };
