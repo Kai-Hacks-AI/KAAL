@@ -1,6 +1,6 @@
 # C81 interface
 
-Drafts as they are added in the DO. T1042 to T1045 read them. None of them is on the collector until the DO.
+Drafts as they are added in the DO. The change-oriented Cases (T1046 and T1047) and the drafts' own files read them; the element Cases (T1042 to T1045) read the element's own properties once it exists. None of them is on the collector until the DO.
 
 ## Draft of I46.md
 
