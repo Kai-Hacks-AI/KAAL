@@ -27,5 +27,6 @@ export async function run() {
   const section = readFileSync(join(RM, '00-changes/C65-sync-split/interface.md'), 'utf8').split(/^## What the DO adds to the controls$/m)[1].split(/^## The scripts$/m)[0];
   const paragraph = section.match(/^````\n([\s\S]*?)\n````$/m)[1];
   const [head, first, ...rest] = draft.replace('has: [release/I32]', 'has: [release/I32, release/I35]').split('\n\n');
-  assert.equal(readFileSync(real, 'utf8'), `${[head, first, paragraph, ...rest].join('\n\n')}\n`, 'CTL7.md differs from the draft with what release/C65 adds');
+  // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${[head, first, paragraph, ...rest].join('\n\n')}\n`, 'CTL7.md differs from the draft with what release/C65 adds');
 }
