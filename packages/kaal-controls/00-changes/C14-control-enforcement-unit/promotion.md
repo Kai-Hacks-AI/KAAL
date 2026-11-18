@@ -13,7 +13,7 @@ This PLAN authorizes no workflow, no ruleset change, no App, no secret and no pu
 
 | Step | Due when | What |
 | --- | --- | --- |
-| 1 | the promotion of C14 is on `main` | Create the GitHub App "KAAL Quality Control" from `enforcement/app-manifest.json` on the organization or account. |
+| 1 | the promotion of C14 is on `main` | Create the GitHub App "KAAL Inspector" from `enforcement/app-manifest.json` on the organization or account. |
 | 2 | the App exists | Store its private key as the secret named in `engineering/controls/stations.json`; hand over the App ID, which is not a secret, so a small Development PR sets it. |
 | 3 | release's registration of CTL8, its ruleset change (C66) and `verify Stages` reading the registry (C70) are on `main` | Install the workflow and the integrating ruleset through a WIRE, run beside the existing rulesets as usual. |
 

@@ -21,7 +21,7 @@ export async function run() {
   const p = join(repo, 'engineering/controls/stations.json');
   assert.ok(existsSync(p), 'engineering/controls/stations.json is absent');
   const m = JSON.parse(readFileSync(p, 'utf8'));
-  assert.equal(m.app?.name, 'KAAL Quality Control');
+  assert.equal(m.app?.name, 'KAAL Inspector');
   assert.ok(m.app.id === null || (Number.isInteger(m.app.id) && m.app.id > 0), 'the App ID is neither null nor a positive integer');
   assert.ok(!/key|secret|BEGIN/i.test(JSON.stringify(m)), 'the map holds a key or a secret');
   const keys = Object.keys(m.stations ?? {});
@@ -32,5 +32,5 @@ export async function run() {
   assert.deepEqual([...m.stations.Integrating.branches].sort(), [...inc].sort(), 'the branches differ from the ruleset source');
   const { signedChecks } = await import(pathToFileURL(join(S, 'sign.mjs')).href);
   const [c] = signedChecks({ app: m.app.name, station: 'Integrating', head: 'h', registry: [{ id: 'release/CTL8', title: 'approve Sync', mode: 'preventive' }], verdicts: [{ control: 'release/CTL8', station: 'Integrating', head: 'h', verdict: 'PASS' }] });
-  assert.equal(c.name, 'KAAL Quality Control / approve Sync (Integrating)');
+  assert.equal(c.name, 'KAAL Inspector / approve Sync (Integrating)');
 }

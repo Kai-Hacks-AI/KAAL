@@ -23,7 +23,7 @@ A control answers with `judge.mjs` beside its declaration, which prints `{"verdi
 
 ## KAAL's instance (`engineering/controls/stations.json`)
 
-`{ "app": { "name": "KAAL Quality Control", "id": null }, "stations": { "Integrating": { "ruleset": "integrating", "branches": ["kaal/**", "hotfix/**", "wire/**"] } } }`. The App ID is set when the App exists.
+`{ "app": { "name": "KAAL Inspector", "id": null }, "stations": { "Integrating": { "ruleset": "integrating", "branches": ["kaal/**", "hotfix/**", "wire/**"] } } }`. The App ID is set when the App exists.
 
 ## Dependencies
 
