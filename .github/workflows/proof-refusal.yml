@@ -1,0 +1,10 @@
+# PROOF ONLY, never merged. A new workflow on pull_request_target to show that release/CTL19 verify Triggers refuses a sixth use.
+name: proof-refusal
+on:
+  pull_request_target:
+permissions: {}
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "proof only"
