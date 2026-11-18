@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // release/C58 adapter: the commands the workflow runs for verify Sync, approve Sync and review Sync. It supplies facts and acts on
-// the decisions of verify.mjs, approve.mjs and review.mjs, and decides nothing itself. It reads Git objects of the candidate and
-// runs nothing of it. Usage: node cli.mjs verify | approve | review
-// Environment: KAAL_REPO, KAAL_PR, KAAL_BASE, KAAL_HEAD, KAAL_DEFAULT, GH_TOKEN; KAAL_VERDICT (approve, review);
+// the decisions of verify.mjs, approve.mjs and review.mjs, and decides nothing itself. release/C65: only `verify` reads the
+// candidate, as Git objects, in a job that holds no token and calls no API; it runs nothing of it. `approve` and `review` run where
+// a token can write and read no Git object of the candidate: they take the verdict of `verify` as data and check it against the
+// pull request and the base as GitHub says they are now. Usage: node cli.mjs verify | approve | review
+// Environment: KAAL_REPO, KAAL_PR, KAAL_BASE, KAAL_DEFAULT; verify: KAAL_HEAD, KAAL_BODY; approve and review: GH_TOKEN, KAAL_VERDICT;
 // KAAL_SYNC_APPROVE (approve); KAAL_SYNC_REVIEWER (review, a fallback reviewer).
 // The commands take their effects as `deps` so a Case can run them without GitHub.
 import { spawnSync } from 'node:child_process';
@@ -10,7 +12,7 @@ import { appendFileSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { verifySync } from './verify.mjs';
 import { decideApproveNow, classifyRefusal } from './approve.mjs';
-import { decideReview, chooseReviewer, ownersOf, LABEL } from './review.mjs';
+import { decideReview, chooseReviewer, ownersOf, cleanVerdict, LABEL } from './review.mjs';
 import { gatherFacts } from './facts.mjs';
 
 const run = (cmd, args) => {
@@ -46,20 +48,20 @@ function readPull(env, deps) {
 }
 const isSync = (pull, base) => pull.title.startsWith('SYNC:') && pull.base === base;
 
-// The verdict of verify Sync from facts read now: the pull request through the API, the rest from Git objects fetched as data.
-function judgeNow(env, deps, headSha) {
-  let pull;
-  try { pull = readPull(env, deps); } catch (e) { deps.log(String(e.message)); }
-  const facts = gatherFacts({
-    git: deps.git, baseRef: env.KAAL_BASE, baseTipRef: 'refs/kaal/base', mainRef: `refs/remotes/origin/${env.KAAL_DEFAULT}`,
-    headSha: headSha ?? pull?.head, currentHead: pull?.head, body: pull?.body,
-  });
-  return { verdict: verifySync(facts), pull };
+// The base's tip as GitHub says it is now.
+function readBaseTip(env, deps) {
+  const ref = JSON.parse(deps.api([`repos/${env.KAAL_REPO}/git/ref/heads/${env.KAAL_BASE}`]));
+  return ref?.object?.sha ?? null;
 }
 
+// release/C65: the verdict of verify Sync, from the Git objects the job fetched and the event's own head and body. No API call.
 export function verify(env, deps = realDeps()) {
-  needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE', 'KAAL_HEAD', 'KAAL_DEFAULT']);
-  const { verdict } = judgeNow(env, deps, env.KAAL_HEAD);
+  needed(env, ['KAAL_PR', 'KAAL_BASE', 'KAAL_HEAD', 'KAAL_DEFAULT']);
+  const facts = gatherFacts({
+    git: deps.git, baseRef: env.KAAL_BASE, baseTipRef: 'refs/kaal/base', mainRef: `refs/remotes/origin/${env.KAAL_DEFAULT}`,
+    headSha: env.KAAL_HEAD, currentHead: env.KAAL_HEAD, body: env.KAAL_BODY ?? '',
+  });
+  const verdict = verifySync(facts);
   const text = [`${verdict.control}: ${verdict.outcome}`, ...verdict.reasons.map((r) => `- ${r.code}: ${r.detail}`)];
   deps.log(text.join('\n'));
   deps.out('verdict', JSON.stringify(verdict));
@@ -68,14 +70,15 @@ export function verify(env, deps = realDeps()) {
 }
 
 export function approve(env, deps = realDeps()) {
-  needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE', 'KAAL_DEFAULT']);
+  needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE']);
   const verdict = parseVerdict(env.KAAL_VERDICT ?? '');
-  const { verdict: fresh, pull } = judgeNow(env, deps);
+  let pull, baseTip;
+  try { pull = readPull(env, deps); baseTip = readBaseTip(env, deps); } catch (e) { deps.log(String(e.message)); }
   if (!pull) { deps.error('approve Sync: cannot judge', 'the pull request cannot be read'); return 2; }
   const reviews = lines(deps.api([`repos/${env.KAAL_REPO}/pulls/${env.KAAL_PR}/reviews`, '--paginate', '--jq', '.[] | tojson']) || '').map((l) => JSON.parse(l));
   const approvedAtHead = reviews.some((r) => r.state === 'APPROVED' && r.commit_id === pull.head);
   const decision = isSync(pull, env.KAAL_BASE)
-    ? decideApproveNow({ verdict, fresh, currentHead: pull.head, mode: env.KAAL_SYNC_APPROVE, approvedAtHead })
+    ? decideApproveNow({ verdict, live: { head: pull.head, baseTip }, currentHead: pull.head, mode: env.KAAL_SYNC_APPROVE, approvedAtHead })
     : { action: 'skip', because: 'the pull request is no longer a SYNC into the base that was judged' };
   const line = `approve Sync: ${decision.action}: ${decision.because}`;
   deps.log(line);
@@ -98,17 +101,28 @@ export function approve(env, deps = realDeps()) {
 }
 
 export function review(env, deps = realDeps()) {
-  needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE', 'KAAL_DEFAULT']);
-  const { verdict: fresh, pull } = judgeNow(env, deps);
+  needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE']);
+  let pull;
+  try { pull = readPull(env, deps); } catch (e) { deps.log(String(e.message)); }
   if (!pull) { deps.error('review Sync: cannot reach a person', 'the pull request cannot be read, so it cannot be put in front of anyone'); return 2; }
   if (!isSync(pull, env.KAAL_BASE)) { deps.log('review Sync: skip: the pull request is no longer a SYNC into the base that was judged'); return 0; }
+  // release/C65: the verdict is data from verify Sync, read strictly and kept to what it may say; one of another head is not acted on,
+  // a run for the newer head does that.
+  let verdict = cleanVerdict(parseVerdict(env.KAAL_VERDICT ?? ''));
+  if (verdict?.analyzed?.head && verdict.analyzed.head !== pull.head) { deps.log('review Sync: skip: the verdict is of another head than the current one'); return 0; }
+  // A pass that judged a base which has since moved is no pass for this head: the SYNC is behind and needs a person.
+  if (verdict?.passes) {
+    let tip = null;
+    try { tip = readBaseTip(env, deps); } catch (e) { deps.log(String(e.message)); }
+    if (tip !== verdict.analyzed.base.tip) verdict = { ...verdict, outcome: 'FAIL', passes: false, reasons: [{ code: 'base-moved', detail: 'the base moved after verify Sync judged this head' }] };
+  }
   const repo = env.KAAL_REPO, n = env.KAAL_PR;
   const reviewer = chooseReviewer({ owners: ownersOf(deps.codeowners()), fallback: env.KAAL_SYNC_REVIEWER || null, author: pull.author });
   const labels = JSON.parse(deps.api([`repos/${repo}/issues/${n}/labels`])).map((l) => l.name);
   const comments = lines(deps.api([`repos/${repo}/issues/${n}/comments`, '--paginate', '--jq', '.[] | tojson']) || '').map((l) => JSON.parse(l));
   const markers = comments.flatMap((c) => [...(c.body ?? '').matchAll(/<!-- review-sync:([0-9a-f]{7,40}) -->/g)].map((m) => m[1]));
   const existing = { labelled: labels.includes(LABEL), commentedHead: markers.includes(pull.head) ? pull.head : null, reviewRequested: reviewer ? pull.requested.some((r) => r.toLowerCase() === reviewer.toLowerCase()) : false };
-  const actions = decideReview({ verdict: fresh, currentHead: pull.head, existing, approval: env.KAAL_APPROVAL });
+  const actions = decideReview({ verdict, currentHead: pull.head, existing, approval: env.KAAL_APPROVAL });
   for (const a of actions) {
     deps.log(`review Sync: ${a.action}`);
     if (a.action === 'label') deps.api(['-X', 'POST', `repos/${repo}/issues/${n}/labels`, '-f', `labels[]=${a.label}`]);

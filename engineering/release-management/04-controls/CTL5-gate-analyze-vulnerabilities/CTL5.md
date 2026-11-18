@@ -3,6 +3,7 @@ id: release/CTL5
 title: gate analyze Vulnerabilities
 description: It stops a promotion whose dependency changes carry a known vulnerability.
 type: preventive
+status: implemented
 has: [release/I30]
 ---
 # release/CTL5 gate analyze Vulnerabilities
