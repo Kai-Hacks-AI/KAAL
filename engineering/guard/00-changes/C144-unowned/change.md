@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Adds F49 (`requirements.md`), the gap G63 (`gap.md`) and the Cases T217 to T220.
+1. Adds F49 (`requirements.md`), the gap G63 (`gap.md`) and the Cases T217 to T221.
 2. The Cases are RED on the C143 collector (evidence in the last section). They run the Guard of the checkout in a scratch repository, as the C143 Cases do, through the helpers in `packages/kaal-guard/test/acceptance/discovery-support.mjs`.
 3. The PLAN changes no behaviour and touches no hook, workflow or ruleset.
 
@@ -10,12 +10,15 @@
 
 | Case | Obligation | Judges |
 | --- | --- | --- |
-| guard/T217 | F49 | a changed file with no `kaal-guard.json` above it and not covered by the root file is a fail naming it and where to register, the selected checks still run, and the root file owns root and delivery-tooling files |
-| guard/T218 | F49 | a nearest `kaal-guard.json` whose checks do not cover the file does not own it: the file is a fail, while a covered file next to it passes |
+| guard/T217 | F49 | a Solution file with no covering `kaal-guard.json`, and an engineering area not on the Delivery list, are a fail naming them and where to register; the selected checks still run; root files, `.github`, `.githooks`, `.kaal` and a listed area are neither owned nor refused |
+| guard/T218 | F49 | a nearest `kaal-guard.json` whose checks do not cover the file does not own it, while a covered file beside it passes |
 | guard/T219 | F49, F45 | a repository with no `kaal-guard.json` behaves as before; an unknown selection runs everything and prints that ownership was not judged |
 | guard/T220 | F49, F43 | removing a Change's folder and its `kaal-guard.json` is not refused; a path that no longer exists is not judged |
+| guard/T221 | F49 | the Delivery list is read from the base: a change cannot exempt its own files by editing it, and a listing the base has is honoured |
 
 ## Open for the CPO
+
+- **The Delivery list is my reading** of the Owner's "products and Changes register as they go, the engine is harder to change": a list of Delivery areas at `.kaal/delivery.json`, read from the base, instead of a `kaal-guard.json` per engineering area. The Owner has not confirmed it. The name and place of the file are provisional.
 
 - **Owned by coverage.** F49 counts a file owned only if a check of its nearest file applies to it. A package that narrows every check with `when` then has files it does not own. The alternative is a package-level "this folder is mine" member in `kaal-guard.json`. I chose the smaller one that adds no member; the CPO may prefer the other.
 - **Verdict.** I use `fail` (exit 1), not `cannot judge` (exit 2), because the repository can fix it by registering. The CPO may prefer another.
