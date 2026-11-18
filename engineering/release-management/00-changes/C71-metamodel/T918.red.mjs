@@ -17,11 +17,12 @@ const FACTS = {
   M6: () => /^closes: \[release\/G\d+\]/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")) && !/^closes:.*\/D\d+/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")),
   M7: () => walk(join(RM, "04-controls")).filter((f) => f.endsWith(".md") && /^id: release\/CTL/m.test(readFileSync(f, "utf8"))).every((f) => { const k = Object.keys(frontmatter(readFileSync(f, "utf8"))); return k.includes("has") && !k.includes("addresses") && !k.includes("source"); }) && walk(join(RM, "03-architecture")).filter((f) => f.endsWith(".md")).every((f) => !/CTL\d+/.test(readFileSync(f, "utf8"))),
   M8: () => /^export const tests = \[['"]release\/C65['"]\]/m.test(text("engineering/release-management/00-changes/C65-sync-split/T851.test.mjs")) && !/verifies/.test(text("engineering/release-management/00-changes/C65-sync-split/T851.test.mjs")),
+  M10: () => !readdirSync(join(REPO, ".github/PULL_REQUEST_TEMPLATE")).some((f) => /wire/i.test(f)),
   M9: () => /^closes: \[release\/G\d+\]/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")) && !/^identifies:/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")),
 };
 export async function run() {
   const rs = rows(section(model(), "Mismatches"));
-  assert.ok(rs.length >= 9, `${rs.length} mismatches are recorded, the model records 9`);
+  assert.ok(rs.length >= 10, `${rs.length} mismatches are recorded, the model records 10`);
   for (const [n, says, shows, evidence] of rs) {
     assert.ok(says && shows && evidence, `${n}: a cell is empty`);
     const path = backticked(evidence).find((p) => p.includes("/"));

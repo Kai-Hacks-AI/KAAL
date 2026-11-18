@@ -89,6 +89,7 @@ A view selects the part of the model one template carries. The template named in
 | ACT | [views/act.md](views/act.md) | `.github/PULL_REQUEST_TEMPLATE/act.md` |
 | PROMOTION | [views/promotion.md](views/promotion.md) | `.github/PULL_REQUEST_TEMPLATE/promotion.md` |
 | HOTFIX | [views/hotfix.md](views/hotfix.md) | `.github/PULL_REQUEST_TEMPLATE/hotfix.md` |
+| WIRE | [views/wire.md](views/wire.md) | none on `main` (mismatch M10) |
 | SYNC | [views/sync.md](views/sync.md) | `.github/PULL_REQUEST_TEMPLATE/sync.md` |
 
 ## Reviewer questions
@@ -118,3 +119,4 @@ Recorded, not corrected. Each names the Owner's word or the model's claim, what 
 | M7 | a Control's realization is the normal chain below its Intents | a Control has an Intent only; no file links an Architecture to a Control | `engineering/release-management/04-controls/CTL1-verify-stages/CTL1.md` |
 | M8 | a Test Case verifies an Intent, Requirement, Architecture, Defect or Gap | the one key `export const tests` serializes verifies, and today it names a Change (release/C65), never a Gap | `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs` |
 | M9 | a Change identifies a Gap | the key is `closes` | `engineering/release-management/00-changes/C65-sync-split/C65.md` |
+| M10 | every kind of work has a template and a view | WIRE has a view and no template on `main` | `engineering/release-management/03-architecture/A47-wire-install/A47.md` |
