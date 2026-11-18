@@ -20,7 +20,8 @@ Owner: release management.
 
 - `gather.mjs`: `listCollectors(api, repo)` returns the branches `kaal/<capability>/<concern>` from `GET git/matching-refs/heads/kaal/`. `gatherFacts(api, repo, collector)` returns the facts `decideRaise` reads (release/C72): `aheadOfMain` from `GET compare/main...<collector>`, `merged` (merged pull requests into the collector, newest first) from `GET pulls?state=closed&base=<collector>`, `open` (open pull requests from the collector) from `GET pulls?state=open&head=<owner>:<collector>`. GET only.
 - `raise.mjs`: `readDecision(d)` accepts only action `raise`, a head that is a collector, base `main`, a one-line title starting `PROMOTION: `; the title is cut to plain characters (200) and the body likewise (2000). `raiseAll({ api, repo, decisions, live })` returns one result per decision: `none`, `refused`, `would-raise` (not live) or `raised` after exactly one `POST repos/<repo>/pulls`.
-- `dispatch.mjs`: `decide` prints the decisions for every collector; `raise` reads `KAAL_DECISIONS` and raises when `KAAL_DISPATCH_RAISE` is `on`. Its API function refuses everything but GET and the POST of a pull request.
+- `seat.mjs`: `oneAtATime({ decisions, openPromotions })` keeps every skip as it is, turns each `raise` into a skip with reason `seat-taken` when `openPromotions` is not empty (the detail names the open pull request), and otherwise keeps only the first `raise`. `gather.mjs` also has `openPromotions(api, repo)`: `GET pulls?state=open&base=main&per_page=50`, every open pull request into main, since an enqueued one is still open.
+- `dispatch.mjs`: `decide` prints the decisions for every collector, passed through `oneAtATime`; `raise` reads `KAAL_DECISIONS` and raises when `KAAL_DISPATCH_RAISE` is `on`. Its API function refuses everything but GET and the POST of a pull request.
 
 ## Draft of `app-manifest.json`
 

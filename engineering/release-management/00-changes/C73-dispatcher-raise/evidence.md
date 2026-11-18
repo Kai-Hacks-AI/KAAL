@@ -15,12 +15,13 @@
 | release/T945 | release/I40 | RED: gather.mjs is absent |
 | release/T946 | release/C73 | RED: dispatcher.yml is absent |
 | release/T947 | release/C73 | RED: app-manifest.json is absent |
+| release/T948 | release/C73 | RED: seat.mjs has no oneAtATime |
 
-6 RED-observed, 0 error, 0 green. Each fails on its own assertion, not on a missing module.
+7 RED-observed, 0 error, 0 green. Each fails on its own assertion, not on a missing module.
 
 ## Can each Case pass
 
-With the drafts of `interface.md` written as the DO's files (I40.md, `gather.mjs`, `raise.mjs`, `dispatch.mjs`, `app-manifest.json`, `dispatcher.yml`) and the six Cases left as they are, all six were green. The pin of the token action in the trial workflow was a placeholder of forty zeros, which T946 accepts as a commit name; the DO reads the real commit. The files were removed again and are not part of this PLAN.
+With the drafts of `interface.md` written as the DO's files (I40.md, `gather.mjs`, `raise.mjs`, `dispatch.mjs`, `app-manifest.json`, `dispatcher.yml`, `seat.mjs`) and the seven Cases left as they are, all seven were green (T942 to T947 first, T948 afterwards with `seat.mjs` and `openPromotions` of `gather.mjs`). The pin of the token action in the trial workflow was a placeholder of forty zeros, which T946 accepts as a commit name; the DO reads the real commit. The files were removed again and are not part of this PLAN.
 
 ## What this shows and does not show
 
@@ -28,4 +29,4 @@ The Cases show the boundary as a shape: the facts are read by GET; the one write
 
 ## Reproduce
 
-For each of T942 to T947: `node -e "import('./engineering/release-management/00-changes/C73-dispatcher-raise/T9NN.red.mjs').then(m=>m.run())"`.
+For each of T942 to T948: `node -e "import('./engineering/release-management/00-changes/C73-dispatcher-raise/T9NN.red.mjs').then(m=>m.run())"`.
