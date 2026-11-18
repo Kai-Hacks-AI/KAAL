@@ -17,5 +17,5 @@ export async function run() {
   assert.match(text, /only once the Owner has loaded it/, 'the Owner boundary is not stated');
   assert.match(text, /after the sync bot's first live approval/, 'the timing is not stated');
   assert.match(text, /removed only after this one is proven equivalent, alone and never reducing protection/, 'the old ruleset step is not stated');
-  assert.ok(!/^status:/m.test(readFileSync(real, 'utf8')), 'a status line is declared before the finder knows it');
+  assert.match(readFileSync(real, 'utf8'), /^status: implemented$/m, 'the status a control has on main (Implemented) is not declared');
 }

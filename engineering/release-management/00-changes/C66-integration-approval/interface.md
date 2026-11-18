@@ -22,6 +22,7 @@ id: release/CTL10
 title: approve Integration
 description: It stops a merge into an integration branch that has no fresh approval of its exact head.
 type: preventive
+status: implemented
 has: [release/I36]
 ---
 # release/CTL10 approve Integration
