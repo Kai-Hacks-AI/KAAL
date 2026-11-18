@@ -7,7 +7,7 @@ Template: `.github/PULL_REQUEST_TEMPLATE/plan.md`. Global model: [metamodel.md](
 
 A PLAN proposes a Change: it adds drafts and Test Cases that run RED, and no behaviour.
 
-Effect on the model: names the Intent or Defect, its Requirements and Architecture, and the Gaps; adds Test Cases that run RED.
+Effect on the model: names the Intent or Defect, its Requirements and Architecture, and the Gaps and where each manifests; names the target Test Cases that express each Gap, which run RED.
 
 **Purpose.** This view anchors semantic reasoning about PLAN work, both when it is written and when it is understood afterwards, along the INFORMED chain: Intent, Requirement, Architecture, Test Case; a Control enters at its Intents. **In the chain:** Intent or Defect, Requirement, Architecture, Gap and Test Case: the work sets the chain down to Test Cases that run RED; nothing is made GREEN.
 
@@ -18,7 +18,11 @@ flowchart LR
   Requirement -->|answers| Intent
   Architecture -->|addresses| Requirement
   Architecture -->|addresses| Defect
-  Change -->|identifies| Gap
+  Change -->|closes| Gap
+  Gap -->|manifests| Intent
+  Gap -->|manifests| Requirement
+  Gap -->|manifests| Architecture
+  Gap -->|manifests| Defect
   TestCase["Test Case"] -->|verifies| Gap
 ```
 
@@ -26,7 +30,7 @@ flowchart LR
 Change, Intent, Defect, Requirement, Architecture, Gap, Test Case.
 
 ## Relationships
-delivers, solves, answers, addresses, identifies, verifies.
+delivers, solves, answers, addresses, closes, manifests, verifies.
 
 ## Information the template expects
 The Change line (id, name, what it is about); From (the current state); To (the target state); Because (the value delivered).

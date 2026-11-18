@@ -7,7 +7,7 @@ Template: `.github/PULL_REQUEST_TEMPLATE/act.md`. Global model: [metamodel.md](.
 
 An ACT adds the records that close the Change in its collector, today the 4L retrospective.
 
-Effect on the model: none on delivery or solving, which the Change did in DO. The ACT is after the act: it records the 4L retrospective and unwires the Change's Test Cases. The Test Cases that lived in the Change folder retire and their guard registration goes; the target Test Cases beside each element stay.
+Effect on the model: none on delivery or solving, which the Change did in DO. The ACT is after the act: it records the 4L retrospective and unwires the Change's Test Cases. The target Test Cases that express each Gap are GREEN. The Test Cases that lived in the Change folder retire and their guard registration goes; the target Test Cases beside each element stay.
 
 **Purpose.** This view anchors semantic reasoning about ACT work, both when it is written and when it is understood afterwards, along the INFORMED chain: Intent, Requirement, Architecture, Test Case; a Control enters at its Intents. **In the chain:** Test Case and Gap: the Test Cases that verified the Gap in the Change folder retire, and the target Test Cases remain as what verifies the delivered Intent or solved Defect.
 
