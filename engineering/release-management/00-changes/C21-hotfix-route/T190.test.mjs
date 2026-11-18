@@ -11,8 +11,8 @@ export const tests = ['release/G53'];
 export const title = 'gap release/G53 is closed: F17 states the HOTFIX route and the verdict, and A33 states how the command line reports it';
 export function run() {
   const f17 = read(join(cap, '02-requirements/F17-envelope-rules/F17.md'), 'F17');
-  assert.match(f17, /HOTFIX takes a head under `hotfix\/`/, 'F17 does not state the HOTFIX head');
-  assert.match(f17, /base of a HOTFIX is not judged/, 'F17 does not state that the base of a HOTFIX is not judged');
+  assert.match(f17, /HOTFIX goes into a base under `hotfix\/` from a head that is not under `hotfix\/`/, 'F17 does not state the HOTFIX route'); // release/C67
+  assert.match(f17, /PROMOTION takes `main` as base and a head under `kaal\/` or `hotfix\/`/, 'F17 does not state the PROMOTION from hotfix/');
   assert.doesNotMatch(f17, /HOTFIX has no route row/, 'F17 still gives HOTFIX no route row');
   assert.match(f17, /UNKNOWN never passes/, 'F17 does not state that UNKNOWN never passes');
   assert.match(f17, /`ok` alone never authorizes/, 'F17 does not state that ok alone never authorizes');
