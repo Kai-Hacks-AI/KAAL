@@ -31,9 +31,12 @@
 - **Verdict.** `fail` (exit 1), not `cannot judge` (exit 2), because the repository can fix it by registering.
 - The always-run file `.kaal/kaal-guard.json` and the name `kaal-guard.json` stay built in from C143 and are not touched here.
 
-## DO
+## DO (done)
 
-Not authorized. On the CPO's approval: build F49 in `lib/discovery.mjs`, amend F44, rename the Cases to `.test.mjs` when green, regenerate `test/verify.json`, add the docs. No hook or workflow is rewired and Any required check is a separate WIRE decision.
+- **F49** is built in `packages/kaal-guard/lib/discovery.mjs`: an existing changed file whose nearest `kaal-guard.json` has checks but none that applies to it is a `registration` fail naming the path and where to register; a `kaal-guard.json` with no check is a fail naming the file; removed paths are not judged; an unknown selection adds the note that registration was not judged. A folder with no declaration is not touched.
+- The RED Cases T217 to T221 run green as `packages/kaal-guard/test/acceptance/requirements-registration.test.mjs` with the ids unchanged; the `.red.mjs` files and their helper are removed from this folder. The 4 C143 discovery Cases still pass.
+- **Docs**: guard/F49 and the F44 amendment in `docs/requirements.md`, A21 in `docs/architecture.md`, the trace in `docs/testing.md`, a paragraph in the README. `test/verify.json` is regenerated with `engineering/guard/verify-manifest.mjs` (137 Cases).
+- F43 and guard/T209 are unchanged, as the PLAN says. Not done, as bounded by the PLAN: any wiring, the separate controls (every area opts in; Solution or Delivery, never both), a version bump or publication.
 
 ## ACT
 
