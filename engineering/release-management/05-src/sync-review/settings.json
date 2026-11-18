@@ -1,0 +1,8 @@
+{
+  "control": "release/CTL8",
+  "settings": [
+    { "id": "actions-may-approve", "name": "Allow GitHub Actions to create and approve pull requests", "where": "repository setting; the organization can block it", "value": true, "neededFor": "live" },
+    { "id": "KAAL_SYNC_APPROVE", "name": "KAAL_SYNC_APPROVE", "where": "repository variable", "value": "on", "neededFor": "live", "otherwise": "dry run" }
+  ],
+  "running": "an APPROVED review by github-actions[bot] on the head of a SYNC"
+}

@@ -4,11 +4,13 @@ import { judge, GOOD, NAMES, stages, source, contexts, ctx } from "./helper.mjs"
 
 export const id = "release/T513";
 export const tests = ["release/C37"];
-export const title = "integrating requires verify Stages (Integrating) and verify Stages (Developing), the other four rulesets only their own, and the judge fails an integrating that misses the second check";
+export const title = "integrating requires verify Stages (Integrating) and verify Stages (Developing), Promoting its own and analyze Vulnerabilities, the other three rulesets only their own, and the judge fails an integrating that misses the second check";
 export async function run() {
-  assert.deepEqual(stages().stages.find((s) => s.name === "Integrating").requires, ["Integrating", "Developing"], "stages.json declares what Integrating requires");
+  const declaredChecks = stages().stages.find((s) => s.name === "Integrating").rules.flatMap((r) => (r.checks ?? []).map((c) => c.name));
+  assert.deepEqual(declaredChecks, [ctx("Integrating"), ctx("Developing")], "stages.json declares what Integrating requires, as the checks of its rule (release/C70)");
   assert.deepEqual(contexts(source("Integrating")), [ctx("Integrating"), ctx("Developing")]);
-  for (const n of NAMES.filter((x) => x !== "Integrating")) assert.deepEqual(contexts(source(n)), [ctx(n)], `${n}: only its own check`);
+  for (const n of NAMES.filter((x) => x !== "Integrating" && x !== "Promoting")) assert.deepEqual(contexts(source(n)), [ctx(n)], `${n}: only its own check`);
+  assert.deepEqual(contexts(source("Promoting")), [ctx("Promoting"), "analyze Vulnerabilities (Promoting)"], "Promoting: its own check and analyze Vulnerabilities (release/CTL5)");
   for (const n of NAMES) {
     const r = source(n);
     assert.deepEqual(r.bypass_actors, [], `${n}: no bypass`);
