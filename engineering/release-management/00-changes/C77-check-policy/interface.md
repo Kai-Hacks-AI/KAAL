@@ -22,6 +22,7 @@ id: release/CTL14
 title: settle Check Policy
 description: It stops a required-check rule from forcing a catch-up with the base, and from blocking the creation of a work branch.
 type: preventive
+status: implemented
 has: [release/I42]
 ---
 # release/CTL14 settle Check Policy

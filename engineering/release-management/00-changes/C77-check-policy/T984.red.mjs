@@ -7,7 +7,7 @@ export const title = 'a status-check setting without a control of its own, with 
 const SETTINGS = ['strict_required_status_checks_policy', 'do_not_enforce_on_create'];
 function withPolicy() {
   const f = declared();
-  f.controls.push({ id: 'release/CTL14', has: ['release/I42'] });
+  f.controls = f.controls.filter((c) => c.id !== 'release/CTL14'); f.controls.push({ id: 'release/CTL14', has: ['release/I42'] });
   const rules = [stageOf(f, 'Integrating'), stageOf(f, 'Promoting'), ...stageOf(f, 'Integrating').parts].map((s) => s.rules.find((r) => r.type === 'required_status_checks'));
   for (const r of rules) r.settingControls = { strict_required_status_checks_policy: 'release/CTL14', do_not_enforce_on_create: 'release/CTL14' };
   return f;

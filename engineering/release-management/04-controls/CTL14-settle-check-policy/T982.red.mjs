@@ -16,5 +16,6 @@ export async function run() {
   }
   const control = readFileSync(join(RM, '04-controls/CTL14-settle-check-policy/CTL14.md'), 'utf8');
   assert.match(control, /^type: preventive$/m);
+  assert.match(control, /^status: implemented$/m, 'the control does not declare the status it has on main (DIRT: Implemented)');
   assert.match(control, /^has: \[release\/I42\]$/m, 'the control does not have exactly the Intent');
 }
