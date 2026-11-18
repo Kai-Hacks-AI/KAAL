@@ -7,7 +7,7 @@ import { read, model, section, rows, frontmatter, walk, RM, REPO } from "./helpe
 export const id = "release/T917";
 export const tests = ["release/C71"];
 export const title = "following only the relationships the model names for Q1 to Q6, a reviewer answers, from the recorded pull requests of release/C65 (PLAN, DO, ACT, PROMOTION) and the repository, which objects it affects, which Intent it delivers, what supports the Intent, what each Case tests, which Gap it closes and what evidence there is";
-const USED = { Q1: ["names", "records", "carries"], Q2: ["names", "delivers"], Q3: ["answers", "has"], Q4: ["tests"], Q5: ["addresses", "closes"], Q6: ["records", "references"] };
+const USED = { Q1: ["names", "records", "carries"], Q2: ["names", "delivers"], Q3: ["refines", "satisfies", "has"], Q4: ["tests"], Q5: ["addresses", "closes"], Q6: ["records", "references"] };
 
 export async function run() {
   const text = model();

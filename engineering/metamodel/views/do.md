@@ -12,8 +12,8 @@ A DO implements a planned Change: the RED Test Cases turn GREEN and nothing else
 ```mermaid
 flowchart LR
   Change -->|delivers| Intent
-  TestCase["Test Case"] -->|tests| Requirement
-  TestCase -->|tests| Architecture
+  TestCase["Test Case"] -->|verifies| Requirement
+  TestCase -->|verifies| Architecture
   TestCase -.->|tests| Change
   PR -.->|names| Change
   PR ==>|carries| Diff
@@ -23,7 +23,7 @@ flowchart LR
 Change, Intent, Requirement, Architecture, Test Case, PR, Diff.
 
 ## Relationships
-delivers, tests, names, carries.
+delivers, verifies, tests, names, carries.
 
 ## Information the template expects
 The Change line; what the DO implements; the refactoring intended while behaviour stays, or that there is none.

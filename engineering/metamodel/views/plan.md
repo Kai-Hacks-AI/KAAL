@@ -12,8 +12,8 @@ A PLAN proposes a Change: it adds drafts and Test Cases that run RED, and no beh
 ```mermaid
 flowchart LR
   Change -->|delivers| Intent
-  Requirement -->|answers| Intent
-  Architecture -->|answers| Requirement
+  Requirement -->|refines| Intent
+  Architecture -->|satisfies| Requirement
   TestCase["Test Case"] -.->|tests| Change
   Change -.->|closes| Gap
   PR -.->|names| Change
@@ -24,19 +24,19 @@ flowchart LR
 Change, Intent, Requirement, Architecture, Test Case, Gap, PR, Diff.
 
 ## Relationships
-delivers, answers, tests, closes, names, carries.
+delivers, refines, satisfies, tests, closes, names, carries.
 
 ## Information the template expects
 The Change line (id, name, what it is about); From (the current state); To (the target state); Because (the value delivered).
 
 ## What the reviewer should be able to verify
-That the Change line resolves to a Change Record that delivers an Intent (Q2); that the Requirements and Architecture drafted answer that Intent, or that Controls do (Q3); that every Test Case runs RED for the reason the record gives and names what it tests (Q4); the Gap it closes, if the Change uses Gaps (Q5).
+That the Change line resolves to a Change Record that delivers an Intent (Q2); that the Requirements drafted refine that Intent and the Architecture satisfies them, or that Controls do (Q3); that every Test Case runs RED for the reason the record gives and names what it tests (Q4); the Gap it closes, if the Change uses Gaps (Q5).
 
 ## The INFORMED chapter
 The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. It holds one box for each concern below. Each box is ticked, or marked n/a with a reason. A tick is the author's claim, not evidence.
 
 - [ ] The Change line resolves to a Change Record that delivers an Intent
-- [ ] Requirements and Architecture answer that Intent, or a Control has it
+- [ ] Requirements refine that Intent and Architecture satisfies them, or a Control has it
 - [ ] Every Test Case runs RED for the reason the record gives and names what it tests
 - [ ] The Gap closed is named, if the Change uses Gaps
 - [ ] From, To and Because are stated
