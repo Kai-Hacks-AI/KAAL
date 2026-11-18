@@ -7,7 +7,7 @@ Template: `.github/PULL_REQUEST_TEMPLATE/hotfix.md`. Global model: [metamodel.md
 
 A HOTFIX is an Emergency Change that corrects a Defect by the fastest safe path.
 
-Effect on the model: the Change solves a Defect; a Test Case that fails RED on the Defect turns GREEN.
+Effect on the model: the Change solves a Defect on the fastest safe path; a Test Case that fails RED on the Defect turns GREEN. A HOTFIX is one route for a Defect, not the only one: a Defect also travels through a normal PLAN, DO and ACT, and only an Emergency Change takes this route.
 
 **Purpose.** This view anchors semantic reasoning about HOTFIX work, both when it is written and when it is understood afterwards, along the INFORMED chain: Intent, Requirement, Architecture, Test Case; a Control enters at its Intents. **In the chain:** Defect to Architecture to Test Case: the Defect is addressed by Architecture, a Test Case fails RED on it and turns GREEN with the correction.
 
