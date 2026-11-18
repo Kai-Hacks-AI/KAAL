@@ -2,7 +2,7 @@
 import { GOOD } from '../C35-stages/helper.mjs';
 export { judge } from '../C35-stages/helper.mjs';
 // the controls the checkout declares, each with the Intents it has
-export const CONTROLS = [{ id: 'release/CTL1', has: ['release/I27'] }, { id: 'release/CTL5', has: ['release/I30'] }, { id: 'release/CTL10', has: ['release/I36'] }, { id: 'release/CTL12', has: ['release/I37'] }];
+export const CONTROLS = [{ id: 'release/CTL1', has: ['release/I27'] }, { id: 'release/CTL5', has: ['release/I30'] }, { id: 'release/CTL10', has: ['release/I36'] }, { id: 'release/CTL12', has: ['release/I37'] }, { id: 'release/CTL15', has: ['release/I43'] }];
 const copy = (x) => JSON.parse(JSON.stringify(x));
 const check = (name, control = 'release/CTL1') => ({ name, control, integration_id: 15368 });
 const statusDeclared = (names, doNotEnforceOnCreate = true) => ({ type: 'required_status_checks', control: 'release/CTL1', parameters: { strict_required_status_checks_policy: false, do_not_enforce_on_create: doNotEnforceOnCreate }, checks: names.map((n) => (typeof n === 'string' ? check(n) : n)) });
