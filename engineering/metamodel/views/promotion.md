@@ -5,11 +5,9 @@ title: PROMOTION view
 
 Template: `.github/PULL_REQUEST_TEMPLATE/promotion.md`. Global model: [metamodel.md](../metamodel.md). This view selects from the model and defines nothing.
 
-A PROMOTION delivers the Changes a collector holds to `main`.
+A PROMOTION delivers what a collector holds to `main`.
 
-Effect on the model: none. A PROMOTION carries what the collector holds onward and adds no object and no relationship; the objectives of the Controls are unchanged by it.
-
-**Purpose.** This view anchors semantic reasoning about PROMOTION work, both when it is written and when it is understood afterwards, along the INFORMED chain: Intent, Requirement, Architecture, Test Case; a Control enters at its Intents. **In the chain:** none: a PROMOTION carries chains already verified and adds no link to any chain.
+**Purpose.** This view anchors semantic reasoning about PROMOTION work along the INFORMED chain. **In the chain:** No semantic effect: the Change node only, no edges (transport).
 
 ```mermaid
 flowchart LR
@@ -23,19 +21,19 @@ Change.
 
 
 ## Information the template expects
-One line per Change delivered, `<id> <name>: <phases carried>`; why now.
+One line per Change delivered; why now.
 
 ## What the reviewer should be able to verify
-That each Change named is Accepted in the collector; that nothing else travels with it.
+That nothing travels but the Changes named.
 
 ## The INFORMED chapter
-The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. It holds one box for each concern below. Each box is ticked, or marked n/a with a reason. A tick is the author's claim, not evidence.
+The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. Each box below is ticked, or marked n/a with a reason; a tick is the author's claim, not evidence.
 
-- [ ] Each Change named is Accepted in the collector and carries the phases it names
-- [ ] Nothing else travels with it
+- [ ] Each Change named is Accepted in the collector
+- [ ] Only the Changes named travel
 
-**Process control** (verify Envelope, on the filled template): the chapter exists, the view link is right, the Change exists, and every box above is present and either ticked or n/a with a reason. It never judges the work and does not repeat the trace.
-**Content control** (on the Change's files): the chain links exist, Test Cases name what they test and ran RED then GREEN, Controls are declared, and each claim is compared with the evidence in both directions: ticked without evidence is "claimed but not found"; evidence present but the box not ticked, or marked n/a, is "done but not claimed". Both are findings.
+**Process control** (verify Envelope, on the filled template): the chapter exists, the view link is right, the Change exists, and every box is present and either ticked or n/a with a reason. It never judges the work.
+**Content control** (on the Change's files): each claim is compared with the evidence in both directions: ticked without evidence is "claimed but not found"; evidence present but not ticked, or n/a, is "done but not claimed". Both are findings.
 
 ## Outside this template
-The content of each Change; the Requirements and Test Cases (judged where each Change landed); whether the Intent achieved its Outcome.
+Everything semantic.
