@@ -16,7 +16,7 @@ export function run() {
   const planBody = '## Change\n\nrelease/C99 sample: a sample Change.\n\n## From\n\nNothing.\n\n## To\n\nSomething.\n\n## Because\n\nIt helps.\n';
   const hotfixBody = '## Change\n\nrelease/C99 sample\n\n## Defect\n\nIt fails.\n\n## Urgency\n\nNow.\n\n## Approach\n\nFix it.\n';
   const plan = { registry, title: 'PLAN: Create a sample', body: planBody, base: 'kaal/release/sample', head: 'claude/x', commits: [{ subject: 'x', message: 'x\n\nDriven-by: release/C99\n' }] };
-  const hotfix = { registry, title: 'HOTFIX: Restore a sample', body: hotfixBody, base: 'main', head: 'hotfix/restore-sample' };
+  const hotfix = { registry, title: 'HOTFIX: Restore a sample', body: hotfixBody, base: 'hotfix/restore-sample', head: 'claude/x' };
   let n = 0;
   const call = (facts) => { const file = join(dir, `f${n++}.json`); writeFileSync(file, JSON.stringify(facts)); return spawnSync(process.execPath, [runner, file], { encoding: 'utf8' }); };
 
@@ -30,11 +30,11 @@ export function run() {
   assert.doesNotMatch(unknown.stdout, /PASS/, 'an UNKNOWN run prints PASS');
   assert.doesNotMatch(unknown.stdout, /\bok\b/i, 'an UNKNOWN run reports ok, which could be mistaken for a pass');
   assert.match(unknown.stdout, /Not judged/, 'an UNKNOWN run does not list what was not judged');
-  assert.match(unknown.stdout, /base/i, 'an UNKNOWN run does not name the unjudged base');
+  assert.match(unknown.stdout, /corrects only its defect/, 'an UNKNOWN run does not name what the review decides');
 
-  const fail = call({ ...hotfix, head: 'claude/x' });
+  const fail = call({ ...hotfix, base: 'main' });
   assert.equal(fail.status, 1, 'a finding does not exit 1');
   assert.match(fail.stdout.split('\n')[0], /^FAIL/, 'a FAIL run does not open with FAIL');
-  assert.match(fail.stdout, /hotfix\//, 'the finding does not name the head rule');
+  assert.match(fail.stdout, /hotfix\//, 'the finding does not name the route');
   assert.match(fail.stdout, /Not judged/, 'a FAIL run hides what was not judged');
 }
