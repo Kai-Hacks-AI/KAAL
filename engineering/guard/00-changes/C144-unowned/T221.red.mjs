@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { AREA, baseline, cleanup, commit, hook, kg, ran, rev, scratch, scripts } from "./support.mjs";
+import { AREA, DELIVERY, KAAL_DELIVERY, baseline, cleanup, commit, hook, kg, ran, rev, scratch, scripts } from "./support.mjs";
 
-test("guard/T221 [guard/F49, guard/F43]: an engineering area is Solution and registers through its own kaal-guard.json like a product, and a copy of its content into .github is Delivery that Guard does not judge", () => {
-  const dir = scratch({ ...baseline, ...scripts("area"), [`${AREA}/kaal-guard.json`]: kg("area") });
+test("guard/T221 [guard/F49, guard/F43]: an engineering area is Solution and registers through its own kaal-guard.json like a product, and a copy of its content into .github is Delivery that the repository declares and Guard does not judge", () => {
+  const dir = scratch({ ...baseline, ...scripts("area"), [DELIVERY]: KAAL_DELIVERY, [`${AREA}/kaal-guard.json`]: kg("area") });
   try {
     const base = rev(dir, "HEAD");
     // The area's own file owns the area's files, and the check runs; the copy in .github is not judged.

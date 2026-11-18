@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { baseline, cleanup, commit, hook, kg, ran, rev, scratch, scripts } from "./support.mjs";
+import { DELIVERY, KAAL_DELIVERY, baseline, cleanup, commit, hook, kg, ran, rev, scratch, scripts } from "./support.mjs";
 
-test("guard/T217 [guard/F49, guard/A21]: a Solution or Change file that no kaal-guard.json covers is a fail that names it and says where to register, the selected checks still run, and Delivery paths (`.github`, `.githooks`, `.kaal`, root files) are neither owned nor refused", () => {
+test("guard/T217 [guard/F49, guard/A21]: a Solution or Change file that no kaal-guard.json covers is a fail that names it and says where to register, the selected checks still run, and the paths the repository declares as Delivery are neither owned nor refused", () => {
   const dir = scratch({
     ...baseline, ...scripts("alpha"),
+    [DELIVERY]: KAAL_DELIVERY,
     "packages/kaal-alpha/kaal-guard.json": kg("alpha"),
   });
   try {

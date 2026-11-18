@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Adds F49 (`requirements.md`), the gap G63 (`gap.md`) and the Cases T217 to T221.
+1. Adds F49 (`requirements.md`), the gap G63 (`gap.md`) and the Cases T217 to T222.
 2. The Cases are RED on the C143 collector (evidence in the last section). They run the Guard of the checkout in a scratch repository, as the C143 Cases do, through the helpers in `packages/kaal-guard/test/acceptance/discovery-support.mjs`.
 3. The PLAN changes no behaviour and touches no hook, workflow or ruleset.
 
@@ -10,13 +10,19 @@
 
 | Case | Obligation | Judges |
 | --- | --- | --- |
-| guard/T217 | F49 | a package file and an engineering-area file with no covering `kaal-guard.json` are a fail naming them and where to register; the selected checks still run; root files, `.github`, `.githooks` and `.kaal` are neither owned nor refused |
+| guard/T217 | F49 | a package file and an engineering-area file with no covering `kaal-guard.json` are a fail naming them and where to register; the selected checks still run; root files, `.github`, `.githooks` and `.kaal` are neither owned nor refused (as the repository's Delivery declaration says) |
 | guard/T218 | F49 | a nearest `kaal-guard.json` whose checks do not cover the file does not own it, while a covered file beside it passes |
 | guard/T219 | F49, F45 | a repository with no `kaal-guard.json` behaves as before; an unknown selection runs everything and prints that ownership was not judged |
 | guard/T220 | F49, F43 | removing a Change's folder and its `kaal-guard.json` is not refused; a path that no longer exists is not judged |
+| guard/T222 | F49 | Guard names no Delivery path: with none declared, `.github` and `.githooks` are unowned; the declaration is read from the base, so a change cannot exempt its own files by editing it |
 | guard/T221 | F49, F43 | an engineering area registers through its own `kaal-guard.json` like a product; the copy of its content into `.github` or `.githooks` is Delivery and not judged; an area that never registered is a fail |
 
 ## Open for the CPO
+
+- **Guard in context (Owner, 14:21).** "Registration of guard in context where it is guarded." This PLAN does not yet model it: Guard has no notion of a stage, and the Delivery declaration is one repository-wide file. The coordinator reads it as each context (stage) holding its own declared registration of what Guard runs there, with a `kaal-guard.json` saying what to check and the stage placing it. If the Owner confirms, F49 would be judged in a context that the stage supplies, and the Delivery declaration would be that context's. That is a new input to `run` and belongs with the Enforcement Unit (controls - 0.0.1), so it is a separate Change; nothing here blocks it.
+
+- **Nothing here is hard-coded (Owner, 14:21).** Delivery paths are a repository declaration, read from the base: generic reading in `packages/kaal-guard`, KAAL's instance in `engineering/guard/` deployed to `.kaal/`. The stage list and the stage-to-placement mapping are declared configuration too (generic in `packages/controls`, KAAL's in `engineering/controls`). The declaration's name, place and shape are provisional.
+- **Already built in, not changed here:** C143 fixes the always-run file at `.kaal/kaal-guard.json` (`ALWAYS` in `lib/discovery.mjs`) and F43 reads `kaal-guard.json` by name. Making those declared as well is a possible later Change; this PLAN does not touch them.
 
 - **Placement axis: the stage (Owner, 14:20).** Where a check is guarded is decided per stage: Developing, Integration (Collectors, Hotfixes, Wiring), Promotion, Publishing. This is recorded as the axis and wires nothing. Scope is unchanged: no Case names a stage, and choosing the stages that require the ownership judgement is a later wiring decision for the Owner.
 
