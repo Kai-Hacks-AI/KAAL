@@ -160,7 +160,14 @@
       "name": "Publishing",
       "kind": "tag",
       "target": "trial-*@*",
-      "rule": "update"
+      "rule": "update",
+      "rules": [
+        {
+          "type": "update",
+          "control": "release/CTL15",
+          "parameters": {}
+        }
+      ]
     }
   ]
 }

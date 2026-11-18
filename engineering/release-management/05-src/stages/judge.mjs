@@ -68,7 +68,17 @@ export function judge(facts) {
     if (p.target !== "tag") pub(`the target is ${p.target}, not tag`);
     if (!same(p.conditions?.ref_name?.include, [`refs/tags/${publishing.target}`])) pub("the tag pattern is not the agreed one");
     if (!same(p.bypass_actors, [])) pub("the bypass list is not empty");
-    if (!same((p.rules ?? []).map((x) => x.type), [publishing.rule])) pub(`the only rule must be ${publishing.rule}`);
+    const decl = publishing.rules;
+    if (!Array.isArray(decl) || decl.some((d) => !d || typeof d.type !== "string")) pub("the stage does not declare its rules as a list");
+    else {
+      const have = (p.rules ?? []).map((x) => x.type).sort(), want = decl.map((d) => d.type).sort();
+      if (!same(have, want)) pub(`the rules are ${have.join(", ") || "none"}, the declaration says ${want.join(", ") || "none"}`);
+      else for (const d of decl) {
+        const c = controls.get(d.control);
+        if (!c) pub(`the ${d.type} rule is traced to ${d.control ?? "no control"}, which is not a declared control`); else if (!(c.has ?? []).length) pub(`the ${d.type} rule is traced to ${d.control}, which has no Intent`);
+        const got = (p.rules.find((x) => x.type === d.type)?.parameters ?? {}); if (!same(got, d.parameters ?? {})) pub(`the settings of ${d.type} are not the declared ones`);
+      }
+    }
   }
   return { kind: findings.length ? "fail" : "pass", findings, checks: [...new Set(findings.map((f) => f.check))] };
 }
