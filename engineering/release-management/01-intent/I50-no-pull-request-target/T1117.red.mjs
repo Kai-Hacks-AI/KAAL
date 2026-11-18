@@ -18,6 +18,6 @@ export async function run() {
   assert.ok(existsSync(real), 'I50.md is absent');
   assert.equal(readFileSync(real, 'utf8'), `${draft('I50.md')}\n`, 'I50.md differs from the draft');
   const t = readFileSync(real, 'utf8');
-  assert.ok(t.includes('https://github.blog/changelog/2026-11-02-pull_request_target-blocked-by-default-december-2/'), 'the source is not stated exactly');
+  assert.match(t, /Source: https:\/\/github\.blog\/changelog\/2026-11-02-pull_request_target-blocked-by-default-december-2\/\./, 'the source is not stated exactly');
   assert.match(t, /no workflow under `\.github\/workflows` uses the trigger `pull_request_target`/);
 }
