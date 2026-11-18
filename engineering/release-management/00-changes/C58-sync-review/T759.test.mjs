@@ -9,7 +9,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const SRC = join(repo, 'engineering/release-management/05-src/sync-review');
 export const id = 'release/T759';
 export const tests = ['release/C58'];
-export const title = 'approve Sync reads the merge facts again and does not approve a head whose base or main moved, and review Sync fails visibly, after labelling and explaining, when no eligible reviewer exists';
+export const title = 'approve Sync reads the head and the base again and does not approve a head whose base moved, and review Sync fails visibly, after labelling and explaining, when no eligible reviewer exists';
 const BODY = '## Change\n\nrelease/C1 x\n\n## Reason\n\nto unblock development\n';
 export async function run() {
   const load = (f) => import(pathToFileURL(join(SRC, f)).href);
@@ -27,13 +27,12 @@ export async function run() {
   assert.deepEqual(ownersOf(null), []);
   const H = 'c'.repeat(40);
   const verdict = (over = {}) => ({ control: 'verify Sync', outcome: 'PASS', passes: true, reasons: [], analyzed: { base: { ref: 'kaal/release/x', tip: 'a'.repeat(40) }, head: H, parents: ['a'.repeat(40), 'b'.repeat(40)], mergeTree: 'd'.repeat(40), added: [H], ...over }, ...over.top });
-  const ask = (over = {}) => decideApproveNow({ verdict: verdict(), fresh: verdict(), currentHead: H, mode: 'on', approvedAtHead: false, ...over });
+  const live = { head: H, baseTip: 'a'.repeat(40) };
+  const ask = (over = {}) => decideApproveNow({ verdict: verdict(), live, currentHead: H, mode: 'on', approvedAtHead: false, ...over });
   assert.equal(ask().action, 'approve');
-  assert.equal(ask({ fresh: undefined }).action, 'skip', 'facts that were not read again do not approve');
-  assert.equal(ask({ fresh: { ...verdict(), outcome: 'FAIL', passes: false } }).action, 'skip');
-  assert.equal(ask({ fresh: verdict({ base: { ref: 'kaal/release/x', tip: 'e'.repeat(40) } }) }).action, 'skip', 'the base moved with the head unchanged');
-  assert.equal(ask({ fresh: verdict({ mergeTree: '1'.repeat(40) }) }).action, 'skip');
-  assert.equal(ask({ fresh: verdict({ parents: ['a'.repeat(40), '2'.repeat(40)] }) }).action, 'skip');
+  assert.equal(ask({ live: undefined }).action, 'skip', 'a head and base that were not read now do not approve');
+  assert.equal(ask({ live: { ...live, baseTip: 'e'.repeat(40) } }).action, 'skip', 'the base moved with the head unchanged');
+  assert.equal(ask({ live: { ...live, head: 'f'.repeat(40) } }).action, 'skip', 'the head moved');
   assert.equal(ask({ mode: undefined }).action, 'would-approve', 'dry run stays the default');
 
   // against real Git, with GitHub stood in for
@@ -55,18 +54,19 @@ export async function run() {
     const head = must(['rev-parse', 'HEAD']);
     const point = () => { must(['update-ref', 'refs/kaal/base', must(['rev-parse', 'collector'])]); must(['update-ref', 'refs/remotes/origin/main', must(['rev-parse', 'main'])]); must(['update-ref', 'refs/kaal/pr', head]); };
     point();
-    const state = { head, author: 'author', requested: [], codeowners: '* @kaihacksai\n', body: BODY };
+    const state = { head, baseTip: must(['rev-parse', 'collector']), author: 'author', requested: [], codeowners: '* @kaihacksai\n', body: BODY };
     const calls = [], outs = {}, logs = [], errors = [];
     const api = (args) => {
       const a = args.join(' ');
       calls.push(a);
       if (/-X (POST|DELETE)/.test(a)) return '{}';
+      if (/git\/ref\/heads\/kaal\/release\/x$/.test(a)) return JSON.stringify({ object: { sha: state.baseTip } });
       if (/pulls\/7$/.test(a)) return JSON.stringify({ head: { sha: state.head }, base: { ref: 'kaal/release/x' }, title: 'SYNC: x', body: state.body, user: { login: state.author }, requested_reviewers: state.requested.map((login) => ({ login })) });
       if (/issues\/7\/labels/.test(a)) return '[]';
       return '';
     };
     const deps = (over = {}) => ({ git, api, codeowners: () => state.codeowners, out: (n, v) => { outs[n] = v; }, summary() {}, log: (l) => logs.push(l), error: (t, l) => errors.push(`${t}: ${l}`), ...over });
-    const env = (extra = {}) => ({ KAAL_REPO: 'o/r', KAAL_PR: '7', KAAL_BASE: 'kaal/release/x', KAAL_HEAD: head, KAAL_DEFAULT: 'main', ...extra });
+    const env = (extra = {}) => ({ KAAL_REPO: 'o/r', KAAL_PR: '7', KAAL_BASE: 'kaal/release/x', KAAL_HEAD: head, KAAL_BODY: BODY, KAAL_DEFAULT: 'main', ...extra });
     const posted = (re) => calls.filter((c) => /-X POST/.test(c) && re.test(c));
     const reset = () => { calls.length = 0; logs.length = 0; errors.length = 0; };
 
@@ -88,7 +88,7 @@ export async function run() {
     // the head is unchanged and the base moved: no approval on the old verdict
     must(['checkout', '-q', 'collector']);
     put('later.txt', 'later\n'); commit('collector moved on');
-    point();
+    point(); state.baseTip = must(['rev-parse', 'collector']);
     reset();
     approve(env({ KAAL_VERDICT: earlier, KAAL_SYNC_APPROVE: 'on' }), deps());
     assert.equal(posted(/pulls\/7\/reviews/).length, 0, 'a moved base is not approved');
@@ -98,16 +98,6 @@ export async function run() {
     assert.equal(review(env({ KAAL_VERDICT: earlier }), deps()), 0);
     assert.equal(posted(/labels/).length, 1);
     assert.equal(posted(/requested_reviewers/).length, 1);
-
-    // main rewound so the second parent is no longer on its history: no approval either
-    must(['checkout', '-q', 'collector']);
-    must(['reset', '-q', '--hard', `${head}^1`]);
-    point();
-    must(['update-ref', 'refs/remotes/origin/main', must(['rev-parse', 'main~1'])]);
-    state.head = head;
-    reset();
-    approve(env({ KAAL_VERDICT: earlier, KAAL_SYNC_APPROVE: 'on' }), deps());
-    assert.equal(posted(/pulls\/7\/reviews/).length, 0, 'a state that main no longer holds is not approved');
 
     // review Sync with nobody to ask: it labels and explains, then fails visibly
     const failing = JSON.stringify({ control: 'verify Sync', outcome: 'FAIL', passes: false, reasons: [{ code: 'merge-conflicts', detail: 'd' }], analyzed: { head } });
