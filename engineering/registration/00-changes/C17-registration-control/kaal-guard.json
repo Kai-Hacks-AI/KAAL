@@ -1,0 +1,5 @@
+{
+  "checks": [
+    { "id": "registration-cases", "run": "node engineering/registration/00-changes/C17-registration-control/run.mjs" }
+  ]
+}
