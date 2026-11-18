@@ -1,0 +1,5 @@
+{
+  "checks": [
+    { "id": "cases", "run": "node --test \"packages/kaal-change/00-changes/C12-change-folder/T*.test.mjs\"" }
+  ]
+}
