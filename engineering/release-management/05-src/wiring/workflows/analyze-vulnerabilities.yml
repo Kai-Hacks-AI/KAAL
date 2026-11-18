@@ -1,7 +1,7 @@
 # analyze Vulnerabilities (release/C48), as a source in Engineering: the detective report of the control (release/C5) for two stages.
 # One job per stage, named `analyze Vulnerabilities (<Stage>)`: Integrating for a pull request or merge group into kaal/**, hotfix/** or wire/**,
-# Promoting for one into main. The job reports dependencies a change introduces that carry known vulnerabilities. It is detective:
-# no ruleset requires it. Requiring it is a separate preventive control with its own explicit Owner decision.
+# Promoting for one into main. The job reports dependencies a change introduces that carry known vulnerabilities, at severity low and above, in the runtime scope, with no exemption.
+# Integrating is detective (warn-only, it does not fail). Promoting fails on a finding and on an analysis that cannot be made, and the promoting ruleset requires it (release/CTL5, preventive); the detection stays release/CTL2.
 # This is a source; a WIRE installs it under .github/workflows/ (`.github` travels alone).
 name: analyze Vulnerabilities
 
@@ -25,9 +25,13 @@ jobs:
         continue-on-error: true
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
+          fail-on-severity: low
+          fail-on-scopes: runtime
+          warn-only: true
           base-ref: ${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}
           head-ref: ${{ github.event.merge_group.head_sha || github.event.pull_request.head.sha }}
       - name: Interpret the result
+        continue-on-error: true
         env:
           KAAL_ANALYZE_CONCLUSION: ${{ steps.review.conclusion == 'success' && steps.review.outcome == 'success' && 'success' || 'failure' }}
           KAAL_ANALYZE_VULNERABLE_CHANGES: ${{ steps.review.outputs.vulnerable-changes }}
@@ -43,6 +47,8 @@ jobs:
         continue-on-error: true
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
         with:
+          fail-on-severity: low
+          fail-on-scopes: runtime
           base-ref: ${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}
           head-ref: ${{ github.event.merge_group.head_sha || github.event.pull_request.head.sha }}
       - name: Interpret the result

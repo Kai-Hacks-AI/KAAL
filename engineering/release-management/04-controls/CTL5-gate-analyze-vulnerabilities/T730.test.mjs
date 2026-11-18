@@ -1,0 +1,28 @@
+// Case release/T730 tests: release/CTL5
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
+const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
+const RM = join(repo, 'engineering/release-management');
+export const id = 'release/T730';
+export const tests = ['release/CTL5'];
+export const title = 'the finder lists release/CTL5 as a preventive control that has release/I30, equal to its draft';
+export async function run() {
+  assert.ok(existsSync(FINDER), 'the finder is absent');
+  const out = JSON.parse(execFileSync(process.execPath, [FINDER, RM], { encoding: 'utf8' }));
+  assert.deepEqual(out.refused, [], 'an item was refused');
+  const c = out.controls.find((x) => x.id === 'release/CTL5');
+  assert.ok(c, 'release/CTL5 is not listed');
+  assert.equal(c.type, 'preventive');
+  assert.deepEqual(c.has, ['release/I30']);
+  assert.equal(c.title, 'gate analyze Vulnerabilities');
+  assert.ok(c.tests.map((t) => t.id).includes('release/T730'), 'the control test is not found from the control');
+  const draft = readFileSync(join(RM, '00-changes/C56-analyze-gate/interface.md'), 'utf8').split(/^## Draft of CTL5\.md$/m)[1].match(/^````\n([\s\S]*?)\n````$/m)[1];
+  const real = join(RM, '04-controls/CTL5-gate-analyze-vulnerabilities/CTL5.md');
+  assert.ok(existsSync(real), 'CTL5.md is absent');
+  // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${draft}\n`, 'CTL5.md differs from the draft');
+}
