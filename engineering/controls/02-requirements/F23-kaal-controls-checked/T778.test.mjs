@@ -1,0 +1,16 @@
+// Case controls/T778 tests: controls/F23
+import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
+const CHECK = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
+export const id = 'controls/T778';
+export const tests = ['controls/F23'];
+export const title = 'Engineering runs the product check on the controls that exist in its folders at execution time';
+export async function run() {
+  assert.ok(existsSync(CHECK), 'the product check is absent');
+  try { execFileSync(process.execPath, [CHECK, join(repo, 'engineering')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }); }
+  catch (e) { assert.fail(`the product check fails on the controls of engineering: ${String(e.stderr).split('\n')[0]}`); }
+}
