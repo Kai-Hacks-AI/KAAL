@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Add the draft in `interface.md`: the `alsoRules` declaration of a stage and what the judge does with it.
+1. Add the draft in `interface.md`: the `rules` declaration of a stage and what the judge does with it.
 2. Add the Cases T900 to T903, all RED: one declared rule passes (T900); two and three declared rules pass, whatever their order (T901); an undeclared rule, a missing rule, a setting that differs or is not declared, and an undeclared or missing check each fail (T902); a trace to no control, to an undeclared control or to a control without an Intent, and an unreadable or missing declaration each fail (T903).
 3. Observe the expected RED and that each Case can pass with the DO's content (`evidence.md`).
 4. The PLAN changes no judge, no declaration and nothing under `.github`.

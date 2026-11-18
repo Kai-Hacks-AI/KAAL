@@ -22,4 +22,6 @@ const hooks = () => {
   }
   return { files, sources };
 };
-export const GOOD = () => ({ stages: stages(), rulesets: Object.fromEntries([...NAMES, "Publishing"].map((n) => [n, source(n)])), hooks: hooks() });
+// the controls the declaration traces to, as the judge reads them (id and the Intents it answers): release/CTL1 (verify Stages) and release/CTL5 (gate analyze Vulnerabilities)
+export const CONTROLS = [{ id: "release/CTL1", has: ["release/I27"] }, { id: "release/CTL5", has: ["release/I30"] }];
+export const GOOD = () => ({ stages: stages(), rulesets: Object.fromEntries([...NAMES, "Publishing"].map((n) => [n, source(n)])), hooks: hooks(), controls: CONTROLS.map((c) => ({ ...c, has: [...c.has] })) });

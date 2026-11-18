@@ -31,6 +31,11 @@ export function judge(facts) {
     ...integrating.parts.map((p) => [p.name, heads([p.target])]),
     ["Promoting", [promoting.target]],
   ];
+  // the declaration is the data: each branch ruleset declares its rules and their settings (a status-check rule lists its checks), each traced to a declared control that has an Intent; the judge holds no shape of its own (release/C70)
+  const controls = new Map((facts.controls ?? []).map((c) => [c.id, c]));
+  const declaredFor = (name) => (name === "Integrating" ? integrating : name === "Promoting" ? promoting : integrating.parts.find((p) => p.name === name))?.rules;
+  const traced = (name, what, control) => { const c = controls.get(control); if (!c) add(name, `${name}: ${what} is traced to ${control ?? "no control"}, which is not a declared control`); else if (!(c.has ?? []).length) add(name, `${name}: ${what} is traced to ${control}, which has no Intent`); };
+  const sorted = (o) => JSON.stringify(Object.fromEntries(Object.entries(o ?? {}).sort(([a], [b]) => (a < b ? -1 : 1))));
   for (const [name, include] of branch) {
     const r = rulesets[name];
     if (!r) { add(name, `${name}: no ruleset source`); continue; }
@@ -38,12 +43,21 @@ export function judge(facts) {
     if (r.target !== "branch") add(name, `${name}: the target is ${r.target}, not branch`);
     if (!same(r.conditions?.ref_name?.include, include)) add(name, `${name}: the refs are ${JSON.stringify(r.conditions?.ref_name?.include)}, not ${JSON.stringify(include)}`);
     if (!same(r.bypass_actors, [])) add(name, `${name}: the bypass list is not empty`);
-    const rules = r.rules ?? [];
-    const checks = rules[0]?.parameters;
-    const expected = [...(name === "Integrating" ? integrating.requires ?? [name] : [name]).map(job), ...(by(name)?.also ?? [])]; // what stages.json declares: Integrating requires, and `also` of a stage adds checks by their full name (release/C59)
-    if (!same(rules.map((x) => x.type), ["required_status_checks"])) add(name, `${name}: the only rule must be required_status_checks`);
-    else if (!same((checks.required_status_checks ?? []).map((c) => c.context), expected)) add(name, `${name}: the required checks must be ${expected.join(" and ")}`);
-    else if (checks.strict_required_status_checks_policy !== false) add(name, `${name}: "up to date" must not be required`);
+    const declared = declaredFor(name);
+    if (!Array.isArray(declared) || declared.some((d) => !d || typeof d.type !== "string")) { add(name, `${name}: the stage does not declare its rules as a list`); continue; }
+    const have = (r.rules ?? []).map((x) => x.type).sort();
+    const want = declared.map((d) => d.type).sort();
+    if (!same(have, want)) { add(name, `${name}: the rules are ${have.join(", ") || "none"}, the declaration says ${want.join(", ") || "none"}`); continue; }
+    for (const d of declared) {
+      traced(name, `the ${d.type} rule`, d.control);
+      const { required_status_checks: sourceChecks, ...settings } = r.rules.find((x) => x.type === d.type)?.parameters ?? {};
+      for (const k of new Set([...Object.keys(settings), ...Object.keys(d.parameters ?? {})])) if (JSON.stringify(settings[k]) !== JSON.stringify((d.parameters ?? {})[k])) add(name, `${name}: the setting ${k} of ${d.type} is ${JSON.stringify(settings[k])}, the declaration says ${JSON.stringify((d.parameters ?? {})[k])}`);
+      if (d.type !== "required_status_checks") continue;
+      const checks = Array.isArray(d.checks) ? d.checks : [];
+      const key = (c) => `${c.context ?? c.name}#${c.integration_id}`;
+      if (!same((sourceChecks ?? []).map(key).sort(), checks.map(key).sort())) add(name, `${name}: the required checks must be ${checks.map((c) => c.name).join(" and ")}`);
+      for (const c of checks) traced(name, `the check ${c.name}`, c.control);
+    }
   }
   judgeDeveloping(developing, facts.hooks, (m) => add("Developing", `Developing: ${m}`));
   const p = rulesets.Publishing;
@@ -96,6 +110,21 @@ export function readHooks(root, stages) {
   } catch (e) { return e.code === "ENOENT" ? { files: {}, sources: {}, platform: process.platform } : null; }
 }
 
+// the controls declared in a checkout: the frontmatter id and has of each 04-controls/CTL<n>-<slug>/CTL<n>.md
+function readControls(root) {
+  const dir = join(root, "engineering/release-management/04-controls");
+  try {
+    return readdirSync(dir).flatMap((d) => {
+      try {
+        const head = readFileSync(join(dir, d, `${d.split("-")[0]}.md`), "utf8").split("---")[1] ?? "";
+        const id = head.match(/^id:\s*(\S+)\s*$/m)?.[1];
+        const has = (head.match(/^has:\s*\[(.*)\]\s*$/m)?.[1] ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+        return id ? [{ id, has }] : [];
+      } catch { return []; }
+    });
+  } catch { return []; }
+}
+
 // reads the sources of a checkout: node judge.mjs <root> <Ruleset>; exit 0 pass, 1 this job fails, 2 cannot judge
 export function read(root) {
   const dir = join(root, "engineering/release-management/05-src");
@@ -105,7 +134,7 @@ export function read(root) {
     for (const n of ["Integrating", "Collecting", "Hotfixing", "Wiring", "Promoting", "Publishing"]) {
       try { rulesets[n] = JSON.parse(readFileSync(join(dir, `wiring/rulesets/${n.toLowerCase()}.json`), "utf8")); } catch (e) { if (e.code !== "ENOENT") return null; }
     }
-    return { stages, rulesets, hooks: readHooks(root, stages) };
+    return { stages, rulesets, hooks: readHooks(root, stages), controls: readControls(root) };
   } catch { return null; }
 }
 
