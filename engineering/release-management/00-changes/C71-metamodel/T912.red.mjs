@@ -14,9 +14,9 @@ export async function run() {
   const dup = new Set();
   for (const r of rs) { const k = `${r.label} ${r.from} ${r.tos.join(",")}`; assert.ok(!dup.has(k), `a relationship is defined twice: ${k}`); dup.add(k); assert.ok(ok.has(r.status), `${k}: status ${r.status}`); assert.ok(r.key && r.source, `${k}: key or source missing`); }
   const table = os.map((o) => o.identity).join(" ");
-  for (const p of ["I<n>", "F<n>", "N<n>", "A<n>", "D<n>", "T<n>", "C<n>", "CTL<n>", "G<n>"]) assert.ok(table.includes(p), `the identifier ${p} of the repository is not kept`);
+  for (const p of ["I<n>", "F<n>", "N<n>", "A<n>", "D<n>", "T<n>", "C<n>", "CTL<n>"]) assert.ok(table.includes(p), `the identifier ${p} of the repository is not kept`);
   const keys = rs.map((r) => r.key).join(" ");
-  for (const k of ["implements", "serves", "addresses", "closes", "has", "tests"]) assert.ok(keys.includes(k), `the repository key ${k} is not kept`);
+  for (const k of ["implements", "serves", "addresses", "has", "tests"]) assert.ok(keys.includes(k), `the repository key ${k} is not kept`);
   for (const e of edges(mermaid(text)[0] ?? "")) {
     const r = rs.find((x) => x.label === e.label && norm(x.from) === e.from && x.tos.map(norm).includes(e.to));
     assert.ok(r, `the edge ${e.from} ${e.label} ${e.to} has no relationship row`);

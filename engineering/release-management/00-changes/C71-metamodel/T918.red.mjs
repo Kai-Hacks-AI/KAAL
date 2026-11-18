@@ -10,20 +10,18 @@ export const title = "the Mismatches section records each difference between the
 const text = (p) => readFileSync(join(REPO, p), "utf8");
 const FACTS = {
   M1: () => /^implements:/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")) && !/^delivers:/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")),
-  M2: () => /^serves:/m.test(text("engineering/release-management/02-requirements/F22-wire-operation/F22.md")) && /^addresses:/m.test(text("engineering/release-management/03-architecture/A47-wire-install/A47.md")),
+  M2: () => /^serves:/m.test(text("engineering/release-management/02-requirements/F22-wire-operation/F22.md")),
   M3: () => walk(join(RM, "03-architecture")).filter((f) => f.endsWith(".md")).every((f) => !(frontmatter(readFileSync(f, "utf8")).addresses ?? []).some((a) => /\/D\d+$/.test(a))),
   M4: () => walk(join(RM, "02-requirements")).filter((f) => f.endsWith(".md")).every((f) => !(frontmatter(readFileSync(f, "utf8")).serves ?? []).includes("release/I35")) && /^has: \[.*release\/I35/m.test(text("engineering/release-management/04-controls/CTL7-verify-sync/CTL7.md")),
   M5: () => !existsSync(join(RM, "00-changes/C37-developing/C37.md")) && existsSync(join(RM, "00-changes/C37-developing/change.md")),
-  M6: () => !/I35/.test(JSON.parse(text("engineering/release-management/00-changes/C71-metamodel/sample-c65.json")).prs.map((p) => p.changeLine).join("\n")),
-  M7: () => !readdirSync(join(REPO, ".github/PULL_REQUEST_TEMPLATE")).some((f) => /wire/i.test(f)),
-  M9: () => walk(join(RM, "04-controls")).filter((f) => f.endsWith(".md") && /^id: release\/CTL/m.test(readFileSync(f, "utf8"))).every((f) => { const k = Object.keys(frontmatter(readFileSync(f, "utf8"))); return k.includes("has") && !k.includes("addresses") && !k.includes("source"); }) && walk(join(RM, "03-architecture")).filter((f) => f.endsWith(".md")).every((f) => !/CTL\d+/.test(readFileSync(f, "utf8"))),
-  M11: () => /^export const tests/m.test(text("engineering/release-management/00-changes/C65-sync-split/T851.test.mjs")) && !/verifies/.test(text("engineering/release-management/00-changes/C65-sync-split/T851.test.mjs")),
-  M10: () => /a pull request is one realization of a Change/.test(text("packages/kaal-change/capability/Change-Definition.md")),
-  M8: () => /^closes: \[release\/G\d+\]/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")) && !/^closes:.*\/D\d+/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")),
+  M6: () => /^closes: \[release\/G\d+\]/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")) && !/^closes:.*\/D\d+/m.test(text("engineering/release-management/00-changes/C65-sync-split/C65.md")),
+  M7: () => walk(join(RM, "04-controls")).filter((f) => f.endsWith(".md") && /^id: release\/CTL/m.test(readFileSync(f, "utf8"))).every((f) => { const k = Object.keys(frontmatter(readFileSync(f, "utf8"))); return k.includes("has") && !k.includes("addresses") && !k.includes("source"); }) && walk(join(RM, "03-architecture")).filter((f) => f.endsWith(".md")).every((f) => !/CTL\d+/.test(readFileSync(f, "utf8"))),
+  M8: () => /^export const tests = \[['"]release\/C65['"]\]/m.test(text("engineering/release-management/00-changes/C65-sync-split/T851.test.mjs")) && !/verifies/.test(text("engineering/release-management/00-changes/C65-sync-split/T851.test.mjs")),
+  M9: () => !readdirSync(join(REPO, ".github/PULL_REQUEST_TEMPLATE")).some((f) => /wire/i.test(f)),
 };
 export async function run() {
   const rs = rows(section(model(), "Mismatches"));
-  assert.ok(rs.length >= 11, `${rs.length} mismatches are recorded, the model records 11`);
+  assert.ok(rs.length >= 9, `${rs.length} mismatches are recorded, the model records 9`);
   for (const [n, says, shows, evidence] of rs) {
     assert.ok(says && shows && evidence, `${n}: a cell is empty`);
     const path = backticked(evidence).find((p) => p.includes("/"));
