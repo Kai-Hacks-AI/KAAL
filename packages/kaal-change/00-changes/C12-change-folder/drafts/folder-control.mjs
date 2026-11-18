@@ -58,3 +58,11 @@ export function judgeRetirement({ before, head, from }) {
   }
   return out;
 }
+
+/** The checks a deleted Change registration retires: { folder, id, run } read from `before`. Applies only when a diff deletes a registration. */
+export function retiring({ before, head }) {
+  const headFiles = new Set(head.files);
+  return before.files
+    .filter((p) => /\/00-changes\/C[^/]+\/kaal-guard\.json$/.test(p) && !headFiles.has(p))
+    .flatMap((p) => (JSON.parse(before.read(p)).checks ?? []).map((c) => ({ folder: posix.dirname(p), id: c.id, run: c.run })));
+}

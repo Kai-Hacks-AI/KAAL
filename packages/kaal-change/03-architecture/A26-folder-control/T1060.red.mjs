@@ -18,5 +18,6 @@ export async function run() {
   assert.ok(existsSync(cli), 'the wrapper is absent');
   const wrapper = readFileSync(cli, 'utf8');
   assert.ok(/@kaihacksai\/kaal-hosting/.test(wrapper) && !/node:child_process/.test(wrapper), 'the wrapper does not reach Git through Hosting');
+  assert.ok(/--replay/.test(wrapper), 'the wrapper cannot replay the retiring checks');
 }
 test(id, () => run());
