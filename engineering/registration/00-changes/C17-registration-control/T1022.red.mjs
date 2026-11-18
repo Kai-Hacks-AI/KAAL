@@ -11,7 +11,7 @@ export async function run() {
   assert.ok(existsSync(p), `the control is not declared: ${p.replace(REPO + "/", "")}`);
   const t = readFileSync(p, "utf8");
   for (const [k, v] of [["id", "engineering/CTL1"], ["title", "verify Registration"], ["type", "detective"], ["has", "[engineering/I1]"]])
-    assert.match(t, new RegExp(`^${k}: ${v.replace(/[[\]/]/g, "\\$&")}$`, "m"), `CTL1 front matter ${k}`);
+    assert.ok(t.split("\n").includes(`${k}: ${v}`), `CTL1 front matter ${k}`);
   assert.match(t, /^description: .+/m, "CTL1 has a description");
   assert.match(t, /^status: (designed|implemented)$/m, "CTL1 has a status in the vocabulary");
   const i = readFileSync(join(REPO, "engineering", "registration", "00-changes", "C17-registration-control", "interface.md"), "utf8");
