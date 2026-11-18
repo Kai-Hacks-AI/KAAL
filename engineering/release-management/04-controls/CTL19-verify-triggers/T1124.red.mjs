@@ -12,7 +12,7 @@ const load = () => import(pathToFileURL(MOD).href);
 const draft = (name) => readFileSync(join(RM, '00-changes/C90-no-pull-request-target/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1124';
 export const tests = ['release/F67'];
-export const title = 'the workflow source runs on plain pull_request with read-only permissions, no secret and no pull_request_target, and runs the judge';
+export const title = 'the workflow source runs on plain pull_request, reads the base commit and the head ref as Git data, runs only the base judge, with no secret and no pull_request_target';
 export async function run() {
   const { uses } = await load();
   const real = join(RM, '05-src/wiring/workflows/verify-triggers.yml');
@@ -23,5 +23,12 @@ export async function run() {
   assert.match(t, /^on:\n  pull_request:/m);
   assert.match(t, /permissions:\n  contents: read/);
   assert.doesNotMatch(t, /secrets\./);
-  assert.match(t, /verify-triggers\.mjs/);
+  assert.match(t, /ref: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/, 'the checkout is not the base commit');
+  assert.doesNotMatch(t, /ref: \$\{\{ github\.event\.pull_request\.head/, 'a checkout of the pull request head would run its code');
+  assert.doesNotMatch(t, /github\.head_ref|pull_request\.head\.(ref|sha)/, 'the head is read by its pull request ref only');
+  assert.match(t, /fetch-depth: 0/);
+  assert.match(t, /persist-credentials: false/);
+  assert.match(t, /git fetch --no-tags origin "\+refs\/pull\/\$\{PR_NUMBER\}\/head:refs\/remotes\/pull\/head"/, 'the head is not fetched from its pull request ref');
+  assert.match(t, /--head refs\/remotes\/pull\/head/);
+  assert.match(t, /UNKNOWN: the judge is absent on the base[\s\S]*exit 2/);
 }

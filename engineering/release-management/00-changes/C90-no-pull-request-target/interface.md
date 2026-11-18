@@ -25,7 +25,7 @@ serves: [release/I50]
 ---
 # release/F67 verify-triggers
 
-A pull request check compares the workflows of its base with the workflows of its head, both read as Git data, and says FAIL when the number of workflows that use `pull_request_target` is higher on the head than on the base, or when a workflow that does not use it on the base uses it on the head (a new file, or an existing one that gains it). It says PASS otherwise, and UNKNOWN when the base or the head could not be read, which never passes. A workflow uses the trigger only when its `on:` key names it, in the scalar, list, map or block-list form; a mention in a comment or in a string does not count. The baseline is the base branch, never a list kept by hand. The check runs on `pull_request` with no token and no secret, and reads no pull request code except as Git data.
+A pull request check compares the workflows of its base with the workflows of its head, both read as Git data, and says FAIL when the number of workflows that use `pull_request_target` is higher on the head than on the base, or when a workflow that does not use it on the base uses it on the head (a new file, or an existing one that gains it). It says PASS otherwise, and UNKNOWN when the base or the head could not be read, which never passes. A workflow uses the trigger only when its `on:` key names it, in the scalar, list, map or block-list form; a mention in a comment or in a string does not count. The baseline is the base branch, never a list kept by hand. The check runs on `pull_request` with no token and no secret. It reads the base at its exact commit and the proposed head from the pull request's own head ref (`refs/pull/<number>/head`, which exists in the base repository for a fork pull request as well), both as Git data, and runs only the judge of the base, never a file of the pull request. A ref that cannot be resolved, or a judge that is absent on the base, is UNKNOWN or a failed step, never a pass.
 `````
 
 ## Draft of A62.md
@@ -38,7 +38,7 @@ addresses: [release/F67]
 ---
 # release/A62 verify-triggers
 
-One module `05-src/triggers/verify-triggers.mjs` with a pure judge over two maps of workflow path to text (`judge({ base, head })`), a reader of a directory or of a Git ref (`readTree`, `read`) and a command line (`--base`, `--head`, exit 0 PASS, 1 FAIL, 2 UNKNOWN), and one workflow source `05-src/wiring/workflows/verify-triggers.yml` (on `pull_request`, `permissions` read only, no secret, one job `verify Triggers`). The module is the judge release/CTL19 declares. Its registration in the Integrating and Promoting stations is a later WIRE, and requiring the check in a ruleset is the Owner's later decision.
+One module `05-src/triggers/verify-triggers.mjs` with a pure judge over two maps of workflow path to text (`judge({ base, head })`), a reader of a directory or of a Git ref (`readTree`, `read`) and a command line (`--base`, `--head`, exit 0 PASS, 1 FAIL, 2 UNKNOWN), and one workflow source `05-src/wiring/workflows/verify-triggers.yml` (on `pull_request`, `permissions` read only, no secret, one job `verify Triggers`). The job checks out the base commit (`github.event.pull_request.base.sha`, full history, no stored credential), so the judge it runs is the base's own copy; fetches the proposed head into the remote-tracking ref `refs/remotes/pull/head` from `refs/pull/<number>/head`, which holds for a fork pull request because the ref lives in the base repository; and judges `--base $BASE_SHA --head refs/remotes/pull/head`. Both refs are verified to be commits before they are read. The workflow file itself comes from the pull request's merge commit, so this check alone cannot stop a pull request that edits it; the WIRE judge compares the installed copy with this source, and the Inspector's signed check replaces it later. The module is the judge release/CTL19 declares. Its registration in the Integrating and Promoting stations is a later WIRE, and requiring the check in a ruleset is the Owner's later decision.
 `````
 
 ## Draft of CTL19.md
@@ -56,7 +56,7 @@ has: [release/I50]
 
 A detective control and a ratchet. `verify Triggers` compares the workflows of the base with those of the head and says FAIL when the count of workflows that use `pull_request_target` rises or a workflow that did not use it on the base uses it on the head. The base branch is the baseline, so removing a use passes and the count only goes down. It says PASS when neither happens, and UNKNOWN when a side could not be read, which never passes. PASS is not an approval and not a merge decision.
 
-It runs on a plain `pull_request` with no token, in the Integrating and Promoting stations once wired. It judges nothing else: it does not say whether a workflow is safe, only which trigger it names. Making it a required check is another control with its own Owner decision. When the count is 0 the target Case of this control asserts it, and the ratchet then keeps it at 0.
+It runs on a plain `pull_request` with no token, in the Integrating and Promoting stations once wired. It reads the base commit and the proposed head ref as Git data and runs the base's judge, never a file of the pull request, fork pull requests included. It judges nothing else: it does not say whether a workflow is safe, only which trigger it names. Making it a required check is another control with its own Owner decision. When the count is 0 the target Case of this control asserts it, and the ratchet then keeps it at 0.
 
 It has one Intent, release/I50.
 `````
@@ -102,13 +102,14 @@ export function readTree(dir) {
 
 export function read(root, ref) {
   const git = (...a) => execFileSync('git', ['-C', root, ...a], { encoding: 'utf8' });
+  git('rev-parse', '--verify', '--quiet', `${ref}^{commit}`);
   const out = {};
   for (const p of git('ls-tree', '-r', '--name-only', ref, '--', '.github/workflows').split('\n').filter((x) => /\.ya?ml$/.test(x))) out[p] = git('show', `${ref}:${p}`);
   return out;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const arg = (k) => process.argv[process.argv.indexOf(k) + 1];
+  const arg = (k) => { const i = process.argv.indexOf(k); return i < 0 ? undefined : process.argv[i + 1]; };
   let r;
   try { r = judge({ base: read(arg('--root') || '.', arg('--base')), head: read(arg('--root') || '.', arg('--head')) }); } catch (e) { r = { verdict: 'UNKNOWN', reasons: [String(e.message)] }; }
   console.log(`${r.verdict}${r.reasons.length ? `: ${r.reasons.join('; ')}` : ''}`);
@@ -121,6 +122,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 `````
 name: verify Triggers
 # release/CTL19. A detective check on plain pull_request: no token, no secret, no pull_request_target (it is the rule it keeps).
+# It runs the judge of the base and reads the pull request only as Git data.
 on:
   pull_request:
     branches: ['**']
@@ -130,11 +132,23 @@ jobs:
   verify-triggers:
     name: verify Triggers
     runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Check out the base, the trusted judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
+          ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 0
           persist-credentials: false
-      - run: node engineering/release-management/05-src/triggers/verify-triggers.mjs --base "origin/${{ github.base_ref }}" --head "${{ github.event.pull_request.head.sha }}"
+      - name: Fetch the proposed head as Git data
+        run: |
+          git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
+      - name: Judge
+        run: |
+          J=engineering/release-management/05-src/triggers/verify-triggers.mjs
+          test -f "$J" || { echo "UNKNOWN: the judge is absent on the base"; exit 2; }
+          node "$J" --base "$BASE_SHA" --head refs/remotes/pull/head
 `````
 
