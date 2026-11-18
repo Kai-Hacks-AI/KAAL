@@ -36,3 +36,7 @@ The first draft of the command line took the value of an option that was absent 
 ## CPO review of the PLAN (18 Nov, 18:20)
 
 Asked for the Git ref and checkout contract, fork pull requests included, no untrusted PR code run, a Case on the real workflow's checkout and fetch, and UNKNOWN for a missing ref. The draft workflow, F67, A62, CTL19 and `change.md` (Reading the pull request) now say it, T1124 checks the workflow's structure and T1126 runs its steps.
+
+## DO (18 Nov)
+
+The six files are written from the drafts in `interface.md` (I50, F67, A62, CTL19, the judge module `05-src/triggers/verify-triggers.mjs`, the workflow source `05-src/wiring/workflows/verify-triggers.yml`). T1116 to T1122, T1124, T1125 and T1126 are renamed `.test.mjs` and pass; T1123 stays `.red.mjs` on purpose. The runner on this tree: 243 tests, 231 pass, the same 12 pre-existing C15 failures. The workflow is a source only: it is not installed under `.github/workflows` and nothing requires it.
