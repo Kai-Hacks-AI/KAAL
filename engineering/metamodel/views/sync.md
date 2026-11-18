@@ -12,14 +12,15 @@ A SYNC brings a newer `main` into a collector and claims no Change Record of its
 ```mermaid
 flowchart LR
   Change -->|succeeds| Change
-  PR -->|realizes| Change
+  PR -.->|names| Change
+  PR ==>|carries| Diff
 ```
 
 ## Objects
-Change, PR.
+Change, PR, Diff.
 
 ## Relationships
-succeeds, realizes.
+succeeds, names, carries.
 
 ## Information the template expects
 The primary incoming Change that drives the synchronization; the reason it is needed now.

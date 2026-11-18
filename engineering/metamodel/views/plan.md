@@ -16,14 +16,15 @@ flowchart LR
   Architecture -->|answers| Requirement
   Case -.->|tests| Change
   Change -.->|closes| Gap
-  PR -->|realizes| Change
+  PR -.->|names| Change
+  PR ==>|carries| Diff
 ```
 
 ## Objects
-Change, Intent, Requirement, Architecture, Case, Gap, PR.
+Change, Intent, Requirement, Architecture, Case, Gap, PR, Diff.
 
 ## Relationships
-delivers, answers, tests, closes, realizes.
+delivers, answers, tests, closes, names, carries.
 
 ## Information the template expects
 The Change line (id, name, what it is about); From (the current state); To (the target state); Because (the value delivered).

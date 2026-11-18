@@ -7,7 +7,7 @@ import { read, model, section, rows, frontmatter, walk, RM, REPO } from "./helpe
 export const id = "release/T917";
 export const tests = ["release/C71"];
 export const title = "following only the relationships the model names for Q1 to Q6, a reviewer answers, from the recorded pull requests of release/C65 (PLAN, DO, ACT, PROMOTION) and the repository, which objects it affects, which Intent it delivers, what supports the Intent, what each Case tests, which Gap it closes and what evidence there is";
-const USED = { Q1: ["realizes", "records"], Q2: ["realizes", "delivers"], Q3: ["answers", "has"], Q4: ["tests"], Q5: ["addresses", "closes"], Q6: ["records", "references"] };
+const USED = { Q1: ["names", "records", "carries"], Q2: ["names", "delivers"], Q3: ["answers", "has"], Q4: ["tests"], Q5: ["addresses", "closes"], Q6: ["records", "references"] };
 
 export async function run() {
   const text = model();
@@ -19,7 +19,7 @@ export async function run() {
   const sample = JSON.parse(readFileSync(new URL("./sample-c65.json", import.meta.url), "utf8")).prs;
   assert.deepEqual(sample.map((p) => p.title.split(":")[0]), ["PLAN", "DO", "ACT", "PROMOTION"], "the sample is a PLAN, a DO, an ACT and a PROMOTION");
   const changeId = (p) => p.changeLine.match(/^(\S+\/C\d+)\b/)[1];
-  for (const p of sample) assert.equal(changeId(p), "release/C65", `#${p.pr}: realizes release/C65`); // PR realizes Change
+  for (const p of sample) assert.equal(changeId(p), "release/C65", `#${p.pr}: names release/C65`); // PR names Change (it carries a Diff and does not realize the Change)
   const folder = readdirSync(join(RM, "00-changes")).find((d) => d.startsWith("C65-"));
   assert.ok(folder, "Change release/C65 has a record folder");
   const node = frontmatter(readFileSync(join(RM, "00-changes", folder, "C65.md"), "utf8"));

@@ -15,14 +15,15 @@ flowchart LR
   Case -->|tests| Requirement
   Case -->|tests| Architecture
   Case -.->|tests| Change
-  PR -->|realizes| Change
+  PR -.->|names| Change
+  PR ==>|carries| Diff
 ```
 
 ## Objects
-Change, Intent, Requirement, Architecture, Case, PR.
+Change, Intent, Requirement, Architecture, Case, PR, Diff.
 
 ## Relationships
-delivers, tests, realizes.
+delivers, tests, names, carries.
 
 ## Information the template expects
 The Change line; what the DO implements; the refactoring intended while behaviour stays, or that there is none.

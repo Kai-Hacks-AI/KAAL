@@ -13,14 +13,15 @@ An ACT adds the records that close the Change in its collector, today the 4L ret
 flowchart LR
   Change -->|records| ChangeRecord
   ChangeRecord -->|references| Evidence
-  PR -->|realizes| Change
+  PR -.->|names| Change
+  PR ==>|carries| Diff
 ```
 
 ## Objects
-Change, Change Record, Evidence, PR.
+Change, Change Record, Evidence, PR, Diff.
 
 ## Relationships
-records, references, realizes.
+records, references, names, carries.
 
 ## Information the template expects
 The Change line; the records the ACT adds, named and not repeated.

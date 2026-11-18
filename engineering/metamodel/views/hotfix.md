@@ -14,14 +14,15 @@ flowchart LR
   Architecture -->|addresses| Defect
   Case -->|tests| Defect
   Change -->|delivers| Intent
-  PR -->|realizes| Change
+  PR -.->|names| Change
+  PR ==>|carries| Diff
 ```
 
 ## Objects
-Change, Intent, Architecture, Defect, Case, PR.
+Change, Intent, Architecture, Defect, Case, PR, Diff.
 
 ## Relationships
-addresses, tests, delivers, realizes.
+addresses, tests, delivers, names, carries.
 
 ## Information the template expects
 The Change (id and name only); the Defect by its `<capability>/D<n>` identity and the state that is defective; the urgency; the approach.

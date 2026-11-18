@@ -15,14 +15,15 @@ flowchart LR
   Change -.->|walks| Stage
   Control ==>|gates| Stage
   ChangeRecord -->|references| Evidence
-  PR -->|realizes| Change
+  PR -.->|names| Change
+  PR ==>|carries| Diff
 ```
 
 ## Objects
-Change, Change Record, Evidence, Stage, Control, PR.
+Change, Change Record, Evidence, Stage, Control, PR, Diff.
 
 ## Relationships
-succeeds, walks, gates, references, realizes.
+succeeds, walks, gates, references, names, carries.
 
 ## Information the template expects
 One line per Change delivered, `<id> <name>: <phases carried>`; why now.

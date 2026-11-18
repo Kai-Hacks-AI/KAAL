@@ -3,7 +3,7 @@ title: KAAL object metamodel
 ---
 # KAAL object metamodel
 
-The one authoritative reference for the objects of a Change and the relationships between them. It describes objects and relationships, not the order of workflow steps. A pull request is a transport mechanism for a Change, never the authority for its lifecycle state. Each object and each relationship is defined once, here; the views in [views/](views/) only select from this model and never define anything.
+The one authoritative reference for the objects of a Change and the relationships between them. It describes objects and relationships, not the order of workflow steps. A pull request is a carrier: it joins a source branch to a target branch, the diff between them, and the Controls evaluated on it. It is not a Change and never the authority for a Change's lifecycle state; the Change is the KAAL record, the diff is the repository's alteration. Each object and each relationship is defined once, here; the views in [views/](views/) only select from this model and never define anything.
 
 Every row says how far it can be trusted: **normative** (stated by an owner's Definition or confirmed by the Owner), **observed** (a convention found in the repository, with the path that shows it), or **proposed** (an extension for the Owner to decide). Existing identifiers and keys are kept as they are; where the Owner's word and the repository's key differ, both are shown and the difference is listed under Mismatches.
 
@@ -40,7 +40,9 @@ flowchart LR
   Change -->|succeeds| Change
   Change -->|records| ChangeRecord["Change Record"]
   ChangeRecord -->|references| Evidence
-  PR -->|realizes| Change
+  PR -.->|names| Change
+  PR ==>|carries| Diff
+  Control -.->|evaluates| PR
   Control -.->|has| Intent
   Case -.->|tests| Change
   Case -.->|tests| Control
@@ -64,7 +66,8 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 | Change | `<capability>/C<n>`, a Change Node in its record folder | normative | kaal-change, Change Definition |
 | Change Record | the folder of a Change (`00-changes/C<n>-<slug>/` in release management) | normative | kaal-change, Change Record Definition |
 | Evidence | what a record references: Case results, checks, `evidence.md`, the 4L retrospective, a Review judgment | normative | kaal-change (tracks, never owns); Testing (verification); Review (validation) |
-| PR | a GitHub pull request, with a title TYPE and a body in the envelope of its template | normative | Change Definition: one realization of a Change; Branching |
+| PR | a GitHub pull request from a source branch to a target branch, with a title TYPE and a body in the envelope of its template; a carrier and the context in which Controls are evaluated, never a Change | observed | `engineering/github/branching.md` (routes by TYPE); Owner direction, 18 Nov 2026 |
+| Diff | the difference between the target and the source branch at the head of a PR: the changed files, the proposed alteration of repository state; not a Change Record | proposed | Owner direction, 18 Nov 2026 (CPO review of the views); no Definition names it |
 | Control | `<capability>/CTL<n>`, with `type` and `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md`; six in `engineering/release-management/04-controls/` |
 | Source | the code, workflow or ruleset a Case exercises, under `05-src/` | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` imports the judge it runs |
 | Gap | `<capability>/G<n>`, a row of a Change's `gap.md` | observed | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
@@ -82,7 +85,9 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 | succeeds | Change → Change | none found | normative | Succeeds Definition (`packages/kaal-change/capability/Succeeds.md`) |
 | records | Change → Change Record | the folder | normative | Change Record Definition |
 | references | Change Record → Evidence | none | normative | Change Record Definition |
-| realizes | PR → Change | the Change line of the body | normative | Change Definition |
+| names | PR → Change | the Change line of the body | observed | `.github/PULL_REQUEST_TEMPLATE/plan.md` |
+| carries | PR → Diff | the head and the base of the PR | proposed | Owner direction, 18 Nov 2026 |
+| evaluates | Control → PR | a check on the head commit of the PR | observed | `engineering/release-management/04-controls/CTL7-verify-sync/CTL7.md` |
 | has | Control → Intent | `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md` |
 | tests | Case → Change, Control | `export const tests` | observed | `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs`, `engineering/release-management/04-controls/CTL7-verify-sync/T750.test.mjs` |
 | exercises | Case → Source | none | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` |
@@ -93,7 +98,7 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 ## Vocabularies
 
 - **Lifecycle of a Change**, read from facts and never stored: Proposed, Accepted, Withdrawn, Promoted (`packages/kaal-change/capability/Change-Lifecycle.md`). Approval, verification and validation are not states.
-- **PR title TYPE**: PLAN, DO, ACT, PROMOTION, SYNC, HOTFIX, DEFAULT, and WIRE in use. The PDCA phase a PR carries is its TYPE; it is not the state of the Change.
+- **PR title TYPE**: PLAN, DO, ACT, PROMOTION, SYNC, HOTFIX, DEFAULT, and WIRE in use. The PDCA phase a PR carries is its TYPE; it is not the state of the Change. The TYPE also says the route: its source and target branch.
 - **INFORMED**, the mnemonic of the trace chain: [INFORMED.md](INFORMED.md). It owns no instruction, capability or control.
 - **Change class**: Normal, Standard, Emergency (`Change-Classification.md`).
 
@@ -115,8 +120,8 @@ Each question is answered by following these relationships from the PR.
 
 | # | Question | Path |
 | --- | --- | --- |
-| Q1 | What objects does this Change affect? | PR realizes Change; Change records Change Record; the changed files, by folder |
-| Q2 | Which Intent does it deliver? | PR realizes Change; Change delivers Intent |
+| Q1 | What objects does this Change affect? | PR names Change; Change records Change Record; PR carries Diff, the changed files by folder |
+| Q2 | Which Intent does it deliver? | PR names Change; Change delivers Intent |
 | Q3 | Which Requirements and Architecture support that Intent? | Requirement answers Intent; Architecture answers Requirement; where none exist, Control has Intent |
 | Q4 | What does each Case explicitly test? | Case tests (the exported list) |
 | Q5 | Which Defects are addressed? | Architecture addresses Defect; Case tests Defect; Change closes Gap |
@@ -137,3 +142,4 @@ Recorded, not corrected. Each names the Owner's word or the model's claim, what 
 | M7 | every PR TYPE has a template | WIRE has none on `main` | `engineering/release-management/03-architecture/A47-wire-install/A47.md` |
 | M8 | a Change closes a Defect | the Change closes a Gap, a different object | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
 | M9 | the chain runs Intent, Requirement, Architecture, Control, Case | a Control has an Intent only; no file links an Architecture to a Control or a Control to its Source | `engineering/release-management/04-controls/CTL1-verify-stages/CTL1.md` |
+| M10 | a PR does not realize a Change: it carries a Diff and names a Change | the Change Definition says "a pull request is one realization of a Change", and Branching speaks of a Change proposed through a pull request | `packages/kaal-change/capability/Change-Definition.md` |
