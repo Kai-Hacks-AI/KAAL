@@ -1,0 +1,96 @@
+{
+ "recorded": "2026-11-18",
+ "source": "gh api repos/Kai-Hacks-AI/KAAL/pulls/<n> and /files",
+ "prs": [
+  {
+   "pr": 1889,
+   "title": "PLAN: the SYNC review reads the candidate only where no token can write",
+   "base": "kaal/release/sync-split",
+   "changeLine": "release/C65 the SYNC review reads the candidate only where no token can write",
+   "files": [
+    "engineering/release-management/00-changes/C65-sync-split/C65.md",
+    "engineering/release-management/00-changes/C65-sync-split/T851.red.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T852.red.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T853.red.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T854.red.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T855.red.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/baseline.md",
+    "engineering/release-management/00-changes/C65-sync-split/change.md",
+    "engineering/release-management/00-changes/C65-sync-split/evidence.md",
+    "engineering/release-management/00-changes/C65-sync-split/fixtures.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/gap.md",
+    "engineering/release-management/00-changes/C65-sync-split/interface.md",
+    "engineering/release-management/01-intent/I35-sync-review-token-boundary/T850.red.mjs"
+   ]
+  },
+  {
+   "pr": 1890,
+   "title": "DO: the SYNC review reads the candidate only where no token can write (release/C65)",
+   "base": "kaal/release/sync-split",
+   "changeLine": "release/C65 the SYNC review reads the candidate only where no token can write: the DO of the merged PLAN (#1889), T850 to T855 green.",
+   "files": [
+    "engineering/release-management/00-changes/C58-sync-review/T759.test.mjs",
+    "engineering/release-management/00-changes/C60-sync-approval/fixtures.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T851.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T852.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T853.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T854.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T855.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/do.md",
+    "engineering/release-management/01-intent/I35-sync-review-token-boundary/I35.md",
+    "engineering/release-management/01-intent/I35-sync-review-token-boundary/T850.test.mjs",
+    "engineering/release-management/04-controls/CTL7-verify-sync/CTL7.md",
+    "engineering/release-management/04-controls/CTL7-verify-sync/T750.test.mjs",
+    "engineering/release-management/04-controls/CTL8-approve-sync/CTL8.md",
+    "engineering/release-management/04-controls/CTL8-approve-sync/T751.test.mjs",
+    "engineering/release-management/05-src/sync-review/approve.mjs",
+    "engineering/release-management/05-src/sync-review/cli.mjs",
+    "engineering/release-management/05-src/sync-review/review.mjs",
+    "engineering/release-management/05-src/wiring/workflows/sync-review.yml"
+   ]
+  },
+  {
+   "pr": 1891,
+   "title": "ACT: C65 retrospective (4L)",
+   "base": "kaal/release/sync-split",
+   "changeLine": "release/C65 the SYNC review reads the candidate only where no token can write.",
+   "files": [
+    "engineering/release-management/00-changes/C65-sync-split/act.md"
+   ]
+  },
+  {
+   "pr": 1892,
+   "title": "PROMOTION: the SYNC review reads the candidate only where no token can write (release/CTL7, CTL8)",
+   "base": "main",
+   "changeLine": "release/C65 the SYNC review reads the candidate only where no token can write: PLAN, DO, ACT",
+   "files": [
+    "engineering/release-management/00-changes/C58-sync-review/T759.test.mjs",
+    "engineering/release-management/00-changes/C60-sync-approval/fixtures.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/C65.md",
+    "engineering/release-management/00-changes/C65-sync-split/T851.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T852.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T853.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T854.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/T855.test.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/act.md",
+    "engineering/release-management/00-changes/C65-sync-split/baseline.md",
+    "engineering/release-management/00-changes/C65-sync-split/change.md",
+    "engineering/release-management/00-changes/C65-sync-split/do.md",
+    "engineering/release-management/00-changes/C65-sync-split/evidence.md",
+    "engineering/release-management/00-changes/C65-sync-split/fixtures.mjs",
+    "engineering/release-management/00-changes/C65-sync-split/gap.md",
+    "engineering/release-management/00-changes/C65-sync-split/interface.md",
+    "engineering/release-management/01-intent/I35-sync-review-token-boundary/I35.md",
+    "engineering/release-management/01-intent/I35-sync-review-token-boundary/T850.test.mjs",
+    "engineering/release-management/04-controls/CTL7-verify-sync/CTL7.md",
+    "engineering/release-management/04-controls/CTL7-verify-sync/T750.test.mjs",
+    "engineering/release-management/04-controls/CTL8-approve-sync/CTL8.md",
+    "engineering/release-management/04-controls/CTL8-approve-sync/T751.test.mjs",
+    "engineering/release-management/05-src/sync-review/approve.mjs",
+    "engineering/release-management/05-src/sync-review/cli.mjs",
+    "engineering/release-management/05-src/sync-review/review.mjs",
+    "engineering/release-management/05-src/wiring/workflows/sync-review.yml"
+   ]
+  }
+ ]
+}
