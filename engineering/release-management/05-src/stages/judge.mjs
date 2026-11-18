@@ -53,6 +53,9 @@ export function judge(facts) {
       const { required_status_checks: sourceChecks, ...settings } = r.rules.find((x) => x.type === d.type)?.parameters ?? {};
       for (const k of new Set([...Object.keys(settings), ...Object.keys(d.parameters ?? {})])) if (JSON.stringify(settings[k]) !== JSON.stringify((d.parameters ?? {})[k])) add(name, `${name}: the setting ${k} of ${d.type} is ${JSON.stringify(settings[k])}, the declaration says ${JSON.stringify((d.parameters ?? {})[k])}`);
       if (d.type !== "required_status_checks") continue;
+      const sc = d.settingControls ?? {};
+      for (const k of Object.keys(d.parameters ?? {})) { if (!sc[k]) add(name, `${name}: the setting ${k} has no control of its own`); else traced(name, `the setting ${k}`, sc[k]); }
+      for (const k of Object.keys(sc)) if (!(k in (d.parameters ?? {}))) add(name, `${name}: a control is declared for ${k}, which the rule does not declare`);
       const checks = Array.isArray(d.checks) ? d.checks : [];
       const key = (c) => `${c.context ?? c.name}#${c.integration_id}`;
       if (!same((sourceChecks ?? []).map(key).sort(), checks.map(key).sort())) add(name, `${name}: the required checks must be ${checks.map((c) => c.name).join(" and ")}`);
