@@ -159,6 +159,11 @@
               "name": "analyze Vulnerabilities (Promoting)",
               "integration_id": 15368,
               "control": "release/CTL5"
+            },
+            {
+              "name": "verify Triggers",
+              "integration_id": 15368,
+              "control": "release/CTL20"
             }
           ]
         }
