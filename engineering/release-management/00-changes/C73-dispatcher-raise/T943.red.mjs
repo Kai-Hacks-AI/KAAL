@@ -12,6 +12,7 @@ export async function run() {
   const api = fakeApi({
     [`GET repos/${R}/git/matching-refs/heads/kaal/`]: [{ ref: `refs/heads/${C}` }, { ref: 'refs/heads/kaal/release' }, { ref: 'refs/heads/kaal/controls/other-thing' }, { ref: 'refs/heads/kaal/a/b/c' }],
     [`GET repos/${R}/compare/main...${C}`]: { ahead_by: 3 },
+    [`GET repos/${R}/git/ref/heads/${C}`]: { object: { sha: '0123456789abcdef0123456789abcdef01234567' } },
     [`GET repos/${R}/pulls?state=closed&base=${C}&per_page=30&sort=updated&direction=desc`]: [
       { number: 5, title: 'DO: x', body: '', merged_at: '2026-11-18T09:00:00Z' },
       { number: 7, title: 'ACT: something small (release/C99)', body: '## Change\n\nrelease/C99 something small\n', merged_at: '2026-11-18T10:00:00Z' },
@@ -23,6 +24,7 @@ export async function run() {
   const f = await g.gatherFacts(api, R, C);
   assert.equal(f.collector, C);
   assert.equal(f.aheadOfMain, 3);
+  assert.equal(f.tip, '0123456789abcdef0123456789abcdef01234567', 'the tip of the collector is not read');
   assert.deepEqual(f.merged.map((p) => p.number), [7, 5], 'merged is not the merged pull requests, newest first');
   assert.deepEqual(f.open, [{ number: 31, title: 'PROMOTION: y', base: 'main', head: C }]);
   assert.ok(api.calls.every((c) => c.method === 'GET'), 'a read made a write');

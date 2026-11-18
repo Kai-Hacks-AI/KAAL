@@ -22,4 +22,7 @@ export function fakeApi(routes) {
   return api;
 }
 export const R = 'Kai-Hacks-AI/KAAL';
-export const decision = (over = {}) => ({ action: 'raise', head: 'kaal/release/small-thing', base: 'main', title: 'PROMOTION: something small, 4L retrospective (release/C99)', body: '## Change\n\nrelease/C99 something small\n\n## Reason\n\nthe ACT #7 of this collector merged, and the collector is ahead of main by 3 commit(s).\n', ...over });
+export const REV = '0123456789abcdef0123456789abcdef01234567';
+export const marker = (head = 'kaal/release/small-thing', rev = REV) => `\n<!-- kaal-dispatch: ${head}@${rev} -->\n`;
+export const refused422 = () => Object.assign(new Error('Validation Failed: A pull request already exists for Kai-Hacks-AI:kaal/release/small-thing.'), { status: 422 });
+export const decision = (over = {}) => ({ action: 'raise', revision: REV, head: 'kaal/release/small-thing', base: 'main', title: 'PROMOTION: something small, 4L retrospective (release/C99)', body: '## Change\n\nrelease/C99 something small\n\n## Reason\n\nthe ACT #7 of this collector merged, and the collector is ahead of main by 3 commit(s).\n', ...over });
