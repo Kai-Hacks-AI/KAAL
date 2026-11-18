@@ -1,0 +1,116 @@
+---
+title: KAAL object metamodel
+---
+# KAAL object metamodel
+
+The one authoritative reference for the objects of a Change and the relationships between them. It describes objects and relationships, not the order of workflow steps. A pull request is a transport mechanism for a Change, never the authority for its lifecycle state. Each object and each relationship is defined once, here; the views in [views/](views/) only select from this model and never define anything.
+
+Every row says how far it can be trusted: **normative** (stated by an owner's Definition or confirmed by the Owner), **observed** (a convention found in the repository, with the path that shows it), or **proposed** (an extension for the Owner to decide). Existing identifiers and keys are kept as they are; where the Owner's word and the repository's key differ, both are shown and the difference is listed under Mismatches.
+
+## Diagram
+
+```mermaid
+flowchart LR
+  Change -->|delivers| Intent
+  Requirement -->|answers| Intent
+  Architecture -->|answers| Requirement
+  Architecture -->|addresses| Defect
+  Case -->|tests| Intent
+  Case -->|tests| Requirement
+  Case -->|tests| Architecture
+  Case -->|tests| Defect
+  Change -->|succeeds| Change
+  Change -->|records| ChangeRecord["Change Record"]
+  ChangeRecord -->|references| Evidence
+  PR -->|realizes| Change
+  Control -.->|has| Intent
+  Case -.->|tests| Change
+  Case -.->|tests| Control
+  Change -.->|closes| Gap
+  Change -.->|walks| Stage
+  Control ==>|gates| Stage
+```
+
+Solid arrows are normative, dashed arrows observed, thick arrows proposed.
+
+## Objects
+
+| Object | Repository identity | Status | Defined by |
+| --- | --- | --- | --- |
+| Intent | `<capability>/I<n>` | normative | kaal-intent (not on `main`); GLUE names the discipline |
+| Requirement | `<capability>/F<n>` functional, `<capability>/N<n>` nonfunctional | normative | kaal-requirements (not on `main`); GLUE |
+| Architecture | `<capability>/A<n>`, may have a `parent` | normative | kaal-architecture (not on `main`); GLUE |
+| Defect | `<capability>/D<n>`, a record with `expected`, `observed`, `where`, `status`, `tests` | normative | the hotfix route requires the identity; example `packages/kaal-hosting/06-defects/D10-multiline-conditional-selector.md` |
+| Case | `<capability>/T<n>`, a file exporting `id`, `tests`, `title`, `run` | normative | kaal-testing |
+| Change | `<capability>/C<n>`, a Change Node in its record folder | normative | kaal-change, Change Definition |
+| Change Record | the folder of a Change (`00-changes/C<n>-<slug>/` in release management) | normative | kaal-change, Change Record Definition |
+| Evidence | what a record references: Case results, checks, `evidence.md`, the 4L retrospective, a Review judgment | normative | kaal-change (tracks, never owns); Testing (verification); Review (validation) |
+| PR | a GitHub pull request, with a title TYPE and a body in the envelope of its template | normative | Change Definition: one realization of a Change; Branching |
+| Control | `<capability>/CTL<n>`, with `type` and `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md`; six in `engineering/release-management/04-controls/` |
+| Gap | `<capability>/G<n>`, a row of a Change's `gap.md` | observed | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
+| Stage | a stage of `05-src/stages/stages.json` (Developing, Integrating, Promoting, Publishing) | observed | `engineering/release-management/strategy.md` |
+
+## Relationships
+
+| Relationship | From → to | Repository key | Status | Source |
+| --- | --- | --- | --- | --- |
+| delivers | Change → Intent | `implements` | normative | Owner, 18 Nov 2026; Delivers Definition (`packages/kaal-change/capability/Delivers.md`) |
+| answers | Requirement → Intent | `serves` | normative | Owner, 18 Nov 2026 |
+| answers | Architecture → Requirement | `addresses` | normative | Owner, 18 Nov 2026 |
+| addresses | Architecture → Defect | none found | normative | Owner, 18 Nov 2026 |
+| tests | Case → Intent, Requirement, Architecture, Defect | `export const tests` | normative | Owner, 18 Nov 2026 |
+| succeeds | Change → Change | none found | normative | Succeeds Definition (`packages/kaal-change/capability/Succeeds.md`) |
+| records | Change → Change Record | the folder | normative | Change Record Definition |
+| references | Change Record → Evidence | none | normative | Change Record Definition |
+| realizes | PR → Change | the Change line of the body | normative | Change Definition |
+| has | Control → Intent | `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md` |
+| tests | Case → Change, Control | `export const tests` | observed | `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs`, `engineering/release-management/04-controls/CTL7-verify-sync/T750.test.mjs` |
+| closes | Change → Gap | `closes` | observed | `engineering/release-management/00-changes/C65-sync-split/C65.md` |
+| walks | Change → Stage | none | observed | `engineering/release-management/strategy.md` |
+| gates | Control → Stage | none | proposed | `strategy.md` says each stage has one gate; no file names the control |
+
+## Vocabularies
+
+- **Lifecycle of a Change**, read from facts and never stored: Proposed, Accepted, Withdrawn, Promoted (`packages/kaal-change/capability/Change-Lifecycle.md`). Approval, verification and validation are not states.
+- **PR title TYPE**: PLAN, DO, ACT, PROMOTION, SYNC, HOTFIX, DEFAULT, and WIRE in use. The PDCA phase a PR carries is its TYPE; it is not the state of the Change.
+- **Change class**: Normal, Standard, Emergency (`Change-Classification.md`).
+
+## Views
+
+| TYPE | View | Template |
+| --- | --- | --- |
+| DEFAULT | [views/default.md](views/default.md) | `.github/pull_request_template.md` |
+| PLAN | [views/plan.md](views/plan.md) | `.github/PULL_REQUEST_TEMPLATE/plan.md` |
+| DO | [views/do.md](views/do.md) | `.github/PULL_REQUEST_TEMPLATE/do.md` |
+| ACT | [views/act.md](views/act.md) | `.github/PULL_REQUEST_TEMPLATE/act.md` |
+| PROMOTION | [views/promotion.md](views/promotion.md) | `.github/PULL_REQUEST_TEMPLATE/promotion.md` |
+| HOTFIX | [views/hotfix.md](views/hotfix.md) | `.github/PULL_REQUEST_TEMPLATE/hotfix.md` |
+| SYNC | [views/sync.md](views/sync.md) | `.github/PULL_REQUEST_TEMPLATE/sync.md` |
+
+## Reviewer questions
+
+Each question is answered by following these relationships from the PR.
+
+| # | Question | Path |
+| --- | --- | --- |
+| Q1 | What objects does this Change affect? | PR realizes Change; Change records Change Record; the changed files, by folder |
+| Q2 | Which Intent does it deliver? | PR realizes Change; Change delivers Intent |
+| Q3 | Which Requirements and Architecture support that Intent? | Requirement answers Intent; Architecture answers Requirement; where none exist, Control has Intent |
+| Q4 | What does each Case explicitly test? | Case tests (the exported list) |
+| Q5 | Which Defects are addressed? | Architecture addresses Defect; Case tests Defect; Change closes Gap |
+| Q6 | What evidence supports the requested decision? | Change records Change Record; Change Record references Evidence |
+
+## Mismatches
+
+Recorded, not corrected. Each names the Owner's word or the model's claim, what the repository shows, and where.
+
+| # | The model says | The repository shows | Evidence |
+| --- | --- | --- | --- |
+| M1 | Change delivers Intent | the key is `implements` | `engineering/release-management/00-changes/C65-sync-split/C65.md` |
+| M2 | Requirement answers Intent; Architecture answers Requirement | the keys are `serves` and `addresses` | `engineering/release-management/02-requirements/F22-wire-operation/F22.md` |
+| M3 | Architecture addresses Defect | no Architecture file addresses a Defect | `engineering/release-management/03-architecture/A47-wire-install/A47.md` |
+| M4 | every Intent has Requirements and Architecture | release/I35 has none; Controls answer it | `engineering/release-management/04-controls/CTL7-verify-sync/CTL7.md` |
+| M5 | a Change has a Change Node | release/C37 has no `C37.md` | `engineering/release-management/00-changes/C37-developing/change.md` |
+| M6 | the PR names the Intent | the Change chapter names the Change only; the Intent appears, when it does, in prose (the PLAN #1889 mentions release/I35 in To, the ACT #1891 and PROMOTION #1892 do not) | `engineering/release-management/00-changes/C65-sync-split/C65.md` |
+| M7 | every PR TYPE has a template | WIRE has none on `main` | `engineering/release-management/03-architecture/A47-wire-install/A47.md` |
+| M8 | a Change closes a Defect | the Change closes a Gap, a different object | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
