@@ -1,5 +1,8 @@
 {
   "checks": [
-    { "id": "cases", "run": "node --test \"packages/kaal-change/00-changes/C12-change-folder/T*.test.mjs\"" }
+    {
+      "id": "cases",
+      "run": "node packages/kaal-change/skills/kaal-change/scripts/change-check.mjs packages/kaal-change/00-changes/C12-change-folder --runner \"node packages/kaal-testing/skills/kaal-testing/scripts/run-cases.mjs\""
+    }
   ]
 }

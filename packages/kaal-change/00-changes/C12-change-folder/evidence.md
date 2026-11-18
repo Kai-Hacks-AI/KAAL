@@ -45,3 +45,7 @@ Read at `main` 104b17e; no live setting was read.
 ## CPO review 3 (#1960): mixed PASS/FAIL evidence
 
 Continuity now requires, per touched element, at least one passing Case that claims it **and** no Case that claims it with any other result in a counted evaluation of a surviving, non-retiring registered check, whether in the same evaluation or another. Mixed evidence is `touched-element-failing`, naming the Case and the check. T1058 holds the negative Cases (one failing Case beside a passing one; a failure in a second surviving check beside a pass in the first); T1059 shows a split whose Cases all pass is still verified. In the scratch DO, T1054, T1058 and T1059 pass; the PLAN files still give 10 RED.
+
+## Revision on Kai's ratchet rule (18 Nov 2026)
+
+The Change is rewritten, still a PLAN, nothing wired. Cases are `.test.mjs` from the start (no `.red.mjs`, no unwiring). The registration is passive and stays after ACT; the check derives open/closing/closed from act.md, ratchets the RED count (PLAN same or up, DO same or down, ACT only at RED 0 and UNKNOWN 0), and a closed Change is cold. Scope is derived from the ids the Change names; a Case a PLAN adds that the Change does not name is `case-not-named`. Retirement became the closing control (trigger: act.md added), `stale-registration` became `registration-not-passive`. Proposed, for Kai: a DO may not raise UNKNOWN. Ids T1127, T1128 from release; the Testing runner command in the registration is a placeholder Testing owns.

@@ -15,7 +15,8 @@ export const view = (files) => ({ files: Object.keys(files).sort(), read: (p) =>
 const kase = (id, ...tests) => `export const id = '${id}';\nexport const tests = [${tests.map((t) => `'${t}'`).join(', ')}];\nexport const run = () => {};\n`;
 export const P = 'packages/p';
 export const FOLDER = `${P}/00-changes/C1-move`;
-export const REGISTRATION = JSON.stringify({ checks: [{ id: 'cases', run: `node --test "${FOLDER}/T*.test.mjs"` }] });
+// Passive: one check that runs the Change check on the folder; the runner is a command argument, so kaal-change takes no package dependency on Testing.
+export const REGISTRATION = JSON.stringify({ checks: [{ id: 'cases', run: `node packages/p/skills/kaal-change/scripts/change-check.mjs ${FOLDER} --runner "node packages/testing/run.mjs"` }] });
 /** Before the Change: one element with its own target Case. */
 export const from = () => ({
   [`${P}/kaal-guard.json`]: JSON.stringify({ checks: [{ id: 'enduring-cases', run: 'node --test "packages/p/0[1-6]-*/**/T*.test.mjs"' }] }),
@@ -29,8 +30,8 @@ export const done = () => ({
   [`${FOLDER}/T10.test.mjs`]: kase('p/T10', 'p/G1'), [`${FOLDER}/T11.test.mjs`]: kase('p/T11', 'p/C1'),
   [`${P}/02-requirements/F2-new/F2.md`]: '# p/F2\n', [`${P}/02-requirements/F2-new/T12.test.mjs`]: kase('p/T12', 'p/F2'),
 });
-/** The ACT: act.md is added and the registration deleted; no Case and no evidence is removed. */
-export const acted = (files = done()) => { const { [`${FOLDER}/kaal-guard.json`]: _gone, ...rest } = files; return { ...rest, [`${FOLDER}/act.md`]: '# act\n' }; };
+/** The ACT: act.md is added; the registration stays and no Case and no evidence is removed. ACT does no unwiring. */
+export const acted = (files = done()) => ({ ...files, [`${FOLDER}/act.md`]: '# act\n' });
 /** Execution evidence as `assess` reads it: one evaluation per Plan, here a registered check as Guard names it. */
 export const CAPABILITY_PLAN = `${P}/kaal-guard.json:enduring-cases`;
 export const CHANGE_PLAN = `${FOLDER}/kaal-guard.json:cases`;
