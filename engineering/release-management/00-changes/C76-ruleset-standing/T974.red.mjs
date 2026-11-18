@@ -7,7 +7,7 @@ export const title = 'a ruleset that is not active, whose bypass list is not emp
 const STANDING = { control: 'release/CTL13', enforcement: 'active', bypass: [] };
 function withStanding() {
   const f = declared();
-  f.controls.push({ id: 'release/CTL13', has: ['release/I41'] });
+  f.controls = f.controls.filter((c) => c.id !== 'release/CTL13'); f.controls.push({ id: 'release/CTL13', has: ['release/I41'] });
   for (const n of ['Integrating', 'Promoting', 'Publishing']) stageOf(f, n).standing = { ...STANDING };
   for (const p of stageOf(f, 'Integrating').parts) p.standing = { ...STANDING };
   return f;

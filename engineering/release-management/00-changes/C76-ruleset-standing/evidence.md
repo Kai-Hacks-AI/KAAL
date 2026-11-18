@@ -15,9 +15,11 @@
 
 3 RED-observed, 0 error, 0 green. The judge Cases first require the declared structure to be accepted, so their later failures are not passes by accident.
 
-## Not shown
+## Can each Case pass
 
-That each Case can go green with the drafts applied is not yet observed: the DO is where the declaration, the judge and the four files are written. The Case of the four files compares each file to its draft, so it is green exactly when the DO copies the drafts. Nothing live is claimed.
+Demonstrated with a throwaway implementation, never committed: a copy of the tree of this PLAN with `main` (16a5a7d) merged in, because the status-aware finder of release/C62 is on `main` and not yet on this collector. In the copy the four drafts of `interface.md` were written as the files they name (the control with `status: implemented`), and the stage declaration `standing` (control, enforcement, bypass) on Integrating, its three parts, Promoting and Publishing, and the judge reading it (`enforcement`, bypass list, trace of the control) were added; the Cases were renamed to `.test.mjs`. Result of the whole Cases runner: release/T972, T973 and T974 all green, and the only failures are the 12 present without this Change (the unnamed Cases of `collector-capability/00-changes/C15-collector-capability`, T268 to T279). `node judge.mjs <copy> <Ruleset>` passed for Integrating, Collecting, Hotfixing, Wiring and Promoting on the real sources.
+
+Two things the throwaway showed the DO must do: the shared fixtures (`C35-stages/helper.mjs`, `C70-stages-declared-rules/fixtures.mjs`) declare release/CTL13 and the new key, and the DO needs `main` merged first (the SYNC), since a control with `status` is refused by the finder without release/C62. Nothing live is claimed.
 
 ## Reproduce
 

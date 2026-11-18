@@ -22,6 +22,7 @@ id: release/CTL13
 title: stand Ruleset
 description: It stops a stage's ruleset from being switched off, widened or bypassed.
 type: preventive
+status: implemented
 has: [release/I41]
 ---
 # release/CTL13 stand Ruleset
