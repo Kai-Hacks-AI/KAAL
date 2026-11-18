@@ -18,6 +18,8 @@
 
 ## Open for the CPO
 
+- **Placement axis: the stage (Owner, 14:20).** Where a check is guarded is decided per stage: Developing, Integration (Collectors, Hotfixes, Wiring), Promotion, Publishing. This is recorded as the axis and wires nothing. Scope is unchanged: no Case names a stage, and choosing the stages that require the ownership judgement is a later wiring decision for the Owner.
+
 - **Where it runs is decided (Owner, 14:19).** A `kaal-guard.json` declares what is checked, never where. It has no surface member, and F43's file already refuses one. No Case changes: T217 to T221 run the ownership judgement without naming a surface, and the existing parse refusal of undefined members (C143, T210) already pins that a file cannot choose its own stage.
 
 - **Two layers (Owner, 14:18).** Guard is wired and what it guards is declared. A local hook can be skipped, so the judgement matters as a required CI check; this PLAN does not wire it. Which surface requires it is the wiring owner's decision.
