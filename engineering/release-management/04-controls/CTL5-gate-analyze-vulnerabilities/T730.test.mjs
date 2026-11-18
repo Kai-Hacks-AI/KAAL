@@ -23,5 +23,6 @@ export async function run() {
   const draft = readFileSync(join(RM, '00-changes/C56-analyze-gate/interface.md'), 'utf8').split(/^## Draft of CTL5\.md$/m)[1].match(/^````\n([\s\S]*?)\n````$/m)[1];
   const real = join(RM, '04-controls/CTL5-gate-analyze-vulnerabilities/CTL5.md');
   assert.ok(existsSync(real), 'CTL5.md is absent');
-  assert.equal(readFileSync(real, 'utf8'), `${draft}\n`, 'CTL5.md differs from the draft');
+  // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${draft}\n`, 'CTL5.md differs from the draft');
 }

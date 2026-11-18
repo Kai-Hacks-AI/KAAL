@@ -3,6 +3,7 @@ id: release/CTL8
 title: approve Sync
 description: It gives a SYNC the approval it needs only when verify Sync passes at its exact head.
 type: preventive
+status: implemented
 has: [release/I32, release/I33, release/I35]
 ---
 # release/CTL8 approve Sync

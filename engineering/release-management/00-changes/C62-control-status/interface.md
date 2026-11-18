@@ -6,7 +6,7 @@ A control declares `status` beside id, title, description, type and has. The fin
 
 ## The release controls
 
-`status: implemented` on release/CTL2, CTL7, CTL8 and CTL9, and `status: running` on release/CTL1 (DIRT of 17 Nov 2026), as a line between `type` and `has`. The Cases of those controls that compare the control with its draft ignore that line, as the draft predates the status.
+`status: implemented` on release/CTL2, CTL5, CTL7, CTL8 and CTL9, and `status: running` on release/CTL1 (DIRT of 17 Nov 2026), as a line between `type` and `has`. The Cases of those controls that compare the control with its draft ignore that line, as the draft predates the status.
 
 ## What else moves
 
