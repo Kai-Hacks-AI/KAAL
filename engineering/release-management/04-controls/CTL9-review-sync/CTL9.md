@@ -3,6 +3,7 @@ id: release/CTL9
 title: review Sync
 description: It puts a SYNC that is not a pure merge, or cannot be judged, in front of a person.
 type: corrective
+status: implemented
 has: [release/I32, release/I33]
 ---
 # release/CTL9 review Sync
