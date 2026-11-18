@@ -52,7 +52,11 @@
                   "integration_id": 15368,
                   "control": "release/CTL1"
                 }
-              ]
+              ],
+              "settingControls": {
+                "strict_required_status_checks_policy": "release/CTL14",
+                "do_not_enforce_on_create": "release/CTL14"
+              }
             }
           ]
         },
@@ -73,7 +77,11 @@
                   "integration_id": 15368,
                   "control": "release/CTL1"
                 }
-              ]
+              ],
+              "settingControls": {
+                "strict_required_status_checks_policy": "release/CTL14",
+                "do_not_enforce_on_create": "release/CTL14"
+              }
             }
           ]
         },
@@ -94,7 +102,11 @@
                   "integration_id": 15368,
                   "control": "release/CTL1"
                 }
-              ]
+              ],
+              "settingControls": {
+                "strict_required_status_checks_policy": "release/CTL14",
+                "do_not_enforce_on_create": "release/CTL14"
+              }
             }
           ]
         }
@@ -118,7 +130,11 @@
               "integration_id": 15368,
               "control": "release/CTL1"
             }
-          ]
+          ],
+          "settingControls": {
+            "strict_required_status_checks_policy": "release/CTL14",
+            "do_not_enforce_on_create": "release/CTL14"
+          }
         }
       ],
       "requires": [
@@ -149,7 +165,11 @@
               "integration_id": 15368,
               "control": "release/CTL5"
             }
-          ]
+          ],
+          "settingControls": {
+            "strict_required_status_checks_policy": "release/CTL14",
+            "do_not_enforce_on_create": "release/CTL14"
+          }
         }
       ],
       "also": [
