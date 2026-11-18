@@ -18,6 +18,8 @@
 
 ## Open for the CPO
 
+- **Two layers (Owner, 14:18).** Guard is wired and what it guards is declared. A local hook can be skipped, so the judgement matters as a required CI check; this PLAN does not wire it. Which surface requires it is the wiring owner's decision.
+
 - **Engineering areas are Solution** (the Owner's 14:17 correction, as the coordinator read it): they register through their own `kaal-guard.json`, and an area becomes engine only through a WIRE. This is not yet confirmed by the Owner, and it reverses C143's "an engineering area root carries none".
 - **Owned by coverage.** F49 counts a file owned only if a check of its nearest file applies to it. A package that narrows every check with `when` then has files it does not own. The alternative is a package-level "this folder is mine" member in `kaal-guard.json`. I chose the smaller one that adds no member; the CPO may prefer the other.
 - **Verdict.** I use `fail` (exit 1), not `cannot judge` (exit 2), because the repository can fix it by registering. The CPO may prefer another.
