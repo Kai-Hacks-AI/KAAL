@@ -19,8 +19,8 @@ The tracing chain, named INFORMED ([INFORMED.md](INFORMED.md): Implementation Na
 | 2 | Requirement | refines Intent (key `serves`) | exists |
 | 3 | Architecture | satisfies Requirement (key `addresses`) | exists |
 | 4 | Control | has Intent (`has`); no link from Architecture to a Control is found | exists, linked to Intent only |
-| 5 | Test Case | verifies Requirement, Architecture or Control, and tests Intent, by the ids it exports (key `tests`) | exists |
-| 6 | Source | a Test Case exercises it, RED to GREEN; no key declares the relation | exists, undeclared |
+| 5 | Test Case | verifies Intent, Requirement, Architecture, Control, Change or Defect, by the ids it exports (key `tests`) | exists |
+| 6 | Source | fulfills the Test Case; RED and GREEN are the execution evidence at one revision, never a permanent property of the relationship; no key declares the relation | exists, undeclared |
 
 Every view below shows the part of this chain its template carries.
 
@@ -33,10 +33,10 @@ flowchart LR
   Requirement -->|refines| Intent
   Architecture -->|satisfies| Requirement
   Architecture -->|addresses| Defect
-  TestCase["Test Case"] -->|tests| Intent
+  TestCase["Test Case"] -->|verifies| Intent
   TestCase -->|verifies| Requirement
   TestCase -->|verifies| Architecture
-  TestCase -->|tests| Defect
+  TestCase -->|verifies| Defect
   Change -->|succeeds| Change
   Change -->|records| ChangeRecord["Change Record"]
   ChangeRecord -->|references| Evidence
@@ -44,9 +44,9 @@ flowchart LR
   PR ==>|carries| Diff
   Control -.->|evaluates| PR
   Control -.->|has| Intent
-  TestCase -.->|tests| Change
+  TestCase -.->|verifies| Change
   TestCase -.->|verifies| Control
-  TestCase -.->|exercises| Source
+  Source -.->|fulfills| TestCase
   Change -.->|closes| Gap
   Change -.->|walks| Stage
   Control ==>|gates| Stage
@@ -69,7 +69,7 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 | PR | a GitHub pull request from a source branch to a target branch, with a title TYPE and a body in the envelope of its template; a carrier and the context in which Controls are evaluated, never a Change | observed | `engineering/github/branching.md` (routes by TYPE); Owner direction, 18 Nov 2026 |
 | Diff | the difference between the target and the source branch at the head of a PR: the changed files, the proposed alteration of repository state; not a Change Record | proposed | Owner direction, 18 Nov 2026 (CPO review of the views); no Definition names it |
 | Control | `<capability>/CTL<n>`, with `type` and `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md`; six in `engineering/release-management/04-controls/` |
-| Source | the code, workflow or ruleset a Test Case exercises, under `05-src/` | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` imports the judge it runs |
+| Source | the code, workflow or ruleset that fulfills a Test Case, under `05-src/` | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` imports the judge it runs |
 | Gap | `<capability>/G<n>`, a row of a Change's `gap.md` | observed | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
 | Stage | a stage of `05-src/stages/stages.json` (Developing, Integrating, Promoting, Publishing) | observed | `engineering/release-management/strategy.md` |
 
@@ -81,8 +81,7 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 | refines | Requirement → Intent | `serves` | normative | Owner, 18 Nov 2026 (confirmed as `answers`); CPO, 18 Nov 2026 (canonical name `refines`; `packages/kaal-core/docs/limitations.md` already names `refines` and `verifies` as relation kinds) |
 | satisfies | Architecture → Requirement | `addresses` | normative | Owner, 18 Nov 2026 (confirmed as `answers`); CPO, 18 Nov 2026 (canonical name `satisfies`) |
 | addresses | Architecture → Defect | none found | normative | Owner, 18 Nov 2026 |
-| verifies | Test Case → Requirement, Architecture | `export const tests` | normative | Owner, 18 Nov 2026 (confirmed as `tests`); CPO, 18 Nov 2026 (canonical name `verifies`); a Test Case may verify a Requirement directly and need not pass through Architecture |
-| tests | Test Case → Intent, Defect | `export const tests` | normative | Owner, 18 Nov 2026 |
+| verifies | Test Case → Intent, Requirement, Architecture, Defect | `export const tests` | normative | Owner, 18 Nov 2026 (confirmed as `tests`); CPO, 18 Nov 2026 (canonical name `verifies`); a Test Case may verify a Requirement directly and need not pass through Architecture |
 | succeeds | Change → Change | none found | normative | Succeeds Definition (`packages/kaal-change/capability/Succeeds.md`) |
 | records | Change → Change Record | the folder | normative | Change Record Definition |
 | references | Change Record → Evidence | none | normative | Change Record Definition |
@@ -90,9 +89,8 @@ Solid arrows are normative, dashed arrows observed, thick arrows proposed.
 | carries | PR → Diff | the head and the base of the PR | proposed | Owner direction, 18 Nov 2026 |
 | evaluates | Control → PR | a check on the head commit of the PR | observed | `engineering/release-management/04-controls/CTL7-verify-sync/CTL7.md` |
 | has | Control → Intent | `has` | observed | `packages/kaal-controls/02-requirements/F13-control-shape/F13.md` |
-| verifies | Test Case → Control | `export const tests` | observed | `engineering/release-management/04-controls/CTL7-verify-sync/T750.test.mjs` |
-| tests | Test Case → Change | `export const tests` | observed | `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs` |
-| exercises | Test Case → Source | none | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` |
+| verifies | Test Case → Control, Change | `export const tests` | observed | `engineering/release-management/04-controls/CTL7-verify-sync/T750.test.mjs`, `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs` |
+| fulfills | Source → Test Case | none | observed | `engineering/release-management/00-changes/C37-developing/T511.test.mjs` imports the judge it runs |
 | closes | Change → Gap | `closes` | observed | `engineering/release-management/00-changes/C65-sync-split/C65.md` |
 | walks | Change → Stage | none | observed | `engineering/release-management/strategy.md` |
 | gates | Control → Stage | none | proposed | `strategy.md` says each stage has one gate; no file names the control |
@@ -125,8 +123,8 @@ Each question is answered by following these relationships from the PR.
 | Q1 | What objects does this Change affect? | PR names Change; Change records Change Record; PR carries Diff, the changed files by folder |
 | Q2 | Which Intent does it deliver? | PR names Change; Change delivers Intent |
 | Q3 | Which Requirements and Architecture support that Intent? | Requirement refines Intent; Architecture satisfies Requirement; where none exist, Control has Intent |
-| Q4 | What does each Test Case explicitly test? | Test Case tests or verifies (the exported list) |
-| Q5 | Which Defects are addressed? | Architecture addresses Defect; Test Case tests Defect; Change closes Gap |
+| Q4 | What does each Test Case explicitly verify? | Test Case verifies (the exported list, key `tests`) |
+| Q5 | Which Defects are addressed? | Architecture addresses Defect; Test Case verifies Defect; Change closes Gap |
 | Q6 | What evidence supports the requested decision? | Change records Change Record; Change Record references Evidence |
 
 ## Mismatches
@@ -145,4 +143,4 @@ Recorded, not corrected. Each names the Owner's word or the model's claim, what 
 | M8 | a Change closes a Defect | the Change closes a Gap, a different object | `engineering/release-management/00-changes/C65-sync-split/gap.md` |
 | M9 | the chain runs Intent, Requirement, Architecture, Control, Test Case | a Control has an Intent only; no file links an Architecture to a Control or a Control to its Source | `engineering/release-management/04-controls/CTL1-verify-stages/CTL1.md` |
 | M10 | a PR does not realize a Change: it carries a Diff and names a Change | the Change Definition says "a pull request is one realization of a Change", and Branching speaks of a Change proposed through a pull request | `packages/kaal-change/capability/Change-Definition.md` |
-| M11 | a Test Case verifies a Requirement, an Architecture or a Control, and tests an Intent or a Defect | one key, `export const tests`, serves both and does not say which | `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs` |
+| M11 | a Test Case verifies an Intent, Requirement, Architecture, Control, Change or Defect | the one key `export const tests` serializes verifies, and a Test Case names no Source that fulfills it | `engineering/release-management/00-changes/C65-sync-split/T851.test.mjs` |

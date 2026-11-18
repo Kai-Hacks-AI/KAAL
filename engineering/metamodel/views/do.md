@@ -14,7 +14,7 @@ flowchart LR
   Change -->|delivers| Intent
   TestCase["Test Case"] -->|verifies| Requirement
   TestCase -->|verifies| Architecture
-  TestCase -.->|tests| Change
+  TestCase -.->|verifies| Change
   PR -.->|names| Change
   PR ==>|carries| Diff
 ```
@@ -23,19 +23,19 @@ flowchart LR
 Change, Intent, Requirement, Architecture, Test Case, PR, Diff.
 
 ## Relationships
-delivers, verifies, tests, names, carries.
+delivers, verifies, names, carries.
 
 ## Information the template expects
 The Change line; what the DO implements; the refactoring intended while behaviour stays, or that there is none.
 
 ## What the reviewer should be able to verify
-That the Change is the one the merged PLAN planned (Q2); which Test Cases turned GREEN and what each explicitly tests (Q4); that the files changed are the objects the PLAN named (Q1); the evidence in the record (Q6).
+That the Change is the one the merged PLAN planned (Q2); which Test Cases turned GREEN and what each explicitly verifies (Q4); that the files changed are the objects the PLAN named (Q1); the evidence in the record (Q6).
 
 ## The INFORMED chapter
 The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. It holds one box for each concern below. Each box is ticked, or marked n/a with a reason. A tick is the author's claim, not evidence.
 
 - [ ] The Change is the one the merged PLAN planned
-- [ ] Each Test Case that turned GREEN names what it tests
+- [ ] Each Test Case that turned GREEN names what it verifies
 - [ ] The files changed are the objects the PLAN named
 - [ ] The evidence is in the Change Record
 

@@ -12,7 +12,7 @@ A HOTFIX is an Emergency Change that corrects a Defect by the fastest safe path.
 ```mermaid
 flowchart LR
   Architecture -->|addresses| Defect
-  TestCase["Test Case"] -->|tests| Defect
+  TestCase["Test Case"] -->|verifies| Defect
   Change -->|delivers| Intent
   PR -.->|names| Change
   PR ==>|carries| Diff
@@ -22,19 +22,19 @@ flowchart LR
 Change, Intent, Architecture, Defect, Test Case, PR, Diff.
 
 ## Relationships
-addresses, tests, delivers, names, carries.
+addresses, verifies, delivers, names, carries.
 
 ## Information the template expects
 The Change (id and name only); the Defect by its `<capability>/D<n>` identity and the state that is defective; the urgency; the approach.
 
 ## What the reviewer should be able to verify
-That the Defect identity resolves (Q5); that a Test Case tests that Defect and ran RED before GREEN (Q4); that the Architecture the correction addresses is named (Q3); that the state claimed defective (production, `main` or a collector) is the one meant.
+That the Defect identity resolves (Q5); that a Test Case verifies that Defect and ran RED before GREEN (Q4); that the Architecture the correction addresses is named (Q3); that the state claimed defective (production, `main` or a collector) is the one meant.
 
 ## The INFORMED chapter
 The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. It holds one box for each concern below. Each box is ticked, or marked n/a with a reason. A tick is the author's claim, not evidence.
 
 - [ ] The Defect identity resolves
-- [ ] A Test Case tests that Defect and ran RED before GREEN
+- [ ] A Test Case verifies that Defect and ran RED before GREEN
 - [ ] The Architecture the correction addresses is named
 - [ ] The state claimed defective (production, main or a collector) is the one meant
 

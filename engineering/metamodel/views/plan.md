@@ -14,7 +14,7 @@ flowchart LR
   Change -->|delivers| Intent
   Requirement -->|refines| Intent
   Architecture -->|satisfies| Requirement
-  TestCase["Test Case"] -.->|tests| Change
+  TestCase["Test Case"] -.->|verifies| Change
   Change -.->|closes| Gap
   PR -.->|names| Change
   PR ==>|carries| Diff
@@ -24,20 +24,20 @@ flowchart LR
 Change, Intent, Requirement, Architecture, Test Case, Gap, PR, Diff.
 
 ## Relationships
-delivers, refines, satisfies, tests, closes, names, carries.
+delivers, refines, satisfies, verifies, closes, names, carries.
 
 ## Information the template expects
 The Change line (id, name, what it is about); From (the current state); To (the target state); Because (the value delivered).
 
 ## What the reviewer should be able to verify
-That the Change line resolves to a Change Record that delivers an Intent (Q2); that the Requirements drafted refine that Intent and the Architecture satisfies them, or that Controls do (Q3); that every Test Case runs RED for the reason the record gives and names what it tests (Q4); the Gap it closes, if the Change uses Gaps (Q5).
+That the Change line resolves to a Change Record that delivers an Intent (Q2); that the Requirements drafted refine that Intent and the Architecture satisfies them, or that Controls do (Q3); that every Test Case runs RED for the reason the record gives and names what it verifies (Q4); the Gap it closes, if the Change uses Gaps (Q5).
 
 ## The INFORMED chapter
 The template carries a chapter named INFORMED. It links this view, which links [metamodel.md](../metamodel.md), and names the Change. It holds one box for each concern below. Each box is ticked, or marked n/a with a reason. A tick is the author's claim, not evidence.
 
 - [ ] The Change line resolves to a Change Record that delivers an Intent
 - [ ] Requirements refine that Intent and Architecture satisfies them, or a Control has it
-- [ ] Every Test Case runs RED for the reason the record gives and names what it tests
+- [ ] Every Test Case runs RED for the reason the record gives and names what it verifies
 - [ ] The Gap closed is named, if the Change uses Gaps
 - [ ] From, To and Because are stated
 
