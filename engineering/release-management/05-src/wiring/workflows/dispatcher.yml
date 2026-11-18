@@ -1,0 +1,81 @@
+# The Dispatcher (release/C73, release/I40). It raises the PROMOTION of a collector whose ACT has merged, and does nothing else: no approval,
+# no merge, no auto-merge, no push. Triggers are the schedule and a manual start only, so it always runs from the default branch.
+# `decide Dispatch` holds no App key and reads the facts. `raise Dispatch` holds the App token and reads no collector: it takes the decisions
+# as data and makes one write, the creation of a pull request. Live only when the variable KAAL_DISPATCH_RAISE is exactly `on`.
+name: Dispatcher
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: dispatch
+  cancel-in-progress: false
+
+jobs:
+  decide:
+    name: decide Dispatch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      decisions: ${{ steps.decide.outputs.decisions }}
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Decide
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KAAL_REPO: ${{ github.repository }}
+          KAAL_DISPATCH_CAPACITY: ${{ vars.KAAL_DISPATCH_CAPACITY }}
+        run: node engineering/release-management/05-src/promotion-raise/dispatch.mjs decide
+
+  raise:
+    name: raise Dispatch
+    needs: decide
+    if: ${{ needs.decide.outputs.decisions != '' && needs.decide.outputs.decisions != '[]' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      KAAL_REPO: ${{ github.repository }}
+      KAAL_DECISIONS: ${{ needs.decide.outputs.decisions }}
+      # Exactly `on` raises; anything else, or nothing, is a dry run that only says what it would raise.
+      KAAL_DISPATCH_RAISE: ${{ vars.KAAL_DISPATCH_RAISE }}
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      # The App token is minted only for a live run; a dry run reads the public repository without one.
+      - name: Mint the Dispatcher token
+        id: app
+        if: ${{ vars.KAAL_DISPATCH_RAISE == 'on' }}
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          app-id: ${{ vars.KAAL_DISPATCHER_APP_ID }}
+          private-key: ${{ secrets.KAAL_DISPATCHER_KEY }}
+          permission-pull-requests: write
+
+      - name: Raise
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: node engineering/release-management/05-src/promotion-raise/dispatch.mjs raise
