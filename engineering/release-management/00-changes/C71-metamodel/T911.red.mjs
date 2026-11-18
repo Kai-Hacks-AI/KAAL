@@ -9,7 +9,7 @@ export async function run() {
   const have = new Set(edges(mermaid(model())[0] ?? "").map(key));
   const want = [
     ["Change", "delivers", "Intent"], ["Requirement", "answers", "Intent"], ["Architecture", "answers", "Requirement"], ["Architecture", "addresses", "Defect"],
-    ["Case", "tests", "Intent"], ["Case", "tests", "Requirement"], ["Case", "tests", "Architecture"], ["Case", "tests", "Defect"],
+    ["TestCase", "tests", "Intent"], ["TestCase", "tests", "Requirement"], ["TestCase", "tests", "Architecture"], ["TestCase", "tests", "Defect"],
   ];
   for (const [f, l, t] of want) assert.ok(have.has(`${f} ${l} ${t} -->`), `${f} ${l} ${t} is not drawn as a normative (solid) edge`);
 }

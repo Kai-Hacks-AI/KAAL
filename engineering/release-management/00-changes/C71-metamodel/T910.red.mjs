@@ -12,8 +12,8 @@ export async function run() {
   assert.match(text, /^## Purpose\n[\s\S]*semantic reasoning/m, "the model states its purpose: an anchor for semantic reasoning");
   const chain = text.match(/^## Trace chain\n([\s\S]*?)^## /m);
   assert.ok(chain, "the model holds the Trace chain");
-  const order = ["Intent", "Requirement", "Architecture", "Control", "Case", "Source"].map((w) => chain[1].indexOf(`| ${w} |`));
-  assert.ok(order.every((i, k) => i >= 0 && (k === 0 || i > order[k - 1])), "the Trace chain lists Intent, Requirement, Architecture, Control, Case and Source in that order");
+  const order = ["Intent", "Requirement", "Architecture", "Control", "Test Case", "Source"].map((w) => chain[1].indexOf(`| ${w} |`));
+  assert.ok(order.every((i, k) => i >= 0 && (k === 0 || i > order[k - 1])), "the Trace chain lists Intent, Requirement, Architecture, Control, Test Case and Source in that order");
   assert.match(text, /INFORMED[^\n]*Implementation Navigates Forward: Observed Results Mirror Earlier Decisions/, "the model names the chain INFORMED with its expansion");
   const def = join(DIR, "INFORMED.md");
   assert.ok(existsSync(def), "INFORMED.md is absent");
