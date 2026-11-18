@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { CONTROLS } from "../C35-stages/helper.mjs";
 
 export const ROOT = fileURLToPath(new URL("../../../../", import.meta.url));
 export const SRC = join(ROOT, "engineering/release-management/05-src");
@@ -31,6 +32,7 @@ export const GOOD = () => ({
   stages: stages(),
   rulesets: Object.fromEntries([...NAMES, "Publishing"].map((n) => [n, source(n)])),
   hooks: hooksFacts(),
+  controls: CONTROLS.map((c) => ({ ...c, has: [...c.has] })), // the controls the declaration traces to (release/C70)
 });
 
 // a copy of the parts of the repository the local script and the CLI read, for Cases that change a file
