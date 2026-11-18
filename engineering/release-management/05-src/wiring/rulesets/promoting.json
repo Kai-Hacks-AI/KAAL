@@ -21,6 +21,10 @@
           {
             "context": "verify Stages (Promoting)",
             "integration_id": 15368
+          },
+          {
+            "context": "analyze Vulnerabilities (Promoting)",
+            "integration_id": 15368
           }
         ]
       }
