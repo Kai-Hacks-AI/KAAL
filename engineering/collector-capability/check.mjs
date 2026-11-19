@@ -3,7 +3,7 @@
 // Usage: check.mjs [--base <ref>] [--json] [<branch> ...]   (default base: origin/main; default
 // branches: every remote kaal/* branch). REPORT-ONLY: the exit status is 0 unless the tree of the
 // base cannot be listed. Nothing is written, and no ruleset, workflow or hook uses this yet.
-import { execute } from "@kaihacksai/kaal-hosting";
+import { execute, readRevision } from "@kaihacksai/kaal-hosting";
 import { collectorCapability, report } from "./collector-capability.mjs";
 import { readEvidence } from "./evidence.mjs";
 
@@ -13,20 +13,15 @@ const base = args.includes("--base") ? args[args.indexOf("--base") + 1] : "origi
 const named = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--base");
 
 const git = async (...a) => execute("git", a, { cwd: process.cwd() });
-const tree = await git("ls-tree", "-r", "-z", "--full-name", base);
-if (tree.status !== 0) {
-  console.error(`collector-capability: cannot list ${base} (${tree.stderr.trim()})`);
+let files;
+try {
+  // One Hosting call reads every committed file of the base; Nodes are UTF-8 Markdown, so only .md is kept.
+  const revision = await readRevision(process.cwd(), base);
+  files = Object.entries(revision).filter(([path]) => path.endsWith(".md")).map(([path, bytes]) => ({ path, bytes: Buffer.from(bytes) }));
+} catch (error) {
+  const unreadableEntry = error?.code === "REVISION_ENTRY";
+  console.error(`collector-capability: cannot ${unreadableEntry ? "read" : "list"} ${base} (${error.message})`);
   process.exit(1);
-}
-const paths = tree.stdout.split("\0").filter(Boolean).map((l) => l.slice(l.indexOf("\t") + 1)).filter((p) => p.endsWith(".md"));
-const files = [];
-for (const path of paths) {
-  const blob = await execute("git", ["show", `${base}:${path}`], { cwd: process.cwd() }).catch(() => null);
-  if (!blob || blob.status !== 0) {
-    console.error(`collector-capability: cannot read ${path} at ${base}`);
-    process.exit(1);
-  }
-  files.push({ path, bytes: Buffer.from(blob.stdout, "utf8") }); // Nodes are UTF-8 Markdown
 }
 const evidence = readEvidence(files);
 

@@ -12,7 +12,7 @@ export async function run() {
     assert.equal(d.action, 'raise', t + ' is a WIRE target');
     assert.equal(d.title, 'PROMOTION: WIRE ' + t);
   }
-  for (const t of ['engineering/x.yml', '.agents/skills/x/SKILL.md', '.kaalx/y', '.kaal', '.github', '.kaal/../engineering/x', '/.kaal/x', '.kaal/a b', 'kaal/x']) {
+  for (const t of ['engineering/x.yml', 'agents/skills/x/SKILL.md', '.kaalx/y', '.kaal', '.github', '.kaal/../engineering/x', '/.kaal/x', '.kaal/a b', 'kaal/x']) {
     const d = decideFinal(ev({ base, body: wire(t) }));
     assert.equal(d.action, 'skip', t + ' is not a WIRE target');
     assert.equal(d.reason, 'malformed-wire', t);
