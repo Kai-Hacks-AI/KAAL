@@ -15,9 +15,9 @@ The layout check is the same code in all three places, as the template is one la
 
 ## PLAN
 
-1. Add the Intent I4, the Requirements F52, F53 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1237 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because the control is not in this package; the DO moves it next to the control in `packages/02-controls/`.
+1. Add the Intent I4, the Requirements F52, F53 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1237 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because the control is not in this package; the DO moves it next to the control in `packages/`.
 2. Observe the expected RED against the collector (`evidence.md`) and show that each Case can pass on a throwaway copy that holds `draft/`.
-3. The PLAN adds no package file. `draft/` holds the check (`skills/kaal-engineering/scripts/check-layout.mjs`), and `interface.md` holds the draft of the control (`packages/02-controls/CTL2-verify-layout/CTL2.md`), for review only. The control is inline so that no second `CTL2` is listed before the DO.
+3. The PLAN adds no package file. `draft/` holds the check (`skills/kaal-engineering/scripts/check-layout.mjs`), and `interface.md` holds the draft of the control (`packages/controls.md`), for review only. The control is inline so that no second `CTL2` is listed before the DO.
 
 ## Ids
 
@@ -44,7 +44,7 @@ N19 (skill-only) and its Case T1177 stated the first version: no script. The DO 
 
 ## DO
 
-Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` to the Skill and the control from `interface.md` to `packages/02-controls/CTL2-verify-layout/`, amend N19 and T1177, and rename T1230 to T1237 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
+Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` to the Skill and the control from `interface.md` to `packages/controls.md`, amend N19 and T1177, and rename T1230 to T1237 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
 
 ## ACT
 
@@ -52,17 +52,17 @@ A 4L retrospective in `act.md`, with the body shape the Dispatcher reads (a `Cha
 
 ## Where the control sits
 
-Proposed path: `packages/02-controls/CTL2-verify-layout/CTL2.md`. `packages/` is laid out at its own level like a capability: `AGENTS.md` at its root, and `02-controls` for the controls over the set, as `02-controls` in a package holds the controls over that package. Its other numbered folders (`00-backlog`, `01-changes`) are not created now.
+Proposed path: the single file `packages/controls.md`, beside `packages/AGENTS.md`. The Owner's reasons, which hold: a file needs no folder, and workspace globs only pick up folders, so the monorepo concern goes away. Checked on `main`: the root `package.json` lists its workspaces one by one in any case, and the one tool that walks `packages/`, a test in kaal-release, skips what has no `payload`.
 
-The monorepo concern, weighed: `packages/` is normally only packages. Three things were checked on `main`. The root `package.json` lists its workspaces one by one, not by `packages/*`, so a folder that is not a package is never a workspace. The one tool that walks every entry of `packages/`, a test in kaal-release, looks for `<entry>/payload` and skips what is not there. The earlier `packages/extensions` is already a folder that is not a package. So the cost is small: any run over every capability must take only the entries that hold a `package.json`, and the evidence here does.
+A file can hold this control and its minimum evidence. The control is one Markdown file whose frontmatter declares id, title, description, type, status, `has` and the `evidence:` line of minimum evidence, which is what the controls finder reads. The runs that count toward the minimum are not in that file; they are kept where the controls' records are kept. So a file loses nothing here.
 
-Why numbered and not `packages/controls`: a capability named `kaal-controls` already exists, and an unnumbered `controls` beside it would read as another capability. The number sorts the folder to the top with `AGENTS.md` and says it is not a package, the same way the numbers order the folders in a capability. If you prefer `packages/controls`, say so; the change is one path.
+One limit, so that nobody is surprised: the finder reads one control per Markdown file, by its frontmatter. `packages/controls.md` therefore holds exactly one control, `engineering/CTL2`. That fits the three ratchets, since each control is about one place: the same kind of file would sit beside the `AGENTS.md` of each place, `engineering/controls.md` for the second ratchet and `.kaal/controls.md` for the third, each in its own PLAN. A second control about `packages/` would need either a second file or a finder that reads several controls from one file, which is the controls capability's to decide.
 
-The mismatch is fixed: the template names `02-controls`, and so does the path. `04-controls` was the earlier numbering of release's own folder and has no place here.
+The `04-controls` against `02-controls` mismatch is gone with the folder: no `02-controls` or `04-controls` is added to `packages/`. T1177 still names `04-controls`, a name the layout does not have; the DO makes it `02-controls` so the package still declares no control of its own.
 
 ## Owner questions
 
-1. Answered by the Owner, and corrected: it is an engineering control and it controls the layout of `packages/`, so it sits at `packages/02-controls/`, beside `packages/AGENTS.md`. See "Where the control sits".
+1. Answered by the Owner, and corrected twice: it is an engineering control, it controls the layout of `packages/`, and it is the single file `packages/controls.md` beside `packages/AGENTS.md`. See "Where the control sits".
 2. The split: is it the three ratchets you meant, with one control for the desired setup and a baseline of current gaps for each, and one source per Skill across all three?
 
 ## Not in this Change
