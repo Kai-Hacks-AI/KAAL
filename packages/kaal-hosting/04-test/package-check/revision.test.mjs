@@ -237,10 +237,15 @@ it("hosting/T279: under is read as literal repository-relative names: wildcards 
       r.write("b.txt", "b");
       r.write("d/x.txt", "x");
       const plain = r.commit("plain");
-      // Names that look like pathspec syntax are put in the index directly, so no host has to hold them as files.
+      // Names that look like pathspec syntax are written straight into a tree object, so no host has to hold them as
+      // files or accept them as index paths (Windows Git refuses such names there).
       const blob = r.git("hash-object", "-w", "a.txt");
-      for (const name of [":(glob)lit", "*.lit", "q?.lit", "[ab].lit"]) r.git("update-index", "--add", "--cacheinfo", `100644,${blob},${name}`);
-      r.git("commit", "-q", "-m", "odd names");
+      const head = r.git("ls-tree", "HEAD");
+      const odd = [":(glob)lit", "*.lit", "q?.lit", "[ab].lit"].map((name) => `100644 blob ${blob}\t${name}`);
+      const tree = h.executeSync("git", ["mktree"], { cwd: r.dir, env: h.isolatedEnvironment(r.home), input: `${head}\n${odd.join("\n")}\n` });
+      assert.equal(tree.status, 0, tree.stderr);
+      const commit = r.git("-c", "user.name=case", "-c", "user.email=case@example.invalid", "commit-tree", tree.stdout.trim(), "-p", "HEAD", "-m", "odd names");
+      r.git("update-ref", "HEAD", commit);
 
       const keys = async (under) => Object.keys(await h.readRevision(r.dir, "HEAD", { under })).sort();
       for (const magic of ["*.txt", "**/*.txt", "?.txt", "[ab].txt", "d/*", ":(glob)**/*.txt", ":(exclude)a.txt", ":!a.txt", ":(top)d", ":/", ":(icase)A.TXT", ":(attr:foo)a.txt"]) {
