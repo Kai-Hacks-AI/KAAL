@@ -5,6 +5,7 @@ description: It stops a promotion whose dependency changes carry a known vulnera
 type: preventive
 status: implemented
 has: [release/I30]
+evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL5 gate analyze Vulnerabilities
 

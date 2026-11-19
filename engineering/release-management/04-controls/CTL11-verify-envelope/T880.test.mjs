@@ -23,5 +23,5 @@ export async function run() {
   const draft = readFileSync(join(RM, '00-changes/C68-verify-envelope/interface.md'), 'utf8').split(/^## Draft of CTL11\.md$/m)[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
   const real = join(RM, '04-controls/CTL11-verify-envelope/CTL11.md');
   assert.ok(existsSync(real), 'CTL11.md is absent');
-  assert.equal(readFileSync(real, 'utf8'), `${draft}\n`, 'CTL11.md differs from the draft');
+  assert.equal(readFileSync(real, 'utf8').replace(/^evidence: .*\n/m, ''), `${draft}\n`, 'CTL11.md differs from the draft');
 }

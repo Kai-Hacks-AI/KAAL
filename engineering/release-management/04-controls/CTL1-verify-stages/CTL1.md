@@ -5,6 +5,7 @@ description: It reveals when a delivery stage differs from the stages declaratio
 type: detective
 status: running
 has: [release/I27]
+evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL1 verify Stages
 
