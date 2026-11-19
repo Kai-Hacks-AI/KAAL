@@ -16,7 +16,7 @@ Detective. It reveals after the fact. The old rules are preventive; a preventive
 
 ## Minimum evidence
 
-`evidence: [forward:2, rewritten:1:fail, deleted:1:fail]`, in the form of release/F28 of the controls capability. The control's own Cases create the three histories in scratch repositories. A failure counts only when the Case is RED on a `main` without the control's mechanism and GREEN with it, so a label shows nothing. The control claims `designed` here and no more; the later statuses are claimed by their own evidence.
+`evidence: [fixture:2, real:1, provoked:2:fail]`, in the form of controls/F28 and in the kinds controls/F30 (PLAN controls/C17, #2075) asks of every registered control, so the two Changes agree whichever lands first. `fixture` is a scratch repository where `main` moves forward; `real` is a push to `main` of this repository that the control judged PASS; `provoked` is a failure made on purpose, one rewritten `main` and one deleted `main`, each shown by a RED base and a GREEN head. The control's own Cases create these histories in scratch repositories. The control claims `designed` here and no more; the later statuses are claimed by their own evidence.
 
 ## Placement of the Cases
 

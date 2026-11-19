@@ -22,7 +22,7 @@ export const title = 'the control declares its own minimum evidence with two fai
 export async function run() {
   const real = join(RM, '04-controls/CTL22-verify-history/CTL22.md');
   assert.ok(existsSync(real), 'CTL22.md is absent');
-  assert.match(readFileSync(real, 'utf8'), /^evidence: \[forward:2, rewritten:1:fail, deleted:1:fail\]$/m);
+  assert.match(readFileSync(real, 'utf8'), /^evidence: \[fixture:2, real:1, provoked:2:fail\]$/m);
   const out = JSON.parse(execFileSync(process.execPath, [FINDER, RM], { encoding: 'utf8' }));
   const c = out.controls.find((x) => x.id === 'release/CTL22');
   assert.ok(c, 'release/CTL22 is not listed');

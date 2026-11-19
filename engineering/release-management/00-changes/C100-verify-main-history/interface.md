@@ -50,7 +50,7 @@ title: verify History
 description: It reveals whether main was rewritten or deleted by a push.
 type: detective
 status: designed
-evidence: [forward:2, rewritten:1:fail, deleted:1:fail]
+evidence: [fixture:2, real:1, provoked:2:fail]
 has: [release/I54]
 ---
 # release/CTL22 verify History
@@ -59,7 +59,7 @@ A detective control. `verify History` compares the commit `main` pointed at befo
 
 It reveals; it does not prevent. A force-push or a deletion has already happened when it runs. Preventing is the old promotion ruleset's `non_fast_forward` and `deletion` rules today; a preventive control with the same judge is a different control with its own Owner decision, made only after this one is Tested.
 
-It declares its own minimum evidence: two runs on a fast-forward, one on a rewritten `main` and one on a deleted `main`, where a failure counts only when the Case is RED on a `main` without the control's mechanism and GREEN with it. Its own Cases create these histories in scratch repositories.
+It declares its own minimum evidence in the kinds controls/F30 asks of every control: two runs against a fixture (a scratch repository where `main` moves forward), one run on a real push to `main` of this repository, and two provoked failures (a rewritten `main` and a deleted `main`), where a failure counts only when the Case is RED on a `main` without the control's mechanism and GREEN with it. Its own Cases create these histories in scratch repositories.
 
 It has one Intent, release/I54.
 `````
