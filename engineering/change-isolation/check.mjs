@@ -17,7 +17,12 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { isDelivery, readLocations } from "../release-management/05-src/delivery/locations.mjs";
+
+/**
+ * The delivery reader, when it is reachable. The wrapper scripts run this file as a lone copy, where the reader is not beside it: the
+ * detective rule below then cannot be judged, and nothing else of the checker depends on it.
+ */
+const delivery = await import("../release-management/05-src/delivery/locations.mjs").catch(() => null);
 
 /** Paths that are Core: the package and the Engine files deployed from its payload. */
 const CORE = [/^packages\/kaal-core\//, /^\.kaal\/(AGENTS\.md|KAAL-KERNEL\.md|core\/)/];
@@ -247,11 +252,11 @@ export function check(paths, { ledger = [], facts, carried, attested } = {}) {
  * architecture. This rule is detective: the checker reports it and gates nothing, so `check` and the exit code are unchanged.
  * @returns {string[]} one line per path that is not delivery, when the change touches delivery
  */
-export function deliveryMixed(paths, { read = readLocations } = {}) {
+export function deliveryMixed(paths, { read = delivery?.readLocations } = {}) {
   let locations;
-  try { locations = read(); } catch (e) { throw new CannotJudge(`the delivery declaration cannot be read: ${e.message}`); }
-  if (!paths.some((p) => isDelivery(p, locations))) return [];
-  return paths.filter((p) => !isDelivery(p, locations)).map((p) => `delivery travels apart from solution: ${p} is not a delivery path`);
+  try { if (typeof read !== "function" || !delivery) throw new Error("the delivery reader is not reachable from the checker"); locations = read(); } catch (e) { throw new CannotJudge(`the delivery declaration cannot be read: ${e.message}`); }
+  if (!paths.some((p) => delivery.isDelivery(p, locations))) return [];
+  return paths.filter((p) => !delivery.isDelivery(p, locations)).map((p) => `delivery travels apart from solution: ${p} is not a delivery path`);
 }
 
 /**
