@@ -16,6 +16,7 @@ The main entry `.` also exports the operations `list` and `scratch`, which hosti
 | export | `./fixtures` | `./dist/skills/kaal-hosting/scripts/fixtures.js` | delivered |
 | bin | `kaal-hosting-boundary` | `dist/skills/kaal-hosting/scripts/boundary-cli.mjs` | delivered |
 | bin | `kaal-hosting-revision` | `dist/skills/kaal-hosting/scripts/revision-cli.mjs` | delivered |
+| bin | `kaal-hosting-pulls` | `dist/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs` | delivered |
 | files | `dist` |  | delivered |
 <!-- /kaal-hosting:interface -->
 
