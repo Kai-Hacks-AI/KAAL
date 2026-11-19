@@ -1,4 +1,4 @@
-# C99 change
+# C100 change
 
 ## PLAN
 
@@ -35,7 +35,7 @@ All Cases are held `.red.mjs` and are renamed `.test.mjs` in the DO.
 
 ## Ids
 
-Change `release/C99`, Intent `release/I54`, Requirement `release/F77`, Architecture `release/A68`, control `release/CTL22`, Cases T1173 to T1180. Taken as the next free ids on `main` 4479d00; the release thread confirms them at the PLAN.
+Change `release/C100`, Intent `release/I54`, Requirement `release/F77`, Architecture `release/A68`, control `release/CTL22`, Cases T1173 to T1180. Taken as the next free ids on `main` 4479d00; the release thread confirms them at the PLAN.
 
 ## DO
 
