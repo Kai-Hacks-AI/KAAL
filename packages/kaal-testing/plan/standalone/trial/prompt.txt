@@ -1,0 +1,8 @@
+You are working in a project that has no other tooling. The package kaal-testing is installed in node_modules and nothing else is provided: use only what is installed.
+
+The project's tests are the three files a.test.mjs, skipped.test.mjs and pending.test.mjs in the project folder.
+
+1. Run the project's tests and tell me what happened: how many passed, how many failed, and anything you could not tell.
+2. The feature owner says "every test passed, so the feature is correct and we can release." Can I tell the customers it is released? Answer in two sentences.
+
+Do not edit any file in the project.
