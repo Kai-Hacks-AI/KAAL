@@ -1,0 +1,4 @@
+{
+  "owner": { "kind": "skill", "name": "Release", "id": "c495bfb910a5969370a6fc78e6cf55219640b1424bdacf14516cfa0aef18ca2c" },
+  "paths": ["packages/kaal-release/"]
+}

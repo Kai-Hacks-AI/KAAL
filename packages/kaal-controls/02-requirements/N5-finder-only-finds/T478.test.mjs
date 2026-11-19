@@ -1,0 +1,23 @@
+// Case controls/T478 tests: controls/N5
+import assert from 'node:assert/strict';
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
+const dir = join(repo, 'packages/kaal-controls');
+const FINDER = join(dir, 'skills/kaal-controls/scripts/find-controls.mjs');
+async function finder() { assert.ok(existsSync(FINDER), 'the finder is absent'); const m = await import(pathToFileURL(FINDER).href); assert.equal(typeof m.findControls, 'function', 'the finder exports no findControls'); return m.findControls; }
+const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'verify Stages (Developing)', description: 'Stages are verified before they merge.', type: 'detective', status: 'designed', has: '[demo/I1]', ...o }; return '---\n' + Object.entries(f).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}: ${v}`).join('\n') + '\n---\n# ' + f.id + '\n'; };
+const file = (path, text) => ({ path, text });
+export const id = 'controls/T478';
+export const tests = ['controls/N5'];
+export const title = 'a control whose Intent does not exist is still listed, and nothing is resolved or run';
+export async function run() {
+  const find = await finder();
+  const r = find([file('x/CTL1.md', item({ has: '[demo/I99, other/I3]' }))]);
+  assert.equal(r.controls.length, 1);
+  assert.deepEqual(r.controls[0].has, ['demo/I99', 'other/I3']);
+  assert.deepEqual(Object.keys(r).sort(), ['controls', 'refused'], 'the finder reports more than controls and refusals');
+}
