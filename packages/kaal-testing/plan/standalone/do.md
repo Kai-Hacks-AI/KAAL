@@ -41,6 +41,13 @@ The reworded section stays, since it states Testing's scope by what it does and 
 
 T370 to T373 pass on Node 24.22.1 with the registry reachable. A registry or npm failure is an Error (UNKNOWN), never RED (T371). In my sandbox the other Testing tests could not run, because the workspace dependencies are not built there; CI shows them.
 
+## Boundaries retained (CPO comment on #2105)
+
+- **What this trial shows.** An installed kaal-testing is discovered, runs given tests and reports GREEN, RED and UNKNOWN. It does not show better test design or testing quality. That is a separate Testing Change, with a quality-focused trial of its own.
+- **Deployment and discovery are not Testing's.** Placing the Skill in `.claude/skills` changed agent behaviour (set 4 against set 2). That applies to every KAAL capability and belongs to package, WIRE and agent-discovery work. Testing ships the Skill and its references and takes no responsibility for installing or discovering them.
+- **AGENTS.md and SKILL.md differ.** A package's AGENTS.md guides work on that package; the deployed SKILL.md and its references guide use of the capability, and a consumer's own AGENTS.md stays the consumer's. This DO changes SKILL.md, a reference and the README only.
+- **Testing reports; consumers decide.** K7 was dropped because the prompt itself asks for a release decision, not to hide the outcome: in every set the agent kept the test observations apart from any authorisation to release (K5), and Testing makes no release decision.
+
 ## What it does not claim
 
 The trial shows that the installed package explains itself to an agent. It does not show a baseline without any Skill or README (D2), a neutral claim-file format instead of `ownership.kaal.json` (D1), that test counts are not Case counts, or that RED 0 is not completion; these stay for later Changes. No promotion, activation or publication is claimed.
