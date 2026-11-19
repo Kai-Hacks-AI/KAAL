@@ -4,9 +4,11 @@
 
 An agent in a cloud session cannot run Show WIP: `node run.mjs <owner/repo> show-wip.json` ends with status 2, `gh api graphql failed 4 times … (HTTP 403)`, so no report is printed. Placement: Release, the command's owner. Cause: the command reaches GitHub on its own, through `gh`, and by a route (GraphQL) that this kind of session does not offer. The rule to keep: a fact the host did not report is `not observed`, never guessed.
 
-## Defect (provisional release/D11): the Dispatcher's dry run fails without a token
+## Defect (provisional release/D11): the Dispatcher's dry run cannot run in an agent session
 
-The Dispatcher's dry run reads open pull requests with its own unauthenticated `fetch` and got HTTP 403 "API rate limit exceeded" (unauthenticated reads: about 60 an hour for a shared address). Placement: Release, the Dispatcher's owner. Cause: it reaches GitHub itself instead of asking Hosting. Decision of the Owner (19 November 2026): a Defect, not a hotfix; it rides with this Change in this collector. Scope of this slice: the open-pull-request reads only. The reads of references, comparisons and closed pull requests still use the unauthenticated route, so D11 stays partly open and is closed by a later slice (recorded as a known gap, not hidden).
+The Dispatcher's `decide` reads GitHub with its own plain `fetch` (`makeApi`) and no token unless one is given. In CI it runs with the workflow token; an agent's dry run without a token got HTTP 403 "API rate limit exceeded" (unauthenticated reads: about 60 an hour for a shared address). A run makes about 4N+2 reads for N collectors. Placement: Release, the Dispatcher's owner. Cause: it reaches GitHub itself instead of asking Hosting.
+
+**This Change does not resolve D11 and does not claim the dry run is rate-limit safe.** D11 stays OPEN (CPO scope decision, 19 November 2026). The outcome of this slice is only: the open-pull-request reads (about a quarter of the Dispatcher's reads) go through Hosting. Reads of references, comparisons and closed pull requests (and, in `raise`, pulls of any state and the ref) stay as they are. D11 closes only after: (1) a separate Hosting PLAN for references, comparisons and closed-pull reads, (2) the Release consumer migration, (3) end-to-end evidence that `dispatch.mjs decide` completes in an agent session without a token. Both follow-ups are tracked outside this Change.
 
 ## From
 
