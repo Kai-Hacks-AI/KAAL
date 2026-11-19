@@ -19,6 +19,7 @@ has: [<capability>/I3]
   - `tested`: evidence shows the control works as intended.
   A status is a claim. The check below tests that it is declared, not that it is true: see `references/judging-status.md`.
 - `has` lists the Intents the control has, at least one. The control names nothing else: the Requirements, the Architecture and the mechanism are reached from the Intent.
+- `stations` is optional: `stations: [Integrating:preventive]`, a list of `<Station>:<mode>`, each station once. It says where the control is meant to judge and how. See `references/enforcing-controls.md`.
 - It stores no state and no pointer to its test. A Case that tests the control points back to it with a first line `// Case <id> tests: <control id>`, and sits beside the control, as `CTL<n>-<slug>/CTL<n>.md` and `T<n>.test.mjs`.
 - Ids are unique. A Change id such as `<capability>/C8` is not a control.
 
