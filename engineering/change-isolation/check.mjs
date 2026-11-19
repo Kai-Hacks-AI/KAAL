@@ -20,7 +20,10 @@ import { fileURLToPath } from "node:url";
  * The delivery reader, when it is reachable. The wrapper scripts run this file as a lone copy, where the reader is not beside it: the
  * detective rule below then cannot be judged, and nothing else of the checker depends on it.
  */
-const delivery = await import("../release-management/05-src/delivery/locations.mjs").catch(() => null);
+let delivery = null, declaration;
+for (const [reader, json] of [["../release-management/05-src/delivery/locations.mjs", undefined], ["./kaal-delivery-locations.mjs", "./kaal-delivery-locations.json"]]) {
+  try { delivery = await import(reader); declaration = json && fileURLToPath(new URL(json, import.meta.url)); break; } catch { /* try the next */ }
+}
 
 const GITHUB = /^\.github\//;
 
@@ -235,7 +238,7 @@ export function check(paths, { ledger = [], facts, carried, attested } = {}) {
  * architecture. This rule is detective: the checker reports it and gates nothing, so `check` and the exit code are unchanged.
  * @returns {string[]} one line per path that is not delivery, when the change touches delivery
  */
-export function deliveryMixed(paths, { read = delivery?.readLocations } = {}) {
+export function deliveryMixed(paths, { read = delivery && (() => delivery.readLocations(declaration)) } = {}) {
   let locations;
   try { if (typeof read !== "function" || !delivery) throw new Error("the delivery reader is not reachable from the checker"); locations = read(); } catch (e) { throw new CannotJudge(`the delivery declaration cannot be read: ${e.message}`); }
   if (!paths.some((p) => delivery.isDelivery(p, locations))) return [];
