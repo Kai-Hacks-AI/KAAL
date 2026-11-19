@@ -1,0 +1,244 @@
+{
+ "judgments": [
+  {
+   "node": "testing/F129",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/testability/T156.test.mjs"
+   ],
+   "verdict": "unknown",
+   "evidence": [
+    "packages/kaal-testing/test/plan/testability/T156.test.mjs",
+    "packages/kaal-testing/plan/testability/do.md",
+    "packages/kaal-testing/plan/testability/trial/do/comparison.json"
+   ],
+   "reasoning": "T156 checks the structure of the section (one section, its place, the labelled outcomes in order, the four owners, no other Skill, a size bound) and nothing of what it tells an agent. That limit is deliberate (testing/N28). Whether the section makes an agent verify, challenge and point at judgement is only addressed by the trial, which showed no separation of approach labels between arms. So the structural part of the claim is tested, the behavioural part is not, and no Case can decide it.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F130",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/testability/T157.test.mjs"
+   ],
+   "verdict": "unknown",
+   "evidence": [
+    "packages/kaal-testing/test/plan/testability/T157.test.mjs"
+   ],
+   "reasoning": "T157 checks that the rule 'Never invent' is labelled, follows the outcomes and is a non-empty paragraph of at least twelve words. It cannot check that the rule forbids inventing an oracle, or that Testing does not rewrite a claim, because that is meaning, not structure. The claim is tested for presence only.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F133",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/testability/T157.test.mjs"
+   ],
+   "verdict": "unknown",
+   "evidence": [
+    "packages/kaal-testing/test/plan/testability/T157.test.mjs",
+    "packages/kaal-testing/plan/testability/do.md"
+   ],
+   "reasoning": "T157 checks that the 'Reject a brittle Case' rule is present and labelled. Whether it makes an agent reject a brittle Case was seen only in the trial's E4 claim (rejectsCase true twice in the Skill arm, false twice in the baseline), n=2, one model family. The CPO later moved the ownership of Case adequacy to the owning concern (testing/I39), so this rule is itself under revision by the owners.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/N28",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/testability/T156.test.mjs",
+    "packages/kaal-testing/test/plan/testability/T157.test.mjs"
+   ],
+   "verdict": "adequate",
+   "evidence": [
+    "packages/kaal-testing/test/plan/testability/T156.test.mjs",
+    "packages/kaal-testing/test/plan/testability/T157.test.mjs"
+   ],
+   "reasoning": "N28 requires that Cases reading the Skill check structure and boundary, never a sentence. Reading T156 and T157, their assertions use the section heading, the bold labels, the owner names and word counts. None matches an incidental sentence. The labels and owner names are the structure the Requirements define. I read both Cases as their author, so an independent reader may disagree.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F131",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/testability/T158.test.mjs"
+   ],
+   "verdict": "adequate",
+   "evidence": [
+    "packages/kaal-testing/test/plan/testability/T158.test.mjs"
+   ],
+   "reasoning": "T158 checks what F131 states deterministically: at least two runs per arm, a fresh observer, prompt hash equal to the prompt, answers equal to the raw output, the installed section present only in the Skill arm, one answer per claim in order, and the answer shape by approach. Whether the Skill helps is explicitly the trial's finding, not the Case's, as F131 says.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F132",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/testability/T159.test.mjs"
+   ],
+   "verdict": "adequate",
+   "evidence": [
+    "packages/kaal-testing/test/plan/testability/T159.test.mjs"
+   ],
+   "reasoning": "T159 recomputes every position from the records and requires each difference to be listed unresolved, the key hash to match or a revision to be recorded, and limits to be stated. That is the deterministic content of F132. It cannot tell whether a disagreement is real, which F132 leaves to the reader.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/N27",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/testability/T160.test.mjs"
+   ],
+   "verdict": "adequate",
+   "evidence": [
+    "packages/kaal-testing/test/plan/testability/T160.test.mjs"
+   ],
+   "reasoning": "T160 pins the exact Skill headings, the exports, the Skill folders, the capability and payload Nodes and the absence of a dependency on kaal-review, which are the boundary N27 lists. It does not cover 'no reference to any other Skill' beyond T156's regex; I judge that adequate for the boundary as stated.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F134",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/case-ownership/T360.test.mjs"
+   ],
+   "verdict": "unknown",
+   "evidence": [
+    "packages/kaal-testing/test/plan/case-ownership/T360.test.mjs",
+    "packages/kaal-testing/plan/case-ownership/evidence.md"
+   ],
+   "reasoning": "T360 recomputes the survey and checks the statuses and reasons, and was shown GREEN on a reference and RED with two mutants. I wrote the Case and the Requirement, and no seat independent of the author has judged it yet. The definition of a node in the helper (an id line, a heading, or a bold list opener) is my choice and may miss another capability's convention.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F135",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/case-ownership/T360.test.mjs"
+   ],
+   "verdict": "unknown",
+   "evidence": [
+    "packages/kaal-testing/test/plan/case-ownership/T360.test.mjs"
+   ],
+   "reasoning": "T360 checks that the survey knows only owned and unresolved and that a reason is given exactly when a Case is unresolved. Whether 'unresolved' is the right reading of a Case that declares no link, or an id defined in two places, is a judgment of the concerns involved. Same author caveat as F134.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F136",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/case-ownership/T361.test.mjs"
+   ],
+   "verdict": "unknown",
+   "evidence": [
+    "packages/kaal-testing/test/plan/case-ownership/T361.test.mjs"
+   ],
+   "reasoning": "T361 checks that each owned node has one judgment, recorded by the concern read from the node id, with a verdict from three values, reasoning and evidence. It cannot check that the judge is independent of the node's author, and here the Testing judgments are recorded by the Testing thread that also wrote the Cases. The Review concern's judgments are recorded from the Review owner's own reply.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "testing/F137",
+   "judge": "testing",
+   "cases": [
+    "packages/kaal-testing/test/plan/case-ownership/T362.test.mjs"
+   ],
+   "verdict": "unknown",
+   "evidence": [
+    "packages/kaal-testing/test/plan/case-ownership/T362.test.mjs"
+   ],
+   "reasoning": "T362 checks that every unresolved Case has an investigation with one of four outcomes, whom to ask and reasoning, and that no Case file changed since the survey. It cannot check the investigation's conclusion. Same author caveat as F134.",
+   "recordedBy": "the Testing thread, the author of these Cases (testing/C59, C60, C61)"
+  },
+  {
+   "node": "review/I7",
+   "judge": "review",
+   "cases": [
+    "packages/kaal-review/01-intent/I7-independent-review/T21.test.mjs"
+   ],
+   "verdict": "inadequate",
+   "evidence": [
+    "01-intent/I7-independent-review/I7.md, T21.test.mjs, lib.mjs."
+   ],
+   "reasoning": "I7 claims an Agent other than the author compares, challenges, separates proof from judgement, judges, points at the testable and names Owner decisions. T21 only checks that each record has a Comparison, a For the Owner chapter and the phrase \"grants no authority\". Independence of the reviewer has no oracle and is a judged claim; T21 does not point at it. The proof-and-judgement and challenge parts are left to F21 and F22. Suggested: keep T21 as the structural check and state that independence is Judged.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  },
+  {
+   "node": "review/F20",
+   "judge": "review",
+   "cases": [
+    "packages/kaal-review/02-requirements/F20-inspect/T22.test.mjs"
+   ],
+   "verdict": "inadequate",
+   "evidence": [
+    "F20.md, T22.test.mjs, lib.mjs."
+   ],
+   "reasoning": "T22 checks the record names its focus, reference, actual and everything in `subject.json` as inspected, by substring. F20 also claims the reference and actual are read at exact commits. Nothing checks that a commit or equivalent identifier is named. That is testable.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  },
+  {
+   "node": "review/F21",
+   "judge": "review",
+   "cases": [
+    "packages/kaal-review/02-requirements/F21-challenge/T23.test.mjs"
+   ],
+   "verdict": "inadequate",
+   "evidence": [
+    "F21.md, T23.test.mjs, lib.mjs."
+   ],
+   "reasoning": "T23 checks both directions are mentioned, each finding carries Checked: or Inferred:, and each question string appears somewhere in the Comparison or Evidence. The substring check is weak: a question can be copied without being answered. The claim to judge the evidence relied on (failing Case intent, baseline, key independence) is not tested and is Judged.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  },
+  {
+   "node": "review/F22",
+   "judge": "review",
+   "cases": [
+    "packages/kaal-review/02-requirements/F22-proof-and-judgement/T24.test.mjs"
+   ],
+   "verdict": "inadequate",
+   "evidence": [
+    "F22.md, T24.test.mjs, T29.test.mjs, lib.mjs."
+   ],
+   "reasoning": "T24 checks every finding is marked and that a Proven finding cites a Case id or recorded trial, and that no trial chapter exists. It does not check that the cited Case exists or that its result is stated, though F22 requires the result. The \"opens by stating the three marks\" and \"exactly one mark\" parts are covered by T29.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  },
+  {
+   "node": "review/F23",
+   "judge": "review",
+   "cases": [
+    "packages/kaal-review/02-requirements/F23-limits-and-owner/T25.test.mjs"
+   ],
+   "verdict": "inadequate",
+   "evidence": [
+    "F23.md, T25.test.mjs."
+   ],
+   "reasoning": "T25 checks the Not checked and Limits chapters, the words Agent, judgement and human, and at least two Owner list items with the word option. The \"at least two\" is arbitrary and pushes padding. F23 also requires what each decision would mean and what a human should observe; neither is checked.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  },
+  {
+   "node": "review/N4",
+   "judge": "review",
+   "cases": [
+    "packages/kaal-review/02-requirements/N4-no-authority-no-change/T26.test.mjs"
+   ],
+   "verdict": "inadequate",
+   "evidence": [
+    "N4.md, T26.test.mjs; also my own T292 and test/standalone.mjs added by review/C2."
+   ],
+   "reasoning": "T26 checks a \"changed nothing\" phrase, no mention of kaal-testing in the record text, and no Verdict: approve line. N4 claims that Review changes nothing, names no subject outside application data, and depends on no other capability's Skill or package. T26 inspects only the record text. A textual mention is not a dependency, and the ban on the name \"kaal-testing\" is brittle. The product-boundary half is now covered by T292 (review/F24) as behaviour; N4's own Case is not.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  },
+  {
+   "node": "review/A1",
+   "judge": "review",
+   "cases": [
+    "packages/kaal-review/03-architecture/A1-review-record/T27.test.mjs"
+   ],
+   "verdict": "inadequate",
+   "evidence": [
+    "A1.md, T27.test.mjs, lib.mjs."
+   ],
+   "reasoning": "T27 checks the nine chapters. `lib.mjs` also validates `subject.json` and requires at least one application, so those parts are covered indirectly. The check that FOCI defines promotion and capability reads a constant in the harness. A1 also says there is no script and no test or trial folder in an application; nothing checks it.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  }
+ ]
+}

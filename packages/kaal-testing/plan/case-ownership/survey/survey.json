@@ -1,0 +1,256 @@
+{
+ "scope": [
+  "packages/kaal-testing",
+  "packages/kaal-review"
+ ],
+ "cases": [
+  {
+   "case": "packages/kaal-review/00-changes/C1-focused-review/T28.test.mjs",
+   "fileSha256": "cc51c7154fe7322d8f5ae0f99b45dece7878cb142db3a41179b32f2f2aa791b2",
+   "declared": [
+    "review/G1"
+   ],
+   "status": "unresolved",
+   "reason": "review/G1 is defined nowhere in the scope"
+  },
+  {
+   "case": "packages/kaal-review/00-changes/C1-focused-review/T29.test.mjs",
+   "fileSha256": "df9b3c9f64148e57038ed330acd2e678cb49938a8b12639acaf80eb4a280e21b",
+   "declared": [
+    "review/G2"
+   ],
+   "status": "unresolved",
+   "reason": "review/G2 is defined nowhere in the scope"
+  },
+  {
+   "case": "packages/kaal-review/01-intent/I7-independent-review/T21.test.mjs",
+   "fileSha256": "f01e24982d3f6d9e05dd4d549880899ff51a0e198f5dba2e8626b859cb160296",
+   "declared": [
+    "review/I7"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "review/I7",
+     "definedIn": "packages/kaal-review/01-intent/I7-independent-review/I7.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-review/02-requirements/F20-inspect/T22.test.mjs",
+   "fileSha256": "2f4ca03c61e8fac8681a56909eb62e45497aa81a6befd31ecc61d7283ea21d02",
+   "declared": [
+    "review/F20"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "review/F20",
+     "definedIn": "packages/kaal-review/02-requirements/F20-inspect/F20.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-review/02-requirements/F21-challenge/T23.test.mjs",
+   "fileSha256": "e4cf52c1896aa203150227e6b16bde4b42b2fee280ccbf26a704ef29ac9a02e1",
+   "declared": [
+    "review/F21"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "review/F21",
+     "definedIn": "packages/kaal-review/02-requirements/F21-challenge/F21.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-review/02-requirements/F22-proof-and-judgement/T24.test.mjs",
+   "fileSha256": "67d00107295eb154ad4605583031004677689c9e8ea295355ec9d51430af7789",
+   "declared": [
+    "review/F22"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "review/F22",
+     "definedIn": "packages/kaal-review/02-requirements/F22-proof-and-judgement/F22.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-review/02-requirements/F23-limits-and-owner/T25.test.mjs",
+   "fileSha256": "7e7f66deb6f39fed9f4c048534769c52ea079cb720992263725368841d166483",
+   "declared": [
+    "review/F23"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "review/F23",
+     "definedIn": "packages/kaal-review/02-requirements/F23-limits-and-owner/F23.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-review/02-requirements/N4-no-authority-no-change/T26.test.mjs",
+   "fileSha256": "9e104ec140e1992dffe7c9c59b074856753b81d49c21bd79164f0144ddf4ca8d",
+   "declared": [
+    "review/N4"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "review/N4",
+     "definedIn": "packages/kaal-review/02-requirements/N4-no-authority-no-change/N4.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-review/03-architecture/A1-review-record/T27.test.mjs",
+   "fileSha256": "cd1ce9cc075a7dd7fd7d6bf43589e1d164b593a92e94bd601ef2948c54789693",
+   "declared": [
+    "review/A1"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "review/A1",
+     "definedIn": "packages/kaal-review/03-architecture/A1-review-record/A1.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/case-ownership/T360.test.mjs",
+   "fileSha256": "f9da9d3f474ab9a95eb30fbbb109ba85dbf7a95a7ed8412912fe40e76d8f1c22",
+   "declared": [
+    "testing/F134",
+    "testing/F135"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/F134",
+     "definedIn": "packages/kaal-testing/plan/case-ownership/requirements.md"
+    },
+    {
+     "id": "testing/F135",
+     "definedIn": "packages/kaal-testing/plan/case-ownership/requirements.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/case-ownership/T361.test.mjs",
+   "fileSha256": "98785ec17016fde8f15a43c7b6d6742ce7970fcd2fbf3b202385c2b2113c9be1",
+   "declared": [
+    "testing/F136"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/F136",
+     "definedIn": "packages/kaal-testing/plan/case-ownership/requirements.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/case-ownership/T362.test.mjs",
+   "fileSha256": "a282ad11bf10e13ae64d9b280d6ad297fe6dfe88e67f02a726f096ecf67876a4",
+   "declared": [
+    "testing/F137"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/F137",
+     "definedIn": "packages/kaal-testing/plan/case-ownership/requirements.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/testability/T156.test.mjs",
+   "fileSha256": "0ac3d9e8372244c82f20769a4899410b9dc0d1cf529d65cd9c2a38007de60ed8",
+   "declared": [
+    "testing/F129",
+    "testing/N28"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/F129",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    },
+    {
+     "id": "testing/N28",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/testability/T157.test.mjs",
+   "fileSha256": "99bb9c8e43e508382b18afa0e118502fa8582182e24ce2f51db16647b975e9fb",
+   "declared": [
+    "testing/F130",
+    "testing/F133",
+    "testing/N28"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/F130",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    },
+    {
+     "id": "testing/F133",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    },
+    {
+     "id": "testing/N28",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/testability/T158.test.mjs",
+   "fileSha256": "e26d2b172ab84cd641d6acc9c950a9e90e885380f5a2fcdf4ca477b9ce1c72ae",
+   "declared": [
+    "testing/F131"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/F131",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/testability/T159.test.mjs",
+   "fileSha256": "785a07272132cd04a9d5533249b4e278283e2038f86626836136afc75d7560ac",
+   "declared": [
+    "testing/F132"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/F132",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    }
+   ]
+  },
+  {
+   "case": "packages/kaal-testing/test/plan/testability/T160.test.mjs",
+   "fileSha256": "ef69fc72e98f4bd09c8751eb3e655f13ce63bf78ca04930c47318893801bcd5f",
+   "declared": [
+    "testing/N27"
+   ],
+   "status": "owned",
+   "nodes": [
+    {
+     "id": "testing/N27",
+     "definedIn": "packages/kaal-testing/plan/testability/requirements.md"
+    }
+   ]
+  }
+ ]
+}

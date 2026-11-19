@@ -1,0 +1,18 @@
+{
+ "investigations": [
+  {
+   "case": "packages/kaal-review/00-changes/C1-focused-review/T28.test.mjs",
+   "outcome": "existing-node-should-own",
+   "ask": "the Review owner for review/C1, and the CPO if gaps are to become nodes with files of their own",
+   "reasoning": "Outcome: existing-node-should-own. Not missing-node.\nReasoning: the gaps are defined in the Gaps table of `00-changes/C1-focused-review/C1.md` and in its `closes: [review/G1, review/G2]` front matter. They are not node files, which is why no document in the scope declares them as a node. review/C2 defines G3 the same way in its C2.md. The Change review/C1 owns them.\nAsk: the CPO, if gaps are to become nodes with files of their own; otherwise the Change file is the definition and the link is valid. I have no evidence of a convention either way.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  },
+  {
+   "case": "packages/kaal-review/00-changes/C1-focused-review/T29.test.mjs",
+   "outcome": "existing-node-should-own",
+   "ask": "the Review owner for review/C1, and the CPO if gaps are to become nodes with files of their own",
+   "reasoning": "Outcome: existing-node-should-own. Not missing-node.\nReasoning: the gaps are defined in the Gaps table of `00-changes/C1-focused-review/C1.md` and in its `closes: [review/G1, review/G2]` front matter. They are not node files, which is why no document in the scope declares them as a node. review/C2 defines G3 the same way in its C2.md. The Change review/C1 owns them.\nAsk: the CPO, if gaps are to become nodes with files of their own; otherwise the Change file is the definition and the link is valid. I have no evidence of a convention either way.",
+   "recordedFrom": "packages/kaal-testing/plan/case-ownership/survey/review-judgement.txt"
+  }
+ ]
+}
