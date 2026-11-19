@@ -10,7 +10,7 @@ Show WIP starts `gh` itself, knows the routes it reads (GraphQL for the open pie
 
 ## To
 
-Show WIP asks Hosting for facts about the host ("the open pieces of this repository", each with its reviews, checks and review threads) and knows nothing about routes, GraphQL, REST or `gh`. Hosting (`hosting/C111`, its own Change, PLAN to follow) chooses the transport the environment can reach (GraphQL where it is allowed, the cloud session's review-thread route where it is not) and answers each fact it could not read as unknown, never a guess. Environment-specific routes live only inside Hosting. Show WIP keeps what is its own: the mapping of those host records to its facts, the stations, and the report. The report, its lines and the exit statuses are unchanged, no fact of it is dropped, and the command prints its report in a cloud session. A fact Hosting answers as unknown is `not observed`, as the command's rule already says.
+Show WIP asks Hosting for facts about the host ("the open pieces of this repository", each with its reviews, checks and review threads) and knows nothing about routes, GraphQL, REST or `gh`. Hosting (`hosting/C111`, its own Change, PLAN to follow) chooses the transport the environment can reach (GraphQL where it is allowed, the cloud session's review-thread route where it is not) and answers each fact it could not read as unknown, never a guess. Environment-specific routes live only inside Hosting. The service is a Hosting Script under the `kaal-hosting` Skill, like `readRevision` (hosting/C110): one implementation with two doors, the library Show WIP calls from code and the command an agent runs through the Skill. Show WIP keeps what is its own: the mapping of those host records to its facts, the stations, and the report. The report, its lines and the exit statuses are unchanged, no fact of it is dropped, and the command prints its report in a cloud session. A fact Hosting answers as unknown is `not observed`, as the command's rule already says.
 
 ## Because
 
@@ -29,7 +29,7 @@ One home for reaching GitHub (Hosting), and a report the agents can run themselv
 ## Sequence
 
 1. This PLAN.
-2. `hosting/C111`: the Hosting GitHub read entry, with the transport choice inside it (its own PLAN, DO and ACT, promoted to main).
+2. `hosting/C111`: the Hosting GitHub read Script under the `kaal-hosting` Skill, with the transport choice inside it (its own PLAN, DO and ACT, promoted to main).
 3. The DO of this Change, raised from a `main` that holds `hosting/C111`. It turns T930 and T931 GREEN and keeps T932 GREEN.
 
 No npm publish and no pin move: the command uses the in-repo workspace package.
