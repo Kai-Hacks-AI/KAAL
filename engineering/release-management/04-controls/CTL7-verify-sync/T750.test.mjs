@@ -28,5 +28,5 @@ export async function run() {
   const paragraph = section.match(/^````\n([\s\S]*?)\n````$/m)[1];
   const [head, first, ...rest] = draft.replace('has: [release/I32]', 'has: [release/I32, release/I35]').split('\n\n');
   // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
-  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${[head, first, paragraph, ...rest].join('\n\n')}\n`, 'CTL7.md differs from the draft with what release/C65 adds');
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, '').replace(/^evidence: .*\n/m, ''), `${[head, first, paragraph, ...rest].join('\n\n')}\n`, 'CTL7.md differs from the draft with what release/C65 adds');
 }

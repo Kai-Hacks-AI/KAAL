@@ -5,6 +5,7 @@ description: It stops a merge into an integration branch that has no fresh appro
 type: preventive
 status: implemented
 has: [release/I36]
+evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL10 approve Integration
 
