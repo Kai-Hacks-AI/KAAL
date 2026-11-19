@@ -18,4 +18,13 @@ One complete report of `kaal-testing run`, for a project whose tests are `invoic
 
 **Unobserved:** whatever `export.test.mjs` would have shown after the stop, the rate table, and the French printing. Nothing here links a test to a requirement, so what the three GREEN tests cover is not stated either.
 
-**Handover:** the result stands at 1 RED and 3 UNKNOWN in an incomplete run. "All passed" is not supported. The decider takes this result and chooses what follows.
+**Handover:** this run has a RED and UNKNOWN in an incomplete run, so it goes two ways. The RED, `tax.test.mjs > taxes a refund` with its failing check, goes to whoever fixes the subject. The UNKNOWN tests and the incomplete run go back to completing the observation: provide the rate table, build or drop the French printing, raise the time bound for `export.test.mjs`, and run again. Nothing goes to the decider until the run is complete.
+
+## Endings by outcome
+
+End the report with the one that matches the run. Each names an abstract role, never a concrete one.
+
+- **Complete, all GREEN:** "All GREEN in a complete run. This shows what these tests cover and nothing beyond it. The decider takes the result and chooses what follows."
+- **A RED, run complete:** "A verified failure in `<test>`, with its check and subject. Whoever fixes the subject takes it; a fix is observed again before anything else follows."
+- **UNKNOWN, or the run incomplete:** "Not complete: `<what was skipped, errored or stopped>` is unobserved. Complete the observation first, then report again. No result is handed on yet."
+- **RED together with UNKNOWN or an incomplete run:** both of the above, each part to its own destination, as in the report above.
