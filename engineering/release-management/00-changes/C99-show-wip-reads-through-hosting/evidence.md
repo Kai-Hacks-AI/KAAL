@@ -6,11 +6,11 @@ Observed on 19 November 2026 from a Claude Code cloud session, against `main` at
 - `read.mjs` asks GraphQL in one place (`readOpenPulls`); every other read of the command is REST.
 - `run.mjs` is the only file that starts `gh` (`execFileSync`).
 
-Test Cases (drafts `T930–T932.red.mjs`, `helper.mjs` holds a stand-in `gh` that refuses GraphQL with the real message and answers REST from a canned repository), run against `main`:
+Test Cases (drafts `T1200–T1204.red.mjs`, `helper.mjs` holds a stand-in `gh` that refuses GraphQL with the real message and answers REST from a canned repository), run against `main`:
 
-- release/T930: RED (`the command did not print a report (… HTTP 403)`).
-- release/T931: RED (`run.mjs starts a process itself`).
-- release/T932: GREEN.
+- release/T1200: RED (`the command did not print a report (… HTTP 403)`).
+- release/T1201: RED (`run.mjs starts a process itself`).
+- release/T1202: GREEN.
 
 The REST routes the stand-in answers (`pulls`, `pulls/<n>`, `pulls/<n>/reviews`, `commits/<sha>/check-runs`, `commits/<sha>/status`) are the ones the DO is expected to use; the DO may adjust the stand-in to the routes it actually uses, and says so in its record.
 

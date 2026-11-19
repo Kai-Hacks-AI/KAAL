@@ -1,7 +1,7 @@
-// Case release/T930 tests: release/C99. Feature: Show WIP runs where GitHub GraphQL is refused.
+// Case release/T1200 tests: release/C99. Feature: Show WIP runs where GitHub GraphQL is refused.
 import assert from 'node:assert/strict';
 import { standIn } from './helper.mjs';
-export const id = 'release/T930';
+export const id = 'release/T1200';
 export const tests = ['release/C99'];
 export const title = 'Show WIP prints its report in a session where GitHub GraphQL is refused, and never asks GraphQL';
 export async function run() {
