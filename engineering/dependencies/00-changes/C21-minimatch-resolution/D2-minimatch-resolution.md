@@ -11,7 +11,7 @@ Owner: Engineering (the single root lockfile and its overrides). Raised on 19 No
   "expected": "No `minimatch` that package-lock.json resolves is inside the range of GHSA-g3hv-75wg-m249 (>= 7.0.0, < 11.0.1).",
   "observed": "package-lock.json resolves node_modules/minimatch 10.2.6, through kaal-testing, c8 12.0.0 and test-exclude 8.0.0 (`minimatch: ^10.2.2`), and again through glob 13.0.6, which no 10.x release can leave.",
   "where": "package-lock.json (node_modules/minimatch); package.json (no override)",
-  "status": "confirmed",
+  "status": "answered",
   "tests": ["engineering/T385"]
 }
 ```
@@ -28,6 +28,6 @@ State: `main` only. kaal-testing is not published (npm has no kaal-testing), so 
 
 | Identity | Role | File |
 | --- | --- | --- |
-| engineering/T385 | RED on 07868a8: no resolved `minimatch` is inside the advisory range; also checks the range test itself on sample versions | T385.red.mjs |
+| engineering/T385 | RED on 07868a8: no resolved `minimatch` is inside the advisory range; also checks the range test itself on sample versions | T385.test.mjs |
 
-**Confirming Run (19 Nov, Node 22, 07868a8):** T385 fails with `minimatch 10.2.6 at node_modules/minimatch`. **Answered** by a Run in which T385 passes unmodified with the correction.
+**Confirming Run (19 Nov, Node 22, 07868a8):** T385 fails with `minimatch 10.2.6 at node_modules/minimatch`. **Answered (19 Nov, Node 22):** T385 passes unmodified with the correction: the lockfile resolves minimatch 11.0.1.
