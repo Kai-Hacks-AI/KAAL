@@ -8,14 +8,17 @@
 
 ## The model
 
-Delivery architecture is named locations and things, and it is specific to a consumer. The solution architecture of a package declares what the package installs (the targets of its contract); where this repository allows delivery is KAAL's own declaration, kept in Engineering. Consumers read it; they do not carry copies.
+Solution architecture defines **what** is delivered; delivery architecture defines **how** it is delivered. Both are code, both live in Git, both are governed and versioned. They serve different outcomes (a functioning solution; a reliable delivery of it), and the line between them is responsibility and outcome, not technology, repository, directory or packaging format. The model must work unchanged in a repository that has no packages; in KAAL a package can be the solution unit, and its contract (`assets[].target`) is only an example of solution architecture stating what it installs.
+
+Delivery locations are one concern of delivery architecture, not its definition. Installation, synchronization, activation and verification may also belong there. This Change takes the one concern that two WIRE consumers already disagree about: where this repository allows delivery is a declaration of the consumer (here KAAL), kept in Engineering. Consumers read it; they do not carry copies. The separation from Change Isolation and other controls stays: a control may forbid what the declaration allows.
 
 ## Slices
 
 1. **This Change (release/C95).** The declaration, its one reader, and the two WIRE consumers: the merge-event classifier and the install judge.
 2. **Pull Promotion's evidence rule** (`evidence.do` in `pull-promotion/declaration.json`) reads the declaration. Its owner decides how its path classes (packages, engineering) relate to delivery locations.
 3. **Change Isolation** reads the declaration for what travels alone. Its Core paths are a rule about ownership, not only a list of locations, so this one needs its own PLAN.
-4. Later: judge a package contract's targets against the declaration, so a package cannot install somewhere the consumer has not declared.
+4. Later: judge what the solution declares it installs (in KAAL, a package contract's targets) against the declaration, so a solution cannot install somewhere the consumer has not declared.
+5. Later, as their own Changes if the Owner wants them: the other concerns of delivery architecture (installation, synchronization, activation, verification) anchored in the same place.
 
 ## For the CPO and the Owner
 

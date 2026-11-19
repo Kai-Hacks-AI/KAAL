@@ -13,7 +13,9 @@ title: delivery locations are declared once
 ---
 # release/I53 delivery locations are declared once
 
-Contract: where KAAL delivers what it installs is declared once, in the delivery architecture of Engineering, and every consumer that decides by location reads that declaration. A location is a named root of the repository (`.github`, `.githooks`, `.kaal`). Which locations exist, and which of them a WIRE may install into, is a fact of delivery and specific to the consumer: it is not a property of a package, whose architecture only declares what it installs. No consumer carries a list of its own. Adding a location is one edit of the declaration and changes no consumer code.
+Solution architecture defines what is delivered; delivery architecture defines how it is delivered. Both are code, both live in Git, and both are governed and versioned. They serve different outcomes: a functioning solution, and a reliable delivery of it. The distinction is by responsibility and outcome, not by technology, repository, directory or packaging format, so it holds in a repository that has no packages at all. Delivery locations are one concern of delivery architecture; installation, synchronization, activation and verification are others, and none of them is changed here.
+
+Contract: the delivery locations of a consumer, the named places a delivery may write to (in KAAL `.github`, `.githooks` and `.kaal`), are declared once, in that consumer's delivery architecture, and every consumer of the declaration that decides by location reads it. Which locations exist, and which of them a WIRE may install into, is a fact of delivery and specific to the repository; it is not a property of the solution. No reader carries a list of its own. Adding a location is one edit of the declaration and changes no reading code.
 
 Owner: release management.
 `````
@@ -50,7 +52,7 @@ addresses: [release/F72]
 ---
 # release/A67 delivery-locations
 
-The delivery architecture of KAAL is a declaration, `03-architecture/A67-delivery-locations/delivery-locations.json`: a list of named locations, each a root of the repository with a statement of what is delivered there and whether a WIRE may install into it (`wirable`). It is Engineering's declaration for this consumer, KAAL; another repository declares its own. It names things and places and holds no logic.
+This is the delivery architecture of KAAL for one concern, delivery locations: a declaration, `03-architecture/A67-delivery-locations/delivery-locations.json`, a list of named locations, each a root of the repository with a statement of what is delivered there and whether a WIRE may install into it (`wirable`). It is the declaration of the consumer, KAAL; another repository declares its own, with the same shape, whether or not it uses packages. It names things and places and holds no logic. The wider delivery architecture (installation, synchronization, activation, verification) is not declared here; this declaration is the first concern anchored in it, and the others join it in their own Changes.
 
 One reader, `05-src/delivery/locations.mjs`, is the only code that knows the file's shape. `readLocations(path?)` reads and validates it (it throws on anything malformed: not JSON, no locations, a root with `/`, `..` or a leading `/`, a duplicate root, `wirable` that is not a boolean). `wirableTarget(path, locations)` answers whether a path is one file under a wirable root. The consumers import these; none spells a root.
 
@@ -58,7 +60,7 @@ Consumers in this slice: `wireTarget` and `decideFinal` of `05-src/promotion-rai
 
 Not in this slice, named so they are not forgotten: the evidence rule of Pull Promotion (`pull-promotion/declaration.json`, `evidence.do`) and Change Isolation (`engineering/change-isolation/check.mjs`, its `.github` and Core paths) carry lists of their own. They have other owners and their own Changes. This Change alters neither, and does not change that Core travels alone or that `.github` travels alone.
 
-A package contract (`assets[].target`) stays what it is: the package says what it installs, the delivery architecture says where this consumer allows delivery. Checking the one against the other is a later question.
+What the solution declares it installs stays what it is. In KAAL a package is the solution unit and its contract (`assets[].target`) says what it installs, which is solution architecture; the delivery architecture says where this repository allows delivery. A repository without packages declares the same locations the same way. Checking the one against the other is a later question.
 `````
 
 ## Draft of delivery-locations.json
