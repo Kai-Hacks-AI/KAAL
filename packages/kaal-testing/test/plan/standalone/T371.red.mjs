@@ -1,6 +1,6 @@
 // Case testing/T371 tests: testing/F147, testing/N32. The installed package depends on Hosting and c8 only, and no other KAAL package.
 import assert from 'node:assert/strict';
-import { DEPENDENCIES, FAMILY, NAME, files, install, installed, manifest, text } from './lib.mjs';
+import { DEPENDENCIES, FAMILY, NAME, arrived, files, install, manifest, text, unintended } from './lib.mjs';
 export const id = 'testing/T371';
 export const tests = ['testing/F147', 'testing/N32'];
 export const title = 'the installed kaal-testing declares only Hosting, Foundation and c8, imports nothing else, and no other KAAL package or Skill arrives with it';
@@ -12,8 +12,9 @@ export async function run() {
   for (const must of ['@kaihacksai/kaal-hosting', 'c8']) assert.ok(declared.includes(must), `${must} is imported but not declared`);
   assert.equal(Object.values({ ...m.dependencies }).some((v) => /^(file|link|workspace|git)/.test(v)), false, 'a dependency points at a path or a workspace, not at a published version');
 
-  const family = installed(project).filter((n) => /^kaal-|^@kaihacksai\//.test(n)).sort();
-  assert.deepEqual(family, [NAME, ...FAMILY.filter((f) => family.includes(f))].sort(), 'the install brought another KAAL package into the project');
+  const everything = arrived(project);
+  assert.ok(everything.includes(NAME) && everything.includes('@kaihacksai/kaal-hosting'), 'the install lacks the package itself or Hosting');
+  assert.deepEqual(unintended(everything), [], 'the install brought a KAAL-family package that is not on the fixed allowlist (kaal-testing, Hosting, Foundation), directly or as a transitive arrival');
 
   const bare = new Set();
   for (const f of files(root).filter((n) => /^(lib|bin)\/.+\.mjs$/.test(n))) {

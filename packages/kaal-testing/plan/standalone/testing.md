@@ -1,11 +1,11 @@
 # Standalone use of kaal-testing: Testing
 
-The planned Cases live in `packages/kaal-testing/test/plan/standalone/`, named `T<n>.red.mjs` with `lib.mjs` and `run-red.mjs`. Each exports `id`, `tests`, `title` and `run()`. They are immutable to DO. `testing/C66` renames them `.test.mjs`, adds a wrapper to Testing's `npm test` and records the trial. They need network access to the registry for Hosting and `c8`.
+The planned Cases live in `packages/kaal-testing/test/plan/standalone/`, named `T<n>.red.mjs` with `lib.mjs` and `run-red.mjs`. Each exports `id`, `tests`, `title` and `run()`. They are immutable to DO. `testing/C66` renames them `.test.mjs`, adds a wrapper to Testing's `npm test` and records the trial. They need network access to the registry for Hosting and `c8`; if the registry or npm is unavailable a Case ends as an error (UNKNOWN), never as RED.
 
 | Case | Checks | What it decides |
 | --- | --- | --- |
 | testing/T370: a packed kaal-testing installs into an empty project and runs the consumer's own tests | testing/F146 | command linked, one GREEN and one RED counted on a consumer file, ids relative to the project, `kaal-testing/run` loads, nothing written into the project |
-| testing/T371: only Hosting, Foundation and `c8`, nothing else of KAAL | testing/F147, testing/N32 | declared set, versions not paths, installed tree holds no other KAAL package, every import built in or declared |
+| testing/T371: only Hosting, Foundation and `c8`, nothing else of KAAL | testing/F147, testing/N32 | declared set, versions not paths, every package of the installed tree, nested ones included, is checked against a fixed allowlist, every import built in or declared |
 | testing/T372: no name from outside the package | testing/N32 | scan of the installed files for repository paths, other packages, outside roles and process vocabulary |
 | testing/T373: the judged use | testing/F148 | key valid, fixture yields the key's counts with the installed package, three recorded runs with isolation, quotes found in the transcript, every must item met |
 
