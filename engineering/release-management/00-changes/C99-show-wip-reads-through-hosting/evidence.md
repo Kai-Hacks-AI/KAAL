@@ -13,3 +13,14 @@ Test Cases (drafts `T930–T932.red.mjs`, `helper.mjs` holds a stand-in `gh` tha
 - release/T932: GREEN.
 
 The REST routes the stand-in answers (`pulls`, `pulls/<n>`, `pulls/<n>/reviews`, `commits/<sha>/check-runs`, `commits/<sha>/status`) are the ones the DO is expected to use; the DO may adjust the stand-in to the routes it actually uses, and says so in its record.
+
+## Review threads over REST (CPO review of #2066)
+
+Probed 19 November 2026 from a cloud session:
+
+- A review comment from `GET /repos/{owner}/{repo}/pulls/{n}/comments` has the keys `id`, `in_reply_to_id`, `pull_request_review_id`, `path`, `line`, `position`, `commit_id`, `body`, `user`, … and no `resolved`, `isResolved` or thread-state key. A thread's resolution is an action on the thread; a reply does not resolve it, and the comment list records no such action, so the state cannot be reconstructed from comments. Counting threads with no reply or by the last reply would be a guess.
+- `GET /repos/Kai-Hacks-AI/KAAL/pulls/2025/ccr/review_threads` (the route the cloud session's own error message names) answered `[{"resolved":true,"outdated":true,"path":"engineering/release-management/05-src/hotfix/verify-hotfix.mjs","line":null,"comment_ids":[4628126271]}]` for a closed piece, and `[]` for #2066 and #2060. It carries what Show WIP needs: unresolved is `resolved === false`, the same set the GraphQL `isResolved` gave.
+- Limits stated, not hidden: the route belongs to cloud sessions (a plain host answers 404, and there the fact is `not observed`); the answer's page size and a cut list are not documented, so the DO treats a full page as a gap, as `read.mjs` does for its cut lists today; the route is read-only here (the resolve and auto-merge routes are not used).
+- Why not observed matters: Show WIP turns a piece whose `threads` is missing into `UNKNOWN`, so without the route every piece would read `not observed: threads`. That is the cost the route avoids.
+
+Cases T933 and T934 are RED on `main` for the same reason as T930 (no report); T933 turns GREEN when the thread route is read, T934 when its absence is reported as not observed.

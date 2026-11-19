@@ -2,7 +2,7 @@
 
 ## Defect (provisional release/D10)
 
-An agent in a cloud session cannot run Show WIP: `node run.mjs <owner/repo> show-wip.json` ends with status 2, `gh api graphql failed 4 times … (HTTP 403)`, so no report is printed. Placement: Release, the command's owner. Cause: the command reaches GitHub on its own, through `gh`, and by a route (GraphQL) that this kind of session does not offer. The honest observation to keep: a fact GitHub's REST API cannot give is `not observed`, never guessed.
+An agent in a cloud session cannot run Show WIP: `node run.mjs <owner/repo> show-wip.json` ends with status 2, `gh api graphql failed 4 times … (HTTP 403)`, so no report is printed. Placement: Release, the command's owner. Cause: the command reaches GitHub on its own, through `gh`, and by a route (GraphQL) that this kind of session does not offer. The rule to keep: a fact the host did not report is `not observed`, never guessed.
 
 ## From
 
@@ -10,7 +10,7 @@ Show WIP starts `gh` itself. The open pieces come from one GraphQL query. In a c
 
 ## To
 
-Show WIP starts no process. Every GitHub read goes through one Hosting entry (`hosting/C111`, its own Change, PLAN to follow) that calls the REST API only. The open pieces are read from REST (the pull list, each piece's reviews, the checks of its head). The report, its lines and the exit statuses are unchanged, and the command prints its report in a cloud session.
+Show WIP starts no process. Every GitHub read goes through one Hosting entry (`hosting/C111`, its own Change, PLAN to follow) that calls the REST API only. The open pieces are read from REST (the pull list, each piece's reviews, the checks of its head, and the review threads from the route a cloud session offers). The report, its lines and the exit statuses are unchanged, and the command prints its report in a cloud session. Every fact the report holds today is still read; none is dropped.
 
 ## Because
 
@@ -20,10 +20,12 @@ One home for reaching GitHub (Hosting), and a report the agents can run themselv
 
 1. Regression Case, GREEN on `main` today and after the DO:
    - release/T932: when every GitHub call fails, status 2, `show WIP: …` on standard error, nothing on standard output.
-2. Accept list: the existing Cases of Show WIP (release/C61, C64 and the coordination Cases) stay GREEN. One fact changes visibly and is a Feature, not a loss: the count of unresolved review threads has no REST route, so a piece's `threads` is listed under `not observed` instead of a number. The command's rule already says a fact the host did not report is `not observed`, never guessed.
+2. Accept list: the existing Cases of Show WIP (release/C61, C64 and the coordination Cases) stay GREEN. No fact is given up in a cloud session. One product trade-off is stated for the CPO to accept: the unresolved review-thread count has no route in GitHub's public REST API (see evidence). It is read from `GET /repos/{owner}/{repo}/pulls/{n}/ccr/review_threads`, which cloud sessions offer and which answers `resolved`, `outdated`, `path`, `line` and `comment_ids` per thread. On a host that does not answer that route, `threads` is `not observed` and the piece is `UNKNOWN: not observed: threads`, never a guessed zero. Where GraphQL works (an Actions job, a person's terminal) the DO may keep reading threads from it through Hosting; whether to do that is decided in the DO, not here.
 3. Feature Cases, RED on `main` today:
    - release/T930: with GraphQL refused and REST answered, the command prints a report and never asks GraphQL.
    - release/T931: the command starts no process itself and uses `@kaihacksai/kaal-hosting`.
+   - release/T933: with the thread route answering, a piece with one unresolved thread is `WORK` with `1 unresolved thread`, and a piece with none says nothing is not observed.
+   - release/T934: with no thread route, every piece lists `threads` as not observed, and no count of zero is guessed.
 
 ## Sequence
 

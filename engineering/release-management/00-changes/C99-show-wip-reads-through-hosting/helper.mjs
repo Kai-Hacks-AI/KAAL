@@ -17,8 +17,9 @@ const pull = (number, title, from, into) => ({
 });
 export const PULLS = [pull(7, 'PLAN: A sample change', 'claude/sample-plan', 'kaal/release/sample'), pull(8, 'DO: A sample change', 'claude/sample-do', 'kaal/release/sample')];
 
-// `mode` is "cloud" (GraphQL refused, REST answered) or "down" (every call fails with a gateway error).
-const STAND_IN = (log, mode) => `#!/usr/bin/env node
+// `mode` is "cloud" (GraphQL refused, REST answered) or "down" (every call fails with a gateway error). `threads` is "route" (the cloud session's
+// pulls/<n>/ccr/review_threads answers: piece 7 has one unresolved and one resolved thread, piece 8 none) or "absent" (that route answers 404, as on a plain host).
+const STAND_IN = (log, mode, threads) => `#!/usr/bin/env node
 const fs = require('node:fs');
 const args = process.argv.slice(2);
 fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + '\\n');
@@ -36,14 +37,18 @@ else if (/^pulls\\/\\d+$/.test(path)) out(pulls.find((p) => path.endsWith('/' + 
 else if (/^pulls\\/\\d+\\/reviews$/.test(path)) out([]);
 else if (/^commits\\/[0-9a-f]+\\/check-runs$/.test(path)) out({ total_count: 0, check_runs: [] });
 else if (/^commits\\/[0-9a-f]+\\/status$/.test(path)) out({ state: 'pending', statuses: [] });
+else if (/^pulls\\/\\d+\\/ccr\\/review_threads$/.test(path)) {
+  if (${JSON.stringify(threads)} === 'absent') fail('gh: Not Found (HTTP 404)');
+  out(path.includes('/7/') ? [{ resolved: false, outdated: false, path: 'a.md', line: 3, comment_ids: [1] }, { resolved: true, outdated: true, path: 'b.md', line: null, comment_ids: [2] }] : []);
+}
 else fail('gh: Not Found (HTTP 404)');
 `;
 
-export function standIn(mode = 'cloud') {
+export function standIn(mode = 'cloud', threads = 'route') {
   const dir = mkdtempSync(join(tmpdir(), 'c99-'));
   const log = join(dir, 'calls.log');
   writeFileSync(log, '');
-  writeFileSync(join(dir, 'gh'), STAND_IN(log, mode));
+  writeFileSync(join(dir, 'gh'), STAND_IN(log, mode, threads));
   chmodSync(join(dir, 'gh'), 0o755);
   return {
     // The calls the command made to `gh`, each as its argument list.
