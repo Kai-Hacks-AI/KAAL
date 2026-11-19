@@ -40,7 +40,7 @@ export interface Leftover {
 export class HostingError extends Error {
   constructor(
     message: string,
-    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED" | "NOT_DIRECTORY" | "SCRATCH_LEFTOVER" | "NO_DIRECT_START",
+    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED" | "NOT_DIRECTORY" | "SCRATCH_LEFTOVER" | "NO_DIRECT_START" | "REVISION_NOT_FOUND" | "REVISION_UNREADABLE" | "REVISION_ENTRY",
     /** For `STALE`, every failed precondition, in path order. */
     readonly findings: Stale[] = [],
     /** For `UNRESTORED`, the failure that started the rollback, and where the displaced files are kept. */
@@ -980,3 +980,6 @@ export async function prepare(build: (dir: string) => void | Promise<void>, opti
 export async function contribution(): Promise<Files> {
   return { "Hosting.md": await readBytes(fileURLToPath(new URL("../../../kaal/Hosting.md", import.meta.url))) };
 }
+
+export { readRevision, revision } from "./revision.js";
+export type { RevisionOptions } from "./revision.js";
