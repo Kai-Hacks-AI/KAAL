@@ -81,4 +81,23 @@ export async function run() {
     assert.deepEqual(r.findings, [], `${what} is a finding, not a gap in evidence`);
     assert.ok(unjudged(r, /evidence/), `${what} is not listed as not judged`);
   }
+
+  // A Defect may record several reproducing Cases and every one is read: one verified Case does not verify the correction.
+  const two = { lookupDefect: () => ({ cases: ['hosting/T12', 'hosting/T13'] }), caseExists: () => true };
+  const per = (m) => ({ caseEvidence: (c) => m[c] });
+  const both = j({ ...two, ...per({ 'hosting/T12': ev('RED', 'GREEN'), 'hosting/T13': ev('RED', 'GREEN') }) });
+  assert.equal(both.correction, 'VERIFIED');
+  assert.deepEqual(both.cases.map((c) => c.correction), ['VERIFIED', 'VERIFIED']);
+  const oneRed = j({ ...two, ...per({ 'hosting/T12': ev('RED', 'GREEN'), 'hosting/T13': ev('RED', 'RED') }) });
+  assert.equal(oneRed.verdict, 'FAIL', 'a second Case still RED is hidden by the first');
+  assert.equal(oneRed.correction, 'NOT VERIFIED');
+  assert.ok(oneRed.findings.some((s) => /hosting\/T13/.test(s) && /still RED/.test(s)), 'the finding does not name the failing Case');
+  const oneMissing = j({ ...two, ...per({ 'hosting/T12': ev('RED', 'GREEN') }) });
+  assert.equal(oneMissing.correction, 'UNKNOWN', 'a Case without evidence is taken as verified');
+  assert.equal(oneMissing.verdict, 'UNKNOWN');
+  assert.deepEqual(oneMissing.findings, []);
+  assert.ok(oneMissing.notJudged.some((s) => /hosting\/T13/.test(s)), 'the missing Case is not named');
+  const notReproducing2 = j({ ...two, ...per({ 'hosting/T12': ev('RED', 'GREEN'), 'hosting/T13': ev('GREEN', 'GREEN') }) });
+  assert.equal(notReproducing2.verdict, 'FAIL');
+  assert.equal(notReproducing2.cases[1].correction, 'NOT VERIFIED');
 }

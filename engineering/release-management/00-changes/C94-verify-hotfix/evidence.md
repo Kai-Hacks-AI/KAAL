@@ -23,6 +23,10 @@ In a throwaway copy of the tree with the DO's files taken from the drafts in `in
 
 The first draft of the workflow named `pull_request_target` in a comment. T383 refuses any mention of the trigger in the source, because a text count of the trigger is what release/CTL19 exists to avoid, and the comment now says "no privileged trigger".
 
+## CPO review of the PLAN (19 Nov)
+
+Two points: the judge read `recorded.cases[0]` only, and the workflow exited non-zero for every verdict. Both are decided in `change.md` (Decisions of the CPO review). T380 now covers several Cases (all verified, one still RED, one without evidence, one GREEN at the baseline); T382 reads a per-Case Run record and holds the exit contract (0 for a produced report whatever its verdict, 2 for none, never PASS in the report). Re-observed: T380 to T383 RED on the PLAN's tree, and all four pass on the throwaway copy with the drafts.
+
 ## Retired with this Change
 
 release/C31 (`kaal/hotfix/defect-only-diff`, PLAN #1691 merged into it, DO #1712 open, one commit ahead of `main` and 48 behind) is retired in favour of this Change on the Owner's direction of 19 Nov 2026. Its judge and Cases are the starting point of T380 and the module.

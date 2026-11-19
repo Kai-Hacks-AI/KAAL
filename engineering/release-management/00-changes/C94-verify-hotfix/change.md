@@ -23,13 +23,18 @@ Changed: C31 stated its text in F16 and named no control. Here F16 keeps its int
 
 As release/CTL19: the workflow checks out the base commit with no stored credential, fetches the head from `refs/pull/<n>/head` (it lives in the base repository for a fork pull request as well) and runs the base's judge, so no file of the pull request is executed. The body arrives in the environment and is written to a file, never into script text. The judge reads the diff, the Defect record and the Case identities as Git data; it does not run a Case. The evidence of the correction is a Run record the caller supplies, bound to both revisions; producing it is the Run of the Cases (`kaal-testing run`) and is not this Change. Without a Run record the verdict is UNKNOWN.
 
+## Decisions of the CPO review (19 Nov)
+
+1. **Every reproducing Case is read.** A Defect records its reproducing Cases in the `tests` list of its record (for example hosting/D10: T201 to T203). The correction is VERIFIED only when each of them is RED against the baseline and GREEN against the corrected revision. One Case still RED, or GREEN at the baseline, is a finding for that Case whatever the others show; a Case without usable evidence leaves the correction UNKNOWN. The Run record is keyed by Case identity. The judge, F71, A66, CTL21 and Cases T380 and T382 say it. C31 read the first Case only; that is withdrawn.
+2. **The verdict is the report, not the job result.** The command line exits 0 whenever a report is produced, whatever the verdict, and 2 only when none can be (a missing argument); the workflow fails the job when the judge is absent on the base or the head cannot be fetched, because then no report exists. The honest verdict stays FAIL or UNKNOWN and never PASS, with its unjudged statements. It is carried in the first word of the report, in the job summary and in annotations (an error per finding, a warning for UNKNOWN) on GitHub Actions, so a reviewer tells an executed report from a broken check. A green job therefore means "a report was produced", and the check must not be read as an approval. Requiring the check stays a separate Owner decision; a required check would have to read the verdict from the report and not the job result, which is a gate with its own design (release/CTL20 is the pattern).
+
 ## Placement of the Cases
 
 | Case | Tests | Sits in | Asserts |
 | --- | --- | --- | --- |
-| T380 | release/G66 | `04-controls/CTL21-verify-hotfix` | the judge: valid trace, every broken link, evidence RED then GREEN, missing and stale evidence UNKNOWN, several roots as attention, never PASS |
+| T380 | release/G66 | `04-controls/CTL21-verify-hotfix` | the judge: valid trace, every broken link, evidence RED then GREEN, missing and stale evidence UNKNOWN, several roots as attention, never PASS; several reproducing Cases: all verified, one still RED, one without evidence, one GREEN at the baseline |
 | T381 | release/CTL21, F71, A66 | CTL21 folder | the finder lists CTL21 as detective with I10; the three element files equal their drafts; F16 carries the pointer |
-| T382 | release/F71 | CTL21 folder | the facts from Git data in a scratch repository: the Defect chapter alone, a recorded Defect and its Cases, a Case that exists and no prefix match, a Defect added by the Hotfix itself is not recorded; exit 1 FAIL or 2 UNKNOWN, never 0, absent Run record UNKNOWN, unresolvable head UNKNOWN |
+| T382 | release/F71 | CTL21 folder | the facts from Git data in a scratch repository: the Defect chapter alone, a recorded Defect and its Cases, a Case that exists and no prefix match, a Defect added by the Hotfix itself is not recorded; the report prints FAIL or UNKNOWN and never PASS, exit 0 whenever a report is produced (also FAIL, UNKNOWN and an unreadable ref) and 2 only for a call that cannot produce one; the Run record is read per Case |
 | T383 | release/F71, A66 | CTL21 folder | the workflow source equals its draft: plain `pull_request` into `hotfix/**`, read-only, no secret, base checkout without credential, head from its pull request ref, body through the environment and no expression in script text, only the base judge |
 
 The Cases move from the Change folder to the control's folder in the DO, as release/C90 did, and are renamed `.test.mjs`.
@@ -48,8 +53,7 @@ A 4L retrospective in `act.md`. Retiring release/C31 is in this Change's closure
 
 ## Left open
 
-- **Never PASS means the job never reports success.** The judge exits 1 or 2 and never 0, so the job is red on every Hotfix, even a verified one. As a non-required detective that is a report; as a required check it would block everything. Whether a verified trace should have its own exit, or the report should be a status that is not the job result, is for review and for the later Owner decision on requiring it.
-- **Producing the Run record** (the Case run at the baseline and at the head) needs a Run of the head's Case, which executes the pull request's code. It belongs to the Hotfix delivery path or to the Inspector, not to a plain `pull_request` check.
+- **Producing the Run record** (every reproducing Case run at the baseline and at the head) needs a Run of the head's Case, which executes the pull request's code. It belongs to the Hotfix delivery path or to the Inspector, not to a plain `pull_request` check.
 - **A pull request can edit the workflow that runs the check.** As release/CTL19: the WIRE judge compares the installed copy with this source.
 - Registration in the Integrating station and requiring the check are separate steps (a WIRE and a ruleset load), with times given to the Owner when the DO is on `main`.
 - **Defect homes.** The reader resolves `<capability>/D<n>` in `packages/kaal-<capability>` and `engineering/<capability>`. A Defect recorded anywhere else reads as not recorded until the home is added.
