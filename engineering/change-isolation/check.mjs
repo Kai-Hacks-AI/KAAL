@@ -17,6 +17,7 @@
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { isDelivery, readLocations } from "../release-management/05-src/delivery/locations.mjs";
 
 /** Paths that are Core: the package and the Engine files deployed from its payload. */
 const CORE = [/^packages\/kaal-core\//, /^\.kaal\/(AGENTS\.md|KAAL-KERNEL\.md|core\/)/];
@@ -241,6 +242,19 @@ export function check(paths, { ledger = [], facts, carried, attested } = {}) {
 }
 
 /**
+ * Delivery travels apart from solution (release/F73). A change that touches a delivery location, a declared root or a declared root file,
+ * contains only delivery paths; several delivery locations may share one change. The locations are read from the declaration of the delivery
+ * architecture. This rule is detective: the checker reports it and gates nothing, so `check` and the exit code are unchanged.
+ * @returns {string[]} one line per path that is not delivery, when the change touches delivery
+ */
+export function deliveryMixed(paths, { read = readLocations } = {}) {
+  let locations;
+  try { locations = read(); } catch (e) { throw new CannotJudge(`the delivery declaration cannot be read: ${e.message}`); }
+  if (!paths.some((p) => isDelivery(p, locations))) return [];
+  return paths.filter((p) => !isDelivery(p, locations)).map((p) => `delivery travels apart from solution: ${p} is not a delivery path`);
+}
+
+/**
  * The Git blob id of `path` at `rev`, or null when the commit resolves and the path is genuinely
  * absent from its tree. Anything else is missing or unavailable evidence and cannot be judged:
  * an unresolvable or non-commit revision, a git failure, a path that is not a file at that
@@ -322,5 +336,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const v of violations) console.error(v);
   if (violations.length) process.exit(1);
   console.log(`ok: ${paths.length} changed paths conform`);
+  // Reported only when the gate itself passes, after its verdict: a refused change already says what is wrong with it.
+  try { for (const v of deliveryMixed(paths)) console.log(`detective (not gating): ${v}`); } catch (e) {
+    if (!(e instanceof CannotJudge)) throw e;
+    console.log(`detective (not gating): cannot judge: ${e.message}`);
+  }
   if (deferred && carriedEntry) console.log(`attestation deferred: ledger-entry: ${carriedEntry.id} sha256:${attestedFact.digest} (the review check judges it)`);
 }

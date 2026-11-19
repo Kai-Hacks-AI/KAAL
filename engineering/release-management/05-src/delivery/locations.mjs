@@ -5,23 +5,34 @@ import { fileURLToPath } from 'node:url';
 
 export const DECLARATION = join(dirname(fileURLToPath(import.meta.url)), '../../03-architecture/A67-delivery-locations/delivery-locations.json');
 
-const ROOT = /^[A-Za-z0-9_.-]+$/;
+const NAME = /^[A-Za-z0-9_.-]+$/;
 
-// Validates a parsed declaration and returns { roots, wirable }. Throws on anything malformed: a consumer never falls back to a list of its own.
+// One entry of `locations` (a root) or of `files` (a file at the repository root): a safe single-segment name and a boolean `wirable`.
+function entry(e, key, kind, seen) {
+  const n = e?.[key];
+  if (typeof n !== 'string' || !NAME.test(n) || n === '.' || n === '..') throw new Error(`the delivery declaration has a malformed ${kind}: ${String(n)}`);
+  if (seen.has(n)) throw new Error(`the delivery declaration names ${n} twice`);
+  seen.add(n);
+  if (typeof e.wirable !== 'boolean') throw new Error(`the delivery declaration does not say whether ${n} is wirable`);
+  return n;
+}
+
+// Validates a parsed declaration and returns { roots, wirable, files }. `roots` and `files` are the delivery locations (every one is delivery),
+// `wirable` the roots a WIRE may install into. Throws on anything malformed: a consumer never falls back to a list of its own.
 export function parseLocations(json) {
   const list = json?.locations;
   if (!Array.isArray(list) || !list.length) throw new Error('the delivery declaration has no locations');
-  const roots = [];
-  const wirable = [];
+  const named = json.files ?? [];
+  if (!Array.isArray(named)) throw new Error('the delivery declaration has a malformed files list');
+  const seen = new Set();
+  const roots = [], wirable = [], files = [];
   for (const l of list) {
-    const r = l?.root;
-    if (typeof r !== 'string' || !ROOT.test(r) || r === '.' || r === '..') throw new Error(`the delivery declaration has a malformed root: ${String(r)}`);
-    if (roots.includes(r)) throw new Error(`the delivery declaration names ${r} twice`);
-    if (typeof l.wirable !== 'boolean') throw new Error(`the delivery declaration does not say whether ${r} is wirable`);
+    const r = entry(l, 'root', 'root', seen);
     roots.push(r);
     if (l.wirable) wirable.push(r);
   }
-  return { roots, wirable };
+  for (const f of named) files.push(entry(f, 'path', 'file', seen));
+  return { roots, wirable, files };
 }
 
 export function readLocations(path = DECLARATION) {
@@ -34,4 +45,10 @@ export function wirableTarget(path, locations) {
   const parts = path.split('/');
   if (parts.includes('..') || parts.includes('.')) return false;
   return Boolean(locations?.wirable?.includes(parts[0]));
+}
+
+// Is this repository-relative path a delivery path: under a delivery root, or one of the delivery files at the root?
+export function isDelivery(path, locations) {
+  const parts = String(path).split('/');
+  return Boolean(locations) && (parts.length > 1 ? locations.roots.includes(parts[0]) : locations.files.includes(parts[0]));
 }
