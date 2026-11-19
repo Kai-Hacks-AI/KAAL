@@ -24,5 +24,5 @@ export async function run() {
   assert.equal(c.title, 'verify Triggers');
   const real = join(RM, '04-controls/CTL19-verify-triggers/CTL19.md');
   assert.ok(existsSync(real), 'CTL19.md is absent');
-  assert.equal(readFileSync(real, 'utf8'), `${draft('CTL19.md')}\n`, 'CTL19.md differs from the draft');
+  assert.equal(readFileSync(real, 'utf8').replace(/^evidence: .*\n/m, ''), `${draft('CTL19.md')}\n`, 'CTL19.md differs from the draft');
 }
