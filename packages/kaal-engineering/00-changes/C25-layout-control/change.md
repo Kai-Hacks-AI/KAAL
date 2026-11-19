@@ -15,9 +15,9 @@ The layout check is the same code in all three places, as the template is one la
 
 ## PLAN
 
-1. Add the Intent I4, the Requirements F52, F53 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1237 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because a `04-controls` folder would turn the GREEN Case T1177 RED before the DO; the DO moves it next to the control.
+1. Add the Intent I4, the Requirements F52, F53 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1237 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because the control is not in this package; the DO moves it next to the control in `engineering/setup/`.
 2. Observe the expected RED against the collector (`evidence.md`) and show that each Case can pass on a throwaway copy that holds `draft/`.
-3. The PLAN adds no package file. `draft/` holds the check (`skills/kaal-engineering/scripts/check-layout.mjs`), and `interface.md` holds the draft of the control (`04-controls/CTL2-verify-layout/CTL2.md`), for review only. The control is inline so that no second `CTL2` is listed before the DO.
+3. The PLAN adds no package file. `draft/` holds the check (`skills/kaal-engineering/scripts/check-layout.mjs`), and `interface.md` holds the draft of the control (`engineering/setup/04-controls/CTL2-verify-layout/CTL2.md`), for review only. The control is inline so that no second `CTL2` is listed before the DO.
 
 ## Ids
 
@@ -40,11 +40,11 @@ It judges one folder. A run over every capability gives the baseline: today ever
 
 ## Amends
 
-N19 (skill-only) and its Case T1177 stated the first version: no script and no control. The DO amends both to allow `scripts/check-layout.mjs` and the control folder `04-controls/`, and nothing else. T1177 changes in that DO, and the Change lists it.
+N19 (skill-only) and its Case T1177 stated the first version: no script. The DO amends both to allow `scripts/check-layout.mjs`, and nothing else. T1177 changes in that DO, and the Change lists it.
 
 ## DO
 
-Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` and the control from `interface.md`, amend N19 and T1177, and rename T1230 to T1237 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
+Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` to the Skill and the control from `interface.md` to `engineering/setup/04-controls/`, amend N19 and T1177, and rename T1230 to T1237 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
 
 ## ACT
 
@@ -52,7 +52,7 @@ A 4L retrospective in `act.md`, with the body shape the Dispatcher reads (a `Cha
 
 ## Owner questions
 
-1. The control and its script live in `packages/kaal-engineering`, which is private and KAAL's own. Controls are contextual and consumer-owned, so should KAAL's own copy sit there, or in the repository's engineering space once controls have a place for it?
+1. Answered by the Owner: it is an engineering control. It sits in the repository's engineering space, `engineering/setup/04-controls/`, with the Intent, Requirements, Architecture and check kept in the capability. The folder name `setup` is mine; say if the area should be named otherwise.
 2. The split: is it the three ratchets you meant, with one control for the desired setup and a baseline of current gaps for each, and one source per Skill across all three?
 
 ## Not in this Change

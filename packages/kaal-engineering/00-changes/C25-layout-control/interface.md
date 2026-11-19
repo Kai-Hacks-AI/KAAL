@@ -2,7 +2,7 @@
 
 Drafts as they are added in the DO. None of them is on the collector until the DO; T1237 reads the control from its final path.
 
-## Draft of `04-controls/CTL2-verify-layout/CTL2.md`
+## Draft of `engineering/setup/04-controls/CTL2-verify-layout/CTL2.md`
 
 `````
 ---

@@ -23,7 +23,7 @@ The PLAN of C25 observes its RED against the collector `kaal/engineering/setup` 
 
 ## Can each Case pass
 
-In a throwaway root outside the repository, holding the package with `draft/` copied over `skills/kaal-engineering/` and the control from `interface.md` at `04-controls/CTL2-verify-layout/`, all eight Cases were green, and the Engineer Skill's `check-skill` exited 0 on the Skill with the script. The controls finder lists `engineering/CTL2` as detective with Intent I4, and the controls checker accepts its evidence declaration.
+In a throwaway root outside the repository, holding the package with `draft/` copied over `skills/kaal-engineering/` and the control from `interface.md` at `engineering/setup/04-controls/CTL2-verify-layout/`, all eight Cases were green, and the Engineer Skill's `check-skill` exited 0 on the Skill with the script. The controls finder lists `engineering/CTL2` as detective with Intent I4, and the controls checker accepts its evidence declaration.
 
 ## Can a Case fail for the right reason
 

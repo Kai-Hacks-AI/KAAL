@@ -26,15 +26,16 @@ export const title = 'the control is listed as detective with Intent I4 and its 
 export async function run() {
   const FINDER = join(root, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
   const CHECK = join(root, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
-  const file = join(pkg, '04-controls/CTL2-verify-layout/CTL2.md');
+  const area = join(root, 'engineering/setup');
+  const file = join(area, '04-controls/CTL2-verify-layout/CTL2.md');
   assert.ok(existsSync(file), 'CTL2.md is absent');
   assert.match(readFileSync(file, 'utf8'), /^evidence: \[fixture:2, real:1, provoked:1:fail\]$/m);
-  const out = JSON.parse(execFileSync(process.execPath, [FINDER, pkg], { encoding: 'utf8' }));
+  const out = JSON.parse(execFileSync(process.execPath, [FINDER, area], { encoding: 'utf8' }));
   const c = out.controls.find((x) => x.id === 'engineering/CTL2');
   assert.ok(c, 'engineering/CTL2 is not listed');
   assert.equal(c.type, 'detective');
   assert.deepEqual(c.has, ['engineering/I4']);
   assert.deepEqual(out.refused, []);
-  const chk = spawnSync(process.execPath, [CHECK, pkg], { encoding: 'utf8' });
+  const chk = spawnSync(process.execPath, [CHECK, area], { encoding: 'utf8' });
   assert.doesNotMatch(chk.stdout + chk.stderr, /CTL2[^\n]*(invalid|evidence)/i, 'the controls checker rejects the declaration');
 }
