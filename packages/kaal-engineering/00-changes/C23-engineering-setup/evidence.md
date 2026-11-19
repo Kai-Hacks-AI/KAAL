@@ -24,7 +24,7 @@ The PLAN of C23 observes its RED against `main` at `8989a652`. It cites nothing 
 
 ## Can each Case pass
 
-In a throwaway root outside the repository, holding `draft/package.json` and `draft/SKILL.md` as the package and with the other packages stood in by empty folders, all nine Cases were green. T1178 ran the Engineer Skill's own checker on the draft Skill and it exited 0.
+In a throwaway root outside the repository, holding `draft/package.json` and `draft/skills/kaal-engineering/SKILL.md` as the package and with the other packages stood in by empty folders, all nine Cases were green. T1178 ran the Engineer Skill's own checker on the draft Skill and it exited 0.
 
 ## Can a Case fail for the right reason
 

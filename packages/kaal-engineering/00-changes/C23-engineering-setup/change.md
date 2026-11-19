@@ -4,7 +4,7 @@
 
 1. Add the Intent I2, the Requirements F40 to F44, N18 and N19, the Architecture A2 and the gap G113 under `packages/kaal-engineering/`. Their Cases T1171 to T1179 sit beside the element they test as `T<n>.red.mjs`.
 2. Observe the expected RED against `main` (`evidence.md`) and show that each Case can pass on a throwaway copy that holds `draft/`.
-3. The PLAN adds no package file: no `package.json`, no Skill Node, no Skill. `draft/` holds the intended `package.json` and `SKILL.md` for review only.
+3. The PLAN adds no package file: no `package.json`, no Skill Node, no Skill. `draft/` holds the intended `package.json` and `skills/kaal-engineering/SKILL.md` for review only.
 
 ## Ids
 
@@ -24,7 +24,7 @@ WIRE (kaal-release), the Test Case (kaal-testing), DIRT (kaal-controls) and regi
 
 ## DO
 
-Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add `package.json` (private, `@kaihacksai/kaal-engineering`, `files` payload and skills), the Skill Node under `payload/` (typed by Core's `KAAL Skill`; its id is the sha256 of its exact bytes), and `skills/kaal-engineering/SKILL.md` as in `draft/`. The Cases become `.test.mjs` when they are green. Nothing is published and the root workspace list is not changed unless the Owner says so.
+Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add `package.json` (private, `@kaihacksai/kaal-engineering`, `files` payload and skills), the Skill Node under `payload/` (typed by Core's `KAAL Skill`; its id is the sha256 of its exact bytes), and `skills/kaal-engineering/SKILL.md` as in `draft/skills/kaal-engineering/SKILL.md`. The Cases become `.test.mjs` when they are green. Nothing is published and the root workspace list is not changed unless the Owner says so.
 
 ## ACT
 
