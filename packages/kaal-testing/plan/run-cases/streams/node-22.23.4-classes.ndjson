@@ -1,3 +1,0 @@
-{"type":"fail","name":"asserts","nesting":0,"line":3,"column":1,"testNumber":1,"kind":"test","skip":false,"todo":false,"failureType":"testCodeFailure","code":"ERR_ASSERTION","message":"Expected values to be strictly equal:"}
-{"type":"fail","name":"throws","nesting":0,"line":4,"column":1,"testNumber":2,"kind":"test","skip":false,"todo":false,"failureType":"testCodeFailure","code":"ERR_TEST_FAILURE","message":"boom"}
-{"type":"pass","name":"green","nesting":0,"line":5,"column":1,"testNumber":3,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}

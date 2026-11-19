@@ -1,4 +1,0 @@
-{"type":"pass","name":"slow","nesting":1,"line":3,"column":3,"testNumber":1,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}
-{"type":"pass","name":"fast","nesting":1,"line":4,"column":3,"testNumber":2,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}
-{"type":"pass","name":"c","nesting":0,"line":2,"column":1,"testNumber":1,"kind":"suite","skip":false,"todo":false,"failureType":null,"code":null,"message":null}
-{"type":"pass","name":"top","nesting":0,"line":6,"column":1,"testNumber":2,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}

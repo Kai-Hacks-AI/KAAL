@@ -1,1 +1,0 @@
-{"type":"fail","name":"test/plan/run-cases/fixtures/crash.fixture.mjs","nesting":0,"line":1,"column":1,"testNumber":1,"kind":"test","skip":false,"todo":false,"failureType":"testCodeFailure","code":"ERR_TEST_FAILURE","message":"test failed"}

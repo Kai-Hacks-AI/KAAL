@@ -1,6 +1,0 @@
-{"type":"pass","name":"skipped","nesting":0,"line":3,"column":4,"testNumber":1,"kind":"test","skip":true,"todo":false,"failureType":null,"code":null,"message":null}
-{"type":"pass","name":"todo no body","nesting":0,"line":4,"column":4,"testNumber":2,"kind":"test","skip":false,"todo":true,"failureType":null,"code":null,"message":null}
-{"type":"fail","name":"todo failing","nesting":0,"line":5,"column":1,"testNumber":3,"kind":"test","skip":false,"todo":true,"failureType":"testCodeFailure","code":"ERR_ASSERTION","message":"Expected values to be strictly equal:"}
-{"type":"pass","name":"todo passing","nesting":0,"line":6,"column":1,"testNumber":4,"kind":"test","skip":false,"todo":true,"failureType":null,"code":null,"message":null}
-{"type":"pass","name":"skip option failing","nesting":0,"line":7,"column":1,"testNumber":5,"kind":"test","skip":"why","todo":false,"failureType":null,"code":null,"message":null}
-{"type":"pass","name":"green","nesting":0,"line":8,"column":1,"testNumber":6,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}
