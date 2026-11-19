@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { RM, draft, load, text, ACT, HOTFIX, PLAN, DO, SYNC, ev } from './fixtures.mjs';
+import { RM, draft, load, text, ACT, HOTFIX, PLAN, DO, WIRE, SYNC, ev } from './fixtures.mjs';
 export const id = 'release/T1155';
 export const tests = ['release/A65'];
 export const title = "the workflow reads the merge as data: closed and merged only, no pull_request_target, no checkout of the pull request, event only through env";

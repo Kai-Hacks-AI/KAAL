@@ -27,7 +27,7 @@ serves: [release/I52]
 ---
 # release/F70 raise-on-final-step
 
-A pull request that merged into `kaal/<capability>/<concern>`, `hotfix/<name>` or `wire/<name>` is a final step only when its class says so: an ACT into a collector, recognised by the chapters of the ACT template (`Change` and `Records`, nothing else); a HOTFIX into a hotfix branch, recognised by its `Defect` chapter; any pull request into a wire branch that is not a PLAN, a DO or a SYNC. A PLAN, a DO, a SYNC, a pull request that did not merge, a merge into any other branch, and a merge without a merge commit are not final steps, and each is reported with its reason. The raise is a draft pull request from the branch to the default branch, titled `PROMOTION:` with the Change line of the merged pull request, with the two chapters of the PROMOTION template and nothing taken from anywhere but the event. It is made only when the variable `KAAL_DISPATCH_RAISE` is `on`; otherwise it is a dry run that says what it would raise. A branch that already has an open PROMOTION gets no second one. The tip of the branch read just before the write must be the merge commit of the event, or nothing is raised.
+A pull request that merged into `kaal/<capability>/<concern>`, `hotfix/<name>` or `wire/<name>` is a final step only when its class says so: an ACT into a collector, recognised by the chapters of the ACT template (`Change` and `Records`, nothing else); a HOTFIX into a hotfix branch, recognised by its `Defect` chapter; a WIRE copy into a wire branch, recognised positively: the chapters `Source`, `Target` and `Verification`, and a `Target` whose first code span is one file under `.github` or `.githooks` (no `..`, no other root), with at least one Change id in the opening paragraph. Anything else into a wire branch, whatever it looks like, is not a final step. A PLAN, a DO, a SYNC, a pull request that did not merge, a merge into any other branch, and a merge without a merge commit are not final steps, and each is reported with its reason. The raise is a draft pull request from the branch to the default branch, titled `PROMOTION:` with the Change line of the merged pull request (for a WIRE, `WIRE` and its target file), with the two chapters of the PROMOTION template and nothing taken from anywhere but the event. It is made only when the variable `KAAL_DISPATCH_RAISE` is `on`; otherwise it is a dry run that says what it would raise. The raise accepts as head a collector, a hotfix branch or a wire branch, and no other branch. A branch that already has an open PROMOTION gets no second one. The tip of the branch read just before the write must be the merge commit of the event, or nothing is raised.
 `````
 
 ## Draft of A65.md
@@ -40,7 +40,7 @@ addresses: [release/F70]
 ---
 # release/A65 raise-from-the-event
 
-A workflow source `05-src/wiring/workflows/dispatcher-raise.yml` runs on `pull_request` closed, for pull requests into `kaal/**`, `hotfix/**` and `wire/**`, only when the pull request merged. It never uses `pull_request_target`, never checks out the pull request or its branch, and passes the event to the script only through `env`, never inside a shell command. Its `classify Dispatch` job (`contents: read`) checks out the default branch and runs `dispatch.mjs final`, which calls the pure `decideFinal` of `05-src/promotion-raise/final-step.mjs` on the event and prints the decision as data. Its `raise Dispatch` job is the one of release/C73 (`permissions: {}`, the App token minted only when `KAAL_DISPATCH_RAISE` is `on`, `pull_request: write` only); `raise.mjs` creates the pull request with `draft: true` and keeps its look for an earlier PROMOTION of the revision and its re-read of the tip. The workflow definition read at the event is the one of the integration branch: it is the same as the default branch's when the branch is synchronized, and a branch without it raises nothing until a SYNC brings it. The scan of release/C73 no longer runs on a schedule: `dispatcher.yml` keeps only its manual start, until the PICK returns a schedule as a safety net.
+A workflow source `05-src/wiring/workflows/dispatcher-raise.yml` runs on `pull_request` closed, for pull requests into `kaal/**`, `hotfix/**` and `wire/**`, only when the pull request merged. It never uses `pull_request_target`, never checks out the pull request or its branch, and passes the event to the script only through `env`, never inside a shell command. Its `classify Dispatch` job (`contents: read`) checks out the default branch and runs `dispatch.mjs final`, which calls the pure `decideFinal` of `05-src/promotion-raise/final-step.mjs` on the event and prints the decision as data. Its `raise Dispatch` job is the one of release/C73 (`permissions: {}`, the App token minted only when `KAAL_DISPATCH_RAISE` is `on`, `pull_request: write` only); `raise.mjs` accepts a collector, `hotfix/<name>` or `wire/<name>` as head (it accepted only a collector), creates the pull request with `draft: true`, and keeps its look for an earlier PROMOTION of the revision and its re-read of the tip. The workflow definition read at the event is the one of the integration branch: it is the same as the default branch's when the branch is synchronized, and a branch without it raises nothing until a SYNC brings it. The scan of release/C73 no longer runs on a schedule: `dispatcher.yml` keeps only its manual start, until the PICK returns a schedule as a safety net.
 `````
 
 ## Draft of final-step.mjs
@@ -53,11 +53,19 @@ const CLASSES = [
   ['WIRE', /^wire\/[a-z0-9-]+$/],
 ];
 const chapters = (body) => [...String(body ?? '').matchAll(/^## (.+?)\s*$/gm)].map((m) => m[1]);
+// A WIRE copy is positively identified: the chapters Source, Target and Verification, and a Target that names one file under .github or .githooks.
+export function wireTarget(body) {
+  const c = chapters(body);
+  if (!['Source', 'Target', 'Verification'].every((n) => c.includes(n))) return null;
+  const p = /^## Target[ \t]*\n+[^\n`]*`([^`\n]+)`/m.exec(String(body))?.[1];
+  return p && /^\.(?:github|githooks)\/[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*$/.test(p) && !p.split('/').includes('..') ? p : null;
+}
 export function stepOf(body) {
   const c = chapters(body);
   if (c.includes('From')) return 'PLAN';
   if (c.includes('Implement')) return 'DO';
   if (c.includes('Defect')) return 'HOTFIX';
+  if (['Source', 'Target', 'Verification'].every((n) => c.includes(n))) return 'WIRE';
   if (c.includes('Records') && c.length === 2 && c[0] === 'Change') return 'ACT';
   if (c.includes('Reason') && !c.includes('Records')) return 'SYNC';
   return 'unknown';
@@ -70,14 +78,21 @@ export function decideFinal(event) {
   if (!cls) return skip('not-an-integration-branch', String(base));
   if (!/^[0-9a-f]{40}$/.test(String(mergeSha))) return skip('no-revision');
   const step = stepOf(body);
-  const final = cls[0] === 'KAAL' ? step === 'ACT' : cls[0] === 'HOTFIX' ? step === 'HOTFIX' : !['PLAN', 'DO', 'SYNC'].includes(step);
-  if (!final) return skip('not-a-final-step', `${cls[0]}: ${step}`);
+  if (step !== { KAAL: 'ACT', HOTFIX: 'HOTFIX', WIRE: 'WIRE' }[cls[0]]) return skip('not-a-final-step', `${cls[0]}: ${step}`);
+  const why = `The final step of this Change merged into ${base}. This draft was raised by the Dispatcher; it is picked when the seat is free.`;
+  if (cls[0] === 'WIRE') {
+    const target = wireTarget(body);
+    if (!target) return skip('malformed-wire', 'the Target is not one file under .github or .githooks');
+    const ids = [...new Set(String(body).split(/^## /m)[0].match(/\b[a-z0-9-]+\/C\d+\b/g) ?? [])];
+    if (!ids.length) return skip('no-change-id');
+    return { action: 'raise', head: base, base: 'main', revision: mergeSha, class: 'WIRE', step, title: `PROMOTION: WIRE ${target}`, body: `## Change\n\n${ids.join(', ')}: WIRE ${target}\n\n## Why now\n\n${why}\n` };
+  }
   const line = /^## Change[ \t]*\n+([^\n#][^\n]*)/m.exec(String(body))?.[1]?.trim();
   if (!line) return skip('no-change-line');
   return {
     action: 'raise', head: base, base: 'main', revision: mergeSha, class: cls[0], step,
     title: `PROMOTION: ${line}`,
-    body: `## Change\n\n${line}: ${step}\n\n## Why now\n\nThe final step of this Change merged into ${base}. This draft was raised by the Dispatcher; it is picked when the seat is free.\n`,
+    body: `## Change\n\n${line}: ${step}\n\n## Why now\n\n${why}\n`,
   };
 }
 `````
@@ -183,7 +198,7 @@ import { decideFinal } from './final-step.mjs';
     if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `decisions=${line}\n`);
     return 0;
   }
-// in raise.mjs the creation becomes: await api('POST', `repos/${repo}/pulls`, { title: v.title, head: v.head, base: v.base, body: v.body, draft: true });
+// in raise.mjs the head pattern becomes /^(?:kaal\/[a-z0-9-]+\/[a-z0-9-]+|hotfix\/[a-z0-9-]+|wire\/[a-z0-9-]+)$/ (message: 'the head is not an integration branch'), and the creation becomes: await api('POST', `repos/${repo}/pulls`, { title: v.title, head: v.head, base: v.base, body: v.body, draft: true });
 `````
 
 ## Draft of dispatcher-trigger.yml

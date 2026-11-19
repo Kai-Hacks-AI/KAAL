@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { RM, draft, load, text, ACT, HOTFIX, PLAN, DO, SYNC, ev } from './fixtures.mjs';
+import { RM, draft, load, text, ACT, HOTFIX, PLAN, DO, WIRE, SYNC, ev } from './fixtures.mjs';
 export const id = 'release/T1151';
 export const tests = ['release/A65'];
 export const title = "release/A65 addresses release/F70 and states that no pull request code runs, equal to its draft";

@@ -15,5 +15,6 @@ export const ACT = '## Change\n\nrelease/C99 some thing: it does a small thing\n
 export const HOTFIX = '**Change envelope.** x\n\n## Change\n\nrelease/C98 the fix\n\n## Defect\n\nrelease/D1\n\n## Urgency\n\nnow\n\n## Approach\n\nsmall\n';
 export const PLAN = '## Change\n\nrelease/C99 some thing: x\n\n## From\n\na\n\n## To\n\nb\n\n## Because\n\nc\n';
 export const DO = '## Change\n\nrelease/C99 some thing: x\n\n## Implement\n\na\n\n## Refactor\n\nb\n';
+export const WIRE = '**Change envelope.** The evidence is in the repository files of release/C73.\n\n## Source\n\n`engineering/release-management/05-src/wiring/workflows/dispatcher.yml` on `main`.\n\n## Target\n\n`.github/workflows/dispatcher.yml`, an exact copy of its source.\n\n## Verification\n\n`cmp` reports no difference.\n';
 export const SYNC = '## Change\n\nrelease/C99 some thing\n\n## Reason\n\nfresh\n';
 export const ev = (over = {}) => ({ merged: true, base: 'kaal/release/some-thing', mergeSha: 'a'.repeat(40), body: ACT, ...over });
