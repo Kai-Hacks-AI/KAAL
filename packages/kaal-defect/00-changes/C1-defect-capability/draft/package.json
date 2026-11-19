@@ -1,0 +1,9 @@
+{
+  "name": "@kaihacksai/kaal-defect",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Defect: what a Defect is, how it is identified and that a Test Case proves it.",
+  "license": "MIT",
+  "type": "module",
+  "files": ["skills"]
+}
