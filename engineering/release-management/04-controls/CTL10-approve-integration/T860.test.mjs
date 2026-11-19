@@ -23,5 +23,5 @@ export async function run() {
   const draft = readFileSync(join(RM, '00-changes/C66-integration-approval/interface.md'), 'utf8').split(/^## Draft of CTL10\.md$/m)[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
   const real = join(RM, '04-controls/CTL10-approve-integration/CTL10.md');
   assert.ok(existsSync(real), 'CTL10.md is absent');
-  assert.equal(readFileSync(real, 'utf8'), `${draft}\n`, 'CTL10.md differs from the draft');
+  assert.equal(readFileSync(real, 'utf8').replace(/^evidence: .*\n/m, ''), `${draft}\n`, 'CTL10.md differs from the draft');
 }

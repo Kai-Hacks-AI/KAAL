@@ -5,6 +5,7 @@ description: It reveals when a change brings a dependency with a known vulnerabi
 type: detective
 status: implemented
 has: [release/I4]
+evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL2 analyze Vulnerabilities
 
