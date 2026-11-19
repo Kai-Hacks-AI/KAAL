@@ -18,18 +18,18 @@ Contract: where KAAL delivers what it installs is declared once, in the delivery
 Owner: release management.
 `````
 
-## Draft of F71.md
+## Draft of F72.md
 
-Goes to `engineering/release-management/02-requirements/F71-consumers-read-the-declaration/F71.md`.
+Goes to `engineering/release-management/02-requirements/F72-consumers-read-the-declaration/F72.md`.
 
 `````
 ---
-id: release/F71
+id: release/F72
 title: consumers-read-the-declaration
 kind: functional
 serves: [release/I53]
 ---
-# release/F71 consumers-read-the-declaration
+# release/F72 consumers-read-the-declaration
 
 A WIRE target is one file under a wirable delivery location: a repository-relative path of safe characters (letters, digits, `.`, `_`, `-`), at least two segments, no `..`, not absolute, whose first segment is a root the declaration marks wirable. The merge-event classifier (`wireTarget` of `final-step.mjs`, release/C93) and the install judge (`wire-judge.mjs`, release/F22) decide this from the declaration and from nothing else. A path outside every wirable root, the bare root, a path with `..`, and an absolute path are not WIRE targets in either consumer.
 
@@ -38,19 +38,19 @@ Declared today: `.github`, `.githooks` and `.kaal`, each wirable. Adding a root 
 When the declaration cannot be read or is malformed, no path is a WIRE target: the classifier skips with the reason `no-delivery-declaration` and the judge calls the install wrong. A consumer never falls back to a list of its own.
 `````
 
-## Draft of A66.md
+## Draft of A67.md
 
-Goes to `engineering/release-management/03-architecture/A66-delivery-locations/A66.md`.
+Goes to `engineering/release-management/03-architecture/A67-delivery-locations/A67.md`.
 
 `````
 ---
-id: release/A66
+id: release/A67
 title: delivery-locations
-addresses: [release/F71]
+addresses: [release/F72]
 ---
-# release/A66 delivery-locations
+# release/A67 delivery-locations
 
-The delivery architecture of KAAL is a declaration, `03-architecture/A66-delivery-locations/delivery-locations.json`: a list of named locations, each a root of the repository with a statement of what is delivered there and whether a WIRE may install into it (`wirable`). It is Engineering's declaration for this consumer, KAAL; another repository declares its own. It names things and places and holds no logic.
+The delivery architecture of KAAL is a declaration, `03-architecture/A67-delivery-locations/delivery-locations.json`: a list of named locations, each a root of the repository with a statement of what is delivered there and whether a WIRE may install into it (`wirable`). It is Engineering's declaration for this consumer, KAAL; another repository declares its own. It names things and places and holds no logic.
 
 One reader, `05-src/delivery/locations.mjs`, is the only code that knows the file's shape. `readLocations(path?)` reads and validates it (it throws on anything malformed: not JSON, no locations, a root with `/`, `..` or a leading `/`, a duplicate root, `wirable` that is not a boolean). `wirableTarget(path, locations)` answers whether a path is one file under a wirable root. The consumers import these; none spells a root.
 
@@ -63,7 +63,7 @@ A package contract (`assets[].target`) stays what it is: the package says what i
 
 ## Draft of delivery-locations.json
 
-Goes to `engineering/release-management/03-architecture/A66-delivery-locations/delivery-locations.json`.
+Goes to `engineering/release-management/03-architecture/A67-delivery-locations/delivery-locations.json`.
 
 `````
 {
@@ -80,12 +80,12 @@ Goes to `engineering/release-management/03-architecture/A66-delivery-locations/d
 Goes to `engineering/release-management/05-src/delivery/locations.mjs`.
 
 `````
-// The delivery locations of KAAL, read from the declaration of the delivery architecture (release/A66). Pure but for the one file read.
+// The delivery locations of KAAL, read from the declaration of the delivery architecture (release/A67). Pure but for the one file read.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const DECLARATION = join(dirname(fileURLToPath(import.meta.url)), '../../03-architecture/A66-delivery-locations/delivery-locations.json');
+export const DECLARATION = join(dirname(fileURLToPath(import.meta.url)), '../../03-architecture/A67-delivery-locations/delivery-locations.json');
 
 const ROOT = /^[A-Za-z0-9_.-]+$/;
 
@@ -132,7 +132,7 @@ const CLASSES = [
   ['WIRE', /^wire\/[a-z0-9-]+$/],
 ];
 const chapters = (body) => [...String(body ?? '').matchAll(/^## (.+?)\s*$/gm)].map((m) => m[1]);
-// A WIRE copy is positively identified: the chapters Source, Target and Verification, and a Target that names one file under a wirable delivery location (release/A66).
+// A WIRE copy is positively identified: the chapters Source, Target and Verification, and a Target that names one file under a wirable delivery location (release/A67).
 export function wireTarget(body, locations) {
   const c = chapters(body);
   if (!['Source', 'Target', 'Verification'].every((n) => c.includes(n))) return null;
@@ -184,7 +184,7 @@ Goes to `engineering/release-management/05-src/wiring/wire-judge.mjs (changed)`.
 
 `````
 // The install judge of the WIRE operation (release/F22, A47). It judges an install; it installs nothing.
-// An install is right when every changed file is a declared target under a wirable delivery location (release/A66), and each target is
+// An install is right when every changed file is a declared target under a wirable delivery location (release/A67), and each target is
 //  - a copy: its source is on main and the target text equals the source text, or
 //  - a move: the preimage on main has the declared sha256 and the target has exactly that content;
 // and every declared target changed. Anything else, undeclared files included, is wrong.

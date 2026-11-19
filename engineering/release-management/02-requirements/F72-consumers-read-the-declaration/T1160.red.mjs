@@ -1,8 +1,8 @@
-// Case release/T1160 tests: release/F71
+// Case release/T1160 tests: release/F72
 import assert from 'node:assert/strict';
-import { loadSrc, wire, ev } from '../../03-architecture/A66-delivery-locations/fixtures.mjs';
+import { loadSrc, wire, ev } from '../../03-architecture/A67-delivery-locations/fixtures.mjs';
 export const id = 'release/T1160';
-export const tests = ['release/F71'];
+export const tests = ['release/F72'];
 export const title = 'the merge-event classifier takes a WIRE target under every declared wirable location and refuses the rest';
 export async function run() {
   const { decideFinal } = await loadSrc('promotion-raise/final-step.mjs');

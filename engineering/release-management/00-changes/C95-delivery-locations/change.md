@@ -20,6 +20,6 @@ Delivery architecture is named locations and things, and it is specific to a con
 ## For the CPO and the Owner
 
 - **`.kaal` becomes wirable.** The Owner asked for it. It widens what a WIRE may install: a WIRE into `.kaal` is judged like one into `.github` (copy of a source on main, exact text), but Change Isolation's rule that Core travels alone is untouched and still applies to such a pull request. Whether `.kaal/core` should stay out of reach of a WIRE is a decision for the Owner; this PLAN declares the root, not the files in it.
-- **Where the declaration lives.** In release management's architecture now (`A66`), because the two consumers are its own. The reader is the only code that knows the path, so moving the declaration to an Engineering-wide place later changes one constant.
+- **Where the declaration lives.** In release management's architecture now (`A67`), because the two consumers are its own. The reader is the only code that knows the path, so moving the declaration to an Engineering-wide place later changes one constant.
 - **Not in this Change, observed:** the PROMOTION route row of `envelope.mjs` lists `kaal/` and `hotfix/` heads, not `wire/`. No workflow runs the checker, so nothing blocks today, and #2016 (head `wire/...`) was never judged by it. Whether the row should list `wire/` belongs to whoever wires the checker into CI.
 - `.agents` is named in a package contract but absent here. It is declared when Engineering deploys it, as one line of the declaration.

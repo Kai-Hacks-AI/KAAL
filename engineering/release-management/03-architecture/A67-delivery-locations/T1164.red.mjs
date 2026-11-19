@@ -1,8 +1,8 @@
-// Case release/T1164 tests: release/A66
+// Case release/T1164 tests: release/A67
 import assert from 'node:assert/strict';
 import { loadSrc, wire, ev, install } from './fixtures.mjs';
 export const id = 'release/T1164';
-export const tests = ['release/A66'];
+export const tests = ['release/A67'];
 export const title = 'a missing or malformed declaration fails closed: no WIRE target, and no fallback list';
 export async function run() {
   const { parseLocations, readLocations } = await loadSrc('delivery/locations.mjs');

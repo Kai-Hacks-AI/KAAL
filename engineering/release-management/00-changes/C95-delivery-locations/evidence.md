@@ -18,7 +18,7 @@ Each of the six Cases was run alone and fails for the reason the PLAN states:
 
 ## Each Case can pass (throwaway copy)
 
-In a throwaway copy of `engineering/release-management` with the DO's files taken from the drafts in `interface.md` (`I53.md`, `F71.md`, `A66.md`, `delivery-locations.json`, `locations.mjs`, the changed `final-step.mjs` and `wire-judge.mjs`) and T1159 to T1164 renamed `.test.mjs`, all six pass. All `T*.test.mjs` of that copy: 264 tests, 264 pass: the 258 of the baseline, which includes the install judge's own Case (release/T282) and the Cases of release/C93 (T1153, T1154, T1157, T1158, T944), unchanged and green, plus the six.
+In a throwaway copy of `engineering/release-management` with the DO's files taken from the drafts in `interface.md` (`I53.md`, `F72.md`, `A67.md`, `delivery-locations.json`, `locations.mjs`, the changed `final-step.mjs` and `wire-judge.mjs`) and T1159 to T1164 renamed `.test.mjs`, all six pass. All `T*.test.mjs` of that copy: 264 tests, 264 pass: the 258 of the baseline, which includes the install judge's own Case (release/T282) and the Cases of release/C93 (T1153, T1154, T1157, T1158, T944), unchanged and green, plus the six.
 
 ## What is not proven
 

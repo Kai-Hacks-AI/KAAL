@@ -1,6 +1,6 @@
 // Case release/T1159 tests: release/I53
 import assert from 'node:assert/strict';
-import { text, loadSrc } from '../../03-architecture/A66-delivery-locations/fixtures.mjs';
+import { text, loadSrc } from '../../03-architecture/A67-delivery-locations/fixtures.mjs';
 export const id = 'release/T1159';
 export const tests = ['release/I53'];
 export const title = 'the delivery locations are declared once, and KAAL declares .github, .githooks and .kaal as wirable';

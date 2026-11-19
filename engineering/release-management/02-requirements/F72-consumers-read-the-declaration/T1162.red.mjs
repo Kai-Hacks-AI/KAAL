@@ -1,8 +1,8 @@
-// Case release/T1162 tests: release/F71
+// Case release/T1162 tests: release/F72
 import assert from 'node:assert/strict';
-import { loadSrc, wire, ev, install } from '../../03-architecture/A66-delivery-locations/fixtures.mjs';
+import { loadSrc, wire, ev, install } from '../../03-architecture/A67-delivery-locations/fixtures.mjs';
 export const id = 'release/T1162';
-export const tests = ['release/F71'];
+export const tests = ['release/F72'];
 export const title = 'adding or removing a location in the declaration changes both consumers and no consumer code';
 export async function run() {
   const { parseLocations } = await loadSrc('delivery/locations.mjs');

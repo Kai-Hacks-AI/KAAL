@@ -1,8 +1,8 @@
-// Case release/T1163 tests: release/A66
+// Case release/T1163 tests: release/A67
 import assert from 'node:assert/strict';
 import { text } from './fixtures.mjs';
 export const id = 'release/T1163';
-export const tests = ['release/A66'];
+export const tests = ['release/A67'];
 export const title = 'no consumer spells a delivery root: both read the declaration through the one reader';
 export async function run() {
   const code = (rel) => text(rel).split('\n').map((l) => l.replace(/\/\/.*$/, '')).join('\n');
