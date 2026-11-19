@@ -24,7 +24,8 @@ export async function run() {
   const x = await runFx(['cancel']);
   assert.equal(find(x, 'cancel', 'before').actual, 'GREEN');
   assert.equal(find(x, 'cancel', ['parent with pending children', 'stuck']).actual, 'UNKNOWN', 'a cancelled test is UNKNOWN');
-  assert.equal(find(x, 'cancel', 'after').actual, 'UNKNOWN');
+  // Node 22 cancels the later sibling too, Node 24 runs it (observed: streams/node-24.22.3-cancel.ndjson). Either is honest; a RED would not be.
+  assert.ok(['GREEN', 'UNKNOWN'].includes(find(x, 'cancel', 'after').actual), 'a later sibling is GREEN if it ran, UNKNOWN if it was cancelled');
   for (const n of ['pending child one', 'pending child two']) {
     const t = find(x, 'cancel', ['parent with pending children', n]);
     assert.ok(!t || t.actual === 'UNKNOWN', );
