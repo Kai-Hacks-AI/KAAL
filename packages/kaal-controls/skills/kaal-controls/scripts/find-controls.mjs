@@ -32,8 +32,10 @@ function idList(value) {
 const STATIONS = ['Developing', 'Collecting', 'Integrating', 'Hotfixing', 'Wiring', 'Promoting', 'Publishing'];
 const MODES = ['detective', 'preventive'];
 const STATUSES = ['designed', 'implemented', 'running', 'tested'];
+const KIND = /^[a-z][a-z0-9-]*$/;
 const REF = 'references/declaring-controls.md';
-const recovery = (field) => field === 'stations' ? `Write stations as [<Station>:<mode>, ...] with each station once. Stations: ${STATIONS.join(', ')}. Modes: ${MODES.join(', ')}. See ${REF}.`
+const recovery = (field) => field === 'evidence' ? `Write evidence as [<x>:<runs>, ...], the kinds of X the Cases of the control run against, each once, runs a whole number from 1, and at least one entry written <x>:<runs>:fail, an X that is a real failure. See ${REF}.`
+  : field === 'stations' ? `Write stations as [<Station>:<mode>, ...] with each station once. Stations: ${STATIONS.join(', ')}. Modes: ${MODES.join(', ')}. See ${REF}.`
   : field === 'status' ? `Add or correct the \`status:\` line as one of ${STATUSES.join(', ')}, as the evidence supports. See ${REF}.`
   : field === 'id' ? `Give the control an id of its own. See ${REF}.`
   : FIELDS.includes(field) ? `Add or correct the \`${field}:\` line. See ${REF}.`
@@ -59,7 +61,7 @@ export function findControls(files) {
     if (fields.type && !TYPES.includes(fields.type)) bad.push(['type', `type is not one of ${TYPES.join(', ')}`]);
     if (fields.status && !STATUSES.includes(fields.status)) bad.push(['status', `status is not one of ${STATUSES.join(', ')}`]);
     if (fields.has && !has?.length) bad.push(['has', 'has lists no Intent']);
-    for (const k of Object.keys(fields).filter((k) => !FIELDS.includes(k) && k !== 'stations')) bad.push([k, `${k} is not a field of a control`]);
+    for (const k of Object.keys(fields).filter((k) => !FIELDS.includes(k) && k !== 'stations' && k !== 'evidence')) bad.push([k, `${k} is not a field of a control`]);
     let stations = [];
     if (fields.stations !== undefined) {
       const list = idList(fields.stations);
@@ -68,9 +70,17 @@ export function findControls(files) {
       if (ok) stations = parsed.map(([station, mode]) => ({ station, mode }));
       else bad.push(['stations', 'stations is not a list of <Station>:<mode>, each station once']);
     }
+    let evidence = [];
+    if (fields.evidence !== undefined) {
+      const list = idList(fields.evidence);
+      const parsed = (list ?? []).map((e) => e.split(':').map((x) => x.trim()));
+      const ok = list?.length && parsed.every(([k, n, f, ...r]) => KIND.test(k ?? '') && /^[1-9]\d*$/.test(n ?? '') && (f === undefined || f === 'fail') && !r.length) && new Set(parsed.map((q) => q[0])).size === parsed.length && parsed.some((q) => q[2] === 'fail');
+      if (ok) evidence = parsed.map(([kind, runs, f]) => ({ kind, runs: Number(runs), fail: f === 'fail' }));
+      else bad.push(['evidence', 'evidence is not a list of <x>:<runs>, each x once, with one :fail entry']);
+    }
     const problems = bad.map(([field, reason]) => ({ field, reason, recovery: recovery(field) }));
     const rank = STATUSES.indexOf(fields.status) + 1 || null;
-    return { id: fields.id, title: fields.title, description: fields.description, type: fields.type, status: fields.status, rank, stations, has: has ?? [], path: file.path,
+    return { id: fields.id, title: fields.title, description: fields.description, type: fields.type, status: fields.status, rank, stations, evidence, has: has ?? [], path: file.path,
       tests: cases.filter((c) => c.tests.includes(fields.id)).map((c) => ({ id: c.id, path: c.path })), valid: problems.length === 0, problems };
   });
   const refused = controls.filter((c) => !c.valid).map((c) => ({ path: c.path, id: c.id, reason: c.problems[0].reason }));
