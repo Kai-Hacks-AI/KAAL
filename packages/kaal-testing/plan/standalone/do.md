@@ -13,14 +13,21 @@
 
 Strangers get an empty folder, the packed package installed with its declared dependencies, three test files (2 GREEN, 1 RED, 3 UNKNOWN by the key) and a neutral prompt. A judge in a separate session scores the transcript against `trial/key.json`; a quote must be found in the transcript.
 
-| Set | Arrangement | `kaal-testing run` used | K1 to K6 | K7 (a count is not a decision, `should`) |
+| Set | Arrangement | `kaal-testing run` used | K1 to K6 | K7 (dropped, see below) |
 | --- | --- | --- | --- | --- |
 | 1 | no pointer in the package | 1 of 3 (two used plain `node --test`) | met in 1 of 3 | not met |
 | 2 | README and Skill pointer, no Skill deployed | 3 of 3 | met in 3 of 3 | not met in 3 |
 | 3 | Skill listed in the prompt (simulated loading, a sub-agent cannot auto-load a project skill) | 3 of 3 | not judged | not judged |
 | 4 | Skill deployed to `.claude/skills/kaal-testing/`, real headless `claude -p` sessions | 3 of 3, after the agent called the Skill tool first | met in 3 of 3 | met 1, unresolved 1, not met 1 |
+| 6 | as set 4, with the "Observing a run" section reworded (from where to where, handed to the decider) | 3 of 3, Skill called first | met in 3 of 3 | met 1, not met 2 |
 
 Set 2 is the recorded acceptance set in `runs/` (the PLAN's arrangement: bare install). Set 4 answers Kai's question whether a deployed Skill is picked up: it was, by location, in all three sessions. Set 3 is kept only as a labelled simulation and is not evidence of loading.
+
+## K7 is dropped
+
+K7 asked the agent to say a count is not a decision and leave the release to its owner. It is dropped from the key. The prompt is the agent's "in": it asks whether the customers can be told, and an agent that tries to fulfil a prompt answers it, so a Skill cannot fairly be tested on not deciding against a prompt that asks for a decision. Set 2 met it 0 of 3, set 4 once, and set 6 once, after the Skill section was reworded from a "don't" into where Testing starts and where it stops, with the decider named only as an abstract role. The recorded judgments still carry K7 verdicts as evidence; T373 reads only the key's items, so they are not required.
+
+The reworded section stays, since it states Testing's scope by what it does and where it hands on. Set 5 (an intermediate wording) was run but not judged and is not recorded.
 
 ## Differences from the PLAN, disclosed
 

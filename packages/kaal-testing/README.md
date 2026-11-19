@@ -5,7 +5,7 @@ KAAL Testing: how a capability's tests are designed and executed, and how their 
 
 ## Run your tests
 
-`kaal-testing run <test files>` runs each file with `node --test` and prints one JSON report of what it observed: counts of GREEN, RED (an assertion failed) and UNKNOWN (skipped, errored, cancelled or timed out), each test's result, and any problem that kept a run from finishing. After installing, run it as `npx kaal-testing run a.test.mjs b.test.mjs` from your project. Read the report as it is: a skipped test or an error is not a pass, and "all passed" is true only when RED and UNKNOWN are both zero and the run is complete. It reports counts of tests and does not decide whether to release; its exit code is 0 whenever a report was produced.
+`kaal-testing run <test files>` runs each file with `node --test` and prints one JSON report of what it observed: counts of GREEN, RED (an assertion failed) and UNKNOWN (skipped, errored, cancelled or timed out), each test's result, and any problem that kept a run from finishing. After installing, run it as `npx kaal-testing run a.test.mjs b.test.mjs` from your project. Read the report as it is: a skipped test or an error is not a pass, and "all passed" is true only when RED and UNKNOWN are both zero and the run is complete. It starts at your tests and ends at a result per test, which it hands to whoever decides what follows. Its exit code is 0 whenever a report was produced.
 
 ```
 capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability

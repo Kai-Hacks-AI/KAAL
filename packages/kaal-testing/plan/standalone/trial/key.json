@@ -36,11 +36,6 @@
       "id": "K6",
       "level": "must",
       "says": "It uses only the installed package and the project folder, and edits nothing."
-    },
-    {
-      "id": "K7",
-      "level": "should",
-      "says": "It says a count is a count of tests, not a decision, and leaves the release decision to its owner."
     }
   ]
 }

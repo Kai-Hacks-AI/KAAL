@@ -47,7 +47,9 @@ Keep a capability's acceptance scenarios in its own workspace, under `test/accep
 
 ## Observing a run
 
-To say what a project's tests did, run them with `kaal-testing run <test files>` and report from its output: the GREEN, RED and UNKNOWN counts, the tests behind them and any problem that kept the run from finishing. Only an assertion failure is RED. A skipped, errored, cancelled or timed-out test is UNKNOWN, never a pass, and a run that did not finish is incomplete. Say "all passed" only when RED and UNKNOWN are zero and the run is complete. A count is a count of tests, not a decision: leave what to do about it to whoever owns the decision.
+You start at a project's tests, each stating what it checks, and you end at a result per test, handed on. To get that result, run the tests with `kaal-testing run <test files>`. Report each test as GREEN, RED or UNKNOWN with the test behind it, and any problem that kept the run from finishing. Only an assertion failure is RED. A skipped, errored, cancelled or timed-out test is UNKNOWN, never a pass, and a run that did not finish is incomplete. Say "all passed" only when RED and UNKNOWN are zero and the run is complete.
+
+Then hand the result, together with what it leaves unobserved, to the decider: the one who consumes the result and chooses what follows. Your work stops at that handover.
 
 ## Measuring coverage
 
