@@ -1,12 +1,11 @@
 # The Dispatcher (release/C73, release/I40). It raises the PROMOTION of a collector whose ACT has merged, and does nothing else: no approval,
-# no merge, no auto-merge, no push. Triggers are the schedule and a manual start only, so it always runs from the default branch.
+# no merge, no auto-merge, no push. Its only trigger is a manual start (release/C93 took the schedule away: the raise follows the merge of a final
+# step, see dispatcher-raise.yml), so it always runs from the default branch.
 # `decide Dispatch` holds no App key and reads the facts. `raise Dispatch` holds the App token and reads no collector: it takes the decisions
 # as data and makes one write, the creation of a pull request. Live only when the variable KAAL_DISPATCH_RAISE is exactly `on`.
 name: Dispatcher
 
 on:
-  schedule:
-    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions: {}

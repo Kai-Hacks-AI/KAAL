@@ -22,5 +22,5 @@ export async function run() {
   assert.equal(c.title, 'gate verify Triggers');
   const real = join(RM, '04-controls/CTL20-gate-verify-triggers/CTL20.md');
   assert.ok(existsSync(real), 'CTL20.md is absent');
-  assert.equal(readFileSync(real, 'utf8'), `${draft('CTL20.md')}\n`, 'CTL20.md differs from the draft');
+  assert.equal(readFileSync(real, 'utf8').replace(/^evidence: .*\n/m, ''), `${draft('CTL20.md')}\n`, 'CTL20.md differs from the draft');
 }

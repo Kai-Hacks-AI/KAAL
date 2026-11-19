@@ -24,5 +24,5 @@ export async function run() {
   const real = join(RM, '04-controls/CTL1-verify-stages/CTL1.md');
   assert.ok(existsSync(real), 'CTL1.md is absent');
   // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
-  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${draft}\n`, 'CTL1.md differs from the draft');
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, '').replace(/^evidence: .*\n/m, ''), `${draft}\n`, 'CTL1.md differs from the draft');
 }

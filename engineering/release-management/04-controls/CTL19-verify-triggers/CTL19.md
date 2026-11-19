@@ -5,6 +5,7 @@ description: It reveals whether a change adds a workflow that uses pull_request_
 type: detective
 status: designed
 has: [release/I50]
+evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL19 verify Triggers
 

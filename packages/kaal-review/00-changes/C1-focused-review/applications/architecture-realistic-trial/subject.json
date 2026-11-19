@@ -1,0 +1,27 @@
+{
+  "focus": "capability",
+  "reference": {
+    "label": "the Intent of the capability",
+    "reads": "architecture/I1 and architecture/F5 at a9e19a9, with the boundary and the four questions the CPO set for this review on 14 Nov",
+    "items": ["I1", "F5", "C2", "Solution Architecture", "Delivery Architecture"]
+  },
+  "actual": {
+    "label": "what the capability delivers",
+    "reads": "the five-request trial of the kaal-architecture Skill, Architecture DO #1595 as merged into kaal/architecture/classify at a9e19a9",
+    "items": ["requests.json", "skill.raw.txt", "baseline.raw.txt", "skill.prompt.txt", "skill.json", "baseline.json", "T10", "trial/next"]
+  },
+  "inspected": [
+    "requests.json, frozen in #1591",
+    "skill.prompt.txt and baseline.prompt.txt",
+    "skill.raw.txt and baseline.raw.txt",
+    "skill.json and baseline.json",
+    "do.md and evidence.md of C2",
+    "trial/next (run 4) and act.md of C1"
+  ],
+  "questions": [
+    "Is the architectural judgment of the Skill arm better than the baseline's?",
+    "Do both arms separate Architecture from Change?",
+    "Does the trial show incremental value of the Skill over the baseline?",
+    "What do the limits of the evidence allow?"
+  ]
+}

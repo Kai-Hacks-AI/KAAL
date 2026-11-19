@@ -5,6 +5,7 @@ description: It reveals whether the envelope of a pull request is well formed, w
 type: detective
 status: designed
 has: [release/I7]
+evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL11 verify Envelope
 
