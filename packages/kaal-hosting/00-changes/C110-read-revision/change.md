@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Add the drafts in `interface.md` (the Intent hosting/I18, the Requirements hosting/F80 to hosting/F84 and hosting/N12, the Architecture hosting/A38 with its interface row, the source of `revision.ts` and `revision-cli.mjs`, and the small edits to `index.ts`, `package.json`, the build, the Skill, the operation guide, the two `AGENTS.md` files and the README) and the Cases hosting/T258 to hosting/T264, all RED, in this folder.
+1. Add the drafts in `interface.md` (the Intent hosting/I18, the Requirements hosting/F80 to hosting/F84 and hosting/N12, the Architecture hosting/A38 with its interface row, the source of `revision.ts` and `revision-cli.mjs`, and the small edits to `index.ts`, `package.json`, the build, the Skill, the operation guide, the two `AGENTS.md` files and the README) and the Cases hosting/T258 to hosting/T265, all RED, in this folder.
 2. Observe the expected RED, and that each Case can pass with the drafts as the DO's files (`evidence.md`).
 3. The PLAN adds no source file, no change to a shipped document, no version and no publication.
 
@@ -17,6 +17,7 @@ Decided here, so the Cases can be strict:
 - **Committed bytes only.** Never the working tree or the index. Bytes are returned exactly, which is why Git is started through `startPlan` but with a start that keeps bytes (`execute` returns text). That start is internal to `revision.ts`, not an export.
 - **Three outcomes, never two.** Read, no such revision (`REVISION_NOT_FOUND`), could not be determined (`REVISION_UNREADABLE`). A blob or a tree is not a revision. A ref is data: one that starts with `-` is just a ref that names no commit.
 - **Links and submodules are refused, not followed or skipped** (`REVISION_ENTRY`, naming the path), so a caller never receives a link's target text as if it were a file. `under` reads around them. This is the policy of Guard's `trusted.mjs`; it is also the one that is safe for a judge.
+- **`under` is literal.** Each entry is a repository-relative file or folder name and nothing more: Git pathspec syntax (`*`, `?`, `[`, `:(glob)`, `:(exclude)`, `:!`, `:/`, `:(top)`, `:(icase)`, `:(attr:...)`) cannot broaden or change a read. Git is started with `--literal-pathspecs`, which Git's own command line honours whatever the environment holds, and a file whose name looks like pathspec syntax is read by exactly that name (CPO review of 19 Nov, hosting/T265).
 - **Cost does not grow with the files:** three Git starts (`rev-parse`, `ls-tree`, one `cat-file --batch`), counted by Git's own trace.
 - **The command prints facts, never bytes and never a verdict.** Exit 0 when read (also when `--under` matches nothing), 2 when it could not be. It never exits 1, because nothing it reports can fail a check. Whether this is the right revision is the caller's judgment.
 
@@ -34,7 +35,7 @@ The other readers (CTL19, Change Isolation, Guard, `kaal-controls`, lineage), on
 
 ## DO
 
-Not authorized by this PLAN. On the merged PLAN, in the collector: add the drafts as the files they name (`revision.ts`, `revision-cli.mjs`, the edits, the element texts), turn T258 to T264 into `04-test/package-check/revision.test.mjs` (T258 to T262, shipped: they need Git, which Hosting's installed verification already uses for `isolatedEnvironment`) and `04-test/engineering-check/plan/revision.test.mjs` (T263 and T264, the publisher's), allocate the new ids in `04-test/package-check/testing.md`, and run Hosting's suites on all three hosts.
+Not authorized by this PLAN. On the merged PLAN, in the collector: add the drafts as the files they name (`revision.ts`, `revision-cli.mjs`, the edits, the element texts), turn T258 to T265 into `04-test/package-check/revision.test.mjs` (T258 to T262 and T265, shipped: they need Git, which Hosting's installed verification already uses for `isolatedEnvironment`) and `04-test/engineering-check/plan/revision.test.mjs` (T263 and T264, the publisher's), allocate the new ids in `04-test/package-check/testing.md`, and run Hosting's suites on all three hosts.
 
 ## ACT
 
@@ -44,5 +45,5 @@ A 4L retrospective in `act.md`.
 
 - **Windows and macOS.** The Cases were run on Linux only (`evidence.md`). They avoid host-specific facts (the link and submodule entries are made in the index, not on the file system; the trace counts Git's own starts), and the three-host lanes are what proves them.
 - **Names Hosting would refuse on a host** (`read` refuses a name some host cannot hold). `readRevision` is in memory and refuses none. Whether it should is a design question; it returns the committed name as Git has it.
-- **Ids are provisional.** hosting/C110, hosting/I18, hosting/F80 to hosting/F84, hosting/N12, hosting/A38 and hosting/T258 to hosting/T264 are the next free numbers on `main` at 3a3cf6e6 and are to be confirmed before the DO.
+- **Ids are provisional.** hosting/C110, hosting/I18, hosting/F80 to hosting/F84, hosting/N12, hosting/A38 and hosting/T258 to hosting/T265 are the next free numbers on `main` at 3a3cf6e6 and are to be confirmed before the DO.
 - **The executable bit** for Guard's later move (see Not in this Change).
