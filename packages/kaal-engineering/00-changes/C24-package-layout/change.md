@@ -2,33 +2,37 @@
 
 ## PLAN
 
-1. Add the Intent I3, the Requirements F45 to F49 and N20, the Architecture A3 and the gap G114 under `packages/kaal-engineering/`. Their Cases T1220 to T1227 sit beside the element they test as `T<n>.red.mjs`.
+1. Add the Intent I3, the Requirements F45 to F50 and N20, the Architecture A3 and the gap G114 under `packages/kaal-engineering/`. Each element states what verifies it done, under "Done when". Their Cases T1220 to T1228 sit beside the element they test as `T<n>.red.mjs`.
 2. Observe the expected RED against the collector (`evidence.md`) and show that each Case can pass on a throwaway copy that holds `draft/`.
-3. The PLAN adds no package file. `draft/skills/kaal-engineering/` holds the intended reference and the one added line of `SKILL.md`, for review only.
+3. The PLAN adds no package file. `draft/skills/kaal-engineering/` holds the intended reference (a page and its data, `package-layout.json`) and the one added line of `SKILL.md`, for review only.
+4. The Cases test the template as data (kinds, order, verifying folders, deployment rules) and never the wording of the page. Changing a role sentence in the data keeps them green; breaking a rule turns one RED.
 
 ## Ids
 
-Proposed, to be confirmed by the allocator: Change engineering/C24, Intent engineering/I3, Requirements engineering/F45 to F49 and N20, Architecture engineering/A3, Cases T1220 to T1227, gap G114. They are the next free at the collector tip `80e4a987`, and they skip the ids the parked registration PLAN (#1954) holds.
+Proposed, to be confirmed by the allocator: Change engineering/C24, Intent engineering/I3, Requirements engineering/F45 to F50 and N20, Architecture engineering/A3, Cases T1220 to T1228, gap G114. They are the next free at the collector tip `80e4a987`, and they skip the ids the parked registration PLAN (#1954) holds.
 
 ## The layout
 
 ```
-packages/<capability>/
+packages/<cap>  =  engineering/<cap>  =  .kaal/<cap>     one layout, three places
   AGENTS.md  README.md  LICENSE  package.json  *.kaal.json
   00-backlog/   01-changes/   02-controls/
-  10-intent/{intent, test-cases/}
-  11-requirements/{requirements, test-cases/}
+  10-intent/{intent, test-cases/}      11-requirements/{requirements, test-cases/}
   12-architecture/{architecture, test-cases/}
   13-source/{skill/, scripts/, unit-tests/}
   14-defects/{defects, test-cases/}
   dist/
 ```
 
-Rules: the numbers only order folders for people; each concern carries its own tests; only scripts, unit tests and test-cases are deterministic, the rest is validated by review; `02-controls` holds only controls over the package itself; consumer controls are consumer space; `dist` is generated, never edited, not committed; the layout is owned by kaal-engineering.
+- **Machinery** (`AGENTS.md`, `13-source`, `dist`, the root files) is written only in `packages/`. N+1 is deployed to `engineering/`, N through npmjs to `.kaal/`. A deployed copy matches its source, so a hand edit there is waste.
+- **Content** (`00-backlog` to `14-defects`, including `02-controls`) is content in context: owned locally, never deployed, never compared. In a package it is the capability's own; in `engineering/` and `.kaal/` it is the consumer's data, produced by the capability. A defect about our repository lives in `engineering/<cap>/14-defects`: defects are local, and the Defect Skill only helps find them.
+- A repository with no KAAL packages has only `.kaal/<cap>`.
+- Every element kind (intent, requirement, architecture, defect) says what verifies it done, and the layout gives that a place: `test-cases/`; the source has `unit-tests/`.
+- The numbers only order folders for people. Only scripts, unit tests and test-cases are deterministic; the rest is validated by review. `02-controls` holds only controls over the package itself; consumer controls are consumer space. `dist` is generated, never edited, not committed. The layout is owned by kaal-engineering.
 
 ## DO
 
-Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add `skills/kaal-engineering/references/package-layout.md` from `draft/` and the one line in `SKILL.md`. The Cases become `.test.mjs` when they are green. No package is moved.
+Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add `skills/kaal-engineering/references/package-layout.md` and `package-layout.json` from `draft/` and the one line in `SKILL.md`. The Cases become `.test.mjs` when they are green. No package is moved.
 
 ## ACT
 

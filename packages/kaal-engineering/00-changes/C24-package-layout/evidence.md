@@ -10,28 +10,39 @@ The PLAN of C24 observes its RED against the collector `kaal/engineering/setup` 
 
 | Case | Tests | In the tree of this PLAN |
 | --- | --- | --- |
-| T1220 | I3 | RED: the reference is absent |
-| T1221 | F45 | RED: the reference is absent |
-| T1222 | F46 | RED: the reference is absent |
-| T1223 | F47 | RED: the reference is absent |
-| T1224 | F48 | RED: the reference is absent |
-| T1225 | F49 | RED: the reference is absent |
-| T1226 | N20 | RED: the reference is absent |
-| T1227 | A3 | RED: SKILL.md does not link the reference |
+| T1220 | I3 | RED: the template is absent |
+| T1221 | F45 | RED: the template is absent |
+| T1222 | F46 | RED: the template is absent |
+| T1223 | F47 | RED: the template is absent |
+| T1224 | F48 | RED: the template is absent |
+| T1225 | F49 | RED: the template is absent |
+| T1226 | F50 | RED: the template is absent |
+| T1227 | N20 | RED: the template is not inside the Skill |
+| T1228 | A3 | RED: SKILL.md links no reference |
 
-8 RED-observed, 0 error, 0 green. Every Case fails on its own assertion.
+9 RED-observed, 0 error, 0 green. Every Case fails on its own assertion.
 
 ## Can each Case pass
 
-In a throwaway root outside the repository, holding the package with `draft/skills/kaal-engineering/` copied over `skills/kaal-engineering/` and the other packages stood in by empty folders, all eight Cases were green, and so were the existing T1176 and T1177. The Engineer Skill's `check-skill` exited 0 on the draft Skill with its reference. The reference is 29 lines.
+In a throwaway root outside the repository, holding the package with `draft/skills/kaal-engineering/` copied over `skills/kaal-engineering/`, all nine Cases were green and the Engineer Skill's `check-skill` exited 0 on the Skill with its reference.
 
-## Can a Case fail for the right reason
+## Can a Case fail for the right reason, and not for the wrong one
 
-On the same copy: dropping "not committed" made T1224 RED, replacing "consumer space" made T1225 RED, and renaming `unit-tests/` in `13-source` made T1223 RED.
+Five edits to `package-layout.json` on that copy:
+
+| Edit | Result |
+| --- | --- |
+| `dist` marked committed | T1224 RED |
+| `14-defects` loses its verifier | T1222 RED |
+| machinery "written" in `engineering/` too | T1226 RED |
+| `10-intent` moved out of number order | T1221 RED |
+| the role sentence of `00-backlog` reworded | all Cases stay GREEN |
+
+The last row is the point of the design: the Cases hold rules, not wording, so rewording the page or a role does not break them.
 
 ## What this shows and does not show
 
-The Cases show that the reference says what it must, is linked once and keeps the Skill valid. They do not show that the layout is right: that is the Owner's and the CPO's judgment.
+The Cases show that the template holds the layout's rules, that the Skill links a page that exists and that the Skill stays valid. They do not show that the layout is right: that is the Owner's and the CPO's judgment.
 
 ## Reproduce
 

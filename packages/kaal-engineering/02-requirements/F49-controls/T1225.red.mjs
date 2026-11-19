@@ -2,16 +2,21 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(import.meta.url).split('/packages/')[0];
-const dir = join(root, 'packages/kaal-engineering/skills/kaal-engineering');
-const ref = () => { const f = join(dir, 'references/package-layout.md'); assert.ok(existsSync(f), 'the reference packages/kaal-engineering/skills/kaal-engineering/references/package-layout.md is absent'); return readFileSync(f, 'utf8'); };
+const pkg = join(root, 'packages/kaal-engineering');
+const dir = join(pkg, 'skills/kaal-engineering');
+const template = () => { const f = join(dir, 'references/package-layout.json'); assert.ok(existsSync(f), 'the template references/package-layout.json is absent'); return JSON.parse(readFileSync(f, 'utf8')); };
+const folder = (t, n) => t.folders.find((f) => f.name === n);
 export const id = 'engineering/T1225';
 export const tests = ['engineering/F49'];
-export const title = 'the reference limits 02-controls to controls over the package itself and calls consumer controls consumer space';
+export const title = '02-controls is scoped to the package and consumer controls are consumer space, not a folder';
 export async function run() {
-  const t = ref();
-  assert.match(t, /only controls over the package itself/i, '02-controls is not limited to the package itself');
-  for (const w of ['development', 'delivery', 'solution']) assert.ok(t.includes(w), `${w} is not named`);
-  assert.match(t, /consumer space/, 'consumer controls are not called consumer space');
+  const t = template();
+  const c = folder(t, '02-controls');
+  assert.equal(c.scope, 'package');
+  assert.deepEqual([...c.covers].sort(), ['delivery', 'development', 'solution']);
+  assert.ok(t.consumerSpace.length >= 1, 'consumer controls are not named as consumer space');
+  assert.ok(!t.folders.some((f) => /consumer/i.test(f.name)), 'a consumer folder is part of the layout');
 }

@@ -1,29 +1,22 @@
 # Package layout
 
-The layout of a KAAL capability package. This capability owns it. It is a template for a new package or a package that is being cleaned up, and it moves no existing package: migration comes later, package by package.
+The layout of a capability's folder. This capability owns it. The data is in [package-layout.json](package-layout.json); this page explains it. It moves no existing package: migration comes later, package by package.
 
-```
-packages/<capability>/
-  AGENTS.md          the Agent: how to work in this package (BASS: Bare to Agent)
-  README.md  LICENSE  package.json  *.kaal.json
-  00-backlog/        what we might do
-  01-changes/        in flight, temporary
-  02-controls/       only controls over this package itself
-  10-intent/         intent, test-cases/
-  11-requirements/   requirements, test-cases/
-  12-architecture/   architecture, test-cases/
-  13-source/
-    skill/           SKILL.md and payload (BASS: Agent to Skill)
-    scripts/         deterministic (BASS: Skill to Script)
-    unit-tests/
-  14-defects/        defects, test-cases/ that prove them
-  dist/              generated from 13-source for npmjs; never edited, not committed
-```
+## One layout, three places
+
+`packages/<cap>`, `engineering/<cap>` and `.kaal/<cap>` share one layout. The package is deployed: N+1 goes to `engineering/`, and N goes through npmjs to `.kaal/`. A repository with no packages of KAAL has only `.kaal/<cap>`.
+
+## Machinery and content
+
+- **Machinery** is `AGENTS.md`, `13-source` (the Skill and the scripts) and what is built from it into `dist`. It is written only in `packages/` and deployed elsewhere. Outside `packages/`, a hand edit is waste, and the copy must match its source.
+- **Content** is `00-backlog` to `14-defects`, including `02-controls`. It is content in context: owned locally, never deployed and never compared. In a package it is the capability's own. In `engineering/` and `.kaal/` it is the consumer's data, produced by the capability. A defect about our repository lives in `engineering/<cap>/14-defects`, since defects are local and the Defect Skill only helps find them.
+
+## Verified by
+
+Intent, requirements, architecture and defects each say what verifies that they are done, and their folder carries it in `test-cases/`. The source is verified by its `unit-tests/`. Only scripts, unit tests and test-cases are deterministic; the rest is validated by review.
 
 ## Rules
 
-- The numbers only order the folders for people. They carry no other meaning.
-- Each concern carries its own tests in its own folder: `test-cases/` beside intent, requirements, architecture and defects, and `unit-tests/` beside the source.
-- Only scripts, unit tests and test-cases are deterministic. Everything else is validated by review.
-- `02-controls/` holds only controls over the package itself: its development, its delivery and its solution. A control about how a consumer runs its own repository is consumer space and is not package content.
-- `dist/` is generated and never edited.
+- The numbers only order the folders for people.
+- `02-controls` holds only controls over the package itself. A control about how a consumer runs its repository is consumer space.
+- `dist` is generated from `13-source`, never edited and not committed.

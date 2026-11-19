@@ -2,17 +2,25 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(import.meta.url).split('/packages/')[0];
-const dir = join(root, 'packages/kaal-engineering/skills/kaal-engineering');
-const ref = () => { const f = join(dir, 'references/package-layout.md'); assert.ok(existsSync(f), 'the reference packages/kaal-engineering/skills/kaal-engineering/references/package-layout.md is absent'); return readFileSync(f, 'utf8'); };
+const pkg = join(root, 'packages/kaal-engineering');
+const dir = join(pkg, 'skills/kaal-engineering');
+const template = () => { const f = join(dir, 'references/package-layout.json'); assert.ok(existsSync(f), 'the template references/package-layout.json is absent'); return JSON.parse(readFileSync(f, 'utf8')); };
+const folder = (t, n) => t.folders.find((f) => f.name === n);
 export const id = 'engineering/T1224';
 export const tests = ['engineering/F48'];
-export const title = 'the reference says what is deterministic, that numbers only order, and that dist is generated and not committed';
+export const title = 'every entry is machinery or content, the deterministic set is three, and dist is generated and not committed';
 export async function run() {
-  const t = ref();
-  assert.match(t, /Only scripts, unit tests and test-cases are deterministic/, 'the determinism rule is absent');
-  assert.match(t, /validated by review/, 'the rest is not said to be validated by review');
-  assert.match(t, /numbers only order the folders for people/, 'the numbers rule is absent');
-  assert.match(t, /dist\/[^\n]*never edited[^\n]*not committed/, 'dist is not said to be never edited and not committed');
+  const t = template();
+  const kind = (n) => [...t.root, ...t.folders].find((e) => e.name === n)?.kind;
+  for (const n of ['AGENTS.md', 'README.md', 'LICENSE', 'package.json', '*.kaal.json', '13-source', 'dist']) assert.equal(kind(n), 'machinery', `${n} is machinery`);
+  for (const f of t.folders.filter((x) => /^(0\d|1[0-2]|14)-/.test(x.name))) assert.equal(f.kind, 'content', `${f.name} is content`);
+  assert.deepEqual([...t.deterministic].sort(), ['scripts', 'test-cases', 'unit-tests']);
+  const d = folder(t, 'dist');
+  assert.equal(d.generated, true);
+  assert.equal(d.committed, false);
+  assert.equal(d.from, '13-source');
+  assert.equal(t.rules.numbersOrderOnly, true);
 }

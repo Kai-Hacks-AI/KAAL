@@ -2,17 +2,21 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(import.meta.url).split('/packages/')[0];
-const dir = join(root, 'packages/kaal-engineering/skills/kaal-engineering');
-const ref = () => { const f = join(dir, 'references/package-layout.md'); assert.ok(existsSync(f), 'the reference packages/kaal-engineering/skills/kaal-engineering/references/package-layout.md is absent'); return readFileSync(f, 'utf8'); };
+const pkg = join(root, 'packages/kaal-engineering');
+const dir = join(pkg, 'skills/kaal-engineering');
+const template = () => { const f = join(dir, 'references/package-layout.json'); assert.ok(existsSync(f), 'the template references/package-layout.json is absent'); return JSON.parse(readFileSync(f, 'utf8')); };
+const folder = (t, n) => t.folders.find((f) => f.name === n);
 export const id = 'engineering/T1223';
 export const tests = ['engineering/F47'];
-export const title = 'the reference splits the source into skill, scripts and unit-tests, and ties them to BASS';
+export const title = 'the source holds skill, scripts and unit-tests, and the BASS steps sit on the entries that stand for them';
 export async function run() {
-  const t = ref();
-  for (const f of ['skill/', 'scripts/', 'unit-tests/']) assert.ok(t.includes(f), `13-source lacks ${f}`);
-  assert.match(t, /Bare to Agent/, 'AGENTS.md is not tied to BASS Bare to Agent');
-  assert.match(t, /Agent to Skill/, 'skill/ is not tied to BASS Agent to Skill');
-  assert.match(t, /Skill to Script/, 'scripts/ is not tied to BASS Skill to Script');
+  const t = template();
+  const s = folder(t, '13-source');
+  assert.deepEqual([...s.children].sort(), ['scripts', 'skill', 'unit-tests']);
+  assert.equal(s.bass.skill, 'Agent to Skill');
+  assert.equal(s.bass.scripts, 'Skill to Script');
+  assert.equal(t.root.find((r) => r.name === 'AGENTS.md').bass, 'Bare to Agent');
 }
