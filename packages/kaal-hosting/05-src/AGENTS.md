@@ -6,3 +6,5 @@ Hosting is the KAAL Extension that crosses the host boundary: paths, bytes and c
 - Hosting knows paths, bytes and commands only. What a file means is KAAL Core's concern.
 - A failure carries a `HostingError` code. Keep it and any recovery evidence; do not retry around a refusal.
 - To verify an installation: `npm explore @kaihacksai/kaal-hosting -- npm test`. The result is `verified`, `failed` or `cannot verify`; it is evidence of that run, not provenance.
+- To read the files of a Git revision, read the `kaal-hosting` Skill and use `readRevision` or the command `kaal-hosting-revision`, not an ad hoc `git`. They print or return facts; which revision is the right one is your judgment.
+- To read the open pull requests of a repository, read the `kaal-hosting` Skill and use `readPullRequests` or the command `kaal-hosting-pulls`, not an ad hoc `gh`. A fact they return as unknown is not observed; do not fill it in.

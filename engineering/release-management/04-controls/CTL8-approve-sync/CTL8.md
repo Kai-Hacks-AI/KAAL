@@ -5,6 +5,7 @@ description: It gives a SYNC the approval it needs only when verify Sync passes 
 type: preventive
 status: implemented
 has: [release/I32, release/I33, release/I35]
+evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL8 approve Sync
 

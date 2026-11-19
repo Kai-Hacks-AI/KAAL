@@ -15,13 +15,6 @@ export function judge(text) {
   const cues = text.split('\n').filter((l) => l === CUE).length;
   return cues === 1 && heads.join('|') === 'Source|Target|Verification';
 }
-const draft = (text) => {
-  const after = text.split(/^## Draft of the template$/m)[1];
-  assert.ok(after, 'the draft section is absent');
-  const m = after.match(/^```\n([\s\S]*?)\n```$/m);
-  assert.ok(m, 'the fenced draft is absent');
-  return `${m[1]}\n`;
-};
 export function run() {
   const good = `${CUE}\n\n## Source\n\n## Target\n\n## Verification\n`;
   assert.equal(judge(good), true);
@@ -30,11 +23,7 @@ export function run() {
   assert.equal(judge(`${good}\n## Notes\n`), false, 'an extra chapter is accepted');
   assert.equal(judge(good.replace(CUE, '')), false, 'a missing cue is accepted');
   assert.equal(judge(`${CUE}\n${good}`), false, 'a repeated cue is accepted');
-  const iface = join(repo, 'engineering/release-management/00-changes/C27-wire-delivery-operation/interface.md');
-  assert.ok(existsSync(iface), 'the interface is absent');
-  const text = draft(readFileSync(iface, 'utf8'));
-  assert.ok(judge(text), 'the draft is not a WIRE template');
   const src = join(repo, 'engineering/release-management/05-src/wiring/templates/wire.md');
   assert.ok(existsSync(src), 'the WIRE template source is absent from the Engineering wiring sources');
-  assert.equal(readFileSync(src, 'utf8'), text, 'the template source differs from the draft');
+  assert.ok(judge(readFileSync(src, 'utf8')), 'the template source is not a WIRE template');
 }

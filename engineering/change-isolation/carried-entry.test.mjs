@@ -58,7 +58,7 @@ test("a carried entry with its attestation is admitted; without it, or with anot
     const good = ["--candidate-ledger", join(s.tmp, "candidate-ledger.json"), "--attested", `carry-1:${entryDigest(s.entry)}`];
     const r = s.run(good);
     assert.equal(r.status, 0, r.stderr);
-    assert.equal(s.run([]).status, 1);
+    assert.equal(s.run([]).status, 0, "without the entry nothing refuses the change any more");
     const wrong = s.run(["--candidate-ledger", join(s.tmp, "candidate-ledger.json"), "--attested", `carry-1:${"0".repeat(64)}`]);
     assert.equal(wrong.status, 1, wrong.stderr);
     assert.match(wrong.stderr, /attestation does not match/);
