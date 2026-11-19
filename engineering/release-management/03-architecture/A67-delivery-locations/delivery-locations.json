@@ -2,6 +2,12 @@
   "locations": [
     { "root": ".github", "what": "the hosting platform's configuration: workflows, templates, dependabot", "wirable": true },
     { "root": ".githooks", "what": "the git hooks of a clone", "wirable": true },
-    { "root": ".kaal", "what": "the deployed KAAL Engine: the Core payload and the configuration of the guards", "wirable": true }
+    { "root": ".kaal", "what": "the deployed KAAL Engine: the Core payload and the configuration of the guards", "wirable": true },
+    { "root": ".agents", "what": "the canonical deployment of Skills, for every agent provider", "wirable": true },
+    { "root": ".claude", "what": "the deployment for the claude-code provider: Skills, settings", "wirable": true }
+  ],
+  "files": [
+    { "path": "package.json", "what": "the root manifest of the workspace; packages/<capability>/package.json is solution", "wirable": false },
+    { "path": "package-lock.json", "what": "the root lockfile; generated, judged by comparison with what the solution declares", "wirable": false }
   ]
 }
