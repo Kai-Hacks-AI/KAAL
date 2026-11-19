@@ -3,7 +3,7 @@
 ## PLAN
 
 1. Add the gap G90 and the draft of `controls/CTL1` (`interface.md`), with the Cases T780 to T783. The Cases are `T<n>.red.mjs`.
-2. Observe the expected RED against the C12 collector (`evidence.md`).
+2. Observe the expected RED against `main` (`evidence.md`).
 3. State the route to `main` (`promotion.md`).
 4. The PLAN adds no control item, no hook, no workflow and no ruleset, and touches only `engineering/controls/`.
 

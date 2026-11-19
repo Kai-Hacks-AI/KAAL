@@ -1,6 +1,6 @@
 # C13 baseline
 
-The baseline is the collector `kaal/controls/control-status` at `a9bfd8dd03e26ff1e05b91f1d6066f55f35ca957`, not `main`. The declaration carries `status`, and the finder on `main` refuses that field, so the Cases of this Change can only run against the finder of C12. C13 is promoted only after C12 is on `main`.
+The baseline is `main` at `733d84b9fb0e57f1748475dd0d613dccbf28a306`. C12 is on `main` (promotion #1934), so the finder on `main` reads the `status` field the declaration carries and the Cases run against it.
 
 - The collector holds the finder that lists every control with its status, the check in the Skill (`check-controls.mjs`) and the Case T778 that runs it on `engineering/`.
 - `engineering/controls/` holds the old README of the first PLAN of the controls and the numbered folders C12 added. This Change adds beside them and leaves the README as it is.

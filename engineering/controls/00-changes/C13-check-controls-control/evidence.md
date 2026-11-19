@@ -1,6 +1,6 @@
 # C13 evidence
 
-The PLAN of C13 observes its RED against the collector of C12, whose head is `a9bfd8dd03e26ff1e05b91f1d6066f55f35ca957`.
+The PLAN of C13 observes its RED against `main` at `733d84b9fb0e57f1748475dd0d613dccbf28a306`, where C12 is already promoted.
 
 ## Provenance
 
