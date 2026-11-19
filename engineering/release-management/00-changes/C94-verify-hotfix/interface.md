@@ -15,7 +15,7 @@ has: [release/I10]
 ---
 # release/CTL21 verify Hotfix
 
-A detective control. A valid Hotfix is exactly this: one Defect, and at least one Case that verifies it, RED before and GREEN after. `verify Hotfix` proves that, deterministically, from two trees: a before tree and an after tree. The concept is pure content and takes the two trees as input; whether they are two branches or two file locations does not matter, and only a platform adapter maps its refs onto them (for GitHub, the default branch and the head of a pull request into a `hotfix/` base). A Hotfix brings its own Defect record and Case, so the Defect chapter names one Defect and the after tree holds its record and its Cases, new or earlier. The same Case file is run by the Run of Cases (testing/C63) on the before tree and on the after tree, and every Case the Defect records must be RED before and GREEN after. The first commit of a Hotfix is RED after and a later commit may be GREEN: the after tree at hand is judged, and every push is judged again.
+A detective control. A valid Hotfix is exactly this: one Defect, and at least one Case that verifies it, RED before and GREEN after. `verify Hotfix` proves that, deterministically, from two trees: a before tree and an after tree. The concept is pure content and takes the two trees as input; whether they are two branches or two file locations does not matter, and only a platform adapter maps its refs onto them (for GitHub, the commit the Hotfix names as affected and the head of a pull request into a `hotfix/` base). A Hotfix brings its own Defect record and Case, so the Defect chapter names one Defect and the after tree holds its record and its Cases, new or earlier. The same Case file is run by the Run of Cases (testing/C63) on the before tree and on the after tree, and every Case the Defect records must be RED before and GREEN after. The first commit of a Hotfix is RED after and a later commit may be GREEN: the after tree at hand is judged, and every push is judged again.
 
 It says PASS when the Hotfix is valid, FAIL with the broken link when it is not, and UNKNOWN when a run could not be made or read. PASS is proven, not approved: whether a Case corresponds to its Defect, is honest, or whether the correction is minimal is content, which review decides, and the Inspector later; this control judges none of it. It judges no route, base or admission, which belong to the envelope check (release/CTL11) and the Hotfix delivery path.
 
@@ -35,7 +35,7 @@ serves: [release/I10]
 ---
 # release/F71 verify-hotfix
 
-A check takes two trees, before and after, and the body of a Hotfix, and proves whether the Hotfix is valid. A Hotfix is valid when the Defect chapter names exactly one KAAL Defect `<capability>/D<n>`, the Defect has a record in the after tree with at least one Case that verifies it, each such Case exists in the after tree, and every one of those Cases, the same file run by the Run of Cases on both trees (for the before tree the Case file is first copied over it), is RED before and GREEN after. Where the record and the Case came from, the Hotfix or earlier, is not judged. A Case still RED after, or GREEN before, is a finding for that Case; a run that could not be made, a Case with no attributed test, or a result that is not RED or GREEN leaves the verdict UNKNOWN, never RED. The verdict is PASS when the Hotfix is valid, FAIL with a finding when it is not, and UNKNOWN otherwise. The check takes no Git refs: the mapping of refs onto the two trees belongs to the adapter of a platform. The adapter for GitHub takes the default branch as the before tree and the head of the pull request as the after tree, runs the Cases in their own job because they are code of the pull request, and judges in a clean job from the base's own copy, reading the after tree and the two runs as data and the body from the event, never from script text. The verdict is the report and not the execution result: when a report is produced the job succeeds whatever the verdict, and it fails only when none could be, so a reviewer tells an executed report from a broken check; the verdict is in the report, the job summary and annotations. Requiring the check is a separate control with its own Owner decision.
+A check takes two trees, before and after, and the body of a Hotfix, and proves whether the Hotfix is valid. A Hotfix is valid when the Defect chapter names exactly one KAAL Defect `<capability>/D<n>`, the Defect has a record in the after tree with at least one Case that verifies it, each such Case exists in the after tree, and every one of those Cases, the same file run by the Run of Cases on both trees (for the before tree the Case file is first copied over it), is RED before and GREEN after. Where the record and the Case came from, the Hotfix or earlier, is not judged. A Case still RED after, or GREEN before, is a finding for that Case; a run that could not be made, a Case with no attributed test, or a result that is not RED or GREEN leaves the verdict UNKNOWN, never RED. The verdict is PASS when the Hotfix is valid, FAIL with a finding when it is not, and UNKNOWN otherwise. The check takes no Git refs: identifying and obtaining the two trees belongs to the adapter of a platform. A Hotfix names its affected state, the before state, itself: production, an unpromoted collector and `main` are all commits, and a Hotfix may correct a defect in any of them (release/F16). The adapter for GitHub reads it from the Defect chapter as `Affected: <commit>` on its own line, verifies that it is a commit of the repository and an ancestor of the head, so that the Hotfix is built on it, and makes the before tree from exactly that commit, never from the current default branch. A Hotfix that names no affected state, or names one that fails the check, has no before tree: the verdict is UNKNOWN with that reason, never PASS. The head of the pull request is the after tree. The adapter runs the Cases in their own job because they are code of the pull request, and judges in a clean job from the base's own copy, reading the after tree and the two runs as data and the body from the event, never from script text. The verdict is the report and not the execution result: when a report is produced the job succeeds whatever the verdict, and it fails only when none could be, so a reviewer tells an executed report from a broken check; the verdict is in the report, the job summary and annotations. Requiring the check is a separate control with its own Owner decision.
 `````
 
 ## Draft of A66.md
@@ -48,13 +48,13 @@ addresses: [release/F71]
 ---
 # release/A66 verify-hotfix
 
-One module `05-src/hotfix/verify-hotfix.mjs`: a pure judge `judgeHotfix(facts)`, a reader of the after tree (`readFacts`, `defectsOf`), a reader of the Run of Cases (`caseResult`, `evidenceFrom`), the two actions of the Run (`overlay`, `runAt`) and a command line over two directories, `--before` and `--after`. The reader takes the Defect from the Defect chapter of the body, its record from `<home>/06-defects/D<n>-*.md` in the after tree (`<home>` is `packages/kaal-<capability>` or `engineering/<capability>`, the JSON `tests` list is its Cases) and a Case's files from its identity in a `.mjs` or `.ts` file of the after tree. A Case's result in a run is read from the tests the Run attributes to it by their leading `<namespace>/T<n>` (testing/F141): RED if one is RED, GREEN if all are GREEN, otherwise UNKNOWN, nothing if none. Three commands: `cases` prints the Case files; `run --on before|after` runs them on that tree with `kaal-testing run --root <tree>` (testing/F138 to F145), the before tree having the files copied over it, and writes the report, and writes none if no run can be made; the judgment prints a report whose first word is the verdict and exits 0 whenever a report was produced, 2 only when none could be. On GitHub Actions it also writes the job summary and an annotation per finding. The GitHub adapter is one workflow source `05-src/wiring/workflows/verify-hotfix.yml` (on `pull_request` into `hotfix/**`, read-only, no secret): job `run Hotfix Cases` checks out the base, prepares its Run of Cases, makes a tree of the default branch and a tree of the pull request's head (`refs/pull/<number>/head`), prepares each with `npm ci --ignore-scripts`, runs the Cases on both and uploads the two reports; job `verify Hotfix`, clean and needing it, checks out the base commit with no stored credential, makes the after tree to be read and never run, downloads the reports as data, writes the body from the environment to a file and never into script text, and runs the base's judge. A Case that needs more than `npm ci --ignore-scripts` reads UNKNOWN. The module is the judge release/CTL21 declares. Its registration in the Integrating station is a later WIRE, and requiring the check is the Owner's later decision.
+One module `05-src/hotfix/verify-hotfix.mjs`: a pure judge `judgeHotfix(facts)`, a reader of the after tree (`readFacts`, `defectsOf`), a reader of the Run of Cases (`caseResult`, `evidenceFrom`), the two actions of the Run (`overlay`, `runAt`) and `affectedOf` (the commit a Hotfix names as affected) and a command line over two directories, `--before` and `--after`. The reader takes the Defect from the Defect chapter of the body, its record from `<home>/06-defects/D<n>-*.md` in the after tree (`<home>` is `packages/kaal-<capability>` or `engineering/<capability>`, the JSON `tests` list is its Cases) and a Case's files from its identity in a `.mjs` or `.ts` file of the after tree. A Case's result in a run is read from the tests the Run attributes to it by their leading `<namespace>/T<n>` (testing/F141): RED if one is RED, GREEN if all are GREEN, otherwise UNKNOWN, nothing if none. Four commands: `affected` prints the commit the body names as affected; `cases` prints the Case files; `run --on before|after` runs them on that tree with `kaal-testing run --root <tree>` (testing/F138 to F145), the before tree having the files copied over it, and writes the report, and writes none if no run can be made; the judgment, which also takes a note file of the adapter (a before tree that could not be made keeps the verdict from being PASS), prints a report whose first word is the verdict and exits 0 whenever a report was produced, 2 only when none could be. On GitHub Actions it also writes the job summary and an annotation per finding. The GitHub adapter is one workflow source `05-src/wiring/workflows/verify-hotfix.yml` (on `pull_request` into `hotfix/**`, read-only, no secret): job `run Hotfix Cases` checks out the base, prepares its Run of Cases, reads the affected commit from the body, verifies that it is a commit of the repository and an ancestor of the head (otherwise it writes a note and makes no before tree), makes the before tree from exactly that commit and the after tree from the pull request's head (`refs/pull/<number>/head`), prepares each with `npm ci --ignore-scripts`, runs the Cases on both and uploads the reports and the note; job `verify Hotfix`, clean and needing it, checks out the base commit with no stored credential, makes the after tree to be read and never run, downloads the reports and the note as data, writes the body from the environment to a file and never into script text, and runs the base's judge. A Case that needs more than `npm ci --ignore-scripts` reads UNKNOWN. The module is the judge release/CTL21 declares. Its registration in the Integrating station is a later WIRE, and requiring the check is the Owner's later decision.
 `````
 
 ## Draft of F16-sentence.md
 
 `````
-One Hotfix corrects one identified Defect and brings the Case that verifies it. Whether that Case is RED before and GREEN after is proven by release/CTL21 (release/F71) and not here. The interface guides the author.
+One Hotfix corrects one identified Defect and brings the Case that verifies it. Its Defect chapter also names the state it corrects, the commit it is built on, as `Affected: <commit>` on its own line; production and a collector are commits too. Whether the Case is RED before and GREEN after is proven by release/CTL21 (release/F71) and not here. The interface guides the author.
 `````
 
 ## Draft of verify-hotfix.mjs
@@ -131,6 +131,16 @@ export function defectsOf(body) {
   return [...new Set(chapter.match(/\b[a-z][a-z0-9-]*\/D\d+\b/g) ?? [])];
 }
 
+// The state the Hotfix declares as affected, the one that is "before": `Affected: <40-hex commit>` on its own line of the
+// Defect chapter. Production and an unpromoted collector are commits too. The control itself only compares two trees;
+// naming the before state belongs to the Hotfix, and obtaining and verifying it belongs to the adapter of a platform.
+export function affectedOf(body) {
+  const text = stripComments(String(body ?? ''));
+  const chapter = text.split(/^##\s+Defect\s*$/m)[1]?.split(/^##\s+/m)[0] ?? '';
+  const found = [...chapter.matchAll(/^Affected:[ \t]*([0-9a-f]{40})[ \t]*$/gm)].map((m) => m[1]);
+  return found.length === 1 ? found[0] : undefined;
+}
+
 const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
   if (e.name === 'node_modules' || e.name === '.git') return [];
   const p = join(dir, e.name);
@@ -194,11 +204,13 @@ export function runAt({ runner, tree, files, out, timeoutMs = 600000 }) {
 }
 
 // The command line. Three commands over two trees, `--before` and `--after`, and the Hotfix's body.
+//   affected --body-file <file>                            the commit the Hotfix names as affected, or nothing
 //   cases  --after <dir> --body-file <file>                the Case files of the Defect, one per line
 //   run    --on before|after --before <dir> --after <dir> --body-file <file> --runner <file> --out <file>
 //          runs those files on that tree by the Run of Cases (for `before` first copied over it) and writes the report
 //          to --out; a run that cannot be made writes no file and the judge reads UNKNOWN
-//   (none) --after <dir> --body-file <file> [--before-run <file>] [--after-run <file>]    the judgment
+//   (none) --after <dir> --body-file <file> [--before-run <file>] [--after-run <file>] [--note <file>]    the judgment
+//          a note is a line of the adapter that could not make the before tree; it keeps the verdict from being PASS
 // The verdict (PASS, FAIL or UNKNOWN) is the first word of the report and never the exit status: exit 0 means a report
 // was produced; exit 2 means none could be (a missing argument). On GitHub Actions the report is also written to the
 // job summary and its findings are annotations.
@@ -207,6 +219,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const read = (file) => { try { return file ? JSON.parse(readFileSync(file, 'utf8')) : undefined; } catch { return undefined; } };
   const need = (...keys) => { for (const k of keys) if (!arg(k)) { console.error(`${k} is missing`); process.exit(2); } };
   const filesOf = (facts) => [...new Set((facts.defects.length === 1 ? facts.lookupDefect(facts.defects[0])?.cases ?? [] : []).flatMap((c) => facts.caseFiles(c)))];
+  if (process.argv[2] === 'affected') {
+    need('--body-file');
+    const sha = affectedOf(readFileSync(arg('--body-file'), 'utf8'));
+    if (sha) console.log(sha);
+    process.exit(0);
+  }
   if (process.argv[2] === 'cases') {
     need('--after', '--body-file');
     try { console.log(filesOf(readFacts({ after: arg('--after'), body: readFileSync(arg('--body-file'), 'utf8') })).join('\n')); } catch { /* no files: the judge reports UNKNOWN */ }
@@ -232,6 +250,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   } catch (e) {
     r = { verdict: 'UNKNOWN', trace: 'UNREAD', correction: 'UNKNOWN', cases: [], findings: [], unknown: [`a fact could not be read: ${String(e.message).split('\n')[0]}`] };
   }
+  // The adapter's notes: a before tree that could not be made is never a PASS.
+  try { for (const n of arg('--note') ? readFileSync(arg('--note'), 'utf8').split('\n').filter(Boolean) : []) { r.unknown.push(n); if (r.verdict === 'PASS') r.verdict = 'UNKNOWN'; } } catch { /* no note file: nothing to add */ }
   const lines = [`${r.verdict}: trace ${r.trace}, correction ${r.correction}`, ...r.cases.map((c) => `case ${c.id}: ${c.correction}`), ...r.findings.map((f) => `finding: ${f}`), ...r.unknown.map((u) => `unknown: ${u}`)];
   console.log(lines.join('\n'));
   if (process.env.GITHUB_ACTIONS === 'true') {
@@ -247,8 +267,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 `````
 name: verify Hotfix
-# release/CTL21, the GitHub adapter. The control compares two trees, before and after. Here the default branch is the before tree and the
-# head of the pull request is the after tree. A detective check on plain pull_request: no token, no secret, no privileged trigger.
+# release/CTL21, the GitHub adapter. The control compares two trees, before and after. Here the before tree is the commit the Hotfix names as
+# affected (`Affected: <commit>` in its Defect chapter), verified to be a commit the Hotfix is built on, and the after tree is the head of the pull request. A detective check on plain pull_request: no token, no secret, no privileged trigger.
 # Two jobs on two machines. `run Hotfix Cases` runs the Hotfix's Cases on both trees by the Run of Cases (kaal-testing run), as the
 # repository's own CI runs its tests on a plain pull_request. `verify Hotfix` starts clean, checks out the base, the trusted judge,
 # reads the after tree and the two runs as data, and judges. The body is data in a file, never script text.
@@ -265,7 +285,6 @@ jobs:
     env:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_BODY: ${{ github.event.pull_request.body }}
-      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
       - name: Check out the base, the trusted Run of Cases
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -276,22 +295,30 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 24
-      - name: Fetch the proposed head and the default branch
-        run: |
-          git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
-          git fetch --no-tags origin "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+      - name: Fetch the proposed head
+        run: git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
       - name: Prepare the Run of Cases of the base
         run: |
           npm ci --ignore-scripts
           npm run build -w kaal-core -w @kaihacksai/kaal-hosting
-      - name: Run the Hotfix's Cases on the before and the after tree
+      - name: Make the before tree from the affected state the Hotfix names, and the after tree from its head
         run: |
           J=engineering/release-management/05-src/hotfix/verify-hotfix.mjs
           test -f "$J" || { echo "no run: the judge is absent on the base"; exit 0; }
           mkdir -p "$RUNNER_TEMP/runs"
           printf '%s' "$PR_BODY" > "$RUNNER_TEMP/body.md"
-          git worktree add --detach "$RUNNER_TEMP/before" "refs/remotes/origin/${DEFAULT_BRANCH}"
+          NOTES="$RUNNER_TEMP/runs/notes.txt"
+          AFFECTED=$(node "$J" affected --body-file "$RUNNER_TEMP/body.md")
+          if [ -z "$AFFECTED" ]; then echo "the Defect chapter names no affected state (Affected: <commit>): there is no before tree" >> "$NOTES"
+          elif ! git cat-file -e "${AFFECTED}^{commit}" 2>/dev/null; then echo "the affected state ${AFFECTED} is not a commit of this repository: there is no before tree" >> "$NOTES"
+          elif ! git merge-base --is-ancestor "$AFFECTED" refs/remotes/pull/head; then echo "the affected state ${AFFECTED} is not an ancestor of the head: the Hotfix is not built on it" >> "$NOTES"
+          else git worktree add --detach "$RUNNER_TEMP/before" "$AFFECTED"; fi
           git worktree add --detach "$RUNNER_TEMP/after" refs/remotes/pull/head
+      - name: Run the Hotfix's Cases on the before and the after tree
+        run: |
+          J=engineering/release-management/05-src/hotfix/verify-hotfix.mjs
+          test -f "$J" || exit 0
+          test -d "$RUNNER_TEMP/before" || exit 0
           for T in before after; do (cd "$RUNNER_TEMP/$T" && npm ci --ignore-scripts) || true; done
           for T in before after; do
             node "$J" run --on "$T" --before "$RUNNER_TEMP/before" --after "$RUNNER_TEMP/after" --body-file "$RUNNER_TEMP/body.md" --runner "$PWD/packages/kaal-testing/bin/kaal-testing.mjs" --out "$RUNNER_TEMP/runs/$T.json"
@@ -333,5 +360,5 @@ jobs:
           J=engineering/release-management/05-src/hotfix/verify-hotfix.mjs
           test -f "$J" || { echo "UNKNOWN: the judge is absent on the base"; exit 2; }
           printf '%s' "$PR_BODY" > "$RUNNER_TEMP/body.md"
-          node "$J" --after "$RUNNER_TEMP/after" --body-file "$RUNNER_TEMP/body.md" --before-run "$RUNNER_TEMP/runs/before.json" --after-run "$RUNNER_TEMP/runs/after.json"
+          node "$J" --after "$RUNNER_TEMP/after" --body-file "$RUNNER_TEMP/body.md" --before-run "$RUNNER_TEMP/runs/before.json" --after-run "$RUNNER_TEMP/runs/after.json" --note "$RUNNER_TEMP/runs/notes.txt"
 `````

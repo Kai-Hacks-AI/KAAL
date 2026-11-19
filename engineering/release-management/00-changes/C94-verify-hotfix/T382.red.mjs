@@ -13,18 +13,27 @@ const load = () => import(pathToFileURL(MOD).href);
 
 export const id = 'release/T382';
 export const tests = ['release/F71'];
-export const title = 'the Hotfix brings its own Defect and Case: they are read from the after tree, a Defect the Hotfix adds is found; the result of a Case is read from a run report; the command line takes two directories, prints PASS, FAIL or UNKNOWN as its first word and exits 0 whenever a report is produced';
+export const title = 'the Hotfix brings its own Defect and Case: they are read from the after tree, a Defect the Hotfix adds is found; the result of a Case is read from a run report; the Hotfix names its affected state as one commit; the command line takes two directories, a note of the adapter keeps the verdict from being PASS, prints PASS, FAIL or UNKNOWN as its first word and exits 0 whenever a report is produced';
 const report = (tests) => ({ schema: 'kaal-testing/run-report@1', counts: {}, tests, diagnostics: [], execution: { complete: true, problems: [] } });
 const t = (ns, n, actual) => ({ name: `${ns}/T${n}: x`, actual, case: { namespace: ns, number: n, raw: `${ns}/T${n}` } });
 export async function run() {
   assert.ok(existsSync(MOD), 'the verify Hotfix module is absent');
-  const { defectsOf, readFacts, caseResult, evidenceFrom, judgeHotfix } = await load();
+  const { defectsOf, affectedOf, readFacts, caseResult, evidenceFrom, judgeHotfix } = await load();
   const body = '## Change\n\nhosting/C1 fix\n\n## Defect\n\n<!-- hosting/D99 in a comment -->\nhosting/D10 is broken in main.\n\n## Urgency\n\nhosting/D11 is mentioned outside the chapter\n';
   assert.deepEqual(defectsOf(body), ['hosting/D10'], 'the Defect chapter is not read alone, or a comment counts');
   assert.deepEqual(defectsOf('## Defect\n\nhosting/D10 and hosting/D11 and hosting/D10\n'), ['hosting/D10', 'hosting/D11']);
   assert.deepEqual(defectsOf('## Change\n\nx\n'), []);
   assert.deepEqual(defectsOf('## Defect\n\n<!-- hosting/D9\nhosting/D10\n'), [], 'an unterminated comment must run to the end');
   assert.deepEqual(defectsOf('## Defect\n\n<!-- hosting/D9 <!-- x -->\nhosting/D10\n'), ['hosting/D10']);
+
+  // The affected state: one commit, on its own line of the Defect chapter.
+  const sha = 'a'.repeat(40);
+  assert.equal(affectedOf(`## Defect\n\nhosting/D10 broken.\nAffected: ${sha}\n\n## Urgency\n\nx\n`), sha);
+  assert.equal(affectedOf('## Defect\n\nhosting/D10 broken.\n'), undefined, 'a Hotfix without an affected state has one');
+  assert.equal(affectedOf(`## Defect\n\nAffected: ${sha}\nAffected: ${'b'.repeat(40)}\n`), undefined, 'two affected states are taken as one');
+  assert.equal(affectedOf('## Defect\n\nAffected: main\n'), undefined, 'a branch name is not an identity');
+  assert.equal(affectedOf(`## Urgency\n\nAffected: ${sha}\n`), undefined, 'the line outside the Defect chapter was read');
+  assert.equal(affectedOf(`## Defect\n\n<!-- Affected: ${sha} -->\n`), undefined, 'a comment was read');
 
   // The result of a Case in a run report.
   assert.equal(caseResult(report([t('hosting', 201, 'RED'), t('hosting', 201, 'GREEN')]), 'hosting/T201'), 'RED');
@@ -63,6 +72,12 @@ export async function run() {
   };
   const red = files('red.json', report([t('hosting', 201, 'RED'), t('hosting', 202, 'RED')]));
   const green = files('green.json', report([t('hosting', 201, 'GREEN'), t('hosting', 202, 'GREEN')]));
+  const note = join(root, 'notes.txt');
+  writeFileSync(note, 'the Defect chapter names no affected state (Affected: <commit>): there is no before tree\n');
+  const noted = cli(['--before-run', red, '--after-run', green, '--note', note]);
+  assert.equal(noted.code, 0);
+  assert.match(noted.out, /^UNKNOWN: /, 'a before tree that could not be made was a PASS');
+  assert.match(noted.out, /unknown: the Defect chapter names no affected state/);
   const none = cli([]);
   assert.equal(none.code, 0, 'a produced report must exit 0: the verdict is the report, not the execution result');
   assert.match(none.out, /^UNKNOWN: trace VALID, correction UNKNOWN/);

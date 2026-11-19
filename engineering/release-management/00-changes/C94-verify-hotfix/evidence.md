@@ -30,7 +30,8 @@ In a throwaway copy of `main` (0a9cfca, which holds the Run of Cases, `npm ci --
 
 1. CPO review of the first PLAN: every reproducing Case is read, and the verdict is the report and not the job result. Both stand.
 2. Kai (19 Nov): a RED Case cannot be on `main`; the Hotfix brings its own Defect and Case; the proof is running the Case on `main` and on the Hotfix and comparing.
-3. Kai (19 Nov): the valid Hotfix is one Defect, at least one Case, RED before and GREEN after, deterministic whichever Case is run; whether a Case cheats is content for review or the Inspector; the concept compares a before and an after, branches or file locations alike; PASS is possible. This revision is that.
+3. Kai (19 Nov): the valid Hotfix is one Defect, at least one Case, RED before and GREEN after, deterministic whichever Case is run; whether a Case cheats is content for review or the Inspector; the concept compares a before and an after, branches or file locations alike; PASS is possible. That revision is that.
+4. CPO review #2: the adapter must not silently use the default branch as the before tree. The identity of the affected state is now explicit (`Affected: <commit>` in the Defect chapter), verifiable (commit exists, is an ancestor of the head) and materialized exactly; the core stays a comparison of two trees. T385 runs the adapter step as written in a scratch clone and proves it, including that a moved default branch is not used.
 
 ## Retired with this Change
 

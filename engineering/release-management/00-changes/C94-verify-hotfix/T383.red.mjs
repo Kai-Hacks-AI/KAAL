@@ -13,7 +13,7 @@ const load = () => import(pathToFileURL(MOD).href);
 const draft = (name) => readFileSync(join(RM, '00-changes/C94-verify-hotfix/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T383';
 export const tests = ['release/F71', 'release/A66'];
-export const title = 'the GitHub adapter equals its draft: plain pull_request into hotfix/**, read-only, no secret; the default branch is the before tree and the head the after tree; the Cases run in one job and the judge in a clean job from the base commit, with the runs downloaded as data and the body from the environment and never in script text';
+export const title = 'the GitHub adapter equals its draft: plain pull_request into hotfix/**, read-only, no secret; the before tree is the affected commit the Hotfix names, verified to be an ancestor of the head, never the default branch, and the head is the after tree; the Cases run in one job and the judge in a clean job from the base commit, with the runs downloaded as data and the body from the environment and never in script text';
 export async function run() {
   const real = join(RM, '05-src/wiring/workflows/verify-hotfix.yml');
   assert.ok(existsSync(real), 'the workflow source is absent');
@@ -45,11 +45,16 @@ export async function run() {
   assert.match(runJob, /kaal-testing\.mjs/);
   assert.match(runJob, /node "\$J" run --on "\$T"/);
   assert.match(runJob, /actions\/upload-artifact@[0-9a-f]{40}/);
-  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/before" "refs\/remotes\/origin\/\$\{DEFAULT_BRANCH\}"/, 'the before tree is not the default branch');
+  assert.doesNotMatch(t, /DEFAULT_BRANCH|default_branch|origin\/main/, 'the before tree is silently the default branch');
+  assert.match(runJob, /AFFECTED=\$\(node "\$J" affected --body-file/, 'the affected state is not read from the body');
+  assert.match(runJob, /git cat-file -e "\$\{AFFECTED\}\^\{commit\}"/, 'the affected state is not verified to be a commit');
+  assert.match(runJob, /git merge-base --is-ancestor "\$AFFECTED" refs\/remotes\/pull\/head/, 'the affected state is not verified to be an ancestor of the head');
+  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/before" "\$AFFECTED"/, 'the before tree is not made from exactly the affected commit');
+  assert.match(runJob, /runs\/notes\.txt/, 'a before tree that could not be made leaves no note');
   assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/after" refs\/remotes\/pull\/head/);
   assert.match(judgeJob, /git worktree add --detach "\$RUNNER_TEMP\/after" refs\/remotes\/pull\/head/, 'the judge does not read the after tree');
   assert.doesNotMatch(judgeJob, /kaal-testing|npm ci|npm run|upload-artifact|\brun --on\b/, 'the judge job runs code of the pull request or builds');
   assert.match(judgeJob, /actions\/download-artifact@[0-9a-f]{40}/);
-  assert.match(judgeJob, /--before-run "\$RUNNER_TEMP\/runs\/before\.json" --after-run "\$RUNNER_TEMP\/runs\/after\.json"/);
+  assert.match(judgeJob, /--before-run "\$RUNNER_TEMP\/runs\/before\.json" --after-run "\$RUNNER_TEMP\/runs\/after\.json" --note "\$RUNNER_TEMP\/runs\/notes\.txt"/);
   assert.match(judgeJob, /UNKNOWN: the judge is absent on the base[\s\S]*exit 2/);
 }
