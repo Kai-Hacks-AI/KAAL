@@ -14,7 +14,7 @@ export async function run() {
   const live = fakeApi({ [look]: [], [ref]: tipAt, [post]: { number: 99, html_url: 'u', head: { sha: REV } } });
   const r = await m.raiseAll({ api: live, repo: R, decisions: [decision()], live: true });
   assert.deepEqual(live.calls.map((c) => c.method), ['GET', 'GET', 'POST'], 'a raise is one look, one reading of the tip and one creation');
-  assert.deepEqual(live.calls[2].body, { title: decision().title, head: 'kaal/release/small-thing', base: 'main', body: decision().body + marker() });
+  assert.deepEqual(live.calls[2].body, { title: decision().title, head: 'kaal/release/small-thing', base: 'main', body: decision().body + marker(), draft: true });
   assert.equal(r[0].result, 'raised');
   const dry = fakeApi({ [look]: [], [ref]: tipAt });
   const r2 = await m.raiseAll({ api: dry, repo: R, decisions: [decision()], live: false });
@@ -24,7 +24,7 @@ export async function run() {
   const r3 = await m.raiseAll({ api: none, repo: R, decisions: [{ action: 'skip', reason: 'not-ready', detail: '' }], live: true });
   assert.equal(none.calls.length, 0, 'a skip made a call');
   assert.equal(r3[0].result, 'none');
-  for (const bad of [{ head: 'main' }, { head: 'hotfix/route' }, { head: 'kaal/release' }, { base: 'kaal/release/x' }, { title: 'ACT: sneaky' }, { title: 'PROMOTION: ok\nSYNC' }, { revision: 'main' }, { revision: undefined }, { revision: REV.toUpperCase() }]) {
+  for (const bad of [{ head: 'main' }, { head: 'claude/route' }, { head: 'kaal/release' }, { base: 'kaal/release/x' }, { title: 'ACT: sneaky' }, { title: 'PROMOTION: ok\nSYNC' }, { revision: 'main' }, { revision: undefined }, { revision: REV.toUpperCase() }]) {
     const api = fakeApi({});
     const out = await m.raiseAll({ api, repo: R, decisions: [decision(bad)], live: true });
     assert.equal(api.calls.length, 0, `a refused decision made a call: ${JSON.stringify(bad)}`);
