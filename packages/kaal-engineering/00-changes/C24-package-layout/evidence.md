@@ -29,7 +29,7 @@ In a throwaway root outside the repository, holding the package with `draft/skil
 
 ## Can a Case fail for the right reason, and not for the wrong one
 
-Eight edits to `package-layout.json` on that copy:
+Seven edits to `package-layout.json` on that copy:
 
 | Edit | Result |
 | --- | --- |
