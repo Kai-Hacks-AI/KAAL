@@ -6,7 +6,7 @@ The Owner's order: the control comes first, before any folder migration, and it 
 
 Three ratchets, one each for `packages/`, `engineering/` and `.kaal/`. Each compares the current setup with the desired one. A ratchet is two things: a control for the **desired** setup, with a Test Case for a correct setup (GREEN) and Test Cases for bad setups (RED), and a baseline of the **current** gaps, which may only shrink. Each control is detective, with its own minimum evidence. They are separate small PLANs, in this order:
 
-1. **`packages/` (C25, this PLAN).** Desired: a capability folder follows the layout template. The control, `verify Layout`, and its check come first, since the other two reuse the check. The baseline of current gaps is the list of failing folders; today that is every package.
+1. **`packages/` (C25, this PLAN).** Desired: a capability folder follows the layout template. The control, `verify Layout`, and its check come first, since the other two reuse the check. The baseline of current gaps is a list that names each package and its specific findings; today every package is on it.
 2. **`engineering/`.** Desired: the layout, and the machinery of `engineering/<cap>` equals the machinery of `packages/<cap>` (N+1). Content is never compared. Its own control and baseline, because it moves at its own pace.
 3. **`.kaal/`.** Desired: the layout, and the machinery of `.kaal/<cap>` equals the published N. Content is never compared. Its own control and baseline.
 4. **One source per Skill, across all three.** A copy of a Skill or its payload that no stage or delivery role explains is waste. One control over the three places, after the ratchets.
@@ -36,7 +36,7 @@ From the tracked files of one capability folder and the layout template, and fro
 | a tracked file under `dist` | FAIL, `dist is committed` |
 | the template or the folder cannot be read | UNKNOWN, never a pass |
 
-It judges one folder. A run over every capability gives the baseline: today every package uses the earlier numbering, so every package is FAIL, and the ratchet is that the number of failing folders may only go down. Nothing here makes it fail a pull request.
+It judges one folder. A run over every capability gives the baseline: today every package uses the earlier numbering, so every package is FAIL, and the baseline is that list, not a count. Nothing here makes it fail a pull request.
 
 ## Amends
 
@@ -49,6 +49,14 @@ Not authorized by this PLAN. On the go of the Owner, into the collector of this 
 ## ACT
 
 A 4L retrospective in `act.md`, with the body shape the Dispatcher reads (a `Change` chapter and a `Records` chapter).
+
+## The contract of the future ratchet
+
+Three things, kept apart. C25 delivers the first; the other two are stated so the ratchet Change has a contract, and are not built here.
+
+1. **CTL2's per-package result.** For one folder, PASS, FAIL with its findings, or UNKNOWN. This is the check as built here.
+2. **The baseline.** A record that identifies each package and its specific findings, never an aggregate count, because a count lets one package regress while another improves with the number unchanged. A later Change writes it from a run over every capability.
+3. **The ratchet's obligation.** For each package, a finding the baseline no longer lists must not come back: a run that finds it again is a regression, whatever the other packages do. A package may only shed findings, and a new package starts clean. UNKNOWN is never read as progress.
 
 ## Where the control sits
 
