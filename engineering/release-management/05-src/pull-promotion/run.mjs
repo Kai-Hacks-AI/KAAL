@@ -6,6 +6,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { walkCollectors } from '../../../../packages/kaal-release/skills/kaal-release/scripts/pull-promotion.mjs';
 import { readFacts } from './read.mjs';
+import { withDelivery } from './delivery-evidence.mjs';
+import { readLocations } from '../delivery/locations.mjs';
 
 const PAUSE_MS = Number(process.env.PULL_PROMOTION_PAUSE_MS ?? 2000);
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -36,6 +38,7 @@ try {
   if (!repoName || !declarationFile) throw new Error('could not start: expected <owner/repo> <declaration.json>');
   let declaration;
   try { declaration = JSON.parse(readFileSync(declarationFile, 'utf8')); } catch (error) { throw new Error(`could not read ${declarationFile}: ${error.message}`); }
+  try { declaration = withDelivery(declaration, readLocations()); } catch (error) { throw new Error(`could not read the delivery declaration: ${error.message}`); }
   requireCredential();
   const facts = await readFacts(repoName, declaration, get, getText, (message) => console.error(`pull Promotion: ${message}`));
   process.stdout.write(`${JSON.stringify(walkCollectors(facts, declaration), null, 2)}\n`);
