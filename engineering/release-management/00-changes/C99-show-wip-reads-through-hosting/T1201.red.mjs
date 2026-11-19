@@ -1,9 +1,9 @@
-// Case release/T931 tests: release/C99. Feature: the open-piece read knows no route and starts no process; Hosting does the reaching.
+// Case release/T1201 tests: release/C99. Feature: the open-piece read knows no route and starts no process; Hosting does the reaching.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DIR } from './helper.mjs';
-export const id = 'release/T931';
+export const id = 'release/T1201';
 export const tests = ['release/C99'];
 export const title = 'the open-piece read of Show WIP names no GitHub route and starts no process, and takes its pieces from @kaihacksai/kaal-hosting';
 export async function run() {
