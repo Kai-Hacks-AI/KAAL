@@ -2,7 +2,7 @@
 
 ## Observed RED against `main`
 
-`main` at 753bc3c. Each Case is called through its `run()` and fails on its own assertion:
+`main` at 0a9cfca. Each Case is called through its `run()` and fails on its own assertion:
 
 ```
 RED controls/T1086 a valid evidence list fails validation
