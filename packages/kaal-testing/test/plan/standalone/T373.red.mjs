@@ -17,7 +17,7 @@ export async function run() {
 
   // The deterministic anchor: the fixture yields the counts the key states, with the installed package.
   const { project } = install();
-  for (const f of readdirSync(join(TRIAL, 'fixture'))) cpSync(join(TRIAL, 'fixture', f), join(project, f));
+  for (const f of readdirSync(join(TRIAL, 'fixture'))) cpSync(join(TRIAL, 'fixture', f), join(project, f.replace('.fixture.mjs', '.test.mjs')));
   assert.ok(existsSync(join(project, 'node_modules/.bin/kaal-testing')), 'the installed package has no command to run the fixture with');
   const r = sh(join(project, 'node_modules/.bin/kaal-testing'), ['run', 'a.test.mjs', 'skipped.test.mjs', 'pending.test.mjs'], { cwd: project });
   assert.equal(r.status, 0, `the installed command did not report on the fixture: ${r.stderr}`);

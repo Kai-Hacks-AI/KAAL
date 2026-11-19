@@ -4,7 +4,7 @@ This is the judged half of testing/C65. Its first half is deterministic (T370 to
 
 ## What one run is
 
-1. A fresh empty directory outside any repository. Node 24 or later. `npm pack` of the package under test is installed into it, with its declared dependencies. The fixture files of `trial/fixture/` are copied in. Nothing else is there: no KAAL repository, no other KAAL package, no `engineering/` folder.
+1. A fresh empty directory outside any repository. Node 24 or later. `npm pack` of the package under test is installed into it, with its declared dependencies. The fixture files of `trial/fixture/` are copied in, with `.fixture.mjs` renamed to `.test.mjs` (they are kept under the other name so that no test runner in this repository picks them up). Nothing else is there: no KAAL repository, no other KAAL package, no `engineering/` folder.
 2. One agent, started with only that directory as its working folder, receives `prompt.txt` as its task and nothing else. It may read the installed Skill, `node_modules/kaal-testing/skills/kaal-testing/SKILL.md`, and use the installed command. It is not told which tool to use.
 3. The full transcript is kept as `runs/run-<n>/transcript.md`.
 4. Isolation is recorded for every run in `runs/run-<n>/isolation.json` (see `key.json`'s sibling `T373`): the Node version, the listing of the directory before the run, the installed KAAL-family packages, that no repository was reachable from the working folder, and the model and session of the agent.
