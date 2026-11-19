@@ -5,8 +5,15 @@ export const id = 'testing/T370';
 export const tests = ['testing/F146'];
 export const title = 'a packed kaal-testing installs into an empty project outside any repository and its installed command runs the consumer\'s own tests and reports them';
 export async function run() {
-  const { project, root } = install();
+  const { project, root, tarball } = install();
   assert.ok(existsSync(join(root, 'bin/kaal-testing.mjs')), 'the installed package has no command: bin/kaal-testing.mjs is absent');
+  if (process.platform !== 'win32') {
+    const listing = sh('tar', ['-tvzf', tarball]);
+    assert.equal(listing.status, 0, `the tarball cannot be listed: ${listing.stderr}`);
+    const line = listing.stdout.split('\n').find((l) => /\bpackage\/bin\/kaal-testing\.mjs$/.test(l));
+    assert.ok(line, 'the tarball has no bin/kaal-testing.mjs');
+    assert.match(line.split(/\s+/)[0], /^-r.x/, `the packed command is not executable (${line.split(/\s+/)[0]}): a copy of the tarball content would fail with Permission denied`);
+  }
   const bin = join(project, 'node_modules/.bin/kaal-testing');
   assert.ok(existsSync(bin), 'npm linked no kaal-testing command into node_modules/.bin');
 

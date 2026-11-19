@@ -29,6 +29,12 @@ K7 asked the agent to say a count is not a decision and leave the release to its
 
 The reworded section stays, since it states Testing's scope by what it does and where it hands on. Set 5 (an intermediate wording) was run but not judged and is not recorded.
 
+## Corrections after the CPO's second comment
+
+- **Report partial evidence.** The example report said that for UNKNOWN or an incomplete run "no result is handed on yet" and that nothing goes to the decider until the run is complete. That made completion a condition for reporting, which is the consumer's call. The example and the Skill now hand on the truthful available evidence as it stands, partial or complete, with what is unobserved, and leave retry, investigation, risk or proceeding to the decider.
+- **Installed command executability.** `bin/kaal-testing.mjs` was committed as 100644, unlike the bins of the other packages (100755), so the tarball held it as `-rw-r--r--`. `npm install` makes the linked command executable, which is why sets 2 and 4, installed with npm, ran `npx kaal-testing` and T370 ran the linked command. Sets 6 to 8 used a hand-made copy of the tarball content instead of an npm install, and in set 6 run 3 the command failed with "Permission denied" and the agent ran the file with Node. That fallback is not evidence that the command works; the cause was this defect, not only my copy. The file is now 100755, and T370 asserts the packed tarball lists the bin as executable (skipped on Windows, which has no exec bit). With the bin at 644, T370 is RED; at 755 it is GREEN.
+- **Sets 6 to 8** are dry runs on hand-made copies and are not recorded as evidence of installation; set 6 is kept in `sets/` for the K7 argument only.
+
 ## Differences from the PLAN, disclosed
 
 - The fixture `pending` became `service` (`throw new Error('service unreachable')`). A never-settling test hangs a Node 24 run until the whole-run timeout, where Node 22 cancels it at once, so it could not stand as a plain UNKNOWN case. The key's K4 follows.
