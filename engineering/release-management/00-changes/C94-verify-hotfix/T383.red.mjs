@@ -1,4 +1,4 @@
-// Case release/T383 tests: release/F71 (the workflow source)
+// Case release/T383 tests: release/F71, release/A66 (the workflow source)
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -13,7 +13,7 @@ const load = () => import(pathToFileURL(MOD).href);
 const draft = (name) => readFileSync(join(RM, '00-changes/C94-verify-hotfix/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T383';
 export const tests = ['release/F71', 'release/A66'];
-export const title = 'the workflow source equals its draft: plain pull_request into hotfix/**, read-only, no secret, the base commit checked out with no stored credential, the head fetched from its pull request ref, the body written from the environment and never into script text, only the base judge run';
+export const title = 'the GitHub adapter equals its draft: plain pull_request into hotfix/**, read-only, no secret; the before tree is the affected commit the Hotfix names, verified to be an ancestor of the head, never the default branch, and the head is the after tree; the Cases run in one job and the judge in a clean job from the base commit, with the runs downloaded as data and the body from the environment and never in script text';
 export async function run() {
   const real = join(RM, '05-src/wiring/workflows/verify-hotfix.yml');
   assert.ok(existsSync(real), 'the workflow source is absent');
@@ -23,15 +23,38 @@ export async function run() {
   assert.doesNotMatch(t, /pull_request_target/, 'the check must not use pull_request_target');
   assert.match(t, /permissions:\n  contents: read/);
   assert.doesNotMatch(t, /secrets\./);
-  assert.match(t, /ref: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/, 'the checkout is not the base commit');
+  assert.doesNotMatch(t, /ref: \$\{\{ github\.event\.pull_request\.head/, 'a checkout of the pull request head would run its code in the job that judges');
   assert.doesNotMatch(t, /github\.head_ref|pull_request\.head\.(ref|sha)/, 'the head is read by its pull request ref only');
-  assert.match(t, /fetch-depth: 0/);
-  assert.match(t, /persist-credentials: false/);
-  assert.match(t, /git fetch --no-tags origin "\+refs\/pull\/\$\{PR_NUMBER\}\/head:refs\/remotes\/pull\/head"/);
-  assert.match(t, /PR_BODY: \$\{\{ github\.event\.pull_request\.body \}\}/);
-  const script = t.split('run: |').slice(1).join('\n');
-  assert.doesNotMatch(script, /\$\{\{/, 'an expression inside script text lets a pull request body run as code');
-  assert.match(t, /printf '%s' "\$PR_BODY" > "\$RUNNER_TEMP\/body\.md"/);
-  assert.match(t, /--head refs\/remotes\/pull\/head/);
-  assert.match(t, /UNKNOWN: the judge is absent on the base[\s\S]*exit 2/);
+  const [, runJob, judgeJob] = t.split(/^  (?:run-hotfix-cases|verify-hotfix):$/m);
+  assert.ok(runJob && judgeJob, 'the source has not the two jobs run-hotfix-cases and verify-hotfix');
+  assert.match(t, /^  run-hotfix-cases:\n    name: run Hotfix Cases/m);
+  assert.match(t, /^  verify-hotfix:\n    name: verify Hotfix\n    needs: run-hotfix-cases\n    if: \$\{\{ !cancelled\(\) \}\}/m, 'the judge is not a clean job that needs the run and reports when the run failed');
+  for (const [name, job] of [['run', runJob], ['judge', judgeJob]]) {
+    assert.match(job, /ref: \$\{\{ github\.event\.pull_request\.base\.sha \}\}/, `the ${name} job does not check out the base commit`);
+    assert.match(job, /fetch-depth: 0/);
+    assert.match(job, /persist-credentials: false/);
+    assert.match(job, /git fetch --no-tags origin "\+refs\/pull\/\$\{PR_NUMBER\}\/head:refs\/remotes\/pull\/head"/, `the ${name} job does not fetch the head from its pull request ref`);
+    assert.match(job, /PR_BODY: \$\{\{ github\.event\.pull_request\.body \}\}/);
+    assert.match(job, /node-version: 24/, `the ${name} job does not use Node 24, which the Run of Cases requires`);
+    const script = [...job.matchAll(/run: \|\n((?: {10}.*\n?)+)/g)].map((m) => m[1]).join('\n');
+    assert.ok(script.length > 0, `the ${name} job has no script`);
+    assert.doesNotMatch(script, /\$\{\{/, `an expression inside script text of the ${name} job lets a pull request body run as code`);
+    assert.match(job, /printf '%s' "\$PR_BODY" > "\$RUNNER_TEMP\/body\.md"/);
+  }
+  // The Cases are run in the first job, never in the judge's.
+  assert.match(runJob, /kaal-testing\.mjs/);
+  assert.match(runJob, /node "\$J" run --on "\$T"/);
+  assert.match(runJob, /actions\/upload-artifact@[0-9a-f]{40}/);
+  assert.doesNotMatch(t, /DEFAULT_BRANCH|default_branch|origin\/main/, 'the before tree is silently the default branch');
+  assert.match(runJob, /AFFECTED=\$\(node "\$J" affected --body-file/, 'the affected state is not read from the body');
+  assert.match(runJob, /git cat-file -e "\$\{AFFECTED\}\^\{commit\}"/, 'the affected state is not verified to be a commit');
+  assert.match(runJob, /git merge-base --is-ancestor "\$AFFECTED" refs\/remotes\/pull\/head/, 'the affected state is not verified to be an ancestor of the head');
+  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/before" "\$AFFECTED"/, 'the before tree is not made from exactly the affected commit');
+  assert.match(runJob, /runs\/notes\.txt/, 'a before tree that could not be made leaves no note');
+  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/after" refs\/remotes\/pull\/head/);
+  assert.match(judgeJob, /git worktree add --detach "\$RUNNER_TEMP\/after" refs\/remotes\/pull\/head/, 'the judge does not read the after tree');
+  assert.doesNotMatch(judgeJob, /kaal-testing|npm ci|npm run|upload-artifact|\brun --on\b/, 'the judge job runs code of the pull request or builds');
+  assert.match(judgeJob, /actions\/download-artifact@[0-9a-f]{40}/);
+  assert.match(judgeJob, /--before-run "\$RUNNER_TEMP\/runs\/before\.json" --after-run "\$RUNNER_TEMP\/runs\/after\.json" --note "\$RUNNER_TEMP\/runs\/notes\.txt"/);
+  assert.match(judgeJob, /UNKNOWN: the judge is absent on the base[\s\S]*exit 2/);
 }
