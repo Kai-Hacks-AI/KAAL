@@ -59,3 +59,7 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Starting processes cheaply and preparing a fixture once
 
 - **hosting/I17.** KAAL code and its tests that start `npm`, `git` or `node`, and that need a disposable fixture for each Case, do so through Hosting alone: a process start that does not pay for a command shell where the host would add one, an environment that cannot touch the user's own configuration, and a fixture built once and copied, independently, for each Case. The saving is stated by what can be counted (starts, installs, builds), and a start that cannot be made cheaply is refused, never degraded in silence.
+
+## Reading a revision's files
+
+- **hosting/I18.** KAAL code, an agent or a person that needs the files of a Git revision, such as the base a judge reads from, reads them through Hosting alone, from the library or from a command of the Skill, with one meaning on every supported host: the committed bytes, never the working tree, with "there is no such revision" kept apart from "this could not be read", and without checking out, fetching, writing or running anything of the revision. Only reading a revision is Hosting's here: GitHub (pull requests, checks, rulesets) and what a revision's files mean are not.
