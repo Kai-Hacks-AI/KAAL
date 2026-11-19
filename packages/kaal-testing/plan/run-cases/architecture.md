@@ -3,7 +3,7 @@
 Each element names, in brackets, the Requirements it answers.
 
 - **testing/A49** [testing/F138, testing/F139, testing/F140, testing/F141, testing/F142, testing/F143, testing/F144, testing/N30, testing/N31]: Three files and one export, nothing else.
-  - `lib/run.mjs` exports `runCases`, `compareReports` and `reconstruct(events, file)`. `runCases` validates input, then for each file (sorted) runs `node --test --test-reporter=<lib/run-reporter.mjs> --test-reporter-destination=<scratch file> <file>` through Hosting's `executeSync`, in Hosting's `isolatedEnvironment` of a scratch directory, with `--test-timeout` when `timeoutMs` is given. `reconstruct` is pure: it turns one file's events into tests and problems.
+  - `lib/run.mjs` exports `runCases`, `compareReports` and `reconstruct(events, file)`. `runCases` validates input, then for each file (sorted) runs `node --test --test-reporter=<lib/run-reporter.mjs> --test-reporter-destination=<scratch file> <file>` through Hosting's `executeSync`, in Hosting's `isolatedEnvironment` of a scratch directory, bounded by `timeoutMs` through `executeSync`'s `timeout` (default 300000). `reconstruct` is pure: it turns one file's events into tests and problems.
   - `lib/run-reporter.mjs` is a custom reporter that writes one JSON line per terminal event: type, name, nesting, line, column, testNumber, kind, skip, todo, failure type and code, and the first line of the message.
   - `bin/kaal-testing.mjs` is the command line. `package.json` gains `exports["./run"]`, `bin["kaal-testing"]` and `bin` in `files`.
 
@@ -20,15 +20,15 @@ Node reports a test only when it ends (children before parents, parent last). Th
   counts: { GREEN, RED, UNKNOWN },
   tests: [{ id, file, path[], name, role: "leaf"|"parent", actual, reason?, detail?, case }],
   diagnostics: [{ kind: "duplicate-name"|"conflicting-case-reference", … }],
-  execution: { complete, node, files[], problems: [{ file, kind, detail }] } }
+  execution: { complete, timeoutMs, node, files[], problems: [{ file, kind, detail }] } }
 ```
 
-## Open decisions (not decided here)
+## Decided at CPO review
 
-| Decision | State |
+| Decision | Outcome |
 | --- | --- |
-| Whole-run timeout | `--test-timeout` is a timer inside the test process and cannot stop a test that blocks the event loop, so no bound on the whole run is claimed. Hosting's `executeSync` has a `timeout` that ends the child; using it is possible without changing Hosting but is a decision for the Owner. Until then the limit is stated |
-| Home of `compareReports` | Proposed: Testing, beside the report it compares, as a pure function. The alternative is `kaal-change`, which may depend only on foundation and hosting |
+| Whole-run timeout | Required (testing/F145). `runCases` passes `timeout: timeoutMs` to Hosting's `executeSync`, per file, so the file is ended from outside; a per-test timeout alone cannot stop a test that blocks the event loop. A stopped file is a `timeout` problem and the report is incomplete (UNKNOWN as an honest state, never GREEN or RED). DO proves on Hosting itself, on Node 24, that a stopped child has `status: null` and that no process of the file's tree survives it; if not, DO stops and reports back |
+| Home of `compareReports` | Testing, as a pure comparison of observations. kaal-change owns judging the comparison and Guard owns enforcement |
 
 ## Who owns what
 

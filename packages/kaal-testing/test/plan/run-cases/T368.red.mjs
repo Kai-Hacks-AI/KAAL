@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { cli, fx, load, runFx, SCHEMA } from './lib.mjs';
 export const id = 'testing/T368';
-export const tests = ['testing/F144'];
+export const tests = ['testing/F144', 'testing/F145'];
 export const title = 'kaal-testing run prints a schema-valid report and exits 0 whenever it has one, non-zero only for invalid input, and --streams keeps the reporter streams';
 export async function run() {
   const r = cli(['run', fx('mixed')]);
@@ -28,6 +28,12 @@ export async function run() {
     assert.notEqual(x.status, 0, `invalid input exits non-zero: ${args.join(' ')}`);
     assert.equal(x.stdout.trim(), '', 'and prints no report');
   }
+
+  const stopped = cli(['run', '--timeout', '2000', fx('block')]);
+  assert.equal(stopped.status, 0, 'a stopped file is a problem in a report, not a failure of the command');
+  assert.ok(JSON.parse(stopped.stdout).execution.problems.some((p) => p.kind === 'timeout'));
+  assert.equal(cli(['run', '--timeout', '0', fx('green')]).status !== 0, true, 'a bound that is not a positive number is invalid input');
+  assert.ok(rep.execution.timeoutMs > 0, 'the default bound is reported');
 
   const dir = mkdtempSync(join(tmpdir(), 'kaal-streams-'));
   const s = cli(['run', '--streams', dir, fx('nested'), fx('parent')]);

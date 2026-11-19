@@ -8,4 +8,4 @@ This is `testing/C63`, a PLAN Change. It ships no runner code and changes no Ski
 
 Principle: the Script verifies deterministic observations, the Skill judges. A count that hides unfinished work is worse than no count.
 
-**Out of scope.** No verdict, no policy and no ratchet (kaal-change), no enforcement (Guard), no change to the Testing Skill, no change to existing exports, no declared per-test "expected" outcome, no publication. The whole-run timeout and the home of `compareReports` are open decisions (see `architecture.md`).
+**Out of scope.** No verdict, no policy and no ratchet (kaal-change), no enforcement (Guard), no change to the Testing Skill, no change to existing exports, no declared per-test "expected" outcome, no publication. The whole-run timeout and the home of `compareReports` were decided at CPO review (see `architecture.md`).

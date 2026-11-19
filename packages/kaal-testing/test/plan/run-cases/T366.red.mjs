@@ -42,6 +42,6 @@ export async function run() {
   const bad = reconstruct([{ type: 'pass', name: 'x', nesting: 2, line: 3, column: 1, testNumber: 1, kind: 'test', skip: false, todo: false }], 'f.mjs');
   assert.ok(bad.problems.some((x) => x.kind === 'unrecognised-output'), 'a stream that cannot be reconstructed is an execution problem, not a guess');
 
-  for (const input of [{ files: [], root: process.cwd() }, { files: [fx('green')], root: 'relative' }, { files: ['does/not/exist.mjs'], root: process.cwd() }, { files: ['../outside.mjs'], root: process.cwd() }, {}])
+  for (const input of [{ files: [], root: process.cwd() }, { files: [fx('green')], root: 'relative' }, { files: ['does/not/exist.mjs'], root: process.cwd() }, { files: ['../outside.mjs'], root: process.cwd() }, { files: [fx('green')], root: process.cwd(), timeoutMs: 0 }, { files: [fx('green')], root: process.cwd(), timeoutMs: '1000' }, {}])
     await assert.rejects(runCases(input), `invalid input is rejected with no report: ${JSON.stringify(input)}`);
 }
