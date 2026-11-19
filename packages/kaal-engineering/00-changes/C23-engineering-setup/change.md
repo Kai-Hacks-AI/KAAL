@@ -20,7 +20,7 @@ Proposed, to be confirmed by the allocator: Change engineering/C23, Intent engin
 
 ## What the Skill does not explain
 
-WIRE (kaal-release), the Test Case (kaal-testing), DIRT (kaal-controls) and registration (kaal-core). It names such a term once, on a line that says `see kaal-<owner>`, and stops. T1176 holds this.
+WIRE (kaal-release), the Case (kaal-testing), DIRT (kaal-controls) and registration (kaal-core). It names such a term once, on a line that says `see kaal-<owner>`, and stops. T1176 holds this.
 
 ## DO
 
@@ -30,12 +30,14 @@ Not authorized by this PLAN. On the go of the Owner, into the collector of this 
 
 A 4L retrospective in `act.md` before the promotion.
 
-## Open questions for the Owner
+## Owner questions
 
-1. **Ratchet owner.** The Skill names the ratchet for the first leg, and the repository holds no definition of it: the only ratchet on `main` is release/C90's detective control on `pull_request_target`. Which capability owns the ratchet concept, release or controls? Until you say, the Skill states the direction (waste down, clean up) and gives no owner.
-2. **Test Case owner.** kaal-testing does not use the words "Test Case" in its capability or payload (it speaks of Cases). T1176 points the term to kaal-testing as you said. Say if the Skill should write "Case".
-3. **Deliveries that are not on `main`.** `.agents` and `.claude` do not exist in the tracked tree. The Skill names them as deliveries as you asked, and T1172 checks the existence of `.github` and `.githooks` only.
-4. **Name clash.** The root `package.json` is already named `kaal-engineering`. The new package is `@kaihacksai/kaal-engineering`, so the names differ, and the capability id `engineering` is the one the Engineering areas already use (C1 to C22, F1 to F35).
+Answered by the CPO on this PLAN (19 Nov): kaal-engineering owns the enduring Engineering ratchet concept, waste down and clean up, so the Skill explains it. Controls owns only the generic control framework and Release owns its own controls (CTL19, CTL20), which are not this ratchet. No Change owns a concept. The Skill uses kaal-testing's term "Case". No ownership transfer and no new control is requested.
+
+Still open:
+
+1. **Deliveries that are not on `main`.** `.agents` and `.claude` do not exist in the tracked tree. The Skill names them as deliveries as you asked, and T1172 checks the existence of `.github` and `.githooks` only.
+2. **Name clash.** The root `package.json` is already named `kaal-engineering`. The new package is `@kaihacksai/kaal-engineering`, so the names differ, and the capability id `engineering` is the one the Engineering areas already use (C1 to C22, F1 to F35).
 
 ## Not in this Change
 

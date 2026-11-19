@@ -10,7 +10,7 @@ export const id = 'engineering/T1176';
 export const tests = ['engineering/N18'];
 export const title = 'the Skill names a term another capability owns only on a line that points to the owner, and never has a section for it';
 export async function run() {
-  const owners = { WIRE: 'kaal-release', 'Test Case': 'kaal-testing', DIRT: 'kaal-controls', registration: 'kaal-core' };
+  const owners = { WIRE: 'kaal-release', Case: 'kaal-testing', DIRT: 'kaal-controls', registration: 'kaal-core' };
   const t = skill();
   for (const [term, owner] of Object.entries(owners)) {
     assert.ok(existsSync(join(root, 'packages', owner)), `${owner} owns ${term} and must exist`);
