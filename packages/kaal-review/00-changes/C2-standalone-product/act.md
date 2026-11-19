@@ -10,6 +10,8 @@ The CPO's product contract made the Change smaller and truer: Engineering may us
 
 My first PLAN treated a devDependency and a test import as a product defect; they are Engineering-time. The second tested shape (file, rule and Node counts, name mentions). Both were corrected by the CPO before any DO. Name mentions in prose are not dependencies, and a Case that asserts a count breaks when the product legitimately evolves. Hosting's T22 forbids the old bare package name as a specifier anywhere, including in a Case.
 
+The CPO's review of the DO taught the third lesson: a harness that imports the Engine and the permitted dependencies from the development workspace proves nothing about a consumer. The Acceptance lane already packs and installs into fresh hosts; the Case belongs there. I had also named the Foundation by the wrong package name.
+
 ## Lacked
 
 A way to read the next free Case ids from the collectors; the Coordinator handed out a block. The closure check cannot be shown to fail on shipped code, because the product ships none.
