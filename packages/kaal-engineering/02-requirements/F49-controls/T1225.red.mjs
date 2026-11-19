@@ -11,12 +11,17 @@ const template = () => { const f = join(dir, 'references/package-layout.json'); 
 const folder = (t, n) => t.folders.find((f) => f.name === n);
 export const id = 'engineering/T1225';
 export const tests = ['engineering/F49'];
-export const title = '02-controls is scoped to the package and consumer controls are consumer space, not a folder';
+export const title = '02-controls is scoped to the package, controls belong to the consumer and link to an Intent, and consumer controls are not a folder';
 export async function run() {
   const t = template();
   const c = folder(t, '02-controls');
   assert.equal(c.scope, 'package');
   assert.deepEqual([...c.covers].sort(), ['delivery', 'development', 'solution']);
   assert.ok(t.consumerSpace.length >= 1, 'consumer controls are not named as consumer space');
+  assert.equal(t.controls.ownedBy, 'consumer');
+  assert.equal(t.controls.linksTo, 'intent');
+  assert.deepEqual([...t.controls.findsMachineryThrough].sort(), ['architecture', 'intent', 'requirements']);
+  assert.equal(t.controls.shippedByCapability, false);
+  for (const k of ['control', 'evidence', 'operational state']) assert.ok(t.controls.consumerOwns.includes(k), `the consumer does not own the ${k}`);
   assert.ok(!t.folders.some((f) => /consumer/i.test(f.name)), 'a consumer folder is part of the layout');
 }
