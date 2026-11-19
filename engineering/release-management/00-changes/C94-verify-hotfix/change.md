@@ -37,7 +37,7 @@ These Cases are fixtures: they prove the mechanism whichever real Case later pas
 
 ## Ids
 
-Change `release/C94`, control `release/CTL21`, Requirement `release/F71`, Architecture `release/A66`, Gap `release/G66` (the hotfix block, taken over from C31), Cases T380 to T384. **Not yet reserved by the release thread**: C94, CTL21, F71 and A66 are the next free numbers and are to be confirmed before the DO.
+Change `release/C94`, control `release/CTL21`, Requirement `release/F71`, Architecture `release/A66`, Gap `release/G66` (the hotfix block, taken over from C31), Cases T380 to T384. Confirmed by the release thread on 19 Nov 2026: C94, CTL21, F71 and A66 stay with this Change (its own C95 moved to I53, F72, A67 and T1159 to T1164).
 
 ## DO
 
