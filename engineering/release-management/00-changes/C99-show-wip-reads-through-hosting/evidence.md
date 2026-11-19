@@ -23,4 +23,4 @@ Probed 19 November 2026 from a cloud session:
 - Limits stated, not hidden: the route belongs to cloud sessions (a plain host answers 404, and there the fact is `not observed`); the answer's page size and a cut list are not documented, so the DO treats a full page as a gap, as `read.mjs` does for its cut lists today; the route is read-only here (the resolve and auto-merge routes are not used).
 - Why not observed matters: Show WIP turns a piece whose `threads` is missing into `UNKNOWN`, so without the route every piece would read `not observed: threads`. That is the cost the route avoids.
 
-Cases T933 and T934 are RED on `main` for the same reason as T930 (no report); T933 turns GREEN when the thread route is read, T934 when its absence is reported as not observed.
+Decision of the Owner (19 November 2026, after this evidence): environment-specific routes belong only inside Hosting; Show WIP asks for facts. The Cases T933 and T934 drafted for this are therefore Hosting's (kept as drafts for the `hosting/C111` PLAN: route answering gives the count, no route gives unknown) and are not in this Change.

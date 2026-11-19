@@ -6,11 +6,11 @@ An agent in a cloud session cannot run Show WIP: `node run.mjs <owner/repo> show
 
 ## From
 
-Show WIP starts `gh` itself. The open pieces come from one GraphQL query. In a cloud session it prints nothing and exits 2.
+Show WIP starts `gh` itself, knows the routes it reads (GraphQL for the open pieces, REST for branches and tags) and maps what comes back to facts. In a cloud session the GraphQL route is refused, so it prints nothing and exits 2.
 
 ## To
 
-Show WIP starts no process. Every GitHub read goes through one Hosting entry (`hosting/C111`, its own Change, PLAN to follow) that calls the REST API only. The open pieces are read from REST (the pull list, each piece's reviews, the checks of its head, and the review threads from the route a cloud session offers). The report, its lines and the exit statuses are unchanged, and the command prints its report in a cloud session. Every fact the report holds today is still read; none is dropped.
+Show WIP asks Hosting for facts about the host ("the open pieces of this repository", each with its reviews, checks and review threads) and knows nothing about routes, GraphQL, REST or `gh`. Hosting (`hosting/C111`, its own Change, PLAN to follow) chooses the transport the environment can reach (GraphQL where it is allowed, the cloud session's review-thread route where it is not) and answers each fact it could not read as unknown, never a guess. Environment-specific routes live only inside Hosting. Show WIP keeps what is its own: the mapping of those host records to its facts, the stations, and the report. The report, its lines and the exit statuses are unchanged, no fact of it is dropped, and the command prints its report in a cloud session. A fact Hosting answers as unknown is `not observed`, as the command's rule already says.
 
 ## Because
 
@@ -20,21 +20,20 @@ One home for reaching GitHub (Hosting), and a report the agents can run themselv
 
 1. Regression Case, GREEN on `main` today and after the DO:
    - release/T932: when every GitHub call fails, status 2, `show WIP: …` on standard error, nothing on standard output.
-2. Accept list: the existing Cases of Show WIP (release/C61, C64 and the coordination Cases) stay GREEN. No fact is given up in a cloud session. One product trade-off is stated for the CPO to accept: the unresolved review-thread count has no route in GitHub's public REST API (see evidence). It is read from `GET /repos/{owner}/{repo}/pulls/{n}/ccr/review_threads`, which cloud sessions offer and which answers `resolved`, `outdated`, `path`, `line` and `comment_ids` per thread. On a host that does not answer that route, `threads` is `not observed` and the piece is `UNKNOWN: not observed: threads`, never a guessed zero. Where GraphQL works (an Actions job, a person's terminal) the DO may keep reading threads from it through Hosting; whether to do that is decided in the DO, not here.
-3. Feature Cases, RED on `main` today:
-   - release/T930: with GraphQL refused and REST answered, the command prints a report and never asks GraphQL.
-   - release/T931: the command starts no process itself and uses `@kaihacksai/kaal-hosting`.
-   - release/T933: with the thread route answering, a piece with one unresolved thread is `WORK` with `1 unresolved thread`, and a piece with none says nothing is not observed.
-   - release/T934: with no thread route, every piece lists `threads` as not observed, and no count of zero is guessed.
+2. Accept list: the existing Cases of Show WIP (release/C61, C64 and the coordination Cases) stay GREEN. Nothing is accepted as lost.
+3. Feature Cases, RED on `main` today. The report side is environment-neutral: no assertion names a route or an environment.
+   - release/T930 (the Defect's proof): in a session where GraphQL is refused and the rest of the host answers, the command prints a report. The environment lives in the stand-in `gh`, not in the assertion.
+   - release/T931: the open-piece read names no route (`graphql`, `ccr`) and starts no process, the GraphQL query is gone from `read.mjs`, and the pieces come from `@kaihacksai/kaal-hosting`.
+4. Cases that belong to Hosting, drafted for the `hosting/C111` PLAN and not part of this Change: the unresolved review-thread count is read from the cloud route where GraphQL is refused and from GraphQL where it is allowed; where no route answers, the fact is unknown and never a zero; one answer shape in every environment.
 
 ## Sequence
 
 1. This PLAN.
-2. `hosting/C111`: the Hosting GitHub read entry (its own PLAN, DO and ACT, promoted to main).
+2. `hosting/C111`: the Hosting GitHub read entry, with the transport choice inside it (its own PLAN, DO and ACT, promoted to main).
 3. The DO of this Change, raised from a `main` that holds `hosting/C111`. It turns T930 and T931 GREEN and keeps T932 GREEN.
 
 No npm publish and no pin move: the command uses the in-repo workspace package.
 
 ## Not in this Change
 
-Writing to GitHub, other GitHub callers (the dispatcher, the collector scripts), the daily page workflow (release/C64), any change to the Show WIP Skill Script or its report format, and any ruleset or `.github` change.
+The inventory views (`overview`, a place, `settled`: branches, tags, compare, package files) keep their present reads and move to Hosting in the next slice, in their own Change; this Change is the open-piece read, which is the default report and the Defect. Writing to GitHub, other GitHub callers (the dispatcher, the collector scripts), the daily page workflow (release/C64), any change to the Show WIP Skill Script or its report format, and any ruleset or `.github` change.
