@@ -10,7 +10,7 @@ export async function run() {
   const y = code(raw);
   const on = /^on:\n([\s\S]*?)^\S/m.exec(y + '\nend');
   assert.ok(on, 'no trigger block');
-  assert.ok(/schedule:/.test(on[1]) && /workflow_dispatch:/.test(on[1]), 'it is not scheduled and dispatchable');
+  assert.ok(/workflow_dispatch:/.test(on[1]) && !/schedule:/.test(on[1]), 'it is not manual only (release/C93: the scan has no schedule)');
   assert.ok(!/pull_request|push:|workflow_run|issue_comment/.test(on[1]), 'it has a trigger that a candidate can start');
   assert.match(y, /^permissions: \{\}$/m, 'no empty set of permissions at the top');
   const job = (n) => y.split(/^  (?=[a-z]+:\n    name: )/m).find((j) => j.includes(`name: ${n}`));

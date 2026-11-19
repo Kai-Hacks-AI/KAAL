@@ -1,6 +1,7 @@
-// node dispatch.mjs decide | raise (release/C73). `decide` reads facts with the token of the workflow and prints the decisions; `raise` takes them as data.
+// node dispatch.mjs decide | final | raise (release/C73; `final` is release/C93). `decide` reads facts with the token of the workflow and prints the decisions; `raise` takes them as data.
 import { appendFileSync } from 'node:fs';
 import { decideRaise } from './decide.mjs';
+import { decideFinal } from './final-step.mjs';
 import { listCollectors, gatherFacts, openPromotions } from './gather.mjs';
 import { oneAtATime, readCapacity } from './seat.mjs';
 import { raiseAll } from './raise.mjs';
@@ -39,6 +40,13 @@ async function main(cmd, env) {
     if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `decisions=${line}\n`);
     return 0;
   }
+  if (cmd === 'final') {
+    const d = decideFinal({ merged: env.KAAL_PR_MERGED === 'true', base: env.KAAL_PR_BASE, mergeSha: env.KAAL_PR_MERGE_SHA, body: env.KAAL_PR_BODY });
+    console.log(JSON.stringify(d));
+    const line = JSON.stringify(d.action === 'raise' ? [d] : []);
+    if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `decisions=${line}\n`);
+    return 0;
+  }
   if (cmd === 'raise') {
     let decisions;
     try { decisions = JSON.parse(env.KAAL_DECISIONS || '[]'); } catch { throw new Error('the decisions are not JSON'); }
@@ -48,7 +56,7 @@ async function main(cmd, env) {
     console.log(JSON.stringify({ live, results }));
     return results.some((r) => r.result === 'raised-moved') ? 1 : 0;
   }
-  throw new Error('usage: dispatch.mjs decide | raise');
+  throw new Error('usage: dispatch.mjs decide | final | raise');
 }
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop()) && process.argv[2]) {
