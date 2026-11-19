@@ -24,4 +24,4 @@ The Gap of this Change, G90, is closed by Cases T780 to T783, green in the colle
 
 ## Sentence
 
-Always Check Controls Tests, Opening Records Showing Evidence Everywhere.
+Plain Labels Admit No Doubt, Observed Cases Hold Every Claim, Keeping A Control Truthful.
