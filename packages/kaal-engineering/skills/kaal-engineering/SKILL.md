@@ -39,3 +39,7 @@ The two legs move at different pace.
 - **Shine**: remove drift, so a delivery equals its approved source.
 - **Standardize**: the same mechanics from either source.
 - **Sustain**: the ratchet keeps waste from rising and clean from falling.
+
+## Package layout
+
+The layout of a capability package is owned here: see [references/package-layout.md](references/package-layout.md).
