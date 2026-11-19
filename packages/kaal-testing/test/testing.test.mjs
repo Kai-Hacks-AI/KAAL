@@ -52,6 +52,7 @@ describe("kaal-testing", () => {
     assert.deepEqual(JSON.parse(r.stdout)[0].files.map((f) => f.path).sort(), [
       "LICENSE",
       "README.md",
+      "bin/kaal-testing.mjs",
       "capability/Testing.md",
       "lib/acceptance.mjs",
       "lib/attribution.mjs",
@@ -60,6 +61,8 @@ describe("kaal-testing", () => {
       "lib/duplicates.mjs",
       "lib/inventory.mjs",
       "lib/report.mjs",
+      "lib/run-reporter.mjs",
+      "lib/run.mjs",
       "package.json",
       "payload/Testing.md",
       "skills/kaal-testing/SKILL.md",

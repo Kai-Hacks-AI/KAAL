@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { checkPlanBody } from './check.mjs';
 import { stripComments } from './comments.mjs';
+import { CUE } from './cue.mjs';
+
+export { CUE };
 
 const PROVENANCE = /https?:\/\/|\]\(|\p{Extended_Pictographic}|\b(generated (with|by)|co-authored-by|claude-session|claude code|requested by)\b/iu;
 const METADATA = /attribution|claude|session|thread|requested by|generated|co-authored|https?:\/\/|[{}]/i;
@@ -12,13 +15,14 @@ const CHANGE_ID = /\b[\w-]+\/[A-Z]\d+\b/;
 
 // Rows keyed by TYPE, for what headings cannot give. A TYPE without a row is reported as not judged.
 const ROUTE = {
-  PLAN: (f) => f.base.startsWith('kaal/'), DO: (f) => f.base.startsWith('kaal/'), ACT: (f) => f.base.startsWith('kaal/'), SYNC: (f) => f.base.startsWith('kaal/'),
-  PROMOTION: (f) => f.base === 'main' && f.head.startsWith('kaal/'),
-  HOTFIX: (f) => typeof f.head === 'string' && /^hotfix\/\S/.test(f.head),
+  PLAN: (f) => f.base.startsWith('kaal/'), DO: (f) => f.base.startsWith('kaal/'), ACT: (f) => f.base.startsWith('kaal/'),
+  SYNC: (f) => /^(kaal|hotfix|wire)\//.test(f.base),
+  PROMOTION: (f) => f.base === 'main' && (f.head.startsWith('kaal/') || f.head.startsWith('hotfix/')),
+  HOTFIX: (f) => typeof f.base === 'string' && /^hotfix\/\S/.test(f.base) && !(typeof f.head === 'string' && f.head.startsWith('hotfix/')),
 };
 // What a route row leaves unjudged on purpose, reported on every result of that TYPE.
-const ROUTE_HINT = { HOTFIX: 'a HOTFIX takes a head under hotfix/' };
-const ROUTE_UNJUDGED = { HOTFIX: 'the base of a HOTFIX is not judged: the Hotfix delivery path, a separate Change, decides it' };
+const ROUTE_HINT = { HOTFIX: 'a HOTFIX goes into a base under hotfix/ from a head that is not under hotfix/' };
+const ROUTE_UNJUDGED = {};
 // What the envelope cannot show about a HOTFIX, reported on every HOTFIX result.
 const HOTFIX_UNJUDGED = [
   'whether a HOTFIX corrects only its defect is not judged: the diff, the Case and the review decide it',
@@ -44,7 +48,7 @@ function sharedBodyRules(body) {
   const seen = [];
   const chapters = new Map();
   let current;
-  let before = '';
+  const before = [];
   for (const line of lines) {
     const heading = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line);
     if (heading) {
@@ -56,10 +60,12 @@ function sharedBodyRules(body) {
         chapters.set(current, chapters.get(current) ?? []);
       }
     } else if (current !== undefined) chapters.get(current).push(line);
-    else before += line;
+    else before.push(line);
   }
   const names = [...chapters.keys()];
-  if (before.trim() !== '') problems.push('the body has text before the first chapter');
+  // Only the Change envelope cue, as its exact line, may stand before the first chapter.
+  const early = before.map((line) => line.trim()).filter((line) => line !== '');
+  if (early.length > 0 && !(early.length === 1 && early[0] === CUE)) problems.push('the body has text before the first chapter');
   if (names[0] !== 'Change') problems.push('the first chapter of the body must be Change');
   else if (chapters.get('Change').join('\n').trim() === '') problems.push('the Change chapter is empty');
   for (const [name, content] of chapters) {
@@ -95,6 +101,43 @@ function hotfixBodyRules(body) {
   return problems;
 }
 
+// The format of a HOW TO WORK chapter (release/C41): one table of five columns, a Predecessor first and a Successor last, sequential steps,
+// a known Who, a PR reference on a Dependency. The wording of a step, Status and Details is not judged. Silent without the chapter.
+const HOW_TO_WORK = ['Step', 'Who', 'Action', 'Status', 'Details'];
+const WHO = new Set(['Predecessor', 'Worker', 'Owner', 'Reviewer', 'Dependency', 'Successor']);
+const cellsOf = (line) => line.replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map((c) => c.trim());
+
+export function howToWorkProblems(body) {
+  if (typeof body !== 'string') return [];
+  const texts = chapterTexts(body);
+  if (!texts.has('HOW TO WORK')) return [];
+  const raw = texts.get('HOW TO WORK').map((l) => l.trim());
+  const at = raw.map((l, i) => (l.startsWith('|') ? i : -1)).filter((i) => i >= 0);
+  const found = (what) => `the HOW TO WORK chapter ${what}`;
+  if (at.length === 0) return [found('holds no table')];
+  const problems = [];
+  if (raw.some((l, i) => l !== '' && !at.includes(i))) problems.push(found('holds text outside its table'));
+  if (at.some((i, n) => n > 0 && i !== at[n - 1] + 1)) problems.push(found('holds more than one table'));
+  const table = at.map((i) => raw[i]);
+  if (JSON.stringify(cellsOf(table[0])) !== JSON.stringify(HOW_TO_WORK)) problems.push(found(`must have the five columns ${HOW_TO_WORK.join(', ')} as its header`));
+  const separator = table.length < 2 ? [] : cellsOf(table[1]);
+  if (separator.length !== HOW_TO_WORK.length || !separator.every((c) => /^:?-{3,}:?$/.test(c))) problems.push(found(`has no separator line of ${HOW_TO_WORK.length} cells under its header`));
+  const rows = table.slice(2).map(cellsOf);
+  if (rows.length < 2) problems.push(found('needs at least a Predecessor row and a Successor row'));
+  rows.forEach((cells, n) => {
+    if (cells.length !== HOW_TO_WORK.length) { problems.push(found(`has a row of ${cells.length} cells, not ${HOW_TO_WORK.length}`)); return; }
+    const [step, who, , , details] = cells;
+    if (step !== String(n)) problems.push(found(`has step "${step}" where step ${n} is expected: steps count up from 0 without a gap`));
+    if (!WHO.has(who)) problems.push(found(`has the Who "${who}", which is none of ${[...WHO].join(', ')}`));
+    else if (n === 0 && who !== 'Predecessor') problems.push(found('must start with a Predecessor at step 0'));
+    else if (n === rows.length - 1 && who !== 'Successor') problems.push(found('must end with a Successor'));
+    else if (who === 'Predecessor' && n > 0) problems.push(found('has a Predecessor that is not at step 0'));
+    else if (who === 'Successor' && n < rows.length - 1) problems.push(found('has a Successor that is not the last step'));
+    if (who === 'Dependency' && !/#\d+/.test(details)) problems.push(found(`has a Dependency row (step ${step}) without a #<number> reference of its pull request`));
+  });
+  return [...new Set(problems)];
+}
+
 export function verifyEnvelope(facts, registry = {}, options = {}) {
   const problems = [];
   const notJudged = [];
@@ -103,6 +146,7 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
   else if (CHANGE_ID.test(title[2]) || PROVENANCE.test(title[2])) problems.push('the title carries a Change id, a link, an emoji or attribution wording');
   const type = title?.[1];
   problems.push(...sharedBodyRules(facts.body));
+  problems.push(...howToWorkProblems(facts.body));
   const headings = typeof facts.body === 'string' ? [...stripComments(facts.body).matchAll(/^##\s+(.*?)\s*#*\s*$/gm)].map((m) => m[1]) : [];
   if (type) {
     if (registry[type]) {
@@ -115,8 +159,8 @@ export function verifyEnvelope(facts, registry = {}, options = {}) {
     if (type === 'HOTFIX') {
       problems.push(...hotfixBodyRules(facts.body));
       notJudged.push(...HOTFIX_UNJUDGED);
-    } else if (typeof facts.head === 'string' && facts.head.startsWith('hotfix/')) {
-      problems.push(`a pull request from the head ${facts.head} must be a HOTFIX: a hotfix/ head takes the TYPE HOTFIX, not ${type}`);
+    } else if (typeof facts.head === 'string' && facts.head.startsWith('hotfix/') && type !== 'PROMOTION') {
+      problems.push(`a pull request from the head ${facts.head} must be a PROMOTION into main: a hotfix/ head is promoted, not ${type}`);
     }
     if (ROUTE[type]) {
       if (!ROUTE[type](facts)) problems.push(`the route of a ${type} (base ${facts.base}, head ${facts.head}) does not fit its TYPE${ROUTE_HINT[type] ? `: ${ROUTE_HINT[type]}` : ''}`);

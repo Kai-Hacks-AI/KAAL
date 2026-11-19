@@ -27,6 +27,6 @@ export const tests = ['controls/A5'];
 export const title = "the slice stands in the package kaal-controls, with no Capability Node or Definition";
 export function run() {
   read(SKILL, 'the candidate Skill'); read(KEY, 'the scenario key');
-  assert.equal(JSON.parse(read('package.json', 'package.json')).name, 'kaal-controls');
+  assert.equal(JSON.parse(read('package.json', 'package.json')).name, '@kaihacksai/kaal-controls');
   for (const absent of ['capability', 'payload']) assert.ok(!existsSync(join(dir, absent)), `${absent} exists: a Capability Node or a Definition is not part of this slice`);
 }

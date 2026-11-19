@@ -1,6 +1,8 @@
 // A16 body-contract: checks the body of a PLAN pull request against release/F3.
 // Exactly four level-2 chapters in order (Change, From, To, Because), nothing before the first and nothing but one paragraph in each.
 // The Change chapter is one line `<id> <name>: <short description>`, and the description repeats none of the other chapters.
+import { CUE } from './cue.mjs';
+
 const CHAPTERS = ['Change', 'From', 'To', 'Because'];
 const CHANGE_LINE = /^(\S+\/C\d+) (.+?): (.+)$/;
 
@@ -58,7 +60,7 @@ export function checkPlanBody(body) {
     problems.push(`the body must have exactly the chapters ${CHAPTERS.join(', ')} in this order and no other heading (found: ${headings.join(', ') || 'none'})`);
     return { ok: false, problems };
   }
-  if (before !== '') problems.push('the body has text before the first chapter');
+  if (before !== '' && before !== CUE) problems.push('the body has text before the first chapter');
   for (const name of CHAPTERS) {
     const text = chapter(name);
     if (text === '') problems.push(`the chapter ${name} is empty`);
