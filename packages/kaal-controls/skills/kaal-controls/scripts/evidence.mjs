@@ -30,6 +30,20 @@ export function judgeEvidence(control, records = []) {
   return { id: control.id, verdict: missing.length ? 'UNKNOWN' : 'PASS', reason: missing.length ? 'below-minimum' : 'met', met, missing, notGreen };
 }
 
+// The state the package can show for a control: `tested` only when its declared minimum is shown, `designed` for any other valid
+// control, `invalid` for one that fails validation. Implemented and running are not observed here, so they are never computed.
+export function computedState(control, verdict) {
+  if (!control.valid) return 'invalid';
+  return verdict.verdict === 'PASS' ? 'tested' : 'designed';
+}
+
+// One line for a control: what it claims, what is computed, and how far each declared kind of X has come.
+export function stateLine(control, verdict) {
+  const seen = [...verdict.met, ...verdict.missing];
+  const progress = control.evidence.map((e) => { const s = seen.find((x) => x.kind === e.kind); return `${e.kind} ${s ? s.have : 0}/${e.runs}${e.fail ? ' fail' : ''}`; });
+  return [control.id, `claimed ${control.status}`, `computed ${computedState(control, verdict)}`, ...progress, `${verdict.verdict} ${verdict.reason}`].join(' · ');
+}
+
 export function readRecords(path) {
   const one = (p) => { const v = JSON.parse(readFileSync(p, 'utf8')); return Array.isArray(v) ? v : [v]; };
   if (!statSync(path).isDirectory()) return one(path);
@@ -40,11 +54,13 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const a = process.argv.slice(2);
   const i = a.indexOf('--records');
   const records = i >= 0 ? readRecords(a[i + 1]) : [];
-  const dir = a.filter((x, j) => i < 0 || (j !== i && j !== i + 1))[0] ?? '.';
+  const dir = a.filter((x, j) => x !== '--json' && (i < 0 || (j !== i && j !== i + 1)))[0] ?? '.';
   const files = [];
   const walk = (d) => { for (const n of readdirSync(d)) { if (n === 'node_modules' || n === '.git') continue; const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else if (/\.(md|mjs)$/.test(n)) files.push({ path: p, text: readFileSync(p, 'utf8') }); } };
   walk(dir);
-  const out = findControls(files).controls.filter((c) => c.status === 'tested').map((c) => judgeEvidence(c, records));
-  console.log(JSON.stringify(out, null, 2));
-  process.exit(out.every((v) => v.verdict === 'PASS') ? 0 : 1);
+  const found = findControls(files).controls.filter((c) => c.evidence?.length);
+  const out = found.map((c) => ({ control: c, verdict: judgeEvidence(c, records) }));
+  if (a.includes('--json')) console.log(JSON.stringify(out.map((o) => o.verdict), null, 2));
+  else for (const o of out) console.log(stateLine(o.control, o.verdict));
+  process.exit(out.every((o) => o.control.status !== 'tested' || o.verdict.verdict === 'PASS') ? 0 : 1);
 }
