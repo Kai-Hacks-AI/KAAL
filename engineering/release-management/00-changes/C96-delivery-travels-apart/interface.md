@@ -19,7 +19,7 @@ Delivery never travels with solution. A change that touches a delivery location,
 
 The delivery paths are those of the declaration (release/A67) and of nothing else: `deliveryMixed` of Change Isolation (`engineering/change-isolation/check.mjs`) reads them through the one reader and spells none. Adding a location to the declaration makes a change that touches it subject to the rule, with no change of the checker. When the declaration cannot be read, the rule is not judged (`CannotJudge`), and the report says so.
 
-The rule is detective. The checker prints one line per solution path of a mixed change, `detective (not gating): ...`, after its verdict, and gates nothing: `check`, its violations and its exit code are what they were. A change that touches Core is judged by Core's own rule and not by this one (Core travels alone is unchanged). Making the rule preventive is a separate decision of the Owner, after the control has run for real.
+The rule is detective. The checker prints one line per solution path of a mixed change, `detective (not gating): ...`, after its verdict, and gates nothing: `check`, its violations and its exit code are what they were. Core's rule that Core travels alone is unchanged and independent: a change that holds Core is reported by this rule as well, with the same lines. Making the rule preventive is a separate decision of the Owner, after the control has run for real.
 `````
 
 ## Draft of F74.md
@@ -151,19 +151,18 @@ Applies to `engineering/change-isolation/check.mjs`.
  
  /** Paths that are Core: the package and the Engine files deployed from its payload. */
  const CORE = [/^packages\/kaal-core\//, /^\.kaal\/(AGENTS\.md|KAAL-KERNEL\.md|core\/)/];
-@@ -241,6 +242,20 @@
+@@ -241,6 +242,19 @@
  }
  
  /**
 + * Delivery travels apart from solution (release/F73). A change that touches a delivery location, a declared root or a declared root file,
 + * contains only delivery paths; several delivery locations may share one change. The locations are read from the declaration of the delivery
-+ * architecture. A change that touches Core is judged by Core's own rule and not by this one. This rule is detective: the checker reports it and gates nothing, so `check` and the exit code are unchanged.
++ * architecture. This rule is detective: the checker reports it and gates nothing, so `check` and the exit code are unchanged.
 + * @returns {string[]} one line per path that is not delivery, when the change touches delivery
 + */
 +export function deliveryMixed(paths, { read = readLocations } = {}) {
 +  let locations;
 +  try { locations = read(); } catch (e) { throw new CannotJudge(`the delivery declaration cannot be read: ${e.message}`); }
-+  if (paths.some((p) => any(CORE, p))) return []; // Core is judged by its own rule, which stays
 +  if (!paths.some((p) => isDelivery(p, locations))) return [];
 +  return paths.filter((p) => !isDelivery(p, locations)).map((p) => `delivery travels apart from solution: ${p} is not a delivery path`);
 +}
@@ -172,7 +171,7 @@ Applies to `engineering/change-isolation/check.mjs`.
   * The Git blob id of `path` at `rev`, or null when the commit resolves and the path is genuinely
   * absent from its tree. Anything else is missing or unavailable evidence and cannot be judged:
   * an unresolvable or non-commit revision, a git failure, a path that is not a file at that
-@@ -322,5 +337,10 @@
+@@ -322,5 +336,10 @@
    for (const v of violations) console.error(v);
    if (violations.length) process.exit(1);
    console.log(`ok: ${paths.length} changed paths conform`);

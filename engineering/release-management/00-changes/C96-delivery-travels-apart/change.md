@@ -9,7 +9,7 @@
 ## What changes, in the Owner's terms
 
 - **Delivery is every declared location.** `.agents` and `.claude` join the declaration, each wirable (the Owner's default: a WIRE may install unless a dedicated control says otherwise). The declaration gains `files`, the files at the repository root that are delivery: `package.json` and `package-lock.json`. They are not wirable yet: a WIRE target is one file under a root, and a WIRE of a root file needs an exact-file rule in the classifier and the install judge, a later slice.
-- **Delivery never travels with solution.** `deliveryMixed` of Change Isolation reads the declaration and names every solution path in a change that touches delivery. It is detective: it prints and gates nothing, so no new enforcement starts. Core's rule stays as it is and a change that touches Core is not judged by the new one.
+- **Delivery never travels with solution.** `deliveryMixed` of Change Isolation reads the declaration and names every solution path in a change that touches delivery. It is detective: it prints and gates nothing, so no new enforcement starts. Core's rule stays as it is, and the new rule reports on a change that holds Core too: each control reports what it sees and none is silenced by another.
 - **Pull Promotion counts delivery as DO evidence from the declaration.** Its own declaration keeps `packages` and `engineering`. The command composes the rest. The package `kaal-release` stays standalone.
 
 ## FAR

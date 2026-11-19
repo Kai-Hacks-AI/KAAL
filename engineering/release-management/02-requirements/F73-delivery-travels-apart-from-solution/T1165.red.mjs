@@ -19,6 +19,8 @@ export async function run() {
   assert.match(m1[0], /engineering\/a\/x\.md/);
   assert.equal(mixed(['package.json', 'packages/b/package.json']).length, 1, 'the root manifest is delivery, a package manifest is solution');
   assert.equal(mixed(['.githooks/a', '.githooksx/y']).length, 1, 'a root is a whole path segment');
-  assert.deepEqual(mixed(['packages/kaal-core/src/cli.ts', 'package-lock.json', '.kaal/core/x']), [], 'a change that touches Core is judged by Core\'s own rule, not by this one');
+  const core = mixed(['packages/kaal-core/src/cli.ts', 'packages/kaal-foundation/src/x.ts', '.kaal/core/x']);
+  assert.equal(core.length, 2, 'a change that holds Core, another solution path and delivery is reported as mixed: every control reports what it sees, none is silenced by another');
+  assert.ok(core.some((v) => /kaal-core\/src\/cli\.ts/.test(v)) && core.some((v) => /kaal-foundation/.test(v)));
   assert.equal(mixed(['.kaal']).length, 0, 'a bare root name is no delivery path, and nothing else is touched');
 }
