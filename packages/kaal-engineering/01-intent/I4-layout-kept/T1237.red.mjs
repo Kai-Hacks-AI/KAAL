@@ -26,8 +26,8 @@ export const title = 'the control is listed as detective with Intent I4 and its 
 export async function run() {
   const FINDER = join(root, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
   const CHECK = join(root, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
-  const area = join(root, 'engineering/setup');
-  const file = join(area, '04-controls/CTL2-verify-layout/CTL2.md');
+  const area = join(root, 'packages/02-controls');
+  const file = join(area, 'CTL2-verify-layout/CTL2.md');
   assert.ok(existsSync(file), 'CTL2.md is absent');
   assert.match(readFileSync(file, 'utf8'), /^evidence: \[fixture:2, real:1, provoked:1:fail\]$/m);
   const out = JSON.parse(execFileSync(process.execPath, [FINDER, area], { encoding: 'utf8' }));
