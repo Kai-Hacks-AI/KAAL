@@ -8,18 +8,18 @@ Drafts as they are added in the DO. The Cases read them; the element Cases read 
 ---
 id: release/CTL21
 title: verify Hotfix
-description: It reveals whether a Hotfix brings one Defect and a reproducing Case, and whether running that Case on main and on the Hotfix shows the correction.
+description: It proves whether a Hotfix is valid: one Defect and at least one Case that verifies it, RED before and GREEN after.
 type: detective
 status: designed
 has: [release/I10]
 ---
 # release/CTL21 verify Hotfix
 
-A detective control. A Hotfix brings its own Defect and its own reproducing Case: main is GREEN, so a RED Case is not on main to be found. `verify Hotfix` reads a Hotfix pull request, its head and the default branch, and judges two things apart. **Trace validity** is structural and is read as Git data from the head: the Defect chapter names exactly one KAAL Defect, the Defect has a record on the head that names its reproducing Cases, and each Case exists on the head. Where the record and the Case came from, the Hotfix or earlier, is no finding. **Correction evidence** is the proof: the same Case, taken from the head, is run against the code without the Hotfix (the default branch) and against the Hotfix's head, by the Run of Cases (testing/C63), and the two runs are compared. The Case must be RED on the default branch and GREEN on the head, for every reproducing Case the Defect records. The first commit of a Hotfix is RED on its head and a later commit may be GREEN: the head at hand is judged, and every push is judged again. Missing evidence, a run that could not be made or a run bound to another revision is UNKNOWN.
+A detective control. A valid Hotfix is exactly this: one Defect, and at least one Case that verifies it, RED before and GREEN after. `verify Hotfix` proves that, deterministically, from two trees: a before tree and an after tree. The concept is pure content and takes the two trees as input; whether they are two branches or two file locations does not matter, and only a platform adapter maps its refs onto them (for GitHub, the default branch and the head of a pull request into a `hotfix/` base). A Hotfix brings its own Defect record and Case, so the Defect chapter names one Defect and the after tree holds its record and its Cases, new or earlier. The same Case file is run by the Run of Cases (testing/C63) on the before tree and on the after tree, and every Case the Defect records must be RED before and GREEN after. The first commit of a Hotfix is RED after and a later commit may be GREEN: the after tree at hand is judged, and every push is judged again.
 
-It says FAIL with the broken link when the trace is broken, when a Case is still RED on the head, or when it is GREEN on the default branch (it shows no issue there), and UNKNOWN otherwise. It never says PASS: even RED then GREEN does not show that the Case corresponds to the Defect, that the correction is minimal, that the diff holds no unrelated work or that the Case is honest, and these are always listed as not judged. A diff across several capability roots is listed for the reviewer to justify, never failed. It judges no route, base or admission, which belong to the envelope check (release/CTL11) and the Hotfix delivery path. The verdict is the report, not the job result: the job succeeds when a report was produced and fails only when none could be, and the verdict is in the report, the job summary and annotations.
+It says PASS when the Hotfix is valid, FAIL with the broken link when it is not, and UNKNOWN when a run could not be made or read. PASS is proven, not approved: whether a Case corresponds to its Defect, is honest, or whether the correction is minimal is content, which review decides, and the Inspector later; this control judges none of it. It judges no route, base or admission, which belong to the envelope check (release/CTL11) and the Hotfix delivery path.
 
-It runs on a plain `pull_request` into a `hotfix/` base, with no token and no secret, once wired in the Integrating station. Two jobs on two machines: the first runs the Cases (code of the pull request, as any CI job does) and its output is only data; the second starts clean, runs the judge of the base and never a file of the pull request. Making it a required check is another control with its own Owner decision.
+The verdict is the report, not the job result: the job succeeds when a report was produced and fails only when none could be. On GitHub it runs on a plain `pull_request` with no token and no secret, once wired in the Integrating station, in two jobs on two machines: the first runs the Cases, which are code of the pull request, as any CI job does, and its output is only data; the second starts clean and runs the judge of the base. Making it a required check is another control with its own Owner decision, and it would have to read the verdict, not the job result.
 
 It has one Intent, release/I10.
 `````
@@ -35,7 +35,7 @@ serves: [release/I10]
 ---
 # release/F71 verify-hotfix
 
-A pull request check reads a Hotfix, its head and the default branch, and judges apart the trace and the proof of its correction. A Hotfix brings its own Defect and Case. The trace is valid when the Defect chapter names exactly one KAAL Defect `<capability>/D<n>`, the Defect is recorded on the head with at least one reproducing Case, each such Case exists on the head, and the diff is not empty; each broken link is a finding. Whether the record and the Case are new or earlier is not judged. The proof is a comparison of two runs of the same Case, the head's own file, made by the Run of Cases: on the default branch (for which the Case file is copied over its tree) and on the head. A Defect may record several reproducing Cases and every one of them is read: the correction is verified only when each is RED on the default branch and GREEN on the head. RED on the default branch is expected and never a finding; a Case still RED on the head, or GREEN on the default branch, is a finding for that Case, however many others are verified. A run that cannot be made (the Case does not load, its tree cannot be prepared, a timeout), a Case with no attributed test, or a run bound to another revision than the one read, leaves the correction UNKNOWN, never RED. The first commit of a Hotfix is RED on its head and a later commit may be GREEN: the head at hand is judged. A diff across more than one capability root is listed for the reviewer to justify and never fails. The verdict is FAIL with a finding and UNKNOWN without one: it is never PASS, and it always lists what stays unjudged: that the Case corresponds to the Defect, that the correction is minimal, that the diff holds no unrelated work and that the Case is honest. The check runs on `pull_request` with no token and no secret. The Cases are code of the pull request and are run in their own job; the judge runs in a clean job, from the base's own copy, reads the head and the default branch as Git data and the two runs as data, and reads the body from the event, never from script text. An unreadable ref or an absent judge is UNKNOWN or a failed step, never a pass. The verdict is the report and not the execution result: when a report is produced the job succeeds whatever the verdict, and it fails only when no report could be produced; the verdict is in the report, in the job summary and in annotations, so a reviewer tells an executed report from a broken check. Requiring the check, which would have to read the verdict and not the job result, is a separate control with its own Owner decision.
+A check takes two trees, before and after, and the body of a Hotfix, and proves whether the Hotfix is valid. A Hotfix is valid when the Defect chapter names exactly one KAAL Defect `<capability>/D<n>`, the Defect has a record in the after tree with at least one Case that verifies it, each such Case exists in the after tree, and every one of those Cases, the same file run by the Run of Cases on both trees (for the before tree the Case file is first copied over it), is RED before and GREEN after. Where the record and the Case came from, the Hotfix or earlier, is not judged. A Case still RED after, or GREEN before, is a finding for that Case; a run that could not be made, a Case with no attributed test, or a result that is not RED or GREEN leaves the verdict UNKNOWN, never RED. The verdict is PASS when the Hotfix is valid, FAIL with a finding when it is not, and UNKNOWN otherwise. The check takes no Git refs: the mapping of refs onto the two trees belongs to the adapter of a platform. The adapter for GitHub takes the default branch as the before tree and the head of the pull request as the after tree, runs the Cases in their own job because they are code of the pull request, and judges in a clean job from the base's own copy, reading the after tree and the two runs as data and the body from the event, never from script text. The verdict is the report and not the execution result: when a report is produced the job succeeds whatever the verdict, and it fails only when none could be, so a reviewer tells an executed report from a broken check; the verdict is in the report, the job summary and annotations. Requiring the check is a separate control with its own Owner decision.
 `````
 
 ## Draft of A66.md
@@ -48,112 +48,80 @@ addresses: [release/F71]
 ---
 # release/A66 verify-hotfix
 
-One module `05-src/hotfix/verify-hotfix.mjs` with a pure judge `judgeHotfixTrace(facts)`, a reader of the facts as Git data (`readFacts`, `defectsOf`), a reader of the Run of Cases (`caseResult`, `evidenceFrom`), the two actions of the Run (`overlay`, `runAt`) and a command line with three commands. `cases` prints the head's Case files of the Defect. `run --on baseline|head` copies those files over the baseline tree (the head's are already there), runs them with `kaal-testing run --root <tree>` (testing/F138 to F145) and writes `{ rev, report }`; a run that cannot be made writes no file. The judge command (`--base`, `--baseline`, `--head`, `--body-file`, `--baseline-run`, `--head-run`) prints a report whose first word is the verdict, FAIL or UNKNOWN and never PASS, and exits 0 when a report was produced, whatever the verdict, and 2 when it could not be (a missing argument); on GitHub Actions it also writes the report to the job summary and each finding as an annotation. The reader takes the Defect references from the Defect chapter of the body, the paths from `git diff` of the pull request's own base and the head, a Defect record from `<home>/06-defects/D<n>-*.md` on the head (`<home>` is `packages/kaal-<capability>` or `engineering/<capability>`, the JSON `tests` list is its reproducing Cases) and the files of a Case from its identity in a `.mjs` or `.ts` file on the head. The result of a Case in a run is read from the tests the Run attributes to it by their leading `<namespace>/T<n>` (testing/F141): RED if one is RED, GREEN if all are GREEN, otherwise UNKNOWN, and nothing if none. A run counts only when its recorded revision is the one the judge resolved for that side. The baseline is the default branch. One workflow source `05-src/wiring/workflows/verify-hotfix.yml` (on `pull_request` into `hotfix/**`, read-only, no secret) has two jobs: `run Hotfix Cases` prepares the base's Run of Cases, runs the Cases on the two trees and uploads the two runs; `verify Hotfix`, a clean job that needs it, checks out the base commit with no stored credential, fetches the head from `refs/pull/<number>/head`, downloads the runs as data, writes the body from the environment to a file and never into script text, and runs the base's judge. Each tree is prepared with `npm ci --ignore-scripts`; a Case that needs more reads UNKNOWN. The module is the judge release/CTL21 declares. Its registration in the Integrating station is a later WIRE, and requiring the check is the Owner's later decision.
+One module `05-src/hotfix/verify-hotfix.mjs`: a pure judge `judgeHotfix(facts)`, a reader of the after tree (`readFacts`, `defectsOf`), a reader of the Run of Cases (`caseResult`, `evidenceFrom`), the two actions of the Run (`overlay`, `runAt`) and a command line over two directories, `--before` and `--after`. The reader takes the Defect from the Defect chapter of the body, its record from `<home>/06-defects/D<n>-*.md` in the after tree (`<home>` is `packages/kaal-<capability>` or `engineering/<capability>`, the JSON `tests` list is its Cases) and a Case's files from its identity in a `.mjs` or `.ts` file of the after tree. A Case's result in a run is read from the tests the Run attributes to it by their leading `<namespace>/T<n>` (testing/F141): RED if one is RED, GREEN if all are GREEN, otherwise UNKNOWN, nothing if none. Three commands: `cases` prints the Case files; `run --on before|after` runs them on that tree with `kaal-testing run --root <tree>` (testing/F138 to F145), the before tree having the files copied over it, and writes the report, and writes none if no run can be made; the judgment prints a report whose first word is the verdict and exits 0 whenever a report was produced, 2 only when none could be. On GitHub Actions it also writes the job summary and an annotation per finding. The GitHub adapter is one workflow source `05-src/wiring/workflows/verify-hotfix.yml` (on `pull_request` into `hotfix/**`, read-only, no secret): job `run Hotfix Cases` checks out the base, prepares its Run of Cases, makes a tree of the default branch and a tree of the pull request's head (`refs/pull/<number>/head`), prepares each with `npm ci --ignore-scripts`, runs the Cases on both and uploads the two reports; job `verify Hotfix`, clean and needing it, checks out the base commit with no stored credential, makes the after tree to be read and never run, downloads the reports as data, writes the body from the environment to a file and never into script text, and runs the base's judge. A Case that needs more than `npm ci --ignore-scripts` reads UNKNOWN. The module is the judge release/CTL21 declares. Its registration in the Integrating station is a later WIRE, and requiring the check is the Owner's later decision.
 `````
 
 ## Draft of F16-sentence.md
 
 `````
-One Hotfix corrects one identified Defect and brings that Defect and the Case that reproduces it. Whether running the Case on the default branch and on the Hotfix shows the correction is judged by release/CTL21 (release/F71) and not here. The interface guides the author and states no verification.
+One Hotfix corrects one identified Defect and brings the Case that verifies it. Whether that Case is RED before and GREEN after is proven by release/CTL21 (release/F71) and not here. The interface guides the author.
 `````
 
 ## Draft of verify-hotfix.mjs
 
 `````
-// verify Hotfix (release/CTL21): does a HOTFIX bring one Defect and a reproducing Case, and does the Case show the
-// correction? A Hotfix brings its own Defect record and Case: they are read from the Hotfix's head, not from the base.
-// Two judgments are kept apart. Trace validity is structural and is read as Git data: the Defect chapter names one
-// Defect, its record on the head names reproducing Cases, and each Case exists on the head. Correction evidence is the
-// proof: the SAME Case, taken from the head, is run against the code without the Hotfix (the baseline, the default
-// branch) and against the Hotfix's head, and the two runs are compared: RED on the baseline and GREEN on the head, for
-// EVERY reproducing Case. The first commit of a Hotfix is RED on its head and a later commit may be GREEN: the head at
-// hand is judged. The runs are made by the Run of Cases (kaal-testing run) and this module only reads them.
-// It never answers PASS: the Case-to-Defect correspondence, minimality, unrelated work and the honesty of the Case are
-// for the reviewer and are always listed as not judged. The verdict is the report; the exit status only says whether a
-// report was produced (see the command line).
+// verify Hotfix (release/CTL21): is this a valid Hotfix? One Defect, at least one Case that verifies it, RED before
+// and GREEN after. "Before" and "after" are two trees (directories): the concept is pure content and does not care
+// whether they are two branches or two file locations. Only the adapter of a platform maps its refs onto the two
+// trees (for GitHub: the default branch and the Hotfix's head, see the workflow source).
+// A Hotfix brings its own Defect record and Case, so both are read from the after tree. The proof is a comparison: the
+// same Case, the after tree's own file, is run by the Run of Cases (kaal-testing run) on the before tree and on the
+// after tree, for EVERY Case the Defect records. This module reads the after tree and the two runs as data. PASS means
+// proven mechanically, not approved.
+import { appendFileSync, copyFileSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { stripComments } from '../plan-body/comments.mjs';
 
-export const NOT_JUDGED = [
-  'whether the Case corresponds to the Defect is not judged: the review decides it',
-  'whether the correction is minimal is not judged: the diff and the review decide it',
-  'whether the diff holds no unrelated work is not judged: the diff and the review decide it',
-  'whether the Case is honest is not judged: it is code of the pull request and can tell the two trees apart; the review decides it',
-];
-
-const rootOf = (path) => {
-  const parts = String(path).split('/');
-  return (parts[0] === 'packages' || parts[0] === 'engineering') && parts[1] ? `${parts[0]}/${parts[1]}` : parts[0];
-};
-
-// Evidence is usable only when it is bound to the revision it is read for.
-const part = (evidence, key, rev) => {
-  const p = evidence?.[key];
-  if (!p || (p.result !== 'RED' && p.result !== 'GREEN')) return undefined;
-  return p.rev === rev ? p : undefined;
-};
-
-export function judgeHotfixTrace(facts) {
-  const { defects = [], paths = [], baseRev, headRev, lookupDefect, caseExists, caseEvidence } = facts ?? {};
+export function judgeHotfix(facts) {
+  const { defects = [], lookupDefect, caseExists, caseEvidence } = facts ?? {};
   const findings = [];
-  const attention = [];
-  const notJudged = [...NOT_JUDGED];
+  const unknown = [];
 
-  if (paths.length === 0) findings.push('the diff is empty: a HOTFIX changes something');
   if (defects.length === 0) findings.push('the HOTFIX names no Defect: a HOTFIX corrects one identified Defect');
   if (defects.length > 1) findings.push(`the HOTFIX names ${defects.length} Defects: a HOTFIX corrects one Defect`);
 
   let caseIds = [];
   if (defects.length === 1) {
     const recorded = lookupDefect?.(defects[0]);
-    if (!recorded) findings.push(`the Defect ${defects[0]} is not recorded`);
+    if (!recorded) findings.push(`the Defect ${defects[0]} has no record in the after tree`);
     else if (!Array.isArray(recorded.cases) || recorded.cases.length === 0) {
-      findings.push(`the Defect ${defects[0]} names no reproducing Case`);
+      findings.push(`the Defect ${defects[0]} names no Case that verifies it`);
     } else {
       caseIds = recorded.cases;
       for (const c of caseIds) {
-        if (!caseExists?.(c)) findings.push(`the reproducing Case ${c} of ${defects[0]} does not exist`);
+        if (!caseExists?.(c)) findings.push(`the Case ${c} of ${defects[0]} does not exist in the after tree`);
       }
     }
   }
   const trace = findings.length === 0 ? 'VALID' : 'BROKEN';
 
-  const roots = [...new Set(paths.map(rootOf))];
-  if (roots.length > 1) attention.push(`the diff spans ${roots.length} capability roots (${roots.join(', ')}): the HOTFIX justifies why one Defect needs them`);
-
-  // Correction evidence, read for every reproducing Case. RED at the baseline is expected; GREEN at the head alone
-  // proves nothing. The correction is VERIFIED only when every Case is VERIFIED; one NOT VERIFIED is a finding for
-  // that Case; a Case without usable evidence leaves the correction UNKNOWN.
+  // The proof, read for every Case: RED before and GREEN after.
   const cases = [];
   let correction = 'UNKNOWN';
   if (trace === 'VALID') {
     for (const caseId of caseIds) {
-      const evidence = caseEvidence?.(caseId);
-      const base = part(evidence, 'baseline', baseRev);
-      const head = part(evidence, 'head', headRev);
+      const { before, after } = caseEvidence?.(caseId) ?? {};
       let state = 'UNKNOWN';
-      if (head?.result === 'RED') {
+      if (after === 'RED') {
         state = 'NOT VERIFIED';
-        findings.push(`the Case ${caseId} is still RED on the corrected head: the correction is not verified`);
-      } else if (base?.result === 'GREEN') {
+        findings.push(`the Case ${caseId} is still RED after`);
+      } else if (before === 'GREEN') {
         state = 'NOT VERIFIED';
-        findings.push(`the Case ${caseId} is GREEN at the baseline: it did not reproduce the defect`);
-      } else if (base?.result === 'RED' && head?.result === 'GREEN') {
+        findings.push(`the Case ${caseId} is GREEN before: it shows no issue there`);
+      } else if (before === 'RED' && after === 'GREEN') {
         state = 'VERIFIED';
       } else {
-        notJudged.push(`the correction evidence of ${caseId} is missing or bound to another revision: RED at the baseline and GREEN at the corrected head are not both read`);
+        unknown.push(`the Case ${caseId} was not observed RED before and GREEN after`);
       }
       cases.push({ id: caseId, correction: state });
     }
     if (cases.some((c) => c.correction === 'NOT VERIFIED')) correction = 'NOT VERIFIED';
     else if (cases.every((c) => c.correction === 'VERIFIED')) correction = 'VERIFIED';
-  } else {
-    notJudged.push('the correction evidence is not read: the trace is broken');
   }
 
-  return { verdict: findings.length > 0 ? 'FAIL' : 'UNKNOWN', trace, correction, cases, findings, attention, notJudged };
+  const verdict = findings.length > 0 ? 'FAIL' : correction === 'VERIFIED' ? 'PASS' : 'UNKNOWN';
+  return { verdict, trace, correction, cases, findings, unknown };
 }
 
 // The KAAL Defect identities of the Defect chapter of a HOTFIX body: `<capability>/D<n>`.
@@ -163,22 +131,23 @@ export function defectsOf(body) {
   return [...new Set(chapter.match(/\b[a-z][a-z0-9-]*\/D\d+\b/g) ?? [])];
 }
 
-// Facts as Git data. The Defect record and the Cases are the Hotfix's own and are read from its head; the baseline
-// is the default branch, the code without the Hotfix. `paths` are the Hotfix's own diff against its pull request base.
-export function readFacts({ root = '.', base, head, baseline, body }) {
-  const git = (...a) => execFileSync('git', ['-C', root, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 64 * 1024 * 1024 });
-  const rev = (r) => git('rev-parse', '--verify', '--quiet', `${r}^{commit}`).trim();
-  const baseRev = rev(baseline ?? base);
-  const headRev = rev(head);
-  const paths = git('diff', '--name-only', `${rev(base)}...${headRev}`).split('\n').filter(Boolean);
+const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+  if (e.name === 'node_modules' || e.name === '.git') return [];
+  const p = join(dir, e.name);
+  return e.isDirectory() ? walk(p) : e.isFile() ? [p] : [];
+});
+
+// Facts from the after tree. The Defect record and the Cases are the Hotfix's own and are read from it.
+export function readFacts({ after, body }) {
   const lookupDefect = (id) => {
     const [cap, d] = id.split('/');
     for (const home of [`packages/kaal-${cap}`, `engineering/${cap}`]) {
-      let names = '';
-      try { names = git('ls-tree', '--name-only', headRev, `${home}/06-defects/`); } catch { continue; }
-      const file = names.split('\n').find((n) => new RegExp(`/${d}-[^/]*\\.md$`).test(n));
+      const dir = join(after, home, '06-defects');
+      let names = [];
+      try { names = readdirSync(dir); } catch { continue; }
+      const file = names.find((n) => new RegExp(`^${d}-.*\\.md$`).test(n));
       if (!file) continue;
-      const json = /```json\n([\s\S]*?)\n```/.exec(git('show', `${headRev}:${file}`))?.[1];
+      const json = /```json\n([\s\S]*?)\n```/.exec(readFileSync(join(dir, file), 'utf8'))?.[1];
       try {
         const record = JSON.parse(json);
         return record.id === id ? { cases: Array.isArray(record.tests) ? record.tests : [] } : undefined;
@@ -187,10 +156,10 @@ export function readFacts({ root = '.', base, head, baseline, body }) {
     return undefined;
   };
   const caseFiles = (id) => {
-    try { return git('grep', '-l', '-E', `${id.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}([^0-9]|$)`, headRev, '--', '*.mjs', '*.ts').split('\n').filter(Boolean).map((l) => l.slice(headRev.length + 1)); } catch { return []; }
+    const found = new RegExp(`${id.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}([^0-9]|$)`);
+    return walk(after).filter((p) => /\.(mjs|ts)$/.test(p) && found.test(readFileSync(p, 'utf8'))).map((p) => relative(after, p).split(sep).join('/'));
   };
-  const caseExists = (id) => caseFiles(id).length > 0;
-  return { baseRev, headRev, paths, defects: defectsOf(body), lookupDefect, caseExists, caseFiles };
+  return { defects: defectsOf(body), lookupDefect, caseExists: (id) => caseFiles(id).length > 0, caseFiles };
 }
 
 // The result of one Case in one run report of the Run of Cases (kaal-testing/run-report@1): the tests attributed to
@@ -206,91 +175,69 @@ export function caseResult(report, id) {
   return own.every((t) => t.actual === 'GREEN') ? 'GREEN' : 'UNKNOWN';
 }
 
-// The Run record of the judge: for each Case the result of the same Case on the baseline and on the head, bound to the
-// revision each run was made on. A run file is `{ rev, report }`; a run made on another revision is not read.
-export function evidenceFrom({ baselineRun, headRun }) {
-  return (id) => ({
-    baseline: baselineRun?.report ? { rev: baselineRun.rev, result: caseResult(baselineRun.report, id) } : undefined,
-    head: headRun?.report ? { rev: headRun.rev, result: caseResult(headRun.report, id) } : undefined,
-  });
-}
+export const evidenceFrom = ({ beforeRun, afterRun }) => (id) => ({ before: caseResult(beforeRun, id), after: caseResult(afterRun, id) });
 
-// One run of the Case files on one tree, by the Run of Cases, written as `{ rev, report }`. The Case files are the
-// head's: for the baseline they are copied over the baseline tree, so the same Case is run against the code without
-// the Hotfix. A run that cannot be made writes no file.
-export function runAt({ runner, tree, rev, files, out, timeoutMs = 600000 }) {
-  const stdout = execFileSync(process.execPath, [runner, 'run', '--root', tree, ...files], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: timeoutMs });
-  mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, JSON.stringify({ rev, report: JSON.parse(stdout) }));
-}
-
-export function overlay({ root, head, tree, files }) {
+// The Case files of the Hotfix, copied over the before tree so that the same Case runs against the code without the Hotfix.
+export function overlay({ after, before, files }) {
   for (const f of files) {
-    const text = execFileSync('git', ['-C', root, 'show', `${head}:${f}`], { maxBuffer: 64 * 1024 * 1024 });
-    mkdirSync(dirname(join(tree, f)), { recursive: true });
-    writeFileSync(join(tree, f), text);
+    mkdirSync(dirname(join(before, f)), { recursive: true });
+    copyFileSync(join(after, f), join(before, f));
   }
 }
 
-// The command line. Two commands.
-//   cases  --head <rev> --body-file <file> [--root <dir>]   prints the head's Case files of the Defect, one per line
-//   run    --on baseline|head --baseline <rev> --head <rev> --body-file <file> --tree <dir> --runner <file> --out <file> [--root <dir>]
-//          runs the head's Case files on <dir> by the Run of Cases (for the baseline they are first copied over <dir>) and
-//          writes `{ rev, report }` to --out; a run that cannot be made writes no file and the judge reads that as UNKNOWN
-//   (none) --base <rev> --baseline <rev> --head <rev> --body-file <file> [--root <dir>] [--baseline-run <file>] [--head-run <file>]
-// The verdict is the report and never an exit status: exit 0 means a report was produced, whatever the verdict (FAIL or
-// UNKNOWN is its first word); exit 2 means no report could be produced (a missing argument). `--base` is the pull
-// request's own base, for its diff; `--baseline` is the default branch, the code without the Hotfix. A run file is
-// `{ rev, report }` of the Run of Cases; without both runs the correction is UNKNOWN.
-// On GitHub Actions the report is also written to the job summary and its findings are annotations, so a reviewer
-// sees the verdict at the check without it being the job result.
+// One run of the Case files on one tree, by the Run of Cases; its report is written to `out`. A run that cannot be
+// made writes no file.
+export function runAt({ runner, tree, files, out, timeoutMs = 600000 }) {
+  const stdout = execFileSync(process.execPath, [runner, 'run', '--root', tree, ...files], { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024, timeout: timeoutMs });
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, stdout);
+}
+
+// The command line. Three commands over two trees, `--before` and `--after`, and the Hotfix's body.
+//   cases  --after <dir> --body-file <file>                the Case files of the Defect, one per line
+//   run    --on before|after --before <dir> --after <dir> --body-file <file> --runner <file> --out <file>
+//          runs those files on that tree by the Run of Cases (for `before` first copied over it) and writes the report
+//          to --out; a run that cannot be made writes no file and the judge reads UNKNOWN
+//   (none) --after <dir> --body-file <file> [--before-run <file>] [--after-run <file>]    the judgment
+// The verdict (PASS, FAIL or UNKNOWN) is the first word of the report and never the exit status: exit 0 means a report
+// was produced; exit 2 means none could be (a missing argument). On GitHub Actions the report is also written to the
+// job summary and its findings are annotations.
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (k) => { const i = process.argv.indexOf(k); return i < 0 ? undefined : process.argv[i + 1]; };
-  const root = arg('--root') || '.';
   const read = (file) => { try { return file ? JSON.parse(readFileSync(file, 'utf8')) : undefined; } catch { return undefined; } };
+  const need = (...keys) => { for (const k of keys) if (!arg(k)) { console.error(`${k} is missing`); process.exit(2); } };
+  const filesOf = (facts) => [...new Set((facts.defects.length === 1 ? facts.lookupDefect(facts.defects[0])?.cases ?? [] : []).flatMap((c) => facts.caseFiles(c)))];
   if (process.argv[2] === 'cases') {
-    if (!arg('--head') || !arg('--body-file')) { console.error('usage: verify-hotfix.mjs cases --head <rev> --body-file <file> [--root <dir>]'); process.exit(2); }
-    try {
-      const facts = readFacts({ root, base: arg('--head'), head: arg('--head'), body: readFileSync(arg('--body-file'), 'utf8') });
-      const cases = facts.defects.length === 1 ? facts.lookupDefect(facts.defects[0])?.cases ?? [] : [];
-      console.log([...new Set(cases.flatMap((c) => facts.caseFiles(c)))].join('\n'));
-    } catch { /* no files: the judge reports UNKNOWN */ }
+    need('--after', '--body-file');
+    try { console.log(filesOf(readFacts({ after: arg('--after'), body: readFileSync(arg('--body-file'), 'utf8') })).join('\n')); } catch { /* no files: the judge reports UNKNOWN */ }
     process.exit(0);
   }
   if (process.argv[2] === 'run') {
+    need('--on', '--before', '--after', '--body-file', '--runner', '--out');
     const on = arg('--on');
-    for (const k of ['--head', '--baseline', '--body-file', '--tree', '--runner', '--out']) if (!arg(k)) { console.error(`usage: verify-hotfix.mjs run --on baseline|head ... (${k} is missing)`); process.exit(2); }
-    if (on !== 'baseline' && on !== 'head') { console.error('--on is baseline or head'); process.exit(2); }
+    if (on !== 'before' && on !== 'after') { console.error('--on is before or after'); process.exit(2); }
     try {
-      const facts = readFacts({ root, base: arg('--head'), baseline: arg('--baseline'), head: arg('--head'), body: readFileSync(arg('--body-file'), 'utf8') });
-      const cases = facts.defects.length === 1 ? facts.lookupDefect(facts.defects[0])?.cases ?? [] : [];
-      const files = [...new Set(cases.flatMap((c) => facts.caseFiles(c)))];
+      const files = filesOf(readFacts({ after: arg('--after'), body: readFileSync(arg('--body-file'), 'utf8') }));
       if (files.length > 0) {
-        if (on === 'baseline') overlay({ root, head: facts.headRev, tree: arg('--tree'), files });
-        runAt({ runner: arg('--runner'), tree: arg('--tree'), rev: on === 'baseline' ? facts.baseRev : facts.headRev, files, out: arg('--out') });
+        if (on === 'before') overlay({ after: arg('--after'), before: arg('--before'), files });
+        runAt({ runner: arg('--runner'), tree: arg(`--${on}`), files, out: arg('--out') });
       }
     } catch (e) { console.error(`no run was made: ${String(e.message).split('\n')[0]}`); }
     process.exit(0);
   }
-  if (!arg('--base') || !arg('--head') || !arg('--body-file')) {
-    console.error('usage: verify-hotfix.mjs --base <rev> --baseline <rev> --head <rev> --body-file <file> [--root <dir>] [--baseline-run <file>] [--head-run <file>]');
-    process.exit(2);
-  }
+  need('--after', '--body-file');
   let r;
   try {
-    const facts = readFacts({ root, base: arg('--base'), baseline: arg('--baseline'), head: arg('--head'), body: readFileSync(arg('--body-file'), 'utf8') });
-    const bound = (run, rev) => (run && run.rev === rev ? run : undefined);
-    const evidence = evidenceFrom({ baselineRun: bound(read(arg('--baseline-run')), facts.baseRev), headRun: bound(read(arg('--head-run')), facts.headRev) });
-    r = judgeHotfixTrace({ ...facts, caseEvidence: evidence });
+    r = judgeHotfix({ ...readFacts({ after: arg('--after'), body: readFileSync(arg('--body-file'), 'utf8') }), caseEvidence: evidenceFrom({ beforeRun: read(arg('--before-run')), afterRun: read(arg('--after-run')) }) });
   } catch (e) {
-    r = { verdict: 'UNKNOWN', trace: 'UNREAD', correction: 'UNKNOWN', cases: [], findings: [], attention: [], notJudged: [`a fact could not be read: ${String(e.message).split('\n')[0]}`] };
+    r = { verdict: 'UNKNOWN', trace: 'UNREAD', correction: 'UNKNOWN', cases: [], findings: [], unknown: [`a fact could not be read: ${String(e.message).split('\n')[0]}`] };
   }
-  const lines = [`${r.verdict}: trace ${r.trace}, correction ${r.correction}`, ...r.cases.map((c) => `case ${c.id}: ${c.correction}`), ...r.findings.map((f) => `finding: ${f}`), ...r.attention.map((a) => `attention: ${a}`), ...r.notJudged.map((n) => `not judged: ${n}`)];
+  const lines = [`${r.verdict}: trace ${r.trace}, correction ${r.correction}`, ...r.cases.map((c) => `case ${c.id}: ${c.correction}`), ...r.findings.map((f) => `finding: ${f}`), ...r.unknown.map((u) => `unknown: ${u}`)];
   console.log(lines.join('\n'));
   if (process.env.GITHUB_ACTIONS === 'true') {
     for (const f of r.findings) console.log(`::error title=verify Hotfix::${f}`);
-    if (r.verdict === 'UNKNOWN') console.log(`::warning title=verify Hotfix::UNKNOWN: ${r.notJudged.join('; ')}`);
-    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## verify Hotfix: ${r.verdict}\n\n\`\`\`\n${lines.join('\n')}\n\`\`\`\n\nThe job result says that this report was produced. The verdict is above and is never PASS.\n`);
+    if (r.verdict === 'UNKNOWN') console.log(`::warning title=verify Hotfix::UNKNOWN: ${r.unknown.join('; ')}`);
+    if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## verify Hotfix: ${r.verdict}\n\n\`\`\`\n${lines.join('\n')}\n\`\`\`\n\nThe job result says that this report was produced; the verdict is above.\n`);
   }
   process.exit(0);
 }
@@ -300,12 +247,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
 `````
 name: verify Hotfix
-# release/CTL21. A detective check on plain pull_request: no token, no secret, no privileged trigger.
-# Two jobs on two machines. `run Hotfix Cases` runs the Hotfix's Cases on two trees by the Run of Cases (kaal-testing run),
-# as the repository's own CI runs its tests on a plain pull_request: read-only token, no secret. That is code of the pull request
-# running, so its output is only data. `verify Hotfix` starts clean, checks out the base, the trusted judge, reads the pull request
-# as Git data and the two runs as data, and judges. The body is data in a file, never script text.
-# The job result says whether the report was produced. The verdict (FAIL or UNKNOWN, never PASS) is in the report, the job summary and the annotations.
+# release/CTL21, the GitHub adapter. The control compares two trees, before and after. Here the default branch is the before tree and the
+# head of the pull request is the after tree. A detective check on plain pull_request: no token, no secret, no privileged trigger.
+# Two jobs on two machines. `run Hotfix Cases` runs the Hotfix's Cases on both trees by the Run of Cases (kaal-testing run), as the
+# repository's own CI runs its tests on a plain pull_request. `verify Hotfix` starts clean, checks out the base, the trusted judge,
+# reads the after tree and the two runs as data, and judges. The body is data in a file, never script text.
+# The job result says whether the report was produced; the verdict (PASS, FAIL or UNKNOWN) is in the report, the job summary and the annotations.
 on:
   pull_request:
     branches: ['hotfix/**']
@@ -329,7 +276,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 24
-      - name: Fetch the proposed head and the default branch as Git data
+      - name: Fetch the proposed head and the default branch
         run: |
           git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
           git fetch --no-tags origin "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
@@ -337,17 +284,17 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm run build -w kaal-core -w @kaihacksai/kaal-hosting
-      - name: Run the Hotfix's Cases on the baseline and on the head
+      - name: Run the Hotfix's Cases on the before and the after tree
         run: |
           J=engineering/release-management/05-src/hotfix/verify-hotfix.mjs
           test -f "$J" || { echo "no run: the judge is absent on the base"; exit 0; }
           mkdir -p "$RUNNER_TEMP/runs"
           printf '%s' "$PR_BODY" > "$RUNNER_TEMP/body.md"
-          git worktree add --detach "$RUNNER_TEMP/baseline" "refs/remotes/origin/${DEFAULT_BRANCH}"
-          git worktree add --detach "$RUNNER_TEMP/head" refs/remotes/pull/head
-          for T in baseline head; do (cd "$RUNNER_TEMP/$T" && npm ci --ignore-scripts) || true; done
-          for T in baseline head; do
-            node "$J" run --on "$T" --baseline "refs/remotes/origin/${DEFAULT_BRANCH}" --head refs/remotes/pull/head --body-file "$RUNNER_TEMP/body.md" --tree "$RUNNER_TEMP/$T" --runner "$PWD/packages/kaal-testing/bin/kaal-testing.mjs" --out "$RUNNER_TEMP/runs/$T.json"
+          git worktree add --detach "$RUNNER_TEMP/before" "refs/remotes/origin/${DEFAULT_BRANCH}"
+          git worktree add --detach "$RUNNER_TEMP/after" refs/remotes/pull/head
+          for T in before after; do (cd "$RUNNER_TEMP/$T" && npm ci --ignore-scripts) || true; done
+          for T in before after; do
+            node "$J" run --on "$T" --before "$RUNNER_TEMP/before" --after "$RUNNER_TEMP/after" --body-file "$RUNNER_TEMP/body.md" --runner "$PWD/packages/kaal-testing/bin/kaal-testing.mjs" --out "$RUNNER_TEMP/runs/$T.json"
           done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
@@ -360,10 +307,8 @@ jobs:
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     env:
-      BASE_SHA: ${{ github.event.pull_request.base.sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_BODY: ${{ github.event.pull_request.body }}
-      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
       - name: Check out the base, the trusted judge
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -374,10 +319,10 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 24
-      - name: Fetch the proposed head and the default branch as Git data
+      - name: Fetch the proposed head as the after tree, to be read and never run
         run: |
           git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
-          git fetch --no-tags origin "+refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}"
+          git worktree add --detach "$RUNNER_TEMP/after" refs/remotes/pull/head
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         continue-on-error: true
         with:
@@ -388,5 +333,5 @@ jobs:
           J=engineering/release-management/05-src/hotfix/verify-hotfix.mjs
           test -f "$J" || { echo "UNKNOWN: the judge is absent on the base"; exit 2; }
           printf '%s' "$PR_BODY" > "$RUNNER_TEMP/body.md"
-          node "$J" --base "$BASE_SHA" --baseline "refs/remotes/origin/${DEFAULT_BRANCH}" --head refs/remotes/pull/head --body-file "$RUNNER_TEMP/body.md" --baseline-run "$RUNNER_TEMP/runs/baseline.json" --head-run "$RUNNER_TEMP/runs/head.json"
+          node "$J" --after "$RUNNER_TEMP/after" --body-file "$RUNNER_TEMP/body.md" --before-run "$RUNNER_TEMP/runs/before.json" --after-run "$RUNNER_TEMP/runs/after.json"
 `````

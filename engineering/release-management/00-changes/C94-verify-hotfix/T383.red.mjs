@@ -13,7 +13,7 @@ const load = () => import(pathToFileURL(MOD).href);
 const draft = (name) => readFileSync(join(RM, '00-changes/C94-verify-hotfix/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T383';
 export const tests = ['release/F71', 'release/A66'];
-export const title = 'the workflow source equals its draft: plain pull_request into hotfix/**, read-only, no secret; the Cases run in one job and the judge in a clean job from the base commit, with the head from its pull request ref, the runs downloaded as data and the body from the environment and never in script text';
+export const title = 'the GitHub adapter equals its draft: plain pull_request into hotfix/**, read-only, no secret; the default branch is the before tree and the head the after tree; the Cases run in one job and the judge in a clean job from the base commit, with the runs downloaded as data and the body from the environment and never in script text';
 export async function run() {
   const real = join(RM, '05-src/wiring/workflows/verify-hotfix.yml');
   assert.ok(existsSync(real), 'the workflow source is absent');
@@ -45,10 +45,11 @@ export async function run() {
   assert.match(runJob, /kaal-testing\.mjs/);
   assert.match(runJob, /node "\$J" run --on "\$T"/);
   assert.match(runJob, /actions\/upload-artifact@[0-9a-f]{40}/);
-  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/baseline" "refs\/remotes\/origin\/\$\{DEFAULT_BRANCH\}"/, 'the baseline is not the default branch');
-  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/head" refs\/remotes\/pull\/head/);
-  assert.doesNotMatch(judgeJob, /kaal-testing|npm ci|worktree|upload-artifact/, 'the judge job runs code of the pull request or builds');
+  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/before" "refs\/remotes\/origin\/\$\{DEFAULT_BRANCH\}"/, 'the before tree is not the default branch');
+  assert.match(runJob, /git worktree add --detach "\$RUNNER_TEMP\/after" refs\/remotes\/pull\/head/);
+  assert.match(judgeJob, /git worktree add --detach "\$RUNNER_TEMP\/after" refs\/remotes\/pull\/head/, 'the judge does not read the after tree');
+  assert.doesNotMatch(judgeJob, /kaal-testing|npm ci|npm run|upload-artifact|\brun --on\b/, 'the judge job runs code of the pull request or builds');
   assert.match(judgeJob, /actions\/download-artifact@[0-9a-f]{40}/);
-  assert.match(judgeJob, /--baseline-run "\$RUNNER_TEMP\/runs\/baseline\.json" --head-run "\$RUNNER_TEMP\/runs\/head\.json"/);
+  assert.match(judgeJob, /--before-run "\$RUNNER_TEMP\/runs\/before\.json" --after-run "\$RUNNER_TEMP\/runs\/after\.json"/);
   assert.match(judgeJob, /UNKNOWN: the judge is absent on the base[\s\S]*exit 2/);
 }

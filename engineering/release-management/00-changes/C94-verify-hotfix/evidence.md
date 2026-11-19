@@ -1,6 +1,6 @@
 # C94 evidence
 
-Observed with Node 22.23.5 and Node 24.22.3 (the Run of Cases requires Node 24), on the collector `kaal/release/verify-hotfix` at 7712758 plus this revision of the PLAN, and on a throwaway copy of `main` at 0a9cfca.
+Observed with Node 24.22.3 (the Run of Cases requires it), on the collector `kaal/release/verify-hotfix` at 7712758 plus this revision of the PLAN, and on a throwaway copy of `main` at 0a9cfca.
 
 ## Expected RED (the PLAN's tree)
 
@@ -23,18 +23,14 @@ In a throwaway copy of `main` (0a9cfca, which holds the Run of Cases, `npm ci --
 ## Found while writing the PLAN
 
 - The first draft of the workflow named `pull_request_target` in a comment. T383 refuses any mention of the trigger in the source, because a text count of the trigger is what release/CTL19 exists to avoid.
-- T383 first judged the whole tail of a job as script text and flagged an artifact `path: ${{ runner.temp }}` as an expression in a script; it now reads the `run:` blocks only.
-- In one job the judge would have run after the Cases and the Cases, being code of the pull request, could have altered the judge or forged the runs on disk. The Cases therefore run in their own job and the judge job starts clean.
+- In one job the judge would have run after the Cases, and the Cases, being code of the pull request, could have altered the judge or the runs on disk. The Cases therefore run in their own job and the judge job starts clean.
+- CodeQL (`js/incomplete-multi-character-sanitization`, high) flagged an earlier draft of `defectsOf`, which removed HTML comments with a single-pass regex. The draft uses `stripComments` of `05-src/plan-body/comments.mjs`, which the envelope judge already uses.
 
-- CodeQL (`js/incomplete-multi-character-sanitization`, high) flagged the first DO, which this pull request carried for a moment: `defectsOf` removed HTML comments with a single-pass regex, which can leave an opener behind. The draft now uses `stripComments` of `05-src/plan-body/comments.mjs`, which the envelope judge already uses and which leaves no opener in its result. T380 to T384 pass again on the throwaway copy.
+## Reviews and corrections, in order
 
-## CPO review of the PLAN (19 Nov, first revision), kept
-
-Every reproducing Case is read, and the verdict is the report and not the job result. Both stand in this revision (T380 and T382 hold them).
-
-## Kai's correction of the model (19 Nov)
-
-"If the test case is on main and is red, how did it get there?" and "a finding is proven by having a test case and a defect; on the first commit it would be red on hotfix/*, on the second it might be green, but the real proof it is an issue is running it against main and hotfix/* and comparing". This revision is that model.
+1. CPO review of the first PLAN: every reproducing Case is read, and the verdict is the report and not the job result. Both stand.
+2. Kai (19 Nov): a RED Case cannot be on `main`; the Hotfix brings its own Defect and Case; the proof is running the Case on `main` and on the Hotfix and comparing.
+3. Kai (19 Nov): the valid Hotfix is one Defect, at least one Case, RED before and GREEN after, deterministic whichever Case is run; whether a Case cheats is content for review or the Inspector; the concept compares a before and an after, branches or file locations alike; PASS is possible. This revision is that.
 
 ## Retired with this Change
 

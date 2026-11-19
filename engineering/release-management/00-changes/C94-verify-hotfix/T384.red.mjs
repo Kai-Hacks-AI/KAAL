@@ -1,4 +1,4 @@
-// Case release/T384 tests: release/F71 (the Run of Cases, end to end)
+// Case release/T384 tests: release/F71 (the Run of Cases, end to end, on two plain directories)
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,55 +10,51 @@ const RM = join(repo, 'engineering/release-management');
 const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
 const MOD = join(RM, '05-src/hotfix/verify-hotfix.mjs');
 const load = () => import(pathToFileURL(MOD).href);
-const draft = (name) => readFileSync(join(RM, '00-changes/C94-verify-hotfix/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+
 const RUNNER = join(repo, 'packages/kaal-testing/bin/kaal-testing.mjs');
 export const id = 'release/T384';
 export const tests = ['release/F71', 'release/A66'];
-export const title = 'the same Case, brought by the Hotfix, is run by the Run of Cases on the default branch (the Case file copied over its tree) and on the head, and the two runs are compared: RED then GREEN is a verified correction, never PASS; a Case that is GREEN on both is a finding';
+export const title = 'on two plain directories, no Git: the same Case, brought by the Hotfix, is run by the Run of Cases on the before tree (its file copied over) and on the after tree, and RED then GREEN is PASS; a Case that is GREEN before, or still RED after, is a finding';
 export async function run() {
   assert.ok(existsSync(MOD), 'the verify Hotfix module is absent');
   assert.ok(existsSync(RUNNER), 'the Run of Cases is absent');
   assert.ok(Number(process.versions.node.split('.')[0]) >= 24, 'the Run of Cases requires Node 24');
-  const dir = mkdtempSync(join(tmpdir(), 'hotfix-run-'));
-  const git = (...a) => execFileSync('git', ['-C', dir, '-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { encoding: 'utf8' });
-  const put = (p, text) => { mkdirSync(join(dir, p, '..'), { recursive: true }); writeFileSync(join(dir, p), text); };
-  git('init', '-q', '-b', 'main');
-  put('packages/kaal-demo/src/add.mjs', 'export const add = (a, b) => a - b;\n');
-  git('add', '-A'); git('commit', '-q', '-m', 'main');
-  git('checkout', '-q', '-b', 'hotfix-head');
-  put('packages/kaal-demo/src/add.mjs', 'export const add = (a, b) => a + b;\n');
-  put('packages/kaal-demo/06-defects/D1-add.md', '# demo/D1\n\n```json\n{"id":"demo/D1","tests":["demo/T1"]}\n```\n');
-  put('packages/kaal-demo/06-defects/add.test.mjs', "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { add } from '../src/add.mjs';\ntest('demo/T1: add adds', () => { assert.equal(add(2, 3), 5); });\n");
-  git('add', '-A'); git('commit', '-q', '-m', 'hotfix');
-  // the baseline tree is the default branch's checkout, the head tree the head's
-  const baseTree = join(dir, '..', `${dir.split('/').pop()}-baseline`);
-  const headTree = join(dir, '..', `${dir.split('/').pop()}-head`);
-  git('worktree', 'add', '-q', '--detach', baseTree, 'main');
-  git('worktree', 'add', '-q', '--detach', headTree, 'hotfix-head');
-  put('body.md', '## Defect\n\ndemo/D1 add subtracts.\n');
-  const body = join(dir, 'body.md');
+  const root = mkdtempSync(join(tmpdir(), 'hotfix-run-'));
+  const make = (name, source) => {
+    const dir = join(root, name);
+    mkdirSync(join(dir, 'packages/kaal-demo/src'), { recursive: true });
+    writeFileSync(join(dir, 'packages/kaal-demo/src/add.mjs'), source);
+    return dir;
+  };
+  const before = make('before', 'export const add = (a, b) => a - b;\n');
+  const after = make('after', 'export const add = (a, b) => a + b;\n');
+  const put = (dir, p, text) => { mkdirSync(join(dir, p, '..'), { recursive: true }); writeFileSync(join(dir, p), text); };
+  // the Hotfix brings its Defect record and its Case, in the after tree only
+  put(after, 'packages/kaal-demo/06-defects/D1-add.md', '# demo/D1\n\n```json\n{"id":"demo/D1","tests":["demo/T1"]}\n```\n');
+  put(after, 'packages/kaal-demo/06-defects/add.test.mjs', "import test from 'node:test';\nimport assert from 'node:assert/strict';\nimport { add } from '../src/add.mjs';\ntest('demo/T1: add adds', () => { assert.equal(add(2, 3), 5); });\n");
+  writeFileSync(join(root, 'body.md'), '## Defect\n\ndemo/D1 add subtracts.\n');
   const node = (...a) => execFileSync(process.execPath, [MOD, ...a], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-  const common = ['--root', dir, '--baseline', 'main', '--head', 'hotfix-head', '--body-file', body];
-  assert.equal(node('cases', '--head', 'hotfix-head', '--body-file', body, '--root', dir).trim(), 'packages/kaal-demo/06-defects/add.test.mjs');
-  const runs = join(dir, '..', `${dir.split('/').pop()}-runs`);
-  for (const [on, tree] of [['baseline', baseTree], ['head', headTree]]) node('run', '--on', on, ...common, '--tree', tree, '--runner', RUNNER, '--out', join(runs, `${on}.json`));
-  const baseline = JSON.parse(readFileSync(join(runs, 'baseline.json'), 'utf8'));
-  const head = JSON.parse(readFileSync(join(runs, 'head.json'), 'utf8'));
-  assert.equal(baseline.rev, git('rev-parse', 'main').trim());
-  assert.equal(head.rev, git('rev-parse', 'hotfix-head').trim());
-  assert.equal(baseline.report.counts.RED, 1, 'the Case is not RED on the default branch');
-  assert.equal(head.report.counts.GREEN, 1, 'the Case is not GREEN on the head');
-  const verdict = (extra) => node('--base', 'main', ...common, ...extra);
-  const out = verdict(['--baseline-run', join(runs, 'baseline.json'), '--head-run', join(runs, 'head.json')]);
-  assert.match(out, /^UNKNOWN: trace VALID, correction VERIFIED/);
-  assert.doesNotMatch(out, /\bPASS\b/);
-  // The same Case on a default branch that already holds the fix is no issue there: a finding.
-  git('checkout', '-q', 'main');
-  put('packages/kaal-demo/src/add.mjs', 'export const add = (a, b) => a + b;\n');
-  git('commit', '-q', '-am', 'main fixed');
-  const baseTree2 = join(dir, '..', `${dir.split('/').pop()}-baseline2`);
-  git('worktree', 'add', '-q', '--detach', baseTree2, 'main');
-  node('run', '--on', 'baseline', ...common, '--tree', baseTree2, '--runner', RUNNER, '--out', join(runs, 'baseline2.json'));
-  const second = verdict(['--baseline-run', join(runs, 'baseline2.json'), '--head-run', join(runs, 'head.json')]);
-  assert.match(second, /finding: the Case demo\/T1 is GREEN at the baseline/);
+  const common = ['--before', before, '--after', after, '--body-file', join(root, 'body.md')];
+  assert.equal(node('cases', '--after', after, '--body-file', join(root, 'body.md')).trim(), 'packages/kaal-demo/06-defects/add.test.mjs');
+  const runs = join(root, 'runs');
+  for (const on of ['before', 'after']) node('run', '--on', on, ...common, '--runner', RUNNER, '--out', join(runs, `${on}.json`));
+  const rb = JSON.parse(readFileSync(join(runs, 'before.json'), 'utf8'));
+  const ra = JSON.parse(readFileSync(join(runs, 'after.json'), 'utf8'));
+  assert.equal(rb.counts.RED, 1, 'the Case is not RED on the before tree');
+  assert.equal(ra.counts.GREEN, 1, 'the Case is not GREEN on the after tree');
+  const verdict = (b, a) => node('--after', after, '--body-file', join(root, 'body.md'), '--before-run', b, '--after-run', a);
+  assert.match(verdict(join(runs, 'before.json'), join(runs, 'after.json')), /^PASS: trace VALID, correction VERIFIED/);
+  // a before tree that already holds the fix: the same Case shows no issue there
+  const fixed = make('fixed', 'export const add = (a, b) => a + b;\n');
+  node('run', '--on', 'before', '--before', fixed, '--after', after, '--body-file', join(root, 'body.md'), '--runner', RUNNER, '--out', join(runs, 'fixed.json'));
+  const noIssue = verdict(join(runs, 'fixed.json'), join(runs, 'after.json'));
+  assert.match(noIssue, /^FAIL: /);
+  assert.match(noIssue, /finding: the Case demo\/T1 is GREEN before/);
+  // an after tree that still has the defect: the Case is still RED there
+  const unfixed = make('unfixed', 'export const add = (a, b) => a - b;\n');
+  for (const f of ['packages/kaal-demo/06-defects/D1-add.md', 'packages/kaal-demo/06-defects/add.test.mjs']) put(unfixed, f, readFileSync(join(after, f), 'utf8'));
+  node('run', '--on', 'after', '--before', before, '--after', unfixed, '--body-file', join(root, 'body.md'), '--runner', RUNNER, '--out', join(runs, 'unfixed.json'));
+  const still = node('--after', unfixed, '--body-file', join(root, 'body.md'), '--before-run', join(runs, 'before.json'), '--after-run', join(runs, 'unfixed.json'));
+  assert.match(still, /^FAIL: /);
+  assert.match(still, /finding: the Case demo\/T1 is still RED after/);
 }
