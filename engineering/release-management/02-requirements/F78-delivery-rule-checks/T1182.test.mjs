@@ -17,12 +17,12 @@ const DECL = 'engineering/release-management/03-architecture/A67-delivery-locati
 const put = (dir, rel, from) => { mkdirSync(dirname(join(dir, rel)), { recursive: true }); copyFileSync(join(repo, from ?? rel), join(dir, rel)); };
 export const id = 'release/T1182';
 export const tests = ['release/F78'];
-export const title = 'the Requirement says the delivery rule judges in every shape its checker runs in and says cannot judge otherwise, equal to its draft';
+export const title = 'the Requirement says the delivery rule checks in every shape its checker runs in and says cannot check otherwise, equal to its draft';
 export async function run() {
-  const real = join(RM, '02-requirements/F78-delivery-rule-judges/F78.md');
+  const real = join(RM, '02-requirements/F78-delivery-rule-checks/F78.md');
   assert.ok(existsSync(real), 'F78.md is absent');
   assert.equal(readFileSync(real, 'utf8'), `${draft('F78.md')}\n`, 'F78.md differs from the draft');
   const t = readFileSync(real, 'utf8');
   assert.match(t, /serves: \[release\/I53\]/);
-  assert.match(t, /cannot judge/);
+  assert.match(t, /cannot check/);
 }

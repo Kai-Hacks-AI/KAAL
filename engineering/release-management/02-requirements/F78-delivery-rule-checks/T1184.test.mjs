@@ -17,7 +17,7 @@ const DECL = 'engineering/release-management/03-architecture/A67-delivery-locati
 const put = (dir, rel, from) => { mkdirSync(dirname(join(dir, rel)), { recursive: true }); copyFileSync(join(repo, from ?? rel), join(dir, rel)); };
 export const id = 'release/T1184';
 export const tests = ['release/F78'];
-export const title = 'the Change Isolation wrapper, run as the CI job runs it on a scratch repository, reports a mix of delivery and solution and does not say cannot judge';
+export const title = 'the Change Isolation wrapper, run as the CI job runs it on a scratch repository, reports a mix of delivery and solution and does not say cannot check';
 export async function run() {
   // A scratch origin whose main holds the checker, the reader and the declaration as the target's tip, and a topic branch that mixes a delivery path with a solution path.
   const origin = mkdtempSync(join(tmpdir(), 'c101-origin-'));
@@ -38,6 +38,6 @@ export async function run() {
   const r = spawnSync('bash', [join(repo, 'engineering/github/change-isolation.sh')], { cwd: work, encoding: 'utf8', env: { ...process.env, GUARD_HEAD: head, GUARD_BASE: base, GUARD_BASE_REF: 'main', KAAL_DEFAULT: 'main' } });
   const out = r.stdout + r.stderr;
   assert.equal(r.status, 0, `the gate must still pass: ${out}`);
-  assert.doesNotMatch(out, /cannot judge/, `the detective rule could not judge: ${out}`);
+  assert.doesNotMatch(out, /cannot check/, `the detective rule could not check: ${out}`);
   assert.match(out, /detective \(not gating\): delivery travels apart from solution: src\/y\.txt is not a delivery path/);
 }

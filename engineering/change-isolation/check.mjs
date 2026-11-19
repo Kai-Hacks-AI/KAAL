@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 
 /**
  * The delivery reader, when it is reachable. The wrapper scripts run this file as a lone copy, where the reader is not beside it: the
- * detective rule below then cannot be judged, and nothing else of the checker depends on it.
+ * detective rule below then cannot be checked, and nothing else of the checker depends on it.
  */
 let delivery = null, declaration;
 for (const [reader, json] of [["../release-management/05-src/delivery/locations.mjs", undefined], ["./kaal-delivery-locations.mjs", "./kaal-delivery-locations.json"]]) {
@@ -327,10 +327,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const v of violations) console.error(v);
   if (violations.length) process.exit(1);
   console.log(`ok: ${paths.length} changed paths conform`);
-  // Reported only when the gate itself passes, after its verdict: a refused change already says what is wrong with it.
+  // Reported only when the gate itself passes, after its result: a refused change already says what is wrong with it.
   try { for (const v of deliveryMixed(paths)) console.log(`detective (not gating): ${v}`); } catch (e) {
     if (!(e instanceof CannotJudge)) throw e;
-    console.log(`detective (not gating): cannot judge: ${e.message}`);
+    console.log(`detective (not gating): cannot check: ${e.message}`);
   }
   if (deferred && carriedEntry) console.log(`attestation deferred: ledger-entry: ${carriedEntry.id} sha256:${attestedFact.digest} (the review check judges it)`);
 }

@@ -11,7 +11,7 @@ On the merged PLAN (CPO approved, PR #2096), into the collector `kaal/release/de
 
 ## Observed
 
-- T1181 to T1186: 6 of 6 pass, run alone. T1184 runs the real wrapper on a scratch repository and no longer says `cannot judge`; T1185 judges the mix as a lone copy beside the two files and still says `cannot judge` without them.
+- T1181 to T1186: 6 of 6 pass, run alone. T1184 runs the real wrapper on a scratch repository and no longer says `cannot check`; T1185 checks the mix as a lone copy beside the two files and still says `cannot check` without them.
 - `node --test engineering/change-isolation/check.test.mjs`: 26 of 26 pass.
 - `node --test engineering/cases/cases.test.mjs`: 306 tests, 290 pass, 16 fail. The 16 are the same names that fail on `main`, compared by name.
 - The controls checker lists release/CTL23 as `designed valid`.

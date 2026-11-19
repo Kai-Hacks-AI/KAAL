@@ -8,26 +8,26 @@
 
 ## Mechanism
 
-The checker looks for the delivery reader in the repository and, failing that, beside itself under the names `kaal-delivery-locations.mjs` and `kaal-delivery-locations.json`. Both wrapper scripts write those two files next to the temporary copy of the checker from the target's tip with `git show` (the way `change-isolation.sh` already writes Foundation's SHA-256), and delete a file the target does not hold. With both present the rule judges; with either missing it says `cannot judge`, as today. Nothing of the gate changes: the rule still prints a detective line after the verdict and only for a change that passed.
+The checker looks for the delivery reader in the repository and, failing that, beside itself under the names `kaal-delivery-locations.mjs` and `kaal-delivery-locations.json`. Both wrapper scripts write those two files next to the temporary copy of the checker from the target's tip with `git show` (the way `change-isolation.sh` already writes Foundation's SHA-256), and delete a file the target does not hold. With both present the rule checks; with either missing it says `cannot check`, as today. Nothing of the gate changes: the rule still prints a detective line after the result and only for a change that passed.
 
 ## Classification and minimum evidence
 
 release/CTL23 `verify Delivery` is detective. It reveals whether a change that touches a delivery location carries a path that is not delivery. PASS: no delivery location touched, or only delivery paths. FAIL: a delivery path together with a solution path. UNKNOWN: the declaration or the reader cannot be read, which never counts as a pass.
 
-`evidence: [fixture:2, real:1, provoked:1:fail]`, in the form of controls/F28 and the kinds controls/F30 asks of every control. `fixture` is a scratch repository run through the wrapper; `real` is a Change Isolation run of this repository on a pull request into `main` whose log shows a judged line (not `cannot judge`); `provoked` is a mixed change made on purpose, RED on a `main` without the fix and GREEN with it. It claims `designed` and no more.
+`evidence: [fixture:2, real:1, provoked:1:fail]`, in the form of controls/F28 and the kinds controls/F30 asks of every control. `fixture` is a scratch repository run through the wrapper; `real` is a Change Isolation run of this repository on a pull request into `main` whose log shows a checked line (not `cannot check`); `provoked` is a mixed change made on purpose, RED on a `main` without the fix and GREEN with it. It claims `designed` and no more.
 
 ## Placement of the Cases
 
 | Case | Tests | Sits in | Asserts |
 | --- | --- | --- | --- |
 | T1181 | release/CTL23 | `04-controls/CTL23-verify-delivery` | listed as detective with I53, equal to its draft |
-| T1182 | release/F78 | `02-requirements/F78-delivery-rule-judges` | the Requirement serves I53, equal to its draft |
+| T1182 | release/F78 | `02-requirements/F78-delivery-rule-checks` | the Requirement serves I53, equal to its draft |
 | T1183 | release/A69 | `03-architecture/A69-delivery-reader-beside-checker` | the Architecture addresses F78 and names the two wrappers and the two file names, equal to its draft |
-| T1184 | release/F78 | F78 folder | the wrapper `change-isolation.sh`, run as the CI job runs it on a scratch repository, reports a mix of a delivery path and a solution path and does not say `cannot judge` |
-| T1185 | release/F78 | F78 folder | the checker as a lone copy beside the two files judges the same mix; without the two files it says `cannot judge`, still passes the gate and never reports a pass of the rule |
+| T1184 | release/F78 | F78 folder | the wrapper `change-isolation.sh`, run as the CI job runs it on a scratch repository, reports a mix of a delivery path and a solution path and does not say `cannot check` |
+| T1185 | release/F78 | F78 folder | the checker as a lone copy beside the two files checks the same mix; without the two files it says `cannot check`, still passes the gate and never reports a pass of the rule |
 | T1186 | release/CTL23 | CTL23 folder | the evidence declaration is present and accepted by the controls checker |
 
-T1184 and T1185 are the RED Cases for `cannot judge`: on `main` both fail with exactly that line. All Cases are held `.red.mjs` and renamed `.test.mjs` in the DO.
+T1184 and T1185 are the RED Cases for `cannot check`: on `main` both fail with exactly that line. All Cases are held `.red.mjs` and renamed `.test.mjs` in the DO.
 
 ## Ids
 
@@ -43,6 +43,6 @@ A 4L retrospective in `act.md`.
 
 ## Left open
 
-- The rule stays detective. Preventive is a different control with the same judge, only after CTL23 is Tested and the Owner decides.
-- A target whose tip does not hold the reader or the declaration still says `cannot judge`; that is honest, and it is UNKNOWN.
+- The rule stays detective. Preventive is a different control with the same check, only after CTL23 is Tested and the Owner decides.
+- A target whose tip does not hold the reader or the declaration still says `cannot check`; that is honest, and it is UNKNOWN.
 - Registering the Change Isolation job as the station that runs CTL23, and recording the first real runs, follow the DO.

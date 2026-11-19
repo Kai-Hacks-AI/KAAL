@@ -17,7 +17,7 @@ const DECL = 'engineering/release-management/03-architecture/A67-delivery-locati
 const put = (dir, rel, from) => { mkdirSync(dirname(join(dir, rel)), { recursive: true }); copyFileSync(join(repo, from ?? rel), join(dir, rel)); };
 export const id = 'release/T1185';
 export const tests = ['release/F78'];
-export const title = 'the checker as a lone copy beside the reader and the declaration judges a mix; without them it says cannot judge, passes the gate and reports no pass of the rule';
+export const title = 'the checker as a lone copy beside the reader and the declaration checks a mix; without them it says cannot check, passes the gate and reports no pass of the rule';
 export async function run() {
   const mixed = '.githooks/pre-push\0src/y.txt\0';
   const lone = mkdtempSync(join(tmpdir(), 'c101-lone-'));
@@ -26,12 +26,12 @@ export async function run() {
   copyFileSync(join(repo, CHECKER), join(withFiles, 'check.mjs'));
   copyFileSync(join(repo, READER), join(withFiles, 'kaal-delivery-locations.mjs'));
   copyFileSync(join(repo, DECL), join(withFiles, 'kaal-delivery-locations.json'));
-  const judged = spawnSync(process.execPath, [join(withFiles, 'check.mjs')], { input: mixed, encoding: 'utf8' });
-  assert.equal(judged.status, 0, 'the gate passes this change');
-  assert.doesNotMatch(judged.stdout, /cannot judge/, `the lone copy could not judge: ${judged.stdout}`);
-  assert.match(judged.stdout, /delivery travels apart from solution: src\/y\.txt is not a delivery path/);
+  const checked = spawnSync(process.execPath, [join(withFiles, 'check.mjs')], { input: mixed, encoding: 'utf8' });
+  assert.equal(checked.status, 0, 'the gate passes this change');
+  assert.doesNotMatch(checked.stdout, /cannot check/, `the lone copy could not check: ${checked.stdout}`);
+  assert.match(checked.stdout, /delivery travels apart from solution: src\/y\.txt is not a delivery path/);
   const blind = spawnSync(process.execPath, [join(lone, 'check.mjs')], { input: mixed, encoding: 'utf8' });
   assert.equal(blind.status, 0, 'a lone copy without the reader still passes the gate');
-  assert.match(blind.stdout, /detective \(not gating\): cannot judge/);
-  assert.doesNotMatch(blind.stdout, /delivery travels apart from solution: src/, 'without the reader nothing is reported as judged');
+  assert.match(blind.stdout, /detective \(not gating\): cannot check/);
+  assert.doesNotMatch(blind.stdout, /delivery travels apart from solution: src/, 'without the reader nothing is reported as checked');
 }
