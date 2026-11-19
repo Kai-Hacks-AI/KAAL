@@ -26,6 +26,8 @@ In a throwaway copy of `main` (0a9cfca, which holds the Run of Cases, `npm ci --
 - T383 first judged the whole tail of a job as script text and flagged an artifact `path: ${{ runner.temp }}` as an expression in a script; it now reads the `run:` blocks only.
 - In one job the judge would have run after the Cases and the Cases, being code of the pull request, could have altered the judge or forged the runs on disk. The Cases therefore run in their own job and the judge job starts clean.
 
+- CodeQL (`js/incomplete-multi-character-sanitization`, high) flagged the first DO, which this pull request carried for a moment: `defectsOf` removed HTML comments with a single-pass regex, which can leave an opener behind. The draft now uses `stripComments` of `05-src/plan-body/comments.mjs`, which the envelope judge already uses and which leaves no opener in its result. T380 to T384 pass again on the throwaway copy.
+
 ## CPO review of the PLAN (19 Nov, first revision), kept
 
 Every reproducing Case is read, and the verdict is the report and not the job result. Both stand in this revision (T380 and T382 hold them).

@@ -74,6 +74,7 @@ One Hotfix corrects one identified Defect and brings that Defect and the Case th
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { stripComments } from '../plan-body/comments.mjs';
 
 export const NOT_JUDGED = [
   'whether the Case corresponds to the Defect is not judged: the review decides it',
@@ -157,7 +158,7 @@ export function judgeHotfixTrace(facts) {
 
 // The KAAL Defect identities of the Defect chapter of a HOTFIX body: `<capability>/D<n>`.
 export function defectsOf(body) {
-  const text = String(body ?? '').replace(/<!--[\s\S]*?-->/g, '');
+  const text = stripComments(String(body ?? ''));
   const chapter = text.split(/^##\s+Defect\s*$/m)[1]?.split(/^##\s+/m)[0] ?? '';
   return [...new Set(chapter.match(/\b[a-z][a-z0-9-]*\/D\d+\b/g) ?? [])];
 }
