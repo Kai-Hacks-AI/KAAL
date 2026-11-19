@@ -15,9 +15,9 @@ The layout check is the same code in all three places, as the template is one la
 
 ## PLAN
 
-1. Add the Intent I4, the Requirements F52, F53 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1237 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because the control is not in this package; the DO moves it next to the control in `packages/`.
+1. Add the Intent I4, the Requirements F52, F53 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1237 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because the control is not in this package; the DO moves it next to the control in `engineering/02-controls/CTL2-verify-layout/`.
 2. Observe the expected RED against the collector (`evidence.md`) and show that each Case can pass on a throwaway copy that holds `draft/`.
-3. The PLAN adds no package file. `draft/` holds the check (`skills/kaal-engineering/scripts/check-layout.mjs`), and `interface.md` holds the draft of the control (`packages/controls.md`), for review only. The control is inline so that no second `CTL2` is listed before the DO.
+3. The PLAN adds no package file. `draft/` holds the check (`skills/kaal-engineering/scripts/check-layout.mjs`), and `interface.md` holds the draft of the control (`engineering/02-controls/CTL2-verify-layout/CTL2.md`), for review only. The control is inline so that no second `CTL2` is listed before the DO.
 
 ## Ids
 
@@ -44,7 +44,7 @@ N19 (skill-only) and its Case T1177 stated the first version: no script. The DO 
 
 ## DO
 
-Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` to the Skill and the control from `interface.md` to `packages/controls.md`, amend N19 and T1177, and rename T1230 to T1237 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
+Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` to the Skill and the control from `interface.md` to `engineering/02-controls/CTL2-verify-layout/`, amend N19 and T1177, and rename T1230 to T1237 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
 
 ## ACT
 
@@ -52,17 +52,19 @@ A 4L retrospective in `act.md`, with the body shape the Dispatcher reads (a `Cha
 
 ## Where the control sits
 
-Proposed path: the single file `packages/controls.md`, beside `packages/AGENTS.md`. The Owner's reasons, which hold: a file needs no folder, and workspace globs only pick up folders, so the monorepo concern goes away. Checked on `main`: the root `package.json` lists its workspaces one by one in any case, and the one tool that walks `packages/`, a test in kaal-release, skips what has no `payload`.
+Proposed path: `engineering/02-controls/CTL2-verify-layout/CTL2.md`, with its Test Cases beside it, following the controls convention (release's `04-controls/CTL23-verify-delivery/`). `engineering/` gets the layout's numbered steering folders at its own level, beside the area folders, starting with `02-controls`. `packages/` stays pure packages, which is the usual monorepo convention. Workspace config does not move: the root `package.json` lists the workspaces one by one, a capability's ownership is its `ownership.kaal.json`, and KAAL's own integration config stays in `.kaal/config`. Nothing is added to `packages/`.
 
-A file can hold this control and its minimum evidence. The control is one Markdown file whose frontmatter declares id, title, description, type, status, `has` and the `evidence:` line of minimum evidence, which is what the controls finder reads. The runs that count toward the minimum are not in that file; they are kept where the controls' records are kept. So a file loses nothing here.
+Why `engineering/` is the right place, in the repository's terms. Controls are consumer-owned, and `engineering/` is where KAAL, as its own consumer, keeps what it runs. The existing controls tests (controls T1094 to T1096) walk every file under `engineering/` and check that every declared minimum names a fixture, a real and a real-failure kind, so a control placed here is under those checks from its first day, and CTL2's `[fixture:2, real:1, provoked:1:fail]` meets them; one under `packages/` would not be.
 
-One limit, so that nobody is surprised: the finder reads one control per Markdown file, by its frontmatter. `packages/controls.md` therefore holds exactly one control, `engineering/CTL2`. That fits the three ratchets, since each control is about one place: the same kind of file would sit beside the `AGENTS.md` of each place, `engineering/controls.md` for the second ratchet and `.kaal/controls.md` for the third, each in its own PLAN. A second control about `packages/` would need either a second file or a finder that reads several controls from one file, which is the controls capability's to decide.
+What it relates to. Today the controls are scattered by the area that wrote them: release's under `engineering/release-management/04-controls/` (CTL1 to CTL23), and `engineering/controls/` is the Controls capability's own area with its records. The finder finds a control wherever it sits, so nothing has to move for `02-controls` to work, and C25 moves nothing. Bringing the existing controls into `engineering/02-controls/` is a later Change of its own, with their ids unchanged. One thing to decide then, not now: `engineering/controls/` (an area) and `engineering/02-controls/` (the steering folder) have near names. The number tells them apart; if it still confuses, the area is the one to rename.
 
-The `04-controls` against `02-controls` mismatch is gone with the folder: no `02-controls` or `04-controls` is added to `packages/`. T1177 still names `04-controls`, a name the layout does not have; the DO makes it `02-controls` so the package still declares no control of its own.
+`00-backlog` and `01-changes` at the `engineering/` level: the same rule applies and the same restraint. The layout gives a level these steering folders, and each is created only when something moves in. Nothing moves in now. Changes are today kept per area (`engineering/release-management/00-changes/`, `engineering/controls/00-changes/`) and in each package, and the backlog is kept outside the repository, so creating either folder now would be empty or would move records for no reason. They are named here so the layout stays one rule. The template (`package-layout.json`) describes a capability folder; adding the steering folders of the `engineering/` level to it is an amendment of C24's reference, in the PLAN that first needs a second one.
+
+Not decided here and for the ratchet PLANs: how a run over `engineering/<cap>` tells a capability folder from today's area folders, which have the earlier numbering. The check judges one folder it is given, so this is a question for the engineering ratchet, not for C25.
 
 ## Owner questions
 
-1. Answered by the Owner, and corrected twice: it is an engineering control, it controls the layout of `packages/`, and it is the single file `packages/controls.md` beside `packages/AGENTS.md`. See "Where the control sits".
+1. Answered by the Owner, and corrected: it is an engineering control and sits in the steering folder `engineering/02-controls/`. See "Where the control sits".
 2. The split: is it the three ratchets you meant, with one control for the desired setup and a baseline of current gaps for each, and one source per Skill across all three?
 
 ## Not in this Change

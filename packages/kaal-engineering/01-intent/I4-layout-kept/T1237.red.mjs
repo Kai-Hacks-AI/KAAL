@@ -1,6 +1,6 @@
 // Case engineering/T1237 tests: engineering/CTL2
 import assert from 'node:assert/strict';
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -26,11 +26,10 @@ export const title = 'the control is listed as detective with Intent I4 and its 
 export async function run() {
   const FINDER = join(root, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
   const CHECK = join(root, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
-  const file = join(root, 'packages/controls.md');
+  const area = join(root, 'engineering/02-controls');
+  const file = join(area, 'CTL2-verify-layout/CTL2.md');
   assert.ok(existsSync(file), 'CTL2.md is absent');
   assert.match(readFileSync(file, 'utf8'), /^evidence: \[fixture:2, real:1, provoked:1:fail\]$/m);
-  const area = mkdtempSync(join(tmpdir(), 'ctl-'));
-  copyFileSync(file, join(area, 'controls.md'));
   const out = JSON.parse(execFileSync(process.execPath, [FINDER, area], { encoding: 'utf8' }));
   const c = out.controls.find((x) => x.id === 'engineering/CTL2');
   assert.ok(c, 'engineering/CTL2 is not listed');
