@@ -8,7 +8,7 @@ export const tests = ['testing/N27'];
 export const title = 'the Change stays inside its boundary: one new section in the Skill, no new export, Node, Skill or workflow, and no dependency on kaal-review';
 export function run() {
   const { headings } = skillParts();
-  assert.deepEqual(headings, ['Before writing a test', 'Assessing a test against its claim', 'The three loops', 'Running acceptance', 'Measuring coverage', 'Reporting', 'Rules'].map((h) => h === HEADING ? HEADING : h), 'the Skill has exactly one new section, in place');
+  assert.deepEqual(headings, ['Before writing a test', 'Assessing a test against its claim', 'The three loops', 'Running acceptance', 'Observing a run', 'Measuring coverage', 'Reporting', 'Rules'].map((h) => h === HEADING ? HEADING : h), 'the Skill has exactly one new section, in place (and "Observing a run", added by testing/C66)');
   assert.deepEqual(Object.keys(readJson(join(PKG, 'package.json')).exports).sort(), ['./acceptance', './attribution', './contracts', './coverage', './duplicates', './inventory', './package.json', './report', './run'], 'no export is added or removed (./run is added by testing/C64)');
   assert.deepEqual(readdirSync(join(PKG, 'skills')), ['kaal-testing'], 'no Skill is added');
   assert.deepEqual(readdirSync(join(PKG, 'skills/kaal-testing')).sort(), ['SKILL.md', 'references'], 'the Skill folder holds the same files');

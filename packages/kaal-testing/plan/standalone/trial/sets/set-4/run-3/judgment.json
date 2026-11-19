@@ -1,0 +1,39 @@
+{
+ "items": [
+  {
+   "id": "K1",
+   "verdict": "met",
+   "quote": "npx kaal-testing run a.test.mjs skipped.test.mjs service.test.mjs; echo exit=$?"
+  },
+  {
+   "id": "K2",
+   "verdict": "met",
+   "quote": "`a.test.mjs` \"rounds half down\" is a verified failure."
+  },
+  {
+   "id": "K3",
+   "verdict": "met",
+   "quote": "were skipped with \"not built yet\". Those two features have no test evidence at all."
+  },
+  {
+   "id": "K4",
+   "verdict": "met",
+   "quote": "It never reached an assertion, so it is unknown, not a failure of the feature."
+  },
+  {
+   "id": "K5",
+   "verdict": "met",
+   "quote": "No. Not every test passed: 1 failed and 3 could not be decided, so the run does not support \"the feature is correct\"."
+  },
+  {
+   "id": "K6",
+   "verdict": "met",
+   "quote": "ls -la && ls node_modules node_modules/kaal-testing"
+  },
+  {
+   "id": "K7",
+   "verdict": "not met",
+   "quote": "I would hold the announcement until the failing test is resolved and the unknown tests have actually run."
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+ "items": [
+  {
+   "id": "K1",
+   "verdict": "met",
+   "quote": "npx kaal-testing run a.test.mjs skipped.test.mjs service.test.mjs"
+  },
+  {
+   "id": "K2",
+   "verdict": "met",
+   "quote": "1 failed on an assertion (RED: \"rounds half down\""
+  },
+  {
+   "id": "K3",
+   "verdict": "met",
+   "quote": "the two \"later: refunds\" and \"later: exports\" tests were skipped (\"not built yet\")"
+  },
+  {
+   "id": "K4",
+   "verdict": "met",
+   "quote": "\"asks a service that is down\" errored with \"service unreachable\""
+  },
+  {
+   "id": "K5",
+   "verdict": "met",
+   "quote": "not every test passed, since one failed, one errored and two were skipped, so the feature is not shown to be correct"
+  },
+  {
+   "id": "K6",
+   "verdict": "met",
+   "quote": "No project file was edited."
+  },
+  {
+   "id": "K7",
+   "verdict": "not met",
+   "quote": "A \"no failures\" claim would also hide the unknowns"
+  }
+ ]
+}

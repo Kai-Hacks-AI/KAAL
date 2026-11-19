@@ -1,0 +1,21 @@
+{
+ "node": "24.22.1",
+ "startedEmpty": true,
+ "listingBeforeInstall": [
+  "package.json"
+ ],
+ "repositoryReachable": false,
+ "repositoryCheck": "git rev-parse --show-toplevel in the working folder: fatal, not a git repository (no repository in any parent folder)",
+ "family": [
+  "kaal-testing",
+  "@kaihacksai/kaal-hosting"
+ ],
+ "agent": {
+  "model": "sonnet",
+  "session": "ab9e883f5243e3a19"
+ },
+ "judge": {
+  "model": "sonnet",
+  "session": "a5cc5a42ca44a2a09"
+ }
+}

@@ -38,7 +38,7 @@ function executed(entries) {
  * Reconcile `attribution` (from kaal-testing/attribution's attribute) with
  * `coverage`, an array with one result per workspace: { workspace, tests,
  * delivered, lines, branches, functions, unexecuted, files, failed?, note? },
- * as Engineering's coverage driver reports them, or { workspace, unknown } for
+ * as the caller's coverage driver reports them, or { workspace, unknown } for
  * a workspace with no evidence. Both must describe the same tree.
  */
 export function report(attribution, coverage) {

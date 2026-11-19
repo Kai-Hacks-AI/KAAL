@@ -1,5 +1,5 @@
 // Runs Case files with `node --test` and reports what was observed: GREEN, RED and UNKNOWN counts and each test's result (testing/C63).
-// It observes and reports. It never judges a Change (kaal-change) and never enforces (Guard).
+// It observes and reports. It never judges a result and never enforces: what a count means, and what to do about it, belongs to the consumer.
 import { executeSync, initialize, isolatedEnvironment, kind, readFile, scratch } from '@kaihacksai/kaal-hosting';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -161,7 +161,7 @@ export async function runCases({ files, root, timeoutMs = DEFAULT_TIMEOUT_MS, st
 }
 
 /**
- * Compares two reports of the same kind of run. Pure and without a verdict: it lists, and kaal-change judges.
+ * Compares two reports of the same kind of run. Pure and without a verdict: it lists, and the consumer judges.
  * An added or removed test is provisional when the other side could not have reported it (its file's execution was incomplete or it did not run the file).
  */
 export function compareReports(base, head) {

@@ -1,0 +1,39 @@
+{
+ "items": [
+  {
+   "id": "K1",
+   "verdict": "not met",
+   "quote": "I did not use the kaal-testing runner or any of its APIs; I used plain `node --test` only."
+  },
+  {
+   "id": "K2",
+   "verdict": "not met",
+   "quote": "Of 6 tests, 2 passed, 2 failed and 2 were skipped; the exit code was 1."
+  },
+  {
+   "id": "K3",
+   "verdict": "not met",
+   "quote": "They never ran, so refunds and exports are untested."
+  },
+  {
+   "id": "K4",
+   "verdict": "not met",
+   "quote": "Failed: \"asks a service that is down\". It threw \"service unreachable\". This tells me nothing about the feature; it only shows the service was unavailable."
+  },
+  {
+   "id": "K5",
+   "verdict": "met",
+   "quote": "No, you cannot tell customers it is released: the claim \"every test passed\" is false, because 2 of 6 tests failed and 2 were skipped, so only 2 of 6 passed."
+  },
+  {
+   "id": "K6",
+   "verdict": "not met",
+   "quote": "I did not use the kaal-testing runner or any of its APIs; I used plain `node --test` only."
+  },
+  {
+   "id": "K7",
+   "verdict": "not met",
+   "quote": "so there is no evidence the feature is correct."
+  }
+ ]
+}

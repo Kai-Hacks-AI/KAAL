@@ -1,0 +1,39 @@
+{
+ "items": [
+  {
+   "id": "K1",
+   "verdict": "not met",
+   "quote": "I used only `node --test`, not any kaal-testing runner (I only read its README and package.json)."
+  },
+  {
+   "id": "K2",
+   "verdict": "not met",
+   "quote": "Of 6 tests, 2 passed, 2 failed and 2 were skipped."
+  },
+  {
+   "id": "K3",
+   "verdict": "met",
+   "quote": "Those behaviours were not exercised at all."
+  },
+  {
+   "id": "K4",
+   "verdict": "not met",
+   "quote": "Failed: \"asks a service that is down\" (service.test.mjs)."
+  },
+  {
+   "id": "K5",
+   "verdict": "met",
+   "quote": "No. Don't tell customers it is released."
+  },
+  {
+   "id": "K6",
+   "verdict": "met",
+   "quote": "No files in the project were edited."
+  },
+  {
+   "id": "K7",
+   "verdict": "not met",
+   "quote": "so the evidence does not support \"correct, release\"."
+  }
+ ]
+}

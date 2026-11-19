@@ -1,0 +1,23 @@
+{
+ "node": "24.22.1",
+ "startedEmpty": true,
+ "listingBeforeInstall": [
+  "package.json"
+ ],
+ "repositoryReachable": false,
+ "repositoryCheck": "git rev-parse --show-toplevel in the working folder: fatal, not a git repository (no repository in any parent folder)",
+ "family": [
+  "kaal-testing",
+  "@kaihacksai/kaal-hosting"
+ ],
+ "agent": {
+  "model": "sonnet",
+  "harness": "claude -p, headless, working folder is the trial folder",
+  "session": "33cbdc57-aad5-4f09-979f-30faf750438d"
+ },
+ "judge": {
+  "model": "sonnet",
+  "session": "a1de1924ad0c7a4dd"
+ },
+ "skillDeployed": ".claude/skills/kaal-testing (SKILL.md and references/), loaded by Claude Code itself; the agent called the Skill tool first in all three runs"
+}
