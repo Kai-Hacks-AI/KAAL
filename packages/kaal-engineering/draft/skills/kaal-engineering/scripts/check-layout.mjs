@@ -28,14 +28,35 @@ export function judgeLayout(template, paths) {
   return { verdict: findings.length ? 'FAIL' : 'PASS', findings };
 }
 
+// The workspace folder (packages/) holds only packages, plus the two files the Owner named.
+const WORKSPACE_FILES = ['AGENTS.md', 'README.md'];
+export function judgeWorkspace(paths) {
+  if (!Array.isArray(paths) || paths.length === 0) return { verdict: 'UNKNOWN', findings: ['the folder holds no tracked file'] };
+  const findings = [];
+  for (const p of paths) {
+    const [first, ...rest] = p.split('/');
+    if (rest.length === 0) { if (!WORKSPACE_FILES.includes(first)) findings.push(`${first} is a file the workspace does not allow`); }
+    else if (NUMBERED.test(first)) findings.push(`${first} is a numbered folder; the workspace holds only packages`);
+  }
+  const unique = [...new Set(findings)];
+  return { verdict: unique.length ? 'FAIL' : 'PASS', findings: unique };
+}
+
 const CODE = { PASS: 0, FAIL: 1, UNKNOWN: 2 };
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const [templatePath, folder] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const workspace = args[0] === '--workspace';
+  const [templatePath, folder] = workspace ? [undefined, args[1]] : args;
   let result;
   try {
+    if (workspace) {
+      const paths = execFileSync('git', ['-C', folder, 'ls-files', '--', '.'], { encoding: 'utf8' }).split('\n').filter(Boolean);
+      result = judgeWorkspace(paths);
+    } else {
     const template = JSON.parse(readFileSync(templatePath ?? join(dirname(fileURLToPath(import.meta.url)), '../references/package-layout.json'), 'utf8'));
     const paths = execFileSync('git', ['-C', folder, 'ls-files', '--', '.'], { encoding: 'utf8' }).split('\n').filter(Boolean);
     result = judgeLayout(template, paths);
+    }
   } catch (e) {
     result = { verdict: 'UNKNOWN', findings: [`cannot judge: ${String(e.message).split('\n')[0]}`] };
   }

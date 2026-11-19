@@ -15,13 +15,13 @@ The layout check is the same code in all three places, as the template is one la
 
 ## PLAN
 
-1. Add the Intent I4, the Requirements F52, F53 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1237 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because the control is not in this package; the DO moves it next to the control in `engineering/02-controls/CTL2-verify-layout/`.
+1. Add the Intent I4, the Requirements F52, F53, F54 and N21, the Architecture A4 and the gap G115 under `packages/kaal-engineering/`, and the Cases T1230 to T1238 as `T<n>.red.mjs`, beside the element each tests. T1237 tests the control and sits beside I4, which the control has, because the control is not in this package; the DO moves it next to the control in `engineering/02-controls/CTL2-verify-layout/`.
 2. Observe the expected RED against the collector (`evidence.md`) and show that each Case can pass on a throwaway copy that holds `draft/`.
 3. The PLAN adds no package file. `draft/` holds the check (`skills/kaal-engineering/scripts/check-layout.mjs`), and `interface.md` holds the draft of the control (`engineering/02-controls/CTL2-verify-layout/CTL2.md`), for review only. The control is inline so that no second `CTL2` is listed before the DO.
 
 ## Ids
 
-Proposed, to be confirmed by the allocator: Change engineering/C25, Intent engineering/I4, Requirements engineering/F52, F53 and N21, Architecture engineering/A4, control engineering/CTL2, Cases T1230 to T1237, gap G115. They are the next free at the collector tip `ced6598a`; engineering/CTL1 is held by the parked registration PLAN (#1954).
+Proposed, to be confirmed by the allocator: Change engineering/C25, Intent engineering/I4, Requirements engineering/F52, F53, F54 and N21, Architecture engineering/A4, control engineering/CTL2, Cases T1230 to T1238, gap G115. They are the next free at the collector tip `ced6598a`; engineering/CTL1 is held by the parked registration PLAN (#1954).
 
 ## What the check judges
 
@@ -44,7 +44,7 @@ N19 (skill-only) and its Case T1177 stated the first version: no script. The DO 
 
 ## DO
 
-Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` to the Skill and the control from `interface.md` to `engineering/02-controls/CTL2-verify-layout/`, amend N19 and T1177, and rename T1230 to T1237 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
+Not authorized by this PLAN. On the go of the Owner, into the collector of this Change: add the script from `draft/` to the Skill and the control from `interface.md` to `engineering/02-controls/CTL2-verify-layout/`, amend N19 and T1177, and rename T1230 to T1238 to `.test.mjs`. No package is migrated, nothing is wired and nothing is published.
 
 ## ACT
 
@@ -52,7 +52,7 @@ A 4L retrospective in `act.md`, with the body shape the Dispatcher reads (a `Cha
 
 ## Where the control sits
 
-**Rule: `packages/` is special because of the workspace.** It holds only packages, and gets no numbered steering folders (`00-backlog`, `01-changes`, `02-controls`). Its steering lives in `engineering/`, at the level of the area folders. The one non-package file the Owner named there, `packages/AGENTS.md` for work across packages, is a file and not a folder, so the rule is not broken by it; if the rule is meant to forbid that file too, say so. This rule is stated for the PLAN; its place in the Skill's reference is part of the DO.
+**Rule: `packages/` is special because of the workspace.** It holds only packages, and gets no numbered steering folders (`00-backlog`, `01-changes`, `02-controls`). Its steering lives in `engineering/`, at the level of the area folders. The Owner accepted two files beside the packages, `packages/AGENTS.md` for work across packages and `packages/README.md` so the folder renders well on GitHub, and nothing else. The check's `--workspace` mode (Requirement F54, Case T1238) judges this: GREEN for packages plus those two files, RED for any other file or any numbered steering folder. This rule is stated for the PLAN; its place in the Skill's reference is part of the DO.
 
 Proposed path: `engineering/02-controls/CTL2-verify-layout/CTL2.md`, with its Test Cases beside it, following the controls convention (release's `04-controls/CTL23-verify-delivery/`). `engineering/` gets the layout's numbered steering folders at its own level, beside the area folders, starting with `02-controls`. `packages/` stays pure packages, which is the usual monorepo convention. Workspace config does not move: the root `package.json` lists the workspaces one by one, a capability's ownership is its `ownership.kaal.json`, and KAAL's own integration config stays in `.kaal/config`. Nothing is added to `packages/`.
 

@@ -17,6 +17,7 @@ The PLAN of C25 observes its RED against the collector `kaal/engineering/setup` 
 | T1234 | F53 | RED: the check is absent |
 | T1235 | N21 | RED: the check is absent |
 | T1236 | A4 | RED: the check is absent |
+| T1238 | F54 | RED: the check is absent |
 | T1237 | CTL2 | RED: CTL2.md is absent |
 
 8 RED-observed, 0 error, 0 green. Every Case fails on its own assertion.
