@@ -41,3 +41,15 @@ for f in $(find packages/kaal-engineering -name 'T11*.red.mjs' | sort -V); do
   node -e "import('./$f').then(async m=>{try{await m.run();console.log('GREEN',m.id)}catch(x){console.log(x.code==='ERR_ASSERTION'?'RED-observed':'ERROR',m.id,String(x.message).split('\n')[0])}})"
 done
 ```
+
+## DO
+
+Observed 19 Nov 2026 on the DO of this Change, Node 22 on Linux, with the dependencies of `kaal-engineer-skill` available (`kaal-hosting`, `yaml`, `commonmark`):
+
+| Case | Tests | In the tree of the DO |
+| --- | --- | --- |
+| T1171 to T1177 | F40 to F44, N18, N19 | GREEN |
+| T1178 | N19 | GREEN: `check-skill` exits 0 on the Skill |
+| T1179 | I2 | GREEN |
+
+9 GREEN, 0 RED, 0 error. Reproduce: `cd packages/kaal-engineering && npm test`.

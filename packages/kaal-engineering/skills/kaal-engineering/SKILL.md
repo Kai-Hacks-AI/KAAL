@@ -1,6 +1,6 @@
 ---
 name: kaal-engineering
-description: Explain KAAL's own engineering setup, the engineering setup that holds one source in packages/, engineering/, npmjs and .kaal/ and installs approved copies into .agents, .claude, .github and .githooks. Use when you meet a folder that looks like a copy of another and need to know its role, or when you decide what is waste.
+description: Explain KAAL's own engineering setup, meaning how one source passes through packages/, engineering/, npmjs and .kaal/, which folders are installed copies (.agents, .claude, .github, .githooks), and what counts as waste. Use when a folder looks like a copy of another and you need its role, or when you decide what is waste.
 license: MIT
 ---
 
@@ -27,7 +27,7 @@ A stage copy and a delivery are not waste. Each has a role, and the role is why 
 
 ## Two legs, two paces
 
-- Package to engineering is the ratchet: waste goes down and clean goes up.
+- Package to engineering is the ratchet, which this capability owns: waste goes down and clean goes up.
 - Engineering or `.kaal` to the skill location is a manual WIRE (see kaal-release), with the same mechanics from either source. Taking from engineering takes a pre-npmjs version; taking from `.kaal` takes the published one.
 
 The two legs move at different pace.
