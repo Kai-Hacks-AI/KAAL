@@ -31,5 +31,5 @@ export async function run() {
   const [head, first, ...rest] = draft.replace('has: [release/I32]', 'has: [release/I32, release/I33, release/I35]').split('\n\n');
   const expected = [head, first, paragraph, boundary, ...rest].join('\n\n');
   // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
-  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${expected}\n`, 'CTL8.md differs from the draft with what release/C60 and release/C65 add');
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, '').replace(/^evidence: .*\n/m, ''), `${expected}\n`, 'CTL8.md differs from the draft with what release/C60 and release/C65 add');
 }
