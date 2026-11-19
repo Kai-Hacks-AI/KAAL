@@ -17,18 +17,19 @@ The PLAN of C24 observes its RED against the collector `kaal/engineering/setup` 
 | T1224 | F48 | RED: the template is absent |
 | T1225 | F49 | RED: the template is absent |
 | T1226 | F50 | RED: the template is absent |
+| T1229 | F51 | RED: the template is absent |
 | T1227 | N20 | RED: the template is not inside the Skill |
 | T1228 | A3 | RED: SKILL.md links no reference |
 
-9 RED-observed, 0 error, 0 green. Every Case fails on its own assertion.
+10 RED-observed, 0 error, 0 green. Every Case fails on its own assertion.
 
 ## Can each Case pass
 
-In a throwaway root outside the repository, holding the package with `draft/skills/kaal-engineering/` copied over `skills/kaal-engineering/`, all nine Cases were green and the Engineer Skill's `check-skill` exited 0 on the Skill with its reference.
+In a throwaway root outside the repository, holding the package with `draft/skills/kaal-engineering/` copied over `skills/kaal-engineering/`, all ten Cases were green and the Engineer Skill's `check-skill` exited 0 on the Skill with its reference.
 
 ## Can a Case fail for the right reason, and not for the wrong one
 
-Five edits to `package-layout.json` on that copy:
+Eight edits to `package-layout.json` on that copy:
 
 | Edit | Result |
 | --- | --- |
@@ -36,7 +37,9 @@ Five edits to `package-layout.json` on that copy:
 | `14-defects` loses its verifier | T1222 RED |
 | machinery "written" in `engineering/` too | T1226 RED |
 | `10-intent` moved out of number order | T1221 RED |
-| the role sentence of `00-backlog` reworded | all Cases stay GREEN |
+| a second `AGENTS.md` marked as shipped | T1229 RED |
+| the shipped `AGENTS.md` marked as repeating the Skill | T1229 RED |
+| the role sentence of `00-backlog`, or what an `AGENTS.md` serves, reworded | all Cases stay GREEN |
 
 The last row is the point of the design: the Cases hold rules, not wording, so rewording the page or a role does not break them.
 

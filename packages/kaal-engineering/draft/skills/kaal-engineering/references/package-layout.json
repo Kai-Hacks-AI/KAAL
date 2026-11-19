@@ -159,5 +159,35 @@
       "operational state"
     ],
     "packageControls": "govern the package itself"
-  }
+  },
+  "agents": [
+    {
+      "path": "AGENTS.md",
+      "serves": "work across the repository",
+      "ships": false,
+      "verifiedBy": "review"
+    },
+    {
+      "path": "packages/AGENTS.md",
+      "serves": "work across packages",
+      "ships": false,
+      "verifiedBy": "review"
+    },
+    {
+      "path": "<place>/<capability>/AGENTS.md",
+      "serves": "work on this package",
+      "ships": false,
+      "verifiedBy": "review"
+    },
+    {
+      "path": "<place>/<capability>/dist/AGENTS.md",
+      "serves": "consumers using the capability",
+      "ships": true,
+      "verifiedBy": "build",
+      "from": "13-source",
+      "bass": "Bare to Agent",
+      "pointsTo": "skills/<name>/SKILL.md",
+      "repeatsSkill": false
+    }
+  ]
 }
