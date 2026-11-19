@@ -4,7 +4,7 @@
 
 A PLAN never goes to `main` alone.
 
-1. PLAN and DO go into the collector `kaal/controls/check-controls`, each by its own pull request, squashed. The collector is branched from `main`, which already holds the finder of C12 that the Cases need.
+1. PLAN and DO go into the collector `kaal/controls/ctl1-check-controls`, each by its own pull request, squashed. The collector is branched from `main`, which already holds the finder of C12 that the Cases need.
 2. ACT goes into the collector. The collector is promoted to `main` as one promotion, squashed, after a sync with `main` if it is behind, and the CPO's approval at its exact head.
 
 This PLAN authorizes no hook, no workflow, no ruleset change and no publication.
