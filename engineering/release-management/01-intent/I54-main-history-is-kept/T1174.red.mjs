@@ -18,7 +18,7 @@ const scratch = () => { const dir = mkdtempSync(join(tmpdir(), 'c99-')); git(dir
 const cli = (dir, before, after) => spawnSync(process.execPath, [MOD, '--root', dir, '--before', before, '--after', after], { encoding: 'utf8' });
 export const id = 'release/T1174';
 export const tests = ['release/I54'];
-export const title = 'the Intent states that main only moves forward and is never deleted, equal to its draft';
+export const title = 'the Intent states that main is only moved forward and never rewritten, equal to its draft';
 export async function run() {
   const real = join(RM, '01-intent/I54-main-history-is-kept/I54.md');
   assert.ok(existsSync(real), 'I54.md is absent');

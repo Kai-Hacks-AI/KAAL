@@ -18,7 +18,7 @@ const scratch = () => { const dir = mkdtempSync(join(tmpdir(), 'c99-')); git(dir
 const cli = (dir, before, after) => spawnSync(process.execPath, [MOD, '--root', dir, '--before', before, '--after', after], { encoding: 'utf8' });
 export const id = 'release/T1177';
 export const tests = ['release/CTL22'];
-export const title = 'the judge says PASS for a fast-forward, an equal tip and a new main, FAIL for a rewrite and a deletion, UNKNOWN when it cannot tell';
+export const title = 'the judge says PASS for a fast-forward, an equal tip and a new main, FAIL for a rewrite, UNKNOWN when it cannot tell and when no commit is left after the push';
 export async function run() {
   const { judge } = await load();
   const A = 'a'.repeat(40), B = 'b'.repeat(40), Z = '0'.repeat(40);
@@ -26,7 +26,7 @@ export async function run() {
   assert.equal(judge({ before: A, after: A, forward: true }).verdict, 'PASS', 'an equal tip must pass');
   assert.equal(judge({ before: Z, after: A }).verdict, 'PASS', 'a new main must pass');
   assert.equal(judge({ before: A, after: B, forward: false }).verdict, 'FAIL', 'a rewrite must fail');
-  assert.equal(judge({ before: A, after: Z }).verdict, 'FAIL', 'a deletion must fail');
-  assert.equal(judge({ before: A, after: '' }).verdict, 'FAIL', 'a missing after must fail');
+  assert.equal(judge({ before: A, after: Z }).verdict, 'UNKNOWN', 'a deletion is not observed and never passes');
+  assert.equal(judge({ before: A, after: '' }).verdict, 'UNKNOWN', 'a missing after never passes');
   assert.equal(judge({ before: A, after: B, forward: undefined }).verdict, 'UNKNOWN', 'an untold history never passes');
 }

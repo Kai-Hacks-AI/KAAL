@@ -11,7 +11,7 @@ title: main history is kept
 ---
 # release/I54 main history is kept
 
-Contract: the branch `main` is only ever moved forward, and it is never deleted. Every commit that was `main` stays reachable from `main`. A force-push or a deletion of `main` destroys the record that Changes, reviews and promotions rest on and cannot be undone from inside the repository. Reason: a delivery that can be erased cannot be audited. Owner: release management. The old promotion ruleset holds this today with its `non_fast_forward` and `deletion` rules; release/CTL22 reveals it, so the old rules can later be replaced by a control that proves itself.
+Contract: the branch `main` is only ever moved forward. Every commit that was `main` stays reachable from `main`. A force-push, which rewrites `main`, destroys the record that Changes, reviews and promotions rest on. Reason: a delivery that can be rewritten cannot be audited. Owner: release management. The old promotion ruleset holds this today with its `non_fast_forward` rule; release/CTL22 reveals a rewrite, so that rule can later be replaced by a control that proves itself. A deletion of `main` is a different protection, held today by the `deletion` rule; it is not claimed here and is tracked as its own Intent and control, because a push workflow cannot observe it.
 `````
 
 ## Draft of F77.md
@@ -25,7 +25,7 @@ serves: [release/I54]
 ---
 # release/F77 verify-history
 
-A check on every push to `main` compares the commit `main` pointed at before the push with the commit it points at after, both read as Git data. It says FAIL when `main` no longer exists after the push (it was deleted), or when the commit before is not an ancestor of the commit after (history was rewritten, which is what a force-push does). It says PASS when the commit before is the commit after, is an ancestor of it, or when `main` is new (nothing existed before). It says UNKNOWN when either commit cannot be read, which never passes. The check runs on `push` to `main` with a read-only token and no secret. It reads the commits as Git data and runs a judge from the checkout of the commit after the push.
+A check on every push to `main` compares the commit `main` pointed at before the push with the commit it points at after, both read as Git data. It says FAIL when the commit before is not an ancestor of the commit after (history was rewritten, which is what a force-push does). It says PASS when the commit before is the commit after, is an ancestor of it, or when `main` is new (nothing existed before). It says UNKNOWN when either commit cannot be read or there is no commit after the push, which never passes: this check does not observe a deletion of `main`. The check runs on `push` to `main` with a read-only token and no secret. It reads the commits as Git data and runs a judge from the checkout of the commit after the push.
 `````
 
 ## Draft of A68.md
@@ -47,19 +47,19 @@ One module `05-src/history/verify-history.mjs` with a pure judge over three fact
 ---
 id: release/CTL22
 title: verify History
-description: It reveals whether main was rewritten or deleted by a push.
+description: It reveals whether a push rewrote the history of main.
 type: detective
 status: designed
-evidence: [fixture:2, real:1, provoked:2:fail]
+evidence: [fixture:2, real:1, provoked:1:fail]
 has: [release/I54]
 ---
 # release/CTL22 verify History
 
-A detective control. `verify History` compares the commit `main` pointed at before a push with the commit it points at after, and says FAIL when `main` is gone or when the commit before is not an ancestor of the commit after. It says PASS when `main` only moved forward or is new, and UNKNOWN when a commit could not be read, which never passes. PASS is not an approval and not a merge decision.
+A detective control. `verify History` compares the commit `main` pointed at before a push with the commit it points at after, and says FAIL when the commit before is not an ancestor of the commit after. It says PASS when `main` only moved forward or is new, and UNKNOWN when a commit could not be read or there is no commit after the push, which never passes. PASS is not an approval and not a merge decision.
 
-It reveals; it does not prevent. A force-push or a deletion has already happened when it runs. Preventing is the old promotion ruleset's `non_fast_forward` and `deletion` rules today; a preventive control with the same judge is a different control with its own Owner decision, made only after this one is Tested.
+It reveals; it does not prevent. A force-push has already happened when it runs. Preventing is the old promotion ruleset's `non_fast_forward` rule today; a preventive control with the same judge is a different control with its own Owner decision, made only after this one is Tested. It makes no claim about a deletion of `main`: a deletion fires no push event, so this control cannot observe it. That protection stays with the old `deletion` rule and is tracked as its own control.
 
-It declares its own minimum evidence in the kinds controls/F30 asks of every control: two runs against a fixture (a scratch repository where `main` moves forward), one run on a real push to `main` of this repository, and two provoked failures (a rewritten `main` and a deleted `main`), where a failure counts only when the Case is RED on a `main` without the control's mechanism and GREEN with it. Its own Cases create these histories in scratch repositories.
+It declares its own minimum evidence in the kinds controls/F30 asks of every control: two runs against a fixture (a scratch repository where `main` moves forward), one run on a real push to `main` of this repository, and one provoked failure (a rewritten `main`), where a failure counts only when the Case is RED on a `main` without the control's mechanism and GREEN with it. Its own Cases create these histories in scratch repositories.
 
 It has one Intent, release/I54.
 `````
@@ -74,7 +74,7 @@ const ZERO = /^0+$/;
 
 // before, after: commit ids ('' or all zero means no commit). forward: whether before is an ancestor of after, or undefined when it cannot be told.
 export function judge({ before, after, forward }) {
-  if (!after || ZERO.test(after)) return { verdict: 'FAIL', reasons: ['main does not exist after the push (it was deleted)'] };
+  if (!after || ZERO.test(after)) return { verdict: 'UNKNOWN', reasons: ['there is no commit after the push; this check does not observe a deletion of main'] };
   if (!before || ZERO.test(before)) return { verdict: 'PASS', reasons: [] };
   if (before === after) return { verdict: 'PASS', reasons: [] };
   if (forward === true) return { verdict: 'PASS', reasons: [] };

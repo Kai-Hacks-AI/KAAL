@@ -25,5 +25,5 @@ export async function run() {
   assert.equal(readFileSync(real, 'utf8'), `${draft('F77.md')}\n`, 'F77.md differs from the draft');
   const t = readFileSync(real, 'utf8');
   assert.match(t, /serves: \[release\/I54\]/);
-  for (const w of ['FAIL', 'PASS', 'UNKNOWN', 'ancestor', 'deleted']) assert.match(t, new RegExp(w));
+  for (const w of ['FAIL', 'PASS', 'UNKNOWN', 'ancestor', 'rewritten']) assert.match(t, new RegExp(w));
 }

@@ -18,7 +18,7 @@ const scratch = () => { const dir = mkdtempSync(join(tmpdir(), 'c99-')); git(dir
 const cli = (dir, before, after) => spawnSync(process.execPath, [MOD, '--root', dir, '--before', before, '--after', after], { encoding: 'utf8' });
 export const id = 'release/T1178';
 export const tests = ['release/CTL22'];
-export const title = 'the command line, run on real scratch repositories, passes a fast-forward and fails a force-push, a deletion; a commit it cannot read is UNKNOWN';
+export const title = 'the command line, run on real scratch repositories, passes a fast-forward and fails a force-push; a deleted main and a commit it cannot read are UNKNOWN';
 export async function run() {
   const { dir, c1, c2 } = scratch();
   assert.equal(cli(dir, c1, c2).status, 0, 'a fast-forward must pass');
@@ -31,7 +31,7 @@ export async function run() {
   assert.equal(forced.status, 1, `a rewritten main must fail: ${forced.stdout}`);
   assert.match(forced.stdout, /FAIL/);
   const gone = cli(dir, c3, '0'.repeat(40));
-  assert.equal(gone.status, 1, 'a deleted main must fail');
+  assert.equal(gone.status, 2, 'a deleted main is not observed and is UNKNOWN');
   const unread = cli(dir, 'f'.repeat(40), c3);
   assert.equal(unread.status, 2, 'a before commit that cannot be read is UNKNOWN');
   assert.equal(cli(dir, c1, 'e'.repeat(40)).status, 2, 'an after commit that cannot be read is UNKNOWN');
