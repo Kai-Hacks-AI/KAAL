@@ -2,6 +2,11 @@
 
 KAAL Testing: how a capability's tests are designed and executed, and how their evidence is measured and reported. It is not part of Core. Core provides the `KAAL Capability` and `KAAL Skill` types and admission, and this capability joins through them.
 
+
+## Run your tests
+
+`kaal-testing run <test files>` runs each file with `node --test` and prints one JSON report of what it observed: counts of GREEN, RED (an assertion failed) and UNKNOWN (skipped, errored, cancelled or timed out), each test's result, and any problem that kept a run from finishing. After installing, run it as `npx kaal-testing run a.test.mjs b.test.mjs` from your project. Read the report as it is: a skipped test or an error is not a pass, and "all passed" is true only when RED and UNKNOWN are both zero and the run is complete. It starts at your tests and ends at a result per test, which it hands to whoever decides what follows. Its exit code is 0 whenever a report was produced.
+
 ```
 capability/Testing.md                  the Capability Node, typed by Core's KAAL Capability
 payload/Testing.md                     the Skill Node, typed by Core's KAAL Skill
@@ -137,4 +142,4 @@ MIT. See `LICENSE`. The license covers this package's contents only.
 
 `schedule([{ by, files: [{ path, sha256 }], subject, platform, node }])` returns `{ runs, reads, findings }`. Each distinct file/bytes/subject/platform/Node runs once, and each requester reads that run by index. Invalid requests produce findings and no schedule; an invalid empty plan is not completed assurance. Every reader must retain the original failure or uncertainty.
 
-The caller establishes the execution boundary and all relevant conditions, acquires original observations and binds each read to them. Independently required jobs, attempts, hosts, fresh consumers and assurance contexts use separate calls even when their tuple matches. This API provides no cross-process private-observation transport or permission to reuse provenance. Engineering lane integration and measured CI improvement are separate work; no current CI saving is claimed by delivering the API.
+The caller establishes the execution boundary and all relevant conditions, acquires original observations and binds each read to them. Independently required jobs, attempts, hosts, fresh consumers and assurance contexts use separate calls even when their tuple matches. This API provides no cross-process private-observation transport or permission to reuse provenance. Integration into a consumer's own lanes and measured CI improvement are separate work; no current CI saving is claimed by delivering the API.

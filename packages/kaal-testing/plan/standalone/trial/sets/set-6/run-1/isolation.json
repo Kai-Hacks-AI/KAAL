@@ -1,0 +1,24 @@
+{
+ "node": "24.22.1",
+ "startedEmpty": true,
+ "listingBeforeInstall": [
+  "package.json"
+ ],
+ "repositoryReachable": false,
+ "repositoryCheck": "git rev-parse --show-toplevel in the working folder: fatal, not a git repository (no repository in any parent folder)",
+ "family": [
+  "kaal-testing",
+  "@kaihacksai/kaal-hosting"
+ ],
+ "agent": {
+  "model": "sonnet",
+  "harness": "claude -p, headless, working folder is the trial folder",
+  "session": "ef22c577-39ef-4d51-aec4-9e4f84080b9d"
+ },
+ "judge": {
+  "model": "sonnet",
+  "session": "a391e641e128f8791"
+ },
+ "skillDeployed": ".claude/skills/kaal-testing (SKILL.md and references/), loaded by Claude Code itself; the agent called the Skill tool first in all three runs",
+ "skillWording": "reworded \"Observing a run\" (from here to here, handed to the decider); run 3 of this set hit a missing executable bit on node_modules/.bin/kaal-testing in the trial copy and ran the bin file with node"
+}

@@ -79,7 +79,7 @@ function build() {
   writeFileSync(join(project, 'package.json'), JSON.stringify({ name: 'consumer', version: '1.0.0', private: true, type: 'module' }));
   const r = sh('npm', ['install', '--no-audit', '--no-fund', '--ignore-scripts', tarball], { cwd: project });
   if (r.status !== 0) failed('the packed package does not install into an empty project', r);
-  return { project, root: join(project, 'node_modules', NAME) };
+  return { project, root: join(project, 'node_modules', NAME), tarball };
 }
 
 /** The names of every package the install put anywhere in the tree, nested or not, read from the lockfile npm wrote. */

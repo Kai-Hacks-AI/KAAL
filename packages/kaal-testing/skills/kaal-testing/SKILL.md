@@ -45,6 +45,12 @@ Record each judged validation item with its judgment, and make an unjudged one f
 
 Keep a capability's acceptance scenarios in its own workspace, under `test/acceptance/`. Run them with `accept` from `kaal-testing/acceptance`, against a manifest of tarballs packed once by the caller. In a scenario, get packages only through `install`, never by building or packing. Report each ledger finding with its kind. State host containment and unrecorded installations as unknown, never as passed.
 
+## Observing a run
+
+You start at a project's tests, each stating what it checks, and you end at a result per test, handed on. To get that result, run the tests with `kaal-testing run <test files>`. Report each test as GREEN, RED or UNKNOWN with the test behind it, and any problem that kept the run from finishing. Only an assertion failure is RED. A skipped, errored, cancelled or timed-out test is UNKNOWN, never a pass, and a run that did not finish is incomplete. Say "all passed" only when RED and UNKNOWN are zero and the run is complete.
+
+Then hand the result as it stands, partial or complete, together with what it leaves unobserved, to the decider: the one who consumes the result and chooses what follows, including whether to run again. Your work stops at that handover. [references/example-report.md](references/example-report.md) shows one complete report.
+
 ## Measuring coverage
 
 To measure which delivered code a capability's own tests execute, use the `kaal-testing` package's `cover` from `kaal-testing/coverage`. Pass the workspace and the files it delivers. Report a delivered file never executed by name. Report a coverage figure as executed code within that run, never as correctness.

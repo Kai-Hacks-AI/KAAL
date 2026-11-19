@@ -19,7 +19,7 @@ export async function run() {
   const { project } = install();
   for (const f of readdirSync(join(TRIAL, 'fixture'))) cpSync(join(TRIAL, 'fixture', f), join(project, f.replace('.fixture.mjs', '.test.mjs')));
   assert.ok(existsSync(join(project, 'node_modules/.bin/kaal-testing')), 'the installed package has no command to run the fixture with');
-  const r = sh(join(project, 'node_modules/.bin/kaal-testing'), ['run', 'a.test.mjs', 'skipped.test.mjs', 'pending.test.mjs'], { cwd: project });
+  const r = sh(join(project, 'node_modules/.bin/kaal-testing'), ['run', 'a.test.mjs', 'skipped.test.mjs', 'service.test.mjs'], { cwd: project });
   assert.equal(r.status, 0, `the installed command did not report on the fixture: ${r.stderr}`);
   assert.deepEqual(JSON.parse(r.stdout).counts, key.expected, 'the fixture does not yield the counts the key states');
 
