@@ -6,7 +6,7 @@
 
 ## Records
 
-`{ case, x, run, outcome }`: a Case that tests the control, the kind of X, the run id, the outcome GREEN, RED or UNKNOWN as a runner reports it. A JSON file holding an array or one record, or a directory of such files.
+`{ case, x, run, outcome }`: a Case that tests the control, the kind of X, the run id, the outcome GREEN, RED or UNKNOWN as a runner reports it. For an x declared `:fail` the record also carries `base: { run, outcome }`, the run of the same Case on the failure without the control's mechanism (the base side of `compareReports`); it counts only with base outcome RED, a base run different from `run`, and outcome GREEN. A JSON file holding an array or one record, or a directory of such files.
 
 ## Scripts
 
