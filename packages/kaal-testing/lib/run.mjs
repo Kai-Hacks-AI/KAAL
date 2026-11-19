@@ -1,8 +1,6 @@
 // Runs Case files with `node --test` and reports what was observed: GREEN, RED and UNKNOWN counts and each test's result (testing/C63).
 // It observes and reports. It never judges a Change (kaal-change) and never enforces (Guard).
-import { executeSync, isolatedEnvironment } from '@kaihacksai/kaal-hosting';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { executeSync, initialize, isolatedEnvironment, kind, readFile, scratch } from '@kaihacksai/kaal-hosting';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -111,30 +109,29 @@ export async function runCases({ files, root, timeoutMs = DEFAULT_TIMEOUT_MS, st
     const absolute = resolve(root, f);
     const rel = relative(root, absolute);
     if (rel.startsWith('..') || isAbsolute(rel)) throw new Error(`invalid input: ${f} lies outside root`);
-    if (!existsSync(absolute) || !statSync(absolute).isFile()) throw new Error(`invalid input: ${f} is not a file`);
+    if ((await kind(absolute)) !== 'file') throw new Error(`invalid input: ${f} is not a file`);
     relativeFiles.push(slash(rel));
   }
   const unique = [...new Set(relativeFiles)].sort();
   // A runner started from inside `node --test` must not hand its test context on, or the child would behave as a worker of that run.
   const { NODE_TEST_CONTEXT, ...environment } = process.env;
-  const scratch = mkdtempSync(join(tmpdir(), 'kaal-run-'));
   const tests = [];
   const problems = [];
   const diagnostics = [];
-  try {
+  const streams = {};
+  await scratch(async (dir) => {
     for (const file of unique) {
-      const destination = join(scratch, 'stream.ndjson');
-      rmSync(destination, { force: true });
+      const destination = join(dir, 'stream.ndjson');
+      const started = Date.now();
       const run = executeSync(process.execPath, ['--test', `--test-reporter=${REPORTER}`, `--test-reporter-destination=${destination}`, file], {
         cwd: root,
-        env: isolatedEnvironment(scratch, environment),
+        env: isolatedEnvironment(dir, environment),
         timeout: timeoutMs,
       });
-      const raw = existsSync(destination) ? readFileSync(destination, 'utf8') : '';
-      if (streamsDir) {
-        mkdirSync(streamsDir, { recursive: true });
-        writeFileSync(join(streamsDir, `${file.replaceAll('/', '__')}.ndjson`), raw);
-      }
+      // Hosting's timeout ends the child, but the status then is not always null (node --test answers the signal and exits with its own code), so the clock is read too.
+      const stopped = run.status === null || run.signal !== null || Date.now() - started >= timeoutMs;
+      const raw = (await kind(destination)) === 'file' ? (await readFile(destination)).toString('utf8') : '';
+      streams[`${file.replaceAll('/', '__')}.ndjson`] = Buffer.from(raw);
       const events = [];
       let garbled = false;
       for (const line of raw.split('\n').filter(Boolean)) {
@@ -142,7 +139,7 @@ export async function runCases({ files, root, timeoutMs = DEFAULT_TIMEOUT_MS, st
       }
       const rebuilt = reconstruct(events, file);
       if (garbled) rebuilt.problems.push({ file, kind: 'unrecognised-output', detail: 'a reporter line is not JSON' });
-      if (run.status === null) {
+      if (stopped) {
         // Stopped from outside: whatever was reported is partial.
         rebuilt.problems = rebuilt.problems.filter((p) => p.kind !== 'file-failed' && p.kind !== 'cancelled' && p.kind !== 'empty-inventory');
         rebuilt.problems.push({ file, kind: 'timeout', detail: `the file did not end within ${timeoutMs} ms and was stopped` });
@@ -154,9 +151,9 @@ export async function runCases({ files, root, timeoutMs = DEFAULT_TIMEOUT_MS, st
       tests.push(...identified.tests);
       problems.push(...identified.problems);
     }
-  } finally {
-    rmSync(scratch, { recursive: true, force: true });
-  }
+  });
+  // `streamsDir` must be missing or empty: Hosting writes it whole, or not at all.
+  if (streamsDir) await initialize(streamsDir, streams);
   tests.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const counts = { GREEN: 0, RED: 0, UNKNOWN: 0 };
   for (const t of tests) counts[t.actual] += 1;
