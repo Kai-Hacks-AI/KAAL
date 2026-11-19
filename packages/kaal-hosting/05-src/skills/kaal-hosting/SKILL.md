@@ -70,3 +70,7 @@ The Boundary Check lists where a file or folder decides by platform. Hosting is 
 Run it on any file or folder, recursively: `kaal-hosting-boundary --target <path>` (repeat `--target` for several). It reports findings and never fails: one finding per source line, with every rule and class that line hits; a later use of a name bound on a finding line is a reference under that finding, not a finding of its own.
 
 The result is evidence, not a verdict. A finding is a question put to the owner of the code, not a defect and not an approval. Deciding is the owner's: the owner of the target records the decision (Package or Engineering) by finding id and line-text digest in their own Boundary Check record. Hosting stores and judges no decision. A decision that matches no finding is stale; a finding with no decision is undecided.
+
+## Read a revision's files
+
+To read the files of a Git revision, such as the base a check must be judged against, use `readRevision(root, ref, { under })` or the command `kaal-hosting-revision --root <dir> --ref <ref> [--under <path>]...` instead of `read` (which reads a directory) or an ad hoc `git`. Both read the committed bytes, never the working tree, and keep "no such revision" (`REVISION_NOT_FOUND`) apart from "could not be read" (`REVISION_UNREADABLE`). The command prints facts (the commit and each file's path, size and SHA-256) and exits 0 or 2; whether this is the right revision is your judgment, not its output.
