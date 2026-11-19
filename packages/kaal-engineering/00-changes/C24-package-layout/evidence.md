@@ -54,3 +54,13 @@ for f in $(find packages/kaal-engineering -name 'T12*.red.mjs' | sort -V); do
   node -e "import('./$f').then(async m=>{try{await m.run();console.log('GREEN',m.id)}catch(x){console.log(x.code==='ERR_ASSERTION'?'RED-observed':'ERROR',m.id,String(x.message).split('\n')[0])}})"
 done
 ```
+
+## DO
+
+Observed 19 Nov 2026 on the DO of this Change, Node 22 on Linux, with the dependencies of `kaal-engineer-skill` available:
+
+| Case | Tests | In the tree of the DO |
+| --- | --- | --- |
+| T1220 to T1229 | I3, F45 to F51, N20, A3 | GREEN, including `check-skill` exits 0 on the Skill (T1228) |
+
+10 GREEN, 0 RED, 0 error. The package's existing Cases T1171 to T1179 stay GREEN. Reproduce: `cd packages/kaal-engineering && npm test`.
