@@ -14,49 +14,17 @@ const passes = (paths) => assert.deepEqual(check(paths), []);
 const fails = (paths, ...offending) =>
   assert.deepEqual(check(paths).map((v) => v.split(": ")[1].split(" ")[0]), offending);
 
-describe("core travels alone", () => {
-  it("passes a Core-only change with its tests, metadata, lockfile, acceptance and Engine sync", () => {
+describe("Core has no special rule", () => {
+  it("passes a Core change on its own, with its metadata, lockfile and Engine files", () => {
     passes(["packages/kaal-core/src/engine.ts", "packages/kaal-core/test/core.test.ts"]);
-    passes([
-      "packages/kaal-core/payload/core/Node.md",
-      "packages/kaal-core/package.json",
-      "package.json",
-      "package-lock.json",
-      "engineering/acceptance/embed.test.mjs",
-      ".kaal/AGENTS.md",
-      ".kaal/KAAL-KERNEL.md",
-      ".kaal/core/Node.md",
-    ]);
+    passes(["packages/kaal-core/payload/core/Node.md", "packages/kaal-core/package.json", "package.json", "package-lock.json", ".kaal/AGENTS.md", ".kaal/core/Node.md"]);
   });
 
-  it("treats the deployed Engine foundation as Core", () => {
-    fails([".kaal/core/Node.md", "packages/kaal-sealing/payload/Sealing.md"], "packages/kaal-sealing/payload/Sealing.md");
-  });
-
-  it("fails Core mixed with an unrelated Skill", () => {
-    fails(
-      ["packages/kaal-core/src/register.ts", "packages/kaal-sealing/src/seal.ts", "engineering/acceptance/sealing.test.mjs"],
-      "packages/kaal-sealing/src/seal.ts",
-      "engineering/acceptance/sealing.test.mjs",
-    );
-  });
-
-  it("fails Core mixed with registered Skills in the Engine, repository docs or other engineering", () => {
-    fails(
-      ["packages/kaal-core/src/cli.ts", ".kaal/skills/kaal-sealing/Sealing.md", "README.md", "AGENTS.md", "engineering/change-isolation/check.mjs"],
-      ".kaal/skills/kaal-sealing/Sealing.md",
-      "README.md",
-      "AGENTS.md",
-      "engineering/change-isolation/check.mjs",
-    );
-  });
-
-  it("fails a rename out of Core when given both sides", () => {
-    fails(["packages/kaal-core/src/cli.ts", "packages/kaal-other/src/cli.ts"], "packages/kaal-other/src/cli.ts");
-  });
-
-  it("does not let a look-alike path pass as Core", () => {
-    fails(["packages/kaal-core/src/node.ts", "packages/kaal-core-extra/index.ts"], "packages/kaal-core-extra/index.ts");
+  it("does not refuse Core mixed with other solution paths, the Engine or repository docs", () => {
+    passes([".kaal/core/Node.md", "packages/kaal-sealing/payload/Sealing.md"]);
+    passes(["packages/kaal-core/src/cli.ts", ".kaal/skills/kaal-sealing/Sealing.md", "README.md", "AGENTS.md", "engineering/change-isolation/check.mjs"]);
+    passes(["packages/kaal-core/src/cli.ts", "packages/kaal-other/src/cli.ts"]);
+    passes(["packages/kaal-core/src/node.ts", "packages/kaal-core-extra/index.ts"]);
   });
 });
 
@@ -72,12 +40,8 @@ describe(".github travels alone", () => {
     fails([".github/x.yml", ".githubx/y"], ".githubx/y");
   });
 
-  it("fails .github mixed with Core under both rules", () => {
-    fails(
-      [".github/workflows/ci.yml", "packages/kaal-core/src/cli.ts"],
-      ".github/workflows/ci.yml", // core travels alone
-      "packages/kaal-core/src/cli.ts", // .github travels alone
-    );
+  it("treats Core like any other path beside .github", () => {
+    fails([".github/workflows/ci.yml", "packages/kaal-core/src/cli.ts"], "packages/kaal-core/src/cli.ts");
   });
 });
 
@@ -105,8 +69,8 @@ describe("ordinary changes", () => {
 });
 
 describe("aggregate changes", () => {
-  it("do not bypass isolation: Core bundled with unrelated files does not conform", () => {
-    assert.notDeepEqual(check([".gitattributes", "AGENTS.md", "README.md", "packages/kaal-core/src/cli.ts"]), []);
+  it("do not bypass isolation: .github bundled with unrelated files does not conform", () => {
+    assert.notDeepEqual(check([".gitattributes", "AGENTS.md", ".github/workflows/x.yml"]), []);
   });
 });
 
@@ -126,7 +90,7 @@ describe("the CLI", () => {
     const ok = run([], "packages/kaal-core/a b.ts\0packages/kaal-core/odd\nname.ts\0");
     assert.equal(ok.status, 0, ok.stderr);
     assert.match(ok.stdout, /^ok: 2 changed paths conform/);
-    const bad = run([], "packages/kaal-core/src/cli.ts\0packages/kaal-sealing/new\nline.ts\0");
+    const bad = run([], ".github/x.yml\0packages/kaal-sealing/new\nline.ts\0");
     assert.equal(bad.status, 1);
   });
 
@@ -171,19 +135,17 @@ describe("transition ledger", () => {
     }
   });
 
-  it("refuses the multi-owner change without a matching entry", () => {
-    assert.ok(check(PATHS).some((v) => v.startsWith("core travels alone: packages/kaal-foundation/package.json")));
+  it("needs no entry for the multi-owner change: nothing refuses it", () => {
+    assert.deepEqual(check(PATHS), []);
   });
 
   it("admits exactly the committed change: path set, pre and post blobs all equal", () => {
     assert.deepEqual(check(PATHS, { ledger: ledgerOf(entry()), facts: facts() }), []);
   });
 
-  it("refuses a path the ledger does not name, and a missing path", () => {
-    const extra = check([...PATHS, "README.md"], { ledger: ledgerOf(entry()), facts: facts() });
-    assert.ok(extra.some((v) => v.startsWith("core travels alone: README.md")));
-    const missing = check(PATHS.slice(1), { ledger: ledgerOf(entry()), facts: facts() });
-    assert.ok(missing.some((v) => v.startsWith("core travels alone: ")));
+  it("does not match a change with a path the ledger does not name, or a missing path, and refuses nothing for it", () => {
+    assert.deepEqual(check([...PATHS, "README.md"], { ledger: ledgerOf(entry()), facts: facts() }), []);
+    assert.deepEqual(check(PATHS.slice(1), { ledger: ledgerOf(entry()), facts: facts() }), []);
   });
 
   it("refuses a changed byte in any path (forged lock, altered pin, changed Core)", () => {

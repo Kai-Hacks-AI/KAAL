@@ -30,6 +30,7 @@ const COPIES = [
   ["05-src/skills/kaal-hosting/references", "skills/kaal-hosting/references"],
   ["05-src/skills/kaal-hosting/scripts/boundary-cli.mjs", "skills/kaal-hosting/scripts/boundary-cli.mjs"],
   ["05-src/skills/kaal-hosting/scripts/revision-cli.mjs", "skills/kaal-hosting/scripts/revision-cli.mjs"],
+  ["05-src/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs", "skills/kaal-hosting/scripts/github/pull-requests-cli.mjs"],
   ["01-intent", "docs/intent"],
   ["02-requirements", "docs/requirements"],
   ["03-architecture", "docs/architecture"],
