@@ -13,14 +13,14 @@ const load = () => import(pathToFileURL(SRC).href);
 const draft = (name) => readFileSync(join(RM, '00-changes/C103-hold-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1263';
 export const tests = ['release/CTL24'];
-export const title = 'the finder lists release/CTL24 as the preventive control hold Act that has release/I56, equal to its draft';
+export const title = 'the finder lists release/CTL24 as the detective control hold Act that has release/I56, equal to its draft';
 export async function run() {
   assert.ok(existsSync(FINDER), 'the finder is absent');
   const out = JSON.parse(execFileSync(process.execPath, [FINDER, RM], { encoding: 'utf8' }));
   assert.deepEqual(out.refused, [], 'an item was refused');
   const c = out.controls.find((x) => x.id === 'release/CTL24');
   assert.ok(c, 'release/CTL24 is not listed');
-  assert.equal(c.type, 'preventive');
+  assert.equal(c.type, 'detective');
   assert.deepEqual(c.has, ['release/I56']);
   assert.equal(c.title, 'hold Act');
   const real = join(RM, '04-controls/CTL24-hold-act/CTL24.md');

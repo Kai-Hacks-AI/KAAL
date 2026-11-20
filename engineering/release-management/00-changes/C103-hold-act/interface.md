@@ -25,7 +25,7 @@ serves: [release/I56]
 ---
 # release/F80 hold-act
 
-A check on every pull request into a collector reads the checked-out tree and holds the ACT: an `act.md` may stand in a Change folder only when the Cases that apply to that Change are really green. With no `act.md` in the Change folder there is no ACT to hold and the check says PASS, whatever is red, so the PLANs and DOs that precede the ACT land. With an `act.md` in it, the rest of this paragraph decides. The Cases that apply to the Change are those in its folder and those that test an element the Change justifies, that is the Intents its record implements and every element that reaches one of them along the one-way relationships (serves, addresses, has), whether the element is placed or still a draft in the Change folder. The check says PASS only when at least one Case applies, none is parked as a `.red.mjs`, and the observation of Testing is GREEN for each. It says FAIL, with the message `finish your work first` and the Cases named, when an applicable Case is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies. It reports the count of red, green and unknown Cases. It reads nothing of the history of the branch: the same tree gives the same answer however it was transported. An exit code is never a verdict: the check reads observations. It does not approve and does not merge.
+A check on every pull request into a collector reads the checked-out tree and holds the ACT: an `act.md` may stand in a Change folder only when the Cases that apply to that Change are really green. With no `act.md` in the Change folder there is no ACT to hold and the check says PASS, whatever is red, so the PLANs and DOs that precede the ACT land. With an `act.md` in it, the rest of this paragraph decides. The Cases that apply to the Change are those in its folder and those that test an element the Change justifies, that is the Intents its record implements and every element that reaches one of them along the one-way relationships (serves, addresses, has), whether the element is placed or still a draft in the Change folder. The check says PASS only when at least one Case applies, none is parked as a `.red.mjs`, and the observation of Testing is GREEN for each. It says FAIL, with the message `finish your work first` and the Cases named, when an applicable Case is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies. It reports the count of red, green and unknown Cases. It reads nothing of the history of the branch: the same tree gives the same answer however it was transported. An exit code is never a verdict: the check reads observations. It does not approve and does not merge. Judgement is kept apart from enforcement: the judge says PASS, FAIL or UNKNOWN and never blocks; the place that asks it decides what a verdict does (a report, an advisory check, a required check), and once the check is required UNKNOWN does not count as PASS.
 `````
 
 ## Draft of A71.md
@@ -47,17 +47,19 @@ The source `05-src/phase/judge-act.mjs` has three parts and reads a folder, neve
 ---
 id: release/CTL24
 title: hold Act
-description: It stops an act.md from entering a collector while the Cases that apply to its Change are not really green.
-type: preventive
+description: It reveals an act.md that stands in a Change folder while the Cases that apply to its Change are not really green.
+type: detective
 status: designed
 has: [release/I56]
-evidence: [fixture:2, real:2, provoked:1:fail]
+evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL24 hold Act
 
-A preventive control. `hold Act` holds the ACT of a collector back until the work is done. It measures the tree of a collector: with no `act.md` in the Change folder it says PASS, there is no ACT to hold; with one it finds the Cases that apply to the Change from the content (its folder, and the Cases that test the elements the Change justifies along the relationships) and says FAIL, with the message `finish your work first` and the Cases named, while any is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies, and PASS only when every applicable Case is really green. It reports how many are red, green and unknown. PASS is not an approval and not a merge decision.
+A detective control that is meant to become preventive. `hold Act` holds the ACT of a collector back until the work is done: it reveals an `act.md` that has come too early. It measures the tree of a collector: with no `act.md` in the Change folder it says PASS, there is no ACT to hold; with one it finds the Cases that apply to the Change from the content (its folder, and the Cases that test the elements the Change justifies along the relationships) and says FAIL, with the message `finish your work first` and the Cases named, while any is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies, and PASS only when every applicable Case is really green. It reports how many are red, green and unknown. PASS is not an approval and not a merge decision.
 
 It reads the tree it is handed and the observations of Testing, never an exit code and never the history of the branch. It judges only the completion of the work: it does not say whether the Cases are good or the code is right, and not whether a pull request was entitled to change them. Making it a required check, in a hook for early feedback and in a ruleset, are other steps with their own Owner decisions.
+
+It rolls out detective first, as the other controls of this repository did: (1) its verdict is observed on real collector pull requests without blocking anything; (2) it runs as an advisory CI check behind a feature flag, and the evidence is collected; (3) only after that is validated and the Owner authorizes it is the check required in the `23 - collecting` ruleset, and from then on the control is preventive and its type changes in the Change that makes it so. The judge only judges; what a verdict does is decided where it is asked, and once the check is required UNKNOWN does not pass.
 
 It has one Intent, release/I56.
 `````

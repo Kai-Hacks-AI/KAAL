@@ -30,10 +30,20 @@ Owner, 20 Nov 2026: the process of getting a Change done is release; the Change 
 
 | control | station | says | state |
 | --- | --- | --- | --- |
-| `hold Act` | `23 - collecting`, required on a pull request into a collector | FAIL while an `act.md` stands and an applicable Case is not really green | this Change |
+| `hold Act` | `23 - collecting`, first advisory, required only when the Owner authorizes it | FAIL while an `act.md` stands and an applicable Case is not really green | this Change |
 | `demand Act` | `30 - promoting`, required | FAIL when every applicable Case of a carried Change is really green and its `act.md` is missing; it cannot sit on 23, where it would deadlock the DO that closes the last red | its own Change, after this one |
 | `verify Act` | with the ACT, at 23 and again at 30 | FAIL when an `act.md` does not have the ACT's format | its own Change; needs the format from kaal-change |
 
 - **Exchange, not a definition.** Release does not define the format. It seeks from kaal-change a judgement of an `act.md` (its offer is the Skill description; our seek goes in `references/exchanges.md`). Until kaal-change offers it, `verify Act` has nothing to call and stays unplanned in detail; the Exchange request goes to its thread through the coordinator. The 4L shape is probably owned by a retrospective capability that does not exist yet; that is kaal-change's to route, not ours.
 - **Hooks, advisory and local, the same judge each.** `hold Act` (an `act.md` pushed while Cases are red), `verify Act` (a malformed ACT before push) and `demand Act` ("Change closed, ACT due" once a push makes everything really green) each get a mirror in the pre-push dispatcher (`.githooks/new/pre-push.d`, a WIRE since `stages.json` is exact). A hook never blocks, a verdict that cannot be told is a note, and the required check at its station stays authoritative. The hook needs an observed run of the applicable Cases; locally that is the runner on those Cases, which is why the hooks are their own slice behind the adapter from Testing's report.
 - **Order.** This Change, then the workflow and WIRE, the adapter, the `23` ruleset gate (Owner); `demand Act` after the ACT shape is settled; `verify Act` after the Exchange is answered; the three hooks last.
+
+## Rollout of `hold Act`, detective first
+
+The CPO (20 Nov 2026) asked for the rollout to be explicit, following KAAL's detective-first pattern, and not to broaden this Change into its siblings. The control is declared `detective` now and `designed`; it becomes preventive only in the Change that makes the check required.
+
+1. **Observe.** The judge's PASS, FAIL and UNKNOWN are observed on real collector pull requests, by running the command line on them, with nothing blocked. The observation of Testing is a precondition (its adapter is a later slice); until it exists the observed runs are hand-made and say so.
+2. **Advisory check.** A workflow `hold Act` runs on pull requests into a collector behind a feature flag (a repository variable, off by default; when set to `advisory` it reports and never fails the pull request, when unset it does not run). Evidence is collected from it: the minimum of the control, `real:1`, is a run on a real collector pull request, and `provoked:1:fail` is a scratch collector with an `act.md` and a red Case. This is a WIRE with the Owner's go; it is not part of this Change.
+3. **Required.** Only after the evidence is validated and the Owner explicitly authorizes it is the check declared on the `23 - collecting` station and loaded into its ruleset, by the Owner. Then the control is preventive, its `type` and its evidence line change (a preventive control asks for two real runs), and release/CTL26 observes that the requirement is in force.
+
+Judgement stays apart from enforcement throughout: the judge never blocks, the place that asks it decides what a verdict does, and the day the check is required UNKNOWN does not pass. The siblings `demand Act` and `verify Act` have their own Changes and their own rollout; nothing of them is in this one.
