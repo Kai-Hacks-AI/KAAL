@@ -8,6 +8,10 @@ A `:fail` base record may carry `without`, the path of the mechanism the base ru
 
 A `:fail` run counts only when its base is RED and a different run, `without` names neither a Case (`*.test.mjs`, `*.red.mjs`) nor a fixture path, and `shows` fits the control type: preventive, `shows.refused` is a station the control declares as `<Station>:preventive`; detective, `shows.reported` is set; corrective, `shows.restored` is set; directive, nothing is asked. A run with no `shows` or no `without` still counts and is counted in `unshown` and `unnamed`. A preventive control with no preventive station has `boundaryUnnamed`.
 
+## Two edges at the control
+
+`Test Case -verifies-> control` is the first line of the Case and its results are the run records. `judgement -judges-> control` is the `control` field of the judgement. The control stores neither. `judgeEvidence(control, records)` and `judgementOf(control, judgements, digest)` are the two lookups; a report of one control or of every control joins them.
+
 ## Functions
 
 `readJudgements(path)`: `{ judgements, problems }`. `digestOf(texts)`: a digest of the control file and its Case files. `judgementOf(control, judgements, digest)`: `{ verification, validation }`, each the `{ verdict, stale }` of its latest judgement, or `{ verdict: 'none' }`. `readRecords` skips `*.judgement.json`.
