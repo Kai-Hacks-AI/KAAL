@@ -15,6 +15,9 @@ export function run() {
     assert.ok(at && at[1].trim().length > 0, `${app.name}: the Verdict does not say where the finding was found`);
     assert.doesNotMatch(v, /^\s*[-*]?\s*Belongs to be fixed:/im, `${app.name}: the Verdict decides where the fix belongs, which is not Review's`);
     assert.match(v, /Checked:|Inferred:/, `${app.name}: the Verdict states no evidence`);
+    if (/Proven/.test(v)) assert.match(v, /Result:\s*\S+/i, `${app.name}: a Proven finding states no result of a run that reproduced the failure`);
+    if (/\binvalid\b/i.test(v)) assert.match(v, /Closed:\s*\S+/i, `${app.name}: an invalid finding is not closed with a reason`);
+    if (/\bunknown\b/i.test(v) && !/\b(valid|invalid)\b/i.test(v.replace(/\bunknown\b/gi, ''))) assert.match(v, /Missing evidence:\s*\S+/i, `${app.name}: an unknown finding does not name the missing evidence`);
     const h = section(app, 'Handover');
     assert.match(h, /to prove|to record|to place|none/i, `${app.name}: the Handover states no handover and does not say none applies`);
   }
