@@ -39,7 +39,7 @@ export async function run() {
   };
   try {
     c.put(`${CHANGE}/C999.md`, EL('x/C999', { implements: ['x/I1'] }));
-    c.put('02-learnings/retros/RT1/retro.md', '---\nid: x/RT1\nformat: 4L\nreflects: [C999]\n---\n# the retro\n');
+    c.put('02-learnings/retros/RT1/retro.md', '---\nid: x/RT1\nformat: 4L\nreflects: [x/C999]\n---\n# the retro\n');
     c.put(`${CHANGE}/interface.md`, drafts(EL('x/I1'), EL('x/F1', { serves: ['x/I1'] }), EL('x/A1', { addresses: ['x/F1'] })));
     c.put(`${CHANGE}/T1.red.mjs`, CASE(1, ['x/F1']));
     c.put('03-architecture/A1-x/T3.red.mjs', CASE(3, ['x/A1']));
