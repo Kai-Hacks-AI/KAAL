@@ -1,0 +1,28 @@
+{
+  "name": "@kaihacksai/kaal-release",
+  "version": "0.0.1",
+  "description": "KAAL Release: how to design and drive an end-to-end release process, as a Skill.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w kaal-core -w @kaihacksai/kaal-hosting",
+    "test": "node --test test/release.test.mjs test/show-wip.test.mjs test/pull.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "commonmark": "0.31.2",
+    "kaal-core": "0.0.1",
+    "kaal-engineer-skill": "0.0.1",
+    "kaal-graph": "0.0.1",
+    "@kaihacksai/kaal-hosting": "0.0.1"
+  }
+}

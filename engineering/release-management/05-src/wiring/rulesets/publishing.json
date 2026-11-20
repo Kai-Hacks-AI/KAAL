@@ -1,0 +1,19 @@
+{
+  "name": "publishing",
+  "target": "tag",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "exclude": [],
+      "include": [
+        "refs/tags/trial-*@*"
+      ]
+    }
+  },
+  "bypass_actors": [],
+  "rules": [
+    {
+      "type": "update"
+    }
+  ]
+}

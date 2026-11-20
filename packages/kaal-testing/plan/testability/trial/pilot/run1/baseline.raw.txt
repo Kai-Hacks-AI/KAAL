@@ -1,0 +1,51 @@
+[
+    {
+      "id": "E1",
+      "approach": "deterministic",
+      "why": "The claim gives a measurable threshold (two seconds) on an observable result, response completion time. A script can decide it once the 'specified conditions' are fixed.",
+      "observable": "Elapsed time from request sent to response complete, measured under the specified conditions.",
+      "oracle": "Pass if the measured completion time is at most 2 seconds. Fail otherwise.",
+      "evidence": null,
+      "judge": null,
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "What are the 'specified conditions' (load, hardware, data size, network)?",
+        "Does the limit apply to every response, or to a percentile such as p95 or p99?",
+        "What counts as 'complete': first byte, full payload, or rendered?"
+      ]
+    },
+    {
+      "id": "E2",
+      "approach": "judgment",
+      "why": "'Usefully distinguish' and 'including ambiguity' have no single objective oracle. The claim can still be evaluated through evidence such as sample inputs, comparison with reference answers, and independent review.",
+      "observable": null,
+      "oracle": null,
+      "evidence": "Skill outputs on a set of representative cases that mix Solution and Delivery concerns, including ambiguous ones, compared against reference classifications or a baseline without the Skill.",
+      "judge": "Independent reviewers, such as Architecture or a domain expert, scoring against a stated rubric for correct distinction, handling of ambiguity, and usefulness.",
+      "owner": null,
+      "question": null,
+      "unresolved": [
+        "What rubric defines 'usefully'?",
+        "How should ambiguous cases be handled and scored: flagged, resolved, or either?",
+        "What acceptance threshold or agreement level among reviewers is required?"
+      ]
+    },
+    {
+      "id": "E3",
+      "approach": "pushback",
+      "why": "'Sufficiently reliable' is undefined. There is no metric, threshold or conditions, so neither a script oracle nor a meaningful judgment can be set up until the claim is made specific.",
+      "observable": null,
+      "oracle": null,
+      "evidence": null,
+      "judge": null,
+      "owner": "Requirements",
+      "question": "What measurable reliability target applies, for example availability, MTBF or failure rate, over what period, under what conditions and workload, and what counts as a failure?",
+      "unresolved": [
+        "Which reliability measure applies?",
+        "What threshold counts as 'sufficient'?",
+        "Over what period and under what operating conditions?",
+        "What counts as a failure?"
+      ]
+    }
+  ]

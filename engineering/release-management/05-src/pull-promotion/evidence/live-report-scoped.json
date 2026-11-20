@@ -1,0 +1,120 @@
+{
+  "collectors": [
+    {
+      "name": "kaal/release/plan",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: more than one retrospective (packages/kaal-release/plan/coordination-review/00-changes.md, packages/kaal-release/plan/coordination/00-changes.md, packages/kaal-release/plan/pull-v1/00-changes.md, packages/kaal-release/plan/pull/00-changes.md, packages/kaal-release/plan/release/00-changes.md)",
+        "Test Case pull/T19 has no execution at the current head",
+        "Test Case pull/T20 has no execution at the current head",
+        "Test Case pull/T21 has no execution at the current head",
+        "Test Case pull/T22 has no execution at the current head",
+        "Test Case pull/T23 has no execution at the current head",
+        "Test Case pull/T24 has no execution at the current head",
+        "Test Case pull/T25 has no execution at the current head"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-fallback-template",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-hotfix-template",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-hotfix",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-hotfix-engineering",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-analyze-vulnerabilities",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-analyze-vulnerabilities-engineering",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/check-pr-envelope",
+      "status": "not judged",
+      "missing": [
+        "the collector on the host"
+      ]
+    },
+    {
+      "name": "kaal/release/change-isolation",
+      "status": "does not qualify",
+      "missing": [
+        "an expected Test Case in the tree",
+        "files that differ from main: the delta is empty"
+      ]
+    },
+    {
+      "name": "kaal/release/verify-plan",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    },
+    {
+      "name": "kaal/release/wire-verify-plan",
+      "status": "does not qualify",
+      "missing": [
+        "an expected Test Case in the tree",
+        "files that differ from main: the delta is empty"
+      ]
+    },
+    {
+      "name": "kaal/release/approve-change",
+      "status": "does not qualify",
+      "missing": [
+        "ACT: no file of the delta holds one 4L retrospective",
+        "PLAN: no file of the tree matches the plan evidence",
+        "an expected Test Case in the tree"
+      ]
+    }
+  ],
+  "qualifiers": [],
+  "undeclared": [],
+  "next": {
+    "collector": null,
+    "reason": "no declared collector qualifies; each says what is missing"
+  },
+  "problems": []
+}

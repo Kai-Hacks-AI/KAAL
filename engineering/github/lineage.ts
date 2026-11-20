@@ -90,27 +90,113 @@ const list = (paths: string[]) => paths.join(" ");
 
 // ---- Verdicts: pure functions over Git facts ------------------------------------------------
 
+/** A status check a ruleset requires of a branch (`integrationId` pins the app whose run counts). */
+export interface RequiredCheck {
+  context: string;
+  integrationId?: number;
+}
+
+/** One check run on the head, as GitHub reports it. */
+export interface CheckRun {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  appId?: number;
+  headSha?: string;
+}
+
+export interface HeadChecks {
+  required: RequiredCheck[];
+  runs: CheckRun[];
+}
+
 export interface SourceFacts {
   repo: string;
   defaultBranch: string;
   baseRef: string;
   headRepo: string;
   headRef: string;
+  /** The exact head commit the checks are read at. */
+  head?: string;
+  /** What the head's own rulesets require and the runs on the head; absent means they could not be established. */
+  checks?: HeadChecks;
+}
+
+/** The check being judged: it is not required of the head it judges (that would be its own recursion). */
+export const SELF = "Promotion Source";
+
+/** The delivery stocks `main` admits, by head branch: kaal/<capability>/*, hotfix/* and wire/*. Anything else is development. */
+export function deliveryStock(headRef: string): "kaal" | "hotfix" | "wire" | null {
+  const part = (prefix: string, min: number) => headRef.startsWith(prefix) && headRef.slice(prefix.length).split("/").filter(Boolean).length >= min;
+  if (part("kaal/", 2)) return "kaal";
+  if (part("hotfix/", 1)) return "hotfix";
+  if (part("wire/", 1)) return "wire";
+  return null;
+}
+
+/**
+ * The union of the status checks required by every rule that applies to a branch, from GitHub's
+ * `rules/branches/<ref>` response (all applicable rulesets). Anything but a list of rules cannot be judged.
+ */
+export function readRequired(rules: unknown): RequiredCheck[] {
+  if (!Array.isArray(rules)) throw new Error("the rules of the head branch are not a list");
+  const out = new Map<string, RequiredCheck>();
+  for (const r of rules) {
+    if (r?.type !== "required_status_checks") continue;
+    const list = r.parameters?.required_status_checks;
+    if (!Array.isArray(list)) throw new Error("a required_status_checks rule has no list of checks");
+    for (const c of list) {
+      if (typeof c?.context !== "string") throw new Error("a required status check has no context");
+      const integrationId = Number.isInteger(c.integration_id) && c.integration_id > 0 ? c.integration_id : undefined;
+      out.set(`${c.context}\0${integrationId ?? ""}`, { context: c.context, integrationId });
+    }
+  }
+  return [...out.values()];
+}
+
+/**
+ * GREEN for one head: every check its rulesets require has, as its newest run on this exact commit (by the
+ * required app), a completed success. A newer run still in progress is not green (it may fail), an earlier
+ * success does not stand in for it, and a run on another commit is no evidence.
+ */
+function notGreen(head: string | undefined, c: HeadChecks): string[] {
+  const required = c.required.filter((r) => r.context !== SELF);
+  if (required.length === 0) return ["the head's rulesets require no status check, so nothing shows it passed"];
+  const bad: string[] = [];
+  for (const r of required) {
+    const runs = c.runs
+      .filter((x) => x.name === r.context && (head === undefined || x.headSha === head) && (r.integrationId === undefined || x.appId === r.integrationId))
+      .sort((x, y) => y.id - x.id);
+    const latest = runs[0];
+    if (!latest) bad.push(`${r.context} (no run)`);
+    else if (latest.status !== "completed") bad.push(`${r.context} (pending)`);
+    else if (latest.conclusion !== "success") bad.push(`${r.context} (${latest.conclusion ?? "no conclusion"})`);
+  }
+  return bad;
 }
 
 export function promotionSource(f: SourceFacts): Verdict {
   if (f.baseRef !== f.defaultBranch) {
     return { kind: "not-applicable", message: `Not a promotion: ${f.baseRef} is not ${f.defaultBranch}.` };
   }
-  if (f.headRepo === f.repo && f.headRef.startsWith("kaal/")) {
-    return { kind: "pass", message: `Promotion from ${f.headRef}.` };
+  const stock = f.headRepo === f.repo ? deliveryStock(f.headRef) : null;
+  if (stock === null) {
+    return {
+      kind: "fail",
+      message:
+        `${f.defaultBranch} accepts pull requests only from kaal/<capability>/*, hotfix/* and wire/* branches of ${f.repo}, not from ${f.headRepo}:${f.headRef}. ` +
+        `Take this Change into a kaal/* lineage through a pull request, then promote that lineage. See ${GUIDE}#promote`,
+    };
   }
-  return {
-    kind: "fail",
-    message:
-      `${f.defaultBranch} accepts pull requests only from kaal/* branches of ${f.repo}, not from ${f.headRepo}:${f.headRef}. ` +
-      `Take this Change into a kaal/* lineage through a pull request, then promote that lineage. See ${GUIDE}#promote`,
-  };
+  if (f.checks === undefined) {
+    return { kind: "fail", message: `${f.headRef} is a ${stock} branch, but the checks its rulesets require could not be established at its head, so it is not admitted.` };
+  }
+  const bad = notGreen(f.head, f.checks);
+  if (bad.length > 0) {
+    return { kind: "fail", message: `${f.headRef} is not green at its head: ${bad.join(", ")}. A ${stock} branch travels to ${f.defaultBranch} only when every check its rulesets require has passed on that exact commit.` };
+  }
+  return { kind: "pass", message: `Promotion from ${f.headRef} (${stock}): every check its rulesets require is green at its head.` };
 }
 
 export interface FreshnessFacts {
@@ -808,6 +894,16 @@ export async function readClaim(cwd: string, defaultBranch: string, baseRef: str
 
 const EXIT = { pass: 0, fail: 1, "not-applicable": 3 } as const;
 const json = (path: string): unknown => JSON.parse(readFileSync(path, "utf8"));
+/** `gh api --paginate --jq` prints one JSON value per line; a file of them is a list. */
+const ndjson = (path: string): unknown[] => readFileSync(path, "utf8").split("\n").filter((l) => l.trim() !== "").map((l) => JSON.parse(l));
+
+/** The check runs on a head from lines of {id, name, status, conclusion, appId, headSha}; malformed lines cannot be judged. */
+export function readRuns(lines: unknown[]): CheckRun[] {
+  return lines.map((x: any) => {
+    if (!Number.isInteger(x?.id) || typeof x.name !== "string" || typeof x.status !== "string" || typeof x.headSha !== "string") throw new Error("a check run is not in the form this verdict reads");
+    return { id: x.id, name: x.name, status: x.status, conclusion: typeof x.conclusion === "string" ? x.conclusion : null, appId: Number.isInteger(x.appId) ? x.appId : undefined, headSha: x.headSha };
+  });
+}
 function jsonList<T>(path: string, ok: (x: any) => boolean): T[] {
   const xs = json(path);
   if (!Array.isArray(xs) || !xs.every(ok)) throw new Error(`${path} is not the list this verdict reads`);
@@ -818,9 +914,10 @@ async function main(argv: string[]): Promise<number> {
   const [verdict, ...args] = argv;
   const cwd = process.cwd();
   let v: Verdict | SyncVerdict;
-  if (verdict === "source" && args.length === 5) {
-    const [repo, defaultBranch, baseRef, headRepo, headRef] = args;
-    v = promotionSource({ repo, defaultBranch, baseRef, headRepo, headRef });
+  if (verdict === "source" && (args.length === 5 || args.length === 8)) {
+    const [repo, defaultBranch, baseRef, headRepo, headRef, head, rulesFile, runsFile] = args;
+    const checks = args.length === 8 ? { required: readRequired(ndjson(rulesFile)), runs: readRuns(ndjson(runsFile)) } : undefined;
+    v = promotionSource({ repo, defaultBranch, baseRef, headRepo, headRef, head: args.length === 8 ? head : undefined, checks });
   } else if (verdict === "freshness" && args.length === 4) {
     const [def, defaultTip, headRef, head] = args;
     v = promotionFreshness(readFreshness(cwd, def, rev(cwd, defaultTip), headRef, rev(cwd, head)));
@@ -869,7 +966,7 @@ async function main(argv: string[]): Promise<number> {
     for (const a of verdicts) if (a.kind !== "not-applicable") (a.kind === "fail" ? console.error : console.log)(`${a.kind}: ${a.message}`);
     return verdicts.some((a) => a.kind === "fail") ? 1 : 0;
   } else {
-    console.error("usage: lineage.ts source <repo> <default> <base-ref> <head-repo> <head-ref>\n" +
+    console.error("usage: lineage.ts source <repo> <default> <base-ref> <head-repo> <head-ref> [<head-sha> <rules.ndjson> <check-runs.ndjson>]\n" +
       "       lineage.ts freshness <default> <default-tip> <head-ref> <head>\n" +
       "       lineage.ts synchronization <default> <lineage> <default-tip> <lineage-tip> <head> [--resolutions <file>]\n" +
       "       lineage.ts incorporated <lineage-tip> <default-tip>\n" +
