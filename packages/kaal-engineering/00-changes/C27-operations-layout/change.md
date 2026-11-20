@@ -27,7 +27,17 @@ The numbered concerns follow one order, each answering the one before it:
 
 ## Same numbers in the three places, and the engineering level
 
-The template is one layout in three places, so `packages/<cap>`, `engineering/<cap>` and `.kaal/<cap>` all use these names. The `engineering/` level itself uses the same folder names and creates one only when something moves in. Today that is `engineering/14-operations/controls/CTL2-verify-layout/`, which replaces `engineering/02-controls/`. The Exchange folder is a later PLAN and will take the number `02` there; it is not in this Change.
+The template is one layout in three places, so `packages/<cap>`, `engineering/<cap>` and `.kaal/<cap>` all use these names. The `engineering/` level itself uses the same folder names and creates one only when something moves in. Today that is `engineering/14-operations/controls/CTL2-verify-layout/`, which replaces `engineering/02-controls/`. The Exchange folder is a later PLAN; the number `02` is taken by `02-learnings` (below), so it takes another number then. It is not in this Change.
+
+## The steering group: backlog, changes, learnings
+
+After review the Owner asked for the steering group before the numbered concerns to be settled in this Change, because the release PLANs (the hold and the demand ACT) place a retrospective and need its home before their DO. The group is `00-backlog`, `01-changes` and `02-learnings`. `02-learnings` holds what the capability learned. Its `retros` folder holds the retrospective of each collector, kept with the capability (`<capability>/02-learnings/retros/`), each with front matter `reflects: [C…]` naming the Changes it looks back on.
+
+- **Closed, one child.** The folder may hold only `retros`, as `14-operations` may hold only what it names. A stray folder is named by the check.
+- **No verifier is invented.** The retrospective is kaal-retro's object, and what verifies one is its rule to state. The layout gives the place and reserves nothing else, as it does for `00-backlog` and `01-changes`, which name no element either.
+- **Absent is not judged.** A package with no `02-learnings` is PASS, as for any absent folder. The folder appears when a retrospective moves in, since git tracks no empty folder.
+- **Why `02`.** The slot was `02-controls`, which this Change removes. Controls moved to Operations, and learnings is a steering concern that comes before the product: what we learned shapes what we plan.
+- **Where research and trials sit** is not settled here. Operations is fine for now, and trials and outside research may deserve their own place later; that is a follow-up, once their protocol exists.
 
 ## Alternatives considered
 
@@ -47,13 +57,13 @@ In the published-style packages `docs/operations.md` already says how the packag
 
 ## PLAN
 
-1. Add the Intent I5, the Requirements F56 and F57 and the gap G117 under `packages/kaal-engineering/`, and the Cases T1241 to T1244 as `T<n>.red.mjs` beside the element each tests (T1244 tests CTL2 and sits beside I4, as T1237 does).
+1. Add the Intent I5, the Requirements F56, F57 and F58 and the gap G117 under `packages/kaal-engineering/`, and the Cases T1241 to T1245 as `T<n>.red.mjs` beside the element each tests (T1244 tests CTL2 and sits beside I4, as T1237 does).
 2. Observe the expected RED against the collector, and show that each Case can pass on a throwaway copy that holds `draft/` and the control at its new place (`evidence.md`).
 3. The PLAN adds no package file outside the elements, Cases and this folder. `draft/` holds the revised template and the check with the `closed` rule, for review only.
 
 ## Ids
 
-Proposed, to be confirmed by the allocator: Change engineering/C27, Intent engineering/I5, Requirements engineering/F56 and F57, gap G117, Cases T1241 to T1244. They are the next free at the collector tip `e3a096d4`.
+Proposed, to be confirmed by the allocator: Change engineering/C27, Intent engineering/I5, Requirements engineering/F56, F57 and F58, gap G117, Cases T1241 to T1245. They are the next free at the collector tip `e3a096d4`.
 
 ## DO
 
@@ -62,7 +72,7 @@ Not authorized by this PLAN. After the Owner's go, into the collector of this Ch
 - move the template and the check from `draft/` into the Skill and remove `draft/`; update `package-layout.md` to match;
 - move `engineering/02-controls/CTL2-verify-layout/` to `engineering/14-operations/controls/CTL2-verify-layout/`, and remove T1237, which T1244 supersedes;
 - amend the Cases that pin the earlier layout, listed below, and F45, F48 and F49 where they name `02-controls` or `14-defects`;
-- rename T1241 to T1244 to `.test.mjs`.
+- rename T1241 to T1245 to `.test.mjs`.
 
 ## Amends
 

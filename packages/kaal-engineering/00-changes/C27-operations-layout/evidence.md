@@ -14,16 +14,17 @@ The PLAN of C27 observes its RED against the collector `kaal/engineering/setup` 
 | T1242 | F56 | RED: `02-controls` is still in the layout |
 | T1243 | F57 | RED: a correct setup is not PASS |
 | T1244 | CTL2 | RED: CTL2 is still in `02-controls` |
+| T1245 | F58 | RED: `02-learnings` is absent |
 
-4 RED-observed, 0 error, 0 green. Every Case fails on its own assertion.
+5 RED-observed, 0 error, 0 green. Every Case fails on its own assertion.
 
 ## Can each Case pass
 
-In a throwaway root outside the repository, holding this tree with `draft/` copied over `skills/kaal-engineering/` and CTL2 moved to `engineering/14-operations/controls/CTL2-verify-layout/`: all four are GREEN.
+In a throwaway root outside the repository, holding this tree with `draft/` copied over `skills/kaal-engineering/` and CTL2 moved to `engineering/14-operations/controls/CTL2-verify-layout/`: all five are GREEN.
 
 ## Can a Case fail for the right reason
 
-Three edits in that copy: reading the `closed` flag by name (the earlier check) turned T1243 RED; setting `closed` false on `14-operations` turned T1242 and T1243 RED; moving the controls folder back before the source turned T1241 RED.
+Four edits in that copy (the last one for T1245: setting `closed` false on `02-learnings` turned it RED): reading the `closed` flag by name (the earlier check) turned T1243 RED; setting `closed` false on `14-operations` turned T1242 and T1243 RED; moving the controls folder back before the source turned T1241 RED.
 
 ## The amended Cases
 

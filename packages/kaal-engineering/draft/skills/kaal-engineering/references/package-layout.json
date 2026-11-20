@@ -39,6 +39,16 @@
       "role": "in flight, temporary"
     },
     {
+      "name": "02-learnings",
+      "kind": "content",
+      "role": "what we learned: the retrospectives of the package's collectors, kept with the capability",
+      "closed": true,
+      "children": [
+        "retros"
+      ],
+      "retros": "per-collector retrospectives, each with front matter `reflects: [C…]`; the object belongs to kaal-retro, which also says what verifies one"
+    },
+    {
       "name": "10-intent",
       "kind": "content",
       "element": "intent",
