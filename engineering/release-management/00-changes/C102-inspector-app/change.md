@@ -20,4 +20,5 @@
 - **The workflow reaches `.github` by a WIRE**, after the judge, the sign step and the template of controls are on `main`.
 - **A check pinned to the App can only be required once the App exists**: the ruleset source gets its integration id in a later Change, by the ruleset update procedure.
 - **A pull request from a fork gets no secret on `pull_request`**, so the sign job cannot sign and the check would be absent. KAAL promotes from branches of the same repository, so nothing is lost today; an external contributor flow is a later question for controls and for the Owner, not decided here.
+- **The record of a verdict is the contract of controls, not ours.** The sign step posts one check per control and writes the same judgement in the common log contract (control id, ref, outcome, finding). Nothing here names or shapes that record; the Cases pin no field of it. The DO follows the contract once it is on `main`.
 - The design of controls may still move; the Cases pin only what release owns (identity and separation), never the judging rules.
