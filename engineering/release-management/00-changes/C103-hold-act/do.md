@@ -4,7 +4,7 @@ The DO adds, from the drafts in `interface.md`: the Intent `01-intent/I56-act-en
 
 ## Cases amended
 
-None.
+T1265, T1266 and T1299 build their fixture Cases from a template string that spelled `export const id = 'x/T<n>'` out; pull/T34 reads the id of every Case file with that pattern and took the fixture's `x/T${n}` for the Case's own id, and so failed in CI ("has no logged execution"). The template now writes `export const ${'id'} = …`, which the pattern does not match. Nothing else about the Cases changed.
 
 ## Verified
 
