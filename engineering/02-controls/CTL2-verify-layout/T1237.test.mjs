@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-const root = fileURLToPath(import.meta.url).split('/packages/')[0];
+const root = fileURLToPath(import.meta.url).split('/engineering/02-controls/')[0];
 const pkg = join(root, 'packages/kaal-engineering');
 const script = join(pkg, 'skills/kaal-engineering/scripts/check-layout.mjs');
 const templatePath = join(pkg, 'skills/kaal-engineering/references/package-layout.json');
