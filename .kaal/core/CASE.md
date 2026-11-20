@@ -7,4 +7,4 @@ type:
 
 # CASE
 
-CASE names the four parallel concepts KAAL is built from: Capabilities, Agents, Skills and Exchanges. Each has its own KAAL Definition, and none is a kind of another. Core identifies, admits, registers and discovers all four by one mechanism.
+CASE names the four parallel concepts KAAL is built from: Capabilities, Agents, Skills and Extensions. Each has its own KAAL Definition, and none is a kind of another. Core identifies, admits, registers and discovers all four by one mechanism.

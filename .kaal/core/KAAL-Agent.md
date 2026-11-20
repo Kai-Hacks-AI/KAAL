@@ -7,4 +7,4 @@ type:
 
 # KAAL Agent
 
-A KAAL Agent acts within KAAL: it performs work by applying KAAL's Capabilities, Skills and Exchanges.
+A KAAL Agent acts within KAAL: it performs work by applying KAAL's Capabilities, Skills and Extensions.
