@@ -6,18 +6,18 @@ Each Case is called through its `run()` and fails on its own assertion:
 
 ```
 RED controls/T1098 a base without a Case counted
-RED controls/T1099 readJudgements is not exported
-RED controls/T1100 digestOf is not exported
+RED controls/T1099 readSubjects is not exported
+RED controls/T1100 reviewsOf is not exported
 RED controls/T1101 a refusal at another station counted
 ```
 
 ## Can each Case pass
 
-Against a throwaway copy of the package outside the repository, with the `without` and `shows` rules, `readJudgements`, `digestOf`, `judgementOf` and `readRecords` skipping judgement files added to `evidence.mjs`, all four Cases were GREEN and the 47 existing Cases stayed green.
+Against a throwaway copy of the package outside the repository, with the `without` and `shows` rules, `readSubjects` and `reviewsOf` added to `evidence.mjs`, all four Cases were GREEN and the 47 existing Cases stayed green.
 
 ## What this shows and does not show
 
-The Cases show that a provoked run counts as its type requires, that an unnamed mechanism and an unshown run are said, that a judgement is read only in its shape and for what it is about (verification or validation) and never mixed with run records, and that the latest judgement is shown, stale when the control or its Cases changed, without changing a verdict. They do not show that any real control's Cases cover its criterion: that is what the judgement is for, and none has been made.
+The Cases show that a provoked run counts as its type requires, that an unnamed mechanism and an unshown run are said, that the reviews of a control are found by its id and not by another focus or subject, and that each says whether it read every Intent and Case of the control, without changing a verdict. They do not show that any real control's Cases cover its criterion: that is what a review is for, and none has been made.
 
 ## Reproduce
 
