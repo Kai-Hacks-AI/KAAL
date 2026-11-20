@@ -1,4 +1,4 @@
-// Case release/T1267 tests: release/F80
+// Case release/T1299 tests: release/F80
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync, renameSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -25,7 +25,7 @@ function collector() {
   const mv = (a, b) => { mkdirSync(dirname(join(root, b)), { recursive: true }); renameSync(join(root, a), join(root, b)); };
   return { root, put, rm, mv };
 }
-export const id = 'release/T1267';
+export const id = 'release/T1299';
 export const tests = ['release/F80'];
 export const title = 'hold Act holds only an ACT: a Change folder without an act.md passes whatever is red, with one it is judged by its Cases, and whether it holds one cannot be told for a folder that is not there';
 export async function run() {
