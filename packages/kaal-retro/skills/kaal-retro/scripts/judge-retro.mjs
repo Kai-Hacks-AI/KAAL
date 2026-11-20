@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Judges the form of one 4L retro, never its truth: the sections and their order, the fields each lens needs and no
 // others, an address on Lacked only, findable yes or no, one subject in one entry, and a Learned that is never empty.
-// A format it does not know is `unjudged`, never `well-formed`.
+// A retro opens with a non-empty `Account of:` line, whatever it says. A format it does not know is `unjudged`, never `well-formed`.
 //
 //   node judge-retro.mjs <file>     prints { result, problems } as JSON; exit 0 well-formed, 1 malformed, 2 unjudged
 import { readFileSync } from 'node:fs';
@@ -24,6 +24,8 @@ export function judgeRetro(text) {
   const body = t.replace(/^---\n[\s\S]*?\n---\n/, '').replace(/^Decisions:.*$/gm, '');
   const problems = [];
   const add = (section, rule, extra = {}) => problems.push({ section, rule, ...extra });
+  const first = body.split('\n').find((l) => l.trim());
+  if (!/^Account of:[ \t]*\S/.test(first ?? '')) add('retro', 'account-of');
   const heads = [...body.matchAll(/^## (.+)$/gm)];
   if (heads.map((h) => h[1]).join('|') !== SECTIONS.join('|')) add('retro', 'sections-in-order');
   const seen = new Map();

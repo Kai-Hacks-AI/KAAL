@@ -20,11 +20,11 @@ Read [4l](references/4l.md). Ask each lens its own question; an item belongs in 
 2. **Learned: go outside.** Take each Lacked, and each hard decision, beyond your own repository: practice elsewhere, literature, a tool's documentation. Bring back what you found with its source. If you could not search, or found nothing, say what you searched. Do not leave it empty.
 3. **Liked.** A concept that exists and held up, worth keeping, and what would be lost without it.
 4. **Longed For.** Something that would be nice and never blocked you: the thing, and that you worked anyway. `None raised.` is welcome.
-5. Check the lenses do not mirror: no subject twice, an address on Lacked only.
+5. Avoid echo and mirror (see 4l): a point has one home, and I decide. No subject twice, an address on Lacked only.
 
 ## Result
 
-One file with front matter `id` (`<capability>/RT<n>`), `format: 4L` and `reflects: [<Change ids>]`, in the consumer's `02-learnings/retros/`. Say whose account it is. Close with `Decisions: none made, the owner decides.`
+One file with front matter `id` (`<capability>/RT<n>`), `format: 4L` and `reflects: [<Change ids>]`, in the consumer's `02-learnings/retros/`. Open with a first line `Account of:` in which I say, in my own words, who I am and what I did with respect to what the retro looks back on; the line is not empty, and the wording is mine. Close with `Decisions: none made, the owner decides.`
 
 ## Script
 
