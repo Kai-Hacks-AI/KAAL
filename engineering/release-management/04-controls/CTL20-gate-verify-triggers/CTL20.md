@@ -5,6 +5,7 @@ description: It stops a promotion that adds a workflow using pull_request_target
 type: preventive
 status: designed
 has: [release/I50]
+evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL20 gate verify Triggers
 
