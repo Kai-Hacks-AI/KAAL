@@ -1,0 +1,123 @@
+{
+ "author": "architecture thread session (wrote the Skill and the prompt, and froze the requests before the run)",
+ "observer": "fresh subagent a3f9c2dab38898cbb, told to read the prompt file with one Read call and nothing else; its hand-back text recorded unedited",
+ "agent": "general-purpose subagent; the prompt was read from a file, not pasted, so that its bytes are exactly those hashed",
+ "model": "claude-sonnet-5-5",
+ "date": "2026-11-14",
+ "promptSha256": "d068a15487448c406fe7794ff96e9e1246bd959d51e52f5cb3612d0e29cac44b",
+ "requestsSha256": "adc35efef9109dfb3a819d68e82851d25ba17bef0368c54a341205684dd1e16c",
+ "answers": [
+  {
+   "id": "R1",
+   "solution": [
+    "No agent may see another agent's files",
+    "The container must keep each agent's working files between sessions"
+   ],
+   "delivery": [
+    "Agents run in a hosted container",
+    "The container has no direct access to the repository",
+    "Agents currently run on one shared machine",
+    "Shared machine is switched off at the end"
+   ],
+   "architecture": [],
+   "mixed": [
+    "The container must keep each agent's working files between sessions (a persistence requirement that names the container as the means)",
+    "No agent may see another agent's files (isolation requirement stated against the hosted container)"
+   ],
+   "unresolved": [
+    "Whether 'no direct access to the repository' is an accepted solution requirement or only a delivery limit that restricts what agents can do",
+    "Whether the file isolation and persistence must hold under any hosting means or only the hosted container"
+   ],
+   "change": [
+    "Today the agents run on one shared machine; move them to the hosted container one thread at a time",
+    "Start with the Review thread",
+    "Switch the shared machine off once the last thread has moved"
+   ]
+  },
+  {
+   "id": "R2",
+   "solution": [
+    "Installing Review must not change any rule the project already enforces",
+    "A project that does not install it behaves exactly as before"
+   ],
+   "delivery": [
+    "Review is installed by adding one package to the project's dependencies",
+    "The package is published to the public registry"
+   ],
+   "architecture": [
+    "The architecture of Review must show the package beside the project's own rules so a reader can see that installing it changes none of them"
+   ],
+   "mixed": [
+    "A project installs Review by adding one package to its dependencies (what installing Review means and how it is made available)"
+   ],
+   "unresolved": [
+    "Whether installation by a single package is a requirement of the solution or just the chosen means of making it available",
+    "Whether the public registry is a required constraint or a chosen means"
+   ],
+   "change": []
+  },
+  {
+   "id": "R3",
+   "solution": [
+    "A collector is promoted into main only when every Case of the collector has passed at the exact head under review and nothing is red"
+   ],
+   "delivery": [],
+   "architecture": [],
+   "mixed": [
+    "The promotion rule, if 'promotion' is the means of bringing work into main, is also how finished work is brought together and delivered"
+   ],
+   "unresolved": [
+    "Whether the promotion condition is a requirement of the solution or a rule about how finished work is brought together (outside the target state)",
+    "What counts as 'nothing is red'",
+    "Whether 'at least once' is a sufficient proof that the new check works"
+   ],
+   "change": [
+    "Run the current check beside the new one for two weeks",
+    "Remove the current check once the new one has blocked a bad promotion at least once"
+   ]
+  },
+  {
+   "id": "R4",
+   "solution": [
+    "The owner must be told within one working day of a defect found in a released package, with the affected version",
+    "The report must name who decides on a fix"
+   ],
+   "delivery": [
+    "Reports go to a shared mailbox that two people read"
+   ],
+   "architecture": [
+    "The architecture description of incident reporting is kept where agents can read it and names the mailbox"
+   ],
+   "mixed": [
+    "Reports go to a shared mailbox that two people read (the delivery means, with an implied availability requirement for who reads it)"
+   ],
+   "unresolved": [
+    "Whether the shared mailbox is a required means or only the current one",
+    "Whether the one working day limit still holds if the two readers are absent",
+    "Who the owner is and who decides on a fix"
+   ],
+   "change": []
+  },
+  {
+   "id": "R5",
+   "solution": [
+    "Review reads the Cases that Testing runs",
+    "Review reports which requirement each failing Case covers",
+    "Review runs nothing itself"
+   ],
+   "delivery": [],
+   "architecture": [],
+   "mixed": [
+    "Testing's result format has to change first: both a need on the solution (what Review can read) and a plan for travel"
+   ],
+   "unresolved": [
+    "Which format Testing's result takes in the target state",
+    "Whether the old format remains readable as a solution requirement or only during the transition"
+   ],
+   "change": [
+    "Change Testing's result format over the next two releases",
+    "Keep the old format readable until Review has switched over"
+   ]
+  }
+ ]
+}
