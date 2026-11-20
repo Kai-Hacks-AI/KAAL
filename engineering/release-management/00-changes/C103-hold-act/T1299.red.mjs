@@ -27,7 +27,7 @@ function collector() {
 }
 export const id = 'release/T1299';
 export const tests = ['release/F80'];
-export const title = 'hold Act holds only an ACT: a Change folder without an act.md passes whatever is red, with one it is judged by its Cases, and whether it holds one cannot be told for a folder that is not there';
+export const title = 'hold Act holds only an ACT: a Change folder without its ACT passes whatever is red, with one it is judged by its Cases, and whether it holds one cannot be told for a folder that is not there';
 export async function run() {
   assert.ok(existsSync(SRC), 'judge-act.mjs is absent');
   const { judgeAct, actOf } = await load();
@@ -37,7 +37,7 @@ export async function run() {
   assert.equal(judgeAct({ applicable: undefined, observed: undefined, acted: false }).verdict, 'PASS', 'no ACT is proposed: nothing is needed to say so');
   assert.equal(judgeAct({ applicable, observed: { 'x/T2': 'RED' }, acted: true }).verdict, 'FAIL', 'the ACT is held while a Case is red');
   for (const acted of [undefined, null, 'true', 1, 0]) assert.equal(judgeAct({ applicable, observed: { 'x/T1': 'GREEN', 'x/T2': 'GREEN' }, acted }).verdict, 'UNKNOWN', `acted ${JSON.stringify(acted)} must be UNKNOWN`);
-  // the tree: the answer follows the act.md of the Change folder and nothing else
+  // the tree: the answer follows the ACT beside the Change folder and nothing else
   const c = collector();
   const obs = join(c.root, 'observed.json');
   const cli = (observed, change = CHANGE) => {
@@ -57,7 +57,7 @@ export async function run() {
     rmSync(obs);
     assert.equal(cli(undefined).code, 0, 'no ACT needs no observation');
     // an ACT arrives while the work is not finished
-    c.put(`${CHANGE}/act.md`, '# the ACT\n');
+    c.put(`${CHANGE}.act.md`, '# the ACT\n');
     assert.equal(actOf(c.root, CHANGE), true);
     r = cli({ 'x/T1': 'RED' });
     assert.equal(r.code, 1, 'an ACT with a red Case must be held');
@@ -67,10 +67,10 @@ export async function run() {
     // the work is finished
     c.mv(`${CHANGE}/T1.red.mjs`, `${CHANGE}/T1.test.mjs`);
     assert.equal(cli({ 'x/T1': 'GREEN' }).code, 0);
-    // an act.md of another Change is not this Change's ACT
-    c.rm(`${CHANGE}/act.md`);
+    // the ACT of another Change is not this Change's ACT
+    c.rm(`${CHANGE}.act.md`);
     c.mv(`${CHANGE}/T1.test.mjs`, `${CHANGE}/T1.red.mjs`);
-    c.put('00-changes/C998-other/act.md', '# the ACT of another Change\n');
+    c.put('00-changes/C998-other.act.md', '# the ACT of another Change\n');
     assert.equal(cli({ 'x/T1': 'RED' }).code, 0, 'the ACT of another Change holds nothing here');
     assert.equal(cli({ 'x/T1': 'RED' }, '00-changes/C000-nowhere').code, 2, 'a Change that is not there must not pass');
   } finally { rmSync(c.root, { recursive: true, force: true }); }

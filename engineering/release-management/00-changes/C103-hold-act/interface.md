@@ -25,7 +25,7 @@ serves: [release/I56]
 ---
 # release/F80 hold-act
 
-A check on every pull request into a collector reads the checked-out tree and holds the ACT: an `act.md` may stand in a Change folder only when the Cases that apply to that Change are really green. With no `act.md` in the Change folder there is no ACT to hold and the check says PASS, whatever is red, so the PLANs and DOs that precede the ACT land. With an `act.md` in it, the rest of this paragraph decides. The Cases that apply to the Change are those in its folder and those that test an element the Change justifies, that is the Intents its record implements and every element that reaches one of them along the one-way relationships (serves, addresses, has), whether the element is placed or still a draft in the Change folder. The check says PASS only when at least one Case applies, none is parked as a `.red.mjs`, and the observation of Testing is GREEN for each. It says FAIL, with the message `finish your work first` and the Cases named, when an applicable Case is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies. It reports the count of red, green and unknown Cases. It reads nothing of the history of the branch: the same tree gives the same answer however it was transported. An exit code is never a verdict: the check reads observations. It does not approve and does not merge. Judgement is kept apart from enforcement: the judge says PASS, FAIL or UNKNOWN and never blocks; the place that asks it decides what a verdict does (a report, an advisory check, a required check), and once the check is required UNKNOWN does not count as PASS.
+A check on every pull request into a collector reads the checked-out tree and holds the ACT: an ACT may stand beside a Change folder only when the Cases that apply to that Change are really green. With no ACT beside the Change folder there is no ACT to hold and the check says PASS, whatever is red, so the PLANs and DOs that precede the ACT land. With an ACT in it, the rest of this paragraph decides. The Cases that apply to the Change are those in its folder and those that test an element the Change justifies, that is the Intents its record implements and every element that reaches one of them along the one-way relationships (serves, addresses, has), whether the element is placed or still a draft in the Change folder. The check says PASS only when at least one Case applies, none is parked as a `.red.mjs`, and the observation of Testing is GREEN for each. It says FAIL, with the message `finish your work first` and the Cases named, when an applicable Case is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies. It reports the count of red, green and unknown Cases. It reads nothing of the history of the branch: the same tree gives the same answer however it was transported. An exit code is never a verdict: the check reads observations. It does not approve and does not merge. Judgement is kept apart from enforcement: the judge says PASS, FAIL or UNKNOWN and never blocks; the place that asks it decides what a verdict does (a report, an advisory check, a required check), and once the check is required UNKNOWN does not count as PASS.
 `````
 
 ## Draft of A71.md
@@ -38,7 +38,7 @@ addresses: [release/F80]
 ---
 # release/A71 hold-act-from-the-tree
 
-The source `05-src/phase/judge-act.mjs` has three parts and reads a folder, never Git. `elementsOf(root, changeDir)` reads the elements of the tree, the Markdown files with a frontmatter id and the drafts fenced by five backticks in the Change folder (a placed element wins over its draft). `applicableCases(root, changeDir)` takes the Intents implemented by the Change record, widens them along the one-way relationships to every element that reaches one, and returns the Cases that are in the Change folder or test any of those elements, each parked red when any file carrying its id is a `.red.mjs`. `actOf(root, changeDir)` says whether the Change folder holds an `act.md`. `judgeAct({ applicable, observed, acted })` is a pure function of those and of the observations `{ <scope>/T<n>: GREEN | RED | UNKNOWN }` of Testing, and returns PASS, FAIL or UNKNOWN with the counts and the findings. The command line `--root --change --observed` exits 0, 1 or 2 for them, so a workflow or a hook can use it. Which folder is handed over is the wiring's decision. The control release/CTL24 declares it. The workflow, the hook mirror, the adapter from Testing's report, the control that authorizes what a pull request may change and the gate in a ruleset are later slices.
+The source `05-src/phase/judge-act.mjs` has three parts and reads a folder, never Git. `elementsOf(root, changeDir)` reads the elements of the tree, the Markdown files with a frontmatter id and the drafts fenced by five backticks in the Change folder (a placed element wins over its draft). `applicableCases(root, changeDir)` takes the Intents implemented by the Change record, widens them along the one-way relationships to every element that reaches one, and returns the Cases that are in the Change folder or test any of those elements, each parked red when any file carrying its id is a `.red.mjs`. `actOf(root, changeDir)` says whether the Change folder holds an ACT. `judgeAct({ applicable, observed, acted })` is a pure function of those and of the observations `{ <scope>/T<n>: GREEN | RED | UNKNOWN }` of Testing, and returns PASS, FAIL or UNKNOWN with the counts and the findings. The command line `--root --change --observed` exits 0, 1 or 2 for them, so a workflow or a hook can use it. Which folder is handed over is the wiring's decision. The control release/CTL24 declares it. The workflow, the hook mirror, the adapter from Testing's report, the control that authorizes what a pull request may change and the gate in a ruleset are later slices.
 `````
 
 ## Draft of CTL24.md
@@ -47,7 +47,7 @@ The source `05-src/phase/judge-act.mjs` has three parts and reads a folder, neve
 ---
 id: release/CTL24
 title: hold Act
-description: It reveals an act.md that stands in a Change folder while the Cases that apply to its Change are not really green.
+description: It reveals an ACT that stands beside a Change folder while the Cases that apply to its Change are not really green.
 type: detective
 status: designed
 has: [release/I56]
@@ -55,7 +55,7 @@ evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL24 hold Act
 
-A detective control that is meant to become preventive. `hold Act` holds the ACT of a collector back until the work is done: it reveals an `act.md` that has come too early. It measures the tree of a collector: with no `act.md` in the Change folder it says PASS, there is no ACT to hold; with one it finds the Cases that apply to the Change from the content (its folder, and the Cases that test the elements the Change justifies along the relationships) and says FAIL, with the message `finish your work first` and the Cases named, while any is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies, and PASS only when every applicable Case is really green. It reports how many are red, green and unknown. PASS is not an approval and not a merge decision.
+A detective control that is meant to become preventive. `hold Act` holds the ACT of a collector back until the work is done: it reveals an ACT that has come too early. It measures the tree of a collector: with no ACT beside the Change folder it says PASS, there is no ACT to hold; with one it finds the Cases that apply to the Change from the content (its folder, and the Cases that test the elements the Change justifies along the relationships) and says FAIL, with the message `finish your work first` and the Cases named, while any is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies, and PASS only when every applicable Case is really green. It reports how many are red, green and unknown. PASS is not an approval and not a merge decision.
 
 It reads the tree it is handed and the observations of Testing, never an exit code and never the history of the branch. It judges only the completion of the work: it does not say whether the Cases are good or the code is right, and not whether a pull request was entitled to change them. Making it a required check, in a hook for early feedback and in a ruleset, are other steps with their own Owner decisions.
 
@@ -70,7 +70,7 @@ It has one Intent, release/I56.
 // hold Act: are the Cases that the content of a collector makes applicable really green at its head?
 // It measures the checked-out tree (the folder it is handed) and nothing else. Pull requests and commits transport the work;
 // their titles, their history and their shapes are never read.
-// It holds the ACT: with no act.md in the Change folder there is no ACT to hold and the answer is PASS; with one, the Cases decide.
+// It holds the ACT: with no ACT beside the Change folder there is no ACT to hold and the answer is PASS; with one, the Cases decide.
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
@@ -142,13 +142,13 @@ export function applicableCases(root, changeDir) {
   return [...cases.values()].sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
 }
 
-// Whether the Change folder holds its ACT, the act.md. Only its presence is read here; its format is another control's.
-export const actOf = (root, changeDir) => (existsSync(join(root, changeDir)) ? existsSync(join(root, changeDir, 'act.md')) : undefined);
+// Whether the Change folder holds its ACT, the ACT. Only its presence is read here; its format is another control's.
+export const actOf = (root, changeDir) => (existsSync(join(root, changeDir)) ? existsSync(join(root, `${changeDir}.act.md`)) : undefined);
 
 // observed: { 'release/T123': 'GREEN' | 'RED' | 'UNKNOWN' } from the observation of Testing. An exit code is never a verdict.
 export function judgeAct({ applicable, observed, acted }) {
-  if (acted !== true && acted !== false) return { verdict: 'UNKNOWN', progress: { red: 0, green: 0, unknown: 0 }, findings: [], message: 'cannot judge: it is not known whether the Change folder holds an act.md' };
-  if (acted === false) return { verdict: 'PASS', findings: [], message: 'no act.md in the Change folder: there is no ACT to hold' };
+  if (acted !== true && acted !== false) return { verdict: 'UNKNOWN', progress: { red: 0, green: 0, unknown: 0 }, findings: [], message: 'cannot judge: it is not known whether an ACT stands beside the Change folder' };
+  if (acted === false) return { verdict: 'PASS', findings: [], message: 'no ACT beside the Change folder: there is no ACT to hold' };
   if (!applicable?.length) return { verdict: 'UNKNOWN', progress: { red: 0, green: 0, unknown: 0 }, findings: [{ id: '-', reason: 'no Case applies, so nothing can be really green' }], message: 'cannot judge: no Case applies' };
   const findings = [];
   for (const c of applicable) {
