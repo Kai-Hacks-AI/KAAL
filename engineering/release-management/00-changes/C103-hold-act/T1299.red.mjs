@@ -68,6 +68,7 @@ export async function run() {
     // a retro of an earlier collector stands in the tree and reflects other Changes
     c.put('02-learnings/retros/old.md', RETRO(['C998']));
     c.put('02-learnings/retros/readme.md', '# not a retro\n');
+    c.put('02-learnings/retros/draft.md', '---\nid: x/RT0\n---\n# says nothing of what it reflects\n');
     assert.deepEqual(retrosOf(c.root), [{ reflects: ['C998'] }], 'only what declares reflects is a retro');
     assert.equal(cli({ 'x/T1': 'RED' }).code, 0, 'the retro of another Change holds nothing here');
     // the retro of this collector arrives while the work is not finished; its id and format are whatever kaal-retro chooses
