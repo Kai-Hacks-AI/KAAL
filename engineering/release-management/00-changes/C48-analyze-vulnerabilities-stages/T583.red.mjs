@@ -1,22 +1,20 @@
 // Case release/T583 tests: G71
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-const wiring = join(repo, 'engineering/release-management/05-src/wiring');
-const here = join(repo, 'engineering/release-management/00-changes/C48-analyze-vulnerabilities-stages');
-const read = (path, what) => { assert.ok(existsSync(path), `${what} is absent`); return readFileSync(path, 'utf8'); };
-const needs = () => JSON.parse(read(join(here, 'stage-reports.json'), 'the proposed needs'));
+import { SRC, load, NOW, hostRun, hostChecks } from '../C104-accept-analyze/fixtures.mjs';
+const here = fileURLToPath(import.meta.url).replace(/[^/]+$/, '');
 export const id = 'release/T583';
 export const tests = ['release/G71'];
-export const title = 'gap release/G71 is closed: a real merge-queue run is recorded with its run URL and check-run names';
-export function run() {
-  const acc = read(join(here, 'acceptance.md'), 'the acceptance record');
-  assert.match(acc, /https:\/\/github\.com\/[^\s/]+\/[^\s/]+\/actions\/runs\/\d+/, 'the record links the real run');
-  for (const p of needs().per_stage) {
-    if (p.stage === 'Promoting') assert.ok(acc.includes(p.context), `the record shows ${p.context} reported by GitHub`);
-  }
-  assert.match(acc, /merge_group|merge queue/i, 'the record states it was a merge-queue run');
-  assert.match(acc, /integration[_ ]id/i, 'the record states the integration id');
+export const title = 'gap release/G71 is closed: the acceptance of analyze Vulnerabilities (Promoting) is judged from a real merge-queue run read from the host, and no record of a run is stored';
+export async function run() {
+  for (const f of ['acceptance.mjs', 'accept.mjs']) assert.ok(existsSync(join(SRC, f)), `${f} is absent`);
+  const { readFacts } = await load('accept.mjs');
+  const { judgeAcceptance } = await load('acceptance.mjs');
+  const ask = (path) => (path.includes('/check-runs') ? { check_runs: hostChecks } : { workflow_runs: [hostRun] });
+  const result = judgeAcceptance(readFacts('Kai-Hacks-AI/KAAL', ask), { now: NOW });
+  assert.equal(result.outcome, 'PASS', result.reason);
+  assert.equal(result.run.id, hostRun.id);
+  assert.ok(!existsSync(join(here, 'acceptance.md')), 'a stored acceptance record exists: the evidence is read from the host, not kept');
 }

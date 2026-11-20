@@ -1,21 +1,24 @@
 # C104 interface
 
-Drafts as they are added in the DO. T583 and T1267 read the files they become.
+Drafts as they are added in the DO. T1267 reads the draft of the equivalence statement; T583, T1268 and T1269 read the source.
 
-## Draft of acceptance.md
+## The acceptance, as source
 
-````
-# C48 acceptance
+`05-src/vulnerability-analysis/acceptance.mjs` exports `judgeAcceptance(facts, options)`, `CONTEXT` (`analyze Vulnerabilities (Promoting)`), `INTEGRATION_ID` (15368) and `MAX_AGE_DAYS` (14).
 
-A real merge-queue run of `analyze Vulnerabilities (Promoting)`, recorded for release/G71.
+```
+facts:  { run: { id, url, event, head_branch, created_at } | null, checks: [{ name, conclusion, appId }] }
+result: { control, outcome: 'PASS' | 'FAIL' | 'UNKNOWN', passes, reason, run }
+```
 
-- Run: https://github.com/Kai-Hacks-AI/KAAL/actions/runs/44716419310
-- Event: merge_group (a merge queue run), for PROMOTION #2092 into `main`, merge group commit 3741577be6a6b5deff073bb834137701a6f38345, on 20 Nov 2026.
-- Check runs reported by GitHub for the run: `analyze Vulnerabilities (Promoting)` succeeded; `analyze Vulnerabilities (Integrating)` was skipped, as designed for a base of `main`.
-- Integration id: 15368, the GitHub Actions app, as `promoting.json` requires for the check. The check run of the job is a GitHub Actions job (job URL https://github.com/Kai-Hacks-AI/KAAL/actions/runs/44716419310/job/136220858216). The app id field itself was not readable with the tools used for this record.
-- Other merge-queue runs of the same workflow on 19 and 20 Nov 2026 also succeeded (the ten latest were read; the workflow has 32 merge_group runs in all).
-- Not shown: a run that failed on a finding in the queue, and that the `promoting` ruleset is loaded in GitHub.
-````
+- PASS: the run is a `merge_group` run on a `gh-readonly-queue/main/` branch, newer than 14 days, and `checks` holds `CONTEXT` reported by integration 15368 with the conclusion `success` or `failure`.
+- FAIL: such a run exists and does not report `CONTEXT`, or another integration reported it, or it has no verdict.
+- UNKNOWN: no facts, no run, an unreadable time, a run older than 14 days, a run that is not a merge-queue run into `main`, or checks that cannot be read. UNKNOWN never passes.
+
+`05-src/vulnerability-analysis/accept.mjs` exports `readFacts(repo, ask)` and, run as a command with `<owner/repo>`, prints the record as one JSON line and exits 0 PASS, 1 FAIL, 2 UNKNOWN.
+
+- `readFacts` asks for the newest completed `merge_group` run of `analyze-vulnerabilities.yml` whose branch is a queue branch into `main`, then for the check runs of its commit.
+- It uses GET only, through `gh api -X GET`, and writes nothing: no file and no record.
 
 ## Draft of equivalence.md
 
@@ -38,4 +41,4 @@ CTL2 covers every base the legacy workflow covers with the same mechanism, and m
 
 ## Where they live
 
-`engineering/release-management/00-changes/C48-analyze-vulnerabilities-stages/acceptance.md` and `engineering/release-management/00-changes/C104-accept-analyze/equivalence.md`.
+`engineering/release-management/05-src/vulnerability-analysis/acceptance.mjs` and `accept.mjs`, and `engineering/release-management/00-changes/C104-accept-analyze/equivalence.md`.
