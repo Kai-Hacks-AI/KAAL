@@ -14,7 +14,7 @@ const draft = (name) => readFileSync(join(RM, '00-changes/C103-hold-act/interfac
 
 // A collector as it is found: a folder of files. No Git is involved; the Cases make its content grow by hand, as PLANs and DOs would.
 const CHANGE = '00-changes/C999-demo';
-const CASE = (n, tests, v = 'v1') => `export const id = 'x/T${n}';\nexport const tests = [${tests.map((t) => `'${t}'`).join(', ')}];\nexport const title = 't';\nexport async function run() { /* ${v} */ }\n`;
+const CASE = (n, tests, v = 'v1') => `export const ${'id'} = 'x/T${n}';\nexport const tests = [${tests.map((t) => `'${t}'`).join(', ')}];\nexport const title = 't';\nexport async function run() { /* ${v} */ }\n`;
 const EL = (id, edges = {}) => `---\nid: ${id}\n${Object.entries(edges).map(([k, v]) => `${k}: [${v.join(', ')}]`).join('\n')}\n---\n# ${id}\n`;
 const FENCE = '`````';
 const drafts = (...els) => `# interface\n\n${els.map((e, i) => `## Draft of E${i}\n\n${FENCE}\n${e}${FENCE}\n`).join('\n')}`;
@@ -36,20 +36,24 @@ export async function run() {
   const green = [{ id: 'x/T2', parked: false }];
   const GREEN = { 'x/T2': 'GREEN' };
   // the pure judge, over facts
-  const changes = [{ id: 'C1', applicable: red }, { id: 'C2', applicable: green }];
+  const changes = [{ id: 'x/C1', applicable: red }, { id: 'x/C2', applicable: green }];
   assert.equal(judgeHold({ changes, retros: [], observed: {} }).verdict, 'PASS', 'no retro: nothing is held, whatever is red');
-  assert.equal(judgeHold({ changes, retros: [{ reflects: ['C9'] }], observed: {} }).verdict, 'PASS', 'a retro of an earlier collector holds nothing');
-  assert.equal(judgeHold({ changes, retros: [{ reflects: ['C2'] }], observed: GREEN }).verdict, 'FAIL', 'a retro reflecting any carried Change holds the whole collector while another Change is red');
-  assert.match(judgeHold({ changes, retros: [{ reflects: ['C2'] }], observed: GREEN }).message, /finish your work first: x\/T1 of 2 applicable Cases/);
-  assert.equal(judgeHold({ changes: [{ id: 'C2', applicable: green }], retros: [{ reflects: ['C2'] }], observed: GREEN }).verdict, 'PASS');
-  assert.equal(judgeHold({ changes: [{ id: 'C2', applicable: green }], retros: [{ reflects: ['C2'] }], observed: { 'x/T2': 'RED' } }).verdict, 'FAIL');
+  assert.equal(judgeHold({ changes, retros: [{ reflects: ['x/C9'] }], observed: {} }).verdict, 'PASS', 'a retro of an earlier collector holds nothing');
+  assert.equal(judgeHold({ changes, retros: [{ reflects: ['x/C2'] }], observed: GREEN }).verdict, 'FAIL', 'a retro reflecting any carried Change holds the whole collector while another Change is red');
+  assert.match(judgeHold({ changes, retros: [{ reflects: ['x/C2'] }], observed: GREEN }).message, /finish your work first: x\/T1 of 2 applicable Cases/);
+  assert.equal(judgeHold({ changes: [{ id: 'x/C2', applicable: green }], retros: [{ reflects: ['x/C2'] }], observed: GREEN }).verdict, 'PASS');
+  assert.equal(judgeHold({ changes: [{ id: 'x/C2', applicable: green }], retros: [{ reflects: ['x/C2'] }], observed: { 'x/T2': 'RED' } }).verdict, 'FAIL');
   for (const bad of [undefined, null, 'C1', [{ id: 'C1' }], [{ id: '', applicable: [] }]]) assert.equal(judgeHold({ changes: bad, retros: [], observed: {} }).verdict, 'UNKNOWN', `carried Changes ${JSON.stringify(bad)} must be UNKNOWN`);
   for (const bad of [undefined, null, 'RT1', [{ reflects: 'C1' }], [{ reflects: [1] }], [null]]) assert.equal(judgeHold({ changes, retros: bad, observed: {} }).verdict, 'UNKNOWN', `retros ${JSON.stringify(bad)} must be UNKNOWN`);
   const { judgeFinished } = await load();
   assert.equal(judgeFinished({ changes, observed: GREEN }).verdict, 'FAIL', 'the Cases of all the carried Changes are judged together');
   assert.equal(judgeFinished({ changes: [changes[1]], observed: GREEN }).verdict, 'PASS');
-  assert.equal(changeIdOf('00-changes/C103-hold-act'), 'C103');
-  assert.equal(changeIdOf('00-changes/nothing'), undefined);
+  assert.equal(judgeHold({ changes, retros: [{ reflects: ['C2'] }], observed: GREEN }).verdict, 'UNKNOWN', 'an unqualified id is not guessed at: the ACT cannot be told');
+  assert.match(judgeHold({ changes, retros: [{ reflects: ['C2'] }], observed: GREEN }).message, /not a qualified Change id/);
+  // the real path: the record of this very Change names it release/C103, and a retro as kaal-retro writes it reflects exactly that
+  const here = join(dirname(fileURLToPath(import.meta.url)), '../..');
+  assert.equal(changeIdOf(here, '00-changes/C103-hold-act'), 'release/C103', 'the id comes from the record, qualified');
+  assert.equal(changeIdOf(here, '00-changes/nothing'), undefined);
   // the tree: the retros are found by what they reflect and nothing else of them is read
   const c = collector();
   const obs = join(c.root, 'observed.json');
@@ -69,14 +73,14 @@ export async function run() {
     rmSync(obs);
     assert.equal(cli(undefined).code, 0, 'no retro needs no observation');
     // a retro of an earlier collector stands in the tree and reflects other Changes
-    c.put('02-learnings/retros/old.md', RETRO(['C998']));
+    c.put('02-learnings/retros/old.md', RETRO(['x/C998']));
     c.put('02-learnings/retros/readme.md', '# not a retro\n');
     c.put('02-learnings/retros/draft.md', '---\nid: x/RT0\n---\n# says nothing of what it reflects\n');
-    assert.deepEqual(retrosOf(c.root), [{ reflects: ['C998'] }], 'only what declares reflects is a retro');
+    assert.deepEqual(retrosOf(c.root), [{ reflects: ['x/C998'] }], 'only what declares reflects is a retro');
     assert.equal(cli({ 'x/T1': 'RED' }).code, 0, 'the retro of another Change holds nothing here');
     // the retro of this collector arrives while the work is not finished; its id and format are whatever kaal-retro chooses
     for (const [file, extra] of [['02-learnings/retros/RT7/retro.md', 'id: x/RT7\nformat: 4L\n'], ['02-learnings/retros/4L.3.md', 'id: 4L.3\n'], ['02-learnings/retros/anything.md', '']]) {
-      c.put(file, RETRO(['C999'], extra));
+      c.put(file, RETRO(['x/C999'], extra));
       r = cli({ 'x/T1': 'RED' });
       assert.equal(r.code, 1, `a retro (${file}) with a red Case must be held`);
       assert.match(r.out, /finish your work first/);
@@ -85,7 +89,7 @@ export async function run() {
       c.rm(file);
     }
     // the work is finished
-    c.put('02-learnings/retros/RT7/retro.md', RETRO(['C999']));
+    c.put('02-learnings/retros/RT7/retro.md', RETRO(['x/C999']));
     c.mv(`${CHANGE}/T1.red.mjs`, `${CHANGE}/T1.test.mjs`);
     assert.equal(cli({ 'x/T1': 'GREEN' }).code, 0);
     // a carried Change that is not there, or a name that is not a Change, cannot be judged

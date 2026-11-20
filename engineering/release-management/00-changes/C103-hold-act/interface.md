@@ -142,15 +142,19 @@ export function applicableCases(root, changeDir) {
   return [...cases.values()].sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
 }
 
-// The retros as they are found: every Markdown file under 02-learnings/retros that declares what it reflects (`reflects: [C103, ...]`).
+// The retros as they are found: every Markdown file under 02-learnings/retros that declares what it reflects (`reflects: [release/C103, ...]`, qualified ids as the retro writes them).
 // Nothing else of a retro is read: its id and its format are kaal-retro's. No folder, no retros.
 export function retrosOf(root) {
   return walk(join(root, '02-learnings/retros')).filter((f) => f.endsWith('.md')).map((f) => frontmatter(readFileSync(f, 'utf8')))
     .filter((fm) => fm && 'reflects' in fm).map((fm) => ({ reflects: ([]).concat(fm.reflects) }));
 }
 
-// The id of a Change from the name of its folder: 00-changes/C103-hold-act is C103.
-export const changeIdOf = (changeDir) => changeDir.split('/').pop().match(/^(C\d+)(-|$)/)?.[1];
+// The qualified id of a Change, as its record (C<n>.md) declares it and as a retro reflects it: release/C103. No record, no id.
+export function changeIdOf(root, changeDir) {
+  const record = existsSync(join(root, changeDir)) && readdirSync(join(root, changeDir)).find((f) => /^C\d+\.md$/.test(f));
+  const id = record ? frontmatter(readFileSync(join(root, changeDir, record), 'utf8'))?.id : undefined;
+  return typeof id === 'string' && id !== '' ? id : undefined;
+}
 
 // changes: the Changes the collector carries, each { id, applicable }; retros: each { reflects: [ids] }. Pure over those facts.
 // A retro holds the ACT of the Changes it reflects: the Cases of all the carried Changes together must be really green.
@@ -158,6 +162,8 @@ export function judgeHold({ changes, retros, observed }) {
   const cannot = (what) => ({ verdict: 'UNKNOWN', progress: { red: 0, green: 0, unknown: 0 }, findings: [], message: `cannot judge: ${what}` });
   if (!Array.isArray(changes) || !changes.every((c) => c && typeof c.id === 'string' && c.id !== '' && Array.isArray(c.applicable))) return cannot('the carried Changes are not known');
   if (!Array.isArray(retros) || !retros.every((r) => r && Array.isArray(r.reflects) && r.reflects.every((s) => typeof s === 'string'))) return cannot('the retros are not known');
+  const unqualified = retros.flatMap((r) => r.reflects).filter((id) => !id.includes('/'));
+  if (unqualified.length) return cannot(`a retro reflects ${unqualified.join(', ')}, which is not a qualified Change id (<capability>/C<n>)`);
   const carried = new Set(changes.map((c) => c.id));
   if (!retros.some((r) => r.reflects.some((id) => carried.has(id)))) return { verdict: 'PASS', findings: [], message: 'no retro reflects a carried Change: there is no ACT to hold' };
   return judgeFinished({ changes, observed });
@@ -195,7 +201,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   try {
     const root = arg('--root') ?? '.';
     const dirs = (arg('--changes') ?? '').split(',').filter(Boolean);
-    const ids = dirs.map(changeIdOf);
+    const ids = dirs.map((d) => changeIdOf(root, d));
     if (!dirs.length || ids.some((id) => !id) || dirs.some((d) => !existsSync(join(root, d)))) throw new Error('the carried Changes are not known');
     const retros = retrosOf(root);
     const held = retros.some((x) => x.reflects.some((id) => ids.includes(id)));

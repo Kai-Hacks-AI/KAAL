@@ -14,7 +14,7 @@ const draft = (name) => readFileSync(join(RM, '00-changes/C103-hold-act/interfac
 
 // A collector as it is found: a folder of files. No Git is involved; the Cases make its content grow by hand, as PLANs and DOs would.
 const CHANGE = '00-changes/C999-demo';
-const CASE = (n, tests, v = 'v1') => `export const id = 'x/T${n}';\nexport const tests = [${tests.map((t) => `'${t}'`).join(', ')}];\nexport const title = 't';\nexport async function run() { /* ${v} */ }\n`;
+const CASE = (n, tests, v = 'v1') => `export const ${'id'} = 'x/T${n}';\nexport const tests = [${tests.map((t) => `'${t}'`).join(', ')}];\nexport const title = 't';\nexport async function run() { /* ${v} */ }\n`;
 const EL = (id, edges = {}) => `---\nid: ${id}\n${Object.entries(edges).map(([k, v]) => `${k}: [${v.join(', ')}]`).join('\n')}\n---\n# ${id}\n`;
 const FENCE = '`````';
 const drafts = (...els) => `# interface\n\n${els.map((e, i) => `## Draft of E${i}\n\n${FENCE}\n${e}${FENCE}\n`).join('\n')}`;
@@ -39,7 +39,7 @@ export async function run() {
   };
   try {
     c.put(`${CHANGE}/C999.md`, EL('x/C999', { implements: ['x/I1'] }));
-    c.put('02-learnings/retros/RT1/retro.md', '---\nid: x/RT1\nformat: 4L\nreflects: [C999]\n---\n# the retro\n');
+    c.put('02-learnings/retros/RT1/retro.md', '---\nid: x/RT1\nformat: 4L\nreflects: [x/C999]\n---\n# the retro\n');
     c.put(`${CHANGE}/interface.md`, drafts(EL('x/I1'), EL('x/F1', { serves: ['x/I1'] }), EL('x/A1', { addresses: ['x/F1'] })));
     c.put(`${CHANGE}/T1.red.mjs`, CASE(1, ['x/F1']));
     c.put('03-architecture/A1-x/T3.red.mjs', CASE(3, ['x/A1']));
