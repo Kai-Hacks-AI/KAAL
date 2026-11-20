@@ -8,8 +8,8 @@ Found at `packages/kaal-architecture/`, on the promotion of architecture/C16 (#2
 {
   "id": "architecture/D2",
   "context": "architecture (the package folder)",
-  "expected": "The package folder follows the package layout of kaal-engineering (engineering/F45): the root files and the folders 00-backlog, 01-changes, 02-controls, 10-intent, 11-requirements, 12-architecture, 13-source and 14-defects, with the Skill and the scripts in 13-source.",
-  "observed": "The package keeps lib/, skills/ and test/ at its root, and 00-changes, 01-intent, 02-requirements and 03-architecture under the old numbers. Only 14-defects, which holds this record, is in the layout.",
+  "expected": "The package folder follows the package layout that kaal-engineering holds in its layout template, packages/kaal-engineering/skills/kaal-engineering/references/package-layout.json, as it stands now (engineering/F45 and the Changes that have since evolved it): its root files and its folders, with the Skill and the scripts in the source folder. The template is the authority and the Defect does not copy its folders.",
+  "observed": "The package keeps lib/, skills/ and test/ at its root, and 00-changes, 01-intent, 02-requirements and 03-architecture under the older numbers: against the template as it stands on main, these root folders are not in the layout. 14-defects, which holds this record, is.",
   "where": "packages/kaal-architecture/",
   "reach": "packages/kaal-architecture/"
 }
@@ -17,7 +17,7 @@ Found at `packages/kaal-architecture/`, on the promotion of architecture/C16 (#2
 
 ## Proof
 
-architecture/T28 lists the tracked root folders of the package and fails on `main`: `lib`, `skills`, `test` and four numbered folders are not in the layout.
+architecture/T28 reads the template at the time it runs, lists the tracked root folders of the package and fails on `main`: `lib`, `skills`, `test` and four numbered folders are not in the layout.
 
 ## Not claimed
 
