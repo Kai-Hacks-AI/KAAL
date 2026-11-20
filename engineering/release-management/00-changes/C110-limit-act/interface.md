@@ -25,7 +25,7 @@ serves: [release/I59]
 ---
 # release/F85 limit-act
 
-The judgement is made over the paths a pull request changes, handed in as facts (every path added, modified or deleted, and both ends of a rename), and over the write map, from which it reads the row of the route `act`: the folders the ACT may write. The row names the folders of the retros (the packages and the engineering capabilities have their own) and, for the ACTs that exist in the older places, the exact files `act.md` of a Change or of a plan folder: a folder is a prefix and a file is an exact path, so recognising a legacy ACT never opens the rest of its Change folder. A pull request that changes no path in a folder or a file of that row is not an ACT: it says PASS and looks at nothing more. A pull request that changes a path in such a folder or file is an ACT: it says PASS when every path it changes lies in the folders and files of the row, and FAIL naming each path outside. It says UNKNOWN, which never passes, when the paths or the map cannot be read or the map has not exactly one row for the route `act`. That a pull request is an ACT is read from the paths it changes and nothing else: not from a title, a branch name, a label or the history. The other rows of the map (a hotfix, a wire) are other controls' and are never read here. The judge is one function; the places that ask it decide what a verdict does: a required check blocks, an advisory reminder never does. A new ACT folder or file is a new entry of the row, not a change of the judge, and an entry for a legacy place is deleted from the data when no ACT is written there any more.
+The judgement is made over the paths a pull request changes, handed in as facts (every path added, modified or deleted, and both ends of a rename), the capability roots, and the write map, from which it reads the row of the route `act`: the folders the ACT may write. The row names, relative to a capability root, the folder of the retros and, for the ACTs that exist in the older places, the exact files `act.md` of a Change or of a plan folder, and the capability roots are handed in with the paths, so that moving a capability changes nothing: a folder is a prefix and a file is an exact path, so recognising a legacy ACT never opens the rest of its Change folder. A pull request that changes no path in a folder or a file of that row is not an ACT: it says PASS and looks at nothing more. A pull request that changes a path in such a folder or file is an ACT: it says PASS when every path it changes lies in the folders and files of the row, and FAIL naming each path outside. A path under no capability root is in no capability and is outside. It says UNKNOWN, which never passes, when the paths, the roots or the map cannot be read or the map has not exactly one row for the route `act`. That a pull request is an ACT is read from the paths it changes and nothing else: not from a title, a branch name, a label or the history. The other rows of the map (a hotfix, a wire) are other controls' and are never read here. The judge is one function; the places that ask it decide what a verdict does: a required check blocks, an advisory reminder never does. A new ACT folder or file is a new entry of the row, not a change of the judge, and an entry for a legacy place is deleted from the data when no ACT is written there any more.
 `````
 
 ## Draft of A75.md
@@ -38,7 +38,7 @@ addresses: [release/F85]
 ---
 # release/A75 judge-limit-act
 
-The component is the judge `05-src/phase/judge-limit-act.mjs`: a pure function `judgeLimitAct({ changed, map })` over the changed paths and the write map, and a command line (`--changed <file>`, `--map <file>` defaulting to the data next to the judge) that reads them from files and exits 0 for PASS, 1 for FAIL and 2 for UNKNOWN. The write map is the data `05-src/phase/write-map.json`, owned by release: a list of `{ route, folders, files }`, a folder being a prefix that ends in `/`, a file an exact path, and `*` standing for exactly one segment (the capability or the Change). No other pattern exists, so the lock a ruleset path restriction would apply is the same list. This Change adds the row of the route `act`, with the retro folders of both trees and the legacy files; the rows of the hotfix and wire routes are later Changes, each added by the control that uses it. The paths a pull request changes are derived by the wiring; this judge is given them and reads nothing of Git or GitHub.
+The component is the judge `05-src/phase/judge-limit-act.mjs`: a pure function `judgeLimitAct({ changed, map, roots })` over the changed paths, the write map and the capability roots, and a command line (`--changed <file>`, `--roots <file>`, `--map <file>` defaulting to the data next to the judge) that reads them from files and exits 0 for PASS, 1 for FAIL and 2 for UNKNOWN. The write map is the data `05-src/phase/write-map.json`, owned by release: a list of `{ route, folders, files }`, every entry relative to a capability root, a folder being a prefix that ends in `/`, a file an exact path, and `*` standing for exactly one segment (the Change, say). Where a capability stands is not in the map: the wiring hands the roots in with the changed paths, so the answer is the same when a capability moves. No other pattern exists, so the lock a ruleset path restriction would apply is the same list. This Change adds the row of the route `act`, with the retro folders of both trees and the legacy files; the rows of the hotfix and wire routes are later Changes, each added by the control that uses it. The paths a pull request changes and the capability roots are derived by the wiring; this judge is given them and reads nothing of Git or GitHub.
 
 Its parent is release/A72 (GitHub) through the check that runs it, once that is placed; the job, its declaration on the station and the advisory hook are the next Changes.
 `````
@@ -64,10 +64,12 @@ A detective control that is meant to become preventive. A pull request that chan
 
 `````
 // limit Act: does a pull request that is an ACT write only the folders of the ACT route? Pure over facts: nothing is read from Git or GitHub.
-// judgeLimitAct({ changed, map }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', message[, outside] }
-// changed: every path the pull request changes, relative to the repository (both ends of a rename); map: the write map as in write-map.json,
-// [{ route, folders, files? }]: the folders a route may write, and the exact files (the legacy places of an ACT). This judge reads only the row of the route 'act'; the other rows are other controls'.
-// A folder is a prefix that ends in '/'; a file is an exact path; '*' stands for exactly one segment in both. A pull request that changes a path in a folder or a file of the row is an ACT.
+// judgeLimitAct({ changed, map, roots }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', message[, outside] }
+// changed: every path the pull request changes, relative to the repository (both ends of a rename); roots: the capability roots, relative to the repository,
+// handed in by the wiring; map: the write map as in write-map.json, [{ route, folders, files? }]: the folders a route may write and the exact files
+// (the legacy places of an ACT), each relative to a capability root, so that the answer does not depend on where a capability stands. This judge reads only the row of the route 'act'; the other rows are other controls'.
+// A folder is a prefix that ends in '/'; a file is an exact path; '*' stands for exactly one segment in both. A pull request that changes a path in a folder
+// or a file of the row, under a capability root, is an ACT. A path under no root is in no capability and is outside.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -90,17 +92,21 @@ export function isFile(path, file) {
 }
 
 export function judgeLimitAct(facts) {
-  const { changed, map } = facts && typeof facts === 'object' ? facts : {};
+  const { changed, map, roots } = facts && typeof facts === 'object' ? facts : {};
   if (!Array.isArray(changed) || !changed.every(usable)) return unknown('the changed paths could not be read');
   const plain = (x) => typeof x === 'string' && x.length > 1 && !x.startsWith('/') && !x.split('/').includes('..') && !x.split('/').includes('.');
   const row = (r) => r && typeof r.route === 'string' && r.route !== ''
     && Array.isArray(r.folders ?? []) && Array.isArray(r.files ?? []) && (r.folders?.length ?? 0) + (r.files?.length ?? 0) > 0
     && (r.folders ?? []).every((f) => plain(f) && f.endsWith('/')) && (r.files ?? []).every((f) => plain(f) && !f.endsWith('/'));
+  if (!Array.isArray(roots) || !roots.every((r) => typeof r === 'string' && plain(r.endsWith('/') ? r.slice(0, -1) : r))) return unknown('the capability roots could not be read');
   if (!Array.isArray(map) || !map.every(row)) return unknown('the write map could not be read');
   const rows = map.filter((r) => r.route === 'act');
   if (rows.length !== 1) return unknown('the write map has no single row for the route act');
   const { folders = [], files = [] } = rows[0];
-  const lies = (p) => folders.some((f) => inFolder(p, f)) || files.some((f) => isFile(p, f));
+  // The path relative to the longest capability root it lies under, or undefined when it lies under none.
+  const norm = roots.map((r) => (r.endsWith('/') ? r.slice(0, -1) : r)).sort((a, b) => b.length - a.length);
+  const relative = (p) => { const r = norm.find((x) => p.startsWith(`${x}/`)); return r === undefined ? undefined : p.slice(r.length + 1); };
+  const lies = (p) => { const rel = relative(p); return rel !== undefined && (folders.some((f) => inFolder(rel, f)) || files.some((f) => isFile(rel, f))); };
   if (!changed.some(lies)) return { verdict: 'PASS', message: 'not an ACT: it changes no folder the route act writes', outside: [] };
   const outside = changed.filter((p) => !lies(p));
   if (outside.length) return { verdict: 'FAIL', message: `an ACT may write only its folders and files (${[...folders, ...files].join(', ')}): these paths are outside: ${outside.join(', ')}`, outside };
@@ -112,7 +118,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let r;
   try {
     const map = JSON.parse(readFileSync(arg('--map') ?? join(dirname(fileURLToPath(import.meta.url)), 'write-map.json'), 'utf8'));
-    r = judgeLimitAct({ changed: JSON.parse(readFileSync(arg('--changed'), 'utf8')), map });
+    r = judgeLimitAct({ changed: JSON.parse(readFileSync(arg('--changed'), 'utf8')), map, roots: JSON.parse(readFileSync(arg('--roots'), 'utf8')) });
   } catch (e) { r = unknown(String(e.message)); }
   console.log(`${r.verdict}: ${r.message}`);
   process.exit({ PASS: 0, FAIL: 1, UNKNOWN: 2 }[r.verdict]);
@@ -125,8 +131,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 [
   {
     "route": "act",
-    "folders": ["engineering/*/02-learnings/retros/", "packages/*/02-learnings/retros/"],
-    "files": ["engineering/*/00-changes/*/act.md", "packages/*/00-changes/*/act.md", "packages/*/plan/*/act.md"]
+    "folders": ["02-learnings/retros/"],
+    "files": ["00-changes/*/act.md", "plan/*/act.md"]
   }
 ]
 `````
