@@ -10,7 +10,7 @@ A Defect is a passive description of an undesirable condition. What it is about 
 
 ## Edge
 
-A Test Case points at a Defect with its first line, `// Case <id> tests: <defect id>`. The Defect lists no Test Case. A Defect is `<owner>/D<n>`, counted per owner, and its record is an md file in a `14-defects` folder whose front matter has `id`.
+A Test Case points at a Defect with its first line, `// Case <id> tests: <defect id>`. The Defect lists no Test Case. A Defect is `<owner>/D<n>`, counted per owner, and its record is an md file in a `defects` folder whose front matter has `id`.
 
 ## Reach
 
@@ -29,7 +29,7 @@ Several Cases that point at one Defect are different manifestations or condition
 
 ## Register
 
-Each context keeps its own register: `known.json` in its `14-defects` folder, a list of Defect ids that live in the same folder. `known` means only that the Defect is listed. An id with no Defect record there is `invalid`. A Defect stays in the context where it was found until Architecture moves it; Architecture's placement is written as `placed` and Defect only reads it (see kaal-architecture). There is no central register.
+Each context keeps its own register: `known.json` in its `defects` folder, a list of Defect ids that live in the same folder. `known` means only that the Defect is listed. An id with no Defect record there is `invalid`. A Defect stays in the context where it was found until Architecture moves it; Architecture's placement is written as `placed` and Defect only reads it (see kaal-architecture). There is no central register.
 
 ## Use
 

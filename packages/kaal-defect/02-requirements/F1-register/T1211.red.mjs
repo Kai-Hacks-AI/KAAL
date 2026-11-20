@@ -1,6 +1,6 @@
 // Case defect/T1211 tests: defect/F1
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, mkdtempSync, mkdirSync, writeFileSync, renameSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -18,9 +18,9 @@ function fixture({ contexts, records = [] }) {
   assert.ok(existsSync(script), 'the script scripts/known-defects.mjs is absent');
   const d = mkdtempSync(join(tmpdir(), 'known-'));
   for (const [ctx, { defects = [], register = [], cases = {}, placed = {}, reaches = {} }] of Object.entries(contexts)) {
-    mkdirSync(join(d, ctx, '14-defects'), { recursive: true });
-    for (const i of defects) writeFileSync(join(d, ctx, '14-defects', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
-    writeFileSync(join(d, ctx, '14-defects', 'known.json'), JSON.stringify(register));
+    mkdirSync(join(d, ctx, '15-defects'), { recursive: true });
+    for (const i of defects) writeFileSync(join(d, ctx, '15-defects', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
+    writeFileSync(join(d, ctx, '15-defects', 'known.json'), JSON.stringify(register));
     for (const [c, target] of Object.entries(cases)) writeFileSync(join(d, ctx, `T${c.split('T')[1]}.red.mjs`), `// Case ${c} tests: ${target}\n`);
   }
   writeFileSync(join(d, 'records.json'), JSON.stringify(records));
@@ -37,6 +37,12 @@ export async function run() {
   assert.equal(ok.status, 0);
   assert.ok(lines(ok).includes('unknown x/D1 known'), 'registered: known');
   assert.ok(lines(ok).includes('unknown x/D2'), 'not registered: not known');
+  // The folder is found by its role, the name after any number prefix, so a renumber never matters.
+  for (const name of ['defects', '07-defects']) {
+    const d = fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: ['x/D1'] } } });
+    renameSync(join(d, 'a/b/15-defects'), join(d, 'a/b', name));
+    assert.ok(lines(check(d)).includes('unknown x/D1 known'), `the folder ${name} holds the Defects and the register`);
+  }
   const bad = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: ['x/D9'] } } }));
   assert.ok(lines(bad).includes('invalid x/D9'));
   const other = check(fixture({ contexts: { 'a/b': { register: ['x/D1'] }, 'c': { defects: ['x/D1'] } } }));

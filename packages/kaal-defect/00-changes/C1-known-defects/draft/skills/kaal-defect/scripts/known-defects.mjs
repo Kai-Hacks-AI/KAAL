@@ -44,10 +44,10 @@ export function readTree(root) {
       const p = join(d, n);
       if (statSync(p).isDirectory()) { if (n !== 'node_modules' && n !== '.git') walk(p); continue; }
       const text = () => readFileSync(p, 'utf8');
-      if (p.endsWith('/14-defects/known.json')) {
+      if (/\/(?:\d+-)?defects\/known\.json$/.test(p)) {
         const context = relative(root, dirname(dirname(p))) || '.';
         for (const id of JSON.parse(text())) registered.set(id, context);
-      } else if (/\/14-defects\/[^/]+\.md$/.test(p)) {
+      } else if (/\/(?:\d+-)?defects\/[^/]+\.md$/.test(p)) {
         const t = text(); const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
         if (id) defects.set(id, { context: relative(root, dirname(dirname(p))) || '.', placed: t.match(/^placed:\s*(.+?)\s*$/m)?.[1], reach: (t.match(/^reach:\s*(.+?)\s*$/m)?.[1] ?? '').split(',').map((x) => x.trim()).filter(Boolean) });
       } else if (/\/T\d+\.(red|test)\.mjs$/.test(p)) {
