@@ -33,6 +33,13 @@ export async function run() {
     // the default map is the one next to the judge: with it, the retros are the ACT's folder
     put('changed.json', [RETRO, 'engineering/release-management/01-intent/I1/I1.md']);
     assert.equal(cli('--changed', join(root, 'changed.json')).code, 1, 'the default write map is read');
+    // the real layout, with the default map: the retro of kaal-retro, an older ACT of engineering, and that older ACT with a Case of its Change
+    put('changed.json', ['packages/kaal-retro/02-learnings/retros/RT1.md']);
+    assert.equal(cli('--changed', join(root, 'changed.json')).code, 0, 'a retro of a package');
+    put('changed.json', ['packages/kaal-engineering/00-changes/C27-operations-layout/act.md']);
+    assert.equal(cli('--changed', join(root, 'changed.json')).code, 0, 'a legacy ACT');
+    put('changed.json', ['packages/kaal-engineering/00-changes/C27-operations-layout/act.md', 'packages/kaal-engineering/00-changes/C27-operations-layout/T1.test.mjs']);
+    assert.equal(cli('--changed', join(root, 'changed.json')).code, 1, 'a legacy ACT does not open its Change folder');
     // it cannot tell
     assert.equal(cli('--changed', join(root, 'missing.json'), '--map', join(root, 'map.json')).code, 2, 'a missing file must not pass');
     put('changed.json', 'not json');

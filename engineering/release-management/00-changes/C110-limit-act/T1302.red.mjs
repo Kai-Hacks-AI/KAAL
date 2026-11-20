@@ -24,22 +24,37 @@ export async function run() {
   assert.ok(existsSync(MAP), 'write-map.json is absent');
   assert.equal(readFileSync(MAP, 'utf8'), `${draft('write-map.json')}\n`, 'write-map.json differs from the draft');
   const shipped = JSON.parse(readFileSync(MAP, 'utf8'));
-  assert.deepEqual(shipped.filter((r) => r.route === 'act').map((r) => r.folders), [['engineering/*/02-learnings/retros/']], 'the row of the route act holds the retros');
-  const { judgeLimitAct, inFolder } = await import(pathToFileURL(SRC).href);
-  const map = [{ route: 'act', folders: ['engineering/*/02-learnings/retros/', 'docs/acts/'] }, { route: 'wire', folders: ['.github/'] }];
+  const act = shipped.filter((r) => r.route === 'act');
+  assert.equal(act.length, 1, 'one row for the route act');
+  assert.deepEqual(act[0].folders, ['engineering/*/02-learnings/retros/', 'packages/*/02-learnings/retros/'], 'the retros of both trees');
+  assert.deepEqual(act[0].files, ['engineering/*/00-changes/*/act.md', 'packages/*/00-changes/*/act.md', 'packages/*/plan/*/act.md'], 'the legacy places are files, never folders');
+  const { judgeLimitAct, inFolder, isFile } = await import(pathToFileURL(SRC).href);
+  const map = [{ route: 'act', folders: ['engineering/*/02-learnings/retros/', 'docs/acts/'], files: ['packages/*/00-changes/*/act.md'] }, { route: 'wire', folders: ['.github/'] }];
   const j = (changed, ...m) => judgeLimitAct({ changed, map: m.length ? m[0] : map });
   // inFolder: a prefix of whole segments, '*' for exactly one
   assert.equal(inFolder('engineering/release-management/02-learnings/retros/RT1/retro.md', 'engineering/*/02-learnings/retros/'), true);
   assert.equal(inFolder('engineering/a/b/02-learnings/retros/x.md', 'engineering/*/02-learnings/retros/'), false, '* is exactly one segment');
   assert.equal(inFolder('engineering/release-management/02-learnings/retros', 'engineering/*/02-learnings/retros/'), false, 'the folder itself is not a file in it');
   assert.equal(inFolder('engineering/release-management/02-learnings/retros-old/x.md', 'engineering/*/02-learnings/retros/'), false, 'whole segments only');
+  // isFile: an exact path, '*' for exactly one segment
+  assert.equal(isFile('packages/kaal-engineering/00-changes/C27-operations-layout/act.md', 'packages/*/00-changes/*/act.md'), true);
+  assert.equal(isFile('packages/kaal-engineering/00-changes/C27-operations-layout/T1.test.mjs', 'packages/*/00-changes/*/act.md'), false);
+  assert.equal(isFile('packages/kaal-engineering/00-changes/C27/x/act.md', 'packages/*/00-changes/*/act.md'), false, '* is exactly one segment');
+  assert.equal(isFile('packages/kaal-engineering/00-changes/C27-operations-layout/act.md.bak', 'packages/*/00-changes/*/act.md'), false);
   // PASS: no ACT, or an ACT inside its folders
   assert.equal(j([]).verdict, 'PASS', 'a pull request that changes nothing is no ACT');
   assert.equal(j(['engineering/release-management/05-src/x.mjs', 'README.md']).verdict, 'PASS', 'no ACT folder touched: not an ACT');
   assert.equal(j(['.github/workflows/x.yml']).verdict, 'PASS', 'the folders of another route are not read');
   assert.equal(j(['engineering/release-management/02-learnings/retros/RT1/retro.md', 'docs/acts/a.md']).verdict, 'PASS', 'an ACT inside its folders');
+  // the real layout: the retro of kaal-retro is in packages, the older ACT of engineering is a file of its Change folder
+  assert.equal(j(['packages/kaal-retro/02-learnings/retros/RT1.md'], [{ route: 'act', folders: ['engineering/*/02-learnings/retros/', 'packages/*/02-learnings/retros/'] }]).verdict, 'PASS');
+  assert.equal(j(['packages/kaal-engineering/00-changes/C27-operations-layout/act.md']).verdict, 'PASS', 'a legacy ACT is recognised');
+  let f = j(['packages/kaal-engineering/00-changes/C27-operations-layout/act.md', 'packages/kaal-engineering/00-changes/C27-operations-layout/T1.test.mjs']);
+  assert.equal(f.verdict, 'FAIL', 'recognising a legacy ACT does not open the rest of its Change folder');
+  assert.deepEqual(f.outside, ['packages/kaal-engineering/00-changes/C27-operations-layout/T1.test.mjs']);
+  assert.equal(j(['.github/PULL_REQUEST_TEMPLATE/act.md']).verdict, 'PASS', 'a template named act.md is not an ACT');
   // FAIL: an ACT that writes outside
-  let f = j(['engineering/release-management/02-learnings/retros/RT1/retro.md', 'engineering/release-management/02-requirements/F1/F1.md', 'engineering/x/05-src/a.mjs']);
+  f = j(['engineering/release-management/02-learnings/retros/RT1/retro.md', 'engineering/release-management/02-requirements/F1/F1.md', 'engineering/x/05-src/a.mjs']);
   assert.equal(f.verdict, 'FAIL');
   assert.deepEqual(f.outside, ['engineering/release-management/02-requirements/F1/F1.md', 'engineering/x/05-src/a.mjs']);
   assert.ok(f.message.includes('02-requirements/F1/F1.md'), 'the path outside is not named');
@@ -49,6 +64,6 @@ export async function run() {
   assert.equal(j(['engineering/release-management/02-learnings/retros/RT1/retro.md', 'x.md'], [{ route: 'act', folders: ['docs/acts/'] }]).verdict, 'PASS');
   // UNKNOWN: it cannot be told
   for (const bad of [undefined, null, 'a', {}, [''], [5], [null], ['/etc/passwd'], ['a/../b'], ['./a']]) assert.equal(j(bad).verdict, 'UNKNOWN', `changed ${JSON.stringify(bad)} must be UNKNOWN`);
-  for (const bad of [undefined, null, 'a', {}, [null], [{}], [{ route: 'act' }], [{ route: 'act', folders: [] }], [{ route: 'act', folders: ['no-slash'] }], [{ route: 'act', folders: ['/abs/'] }], [{ route: 'act', folders: ['a/../'] }], [{ route: '', folders: ['a/'] }], [{ route: 'wire', folders: ['a/'] }], [map[0], map[0]]]) assert.equal(j(['x'], bad).verdict, 'UNKNOWN', `map ${JSON.stringify(bad)} must be UNKNOWN`);
+  for (const bad of [undefined, null, 'a', {}, [null], [{}], [{ route: 'act' }], [{ route: 'act', folders: [] }], [{ route: 'act', folders: ['no-slash'] }], [{ route: 'act', files: ['dir/'] }], [{ route: 'act', files: [] }], [{ route: 'act', files: ['/abs'] }], [{ route: 'act', folders: 'a/' }], [{ route: 'act', folders: ['/abs/'] }], [{ route: 'act', folders: ['a/../'] }], [{ route: '', folders: ['a/'] }], [{ route: 'wire', folders: ['a/'] }], [map[0], map[0]]]) assert.equal(j(['x'], bad).verdict, 'UNKNOWN', `map ${JSON.stringify(bad)} must be UNKNOWN`);
   for (const nothing of [undefined, null, 'x']) assert.equal(judgeLimitAct(nothing).verdict, 'UNKNOWN');
 }

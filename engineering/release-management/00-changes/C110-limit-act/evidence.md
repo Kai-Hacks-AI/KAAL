@@ -20,7 +20,9 @@
 
 In the throwaway copy all five are green, and the runner on that copy has 320 tests, 304 pass, 16 fail, the 16 of the collector (315 tests, 299 pass, 16 fail without the five).
 
-Mutations of the judge in that copy, each caught by T1302 (with its draft-equality assertion set aside, because it fails first and masks the others) or by T1303: a folder matching the folder itself; `*` matching more than one segment; every pull request treated as an ACT, or none; the row of the route `act` not required to be single; a folder without a closing `/` accepted; a path with `..` accepted.
+Mutations of the judge in that copy, each caught by T1302 (with its draft-equality assertion set aside, because it fails first and masks the others) or by T1303: a folder matching the folder itself; `*` matching more than one segment; every pull request treated as an ACT, or none; the row of the route `act` not required to be single; a folder without a closing `/` accepted; a path with `..` accepted; a legacy file matched without the same length, a legacy file ignored, a file entry ending in `/` accepted.
+
+Revised on 20 Nov 2026 after the CPO's review of the real layout: the row now holds the retro folders of `engineering/*` and `packages/*`, and the legacy `act.md` files of a Change folder or a plan folder as exact files, so a legacy ACT is recognised without opening the rest of its Change folder (T1302, T1303 extended); the throwaway copy again has all five Cases green.
 
 ## What this shows and does not show
 
