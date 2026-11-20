@@ -9,13 +9,14 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const RM = join(repo, 'engineering/release-management');
 const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
 const CHECK = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
-const SRC = join(RM, '05-src/open-work/judge-open-work.mjs');
-const draft = (name) => readFileSync(join(RM, '00-changes/C107-hold-open-work/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+const SRC = join(RM, '05-src/queue/judge-queue.mjs');
+const draft = (name) => readFileSync(join(RM, '00-changes/C107-check-queue/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+const SHA = 'a'.repeat(40);
 export const id = 'release/T1286';
 export const tests = ['release/F83'];
-export const title = 'release/F83 serves release/I57 and states the requirement that the promotion of a branch is judged against the open pull requests based on it, equal to its draft';
+export const title = 'release/F83 serves release/I57 and states the requirement that the promotion of a branch is judged against its queue, equal to its draft';
 export async function run() {
-  const real = join(RM, '02-requirements/F83-hold-open-work/F83.md');
+  const real = join(RM, '02-requirements/F83-check-queue/F83.md');
   assert.ok(existsSync(real), 'F83.md is absent');
   const t = readFileSync(real, 'utf8');
   assert.equal(t, `${draft('F83.md')}\n`, 'F83.md differs from the draft');
