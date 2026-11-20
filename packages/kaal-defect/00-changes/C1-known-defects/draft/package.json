@@ -1,0 +1,9 @@
+{
+  "name": "@kaihacksai/kaal-defect",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Defect: known Defects, a register that passes expected failures, fails unexpected ones and lists what each owner has to fix.",
+  "license": "MIT",
+  "type": "module",
+  "files": ["skills"]
+}
