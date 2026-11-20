@@ -5,6 +5,7 @@ description: It puts a SYNC that is not a pure merge, or cannot be judged, in fr
 type: corrective
 status: implemented
 has: [release/I32, release/I33]
+evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL9 review Sync
 

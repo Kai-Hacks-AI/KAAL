@@ -5,6 +5,7 @@ description: It reveals whether a SYNC is a pure merge of main, at its exact hea
 type: detective
 status: implemented
 has: [release/I32, release/I35]
+evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL7 verify Sync
 

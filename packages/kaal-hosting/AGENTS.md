@@ -8,3 +8,4 @@ This folder is a KAAL package in the layout Packaging owns. Only `dist/` ships.
 - Hosting is the lowest layer: no dependency on another KAAL package, and no Case imports Packaging's checker.
 - `npm run test:publisher` is the publisher's run; `npm test` is the verification a consumer runs.
 - `readRevision` and the command `kaal-hosting-revision` share one implementation, `05-src/skills/kaal-hosting/scripts/revision.ts`; the command only parses arguments and prints. A change to one is a change to both, and the Cases of hosting/F80 to hosting/F84 cover both.
+- `readPullRequests` and the command `kaal-hosting-pulls` share one implementation, `05-src/skills/kaal-hosting/scripts/github/pull-requests.ts`; the command only parses arguments and prints. Each transport is its own small module beside it, and no route or environment test belongs in the selection step. A change to one is a change to both, and the Cases of hosting/F85 to hosting/F89 cover both.

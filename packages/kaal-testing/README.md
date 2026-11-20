@@ -112,6 +112,10 @@ Which files exist is the caller's answer. The count says how much text is tracke
 
 `problems(mapping, owner)` says why a mapping does not read. `classify(mapping, files)` classifies each statement, and every statement is unknown, with its reason. None is reported as met, and there is no percentage, ratio or gate. Nothing here runs a test.
 
+## Expected failures
+
+A register of expected failures is a list that someone else keeps: `{ "schema": "kaal-testing/expected-failures@1", "expected": [{ "id": "<a test id from a run report>", "reference": "<opaque text>" }] }`, with unique ids. `kaal-testing run --expect <register.json> <test files>` adds an `expectations` part to the run report and changes nothing else in it. Each registered id is listed as `held` (observed RED, as expected), `notHolding` (observed GREEN: the entry no longer describes the test and its owner removes it), `unconfirmed` (observed UNKNOWN) or `absent` (not in the run; `provisional`, with a reason, when its file was not run or its execution had problems). A RED that no entry lists is `unexpected`. `complete` repeats whether the run was complete. The same comparison is `compareExpectations(report, register)` from `kaal-testing/expectations`. It lists and decides nothing. An invalid register makes the command exit 2 without a report.
+
 ## Boundaries
 
 Testing keeps no registry. Its execution runs a capability's own cases as that capability defines them, and adds none.
