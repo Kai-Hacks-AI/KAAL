@@ -1,6 +1,6 @@
 # kaal-core
 
-KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Capabilities, Agents, Skills and Extensions by one mechanism, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
+KAAL Core: the smallest working KAAL. It carries the Kernel, the six foundational Nodes and the `CASE` Definition, reads and identifies Nodes by their exact content, resolves types and references by name and identity, registers Capabilities, Agents, Skills and Exchanges by one mechanism, and bootstraps a KAAL Engine into any directory, `./.kaal/` by default.
 
 Core depends on no Git host and no agent provider. Its KAAL runtime dependencies are `@kaihacksai/kaal-foundation`, for SHA-256, and `@kaihacksai/kaal-hosting`, and neither depends on Core. Core installs and works without `kaal-graph`. A Node's Form and identity are Graph's contract, and Core delivers Graph's own `form.mjs` and `node.mjs` inside the package, byte for byte, in `dist/node/`. `dist/node/provenance.json` names the Graph version they came from and each file's SHA-256. Graph's navigation and analysis are not part of Core; install `kaal-graph` beside Core for them. `@kaihacksai/kaal-hosting` owns every host mechanic Core needs (reading files, staging, portable and faithful publication). Core keeps what is its own: the Kernel and the foundation, admission, registration and the catalog. It needs Node.js 24 or later.
 
@@ -46,11 +46,11 @@ Installing the package writes nothing into your repository. `kaal init` does, an
 | `KAAL-Capability.md` | A Node typed by `KAAL Definition`. Nodes it types are Capabilities.   |
 | `KAAL-Agent.md`      | A Node typed by `KAAL Definition`. Nodes it types are Agents.         |
 | `KAAL-Skill.md`      | A Node typed by `KAAL Definition`. Nodes it types are Skills.         |
-| `KAAL-Extension.md`  | A Node typed by `KAAL Definition`. Nodes it types are Extensions.     |
+| `KAAL-Exchange.md`  | A Node typed by `KAAL Definition`. Nodes it types are Exchanges.     |
 | `CASE.md`            | A Node typed by `KAAL Definition`, naming the four parallel kinds.    |
 | `LOVE.md`            | A Node typed by `KAAL Definition`: when a package may step up.        |
 
-CASE stands for Capabilities, Agents, Skills and Extensions: four parallel kinds, none a kind of another. A Capability is a responsibility that overlaps with no other, delivered in any number of packages or none. `CASE` is a Definition like any other; it types nothing, and Core gives it no machinery.
+CASE stands for Capabilities, Agents, Skills and Exchanges: four parallel kinds, none a kind of another. A Capability is a responsibility that overlaps with no other, delivered in any number of packages or none. `CASE` is a Definition like any other; it types nothing, and Core gives it no machinery.
 
 LOVE is the test a package meets before it steps up from an internal capability to a reusable or published package:
 
@@ -61,7 +61,7 @@ LOVE is the test a package meets before it steps up from an internal capability 
 
 Meeting LOVE is a judgment of maturity, not a mandate to publish. A decision to package something never authorizes its release. `LOVE` is a Definition beside `CASE`. Like `CASE`, it types nothing, and adding it changed neither the Kernel's bytes nor any existing id.
 
-These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability` and `KAAL Agent`. kaal-core 0.0.1 is unreleased, so `kaal upgrade` does not adopt such an Engine: it keeps and reports the files it does not recognize, and refuses because the result would not verify. Bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition`, `KAAL Skill` and `KAAL Extension`, and of every Node typed by them, are unchanged.
+These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability` and `KAAL Agent`. kaal-core 0.0.1 is unreleased, so `kaal upgrade` does not adopt such an Engine: it keeps and reports the files it does not recognize, and refuses because the result would not verify. Bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition`, `KAAL Skill` and `KAAL Exchange`, and of every Node typed by them, are unchanged.
 
 A Node is a UTF-8 Markdown file that begins with frontmatter in the Kernel's Form, for example:
 
@@ -85,11 +85,11 @@ A Node's id is the SHA-256 of its exact bytes. Filenames and locations are not p
   AGENTS.md                   entry point for an Agent working with this Engine
   KAAL-KERNEL.md
   core/Node.md, KAAL-Definition.md, KAAL-Capability.md, KAAL-Agent.md,
-       KAAL-Skill.md, KAAL-Extension.md, CASE.md
+       KAAL-Skill.md, KAAL-Exchange.md, CASE.md
   capabilities/<name>/        registered Capability contributions
   agents/<name>/              registered Agent contributions
   skills/<name>/              registered Skill contributions
-  extensions/<name>/          registered Extension contributions
+  exchanges/<name>/          registered Exchange contributions
   state/core/installation.json  Core's record, at ./.kaal only (see Lifecycle)
 ```
 
@@ -102,10 +102,10 @@ This layout is how Core delivers files, not part of any identity. The Engine is 
 ```
 kaal init                                              bootstrap the Engine (see below)
 kaal verify                                            verify the Engine
-kaal list                                              list the Capabilities, Agents, Skills and Extensions
+kaal list                                              list the Capabilities, Agents, Skills and Exchanges
 kaal resolve <name> [<id>]                             resolve a Node by name, or by name and id
 kaal identify <file>...                                print the id, name and type of Node files
-kaal register <capability|agent|skill|extension> <name> <dir>
+kaal register <capability|agent|skill|exchange> <name> <dir>
                                                        register a contribution, atomically
 kaal export <out-dir>                                  write the foundational payload into an empty directory
 kaal version                                           print the kaal-core that runs and the Engine's recorded version
@@ -117,14 +117,14 @@ Every command takes `--engine <dir>`: the Engine directory itself, absolute or r
 
 ## Registration
 
-A contribution is a directory of Nodes of one kind (capability, agent, skill or extension), registered under one name (lowercase letters, digits and single hyphens). It is accepted only as a whole. Every file must be a Node in Form at a relative `.md` path, every Node's type must resolve against the Engine and the contribution together, at least one Node must be typed by Core's Node of that kind (`KAAL Capability`, `KAAL Agent`, `KAAL Skill` or `KAAL Extension`), and none by the other three. All checks run before anything is written. Hosting then publishes the contribution all or nothing, refusing paths that would not be held faithfully on Linux, Windows and macOS (names that differ only by case or Unicode normalization, names Windows cannot hold), so a refused contribution leaves the Engine byte-for-byte unchanged. Registering the identical contribution again is a no-op; a name already registered for the kind with other content is refused. `registerSkill` and `registerExtension` remain as shorthands for `register` with that kind. Core does not relate a Capability to its Agents, Skills or Extensions; that relationship is an Edge, which belongs to Graph and the capabilities.
+A contribution is a directory of Nodes of one kind (capability, agent, skill or exchange), registered under one name (lowercase letters, digits and single hyphens). It is accepted only as a whole. Every file must be a Node in Form at a relative `.md` path, every Node's type must resolve against the Engine and the contribution together, at least one Node must be typed by Core's Node of that kind (`KAAL Capability`, `KAAL Agent`, `KAAL Skill` or `KAAL Exchange`), and none by the other three. All checks run before anything is written. Hosting then publishes the contribution all or nothing, refusing paths that would not be held faithfully on Linux, Windows and macOS (names that differ only by case or Unicode normalization, names Windows cannot hold), so a refused contribution leaves the Engine byte-for-byte unchanged. Registering the identical contribution again is a no-op; a name already registered for the kind with other content is refused. `registerSkill` and `registerExchange` remain as shorthands for `register` with that kind. Core does not relate a Capability to its Agents, Skills or Exchanges; that relationship is an Edge, which belongs to Graph and the capabilities.
 
 ## API
 
 Functions that read or write an Engine go through Hosting and return promises; `evaluate`, `payload` and `foundation` are pure and synchronous. An Engine is what admission found, `{ nodes, rejected }`. A Node's identity is read with Graph's `identify`, delivered inside Core. Looking Nodes up by Edge, and navigating them, are Graph's: hold `engine.nodes` in a `kaal-graph` Graph when Graph is installed.
 
 ```js
-import { bootstrap, verify, loadEngine, register, registerSkill, registerExtension, catalog, payload, foundation, exportPayload } from "kaal-core";
+import { bootstrap, verify, loadEngine, register, registerSkill, registerExchange, catalog, payload, foundation, exportPayload } from "kaal-core";
 
 await bootstrap(".kaal");
 (await verify(".kaal")).ok;                          // true
@@ -132,7 +132,7 @@ const engine = await loadEngine(".kaal");            // { nodes, rejected }
 engine.nodes.find((n) => n.id === foundation().skill.id); // the KAAL Skill Node
 await registerSkill(".kaal", "greeting", { "Greeting.md": bytes });
 await register(".kaal", "capability", "greeting", { "Greeting-People.md": bytes });
-await catalog(".kaal");                              // { capabilities: [{ name, id }], agents, skills, extensions }
+await catalog(".kaal");                              // { capabilities: [{ name, id }], agents, skills, exchanges }
 ```
 
 `readContribution(dir)` reads a contribution from a directory, every file keyed by its `/`-separated relative path, ready for `register`. When Core refuses something, such as an Engine that is not valid or a directory that is not empty, it throws a `KaalError` whose message names what was refused, and it writes nothing.
@@ -148,7 +148,7 @@ A file whose frontmatter names its Type as a string `<Capability>/<Type>` (for e
 
 The state depends only on the admitted Nodes, the artifact's frontmatter and the supplied Types, so registering a Type Definition later turns the same unchanged bytes from unregistered to registered. `verify(dir, { types })` and `kaal verify` fail on an unknown artifact, and on an invalid one when Types are supplied. They pass on an unregistered one. `kaal verify` lists every typed artifact with its state, and Core never changes one.
 
-`capabilities(dir)` is deprecated: it still returns `{ skills, extensions }`, and `catalog` replaces it.
+`capabilities(dir)` is deprecated: it still returns `{ skills, exchanges }`, and `catalog` replaces it.
 
 ### Frontmatter
 

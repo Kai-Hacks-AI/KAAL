@@ -18,13 +18,13 @@ function needed(path, what) {
 
 /** The foundation as core/C16 found it: core/C17 changes none of these. */
 const FOUNDATION = {
-  kernel: "14864b6ee33a5c0e4105dfa2354d5af191013c9a4ecd9c264b1e710fe66579fc",
+  kernel: "ba6edfbac6ffcd8055393b646ffea74e1b737a16f3bc7c5d293bcfa118e32931",
   node: { name: "Node", id: "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663" },
   definition: { name: "KAAL Definition", id: "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2" },
   capability: { name: "KAAL Capability", id: "56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e" },
-  agent: { name: "KAAL Agent", id: "d632c1fb4c4201d65c7834d4af0463cd1bd3928dd0fb8cc0b503521a4d2cf447" },
+  agent: { name: "KAAL Agent", id: "d46ab5bcc497244c7defaabe88cde6fcd2aa496c722f3cd0eb0bec68968b0990" },
   skill: { name: "KAAL Skill", id: "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933" },
-  extension: { name: "KAAL Extension", id: "f72271c291ef6f15a7bea234111616e5213af57160daa11d0db1045e83267a94" },
+  exchange: { name: "KAAL Exchange", id: "0832175f9cb86b4607a22d0856540512d9cfd9b13890c2456e8e8c439a59f0d0" },
 };
 
 /** The KAAL packages Core may depend on (core/N11). */
