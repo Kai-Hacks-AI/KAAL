@@ -14,9 +14,10 @@ export const id = 'release/T1272';
 export const tests = ['release/A68'];
 export const title = 'release/A68, the ruleset of the Promoting station, addresses release/F77 and release/F81 and states the declaration, the source and the judge that compares what is in force with it, equal to its draft';
 export async function run() {
-  const real = join(RM, '03-architecture/A68-promoting-ruleset/A68.md');
+  const real = join(RM, '03-architecture/A72-github/A68-promoting-ruleset/A68.md');
   assert.ok(existsSync(real), 'A68.md is absent');
   const t = readFileSync(real, 'utf8');
   assert.equal(t, `${draft('A68.md')}\n`, 'A68.md differs from the draft');
+  assert.match(t, /^parent: release\/A72$/m);
   assert.match(t, /addresses: \[release\/F77, release\/F81\]/);
 }

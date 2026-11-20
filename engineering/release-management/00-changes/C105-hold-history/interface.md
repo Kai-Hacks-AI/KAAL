@@ -28,17 +28,31 @@ serves: [release/I54]
 A push to the default branch that does not move it forward is refused before it lands, whoever pushes: no bypass. The Promoting station declares what refuses it, an entry traced to release/CTL25 `hold History`, beside the detections the station requires; the station owns its list, and a detection does not name the station. It replaces the same protection of the old promotion ruleset, and the push judge release/CTL22 `verify History`, which could only reveal a rewrite afterwards, is retired. The requirement changes no other entry of the station, does not touch the integration branches and makes no claim about a deletion of `main`. It operates only once the Owner has loaded what the station declares. A second requirement, release/F81, makes it observable whether it is in force.
 `````
 
+## Draft of A72.md
+
+`````
+---
+id: release/A72
+title: github
+addresses: [release/F77, release/F81]
+---
+# release/A72 github
+
+The GitHub platform as the place where the delivery rules of release management are realized: the rulesets, the workflows, the pull request templates and the Apps. It is the parent in the decomposition of components; the components realized on it are its children, and it addresses what its children address. Today it has one child, release/A68, the ruleset of the Promoting station. The `github` elements that are the deployment target of a single control (release/A15, A26, A30, A32, A37, A38, A39 and A2) are not touched here; they can move under this element, or beside it, in their own Changes.
+`````
+
 ## Draft of A68.md
 
 `````
 ---
 id: release/A68
 title: promoting-ruleset
+parent: release/A72
 addresses: [release/F77, release/F81]
 ---
 # release/A68 promoting-ruleset
 
-The component is the ruleset of the Promoting station. One element serves every Requirement that the station realizes as an entry of its declaration, so each is held and tested the same way: its declared entry is in force. Today it addresses release/F77 (the history of `main` is never rewritten) and release/F81 (it can be observed that the declared entry is in force); the Requirements that other entries realize (no deletion, review, the detections the station requires) are added to `addresses` as their Changes migrate them, and the Architecture elements that address the same source today (for instance release/A63 for release/F68) fold into this one then.
+The component is the ruleset of the Promoting station, a child of release/A72 `github`, the platform it is realized on. One element serves every Requirement that the station realizes as an entry of its declaration, so each is held and tested the same way: its declared entry is in force. Today it addresses release/F77 (the history of `main` is never rewritten) and release/F81 (it can be observed that the declared entry is in force); the Requirements that other entries realize (no deletion, review, the detections the station requires) are added to `addresses` as their Changes migrate them, and the Architecture elements that address the same source today (for instance release/A63 for release/F68) fold into this one then.
 
 The declaration is `stages.json`: the rules of the Promoting stage, each an entry traced to the control it realizes. The source is `05-src/wiring/rulesets/promoting.json`, which `verify Stages` judges against the declaration with the judge it has: it compares the rule types and their settings and traces each entry to a declared control that has an Intent. The entry of this Change is `{ "type": "non_fast_forward", "control": "release/CTL25" }`, with `{ "type": "non_fast_forward" }` after the required status checks in the source, active, with an empty bypass list. A control that is realized by requiring a detection at the station is an entry of the same declaration and stays a control named by what it controls: release/CTL5 and release/CTL20 (and likely release/CTL10) stay preventive controls, to be renamed and re-explained in later slices, each its own Change.
 
