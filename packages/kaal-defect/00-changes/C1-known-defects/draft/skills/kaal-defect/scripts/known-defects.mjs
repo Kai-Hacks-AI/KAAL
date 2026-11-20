@@ -54,12 +54,13 @@ export function readTree(root) {
 
 const valid = (tree, id) => tree.defects.get(id)?.context === tree.registered.get(id);
 
-/** One line per Defect record, `<state> <defect>` and ` known` when its own context registers it; `invalid <defect>` for a registered id with no record in that context. */
+/** One line per Defect record, `<state> <defect>` and ` known` when its own context registers it, then one indented `<case> <outcome>` line per Case that points at it; `invalid <defect>` for a registered id with no record in that context. */
 export function report(tree, records, revision) {
   const out = [];
   for (const [id] of [...tree.defects].sort()) {
     const j = judgeDefect(id, tree.pointing.get(id) ?? [], records, revision);
     out.push(`${j.state} ${id}${tree.registered.has(id) && valid(tree, id) ? ' known' : ''}`);
+    for (const c of j.cases) out.push(`  ${c.case} ${c.outcome}`); // each Case's own outcome stays beside the derived state
   }
   for (const [id] of tree.registered) if (!valid(tree, id)) out.push(`invalid ${id}`);
   return out;

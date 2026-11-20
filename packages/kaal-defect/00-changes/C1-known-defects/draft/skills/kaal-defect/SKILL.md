@@ -16,10 +16,11 @@ A Test Case points at a Defect with its first line, `// Case <id> tests: <defect
 
 Derive it from records `{case, run, revision, outcome}` that a Case runner made (see kaal-testing), where outcome is `GREEN`, `RED` or `UNKNOWN`. Only records of the revision judged count; another revision is stale. A missing record, or any outcome other than `GREEN` or `RED` (skipped, errored, timed out, incomplete), is `UNKNOWN`.
 
-- `confirmed`: some applicable Case is `RED`
-- `answered`: it has Cases and every one is `GREEN`
+- `confirmed`: some applicable Case is `RED`, even if every other Case is `UNKNOWN`; one RED Case shows the Defect exists
+- `answered`: it has Cases and every applicable Case is `GREEN` with complete evidence
 - `unknown`: otherwise, including no Case at all
 
+Several Cases that point at one Defect are different manifestations or conditions of the same undesirable condition. They are not several Defects and not several places to fix. Each Case's own outcome is kept beside the derived state.
 `UNKNOWN` is never read as `RED` or as `GREEN`. The state is derived each time and never written on the Defect. It is evidence, not permission to merge: what it allows is the policy of the gate that consumes it.
 
 ## Register
@@ -28,4 +29,4 @@ Each context keeps its own register: `known.json` in its `14-defects` folder, a 
 
 ## Use
 
-`node scripts/known-defects.mjs --root <dir> --records <file> --revision <revision>` prints `<state> <defect>` per Defect record, with ` known` when its context registers it. Add `--list` for what each owner has to fix: registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none. The script runs no Test Case.
+`node scripts/known-defects.mjs --root <dir> --records <file> --revision <revision>` prints `<state> <defect>` per Defect record, with ` known` when its context registers it, then one indented `<case> <outcome>` line for each Case that points at it. Add `--list` for what each owner has to fix: registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none. The script runs no Test Case.

@@ -29,7 +29,9 @@ So Testing runs the Cases and makes the records. Defect judges records, runs not
 - A record counts only when it names the revision judged. A record of another revision is stale.
 - A missing record, or any outcome other than GREEN or RED (skipped, errored, timed out, incomplete), is UNKNOWN, and UNKNOWN is never read as RED or GREEN.
 - A Case is RED if any applicable run is RED, GREEN if every applicable run is GREEN, otherwise UNKNOWN.
-- A Defect is `confirmed` when some Case is RED, `answered` when it has Cases and every one is GREEN, and `unknown` otherwise, including when no Case points at it. These are the words Hosting's records already use for the status they claim.
+- A Defect is `confirmed` when some applicable Case is RED, even if every other Case is UNKNOWN: one RED Case is enough to show that the Defect exists. It is `answered` only when it has Cases and every applicable Case is GREEN with complete evidence. Without a RED and without complete GREEN evidence it is `unknown`, including when no Case points at it. These are the words Hosting's records already use for the status they claim.
+- Several Cases pointing at one Defect are different manifestations, contexts or conditions of the same undesirable condition. They do not make several Defects and do not make several fix locations.
+- Each Case's own outcome is kept alongside the derived state and is never merged into it: the output lists the Defect's state, then one line per Case with its outcome.
 - The state is never stored on the Defect. A `status` a record claims today is a claim; showing a claim beside the derived state, as Controls does, is a later Change.
 
 ## The register
@@ -43,7 +45,7 @@ A context keeps `known.json` in its `14-defects` folder: a list of Defect ids th
 | **Suppliers** | Review (the finding, placed where it was found); Testing (the Cases and the records of their runs); Architecture (functional placement); Hosting (reading files) |
 | **Inputs** | a Defect record and a register in the `14-defects` of the context where it was found; Cases whose first line points at the Defect; records `{case, run, revision, outcome}`; the revision judged |
 | **Process** | record the Defect where it was found; register it; judge its state from the records of its Cases; list it for its owner |
-| **Outputs** | per Defect `<state> <defect>` and ` known` when registered; invalid registry entries; a to-fix list |
+| **Outputs** | per Defect `<state> <defect>` and ` known` when registered, with each Case's own outcome beside it; invalid registry entries; a to-fix list |
 | **Customers** | the consumer or integration gate, which joins the register and the state and owns every policy decision; the owner each Defect is placed with |
 
 Each handover is a plain value, so kaal-defect imports neither Review, Testing nor Architecture.

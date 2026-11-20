@@ -31,7 +31,7 @@ const rec = (c, outcome, revision = R, run = '1') => ({ case: c, run, revision, 
 const check = (d, ...more) => spawnSync(process.execPath, [script, '--root', d, '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
 const lines = (r) => r.stdout.split('\n').filter(Boolean);
 
-export const title = 'the state is derived from the Cases at a revision: confirmed, answered or unknown; stale, UNKNOWN, skipped, errored and missing results are unknown; several Cases combine';
+export const title = 'the state is derived from the Cases at a revision: one RED Case confirms, answered needs every Case GREEN, anything else is unknown; each Case keeps its own outcome beside it';
 const ctx = (cases) => ({ 'a': { defects: ['x/D1'], cases } });
 const one = ctx({ 'x/T1': 'x/D1' });
 const state = (c, records) => lines(check(fixture({ contexts: c, records })))[0];
@@ -49,5 +49,9 @@ export async function run() {
   assert.equal(state(two, [rec('x/T1', 'GREEN')]), 'unknown x/D1', 'a Case with no record leaves it unknown');
   assert.equal(state(two, [rec('x/T1', 'GREEN'), rec('x/T2', 'UNKNOWN')]), 'unknown x/D1');
   assert.equal(state(one, [rec('x/T1', 'GREEN', R, '1'), rec('x/T1', 'RED', R, '2')]), 'confirmed x/D1', 'one RED run at the revision shows the condition');
+  const mixed = lines(check(fixture({ contexts: two, records: [rec('x/T1', 'RED')] })));
+  assert.equal(mixed[0], 'confirmed x/D1', 'one RED Case confirms the Defect although the other Case has no record (UNKNOWN)');
+  assert.ok(mixed.includes('  x/T1 RED') && mixed.includes('  x/T2 UNKNOWN'), 'each Case keeps its own outcome beside the derived state');
+  assert.equal(mixed.filter((l) => /^\S+ x\/D/.test(l)).length, 1, 'several Cases are one Defect, not several');
   assert.equal(check(fixture({ contexts: one, records: [rec('x/T1', 'RED')] })).status, 0, 'no state makes the script fail: policy is the consumer\'s');
 }
