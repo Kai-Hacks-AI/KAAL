@@ -8,23 +8,12 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { inRoute } from './lib/write-map.mjs';
+
+export { inFolder, isFile } from './lib/write-map.mjs';
 
 const unknown = (message) => ({ verdict: 'UNKNOWN', message });
 const usable = (p) => typeof p === 'string' && p !== '' && !p.startsWith('/') && !p.split('/').includes('..') && !p.split('/').includes('.');
-
-// Does the path lie in the folder? Every segment of the folder matches the same segment of the path, '*' matching any one.
-export function inFolder(path, folder) {
-  const f = folder.split('/').slice(0, -1);
-  const p = path.split('/');
-  return p.length > f.length && f.every((s, i) => s === '*' || s === p[i]);
-}
-
-// Is the path exactly the file? Every segment matches, '*' matching any one.
-export function isFile(path, file) {
-  const f = file.split('/');
-  const p = path.split('/');
-  return p.length === f.length && f.every((s, i) => s === '*' || s === p[i]);
-}
 
 export function judgeLimitAct(facts) {
   const { changed, map, roots } = facts && typeof facts === 'object' ? facts : {};
@@ -38,10 +27,7 @@ export function judgeLimitAct(facts) {
   const rows = map.filter((r) => r.route === 'act');
   if (rows.length !== 1) return unknown('the write map has no single row for the route act');
   const { folders = [], files = [] } = rows[0];
-  // The path relative to the longest capability root it lies under, or undefined when it lies under none.
-  const norm = roots.map((r) => (r.endsWith('/') ? r.slice(0, -1) : r)).sort((a, b) => b.length - a.length);
-  const relative = (p) => { const r = norm.find((x) => p.startsWith(`${x}/`)); return r === undefined ? undefined : p.slice(r.length + 1); };
-  const lies = (p) => { const rel = relative(p); return rel !== undefined && (folders.some((f) => inFolder(rel, f)) || files.some((f) => isFile(rel, f))); };
+  const lies = (p) => inRoute(p, { folders, files }, roots);
   if (!changed.some(lies)) return { verdict: 'PASS', message: 'not an ACT: it changes no folder the route act writes', outside: [] };
   const outside = changed.filter((p) => !lies(p));
   if (outside.length) return { verdict: 'FAIL', message: `an ACT may write only its folders and files (${[...folders, ...files].join(', ')}): these paths are outside: ${outside.join(', ')}`, outside };
