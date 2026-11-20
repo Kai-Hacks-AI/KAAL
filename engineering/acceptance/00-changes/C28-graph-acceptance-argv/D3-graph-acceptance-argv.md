@@ -29,3 +29,5 @@ State: `main`. No package or production state is affected: the test is not part 
 | Identity | Role | File |
 | --- | --- | --- |
 | engineering/T1239 | RED on 5f6a6e3: the test passes no list of Node paths through the arguments of a child process | T1239.test.mjs |
+
+**Confirming Run (20 Nov, Node 22, Linux, 5f6a6e3):** T1239 fails with `the child parses its list of Node paths from a command-line argument`. **Answered (20 Nov, Node 22, Linux):** T1239 passes unmodified with the correction, and the Acceptance lane (`node engineering/lanes/acceptance.mjs`) passes with the kaal-graph scenario reading all 348 paths from the file. The Windows run is the Acceptance (Windows) check on this pull request.
