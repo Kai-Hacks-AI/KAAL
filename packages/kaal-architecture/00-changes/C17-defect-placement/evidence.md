@@ -4,10 +4,9 @@ The RED of this PLAN, in the tree of this PLAN. No job executes the Cases yet.
 
 | Case | Tests | In this PLAN |
 | --- | --- | --- |
-| T27 | F17 | RED: cannot load, `lib/placement.mjs` is absent |
-| T28 | F19 | RED: cannot load, the same |
-| T29 | F18 | RED: cannot load, the same |
-| T30 | N3 | RED: cannot load, the same |
+| T27 | F17 | RED: `checkAddresses` reports a resolved Defect id as INVALID |
+| T28 | F18 | RED: `addressing` is not exported by `lib/records.mjs` |
+| T29 | N3 | RED: the same, and the exports are not yet the expected ones |
 
 ## Reproduce
 
