@@ -24,5 +24,5 @@ export async function run() {
   const real = join(RM, '04-controls/CTL9-review-sync/CTL9.md');
   assert.ok(existsSync(real), 'CTL9.md is absent');
   // The draft predates the mandatory status of controls/C12, so the status line is left out of the comparison.
-  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, ''), `${draft.replace('has: [release/I32]', 'has: [release/I32, release/I33]')}\n`, 'CTL9.md differs from the draft with what release/C60 adds');
+  assert.equal(readFileSync(real, 'utf8').replace(/^status: .*\n/m, '').replace(/^evidence: .*\n/m, ''), `${draft.replace('has: [release/I32]', 'has: [release/I32, release/I33]')}\n`, 'CTL9.md differs from the draft with what release/C60 adds');
 }

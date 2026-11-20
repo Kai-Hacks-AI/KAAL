@@ -40,7 +40,7 @@ export interface Leftover {
 export class HostingError extends Error {
   constructor(
     message: string,
-    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED" | "NOT_DIRECTORY" | "SCRATCH_LEFTOVER" | "NO_DIRECT_START" | "REVISION_NOT_FOUND" | "REVISION_UNREADABLE" | "REVISION_ENTRY",
+    readonly code: "INVALID_PATH" | "COLLISION" | "EXISTS" | "NOT_EMPTY" | "UNFAITHFUL" | "NOT_FILE" | "MISSING" | "STALE" | "UNRESTORED" | "NOT_DIRECTORY" | "SCRATCH_LEFTOVER" | "NO_DIRECT_START" | "REVISION_NOT_FOUND" | "REVISION_UNREADABLE" | "REVISION_ENTRY" | "PULLS_UNREADABLE",
     /** For `STALE`, every failed precondition, in path order. */
     readonly findings: Stale[] = [],
     /** For `UNRESTORED`, the failure that started the rollback, and where the displaced files are kept. */
@@ -983,3 +983,6 @@ export async function contribution(): Promise<Files> {
 
 export { readRevision, revision } from "./revision.js";
 export type { RevisionOptions } from "./revision.js";
+
+export { readPullRequests } from "./github/pull-requests.js";
+export type { Check, Gh, GhResult, PullRequest, PullRequestsOptions, Review, Unknown } from "./github/pull-requests.js";
