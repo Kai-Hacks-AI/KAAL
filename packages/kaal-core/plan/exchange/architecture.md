@@ -20,7 +20,7 @@ Core's DO changes Core only. Each of these is the owner's Change, and none is do
 
 | Change | Owner | Why |
 | --- | --- | --- |
-| Retype Hosting's Node (`kaal-hosting/kaal/Hosting.md`, today typed by `KAAL Extension`), its ownership claim (`kind: extension`) and the tests that name them | Hosting | Hosting is a Capability, the one that owns Git and GitHub transport. This is the Owner's decision: recommended `KAAL Capability`. Hosting's tests fail against Core's DO until it is done. |
+| Retype Hosting's Node (`kaal-hosting/kaal/Hosting.md`, today typed by `KAAL Extension`), its ownership claim (`kind: extension`) and the tests that name them | Hosting | Settled by the Owner: Hosting is a Capability (it always was), so the Node becomes typed by `KAAL Capability`. Order: Core's Change first, then Hosting's own Change. Hosting's tests fail against Core's DO until Hosting's Change is done. |
 | CASE kinds Testing's attribution accepts (`extension` becomes `exchange`) and the claims that use them | Testing | It reads the kinds as Core names them. |
 | `engineering/03-exchanges/<exchange>/`, the defect exchange first | Engineering | Applies the kind. Needs only the word "Exchange"; it types no Node by `KAAL Exchange` before Core's DO. |
 | Redelivery of `.kaal/core/` | Engineering | A delivery, placed by WIRE, not by this Change. |
