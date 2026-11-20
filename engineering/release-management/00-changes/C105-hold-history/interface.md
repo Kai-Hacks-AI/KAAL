@@ -38,7 +38,7 @@ addresses: [release/F77, release/F81]
 ---
 # release/A72 github
 
-The GitHub platform as the place where the delivery rules of release management are realized: the rulesets, the workflows, the pull request templates and the Apps. It is the parent in the decomposition of components; the components realized on it are its children, and it addresses what its children address. Today it has one child, release/A68, the ruleset of the Promoting station. The `github` elements that are the deployment target of a single control (release/A15, A26, A30, A32, A37, A38, A39 and A2) are not touched here; they can move under this element, or beside it, in their own Changes.
+The GitHub platform as the place where the delivery rules of release management are realized: the rulesets, the workflows, the pull request templates and the Apps. Release engineers it using the Hosting capability: what GitHub holds is read and changed through Hosting (the rules in force for a branch, for example), and release does not reach GitHub on its own. It is the parent in the decomposition of components; the components realized on it are its children, and it addresses what its children address. Today it has one child, release/A68, the ruleset of the Promoting station. The `github` elements that are the deployment target of a single control (release/A15, A26, A30, A32, A37, A38, A39 and A2) are not touched here; they can move under this element, or beside it, in their own Changes.
 `````
 
 ## Draft of A68.md
