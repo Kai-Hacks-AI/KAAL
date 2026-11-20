@@ -24,4 +24,4 @@ Mutations of the judge in that copy, each caught by T1296 and T1297: every unclo
 
 ## What this shows and does not show
 
-That the judge says what is due from given facts, never reads Git or GitHub, never passes on what it cannot read, and takes its notion of finished from the judge of `hold Act`. It does not show that the carried Changes are the right ones, that a job runs it or that a station requires it: those are the next Changes, and the control stays `designed` until its Cases and evidence exist.
+That the judge says what is due from given facts, never reads Git or GitHub, never passes on what it cannot read, and takes its notion of finished from the judge of `hold Act`. It does not show that the carried Changes are the right ones, that a job runs it or that a station requires it: those are the next Changes, and the control, declared detective and meant to become preventive, stays `designed` until its Cases and evidence exist.

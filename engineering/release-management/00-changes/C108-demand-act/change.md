@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Add the drafts in `interface.md`: Intent I58, Requirement F84, Architecture A74, control CTL29 `demand Act` and the judge `05-src/phase/judge-demand-act.mjs` with its command line.
+1. Add the drafts in `interface.md`: Intent I58, Requirement F84, Architecture A74, control CTL29 `demand Act` (detective first) and the judge `05-src/phase/judge-demand-act.mjs` with its command line.
 2. Add the Cases T1294 to T1298, all RED: I58 (T1294), F84 (T1295) and CTL29 (T1298) equal their drafts, the control accepted by the controls checker with its minimum evidence; A74 and the pure judge (T1296): PASS when every carried Change has its ACT, is not finished, or none is carried; FAIL naming each Change that is finished and has no `act.md`; UNKNOWN, never PASS, when it cannot be told, and FAIL outranks UNKNOWN; the command line over a tree (T1297): parked Cases owe nothing, a finished Change without its ACT exits 1 and is named, its `act.md` makes it 0, a Change that is not there or an unobserved Case exits 2, and a commit titled ACT closes nothing.
 3. Observe the expected RED and that each Case can pass with the DO's content (`evidence.md`).
 4. The PLAN changes no judge, no declaration, no workflow, no ruleset source, no hook and nothing under `.github`.
@@ -44,3 +44,13 @@ The judge is one function; the places decide what a verdict does. The required c
 ## ACT
 
 A 4L retrospective in `act.md` before the promotion.
+
+## Rollout of `demand Act`, detective first
+
+As for `hold Act` (release/C103, on the CPO's review of it, 20 Nov 2026): the control is declared `detective` and `designed` now and becomes preventive only in the Change that makes the check required.
+
+1. **Observe.** The verdict is observed on real promotions by running the command line on them, nothing blocked. The observation of Testing is a precondition (its adapter is a later slice); until then the observed runs are hand-made and say so.
+2. **Advisory check.** A job `demand Act` on the promotion behind a feature flag (a repository variable, off by default; `advisory` reports and never fails the pull request). Evidence: `real:1` is a real promotion, `provoked:1:fail` a scratch collector with a finished Change and no `act.md`. A WIRE with the Owner's go; not part of this Change.
+3. **Required.** Only after validation and the Owner's explicit authorization is the check declared on the `30 - promoting` station and loaded by the Owner; then the control is preventive (two real runs), and release/CTL26 observes it in force.
+
+The judge never blocks; the place that asks decides; once required, UNKNOWN does not pass.
