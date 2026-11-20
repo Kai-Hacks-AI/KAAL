@@ -9,7 +9,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const RM = join(repo, 'engineering/release-management');
 const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
 const CHECK = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
-const draft = (name) => readFileSync(join(RM, '00-changes/C105-gate-promotion/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+const draft = (name) => readFileSync(join(RM, '00-changes/C105-hold-history/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1274';
 export const tests = ['release/CTL25'];
 export const title = 'the promoting source holds non_fast_forward, active, with no bypass and its other rules unchanged, stages.json declares it traced to release/CTL25 and verify Stages passes on the real sources; a source without the rule, an inactive one, a bypass actor or a rule traced to an undeclared control are refused';

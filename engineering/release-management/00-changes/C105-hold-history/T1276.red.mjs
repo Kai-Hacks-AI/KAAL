@@ -9,17 +9,18 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const RM = join(repo, 'engineering/release-management');
 const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
 const CHECK = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
-const draft = (name) => readFileSync(join(RM, '00-changes/C105-gate-promotion/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+const draft = (name) => readFileSync(join(RM, '00-changes/C105-hold-history/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1276';
 export const tests = ['release/A72'];
-export const title = 'release/A72 addresses release/F81 and names the module, the pure judge over the declared and the live rules and the command line, equal to its draft';
+export const title = 'release/A72 addresses release/F81 and names the module, the pure judge over the declared entries, the rules in force and a control, and the command line, equal to its draft';
 export async function run() {
-  const real = join(RM, '03-architecture/A72-verify-promotion-gate/A72.md');
+  const real = join(RM, '03-architecture/A72-verify-history-held/A72.md');
   assert.ok(existsSync(real), 'A72.md is absent');
   const t = readFileSync(real, 'utf8');
   assert.equal(t, `${draft('A72.md')}\n`, 'A72.md differs from the draft');
   assert.match(t, /addresses: \[release\/F81\]/);
   assert.match(t, /05-src\/history\/judge-held\.mjs/);
-  assert.match(t, /`--declared <file of the declared rules> --live <file of the rules in force>`/);
+  assert.match(t, /`judgeHeld\(\{ declared, live, control \}\)`/);
+  assert.match(t, /`--declared <file of the declared entries> --live <file of the rules in force> --control <control id>`/);
   assert.match(t, /the station, not the judge, owns the list/);
 }

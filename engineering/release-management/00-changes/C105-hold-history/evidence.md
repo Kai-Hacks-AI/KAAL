@@ -20,13 +20,13 @@ The `.red.mjs` files are ignored by the finders and the runner. `node --test eng
 
 ## Each Case can pass (throwaway copy)
 
-In a throwaway copy the drafts were written as the DO's files (the elements at their new places, the controls, `promoting.json`, the `stages.json` declaration, `judge-held.mjs`) and CTL22, its judge and its workflow source removed: T1270 to T1278 all pass. The Cases refuse their hand-made negatives. T1274: a promoting source without the rule, a rule traced to an undeclared control, a bypass actor. T1277: the judge fails a missing `non_fast_forward`, a missing required check, a changed setting, an empty list in force, and a rule of another type; it passes with rules in force that are not declared; and it is UNKNOWN for a list that is not a list of rules (either side), a station that declares nothing, an unreadable file and a missing file.
+In a throwaway copy the drafts were written as the DO's files (the elements at their new places, the controls, `promoting.json`, the `stages.json` declaration, `judge-held.mjs`) and CTL22, its judge and its workflow source removed: T1270 to T1278 all pass. The Cases refuse their hand-made negatives. T1274: a promoting source without the rule, a rule traced to an undeclared control, a bypass actor. T1277: the judge fails a missing `non_fast_forward`, a rule of another type in its place, an empty list in force, and (for the status-check entry of its own control) a missing check or a changed setting; it passes with rules in force that are not declared and ignores the entries of other controls; and it is UNKNOWN for a list that is not a list of rules (either side), a control the station declares nothing for, no control, an unreadable file and a missing file. T1273 refuses a title or description of CTL25 or CTL26 that names its realization (ruleset, workflow, script, rule, CI).
 
 ## What the DO breaks (the Accept list)
 
 The runner on that copy: 307 tests, 284 pass, 23 fail. The seven new failures beside the 16 of `main` are T481, T482, T483, T511, T512, T1132 and T1174; T1175 and T1176 leave with the old directories of F77 and A68 and are replaced by T1271 and T1272. controls/T1095 failed at first because CTL25 declared one real run; a preventive control needs two, and CTL25 now declares two, so T1095 stays green.
 
-Mutations of `judge-held.mjs` in the copy each make T1277 fail: ignoring the settings, ignoring a required check, ignoring the rule type, not refusing an empty declaration, and always passing.
+Mutations of `judge-held.mjs` in the copy each make T1277 fail: ignoring the settings, ignoring a required check, ignoring the rule type, not filtering by control, not refusing an empty declaration, and always passing.
 
 ## Not observed here
 
