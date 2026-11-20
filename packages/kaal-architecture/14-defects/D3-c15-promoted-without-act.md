@@ -1,6 +1,6 @@
 # architecture/D3: the collector kaal/architecture/classify was promoted without having fulfilled its PDCA
 
-Found at `packages/kaal-architecture/00-changes/C15-target-separation/`, after the promotion of `kaal/architecture/classify` (#2133) into `main`. A Defect of one collector, found in the context of Architecture, where its mark is on `main`: C15 has a PLAN and a DO and no ACT. It is one Defect: the failure is the promotion before PDCA was fulfilled, and the missing ACT and the stranded pull request are how it shows.
+Found at `packages/kaal-architecture/00-changes/C15-target-separation/`, after the promotion of `kaal/architecture/classify` (#2133) into `main`. A Defect of one collector, found in the context of Architecture, where its mark is on `main`: C15's Cases are closed and its ACT has not followed. It is one Defect: the failure is the promotion before PDCA was fulfilled, and the missing ACT and the stranded pull request are how it shows.
 
 ## Record
 
@@ -8,8 +8,8 @@ Found at `packages/kaal-architecture/00-changes/C15-target-separation/`, after t
 {
   "id": "architecture/D3",
   "context": "architecture/C15 (target separation), in the collector kaal/architecture/classify promoted by #2133",
-  "expected": "A collector is promoted only when it has fulfilled its PDCA: every Change in it has its PLAN, DO and ACT in the collector, and then the collector is promoted (engineering/release-management/strategy.md, Priority and flow; engineering/github/branching.md, Promote; Pull Promotion in kaal-release, 'fulfilled their PDCA'; the plan requirement pull/F22, every Change in it has every lifecycle type landed). A Change still open against the collector lands before the promotion, or is rebased onto the re-established collector. So on main every Change folder that holds a do.md also holds its act.md.",
-  "observed": "The collector kaal/architecture/classify was promoted by #2133 while C15 had its PLAN and DO and no ACT: its ACT, #1631, was still open against the collector. packages/kaal-architecture/00-changes/C15-target-separation on main holds C15.md, disposition.md, do.md and evidence.md and no act.md. The collector was deleted, GitHub retargeted #1631 to main, and it now conflicts and carries 12 commits and 81 files of the old collector history. C15 is the only Change under packages/ with a do.md and no act.md.",
+  "expected": "A collector is done only when its PDCA is fulfilled, judged by the result: the PLAN of each Change ends in RED Test Cases, DO closes them (GREEN), ACT is possible only when all of them are closed, and only then is the collector done and promoted. The files that carry PLAN, DO and ACT are delivery, not the judgement (Kai, 11-20). Where the Cases of a Change are all closed, its ACT follows before the collector is promoted (strategy.md, Priority and flow; branching.md, Promote; Pull Promotion in kaal-release; pull/F22).",
+  "observed": "The collector kaal/architecture/classify was promoted by #2133 after C15's DO had closed its Cases (T14 to T22, nine Cases, all green on main) and before its ACT: the 4L retrospective of C15 (#1631) was still open against the collector. On main no retrospective of C15 follows the closure. The collector was deleted, GitHub retargeted #1631 to main, and it now conflicts and carries 12 commits and 81 files of old collector history.",
   "where": "packages/kaal-architecture/00-changes/C15-target-separation/",
   "reach": "packages/"
 }
@@ -17,7 +17,7 @@ Found at `packages/kaal-architecture/00-changes/C15-target-separation/`, after t
 
 ## Proof
 
-architecture/T30 lists the Change folders under `packages/` that hold a `do.md` and fails on `main`: `packages/kaal-architecture/00-changes/C15-target-separation` holds no `act.md`. It turns GREEN when C15's ACT is on `main`.
+architecture/T30 judges from the result. It finds the Cases of C15's PLAN (T14 to T22), requires that none is still red-named and that they all run green (C15 is closed, so its ACT is due), then requires a 4L retrospective of C15, recognised by what it says (a C15 ACT heading with Liked, Learned, Lacked, Longed For), not by a file name. RED on `main`: closed, no retrospective follows. GREEN once C15's ACT is on `main`, checked in a throwaway repository. It is a `.red.mjs`, so no job runs it.
 
 ## Where the expectation is stated
 
