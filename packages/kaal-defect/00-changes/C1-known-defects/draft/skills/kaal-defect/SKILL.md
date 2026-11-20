@@ -1,6 +1,6 @@
 ---
 name: kaal-defect
-description: Keep a context's known Defects in a register and derive each Defect's state from the Test Cases that point at it. Use when a Defect is found, or to read what each Defect's Test Cases show at a revision.
+description: Derive each Defect's state from the Test Cases that point at it and list the unresolved Defect inventory. Use to read what a context's Defect records and their Test Cases show at a revision.
 license: MIT
 ---
 
@@ -10,7 +10,7 @@ A Defect is a passive description of an undesirable condition. What it is about 
 
 ## Edge
 
-A Test Case points at a Defect with its first line, `// Case <id> tests: <defect id>`. The Defect lists no Test Case. A Defect is `<owner>/D<n>`, counted per owner, and its record is an md file in a `defects` folder whose front matter has `id`.
+A Test Case points at a Defect with its first line, `// Case <id> tests: <defect id>`. The Defect lists no Test Case. A Defect is `<owner>/D<n>`, counted per owner, and its record is an md file whose front matter has `id`.
 
 ## Reach
 
@@ -27,10 +27,12 @@ Derive it from records `{case, run, revision, outcome, covers}` that a Case runn
 Several Cases that point at one Defect are different manifestations or conditions of the same undesirable condition. They are not several Defects and not several places to fix. Each Case's own outcome is kept beside the derived state.
 `UNKNOWN` is never read as `RED` or as `GREEN`. The state is derived each time and never written on the Defect. It is evidence, not permission to merge: what it allows is the policy of the gate that consumes it.
 
-## Register
+## Inventory
 
-Each context keeps its own register: a list of Defect ids that live in the same place as its Defect records. The caller says where: where the Defects are, where the known list is, where the Test Cases are. The Skill knows no folder name or number. `known` means only that the Defect is listed. An id with no Defect record there is `invalid`. A Defect stays in the context where it was found until Architecture moves it; Architecture's placement is written as `placed` and Defect only reads it (see kaal-architecture). There is no central register.
+An accepted Defect is a record in the context where it was established, and the record is authoritative. Discover the records; keep no second list of Defect ids (no register, no membership marker), because a list would be a second source of truth and a second acceptance decision. An accepted Defect persists unresolved across Changes and releases until it is `answered`.
+
+Three things stay apart: where a Defect manifests and is recorded; another Defect elsewhere that may explain it (Review may establish that one independently, and neither proves or replaces the other); and where Architecture decides the correction belongs, which is Architecture's `addresses:` relationship to the Defect (see kaal-architecture). A Defect is never moved and carries no field that says where its correction belongs.
 
 ## Use
 
-`--places` is a JSON file, a list of `{context, defects, known, cases}`: the place a Defect was found, the folder holding its Defect records, the file listing its known Defects, and the folders holding its Test Cases, all handed over by the caller. `node scripts/known-defects.mjs --places <file> --records <file> --revision <revision>` prints `<state> <defect>` per Defect record, with ` known` when its context registers it, then one indented `<case> <outcome>` line for each Case that points at it, `reach unclaimed` when it claims none, and `uncovered <part>` for each claimed part no GREEN Case covers. Add `--list` for what each owner has to fix: registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none. The script runs no Test Case.
+The caller says where things are: it hands over a JSON file `--places`, a list of `{context, defects, architecture, cases}`: the place a Defect was found, the folder with its Defect records, the folders with its Architecture elements, and the folders with its Test Cases. The Skill knows no folder name or number. `node scripts/known-defects.mjs --places <file> --records <file> --revision <revision>` prints `<state> <defect>` per Defect record, then one indented `<case> <outcome>` line for each Case that points at it, `reach unclaimed` when it claims none, and `uncovered <part>` for each claimed part no GREEN Case covers. Add `--list` for the unresolved inventory: Defect records that are not answered, grouped by the context of the Architecture element that addresses them, or by the holding context while none does. It is an input to planning, not an order to fix and not a release veto. The script runs no Test Case.

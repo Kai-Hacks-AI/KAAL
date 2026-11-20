@@ -13,16 +13,17 @@ const skill = () => { assert.ok(existsSync(skillFile), 'the Skill packages/kaal-
 export const id = 'defect/T1212';
 export const tests = ['defect/F2'];
 
-// A tree: contexts hold Defect records, a register and Cases whose first line points at a Defect.
+// A tree: contexts hold Defect records, Architecture elements that address them and Cases whose first line points at a Defect.
 function fixture({ contexts, records = [] }) {
   assert.ok(existsSync(script), 'the script scripts/known-defects.mjs is absent');
   const d = mkdtempSync(join(tmpdir(), 'known-'));
   const places = [];
-  for (const [ctx, { defects = [], register = [], cases = {}, placed = {}, reaches = {} }] of Object.entries(contexts)) {
+  for (const [ctx, { defects = [], cases = {}, addresses = {}, reaches = {} }] of Object.entries(contexts)) {
     mkdirSync(join(d, ctx, 'anywhere'), { recursive: true });
-    places.push({ context: ctx, defects: join(d, ctx, 'anywhere'), known: join(d, ctx, 'list.json'), cases: [join(d, ctx)] });
-    for (const i of defects) writeFileSync(join(d, ctx, 'anywhere', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
-    writeFileSync(join(d, ctx, 'list.json'), JSON.stringify(register));
+    places.push({ context: ctx, defects: join(d, ctx, 'anywhere'), architecture: [join(d, ctx, 'elsewhere')], cases: [join(d, ctx)] });
+    for (const i of defects) writeFileSync(join(d, ctx, 'anywhere', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
+    mkdirSync(join(d, ctx, 'elsewhere'), { recursive: true });
+    for (const [el, ids] of Object.entries(addresses)) writeFileSync(join(d, ctx, 'elsewhere', el.replace('/', '-') + '.md'), `---\nid: ${el}\naddresses: [${ids.join(', ')}]\n---\n`);
     for (const [c, target] of Object.entries(cases)) writeFileSync(join(d, ctx, `T${c.split('T')[1]}.red.mjs`), `// Case ${c} tests: ${target}\n`);
   }
   writeFileSync(join(d, 'records.json'), JSON.stringify(records));
@@ -40,6 +41,6 @@ export async function run() {
   assert.ok(lines(check(d)).includes('answered x/D1'), 'all three Cases point at x/D1, so it is answered');
   const one = fixture({ contexts: { 'a': { defects: ['x/D1'], cases: { 'x/T1': 'x/D1', 'x/T2': 'x/D1' } } }, records: [rec('x/T1', 'GREEN')] });
   assert.ok(lines(check(one)).includes('unknown x/D1'), 'a Case with no record keeps it from being answered');
-  const listed = fixture({ contexts: { 'a': { defects: ['x/D1'], register: ['x/D1'] } }, records: [rec('x/T1', 'RED')] });
-  assert.ok(lines(check(listed)).includes('unknown x/D1 known'), 'a record of a Case that does not point at the Defect does not count: the Defect lists no Case');
+  const listed = fixture({ contexts: { 'a': { defects: ['x/D1'] } }, records: [rec('x/T1', 'RED')] });
+  assert.ok(lines(check(listed)).includes('unknown x/D1'), 'a record of a Case that does not point at the Defect does not count: the Defect lists no Case');
 }

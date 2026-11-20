@@ -35,58 +35,66 @@ export function judgeDefect(defect, cases, records = [], revision, reach = []) {
 }
 
 /**
- * Defect records, registers and the Cases that point at a Defect, read from the locations the caller hands over.
- * `places` is a list of { context, defects, known, cases }: `context` names the place a Defect was found, `defects` is the folder holding its
- * Defect records, `known` the file listing its known Defects, and `cases` the folders holding its Test Cases. This script knows no layout.
+ * Defect records, the Architecture elements that address them, and the Cases that point at a Defect, read from the locations the caller hands over.
+ * `places` is a list of { context, defects, architecture, cases }: `context` names the place a Defect was found, `defects` is the folder holding its
+ * Defect records, `architecture` the folders holding its Architecture elements, and `cases` the folders holding its Test Cases. This script knows no layout.
+ * A Defect record is authoritative: the inventory is every record found, and there is no second list of them.
  */
 export function readTree(places) {
-  const defects = new Map(); // id -> { context, placed, reach }
-  const registered = new Map(); // id -> context
+  const defects = new Map(); // id -> { context, reach }
+  const addressedBy = new Map(); // defect id -> [contexts of the Architecture elements that address it]
   const pointing = new Map(); // defect id -> [case ids]
-  const walk = (d) => {
+  const walk = (d, each) => {
     for (const n of readdirSync(d)) {
       const p = join(d, n);
-      if (statSync(p).isDirectory()) { if (n !== 'node_modules' && n !== '.git') walk(p); continue; }
-      if (!/^T\d+\.(red|test)\.mjs$/.test(n)) continue;
-      const h = /^\/\/ Case (\S+) tests: (.*)$/.exec(readFileSync(p, 'utf8').split('\n')[0]);
-      if (h) for (const t of h[2].split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) (pointing.get(t) ?? pointing.set(t, []).get(t)).push(h[1]);
+      if (statSync(p).isDirectory()) { if (n !== 'node_modules' && n !== '.git') walk(p, each); continue; }
+      each(p, n);
     }
   };
-  for (const { context, defects: dir, known, cases = [] } of places) {
+  const caseHeader = (p, n) => {
+    if (!/^T\d+\.(red|test)\.mjs$/.test(n)) return;
+    const h = /^\/\/ Case (\S+) tests: (.*)$/.exec(readFileSync(p, 'utf8').split('\n')[0]);
+    if (h) for (const t of h[2].split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) (pointing.get(t) ?? pointing.set(t, []).get(t)).push(h[1]);
+  };
+  for (const { context, defects: dir, architecture = [], cases = [] } of places) {
     for (const n of dir && existsSync(dir) ? readdirSync(dir) : []) {
       if (!n.endsWith('.md')) continue;
       const t = readFileSync(join(dir, n), 'utf8'); const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
-      if (id) defects.set(id, { context, placed: t.match(/^placed:\s*(.+?)\s*$/m)?.[1], reach: (t.match(/^reach:\s*(.+?)\s*$/m)?.[1] ?? '').split(',').map((x) => x.trim()).filter(Boolean) });
+      if (id) defects.set(id, { context, reach: (t.match(/^reach:\s*(.+?)\s*$/m)?.[1] ?? '').split(',').map((x) => x.trim()).filter(Boolean) });
     }
-    if (known && existsSync(known)) for (const id of JSON.parse(readFileSync(known, 'utf8'))) registered.set(id, context);
-    for (const c of cases) walk(c);
+    for (const dir of architecture) if (existsSync(dir)) walk(dir, (p, n) => {
+      if (!n.endsWith('.md')) return;
+      const list = readFileSync(p, 'utf8').match(/^addresses:\s*\[(.*)\]\s*$/m)?.[1] ?? ''; // the Architecture —addresses→ Defect relationship
+      for (const id of list.split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) { const l = addressedBy.get(id) ?? addressedBy.set(id, []).get(id); if (!l.includes(context)) l.push(context); }
+    });
+    for (const c of cases) if (existsSync(c)) walk(c, caseHeader);
   }
-  return { defects, registered, pointing };
+  return { defects, addressedBy, pointing };
 }
 
-const valid = (tree, id) => tree.defects.get(id)?.context === tree.registered.get(id);
-
-/** One line per Defect record, `<state> <defect>` and ` known` when its own context registers it, then one indented `<case> <outcome>` line per Case that points at it; `invalid <defect>` for a registered id with no record in that context. */
+/** One line per Defect record, `<state> <defect>`, then one indented `<case> <outcome>` line per Case that points at it. */
 export function report(tree, records, revision) {
   const out = [];
   for (const [id] of [...tree.defects].sort()) {
     const j = judgeDefect(id, tree.pointing.get(id) ?? [], records, revision, tree.defects.get(id).reach);
-    out.push(`${j.state} ${id}${tree.registered.has(id) && valid(tree, id) ? ' known' : ''}`);
+    out.push(`${j.state} ${id}`);
     for (const c of j.cases) out.push(`  ${c.case} ${c.outcome}`); // each Case's own outcome stays beside the derived state
     if (!j.reached) out.push('  reach unclaimed');
     for (const part of j.uncovered) out.push(`  uncovered ${part}`); // a claimed part no GREEN Case covers: it counts toward unknown
   }
-  for (const [id] of tree.registered) if (!valid(tree, id)) out.push(`invalid ${id}`);
   return out;
 }
 
-/** What each owner has to fix: registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none. */
+/**
+ * The unresolved inventory, an input to planning and no order to fix: every Defect record that is not answered, grouped by the context of the
+ * Architecture element that addresses it (its correction belongs there), or by the context that holds the Defect while none addresses it.
+ * Defect never moves a record and sets nothing; where a correction belongs is Architecture's.
+ */
 export function toFix(tree, records, revision) {
   const g = {};
-  for (const [id] of tree.registered) {
-    const d = tree.defects.get(id);
-    if (!d || !valid(tree, id) || judgeDefect(id, tree.pointing.get(id) ?? [], records, revision, d.reach).state === 'answered') continue;
-    (g[d.placed ?? d.context] ??= []).push(id);
+  for (const [id, d] of tree.defects) {
+    if (judgeDefect(id, tree.pointing.get(id) ?? [], records, revision, d.reach).state === 'answered') continue;
+    for (const o of tree.addressedBy.get(id) ?? [d.context]) (g[o] ??= []).push(id);
   }
   return g;
 }
