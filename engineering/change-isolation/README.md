@@ -1,9 +1,10 @@
 # Change Isolation: transition ledger
 
-The checker (`check.mjs`) decides two rules from changed paths: Core travels alone, and
-`.github` travels alone. A change that spans owners by necessity, for example a package
-version that its consumers pin exactly, cannot satisfy the first rule. The ledger admits
-one such change, exactly, and nothing else. Route and rationale:
+The checker (`check.mjs`) decides one rule from changed paths: `.github` travels alone.
+The rule "Core travels alone" was retired (release/C98): Core has no special rule. The
+ledger below once admitted a change that spans owners by necessity, for example a package
+version that its consumers pin exactly, to that rule. It admits nothing the checker
+refuses today, and is retired in a Change of its own. Route and rationale:
 `engineering/release/foundation-0.0.2/admission-plan.md` (Route A, Owner-selected).
 
 ## What an entry commits to

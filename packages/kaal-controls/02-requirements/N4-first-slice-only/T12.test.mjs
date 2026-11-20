@@ -28,6 +28,7 @@ export const title = "the Skill stays inside the first slice and is deployed now
 export function run() {
   const skill = read(SKILL, 'the candidate Skill');
   for (const [re, what] of [[/\bPASS\b|\bFAIL\b|\bUNKNOWN\b/, 'a verdict contract'], [/\bguard\b.*\bfreeze\b|\bdrain\b/i, 'a naming-verb taxonomy'], [/\bDevelopment\b.*\bPublishing\b|\bIntegration IN\b/s, 'a placement scheme'], [/^##\s*\d+\./m, 'a numbered procedure'], [/github|workflow|ruleset|pull request/i, 'a technical realization']]) assert.ok(!re.test(skill), `the Skill prescribes ${what}`);
-  assert.match(skill, /Testing/, 'the Skill does not cite Testing');
+  // The Skill no longer cites Testing: a Skill is a package without dependencies beyond foundation and hosting (controls/N8).
+  assert.ok(!/kaal-testing/.test(skill), 'the Skill points at another Skill');
   for (const gone of ['.claude/skills/kaal-controls', '.agents/skills/kaal-controls']) assert.ok(!existsSync(join(repo, gone)), `${gone} exists`);
 }

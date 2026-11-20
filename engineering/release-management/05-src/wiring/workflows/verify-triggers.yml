@@ -1,0 +1,37 @@
+name: verify Triggers
+# release/CTL19, required by release/CTL20. A detective check on plain pull_request and merge_group: no token, no secret, no pull_request_target (it is the rule it keeps).
+# It runs the judge of the base and reads the change only as Git data: a pull request through refs/pull/<n>/head, a merge queue entry through its queue branch.
+on:
+  pull_request:
+    branches: ['**']
+  merge_group:
+    types: [checks_requested]
+permissions:
+  contents: read
+jobs:
+  verify-triggers:
+    name: verify Triggers
+    runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+    steps:
+      - name: Check out the base, the trusted judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch the proposed head as Git data
+        run: |
+          if [ -n "$MERGE_GROUP_HEAD_REF" ]; then
+            git fetch --no-tags origin "+${MERGE_GROUP_HEAD_REF}:refs/remotes/pull/head"
+          else
+            git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
+          fi
+      - name: Judge
+        run: |
+          J=engineering/release-management/05-src/triggers/verify-triggers.mjs
+          test -f "$J" || { echo "UNKNOWN: the judge is absent on the base"; exit 2; }
+          node "$J" --base "$BASE_SHA" --head refs/remotes/pull/head

@@ -1,0 +1,13 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
+export const RM = join(repo, 'engineering/release-management');
+export const DIR = join(RM, '05-src/show-wip');
+export const PAGE = join(DIR, 'page.mjs');
+export const BUILD = join(DIR, 'build-page.mjs');
+export const THEME = join(DIR, 'cvi.json');
+export const WORKFLOW = join(RM, '05-src/wiring/workflows/show-wip-page.yml');
+export const theme = () => JSON.parse(readFileSync(THEME, 'utf8'));
+export const sections = [{ title: 'Overview', text: 'hotfix 0\nkaal 132' }, { title: 'Settled', text: 'kaal/old DISCARDED' }];
+export const GENERATED = '2026-11-18T05:47:00Z';

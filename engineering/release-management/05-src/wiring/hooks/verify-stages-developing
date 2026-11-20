@@ -1,0 +1,10 @@
+#!/bin/sh
+# verify Stages (Developing): the local half of the check. It runs the judge of release/C37 on this repository,
+# the same judge CI runs, and exits with its code: 0 the declared .githooks tree is intact, 1 it is not, 2 it cannot judge.
+# It fails closed when node or the judge is missing.
+root=${KAAL_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null)}
+[ -n "$root" ] || { echo "verify Stages (Developing): not inside a repository" >&2; exit 2; }
+command -v node >/dev/null 2>&1 || { echo "verify Stages (Developing): node is missing, cannot judge" >&2; exit 2; }
+judge="$root/engineering/release-management/05-src/stages/judge.mjs"
+[ -f "$judge" ] || { echo "verify Stages (Developing): $judge is missing, cannot judge" >&2; exit 2; }
+exec node "$judge" "$root" Developing

@@ -1,0 +1,62 @@
+{
+ "keySha256": "345c1d4a2eda0e4b86890b4f827884ca8fb0ddbf9f4e751846818c9fcac1edeb",
+ "positions": {
+  "E1": {
+   "key": "deterministic",
+   "baseline/run1": "deterministic",
+   "skill/run1": "deterministic",
+   "baseline/run2": "deterministic",
+   "skill/run2": "deterministic"
+  },
+  "E2": {
+   "key": "judgment",
+   "baseline/run1": "judgment",
+   "skill/run1": "judgment",
+   "baseline/run2": "judgment",
+   "skill/run2": "judgment"
+  },
+  "E3": {
+   "key": "pushback:Requirements",
+   "baseline/run1": "pushback:Requirements",
+   "skill/run1": "pushback:Requirements",
+   "baseline/run2": "pushback:Requirements",
+   "skill/run2": "pushback:Requirements"
+  },
+  "E4": {
+   "key": "pushback:Architecture",
+   "baseline/run1": "judgment",
+   "skill/run1": "judgment",
+   "baseline/run2": "judgment",
+   "skill/run2": "judgment"
+  }
+ },
+ "disagreements": [
+  {
+   "claim": "E4",
+   "positions": {
+    "key": "pushback:Architecture",
+    "baseline/run1": "judgment",
+    "skill/run1": "judgment",
+    "baseline/run2": "judgment",
+    "skill/run2": "judgment"
+   },
+   "resolved": false
+  }
+ ],
+ "rejectsCase": {
+  "E4": {
+   "baseline/run1": false,
+   "skill/run1": true,
+   "baseline/run2": false,
+   "skill/run2": true
+  }
+ },
+ "limits": [
+  "n=2 per arm and one model family (claude-sonnet-5-5), so run-to-run variation cannot be told from an effect",
+  "the author of the section also wrote the prompts, the key and this comparison; no independent review yet",
+  "the baseline prompt carries the three definitions, so it is not an agent without any guidance",
+  "four claims chosen to contrast, and no real Case was being designed",
+  "the Skill arm reuses phrases of the section, which shows it was applied, not that the answers are better",
+  "the key is the author's judgment: E4 differs from it in every run and is kept as a disagreement, not settled"
+ ]
+}
