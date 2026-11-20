@@ -48,19 +48,19 @@ The reach is also what a consumer such as Engineering's ratchet reads to know wh
 
 ## The inventory: the record is authoritative
 
-An accepted Defect is a record in the context where it was established, and the record is authoritative. The mechanic discovers the Defect records at the places the caller hands over (Engineering's layout) and derives the inventory from them. It keeps no register and no membership list: a list of ids would be a second source of truth and a second acceptance decision. An accepted Defect persists unresolved across Changes and releases until its derived state is `answered`. The package knows no folder name or number, and ships no Defect.
+An accepted Defect is a record in the context where it was born, and the record is authoritative. The mechanic discovers the Defect records at the places the caller hands over (Engineering's layout) and derives the inventory from them. It keeps no register and no membership list: a list of ids would be a second source of truth and a second acceptance decision. An accepted Defect persists unresolved across Changes and releases until its derived state is `answered`. The package knows no folder name or number, and ships no Defect.
 
 Three dimensions stay separate:
 
-- **Where it manifests and is recorded.** The context where it was established. The record never moves.
-- **Another Defect elsewhere that may explain it.** A manifestation here may lead Review to establish another, independently evidenced Defect there. Neither automatically proves or replaces the other, and this Change adds no relation between them.
+- **Where it manifests and is recorded.** The context where it was born. The record never moves.
+- **Another Defect elsewhere that may explain it.** A manifestation here may lead Review to find another Defect there, born with its own proving Test Case. Neither automatically proves or replaces the other, and this Change adds no relation between them.
 - **Where the correction belongs.** Architecture decides it, with the existing `Architecture —addresses→ Defect` relationship: an `addresses:` list in the Architecture element, as other capabilities' Architecture elements already carry. Defect reads it and has no `placed` field of its own.
 
 ## The flow (SIPOC, abstract handovers)
 
 | | |
 | --- | --- |
-| **Suppliers** | Review (establishes and diagnoses an accepted Defect, as its record in the context where it was established); Testing (the Cases and the records of their runs); Architecture (the `addresses:` of its elements, and so the functional placement of the correction); Hosting (reading files) |
+| **Suppliers** | Review (the finding, and where it was found); Testing (the Cases and the records of their runs); Architecture (the `addresses:` of its elements, and so the functional placement of the correction); Hosting (reading files) |
 | **Inputs** | the Defect records, the Architecture elements and the Cases at the places the caller hands over; records `{case, run, revision, outcome, covers}`; the revision judged |
 | **Process** | discover the Defect records; derive each state from the records of its Cases; list the unresolved inventory |
 | **Outputs** | per Defect `<state> <defect>` with each Case's own outcome beside it; the unresolved inventory |
@@ -70,8 +70,9 @@ Each handover is a plain value, so kaal-defect imports neither Review, Testing n
 
 ## Rules
 
-- **Established, not moved.** Review establishes and diagnoses an accepted Defect in the context where it was established. Architecture addresses it and decides where the correction belongs. Defect never moves or sets either.
+- **Born, not moved.** Review finds; a Defect is born where it was found, as the Defect record together with the Test Case that proves it. Architecture addresses it and decides where the correction belongs. Defect never moves or sets either.
 - **Unresolved inventory.** The Defect records that are not answered, grouped by the context of the Architecture element that addresses them, or by the holding context while none does. It is an input to planning, not an automatic order to fix and not a release veto.
+- **The fix.** The fix is a Change plus whatever else is needed; Defect holds none of it and only reports whether the Cases are then GREEN.
 - **Evidence, not policy.** The script prints states and fails only on unreadable input. Whether an unresolved or confirmed Defect may be tolerated is the consumer or integration gate's policy.
 
 ## Reuse of Testing's mechanics (checked, not claimed)
@@ -80,7 +81,7 @@ The CPO asked that Testing's existing observation and probe mechanics be reused 
 
 ## Who owns what (proposal)
 
-Review establishes and diagnoses accepted Defects, Testing supplies Case evidence, Architecture addresses Defects and determines where the functional correction belongs, and the Defect capability derives and reports state. Nobody owns the flow end to end. The knitting for KAAL (which runner makes the records, which gate consumes the state, and where in CI they run) belongs to kaal-engineering, as with the other KAAL-specific setup, and is a Change of its own. The boundaries and terms here are to be aligned with the Review, Architecture, Engineering finder and Testing contracts in flight; see Left open.
+Review finds (the finding and where it was found), a Defect is born as the Defect record plus the Test Case that proves it, Testing supplies Case evidence, Architecture addresses Defects and determines where the functional correction belongs, and the Defect capability derives and reports state. Nobody owns the flow end to end. The knitting for KAAL (which runner makes the records, which gate consumes the state, and where in CI they run) belongs to kaal-engineering, as with the other KAAL-specific setup, and is a Change of its own. The boundaries and terms here are to be aligned with the Review, Architecture, Engineering finder and Testing contracts in flight; see Left open.
 
 ## DO
 
@@ -93,7 +94,7 @@ A 4L retrospective in `act.md`.
 ## Left open
 
 1. **Siblings.** `@codex review` findings entering as a Defect, and Testing making the records for the Cases that point at a Defect, are separate Changes.
-2. **Alignment.** Review's establishing of a Defect, Architecture's `addresses` of one, the Engineering finder that hands over the locations, and Testing's records are contracts in flight. Their terms are to be reconciled with this PLAN before the DO.
+2. **Alignment.** Review's finding, Architecture's `addresses` of one, the Engineering finder that hands over the locations, and Testing's records are contracts in flight. Their terms are to be reconciled with this PLAN before the DO.
 3. **Claims.** Hosting's `status` and `tests` fields are legacy claims and a copy of the edge. Showing a claim beside the derived state, and migrating the records, are later Changes.
 4. **Probe contract.** Where it lives, and whether it carries the record form, is for the CPO.
 5. **Locations.** The package finds no folder: the caller hands over each location, so Engineering's numbering never touches it. Hosting's current Defect records stay and moves in a later Change of its own.
