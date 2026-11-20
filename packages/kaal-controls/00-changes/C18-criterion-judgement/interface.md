@@ -6,7 +6,7 @@ A `:fail` base record may carry `without`, the path of the mechanism the base ru
 
 ## What counts
 
-A `:fail` run counts only when its base is RED and a different run, `without` names neither a Case (`*.test.mjs`, `*.red.mjs`) nor a fixture path, and `shows` fits the control type: preventive, `shows.refused` is a station the control declares as `<Station>:preventive`; detective, `shows.reported` is set; corrective, `shows.restored` is set; directive, nothing is asked. A run with no `shows` or no `without` still counts and is counted in `unshown` and `unnamed`. A preventive control with no preventive station has `boundaryUnnamed`.
+A `:fail` run counts only when its base is RED and a different run, `without` names neither a Case (`*.test.mjs`, `*.red.mjs`) nor a fixture path, and `shows` fits the control type: preventive, `shows.refused` is a station the control declares as `<Station>:preventive`; detective, `shows.reported` is set; corrective, `shows.restored` is set; directive, nothing is asked. A `:fail` run with no `without`, or with no `shows` where its type asks for it, is incomplete: the verdict lists it in `incomplete` with what it lacks (`without`, `shows`) and it is never counted. A preventive control with no preventive station has `boundaryUnnamed`.
 
 ## Two edges at the control
 
@@ -14,11 +14,11 @@ A `:fail` run counts only when its base is RED and a different run, `without` na
 
 ## Functions
 
-`readSubjects(path)`: the `subject.json` of every application folder under `path`, each with its path. `reviewsOf(control, subjects)`: the reviews whose focus is `control` and whose subject is the control id, each as `{ path, read: 'complete' | 'partial', missing: [...] }`, `read` being `complete` when its reference items name every Intent the control has and its actual items name every Case that tests it.
+`readSubjects(path)`: the `subject.json` of every application folder under `path`, each with its path. `reviewsOf(control, subjects)`: the reviews whose focus is `control` and whose subject is the control id, each as `{ path, coverage: 'complete' | 'partial', missing: [...] }`, `coverage` being `complete` when its reference items name every Intent the control has and its actual items name every Case that tests it. It reports what the review named and never what it found: a review of complete coverage can reject the control.
 
 ## State line (DO, on top of C16)
 
-`demo/CTL1 · claimed running · computed designed · fixture 2/3 · provoked 0/1 fail · UNKNOWN below-minimum · reviewed: 1 complete · boundary unnamed · unshown 1`
+`demo/CTL1 · claimed running · computed designed · fixture 2/3 · provoked 0/1 fail · UNKNOWN below-minimum · 1 incomplete · review coverage: 1 complete`
 
 ## Reference
 

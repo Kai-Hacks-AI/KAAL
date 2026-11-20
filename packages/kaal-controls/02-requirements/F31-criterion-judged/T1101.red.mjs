@@ -10,7 +10,7 @@ const rec = (shows) => ({ case: 'demo/T1', x: 'provoked', run: 'p', outcome: 'GR
 
 export const id = 'controls/T1101';
 export const tests = ['controls/F31'];
-export const title = 'a provoked run counts as its control type requires: refused at a declared station, reported, restored, and unshown or unnamed is said';
+export const title = 'a provoked run counts as its control type requires, and one that lacks what its type asks is incomplete and never counted';
 export async function run() {
   const { judgeEvidence } = await import(pathToFileURL(join(S, 'evidence.mjs')).href);
   const v = async (o, shows) => judgeEvidence(await ctl(o), [rec(shows)]);
@@ -24,7 +24,7 @@ export async function run() {
   assert.equal((await v({ type: 'corrective' }, { restored: 'tree@abc' })).verdict, 'PASS', 'a restoration did not count');
   assert.equal((await v({ type: 'corrective' }, { reported: 'x' })).verdict, 'UNKNOWN', 'a report counted for a corrective control');
   const none = await v({ type: 'detective' }, undefined);
-  assert.equal(none.verdict, 'PASS', 'a run with no shows stopped counting');
-  assert.equal(none.unshown, 1, 'a run with no shows was not said to be unshown');
+  assert.equal(none.verdict, 'UNKNOWN', 'a run with no shows counted');
+  assert.deepEqual(none.incomplete.map((r) => r.lacks), [['shows']], 'a run with no shows was not listed as incomplete');
   assert.equal((await v({ type: 'directive' }, undefined)).verdict, 'PASS', 'a directive was asked for shows');
 }

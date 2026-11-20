@@ -13,11 +13,11 @@ RED controls/T1101 a refusal at another station counted
 
 ## Can each Case pass
 
-Against a throwaway copy of the package outside the repository, with the `without` and `shows` rules, `readSubjects` and `reviewsOf` added to `evidence.mjs`, all four Cases were GREEN and the 47 existing Cases stayed green.
+Against a throwaway copy of the package outside the repository, with the `without` and `shows` rules, `readSubjects` and `reviewsOf` added to `evidence.mjs`, all four Cases were GREEN and the existing Cases stayed green except T1087, T1088 and T1089 of controls/C15, which build provoked records without `without` and `shows`: with those added to their records and a preventive station to their control, all 47 were green.
 
 ## What this shows and does not show
 
-The Cases show that a provoked run counts as its type requires, that an unnamed mechanism and an unshown run are said, that the reviews of a control are found by its id and not by another focus or subject, and that each says whether it read every Intent and Case of the control, without changing a verdict. They do not show that any real control's Cases cover its criterion: that is what a review is for, and none has been made.
+The Cases show that a provoked run counts as its type requires, that a provoked run without a named mechanism or without what its type needs is listed as incomplete and never counted, that the reviews of a control are found by its id and not by another focus or subject, and that each reports its coverage of the Intents and Cases of the control, apart from what the review found, without changing a verdict. They do not show that any real control's Cases cover its criterion: that is what a review is for, and none has been made.
 
 ## Reproduce
 

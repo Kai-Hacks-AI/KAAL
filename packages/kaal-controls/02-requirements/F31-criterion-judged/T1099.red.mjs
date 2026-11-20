@@ -13,7 +13,7 @@ const subj = (o = {}) => ({ focus: 'control', subject: 'demo/CTL1', reference: {
 
 export const id = 'controls/T1099';
 export const tests = ['controls/F31'];
-export const title = 'the reviews of a control are read from review records by its id, each saying whether it read every Intent and Case of the control';
+export const title = 'the reviews of a control are read from review records by its id, each saying its coverage of the Intents and Cases of the control, apart from what it found';
 export async function run() {
   const m = await import(pathToFileURL(join(S, 'evidence.mjs')).href);
   assert.equal(typeof m.readSubjects, 'function', 'readSubjects is not exported');
@@ -30,7 +30,7 @@ export async function run() {
   assert.equal(r.length, 2, 'the reviews of the control were not found');
   const whole = r.find((x) => x.path.includes('whole'));
   const short = r.find((x) => x.path.includes('short'));
-  assert.equal(whole.read, 'complete', 'a review that named every Intent and Case was not complete');
-  assert.equal(short.read, 'partial', 'a review that skipped an Intent and a Case was complete');
+  assert.equal(whole.coverage, 'complete', 'a review that named every Intent and Case was not complete');
+  assert.equal(short.coverage, 'partial', 'a review that skipped an Intent and a Case was complete');
   assert.deepEqual(short.missing.sort(), ['demo/I2', 'demo/T2'], 'the missing Intent and Case were not named');
 }
