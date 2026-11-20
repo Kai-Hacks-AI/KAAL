@@ -51,6 +51,10 @@ To measure which delivered code a capability's own tests execute, use the `kaal-
 
 To relate coverage to ownership, use `report` from `kaal-testing/report`. A delivered file counts toward an owner only by its exact tracked path. A built file has no tracked identity, so leave it unreconciled rather than mapping it to a source. Report non-blank text lines and executed lines side by side, never as one ratio.
 
+## Expected failures
+
+When a register of expected failures is given, run with `kaal-testing run --expect <register.json> <test files>` and report what the `expectations` part lists, next to the observed counts and never in place of them: the expected failures that held, the entries that no longer hold (their owner removes them), the unconfirmed and absent entries with their provisional reasons, and any RED nobody expected. Hand the list on as it stands, complete or not.
+
 ## Reporting
 
 Report findings in four kinds, never merged: verified failure, potential defect, architectural concern, unknown. The form for each, and how to state a clean result, is in [references/findings.md](references/findings.md).
