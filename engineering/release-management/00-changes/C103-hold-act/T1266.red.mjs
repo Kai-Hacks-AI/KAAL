@@ -10,7 +10,7 @@ const RM = join(repo, 'engineering/release-management');
 const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
 const SRC = join(RM, '05-src/phase/judge-act.mjs');
 const load = () => import(pathToFileURL(SRC).href);
-const draft = (name) => readFileSync(join(RM, '00-changes/C103-verify-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+const draft = (name) => readFileSync(join(RM, '00-changes/C103-hold-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 
 // A collector as it is found: a folder of files. No Git is involved; the Cases make its content grow by hand, as PLANs and DOs would.
 const CHANGE = '00-changes/C999-demo';
@@ -39,6 +39,7 @@ export async function run() {
   };
   try {
     c.put(`${CHANGE}/C999.md`, EL('x/C999', { implements: ['x/I1'] }));
+    c.put(`${CHANGE}/act.md`, '# the ACT\n');
     c.put(`${CHANGE}/interface.md`, drafts(EL('x/I1'), EL('x/F1', { serves: ['x/I1'] }), EL('x/A1', { addresses: ['x/F1'] })));
     c.put(`${CHANGE}/T1.red.mjs`, CASE(1, ['x/F1']));
     c.put('03-architecture/A1-x/T3.red.mjs', CASE(3, ['x/A1']));

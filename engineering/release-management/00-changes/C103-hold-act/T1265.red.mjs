@@ -10,7 +10,7 @@ const RM = join(repo, 'engineering/release-management');
 const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs');
 const SRC = join(RM, '05-src/phase/judge-act.mjs');
 const load = () => import(pathToFileURL(SRC).href);
-const draft = (name) => readFileSync(join(RM, '00-changes/C103-verify-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
+const draft = (name) => readFileSync(join(RM, '00-changes/C103-hold-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 
 // A collector as it is found: a folder of files. No Git is involved; the Cases make its content grow by hand, as PLANs and DOs would.
 const CHANGE = '00-changes/C999-demo';
@@ -30,7 +30,7 @@ export const tests = ['release/A71'];
 export const title = 'release/A71 finds the applicable Cases from the content of a collector as PLANs and DOs arrive in it: justified Cases accumulate, are amended and retired, DOs unpark them, and nothing is read from Git';
 export async function run() {
   assert.ok(existsSync(SRC), 'judge-act.mjs is absent');
-  const t = readFileSync(join(RM, '03-architecture/A71-verify-act-from-the-tree/A71.md'), 'utf8');
+  const t = readFileSync(join(RM, '03-architecture/A71-hold-act-from-the-tree/A71.md'), 'utf8');
   assert.equal(t, `${draft('A71.md')}\n`, 'A71.md differs from the draft');
   const { applicableCases, elementsOf } = await load();
   const c = collector();
