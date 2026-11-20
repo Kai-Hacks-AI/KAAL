@@ -18,7 +18,7 @@ export async function run() {
   present();
   const pkg = readJson(join(IMPL, 'package.json'));
   assert.deepEqual(Object.keys(pkg.dependencies).sort(), ['@kaihacksai/kaal-hosting', 'c8'], 'no dependency beyond Hosting is added');
-  assert.deepEqual(Object.keys(pkg.exports).sort(), ['./acceptance', './attribution', './contracts', './coverage', './duplicates', './inventory', './package.json', './report', './run'], 'the exports gain only ./run');
+  assert.deepEqual(Object.keys(pkg.exports).sort(), ['./acceptance', './attribution', './contracts', './coverage', './duplicates', './expectations', './inventory', './package.json', './report', './run'], 'the exports gain only ./run (and ./expectations, added by testing/C68)');
   assert.equal(pkg.exports['./run'], './lib/run.mjs');
   assert.deepEqual(pkg.bin, { 'kaal-testing': './bin/kaal-testing.mjs' }, 'one bin');
   assert.ok(pkg.files.includes('bin'), 'the bin is published');
