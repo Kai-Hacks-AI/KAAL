@@ -12,10 +12,10 @@ const USAGE = `usage: kaal <command> [--engine <dir>]
 
   init                                     materialize the Engine from the kaal-core payload
   verify                                   verify the Engine
-  list                                     list the Capabilities, Agents, Skills and Extensions the Engine holds
+  list                                     list the Capabilities, Agents, Skills and Exchanges the Engine holds
   resolve <name> [<id>]                    resolve a Node of the Engine by name, or by name and id
   identify <file>...                       print the id, name and type of Node files
-  register <capability|agent|skill|extension> <name> <source-dir>
+  register <capability|agent|skill|exchange> <name> <source-dir>
                                            register a contribution, atomically
   export <out-dir>                         write the foundational Core payload into an empty directory
   version                                  print the kaal-core that runs and the version the Engine's record holds
@@ -71,7 +71,7 @@ async function main(argv: string[]): Promise<number> {
       for (const r of c.capabilities) console.log(`capability\t${r.id}\t${r.name}`);
       for (const r of c.agents) console.log(`agent\t${r.id}\t${r.name}`);
       for (const r of c.skills) console.log(`skill\t${r.id}\t${r.name}`);
-      for (const r of c.extensions) console.log(`extension\t${r.id}\t${r.name}`);
+      for (const r of c.exchanges) console.log(`exchange\t${r.id}\t${r.name}`);
       return 0;
     }
     case "resolve": {
