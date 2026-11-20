@@ -1,0 +1,9 @@
+{
+  "name": "@kaihacksai/kaal-defect",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Defect: a Defect is a passive description; its state is derived from the Test Cases that point at it, and its record is authoritative and the inventory is discovered from the records.",
+  "license": "MIT",
+  "type": "module",
+  "files": ["skills"]
+}
