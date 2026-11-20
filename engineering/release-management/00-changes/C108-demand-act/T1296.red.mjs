@@ -13,7 +13,7 @@ const SRC = join(RM, '05-src/phase/judge-demand-act.mjs');
 const draft = (name) => readFileSync(join(RM, '00-changes/C108-demand-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1296';
 export const tests = ['release/A74', 'release/F84'];
-export const title = 'release/A74 is the judge of the demanded ACT and addresses release/F84; judgeDemandAct says FAIL naming each carried Change that is really green and has no act.md, PASS when every Change has its ACT or is not yet finished, and UNKNOWN, never PASS, when it cannot be told';
+export const title = 'release/A74 is the judge of the demanded ACT and addresses release/F84; judgeDemandAct says FAIL naming each carried Change that is really green and has no ACT, PASS when every Change has its ACT or is not yet finished, and UNKNOWN, never PASS, when it cannot be told';
 export async function run() {
   const real = join(RM, '03-architecture/A74-judge-demand-act/A74.md');
   assert.ok(existsSync(real), 'A74.md is absent');

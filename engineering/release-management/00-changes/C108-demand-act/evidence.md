@@ -20,7 +20,7 @@
 
 In a throwaway copy of the collector with the judge of release/C103 and the drafts of this Change placed as the DO's files and the five Cases renamed: all five are green, and the runner on that copy has 305 tests, 289 pass, 16 fail, the 16 of the collector.
 
-Mutations of the judge in that copy, each caught by T1296 and T1297: every unclosed Change due whether finished or not; an `act.md` of an unknown kind accepted; UNKNOWN ignored; FAIL not outranking UNKNOWN; work judged as if the ACT were already there. T1296's draft-equality assertion is set aside for the mutation runs, because it fails first and masks the others.
+Mutations of the judge in that copy, each caught by T1296 and T1297: every unclosed Change due whether finished or not; an ACT of an unknown kind accepted; UNKNOWN ignored; FAIL not outranking UNKNOWN; work judged as if the ACT were already there. T1296's draft-equality assertion is set aside for the mutation runs, because it fails first and masks the others.
 
 ## What this shows and does not show
 

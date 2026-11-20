@@ -13,7 +13,7 @@ const SRC = join(RM, '05-src/phase/judge-demand-act.mjs');
 const draft = (name) => readFileSync(join(RM, '00-changes/C108-demand-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1297';
 export const tests = ['release/F84'];
-export const title = 'node judge-demand-act.mjs --root <tree> --changes <dirs> --observed <file> reads the act.md and the Cases of each carried Change from the tree and exits 0, 1 for a finished Change without its ACT, 2 when it cannot tell, whatever the history of the tree says';
+export const title = 'node judge-demand-act.mjs --root <tree> --changes <dirs> --observed <file> reads the ACT and the Cases of each carried Change from the tree and exits 0, 1 for a finished Change without its ACT, 2 when it cannot tell, whatever the history of the tree says';
 export async function run() {
   assert.ok(existsSync(SRC), 'judge-demand-act.mjs is absent');
   const root = mkdtempSync(join(tmpdir(), 'c108-'));
@@ -42,7 +42,7 @@ export async function run() {
     assert.match(r.out, /C901-a/);
     assert.doesNotMatch(r.out, /C902-b/, 'a Change that is not finished is not named');
     // the ACT arrives in A
-    put(`${A}/act.md`, '# the ACT\n');
+    put(`${A}.act.md`, '# the ACT\n');
     assert.equal(cli(green, A, B).code, 0);
     // B finishes without an ACT
     mv(`${B}/T2.red.mjs`, `${B}/T2.test.mjs`);
