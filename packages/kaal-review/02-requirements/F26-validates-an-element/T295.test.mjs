@@ -1,4 +1,4 @@
-// Case review/T295 tests: review/F26 (RED until review/C4 DO records an application that carries a subject)
+// Case review/T295 tests: review/F26 (GREEN since review/C4 DO recorded an application that carries a subject)
 import assert from 'node:assert/strict';
 import { applications } from '../../00-changes/C1-focused-review/lib.mjs';
 export const id = 'review/T295';
