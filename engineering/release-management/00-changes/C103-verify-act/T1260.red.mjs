@@ -13,7 +13,7 @@ const load = () => import(pathToFileURL(SRC).href);
 const draft = (name) => readFileSync(join(RM, '00-changes/C103-verify-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1260';
 export const tests = ['release/I56'];
-export const title = 'release/I56 states that an ACT enters only when the Cases its PLAN added are really green, with release management as owner, equal to its draft';
+export const title = 'release/I56 states that an ACT enters only when the Cases its approved PLAN leaves in force are really green, that a Change has any number of PLAN and DO pull requests and one ACT, with release management as owner, equal to its draft';
 export async function run() {
   const real = join(RM, '01-intent/I56-act-enters-when-the-plan-cases-are-green/I56.md');
   assert.ok(existsSync(real), 'I56.md is absent');
@@ -21,5 +21,7 @@ export async function run() {
   assert.equal(t, `${draft('I56.md')}\n`, 'I56.md differs from the draft');
   assert.match(t, /^id: release\/I56$/m);
   assert.match(t, /really green/);
+  assert.match(t, /any number of PLAN pull requests, any number of DO pull requests and exactly one ACT/);
+  assert.match(t, /returning to PLAN/);
   assert.match(t, /the Dispatcher raises a PROMOTION only after an ACT has merged/);
 }

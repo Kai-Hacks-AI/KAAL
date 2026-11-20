@@ -21,6 +21,8 @@ export async function run() {
   assert.equal(t, `${draft('F80.md')}\n`, 'F80.md differs from the draft');
   assert.match(t, /serves: \[release\/I56\]/);
   assert.match(t, /finish your work first/);
+  assert.match(t, /cumulative result, in order, of the merged PLAN pull requests/);
+  assert.match(t, /a PLAN adds, changes or retires a Case, and a DO never does/);
   assert.match(t, /never from the candidate/);
   assert.match(t, /An exit code is never a verdict/);
 }

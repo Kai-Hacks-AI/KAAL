@@ -13,13 +13,14 @@ const load = () => import(pathToFileURL(SRC).href);
 const draft = (name) => readFileSync(join(RM, '00-changes/C103-verify-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1262';
 export const tests = ['release/A71'];
-export const title = 'release/A71 addresses release/F80 and names the PLAN revision, the three parts of the source and the command line, equal to its draft';
+export const title = 'release/A71 addresses release/F80 and names the cumulative PLAN, the three parts of the source and the command line, equal to its draft';
 export async function run() {
   const real = join(RM, '03-architecture/A71-verify-act-from-the-plan-revision/A71.md');
   assert.ok(existsSync(real), 'A71.md is absent');
   const t = readFileSync(real, 'utf8');
   assert.equal(t, `${draft('A71.md')}\n`, 'A71.md differs from the draft');
   assert.match(t, /addresses: \[release\/F80\]/);
-  assert.match(t, /oldest first-parent commit of the base/);
+  assert.match(t, /folds, in order, the PLAN pull requests of the Change/);
+  assert.match(t, /adds a Case[^.]*changes one[^.]*retires one/);
   assert.match(t, /05-src\/phase\/judge-act\.mjs/);
 }
