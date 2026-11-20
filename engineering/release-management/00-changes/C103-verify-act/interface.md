@@ -7,11 +7,11 @@ Drafts as they are added in the DO. The Cases read them; the element Cases read 
 `````
 ---
 id: release/I56
-title: an ACT enters a collector only when the Cases its approved PLAN leaves in force are really green
+title: an ACT enters a collector only when the Cases that apply to its Change are really green
 ---
-# release/I56 an ACT enters a collector only when the Cases its approved PLAN leaves in force are really green
+# release/I56 an ACT enters a collector only when the Cases that apply to its Change are really green
 
-Contract: the work of a collector is done when the Cases its merged PLAN added are really green, and only then may its ACT enter. One Change in a collector has any number of PLAN pull requests, any number of DO pull requests and exactly one ACT. The approved PLAN is the cumulative result of its merged PLAN pull requests: a PLAN amendment is a new PLAN, reviewed and approved, that adds, changes or retires a Case. Real green means the PLAN added the Cases RED and the DO turned exactly those GREEN: the same Cases, unchanged by the DO, with the inverse expectation. A DO changes what the PLAN left in force only by returning to PLAN. Reason: the PLAN states what will be true, the DO makes it true, and the ACT reviews work that is finished; an ACT on unfinished work reviews nothing. Owner: release management, which owns the stages until stages or stations have their own home. Threads own PDCA and raise their own ACT; the Dispatcher raises a PROMOTION only after an ACT has merged.
+Contract: the work of a collector is done when every Case that applies to its Change is really green, and only then may its ACT enter. A collector is an evolving workspace of KAAL artifacts, not a history. It may receive any number of PLANs while the work is underway: each adds or amends Cases together with the Intents, Requirements, Architecture and Defects that justify them, and so changes which Cases are applicable. Any number of DOs then implement the work and turn those Cases GREEN, and exactly one ACT reviews it. What applies, and how far the work is, is measured from the content of the branch (its files, their relationships and the observed results of its Cases). Pull requests and commits transport the work and give it provenance; their titles, their first-parent history and their merge shapes are never the way to find or measure it. Real green means no applicable Case is still parked red and Testing observes each GREEN. Reason: the PLAN states what will be true, the DO makes it true, and the ACT reviews work that is finished; an ACT on unfinished work reviews nothing. Whether a given pull request may change Cases or artifacts is a different concern, authorization of the transport, with its own control. Owner: release management, which owns the stages until stages or stations have their own home. Threads own PDCA and raise their own ACT; the Dispatcher raises a PROMOTION only after an ACT has merged.
 `````
 
 ## Draft of F80.md
@@ -25,7 +25,7 @@ serves: [release/I56]
 ---
 # release/F80 verify-act
 
-A check on an ACT pull request into a collector says PASS only when every Case that the approved PLAN of the Change leaves in force is really green at the head: its file `T<n>.test.mjs` exists, its content equals the one the approved PLAN left in force, and the observation of Testing at the head is GREEN. It says FAIL, with the message `finish your work first` and the Cases named, when a planned Case is absent, still a `.red.mjs`, changed without an approved PLAN amendment or observed RED. It says UNKNOWN, which never passes, when a Case was not observed green or no approved PLAN leaves a Case in force. The approved PLAN is the cumulative result, in order, of the merged PLAN pull requests of the Change: a PLAN adds, changes or retires a Case, and a DO never does. The Cases in force and the rules are read from the base, never from the candidate. An exit code is never a verdict: the check reads observations. It does not approve and does not merge.
+A check on an ACT pull request into a collector reads the checked-out tree. The Cases that apply to the Change are those in its folder and those that test an element the Change justifies, that is the Intents its record implements and every element that reaches one of them along the one-way relationships (serves, addresses, has), whether the element is placed or still a draft in the Change folder. The check says PASS only when at least one Case applies, none is parked as a `.red.mjs`, and the observation of Testing is GREEN for each. It says FAIL, with the message `finish your work first` and the Cases named, when an applicable Case is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies. It reports the count of red, green and unknown Cases. It reads nothing of the history of the branch: the same tree gives the same answer however it was transported. An exit code is never a verdict: the check reads observations. It does not approve and does not merge.
 `````
 
 ## Draft of A71.md
@@ -33,12 +33,12 @@ A check on an ACT pull request into a collector says PASS only when every Case t
 `````
 ---
 id: release/A71
-title: verify-act-from-the-plan-revision
+title: verify-act-from-the-tree
 addresses: [release/F80]
 ---
-# release/A71 verify-act-from-the-plan-revision
+# release/A71 verify-act-from-the-tree
 
-The source `05-src/phase/judge-act.mjs` has three parts. `plannedCases(root, base, changeDir)` folds, in order, the PLAN pull requests of the Change, the first-parent commits of the base that touch the Change folder and whose subject starts with PLAN. A PLAN adds a Case (a Case file in the Change folder), changes one (a Case file of a Case already in force, wherever the DO moved it) or retires one (it deletes the Case and no other file of that id remains). It returns the Cases left in force with the content fingerprint each PLAN gave them. A DO commit never changes what is in force, and nothing of the candidate is read. `headCases(root, head)` lists the `T<n>` Case files of the head as Git data, wherever the DO moved them, with their fingerprints. `judgeAct({ planned, head, observed })` is a pure function of those and of the observations `{ T<n>: GREEN | RED | UNKNOWN }` of Testing, and returns PASS, FAIL or UNKNOWN with the findings. The command line `--root --base --head --change --observed` exits 0, 1 or 2 for them, so a workflow or a hook can use it. The control release/CTL24 declares it. The workflow, the hook mirror, the adapter from Testing's report and the gate in a ruleset are later slices.
+The source `05-src/phase/judge-act.mjs` has three parts and reads a folder, never Git. `elementsOf(root, changeDir)` reads the elements of the tree, the Markdown files with a frontmatter id and the drafts fenced by five backticks in the Change folder (a placed element wins over its draft). `applicableCases(root, changeDir)` takes the Intents implemented by the Change record, widens them along the one-way relationships to every element that reaches one, and returns the Cases that are in the Change folder or test any of those elements, each parked red when any file carrying its id is a `.red.mjs`. `judgeAct({ applicable, observed })` is a pure function of those and of the observations `{ <scope>/T<n>: GREEN | RED | UNKNOWN }` of Testing, and returns PASS, FAIL or UNKNOWN with the counts and the findings. The command line `--root --change --observed` exits 0, 1 or 2 for them, so a workflow or a hook can use it. Which folder is handed over is the wiring's decision. The control release/CTL24 declares it. The workflow, the hook mirror, the adapter from Testing's report, the control that authorizes what a pull request may change and the gate in a ruleset are later slices.
 `````
 
 ## Draft of CTL24.md
@@ -47,16 +47,16 @@ The source `05-src/phase/judge-act.mjs` has three parts. `plannedCases(root, bas
 ---
 id: release/CTL24
 title: verify Act
-description: It reveals whether the Cases that the approved PLAN leaves in force are really green at the head of an ACT.
+description: It reveals whether the Cases that apply to a Change are really green in the tree of a collector.
 type: detective
 status: designed
 has: [release/I56]
 ---
 # release/CTL24 verify Act
 
-A detective control. `verify Act` reads the Cases that the approved PLAN of a Change leaves in force, the cumulative result of its merged PLAN pull requests, from the base, and says FAIL, with the message `finish your work first` and the Cases named, when any is absent at the head, still planned red, changed without an approved PLAN amendment or observed RED. It says UNKNOWN, which never passes, when a Case was not observed green or no approved PLAN leaves a Case in force, and PASS only when every planned Case is really green. PASS is not an approval and not a merge decision.
+A detective control. `verify Act` measures the tree of a collector: it finds the Cases that apply to the Change from the content (its folder, and the Cases that test the elements the Change justifies along the relationships) and says FAIL, with the message `finish your work first` and the Cases named, while any is parked red or observed RED. It says UNKNOWN, which never passes, when an applicable Case was not observed green or no Case applies, and PASS only when every applicable Case is really green. It reports how many are red, green and unknown. PASS is not an approval and not a merge decision.
 
-It reads observations of Testing and never an exit code, and it reads the PLAN and the rules from the base, never from the candidate. It judges only the completion of the work: it does not say whether the Cases are good or the code is right. Making it a required check, in a hook for early feedback and in a ruleset, are other steps with their own Owner decisions.
+It reads the tree it is handed and the observations of Testing, never an exit code and never the history of the branch. It judges only the completion of the work: it does not say whether the Cases are good or the code is right, and not whether a pull request was entitled to change them. Making it a required check, in a hook for early feedback and in a ruleset, are other steps with their own Owner decisions.
 
 It has one Intent, release/I56.
 `````
@@ -64,84 +64,106 @@ It has one Intent, release/I56.
 ## Draft of judge-act.mjs
 
 `````
-// verify Act: are the Cases that the approved PLAN of a Change leaves in force really green at the head of its ACT?
-import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+// verify Act: are the Cases that the content of a collector makes applicable really green at its head?
+// It measures the checked-out tree (the folder it is handed) and nothing else. Pull requests and commits transport the work;
+// their titles, their history and their shapes are never read.
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
-const SUFFIX = /(^|\/)(T\d+)\.(red|test)\.mjs$/;
-const digest = (text) => createHash('sha256').update(text).digest('hex');
+const CASE_FILE = /(^|\/)T\d+\.(red|test)\.mjs$/;
+// The relationships between elements, each one-way, from the element that declares it to the one it names.
+const EDGES = ['implements', 'serves', 'addresses', 'has'];
 
-// The cumulative approved PLAN of a Change: the Cases that its merged PLAN pull requests leave in force, folded in order.
-// A PLAN pull request is a first-parent commit of the base that touches the Change folder and whose subject starts with PLAN.
-// A PLAN adds a Case (a Case file in the Change folder), changes one (a Case file of a Case already in force, wherever the DO moved it)
-// or retires one (it deletes the Case and no other file of that id remains). A DO never changes what is in force.
-// Everything is read from the base, never from the candidate.
-export function plannedCases(root, base, changeDir) {
-  const git = (...a) => execFileSync('git', ['-C', root, ...a], { encoding: 'utf8' });
-  const lines = (t) => t.split('\n').filter(Boolean);
-  const inForce = {};
-  for (const [sha, subject] of lines(git('log', '--first-parent', '--reverse', '--format=%H%x09%s', base, '--', changeDir)).map((l) => l.split('\t'))) {
-    if (!/^PLAN\b/.test(subject)) continue;
-    const present = new Set(lines(git('ls-tree', '-r', '--name-only', sha)).map((p) => p.match(SUFFIX)?.[2]).filter(Boolean));
-    for (const [status, path] of lines(git('show', '--no-renames', '--name-status', '--format=', sha)).map((l) => l.split('\t'))) {
-      const m = path.match(SUFFIX);
-      if (!m) continue;
-      const id = m[2];
-      if (status === 'D') { if (id in inForce && !present.has(id)) delete inForce[id]; continue; }
-      if (path.startsWith(`${changeDir}/`) || id in inForce) inForce[id] = digest(git('show', `${sha}:${path}`));
-    }
-  }
-  return Object.entries(inForce).map(([id, fingerprint]) => ({ id, fingerprint })).sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
-}
+const walk = (dir) => (existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)])) : []);
 
-// What the head holds of each Case: the file that carries its id, wherever the DO moved it, as Git data.
-// A Case is green only when a .test.mjs file carries it and no .red.mjs file does.
-export function headCases(root, head) {
-  const git = (...a) => execFileSync('git', ['-C', root, ...a], { encoding: 'utf8' });
+// The frontmatter of an element: `key: value` and `key: [a, b]`.
+function frontmatter(text) {
+  const m = text.match(/^---\n([\s\S]*?)\n---(\n|$)/);
+  if (!m) return null;
   const out = {};
-  for (const p of git('ls-tree', '-r', '--name-only', head).split('\n').filter(Boolean)) {
-    const m = p.match(SUFFIX);
-    if (!m) continue;
-    const green = m[3] === 'test';
-    const fingerprint = digest(git('show', `${head}:${p}`));
-    if (m[2] in out) out[m[2]].green = out[m[2]].green && green;
-    else out[m[2]] = { path: p, green, fingerprint };
+  for (const line of m[1].split('\n')) {
+    const kv = line.match(/^([A-Za-z][\w-]*):\s*(.*)$/);
+    if (!kv) continue;
+    const v = kv[2].trim();
+    out[kv[1]] = v.startsWith('[') ? v.slice(1, v.lastIndexOf(']')).split(',').map((s) => s.trim()).filter(Boolean) : v;
   }
   return out;
 }
 
-// observed: { T123: 'GREEN' | 'RED' | 'UNKNOWN' } from the observation of Testing. An exit code is never a verdict.
-export function judgeAct({ planned, head, observed }) {
-  if (!planned || !planned.length) return { verdict: 'UNKNOWN', findings: [{ id: '-', reason: 'no approved PLAN leaves a Case in force, so nothing can be really green' }] };
+// The elements of a tree: every Markdown file with a frontmatter id, and every draft (a block fenced by five backticks)
+// in the files of the Change folder, where a PLAN keeps the elements that justify its Cases until the DO places them.
+// An element that is placed wins over its draft.
+export function elementsOf(root, changeDir) {
+  const found = new Map();
+  const add = (fm, placed) => { if (fm?.id && (placed || !found.has(fm.id))) found.set(fm.id, fm); };
+  for (const file of walk(root).filter((f) => f.endsWith('.md'))) {
+    const text = readFileSync(file, 'utf8');
+    add(frontmatter(text), true);
+    if (relative(root, file).startsWith(`${changeDir}/`)) for (const block of text.matchAll(/^`````\n([\s\S]*?)\n`````$/gm)) add(frontmatter(block[1]), false);
+  }
+  return found;
+}
+
+// The ids the Change justifies: the Intents its record (C<n>.md) implements, and every element that reaches one of them along the relationships.
+export function justifiedBy(elements, change) {
+  const justified = new Set(([]).concat(change?.implements ?? []));
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const [id, fm] of elements) {
+      if (justified.has(id)) continue;
+      if (EDGES.some((k) => ([]).concat(fm[k] ?? []).some((t) => justified.has(t)))) { justified.add(id); grew = true; }
+    }
+  }
+  return justified;
+}
+
+// The Cases that apply to a Change: those in its folder, and those that test an element it justifies, wherever they are.
+// A Case is parked red while any file carrying its id is a .red.mjs.
+export function applicableCases(root, changeDir) {
+  const record = readdirSync(join(root, changeDir)).find((f) => /^C\d+\.md$/.test(f));
+  const change = record ? frontmatter(readFileSync(join(root, changeDir, record), 'utf8')) : null;
+  const justified = justifiedBy(elementsOf(root, changeDir), change);
+  const cases = new Map();
+  for (const file of walk(root).filter((f) => CASE_FILE.test(f))) {
+    const text = readFileSync(file, 'utf8');
+    const id = text.match(/export const id = '([^']+)'/)?.[1];
+    if (!id) continue;
+    const tests = (text.match(/export const tests = \[([^\]]*)\]/)?.[1] ?? '').split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+    const inChange = relative(root, file).startsWith(`${changeDir}/`);
+    if (!inChange && !tests.some((t) => justified.has(t))) continue;
+    const parked = file.endsWith('.red.mjs');
+    const known = cases.get(id);
+    cases.set(id, { id, path: relative(root, file), parked: parked || (known?.parked ?? false) });
+  }
+  return [...cases.values()].sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
+}
+
+// observed: { 'release/T123': 'GREEN' | 'RED' | 'UNKNOWN' } from the observation of Testing. An exit code is never a verdict.
+export function judgeAct({ applicable, observed }) {
+  if (!applicable?.length) return { verdict: 'UNKNOWN', progress: { red: 0, green: 0, unknown: 0 }, findings: [{ id: '-', reason: 'no Case applies, so nothing can be really green' }], message: 'cannot judge: no Case applies' };
   const findings = [];
-  for (const c of planned) {
-    const h = head?.[c.id];
-    if (!h) findings.push({ id: c.id, reason: 'absent at the head', fail: true });
-    else if (!h.green) findings.push({ id: c.id, reason: 'still planned red (a .red.mjs file)', fail: true });
-    else if (h.fingerprint !== c.fingerprint) findings.push({ id: c.id, reason: 'changed without an approved PLAN amendment', fail: true });
+  for (const c of applicable) {
+    if (c.parked) findings.push({ id: c.id, reason: 'still planned red (a .red.mjs file)', fail: true });
     else if (observed?.[c.id] === 'RED') findings.push({ id: c.id, reason: 'observed RED', fail: true });
     else if (observed?.[c.id] !== 'GREEN') findings.push({ id: c.id, reason: 'not observed green', fail: false });
   }
   const failed = findings.filter((f) => f.fail);
-  if (failed.length) return { verdict: 'FAIL', findings, message: `finish your work first: ${failed.map((f) => f.id).join(', ')} of the approved PLAN are not really green` };
-  if (findings.length) return { verdict: 'UNKNOWN', findings, message: `cannot judge: ${findings.map((f) => f.id).join(', ')} not observed green` };
-  return { verdict: 'PASS', findings: [] };
+  const progress = { red: failed.length, green: applicable.length - findings.length, unknown: findings.length - failed.length };
+  if (failed.length) return { verdict: 'FAIL', progress, findings, message: `finish your work first: ${failed.map((f) => f.id).join(', ')} of ${applicable.length} applicable Cases are not really green` };
+  if (findings.length) return { verdict: 'UNKNOWN', progress, findings, message: `cannot judge: ${findings.map((f) => f.id).join(', ')} not observed green` };
+  return { verdict: 'PASS', progress, findings: [] };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (k) => { const i = process.argv.indexOf(k); return i < 0 ? undefined : process.argv[i + 1]; };
   let r;
   try {
-    const root = arg('--root') ?? '.';
     r = judgeAct({
-      planned: plannedCases(root, arg('--base'), arg('--change')),
-      head: headCases(root, arg('--head')),
+      applicable: applicableCases(arg('--root') ?? '.', arg('--change')),
       observed: JSON.parse(readFileSync(arg('--observed'), 'utf8')),
     });
   } catch (e) { r = { verdict: 'UNKNOWN', findings: [], message: String(e.message) }; }
-  console.log(`${r.verdict}${r.message ? `: ${r.message}` : ''}`);
+  console.log(`${r.verdict}${r.message ? `: ${r.message}` : ''}${r.progress ? ` (red ${r.progress.red}, green ${r.progress.green}, unknown ${r.progress.unknown})` : ''}`);
   process.exit({ PASS: 0, FAIL: 1, UNKNOWN: 2 }[r.verdict]);
 }
 `````
-
