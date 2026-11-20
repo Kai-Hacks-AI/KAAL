@@ -13,7 +13,7 @@ const SRC = join(RM, '05-src/phase/judge-demand-act.mjs');
 const draft = (name) => readFileSync(join(RM, '00-changes/C108-demand-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1297';
 export const tests = ['release/F84'];
-export const title = 'node judge-demand-act.mjs --root <tree> --changes <dirs> --observed <file> reads the ACT and the Cases of each carried Change from the tree and exits 0, 1 for a finished Change without its ACT, 2 when it cannot tell, whatever the history of the tree says';
+export const title = 'node judge-demand-act.mjs --root <tree> --changes <dirs> --observed <file> reads the retros and the Cases of the carried Changes from the tree and exits 0, 1 for a finished collector with a Change that no retro reflects, 2 when it cannot tell, whatever the id and the format of a retro and the history of the tree says';
 export async function run() {
   assert.ok(existsSync(SRC), 'judge-demand-act.mjs is absent');
   const root = mkdtempSync(join(tmpdir(), 'c108-'));
@@ -33,27 +33,45 @@ export async function run() {
       put(`${dir}/T${n}.red.mjs`, `export const id = 'x/T${n}';\nexport const tests = ['x/I${n}'];\nexport const title = 't';\nexport async function run() {}\n`);
     }
     const green = { 'x/T1': 'GREEN', 'x/T2': 'GREEN' };
+    const RETRO = (reflects, extra = '') => `---\n${extra}reflects: [${reflects.join(', ')}]\n---\n# a retro\n`;
     // PLANs landed: red, nothing is due
-    assert.deepEqual([cli(green, A, B).code], [0], 'parked Cases owe no ACT yet');
-    // the DOs landed in A: finished, no ACT: due
+    assert.deepEqual([cli(green, A, B).code], [0], 'parked Cases owe no retro yet');
+    // the DO landed in A only: the collector is not finished
     mv(`${A}/T1.red.mjs`, `${A}/T1.test.mjs`);
+    assert.equal(cli(green, A, B).code, 0, 'one Change still red: the collector is not finished');
+    // both finished, no retro: due, both named
+    mv(`${B}/T2.red.mjs`, `${B}/T2.test.mjs`);
     let r = cli(green, A, B);
     assert.equal(r.code, 1);
-    assert.match(r.out, /C901-a/);
-    assert.doesNotMatch(r.out, /C902-b/, 'a Change that is not finished is not named');
-    // the ACT arrives in A
-    put(`${A}.act.md`, '# the ACT\n');
-    assert.equal(cli(green, A, B).code, 0);
-    // B finishes without an ACT
-    mv(`${B}/T2.red.mjs`, `${B}/T2.test.mjs`);
+    assert.match(r.out, /C901/);
+    assert.match(r.out, /C902/);
+    // a retro of an earlier collector reflects other Changes
+    put('02-learnings/retros/old.md', RETRO(['C100']));
+    assert.equal(cli(green, A, B).code, 1, 'the retro of another collector closes nothing here');
+    // a retro arrives for A only, whatever its id and its format
+    put('02-learnings/retros/RT5/retro.md', RETRO(['C901'], 'id: x/RT5\nformat: 4L\n'));
     r = cli(green, A, B);
     assert.equal(r.code, 1);
-    assert.match(r.out, /C902-b/);
+    assert.match(r.out, /C902/);
+    assert.doesNotMatch(r.out, /C901/, 'a Change with its retro is not named');
+    // one retro for both
+    put('02-learnings/retros/RT5/retro.md', RETRO(['C901', 'C902'], 'id: 4L.5\n'));
+    assert.equal(cli(green, A, B).code, 0);
+    // two retros reflect one Change
+    put('02-learnings/retros/second.md', RETRO(['C902']));
+    r = cli(green, A, B);
+    assert.equal(r.code, 1);
+    assert.match(r.out, /more than one retro: C902/);
+    rmSync(join(root, '02-learnings/retros/second.md'));
     // it cannot tell
-    assert.equal(cli({ 'x/T1': 'GREEN' }, A, B).code, 2, 'an unobserved Case of a Change without its ACT');
+    put('02-learnings/retros/RT5/retro.md', RETRO(['C901']));
+    assert.equal(cli({ 'x/T1': 'GREEN' }, A, B).code, 2, 'an unobserved Case of a Change that no retro reflects');
     assert.equal(cli(green, A, '00-changes/C000-nowhere').code, 2, 'a Change that is not there must not pass');
+    assert.equal(cli(green, A, '00-changes/nothing').code, 2, 'a folder that is not a Change must not pass');
     rmSync(obs);
-    assert.equal(cli(undefined, A).code, 0, 'a Change with its ACT needs no observation');
+    put('02-learnings/retros/RT5/retro.md', RETRO(['C901', 'C902']));
+    assert.equal(cli(undefined, A, B).code, 0, 'Changes with their retro need no observation');
+    put('02-learnings/retros/RT5/retro.md', RETRO(['C901']));
     assert.equal(cli(undefined, A, B).code, 2, 'a missing observation must not pass');
     writeFileSync(obs, 'not json');
     assert.equal(cli(undefined, A, B).code, 2, 'an unreadable observation must not pass');

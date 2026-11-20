@@ -13,7 +13,7 @@ const SRC = join(RM, '05-src/phase/judge-demand-act.mjs');
 const draft = (name) => readFileSync(join(RM, '00-changes/C108-demand-act/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1295';
 export const tests = ['release/F84'];
-export const title = 'release/F84 serves release/I58 and states the requirement that a finished Change without its ACT is refused, equal to its draft';
+export const title = 'release/F84 serves release/I58 and states the requirement that a finished collector with a Change that no retro reflects is refused, equal to its draft';
 export async function run() {
   const real = join(RM, '02-requirements/F84-demand-act/F84.md');
   assert.ok(existsSync(real), 'F84.md is absent');
