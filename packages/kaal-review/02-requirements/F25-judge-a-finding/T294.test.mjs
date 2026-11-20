@@ -1,4 +1,4 @@
-// Case review/T294 tests: review/F25 (RED until review/C3 DO records an application of the focus finding)
+// Case review/T294 tests: review/F25 (GREEN since review/C3 DO recorded an application of the focus finding)
 import assert from 'node:assert/strict';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
