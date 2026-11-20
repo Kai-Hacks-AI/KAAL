@@ -1,18 +1,19 @@
----
-id: architecture/D1
-reach: packages/kaal-architecture/, engineering/
----
 # architecture/D1: the untagged kaal-architecture has no N+1 copy in engineering
 
 Found at `packages/kaal-architecture/`, on the promotion of architecture/C16 (#2133) into `main`. A Defect of the repository's setup, found in the context of Architecture.
 
-## Expected
+## Record
 
-A capability with no release tag has no N, so its N+1 is what the repository runs: the machinery of `packages/kaal-architecture` is deployed at `engineering/architecture` (one source per skill: exactly one of `.kaal/<cap>` and `engineering/<cap>` holds it). See engineering/F40 and engineering/F50, and Kai's rule that an untagged package is N+1.
-
-## Observed
-
-`packages/kaal-architecture/package.json` is `"private": true` and the package has never been published, so there is no N. `engineering/architecture` does not exist. Neither `engineering/architecture` nor `.kaal/architecture` holds the skill, so the capability is developed in `packages/` and runs nowhere.
+```json
+{
+  "id": "architecture/D1",
+  "context": "architecture (the untagged package, where it runs)",
+  "expected": "A capability with no release tag has no N, so its N+1 is what the repository runs: the machinery of packages/kaal-architecture is deployed at engineering/architecture, and exactly one of .kaal/<cap> and engineering/<cap> holds a skill (engineering/F40, engineering/F50).",
+  "observed": "packages/kaal-architecture/package.json is private and the package has never been published, so there is no N. engineering/architecture does not exist, and neither it nor .kaal/architecture holds the skill: the capability is developed in packages/ and runs nowhere.",
+  "where": "packages/kaal-architecture/, engineering/",
+  "reach": "packages/kaal-architecture/, engineering/"
+}
+```
 
 ## Proof
 
