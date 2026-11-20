@@ -127,3 +127,10 @@ Each Requirement is summarized in one line, with the Intents it serves in bracke
 - **core/F86** [core/I22]: The package declares Node.js 24 or later and names Linux, macOS and Windows as supported platforms.
 - **core/F87** [core/I22, core/I23]: Each run emits one execution record naming the candidate and each required case's outcome. Core stores no evidence in the consumer's environment.
 - **core/F88** [core/I22, core/I23]: No operating-system decision is made outside Hosting, test implementations included.
+
+## Exchange
+
+- **core/N24** [core/I26]: Core reads no Exchange's content. An Exchange contribution is accepted or refused by the types of its Nodes alone.
+- **core/F89** [core/I25]: The payload carries a `KAAL Exchange` Definition typed by `KAAL Definition`, in the place of `KAAL Extension`. It states what an Exchange is and that an Exchange states what verifies it is done. No `KAAL Extension` is carried.
+- **core/F90** [core/I25]: `exchange` is a registrable kind and `extension` is not. A contribution registers all or nothing, is published under `exchanges/<name>/`, and is listed by `catalog` and `kaal list` as exchanges. `registerExchange` and `kaal register exchange` replace the Extension forms.
+- **core/F91** [core/I25]: The four CASE kinds are exactly the four Definitions Core registers a kind for, each typed by `KAAL Definition` and named by the Kernel's Foundation. An Engine that lacks one does not verify.

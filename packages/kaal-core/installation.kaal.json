@@ -55,9 +55,9 @@
       "kind": "file"
     },
     {
-      "name": "core/KAAL-Extension.md",
-      "source": "payload/core/KAAL-Extension.md",
-      "target": ".kaal/core/KAAL-Extension.md",
+      "name": "core/KAAL-Exchange.md",
+      "source": "payload/core/KAAL-Exchange.md",
+      "target": ".kaal/core/KAAL-Exchange.md",
       "kind": "file"
     },
     {
@@ -81,22 +81,22 @@
   ],
   "catalogue": {
     ".kaal/AGENTS.md": [
-      "66cd64c78ccfc874023442db3fcfbace014aee9c5af3aeec93d9271317029d93"
+      "d24060f876d8d4e6df4f4fcf663872bb52361f4c99a7499cfe021631d3208b13"
     ],
     ".kaal/KAAL-KERNEL.md": [
-      "14864b6ee33a5c0e4105dfa2354d5af191013c9a4ecd9c264b1e710fe66579fc"
+      "ba6edfbac6ffcd8055393b646ffea74e1b737a16f3bc7c5d293bcfa118e32931"
     ],
     ".kaal/core/Agent-Realization.md": [
       "983ccaace5f9ff133eb3444e8a134e779029acae6fa0856410e9edb96b97a7d4"
     ],
     ".kaal/core/CASE.md": [
-      "46541b3bc4543b9021126f9e1a3a37e4542872846fcd31711b5c7f4ce5e6acc9"
+      "3e2df4485b8f2714a4c27683ed1905daa56d5b7f31f977f70f8753fa8e9b7bea"
     ],
     ".kaal/core/Installation-Contract.md": [
       "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
     ],
     ".kaal/core/KAAL-Agent.md": [
-      "d632c1fb4c4201d65c7834d4af0463cd1bd3928dd0fb8cc0b503521a4d2cf447"
+      "d46ab5bcc497244c7defaabe88cde6fcd2aa496c722f3cd0eb0bec68968b0990"
     ],
     ".kaal/core/KAAL-Capability.md": [
       "56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e"
@@ -104,8 +104,8 @@
     ".kaal/core/KAAL-Definition.md": [
       "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2"
     ],
-    ".kaal/core/KAAL-Extension.md": [
-      "f72271c291ef6f15a7bea234111616e5213af57160daa11d0db1045e83267a94"
+    ".kaal/core/KAAL-Exchange.md": [
+      "0832175f9cb86b4607a22d0856540512d9cfd9b13890c2456e8e8c439a59f0d0"
     ],
     ".kaal/core/KAAL-Skill.md": [
       "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933"
