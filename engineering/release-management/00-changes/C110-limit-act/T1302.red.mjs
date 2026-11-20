@@ -39,6 +39,7 @@ export async function run() {
   // isFile: an exact path, '*' for exactly one segment
   assert.equal(isFile('packages/kaal-engineering/00-changes/C27-operations-layout/act.md', 'packages/*/00-changes/*/act.md'), true);
   assert.equal(isFile('packages/kaal-engineering/00-changes/C27-operations-layout/T1.test.mjs', 'packages/*/00-changes/*/act.md'), false);
+  assert.equal(isFile('packages/kaal-engineering/00-changes/C27-operations-layout/act.md/extra', 'packages/*/00-changes/*/act.md'), false, 'an exact path, not a prefix');
   assert.equal(isFile('packages/kaal-engineering/00-changes/C27/x/act.md', 'packages/*/00-changes/*/act.md'), false, '* is exactly one segment');
   assert.equal(isFile('packages/kaal-engineering/00-changes/C27-operations-layout/act.md.bak', 'packages/*/00-changes/*/act.md'), false);
   // PASS: no ACT, or an ACT inside its folders
