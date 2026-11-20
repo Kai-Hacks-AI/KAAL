@@ -48,14 +48,14 @@ The reach is also what a consumer such as Engineering's ratchet reads to know wh
 
 ## The register
 
-A context keeps `known.json` in its `defects` folder: a list of Defect ids that live in the same folder. `known` is only membership. An id with no Defect record in the same folder is `invalid`. There is no central register and the package ships none.
+A context keeps a register, a list of Defect ids that live in the same place as its Defect records. The caller (Engineering's layout) hands over where the records, the register and the Test Cases are, and the package knows no folder name or number. `known` is only membership. An id with no Defect record in the same folder is `invalid`. There is no central register and the package ships none.
 
 ## The flow (SIPOC, abstract handovers)
 
 | | |
 | --- | --- |
 | **Suppliers** | Review (the finding, placed where it was found); Testing (the Cases and the records of their runs); Architecture (functional placement); Hosting (reading files) |
-| **Inputs** | a Defect record and a register in the `defects` folder of the context where it was found; Cases whose first line points at the Defect; records `{case, run, revision, outcome}`; the revision judged |
+| **Inputs** | a Defect record and a register at the place the caller hands over for the context where it was found; Cases whose first line points at the Defect; records `{case, run, revision, outcome}`; the revision judged |
 | **Process** | record the Defect where it was found; register it; judge its state from the records of its Cases; list it for its owner |
 | **Outputs** | per Defect `<state> <defect>` and ` known` when registered, with each Case's own outcome beside it; invalid registry entries; a to-fix list |
 | **Customers** | the consumer or integration gate, which joins the register and the state and owns every policy decision; the owner each Defect is placed with |
@@ -64,7 +64,7 @@ Each handover is a plain value, so kaal-defect imports neither Review, Testing n
 
 ## Rules
 
-- **Found carries it.** The finding (see kaal-review) says where a Defect was found, and the record sits in the `defects` folder of that place until Architecture moves it. Architecture sets the functional placement as `placed` (see kaal-architecture); Defect reads it and never sets or judges it.
+- **Found carries it.** The finding (see kaal-review) says where a Defect was found, and the record sits at that place's Defect location until Architecture moves it. Architecture sets the functional placement as `placed` (see kaal-architecture); Defect reads it and never sets or judges it.
 - **To-fix list.** The registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none, each once.
 - **Evidence, not policy.** The script prints states and fails only on unreadable input. Whether a registered or confirmed Defect may be tolerated is the consumer or integration gate's policy.
 - **Guard.** That a register only shrinks once Defects are placed is judged against the base revision, which Hosting reads (see kaal-hosting).
@@ -90,7 +90,7 @@ A 4L retrospective in `act.md`.
 1. **Siblings.** `@codex review` findings entering as a Defect, and Testing making the records for the Cases that point at a Defect, are separate Changes.
 2. **Claims.** Hosting's `status` and `tests` fields are legacy claims and a copy of the edge. Showing a claim beside the derived state, and migrating the records, are later Changes.
 3. **Probe contract.** Where it lives, and whether it carries the record form, is for the CPO.
-4. **Folder.** the `defects` folder, found by its role (the name after any number prefix, so a renumber never matters), is new; Hosting's `06-defects` stays and moves in a later Change of its own.
+4. **Locations.** The package finds no folder: the caller hands over each location, so Engineering's numbering never touches it. Hosting's `06-defects` stays and moves in a later Change of its own.
 5. **Shrink rule.** The guard against the base revision needs Hosting and is not a Test Case here.
 6. **Hosting.** The draft reads files with Node directly; the DO routes it through Hosting.
 

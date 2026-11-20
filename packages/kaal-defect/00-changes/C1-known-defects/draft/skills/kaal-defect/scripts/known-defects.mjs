@@ -3,8 +3,8 @@
 // A Defect holds no state. Edges run from a Case to a Defect (the Case's first line `// Case <id> tests: <defect id>`).
 // A record is { case, run, revision, outcome, covers }, outcome GREEN, RED or UNKNOWN as a Case runner reports it, and `covers` the
 // parts of the Defect's claimed reach that run covered (as a control's record carries the kind of X it ran against). The runner is Testing's; nothing here runs a Case.
-import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, dirname, relative } from 'node:path';
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 const DEFECT = /^[a-z][a-z0-9-]*\/D[1-9][0-9]*$/;
 const OUTCOMES = new Set(['GREEN', 'RED', 'UNKNOWN']);
@@ -34,29 +34,33 @@ export function judgeDefect(defect, cases, records = [], revision, reach = []) {
   return { id: defect, state, cases: cases.map((c, i) => ({ case: c, outcome: o[i] })), reached: reach.length > 0, uncovered };
 }
 
-/** Defect records, registers and the Cases that point at a Defect, read from a tree. */
-export function readTree(root) {
-  const defects = new Map(); // id -> { context, placed }
+/**
+ * Defect records, registers and the Cases that point at a Defect, read from the locations the caller hands over.
+ * `places` is a list of { context, defects, known, cases }: `context` names the place a Defect was found, `defects` is the folder holding its
+ * Defect records, `known` the file listing its known Defects, and `cases` the folders holding its Test Cases. This script knows no layout.
+ */
+export function readTree(places) {
+  const defects = new Map(); // id -> { context, placed, reach }
   const registered = new Map(); // id -> context
   const pointing = new Map(); // defect id -> [case ids]
   const walk = (d) => {
     for (const n of readdirSync(d)) {
       const p = join(d, n);
       if (statSync(p).isDirectory()) { if (n !== 'node_modules' && n !== '.git') walk(p); continue; }
-      const text = () => readFileSync(p, 'utf8');
-      if (/\/(?:\d+-)?defects\/known\.json$/.test(p)) {
-        const context = relative(root, dirname(dirname(p))) || '.';
-        for (const id of JSON.parse(text())) registered.set(id, context);
-      } else if (/\/(?:\d+-)?defects\/[^/]+\.md$/.test(p)) {
-        const t = text(); const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
-        if (id) defects.set(id, { context: relative(root, dirname(dirname(p))) || '.', placed: t.match(/^placed:\s*(.+?)\s*$/m)?.[1], reach: (t.match(/^reach:\s*(.+?)\s*$/m)?.[1] ?? '').split(',').map((x) => x.trim()).filter(Boolean) });
-      } else if (/\/T\d+\.(red|test)\.mjs$/.test(p)) {
-        const h = /^\/\/ Case (\S+) tests: (.*)$/.exec(text().split('\n')[0]);
-        if (h) for (const t of h[2].split(',').map((s) => s.trim()).filter((s) => DEFECT.test(s))) (pointing.get(t) ?? pointing.set(t, []).get(t)).push(h[1]);
-      }
+      if (!/^T\d+\.(red|test)\.mjs$/.test(n)) continue;
+      const h = /^\/\/ Case (\S+) tests: (.*)$/.exec(readFileSync(p, 'utf8').split('\n')[0]);
+      if (h) for (const t of h[2].split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) (pointing.get(t) ?? pointing.set(t, []).get(t)).push(h[1]);
     }
   };
-  walk(root);
+  for (const { context, defects: dir, known, cases = [] } of places) {
+    for (const n of dir && existsSync(dir) ? readdirSync(dir) : []) {
+      if (!n.endsWith('.md')) continue;
+      const t = readFileSync(join(dir, n), 'utf8'); const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
+      if (id) defects.set(id, { context, placed: t.match(/^placed:\s*(.+?)\s*$/m)?.[1], reach: (t.match(/^reach:\s*(.+?)\s*$/m)?.[1] ?? '').split(',').map((x) => x.trim()).filter(Boolean) });
+    }
+    if (known && existsSync(known)) for (const id of JSON.parse(readFileSync(known, 'utf8'))) registered.set(id, context);
+    for (const c of cases) walk(c);
+  }
   return { defects, registered, pointing };
 }
 
@@ -89,7 +93,7 @@ export function toFix(tree, records, revision) {
 
 if (process.argv[1] && process.argv[1].endsWith('known-defects.mjs')) {
   const a = process.argv.slice(2); const opt = (k) => a[a.indexOf(k) + 1];
-  const tree = readTree(opt('--root'));
+  const tree = readTree(JSON.parse(readFileSync(opt('--places'), 'utf8')));
   const records = a.includes('--records') ? JSON.parse(readFileSync(opt('--records'), 'utf8')) : [];
   const revision = opt('--revision');
   if (a.includes('--list')) { for (const [o, ds] of Object.entries(toFix(tree, records, revision))) console.log(`${o}: ${ds.join(', ')}`); }

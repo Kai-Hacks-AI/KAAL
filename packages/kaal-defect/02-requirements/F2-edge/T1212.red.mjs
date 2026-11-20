@@ -17,18 +17,21 @@ export const tests = ['defect/F2'];
 function fixture({ contexts, records = [] }) {
   assert.ok(existsSync(script), 'the script scripts/known-defects.mjs is absent');
   const d = mkdtempSync(join(tmpdir(), 'known-'));
+  const places = [];
   for (const [ctx, { defects = [], register = [], cases = {}, placed = {}, reaches = {} }] of Object.entries(contexts)) {
-    mkdirSync(join(d, ctx, '15-defects'), { recursive: true });
-    for (const i of defects) writeFileSync(join(d, ctx, '15-defects', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
-    writeFileSync(join(d, ctx, '15-defects', 'known.json'), JSON.stringify(register));
+    mkdirSync(join(d, ctx, 'anywhere'), { recursive: true });
+    places.push({ context: ctx, defects: join(d, ctx, 'anywhere'), known: join(d, ctx, 'list.json'), cases: [join(d, ctx)] });
+    for (const i of defects) writeFileSync(join(d, ctx, 'anywhere', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
+    writeFileSync(join(d, ctx, 'list.json'), JSON.stringify(register));
     for (const [c, target] of Object.entries(cases)) writeFileSync(join(d, ctx, `T${c.split('T')[1]}.red.mjs`), `// Case ${c} tests: ${target}\n`);
   }
   writeFileSync(join(d, 'records.json'), JSON.stringify(records));
+  writeFileSync(join(d, 'places.json'), JSON.stringify(places));
   return d;
 }
 const R = 'r1';
 const rec = (c, outcome, revision = R, run = '1', covers = ['.']) => ({ case: c, run, revision, outcome, covers });
-const check = (d, ...more) => spawnSync(process.execPath, [script, '--root', d, '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
+const check = (d, ...more) => spawnSync(process.execPath, [script, '--places', join(d, 'places.json'), '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
 const lines = (r) => r.stdout.split('\n').filter(Boolean);
 
 export const title = 'a Case points at a Defect with its first line; the Defect lists no Case; several Cases may point at one Defect, in any context';
