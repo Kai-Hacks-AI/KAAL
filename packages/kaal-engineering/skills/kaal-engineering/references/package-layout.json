@@ -1,0 +1,193 @@
+{
+  "places": [
+    "packages/<capability>",
+    "engineering/<capability>",
+    ".kaal/<capability>"
+  ],
+  "root": [
+    {
+      "name": "AGENTS.md",
+      "kind": "machinery",
+      "bass": "Bare to Agent"
+    },
+    {
+      "name": "README.md",
+      "kind": "machinery"
+    },
+    {
+      "name": "LICENSE",
+      "kind": "machinery"
+    },
+    {
+      "name": "package.json",
+      "kind": "machinery"
+    },
+    {
+      "name": "*.kaal.json",
+      "kind": "machinery"
+    }
+  ],
+  "folders": [
+    {
+      "name": "00-backlog",
+      "kind": "content",
+      "role": "what we might do"
+    },
+    {
+      "name": "01-changes",
+      "kind": "content",
+      "role": "in flight, temporary"
+    },
+    {
+      "name": "02-controls",
+      "kind": "content",
+      "role": "controls over the package itself",
+      "scope": "package",
+      "covers": [
+        "development",
+        "delivery",
+        "solution"
+      ]
+    },
+    {
+      "name": "10-intent",
+      "kind": "content",
+      "element": "intent",
+      "children": [
+        "intent",
+        "test-cases"
+      ],
+      "verifiedBy": "test-cases"
+    },
+    {
+      "name": "11-requirements",
+      "kind": "content",
+      "element": "requirement",
+      "children": [
+        "requirements",
+        "test-cases"
+      ],
+      "verifiedBy": "test-cases"
+    },
+    {
+      "name": "12-architecture",
+      "kind": "content",
+      "element": "architecture",
+      "children": [
+        "architecture",
+        "test-cases"
+      ],
+      "verifiedBy": "test-cases"
+    },
+    {
+      "name": "13-source",
+      "kind": "machinery",
+      "children": [
+        "skill",
+        "scripts",
+        "unit-tests"
+      ],
+      "bass": {
+        "skill": "Agent to Skill",
+        "scripts": "Skill to Script"
+      },
+      "verifiedBy": "unit-tests"
+    },
+    {
+      "name": "14-defects",
+      "kind": "content",
+      "element": "defect",
+      "children": [
+        "defects",
+        "test-cases"
+      ],
+      "verifiedBy": "test-cases"
+    },
+    {
+      "name": "dist",
+      "kind": "machinery",
+      "generated": true,
+      "committed": false,
+      "from": "13-source"
+    }
+  ],
+  "deterministic": [
+    "scripts",
+    "unit-tests",
+    "test-cases"
+  ],
+  "consumerSpace": [
+    "controls over how a consumer runs its own repository"
+  ],
+  "deployment": {
+    "packages/<capability>": {
+      "machinery": "written here, only here",
+      "content": "the capability's own"
+    },
+    "engineering/<capability>": {
+      "machinery": "deployed from N+1",
+      "content": "the consumer's, produced by the capability"
+    },
+    ".kaal/<capability>": {
+      "machinery": "deployed from N through npmjs",
+      "content": "the consumer's, produced by the capability"
+    }
+  },
+  "rules": {
+    "numbersOrderOnly": true,
+    "contentIsLocal": true,
+    "contentIsNeverDeployed": true,
+    "contentIsNeverCompared": true,
+    "deployedMachineryMatchesSource": true
+  },
+  "controls": {
+    "ownedBy": "consumer",
+    "linksTo": "intent",
+    "findsMachineryThrough": [
+      "intent",
+      "requirements",
+      "architecture"
+    ],
+    "shippedByCapability": false,
+    "capabilityShips": [
+      "solution elements",
+      "machinery"
+    ],
+    "consumerOwns": [
+      "control",
+      "evidence",
+      "operational state"
+    ],
+    "packageControls": "govern the package itself"
+  },
+  "agents": [
+    {
+      "path": "AGENTS.md",
+      "serves": "work across the repository",
+      "ships": false,
+      "verifiedBy": "review"
+    },
+    {
+      "path": "packages/AGENTS.md",
+      "serves": "work across packages",
+      "ships": false,
+      "verifiedBy": "review"
+    },
+    {
+      "path": "<place>/<capability>/AGENTS.md",
+      "serves": "work on this package",
+      "ships": false,
+      "verifiedBy": "review"
+    },
+    {
+      "path": "<place>/<capability>/dist/AGENTS.md",
+      "serves": "consumers using the capability",
+      "ships": true,
+      "verifiedBy": "build",
+      "from": "13-source",
+      "bass": "Bare to Agent",
+      "pointsTo": "skills/<name>/SKILL.md",
+      "repeatsSkill": false
+    }
+  ]
+}
