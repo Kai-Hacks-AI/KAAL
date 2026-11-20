@@ -24,13 +24,12 @@ function fixture({ contexts, results = [] }) {
   return d;
 }
 const check = (d, ...more) => spawnSync(process.execPath, [script, "--root", d, "--results", join(d, "results.json"), ...more], { encoding: "utf8" });
-export const title = 'a register sits in its context and an entry that points at no Defect in that folder is invalid and blocks';
+export const title = 'a register sits in its context and an entry that points at no Defect in that folder is invalid';
 export async function run() {
   const bad = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D9', case: 'x/T1' }] } }, results: [{ case: 'x/T1', outcome: 'fail' }] }));
-  assert.equal(bad.status, 1, 'an entry with no Defect blocks');
   assert.match(bad.stdout, /invalid x\/T1/);
   const other = check(fixture({ contexts: { 'a/b': { register: [{ defect: 'x/D1', case: 'x/T1' }] }, 'c': { defects: ['x/D1'] } }, results: [{ case: 'x/T1', outcome: 'fail' }] }));
-  assert.equal(other.status, 1, 'a Defect in another context does not satisfy the entry');
+  assert.match(other.stdout, /invalid x\/T1/, 'a Defect in another context does not satisfy the entry');
   const ok = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D1', case: 'x/T1' }] } }, results: [{ case: 'x/T1', outcome: 'fail' }] }));
   assert.equal(ok.status, 0, `an entry with a Defect beside it is judged: ${ok.stdout}`);
 }

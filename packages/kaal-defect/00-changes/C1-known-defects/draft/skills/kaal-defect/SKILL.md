@@ -6,7 +6,7 @@ license: MIT
 
 # KAAL Defect
 
-A Defect is a negative Requirement: what must not be the case. A Defect that a Test Case proves is RED would block every merge. List it as known instead.
+A Defect is a negative Requirement: what must not be the case. List a Defect whose Test Case is proven RED as known, so the failure is recognised and not forgotten.
 
 ## Register
 
@@ -14,13 +14,14 @@ Each context keeps its own register: `known.json` in its `14-defects` folder, be
 
 ## Verdict
 
-Judge every run against the register:
+A verdict says what the evidence shows. It is not permission to merge: what a verdict allows is the policy of the gate that consumes it.
 
-- registered and failing: `known`, does not block
-- registered and passing: `fixed`, blocks until the entry leaves the register
-- not registered and failing: `blocking`
-- registered with no result: `unknown`, blocks
+- registered and `fail`: `known`, a proven known failure
+- registered and `pass`: `fixed`, so the entry is out of date and should leave the register
+- registered and `unknown`, otherwise reported (skipped, errored, timed out, incomplete) or missing: `unknown`, never counted as a proven known failure
+- not registered and `fail`: `unregistered`
+- an entry whose Defect is not in the same folder: `invalid`
 
-Run `node scripts/known-defects.mjs --root <dir> --results <file>` for the verdicts of every register under the root. Add `--list` for the to-fix list by owner. Results are a JSON list of `{case, outcome}`, `pass` or `fail`.
+Run `node scripts/known-defects.mjs --root <dir> --results <file>` for the verdicts of every register under the root. Add `--list` for the to-fix list by owner. Results are a JSON list of `{case, outcome}` where outcome is `pass`, `fail` or `unknown`; any other value is read as `unknown`. The script prints verdicts and exits non-zero only when it cannot read its input.
 
 For running Test Cases see kaal-testing. For where a Defect is placed see kaal-architecture.

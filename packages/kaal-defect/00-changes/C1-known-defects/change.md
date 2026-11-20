@@ -15,25 +15,27 @@ Proposed, to be confirmed by the allocator: Change defect/C1, Intent defect/I1, 
 | | |
 | --- | --- |
 | **Suppliers** | Review (the finding, placed where it was found); Testing (run results); Architecture (functional placement); Hosting (reading files and revisions) |
-| **Inputs** | a Defect record and a register entry `{defect, case}` in the `14-defects` of the context where it was found; run results as a list `{case, outcome}`, `pass` or `fail` |
-| **Process** | record the Defect where it was found; register its Test Case as known RED; judge every run against the registers in the tree; remove the entry when the Case is GREEN |
-| **Outputs** | a verdict per Test Case: `known`, `fixed`, `blocking`, `unknown` or `invalid`; a to-fix list |
-| **Customers** | the merge gate (it blocks on everything but `known`); the owner each Defect is placed with |
+| **Inputs** | a Defect record and a register entry `{defect, case}` in the `14-defects` of the context where it was found; run results as a list `{case, outcome}`, where outcome is `pass`, `fail` or `unknown`; any other value a runner reports (skipped, errored, timed out, incomplete) is read as `unknown` |
+| **Process** | record the Defect where it was found; register its Test Case as a known failure; report every run against the registers in the tree; remove the entry when the Case is GREEN |
+| **Outputs** | a verdict per Test Case: `known`, `fixed`, `unknown`, `unregistered` or `invalid`; a to-fix list |
+| **Customers** | the consumer or integration gate, which owns the policy on what a verdict allows; the owner each Defect is placed with |
 
 Each handover is a plain value, so kaal-defect imports neither Review, Testing nor Architecture. State is distributed: every register is content of the context that holds it, and the package ships none.
 
 ## Rules
 
-- **Known RED.** A registered Test Case that fails is `known`: it does not block.
-- **Strict.** A registered Test Case that passes is `fixed`: it blocks until its entry leaves the register, so a Defect cannot be fixed silently and cannot stay listed after it is fixed.
-- **Unregistered fail** is `blocking`. A registered Case with no result is `unknown`, never a pass.
+- **Evidence, not policy.** A verdict says what the evidence shows about a Defect. It is never permission to merge. Whether a `known` Defect may be tolerated, and whether `fixed`, `unknown`, `unregistered` or `invalid` stop anything, is the policy of the gate that consumes the verdicts. The script prints verdicts and fails only when it cannot read its input.
+- **Known.** A registered Test Case with outcome `fail` is `known`: a proven known failure.
+- **Fixed.** A registered Test Case with outcome `pass` is `fixed`: the Defect's Case is GREEN, so the entry is out of date and should leave the register.
+- **Unknown.** A registered Case with outcome `unknown`, with any other outcome (skipped, errored, timed out, incomplete) or with no result is `unknown`. It is never counted as a proven known failure and never as a pass.
+- **Unregistered.** A Case with outcome `fail` that no register lists is `unregistered`. A Case that is not failing and not registered is not the mechanic's concern.
 - **Guard.** Every entry points at a Defect record in the same `14-defects` folder; one that does not is `invalid`. That the list only shrinks once Defects are placed is judged against the base revision, which Hosting reads (see kaal-hosting).
 - **Found carries it.** The finding (see kaal-review) says where a Defect was found, and the record sits in the `14-defects` of that place until Architecture moves it. Architecture sets the functional placement as `placed` (see kaal-architecture); Defect reads it and never sets or judges it.
 - **To-fix list.** The entries of all registers grouped by `placed`, or by the holding context while there is none.
 
 ## Who owns the end-to-end flow (revised proposal)
 
-Revised after Kai's point that the register is content placed in context, with no central state. kaal-defect is only the mechanic, so I no longer propose that it owns the flow. I propose that no capability owns the flow end to end, and that each owns only its handover: Review the finding and where it was found, Testing the run results, Architecture the placement, kaal-defect the verdict. The knitting for KAAL (which runner feeds the results, which gate consumes the verdicts, and where in CI they run) belongs to kaal-engineering, as with the other KAAL-specific setup, and is a Change of its own. This is a proposal for the CPO.
+Revised after Kai's point that the register is content placed in context, with no central state. kaal-defect is only the mechanic, so I no longer propose that it owns the flow. I propose that no capability owns the flow end to end, and that each owns only its handover: Review the finding and where it was found, Testing the run results (`pass`, `fail`, `unknown`), Architecture the placement, kaal-defect the verdict. The knitting for KAAL (which runner feeds the results, which gate consumes the verdicts, and where in CI they run) belongs to kaal-engineering, as with the other KAAL-specific setup, and is a Change of its own. This is a proposal for the CPO.
 
 ## DO
 

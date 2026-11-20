@@ -1,23 +1,23 @@
 #!/usr/bin/env node
-// known-defects: judge run results against the known-Defect registers found in a tree.
+// known-defects: report what run results show against the known-Defect registers in a tree. Evidence, not policy.
 // A register is `known.json` in a `14-defects` folder; its entries point at Defect records in the same folder.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 
+const OUTCOME = new Set(['pass', 'fail', 'unknown']);
 export function judge(entries, results) {
   const out = [];
-  const byCase = new Map(results.map((r) => [r.case, r.outcome]));
+  const byCase = new Map(results.map((r) => [r.case, OUTCOME.has(r.outcome) ? r.outcome : 'unknown']));
   const registered = new Set();
   for (const e of entries) {
     if (!e.exists) { out.push({ case: e.case, defect: e.defect, verdict: 'invalid' }); continue; }
     registered.add(e.case);
-    const o = byCase.get(e.case);
+    const o = byCase.get(e.case) ?? 'unknown';
     out.push({ case: e.case, defect: e.defect, verdict: o === 'fail' ? 'known' : o === 'pass' ? 'fixed' : 'unknown' });
   }
-  for (const r of results) if (r.outcome === 'fail' && !registered.has(r.case)) out.push({ case: r.case, verdict: 'blocking' });
+  for (const [c, o] of byCase) if (o === 'fail' && !registered.has(c)) out.push({ case: c, verdict: 'unregistered' });
   return out;
 }
-export const blocks = (v) => v.verdict !== 'known';
 export function toFix(entries) {
   const g = {};
   for (const e of entries) (g[e.placed ?? e.context] ??= []).push(e.defect);
@@ -46,7 +46,5 @@ if (process.argv[1] && process.argv[1].endsWith('known-defects.mjs')) {
   const a = process.argv.slice(2); const opt = (k) => a[a.indexOf(k) + 1];
   const entries = readRegisters(opt('--root'));
   if (a.includes('--list')) { for (const [o, ds] of Object.entries(toFix(entries))) console.log(`${o}: ${ds.join(', ')}`); process.exit(0); }
-  const v = judge(entries, JSON.parse(readFileSync(opt('--results'), 'utf8')));
-  for (const x of v) console.log(`${x.verdict} ${x.case}`);
-  process.exit(v.some(blocks) ? 1 : 0);
+  for (const x of judge(entries, JSON.parse(readFileSync(opt('--results'), 'utf8')))) console.log(`${x.verdict} ${x.case}`);
 }
