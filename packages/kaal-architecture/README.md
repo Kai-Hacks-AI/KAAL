@@ -4,6 +4,7 @@ KAAL Architecture: telling Solution, what an intended solution is and must do, f
 
 ```
 skills/kaal-architecture/SKILL.md   the Agent Skill
+lib/records.mjs                     the mechanics of Architecture records: form, addresses check, next id
 00-changes/ 01-intent/ 02-requirements/ 03-architecture/   the Change that introduces it, traced Intent to Cases
 ```
 

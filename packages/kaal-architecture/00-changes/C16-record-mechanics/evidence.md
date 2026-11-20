@@ -1,16 +1,9 @@
 # C16 evidence
 
-The RED of this PLAN, in the tree of this PLAN. No job executes the Cases yet.
+## RED of the PLAN
 
-| Case | Tests | In this PLAN |
-| --- | --- | --- |
-| T23 | F14 | RED: cannot load, `lib/records.mjs` is absent |
-| T24 | F15 | RED: cannot load, the same |
-| T25 | F16 | RED: cannot load, the same |
-| T26 | N2 | RED: cannot load, the same |
+T23 to T26 could not load: `lib/records.mjs` was absent. No job executed the Cases.
 
-## Reproduce
+## GREEN of the DO
 
-```
-node red.mjs $(find packages/kaal-architecture/00-changes/C16-record-mechanics -name 'T*.red.mjs' | sort -V)
-```
+`node --test test/cases.test.mjs` in the package, Node 22 on Linux, with T23 to T26 moved beside F14, F15, F16 and N2. The Cases are static contract checks of the library on fixtures. They do not run over the A-records of any other package.

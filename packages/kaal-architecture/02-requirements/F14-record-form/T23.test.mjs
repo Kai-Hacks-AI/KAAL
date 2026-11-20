@@ -9,4 +9,5 @@ export function run() {
   assert.deepEqual(ok.addresses, ['controls/F10']);
   assert.equal(ok.id, 'controls/A5');
   assert.ok(readRecord('03-architecture/A6-x/A6.md', '---\nid: controls/A5\ntitle: x\naddresses: [controls/F10]\n---\n').problems.length > 0, 'number mismatch is a problem');
+  assert.ok(readRecord('03-architecture/A7-x/A7.md', '---\nid: controls/A7\ntitle: x\naddresses: []\n---\n').problems.length > 0, 'empty addresses is a problem');
 }
