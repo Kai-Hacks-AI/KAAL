@@ -1,26 +1,42 @@
 #!/usr/bin/env node
-// known-defects: report what run results show against the known-Defect registers in a tree. Evidence, not policy.
+// known-defects: derive, per Defect, what Test Case observations show at one revision, and which Defects are registered.
+// A Defect holds no state. `registered` is membership of a register; the observation is derived each time, never stored. Evidence, not policy.
 // A register is `known.json` in a `14-defects` folder; its entries point at Defect records in the same folder.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 
 const OUTCOME = new Set(['pass', 'fail', 'unknown']);
-export function judge(entries, results) {
-  const out = [];
-  const byCase = new Map(results.map((r) => [r.case, OUTCOME.has(r.outcome) ? r.outcome : 'unknown']));
-  const registered = new Set();
+/**
+ * entries: register entries { defect, case, exists }; observations: [{ case, outcome, revision }]; revision: the revision judged.
+ * A Case is applicable only when its observation names that revision; any other, missing or incomplete observation is unknown.
+ * A Defect with several connected Cases: reproduced if any applicable Case fails; not reproduced only if every connected Case
+ * applicably passes; otherwise unknown.
+ */
+export function observe(entries, observations, revision) {
+  const byCase = new Map(observations.map((o) => [o.case, o]));
+  const outcomeOf = (c) => {
+    const o = byCase.get(c);
+    if (!o || o.revision !== revision || !OUTCOME.has(o.outcome)) return 'unknown';
+    return o.outcome;
+  };
+  const defects = new Map();
+  const invalid = [];
   for (const e of entries) {
-    if (!e.exists) { out.push({ case: e.case, defect: e.defect, verdict: 'invalid' }); continue; }
-    registered.add(e.case);
-    const o = byCase.get(e.case) ?? 'unknown';
-    out.push({ case: e.case, defect: e.defect, verdict: o === 'fail' ? 'known' : o === 'pass' ? 'fixed' : 'unknown' });
+    if (!e.exists) { invalid.push({ case: e.case, defect: e.defect }); continue; }
+    (defects.get(e.defect) ?? defects.set(e.defect, []).get(e.defect)).push(e.case);
   }
-  for (const [c, o] of byCase) if (o === 'fail' && !registered.has(c)) out.push({ case: c, verdict: 'unregistered' });
-  return out;
+  const out = [];
+  for (const [defect, cases] of defects) {
+    const o = cases.map(outcomeOf);
+    out.push({ defect, registered: true, observation: o.includes('fail') ? 'reproduced' : o.every((x) => x === 'pass') ? 'not reproduced' : 'unknown' });
+  }
+  const listed = new Set(entries.map((e) => e.case));
+  const unregistered = observations.filter((o) => o.outcome === 'fail' && o.revision === revision && !listed.has(o.case)).map((o) => o.case);
+  return { defects: out, invalid, unregistered };
 }
 export function toFix(entries) {
   const g = {};
-  for (const e of entries) (g[e.placed ?? e.context] ??= []).push(e.defect);
+  for (const e of entries) { const l = (g[e.placed ?? e.context] ??= []); if (!l.includes(e.defect)) l.push(e.defect); }
   return g;
 }
 // every register in the tree, with each entry's Defect looked up in the same 14-defects folder
@@ -46,5 +62,8 @@ if (process.argv[1] && process.argv[1].endsWith('known-defects.mjs')) {
   const a = process.argv.slice(2); const opt = (k) => a[a.indexOf(k) + 1];
   const entries = readRegisters(opt('--root'));
   if (a.includes('--list')) { for (const [o, ds] of Object.entries(toFix(entries))) console.log(`${o}: ${ds.join(', ')}`); process.exit(0); }
-  for (const x of judge(entries, JSON.parse(readFileSync(opt('--results'), 'utf8')))) console.log(`${x.verdict} ${x.case}`);
+  const r = observe(entries, JSON.parse(readFileSync(opt('--results'), 'utf8')), opt('--revision'));
+  for (const d of r.defects) console.log(`${d.observation} ${d.defect} registered`);
+  for (const c of r.unregistered) console.log(`reproduced unregistered ${c}`);
+  for (const i of r.invalid) console.log(`invalid ${i.case}`);
 }

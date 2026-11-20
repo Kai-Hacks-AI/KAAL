@@ -24,7 +24,7 @@ In a throwaway root outside the repository, holding `draft/package.json` and `dr
 
 ## What this shows and does not show
 
-They show the verdicts (known, fixed, unknown, unregistered, invalid), that `unknown`, skipped, errored and missing results are never a proven known failure, that a verdict is evidence and not a merge decision (the script does not fail on any verdict), that the to-fix list follows the placement Architecture set and otherwise where the Defect was found, and that the package depends on nothing but Foundation and Hosting. They do not show that a real Defect fits the form, that CI can feed the results, or the shrink rule (left open).
+They show that a Defect's observation is derived at a revision from its connected Cases (reproduced, not reproduced, unknown), that stale, incomplete, skipped, errored, timed-out and missing observations are unknown, how several Cases combine, that `known` is only register membership, and that the script does not fail on any observation (policy is the consumer's), that the to-fix list follows the placement Architecture set and otherwise where the Defect was found, and that the package depends on nothing but Foundation and Hosting. They do not show that a real Defect fits the form, that CI can feed the results, or the shrink rule (left open).
 
 ## Reproduce
 

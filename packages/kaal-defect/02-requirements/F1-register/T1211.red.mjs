@@ -23,13 +23,15 @@ function fixture({ contexts, results = [] }) {
   writeFileSync(join(d, "results.json"), JSON.stringify(results));
   return d;
 }
-const check = (d, ...more) => spawnSync(process.execPath, [script, "--root", d, "--results", join(d, "results.json"), ...more], { encoding: "utf8" });
+const R = "r1";
+const check = (d, ...more) => spawnSync(process.execPath, [script, "--root", d, "--results", join(d, "results.json"), "--revision", R, ...more], { encoding: "utf8" });
+const obs = (c, outcome, revision = R) => ({ case: c, outcome, revision });
 export const title = 'a register sits in its context and an entry that points at no Defect in that folder is invalid';
 export async function run() {
-  const bad = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D9', case: 'x/T1' }] } }, results: [{ case: 'x/T1', outcome: 'fail' }] }));
+  const bad = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D9', case: 'x/T1' }] } }, results: [obs('x/T1', 'fail')] }));
   assert.match(bad.stdout, /invalid x\/T1/);
-  const other = check(fixture({ contexts: { 'a/b': { register: [{ defect: 'x/D1', case: 'x/T1' }] }, 'c': { defects: ['x/D1'] } }, results: [{ case: 'x/T1', outcome: 'fail' }] }));
+  const other = check(fixture({ contexts: { 'a/b': { register: [{ defect: 'x/D1', case: 'x/T1' }] }, 'c': { defects: ['x/D1'] } }, results: [obs('x/T1', 'fail')] }));
   assert.match(other.stdout, /invalid x\/T1/, 'a Defect in another context does not satisfy the entry');
-  const ok = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D1', case: 'x/T1' }] } }, results: [{ case: 'x/T1', outcome: 'fail' }] }));
-  assert.equal(ok.status, 0, `an entry with a Defect beside it is judged: ${ok.stdout}`);
+  const ok = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D1', case: 'x/T1' }] } }, results: [obs('x/T1', 'fail')] }));
+  assert.equal(ok.status, 0); assert.match(ok.stdout, /^reproduced x\/D1 registered$/m);
 }

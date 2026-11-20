@@ -23,7 +23,9 @@ function fixture({ contexts, results = [] }) {
   writeFileSync(join(d, "results.json"), JSON.stringify(results));
   return d;
 }
-const check = (d, ...more) => spawnSync(process.execPath, [script, "--root", d, "--results", join(d, "results.json"), ...more], { encoding: "utf8" });
+const R = "r1";
+const check = (d, ...more) => spawnSync(process.execPath, [script, "--root", d, "--results", join(d, "results.json"), "--revision", R, ...more], { encoding: "utf8" });
+const obs = (c, outcome, revision = R) => ({ case: c, outcome, revision });
 export const title = 'the to-fix list groups by the placement Architecture set, and by the context holding the entry until there is one';
 export async function run() {
   const d = fixture({ contexts: { 'a/b': { defects: ['x/D1', 'x/D2'], placed: { 'x/D1': 'c/d' }, register: [{ defect: 'x/D1', case: 'x/T1' }, { defect: 'x/D2', case: 'x/T2' }] } } });
