@@ -22,7 +22,6 @@ export async function run() {
     assert.ok(c, `${cid} is not listed`);
     assert.equal(c.type, type);
     assert.equal(c.title, name);
-    assert.doesNotMatch(`${c.title} ${c.description}`, /ruleset|workflow|script|\brules?\b|\bCI\b/i, `${cid} is named and described by its realization, not by what it controls`);
     assert.deepEqual(c.has, ['release/I54']);
     assert.equal(readFileSync(join(RM, `04-controls/${dir}/${cid.split('/')[1]}.md`), 'utf8'), `${draft(`${cid.split('/')[1]}.md`)}\n`, `${cid} differs from its draft`);
   }

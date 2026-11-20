@@ -4,7 +4,7 @@ Observed on Node 24, on `main` b1b40b2 plus this PLAN.
 
 ## Expected RED (the PLAN's tree)
 
-Each of the nine Cases was run alone and fails for the reason the PLAN states:
+Each of the eight Cases was run alone and fails for the reason the PLAN states:
 
 | Case | Result |
 | --- | --- |
@@ -12,7 +12,7 @@ Each of the nine Cases was run alone and fails for the reason the PLAN states:
 | T1271, T1272 | `F77.md` and `A68.md` are absent at their new places |
 | T1273 | `release/CTL25 is not listed` |
 | T1274 | `promoting.json differs from the draft` |
-| T1275, T1276 | `F81.md` and `A72.md` are absent |
+| T1275 | `F81.md` is absent |
 | T1277 | `judge-held.mjs is absent` |
 | T1278 | `04-controls/CTL22-verify-history is still on the tree` |
 
@@ -20,7 +20,7 @@ The `.red.mjs` files are ignored by the finders and the runner. `node --test eng
 
 ## Each Case can pass (throwaway copy)
 
-In a throwaway copy the drafts were written as the DO's files (the elements at their new places, the controls, `promoting.json`, the `stages.json` declaration, `judge-held.mjs`) and CTL22, its judge and its workflow source removed: T1270 to T1278 all pass. The Cases refuse their hand-made negatives. T1274: a promoting source without the rule, a rule traced to an undeclared control, a bypass actor. T1277: the judge fails a missing `non_fast_forward`, a rule of another type in its place, an empty list in force, and (for the status-check entry of its own control) a missing check or a changed setting; it passes with rules in force that are not declared and ignores the entries of other controls; and it is UNKNOWN for a list that is not a list of rules (either side), a control the station declares nothing for, no control, an unreadable file and a missing file. T1273 refuses a title or description of CTL25 or CTL26 that names its realization (ruleset, workflow, script, rule, CI).
+In a throwaway copy the drafts were written as the DO's files (the elements at their new places, the controls, `promoting.json`, the `stages.json` declaration, `judge-held.mjs`) and CTL22, its judge and its workflow source removed: T1270 to T1275, T1277 and T1278 all pass. The Cases refuse their hand-made negatives. T1274: a promoting source without the rule, a rule traced to an undeclared control, a bypass actor. T1277: the judge fails a missing `non_fast_forward`, a rule of another type in its place, an empty list in force, and (for the status-check entry of its own control) a missing check or a changed setting; it passes with rules in force that are not declared and ignores the entries of other controls; and it is UNKNOWN for a list that is not a list of rules (either side), a control the station declares nothing for, no control, an unreadable file and a missing file.
 
 ## What the DO breaks (the Accept list)
 

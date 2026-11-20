@@ -11,7 +11,7 @@ title: main history is kept
 ---
 # release/I54 main history is kept
 
-Contract: the branch `main` is only ever moved forward. Every commit that was `main` stays reachable from `main`. A force-push, which rewrites `main`, destroys the record that Changes, reviews and promotions rest on. Reason: a delivery that can be rewritten cannot be audited. Owner: release management. release/CTL25 `hold History` keeps it, by refusing a push that does not move `main` forward before it lands; release/CTL26 `verify History held` reveals whether that keeping is in force. A deletion of `main` is a different protection, held today by the `deletion` rule of the old ruleset; it is not claimed here and is tracked as its own Intent and control.
+Contract: the branch `main` is only ever moved forward. Every commit that was `main` stays reachable from `main`. A force-push, which rewrites `main`, destroys the record that Changes, reviews and promotions rest on. Reason: a delivery that can be rewritten cannot be audited. Owner: release management. A deletion of `main` is a different protection, held today by the `deletion` rule of the old ruleset; it is not claimed here and is tracked as its own Intent and control.
 `````
 
 ## Draft of F77.md
@@ -25,7 +25,7 @@ serves: [release/I54]
 ---
 # release/F77 hold-history
 
-A push to the default branch that does not move it forward is refused before it lands, whoever pushes: no bypass. The Promoting station declares what refuses it, an entry traced to release/CTL25 `hold History`, beside the detections the station requires; the station owns its list, and a detection does not name the station. The requirement changes no other entry of the station, does not touch the integration branches and makes no claim about a deletion of `main`. It operates only once the Owner has loaded what the station declares.
+A push to the default branch that does not move it forward is refused before it lands, whoever pushes: no bypass. The Promoting station declares what refuses it, an entry traced to release/CTL25 `hold History`, beside the detections the station requires; the station owns its list, and a detection does not name the station. It replaces the same protection of the old promotion ruleset, and the push judge release/CTL22 `verify History`, which could only reveal a rewrite afterwards, is retired. The requirement changes no other entry of the station, does not touch the integration branches and makes no claim about a deletion of `main`. It operates only once the Owner has loaded what the station declares. A second requirement, release/F81, makes it observable whether it is in force.
 `````
 
 ## Draft of A68.md
@@ -33,12 +33,18 @@ A push to the default branch that does not move it forward is refused before it 
 `````
 ---
 id: release/A68
-title: hold-history
-addresses: [release/F77]
+title: promoting-ruleset
+addresses: [release/F77, release/F81]
 ---
-# release/A68 hold-history
+# release/A68 promoting-ruleset
 
-The ruleset source `05-src/wiring/rulesets/promoting.json` lists `{ "type": "non_fast_forward" }` after the required status checks, active, with an empty bypass list, and `stages.json` declares `{ "type": "non_fast_forward", "control": "release/CTL25" }` in the rules of the Promoting stage, so `verify Stages` judges the source against the declaration with the judge it has, which already compares the rule types and their settings and traces each rule to a declared control that has an Intent. A control that is realized by requiring a detection at the station is an entry of the station's declaration too, and stays a control named by what it controls: release/CTL5 and release/CTL20 (and likely release/CTL10) stay preventive controls, to be renamed and re-explained by what they control in later slices, each its own Change. The push judge `05-src/history/verify-history.mjs`, its workflow source `05-src/wiring/workflows/verify-history.yml` and the control release/CTL22 leave: they could only reveal a rewrite after it had happened. Loading the ruleset is the Owner's step, by the ruleset update procedure, and the Owner retires the old ruleset's rule only after the new one is loaded and has been observed in force.
+The component is the ruleset of the Promoting station. One element serves every Requirement that the station realizes as an entry of its declaration, so each is held and tested the same way: its declared entry is in force. Today it addresses release/F77 (the history of `main` is never rewritten) and release/F81 (it can be observed that the declared entry is in force); the Requirements that other entries realize (no deletion, review, the detections the station requires) are added to `addresses` as their Changes migrate them, and the Architecture elements that address the same source today (for instance release/A63 for release/F68) fold into this one then.
+
+The declaration is `stages.json`: the rules of the Promoting stage, each an entry traced to the control it realizes. The source is `05-src/wiring/rulesets/promoting.json`, which `verify Stages` judges against the declaration with the judge it has: it compares the rule types and their settings and traces each entry to a declared control that has an Intent. The entry of this Change is `{ "type": "non_fast_forward", "control": "release/CTL25" }`, with `{ "type": "non_fast_forward" }` after the required status checks in the source, active, with an empty bypass list. A control that is realized by requiring a detection at the station is an entry of the same declaration and stays a control named by what it controls: release/CTL5 and release/CTL20 (and likely release/CTL10) stay preventive controls, to be renamed and re-explained in later slices, each its own Change.
+
+What is in force is compared with what is declared by `05-src/history/judge-held.mjs`, a pure judge `judgeHeld({ declared, live, control })` and a command line `--declared <file of the declared entries> --live <file of the rules in force> --control <control id>` that exits 0 for PASS, 1 for FAIL and 2 for UNKNOWN. It takes the entries the stage declares for a control and the rules in force for the default branch, so the station, not the judge, owns the list, and one judge serves every control realized as an entry. Reading the rules in force, through Hosting, and running the check on a schedule or on a push are later slices with their own Changes.
+
+The push judge `05-src/history/verify-history.mjs`, its workflow source `05-src/wiring/workflows/verify-history.yml` and the control release/CTL22 leave. The order of operation keeps every moment protected: the DO reaches `main`; the Owner loads the ruleset by the ruleset update procedure; the entry is observed in force; the Owner retires the old ruleset's rule. The evidence of an entry's control is two fixture runs of the source and its declaration, two real observations that it is in force (when loaded, and after the old rule is retired) and one provoked failure, here a force-push refused on a scratch branch under an equivalent live ruleset, counted only when the same push is accepted without the rule; the Owner creates that scratch ruleset.
 `````
 
 ## Draft of F81.md
@@ -55,19 +61,6 @@ serves: [release/I54]
 A check reads the entries the Promoting station declares for release/CTL25 `hold History` and the rules in force for the default branch, both handed to it as lists of rules. It says PASS when every entry declared for the control is in force with the settings declared, FAIL naming each entry that is not, and UNKNOWN when either list is not a list of rules or could not be read, or the station declares no entry for the control, which never passes. An entry of another control is not its business and a rule in force that the station does not declare is no finding. It reads no ruleset source, no Git and no network: which rules are in force is the wiring's fact. It does not prevent anything and does not approve or merge.
 `````
 
-## Draft of A72.md
-
-`````
----
-id: release/A72
-title: verify-history-held
-addresses: [release/F81]
----
-# release/A72 verify-history-held
-
-One module `05-src/history/judge-held.mjs` with a pure judge `judgeHeld({ declared, live, control })` and a command line `--declared <file of the declared entries> --live <file of the rules in force> --control <control id>` that exits 0 for PASS, 1 for FAIL and 2 for UNKNOWN. The module is the judge release/CTL26 declares. The declared entries are the rules of the Promoting stage in `stages.json`, each traced to its control, so the station, not the judge, owns the list and the same judge serves any other control that is implemented as a ruleset rule; the rules in force are what GitHub lists for the default branch. Reading them, through Hosting, and running the check on a schedule or on a push are later slices with their own Changes.
-`````
-
 ## Draft of CTL25.md
 
 `````
@@ -82,13 +75,7 @@ evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL25 hold History
 
-A preventive control. The history of `main` is never rewritten: a push that does not move `main` forward, a force-push above all, is refused before it lands, and no one may bypass it. It replaces the same protection of the old promotion ruleset, and the push judge release/CTL22 `verify History`, which could only reveal a rewrite afterwards, is retired.
-
-It is explained by what it controls. How it is realized is a detail of the station: the Promoting station declares an entry for it in `stages.json`, beside the detections the station requires, and the ruleset source `05-src/wiring/rulesets/promoting.json` carries it as a rule. The same holds for the preventive controls that are realized by requiring a detection at the station: release/CTL5 and release/CTL20, and likely release/CTL10, stay controls and are renamed and re-explained by what they control in later slices, each its own Change.
-
-It operates only once the Owner has loaded the ruleset, by the ruleset update procedure, and then retires the rule of the old ruleset, in that order, so that no moment is unprotected. It declares its own minimum evidence: two fixture runs of the source and its declaration, two real observations that it is in force on the real repository (release/CTL26), one when the ruleset is loaded and one after the old ruleset's rule is retired, and one provoked failure, a force-push refused on a scratch branch under an equivalent live ruleset, counted only when the same push is accepted without the rule. The provoked run needs a live ruleset on a scratch branch, which the Owner creates.
-
-It makes no claim about a deletion of `main`. It has one Intent, release/I54.
+A preventive control. The history of `main` is never rewritten: a push that does not move `main` forward, a force-push above all, is refused before it lands, and no one may bypass it. It makes no claim about a deletion of `main`. It has one Intent, release/I54, which holds the details with the Requirements and Architecture under it.
 `````
 
 ## Draft of CTL26.md
@@ -105,11 +92,7 @@ evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL26 verify History held
 
-A detective control, the partner of release/CTL25. `verify History held` compares what the Promoting station declares for `hold History` with the rules in force for the default branch and says PASS when it is in force as declared, FAIL naming what is not, and UNKNOWN when either side could not be read or the station declares nothing for it, which never passes. PASS is not an approval and not a merge decision.
-
-It reveals; it does not prevent. It reads what is in force, not the ruleset source, so it sees what the source cannot: a ruleset that was never loaded, disabled or edited in the settings. Entries of other controls are not its business, and a rule in force that the station does not declare is no finding. Reading the rules from GitHub and running the check are later slices. A fixture with the declared entry missing counts as its provoked failure.
-
-It has one Intent, release/I54.
+A detective control, the partner of release/CTL25. It reveals whether the keeping of the history of `main` is in force as the Promoting station declares it: PASS when it is, FAIL naming what is not, UNKNOWN when it cannot tell, which never passes. PASS is not an approval and not a merge decision. It reveals; it does not prevent. It has one Intent, release/I54, which holds the details with the Requirements and Architecture under it.
 `````
 
 ## Draft of promoting.json

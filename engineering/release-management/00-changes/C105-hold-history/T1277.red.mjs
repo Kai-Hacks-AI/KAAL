@@ -1,4 +1,4 @@
-// Case release/T1277 tests: release/F81, release/A72
+// Case release/T1277 tests: release/F81, release/A68
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -11,7 +11,7 @@ const FINDER = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/f
 const CHECK = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/check-controls.mjs');
 const draft = (name) => readFileSync(join(RM, '00-changes/C105-hold-history/interface.md'), 'utf8').split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 export const id = 'release/T1277';
-export const tests = ['release/F81', 'release/A72'];
+export const tests = ['release/F81', 'release/A68'];
 export const title = 'judgeHeld says PASS when every entry the station declares for the control is in force with its declared settings and checks, whatever else is in force or declared for other controls, FAIL naming each entry that is not, and UNKNOWN when a list is not a list of rules, the station declares nothing for the control or no control is given; the command line exits 0, 1 and 2 and treats an unreadable file as UNKNOWN';
 export async function run() {
   const SRC = join(RM, '05-src/history/judge-held.mjs');
