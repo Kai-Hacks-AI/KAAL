@@ -17,7 +17,7 @@ Against a throwaway copy of the package outside the repository, with the `withou
 
 ## What this shows and does not show
 
-The Cases show that a provoked run counts as its type requires, that an unnamed mechanism and an unshown run are said, that a judgement is read only in its shape and never mixed with run records, and that the latest judgement is shown, stale when the control or its Cases changed, without changing a verdict. They do not show that any real control's Cases cover its criterion: that is what the judgement is for, and none has been made.
+The Cases show that a provoked run counts as its type requires, that an unnamed mechanism and an unshown run are said, that a judgement is read only in its shape and for what it is about (verification or validation) and never mixed with run records, and that the latest judgement is shown, stale when the control or its Cases changed, without changing a verdict. They do not show that any real control's Cases cover its criterion: that is what the judgement is for, and none has been made.
 
 ## Reproduce
 
