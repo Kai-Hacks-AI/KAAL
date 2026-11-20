@@ -17,9 +17,9 @@ export const tests = ['defect/F3'];
 function fixture({ contexts, records = [] }) {
   assert.ok(existsSync(script), 'the script scripts/known-defects.mjs is absent');
   const d = mkdtempSync(join(tmpdir(), 'known-'));
-  for (const [ctx, { defects = [], register = [], cases = {}, placed = {} }] of Object.entries(contexts)) {
+  for (const [ctx, { defects = [], register = [], cases = {}, placed = {}, reaches = {} }] of Object.entries(contexts)) {
     mkdirSync(join(d, ctx, '14-defects'), { recursive: true });
-    for (const i of defects) writeFileSync(join(d, ctx, '14-defects', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}---\n# ${i}\n`);
+    for (const i of defects) writeFileSync(join(d, ctx, '14-defects', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
     writeFileSync(join(d, ctx, '14-defects', 'known.json'), JSON.stringify(register));
     for (const [c, target] of Object.entries(cases)) writeFileSync(join(d, ctx, `T${c.split('T')[1]}.red.mjs`), `// Case ${c} tests: ${target}\n`);
   }
@@ -27,7 +27,7 @@ function fixture({ contexts, records = [] }) {
   return d;
 }
 const R = 'r1';
-const rec = (c, outcome, revision = R, run = '1') => ({ case: c, run, revision, outcome });
+const rec = (c, outcome, revision = R, run = '1', covers = ['.']) => ({ case: c, run, revision, outcome, covers });
 const check = (d, ...more) => spawnSync(process.execPath, [script, '--root', d, '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
 const lines = (r) => r.stdout.split('\n').filter(Boolean);
 

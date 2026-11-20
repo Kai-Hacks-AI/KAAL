@@ -12,12 +12,16 @@ A Defect is a passive description of an undesirable condition. What it is about 
 
 A Test Case points at a Defect with its first line, `// Case <id> tests: <defect id>`. The Defect lists no Test Case. A Defect is `<owner>/D<n>`, counted per owner, and its record is an md file in a `14-defects` folder whose front matter has `id`.
 
+## Reach
+
+A Defect claims its reach in its record: `reach: <part>, <part>`, where its condition can manifest, such as `.` (repo-wide), `packages/`, or `.kaal/, engineering/`. Each Case covers a corner of it. A record names the parts its run covered, `covers`. A claimed part that no `GREEN` applicable record covers counts toward `unknown`, never `answered`. A covered part covers the parts under it, and `.` covers all. A Defect that claims no reach cannot be answered.
+
 ## State
 
-Derive it from records `{case, run, revision, outcome}` that a Case runner made (see kaal-testing), where outcome is `GREEN`, `RED` or `UNKNOWN`. Only records of the revision judged count; another revision is stale. A missing record, or any outcome other than `GREEN` or `RED` (skipped, errored, timed out, incomplete), is `UNKNOWN`.
+Derive it from records `{case, run, revision, outcome, covers}` that a Case runner made (see kaal-testing), where outcome is `GREEN`, `RED` or `UNKNOWN`. Only records of the revision judged count; another revision is stale. A missing record, or any outcome other than `GREEN` or `RED` (skipped, errored, timed out, incomplete), is `UNKNOWN`.
 
 - `confirmed`: some applicable Case is `RED`, even if every other Case is `UNKNOWN`; one RED Case shows the Defect exists
-- `answered`: it has Cases and every applicable Case is `GREEN` with complete evidence
+- `answered`: it has Cases, every applicable Case is `GREEN` with complete evidence, and every part of its reach is covered
 - `unknown`: otherwise, including no Case at all
 
 Several Cases that point at one Defect are different manifestations or conditions of the same undesirable condition. They are not several Defects and not several places to fix. Each Case's own outcome is kept beside the derived state.
@@ -29,4 +33,4 @@ Each context keeps its own register: `known.json` in its `14-defects` folder, a 
 
 ## Use
 
-`node scripts/known-defects.mjs --root <dir> --records <file> --revision <revision>` prints `<state> <defect>` per Defect record, with ` known` when its context registers it, then one indented `<case> <outcome>` line for each Case that points at it. Add `--list` for what each owner has to fix: registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none. The script runs no Test Case.
+`node scripts/known-defects.mjs --root <dir> --records <file> --revision <revision>` prints `<state> <defect>` per Defect record, with ` known` when its context registers it, then one indented `<case> <outcome>` line for each Case that points at it, `reach unclaimed` when it claims none, and `uncovered <part>` for each claimed part no GREEN Case covers. Add `--list` for what each owner has to fix: registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none. The script runs no Test Case.
