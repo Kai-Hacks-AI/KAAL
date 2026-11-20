@@ -18,6 +18,10 @@ Change `release/C108`, Intent `release/I58`, Requirement `release/F84`, Architec
 - **Which Changes a promotion carries** is derived from content by kaal-change (the carries, by Change ID, never from the title or the body of the pull request); the wiring hands the list in. The judge is given it and derives nothing.
 - **Why not on the collector.** At `23 - collecting` the check would fail the DO that closes the last red Case, because at that moment everything is green and the ACT has not yet been written. At `30 - promoting` the ACT must already be there.
 
+## Boundary: the unfinished Change (CPO question, 20 Nov 2026)
+
+`demand Act` says PASS for a carried Change that is unfinished, red or parked Cases and no `act.md`, on purpose: it asks for the ACT only once the work is finished. **The gap is open and C108 does not cover it.** No existing control refuses the promotion of an unfinished Change today: `hold Act` (release/C103) only keeps an `act.md` out of a collector while Cases are red, and an unfinished Change has no `act.md`. The control that does is planned as its own small Change (provisionally release/C109, "no unfinished Change is promoted", name to be settled by the Owner): at the Promoting station it would say FAIL, naming them, for each carried Change whose applicable Cases are not really green, using the same judge (`judgeAct` of release/C103) so that the three controls cannot disagree about when work is finished, and it would follow the same detective-first rollout. It is not part of C108 and nothing of it is built here.
+
 ## DO
 
 On the merged PLAN, after the DO of release/C103 is on the collector, into the collector of this Change:
