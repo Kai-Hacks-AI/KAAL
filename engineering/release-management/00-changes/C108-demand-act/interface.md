@@ -11,7 +11,7 @@ title: a collector is closed by its retro before it is promoted
 ---
 # release/I58 a collector is closed by its retro before it is promoted
 
-Contract: a collector whose work is finished, every Case that applies to the Changes it carries really green (release/I56), is closed by its ACT before it is promoted. The ACT is the retro of the collector (the 4L of kaal-retro, in `02-learnings/retros/`), and it names the Changes it reflects: `retro -reflects-> Change`. A Change is closed when exactly one retro reflects it. The ACT is the last step of the work: only when it has landed is the collector done. A collector that is not yet finished owes no ACT, and its Cases are another concern. Reason: a collector promoted without its retro leaves the retrospective of the work unwritten and the PDCA of its Changes unclosed, and nothing afterwards asks for it. Owner: release management. What the retro must contain, and its id, are not claimed here: they are kaal-retro's.
+Contract: a collector whose work is finished, every Case that applies to the Changes it carries really green (release/I56), is closed by its ACT before it is promoted. The ACT is the retro of the collector (the 4L of kaal-retro, in `02-learnings/retros/`), and it names the Changes it reflects: `retro -reflects-> Change`. A collector has exactly one ACT, one retro that reflects the complete set of the Changes it carries, and a Change is closed when that retro reflects it. The ACT is the last step of the work: only when it has landed is the collector done. A collector that is not yet finished owes no ACT, and its Cases are another concern. Reason: a collector promoted without its retro leaves the retrospective of the work unwritten and the PDCA of its Changes unclosed, and nothing afterwards asks for it. Owner: release management. What the retro must contain, and its id, are not claimed here: they are kaal-retro's.
 `````
 
 ## Draft of F84.md
@@ -25,7 +25,7 @@ serves: [release/I58]
 ---
 # release/F84 demand-act
 
-The promotion is judged over the Changes it carries, handed in as facts, and over the retros of the tree, read only by what they declare in their front matter, `reflects: [C…]` (their id and format are kaal-retro's). When every Case that applies to the carried Changes is really green, as release/I56 judges it, each carried Change must be reflected by one retro: it says FAIL naming the Changes that no retro reflects (`Changes closed, retro due`). It says FAIL, at any time, naming a Change that more than one retro reflects. It says PASS when the work is not finished (that gap is another control's), when every carried Change is reflected by one retro, or when none is carried; and UNKNOWN, which never passes, when it cannot be told whether the work is finished and a Change is unreflected. The judgement reads nothing of the history or the titles of the pull request. The judge is one function; the places that ask it decide what a verdict does: the required check of the Promoting station blocks, an advisory reminder never does.
+The promotion is judged over the Changes it carries, handed in as facts, and over the retros of the tree, read only by what they declare in their front matter, `reflects: [C…]` (their id and format are kaal-retro's). When every Case that applies to the carried Changes is really green, as release/I56 judges it, the collector must have exactly one ACT, one retro that reflects every carried Change: it says FAIL naming the Changes that no retro reflects (`Changes closed, retro due`). It says FAIL, at any time, when more than one retro reflects the Changes the collector carries, however they are divided between them. It says PASS when the work is not finished and no more than one ACT stands (that gap is another control's), when one retro reflects every carried Change, or when none is carried; and UNKNOWN, which never passes, when it cannot be told whether the work is finished and a Change is unreflected. The judgement reads nothing of the history or the titles of the pull request. The judge is one function; the places that ask it decide what a verdict does: the required check of the Promoting station blocks, an advisory reminder never does.
 `````
 
 ## Draft of A74.md
@@ -57,14 +57,14 @@ evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL29 demand Act
 
-A detective control that is meant to become preventive. A collector is not to be promoted when its work is finished and a Change it carries is reflected by no retro, or by more than one: once the Promoting station requires the check of release/A74 on the promotion, the ACT cannot be skipped. A collector that is not finished owes no ACT yet, and a Change that has its retro is not asked for more; what a retro must contain is the control `verify Act`. It sits on the promotion and never on the collector, where it would hold back the DO that closes the last red Case. It has one Intent, release/I58, which holds the details with the Requirements and Architecture under it. It rolls out detective first: (1) its verdict is observed on real promotions without blocking; (2) it runs as an advisory CI check behind a feature flag and the evidence is collected; (3) only after validation and the Owner's explicit authorization is it declared on the Promoting station and loaded by the Owner, and from then on the control is preventive and its type changes in the Change that makes it so; release/CTL26 then observes that the requirement is in force. The judge only judges; once the check is required UNKNOWN does not pass.
+A detective control that is meant to become preventive. A collector is not to be promoted when its work is finished and a Change it carries is reflected by no retro, or when more than one retro reflects the Changes it carries: once the Promoting station requires the check of release/A74 on the promotion, the ACT cannot be skipped. A collector that is not finished owes no ACT yet, and a Change that has its retro is not asked for more; what a retro must contain is the control `verify Act`. It sits on the promotion and never on the collector, where it would hold back the DO that closes the last red Case. It has one Intent, release/I58, which holds the details with the Requirements and Architecture under it. It rolls out detective first: (1) its verdict is observed on real promotions without blocking; (2) it runs as an advisory CI check behind a feature flag and the evidence is collected; (3) only after validation and the Owner's explicit authorization is it declared on the Promoting station and loaded by the Owner, and from then on the control is preventive and its type changes in the Change that makes it so; release/CTL26 then observes that the requirement is in force. The judge only judges; once the check is required UNKNOWN does not pass.
 `````
 
 ## Draft of judge-demand-act.mjs
 
 `````
-// demand Act: once the work of a collector is finished, is every Change it carries reflected by exactly one retro? Pure over facts: nothing is read from Git or GitHub.
-// judgeDemandAct({ changes, retros, observed }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', message[, due, twice] }
+// demand Act: once the work of a collector is finished, does it have exactly one ACT, one retro that reflects every Change it carries? Pure over facts: nothing is read from Git or GitHub.
+// judgeDemandAct({ changes, retros, observed }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', message[, due, acts] }
 // changes: the Changes a promotion carries, each { id, applicable }; retros: each { reflects: [ids] } (the id and the format of a retro are not read);
 // observed: the observations of Testing. Whether work is really green is decided by hold Act's judge, not here.
 import { readFileSync, existsSync } from 'node:fs';
@@ -79,19 +79,19 @@ export function judgeDemandAct(facts) {
   if (!Array.isArray(changes) || !changes.every((c) => c && typeof c.id === 'string' && c.id !== '' && Array.isArray(c.applicable))) return unknown('the carried Changes could not be read');
   if (!Array.isArray(retros) || !retros.every((r) => r && Array.isArray(r.reflects) && r.reflects.every((s) => typeof s === 'string'))) return unknown('the retros could not be read');
   const count = (id) => retros.filter((r) => r.reflects.includes(id)).length;
-  const twice = changes.filter((c) => count(c.id) > 1).map((c) => c.id);
+  const acts = retros.filter((r) => r.reflects.some((id) => changes.some((c) => c.id === id)));
   const unreflected = changes.filter((c) => count(c.id) === 0).map((c) => c.id);
   const problems = [];
   let due = [], cannot = false;
-  if (twice.length) problems.push(`reflected by more than one retro: ${twice.join(', ')}`);
+  if (acts.length > 1) problems.push(`more than one ACT for the collector: ${acts.map((r) => `[${r.reflects.join(', ')}]`).join(' ')}`);
   if (unreflected.length) {
     const finished = judgeFinished({ changes, observed }).verdict;
     if (finished === 'PASS') { due = unreflected; problems.push(`Changes closed, retro due: ${due.join(', ')}`); }
     else if (finished === 'UNKNOWN') cannot = true;
   }
-  if (problems.length) return { verdict: 'FAIL', message: problems.join('; '), due, twice };
+  if (problems.length) return { verdict: 'FAIL', message: problems.join('; '), due, acts: acts.length };
   if (cannot) return unknown(`cannot tell whether the work is finished, and these Changes are reflected by no retro: ${unreflected.join(', ')}`);
-  return { verdict: 'PASS', message: 'nothing is due', due, twice };
+  return { verdict: 'PASS', message: 'nothing is due', due, acts: acts.length };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -100,7 +100,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     const root = arg('--root') ?? '.';
     const dirs = (arg('--changes') ?? '').split(',').filter(Boolean);
-    const ids = dirs.map(changeIdOf);
+    const ids = dirs.map((d) => changeIdOf(root, d));
     if (ids.some((id) => !id) || dirs.some((d) => !existsSync(join(root, d)))) throw new Error('the carried Changes are not known');
     const retros = retrosOf(root);
     const open = ids.some((id) => !retros.some((x) => x.reflects.includes(id)));

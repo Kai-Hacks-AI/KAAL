@@ -30,7 +30,7 @@ export async function run() {
     for (const [dir, n] of [[A, 1], [B, 2]]) {
       put(`${dir}/${dir.split('/')[1].slice(0, 4)}.md`, `---\nid: x/${dir.split('/')[1].slice(0, 4)}\nimplements: [x/I${n}]\n---\n# c\n`);
       put(`${dir}/interface.md`, `# i\n\n## Draft of E\n\n\`\`\`\`\`\n---\nid: x/I${n}\n---\n# i\n\`\`\`\`\`\n`);
-      put(`${dir}/T${n}.red.mjs`, `export const id = 'x/T${n}';\nexport const tests = ['x/I${n}'];\nexport const title = 't';\nexport async function run() {}\n`);
+      put(`${dir}/T${n}.red.mjs`, `export const ${'id'} = 'x/T${n}';\nexport const tests = ['x/I${n}'];\nexport const title = 't';\nexport async function run() {}\n`);
     }
     const green = { 'x/T1': 'GREEN', 'x/T2': 'GREEN' };
     const RETRO = (reflects, extra = '') => `---\n${extra}reflects: [${reflects.join(', ')}]\n---\n# a retro\n`;
@@ -46,32 +46,38 @@ export async function run() {
     assert.match(r.out, /C901/);
     assert.match(r.out, /C902/);
     // a retro of an earlier collector reflects other Changes
-    put('02-learnings/retros/old.md', RETRO(['C100']));
+    put('02-learnings/retros/old.md', RETRO(['x/C100']));
     assert.equal(cli(green, A, B).code, 1, 'the retro of another collector closes nothing here');
     // a retro arrives for A only, whatever its id and its format
-    put('02-learnings/retros/RT5/retro.md', RETRO(['C901'], 'id: x/RT5\nformat: 4L\n'));
+    put('02-learnings/retros/RT5/retro.md', RETRO(['x/C901'], 'id: x/RT5\nformat: 4L\n'));
     r = cli(green, A, B);
     assert.equal(r.code, 1);
     assert.match(r.out, /C902/);
     assert.doesNotMatch(r.out, /C901/, 'a Change with its retro is not named');
-    // one retro for both
-    put('02-learnings/retros/RT5/retro.md', RETRO(['C901', 'C902'], 'id: 4L.5\n'));
+    // one ACT for the full set
+    put('02-learnings/retros/RT5/retro.md', RETRO(['x/C901', 'x/C902'], 'id: 4L.5\n'));
     assert.equal(cli(green, A, B).code, 0);
-    // two retros reflect one Change
-    put('02-learnings/retros/second.md', RETRO(['C902']));
+    // one collector, one ACT: a second retro that reflects a carried Change is refused, the same Change or another
+    put('02-learnings/retros/second.md', RETRO(['x/C902']));
     r = cli(green, A, B);
     assert.equal(r.code, 1);
-    assert.match(r.out, /more than one retro: C902/);
+    assert.match(r.out, /more than one ACT for the collector/);
+    put('02-learnings/retros/RT5/retro.md', RETRO(['x/C901'], 'id: 4L.5\n'));
+    r = cli(green, A, B);
+    assert.equal(r.code, 1, 'one retro for each Change are two ACTs, not the full set in one');
+    assert.match(r.out, /more than one ACT for the collector/);
+    assert.equal(cli({ 'x/T1': 'RED', 'x/T2': 'RED' }, A, B).code, 1, 'two ACTs are refused whatever is red');
     rmSync(join(root, '02-learnings/retros/second.md'));
+    put('02-learnings/retros/RT5/retro.md', RETRO(['x/C901', 'x/C902'], 'id: 4L.5\n'));
     // it cannot tell
-    put('02-learnings/retros/RT5/retro.md', RETRO(['C901']));
+    put('02-learnings/retros/RT5/retro.md', RETRO(['x/C901']));
     assert.equal(cli({ 'x/T1': 'GREEN' }, A, B).code, 2, 'an unobserved Case of a Change that no retro reflects');
     assert.equal(cli(green, A, '00-changes/C000-nowhere').code, 2, 'a Change that is not there must not pass');
     assert.equal(cli(green, A, '00-changes/nothing').code, 2, 'a folder that is not a Change must not pass');
     rmSync(obs);
-    put('02-learnings/retros/RT5/retro.md', RETRO(['C901', 'C902']));
+    put('02-learnings/retros/RT5/retro.md', RETRO(['x/C901', 'x/C902']));
     assert.equal(cli(undefined, A, B).code, 0, 'Changes with their retro need no observation');
-    put('02-learnings/retros/RT5/retro.md', RETRO(['C901']));
+    put('02-learnings/retros/RT5/retro.md', RETRO(['x/C901']));
     assert.equal(cli(undefined, A, B).code, 2, 'a missing observation must not pass');
     writeFileSync(obs, 'not json');
     assert.equal(cli(undefined, A, B).code, 2, 'an unreadable observation must not pass');
