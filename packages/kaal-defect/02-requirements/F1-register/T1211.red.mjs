@@ -12,23 +12,33 @@ const script = join(pkg, 'skills/kaal-defect/scripts/known-defects.mjs');
 const skill = () => { assert.ok(existsSync(skillFile), 'the Skill packages/kaal-defect/skills/kaal-defect/SKILL.md is absent'); return readFileSync(skillFile, 'utf8'); };
 export const id = 'defect/T1211';
 export const tests = ['defect/F1'];
-function fixture({ contexts }) {
-  assert.ok(existsSync(script), "the script scripts/known-defects.mjs is absent");
-  const d = mkdtempSync(join(tmpdir(), "known-"));
-  for (const [ctx, { defects = [], register = [], placed = {} }] of Object.entries(contexts)) {
-    mkdirSync(join(d, ctx, "14-defects"), { recursive: true });
-    for (const i of defects) writeFileSync(join(d, ctx, "14-defects", i.replace("/", "-") + ".md"), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ""}---\n# ${i}\n`);
-    writeFileSync(join(d, ctx, "14-defects", "known.json"), JSON.stringify(register));
+
+// A tree: contexts hold Defect records, a register and Cases whose first line points at a Defect.
+function fixture({ contexts, records = [] }) {
+  assert.ok(existsSync(script), 'the script scripts/known-defects.mjs is absent');
+  const d = mkdtempSync(join(tmpdir(), 'known-'));
+  for (const [ctx, { defects = [], register = [], cases = {}, placed = {} }] of Object.entries(contexts)) {
+    mkdirSync(join(d, ctx, '14-defects'), { recursive: true });
+    for (const i of defects) writeFileSync(join(d, ctx, '14-defects', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${placed[i] ? `placed: ${placed[i]}\n` : ''}---\n# ${i}\n`);
+    writeFileSync(join(d, ctx, '14-defects', 'known.json'), JSON.stringify(register));
+    for (const [c, target] of Object.entries(cases)) writeFileSync(join(d, ctx, `T${c.split('T')[1]}.red.mjs`), `// Case ${c} tests: ${target}\n`);
   }
+  writeFileSync(join(d, 'records.json'), JSON.stringify(records));
   return d;
 }
-const check = (d, ...more) => spawnSync(process.execPath, [script, "--root", d, ...more], { encoding: "utf8" });
-export const title = 'a register sits in its context and an entry that points at no Defect in that folder is invalid';
+const R = 'r1';
+const rec = (c, outcome, revision = R, run = '1') => ({ case: c, run, revision, outcome });
+const check = (d, ...more) => spawnSync(process.execPath, [script, '--root', d, '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
+const lines = (r) => r.stdout.split('\n').filter(Boolean);
+
+export const title = 'a register is read in its context, marks its Defects known, and an id with no Defect record in that folder is invalid';
 export async function run() {
-  const bad = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D9', case: 'x/T1' }] } } }));
-  assert.match(bad.stdout, /^invalid x\/D9 x\/T1$/m);
-  const other = check(fixture({ contexts: { 'a/b': { register: [{ defect: 'x/D1', case: 'x/T1' }] }, 'c': { defects: ['x/D1'] } } }));
-  assert.match(other.stdout, /^invalid x\/D1 x\/T1$/m, 'a Defect in another context does not satisfy the entry');
-  const ok = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: [{ defect: 'x/D1', case: 'x/T1' }] } } }));
-  assert.equal(ok.status, 0); assert.match(ok.stdout, /^link x\/D1 x\/T1$/m);
+  const ok = check(fixture({ contexts: { 'a/b': { defects: ['x/D1', 'x/D2'], register: ['x/D1'] } } }));
+  assert.equal(ok.status, 0);
+  assert.ok(lines(ok).includes('unknown x/D1 known'), 'registered: known');
+  assert.ok(lines(ok).includes('unknown x/D2'), 'not registered: not known');
+  const bad = check(fixture({ contexts: { 'a/b': { defects: ['x/D1'], register: ['x/D9'] } } }));
+  assert.ok(lines(bad).includes('invalid x/D9'));
+  const other = check(fixture({ contexts: { 'a/b': { register: ['x/D1'] }, 'c': { defects: ['x/D1'] } } }));
+  assert.ok(lines(other).includes('invalid x/D1'), 'a Defect in another context does not satisfy the entry');
 }

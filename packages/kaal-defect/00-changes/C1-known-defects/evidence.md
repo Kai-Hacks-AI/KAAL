@@ -15,16 +15,18 @@ The PLAN of defect/C1 observes its RED against `main` at `fa07abe`. It cites not
 | T1212 | F2 | RED: the script is absent |
 | T1213 | F3 | RED: the script is absent |
 | T1214 | N1 | RED: package.json is absent |
+| T1215 | F4 | RED: the script is absent |
 
-5 RED-observed, 0 error, 0 green. Every Test Case fails on its own assertion.
+6 RED-observed, 0 error, 0 green. Every Test Case fails on its own assertion.
+
 
 ## Can each Test Case pass
 
-In a throwaway root outside the repository, holding `draft/package.json` and `draft/skills/kaal-defect/` as the package, all five were green.
+In a throwaway root outside the repository, holding `draft/package.json` and `draft/skills/kaal-defect/` as the package, all six were green.
 
 ## What this shows and does not show
 
-They show that a register in a context is read, that an entry with no Defect in its own folder is invalid, that each Defect gives its linked Test Cases (several per Defect, across contexts), that the to-fix list follows `placed` or the holding context, and that the package depends only on Foundation and Hosting and reads no outcome, revision or result. They do not show that a real Defect fits the form, how Testing observes the linked Cases (a sibling Change), or the shrink rule (left open).
+They show that a Case points at a Defect with its first line (several Cases per Defect), that a register is read in its context and an id with no record in that folder is invalid, that the state is derived from the records of the Cases at a revision (confirmed, answered, unknown), that stale, UNKNOWN, skipped, errored and missing results are unknown, that the to-fix list follows `placed` or the holding context, and that the package depends only on Foundation and Hosting and runs no Case. They do not show that a real Defect fits the form, how Testing makes the records (a sibling Change), or the shrink rule (left open).
 
 ## Reproduce
 

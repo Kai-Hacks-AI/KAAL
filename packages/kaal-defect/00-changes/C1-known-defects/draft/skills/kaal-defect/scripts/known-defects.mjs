@@ -1,37 +1,86 @@
 #!/usr/bin/env node
-// known-defects: read the Defect registers in a tree. A register is a Defect's description plus its links to Test Cases.
-// A Defect holds no state, and observing its condition belongs to another capability: nothing here reads a result.
-// A register is `known.json` in a `14-defects` folder; its entries point at Defect records in the same folder.
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+// known-defects: derive each Defect's state from the Test Cases that point at it, as Controls derive a status from the Cases of a control.
+// A Defect holds no state. Edges run from a Case to a Defect (the Case's first line `// Case <id> tests: <defect id>`).
+// A record is { case, run, revision, outcome }, outcome GREEN, RED or UNKNOWN as a Case runner reports it. The runner is Testing's; nothing here runs a Case.
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 
-export function toFix(entries) {
-  const g = {};
-  for (const e of entries) { const l = (g[e.placed ?? e.context] ??= []); if (!l.includes(e.defect)) l.push(e.defect); }
-  return g;
+const DEFECT = /^[a-z][a-z0-9-]*\/D[1-9][0-9]*$/;
+const OUTCOMES = new Set(['GREEN', 'RED', 'UNKNOWN']);
+
+/** What one Case shows at `revision`: RED if any applicable run is RED, GREEN if every applicable run is GREEN, otherwise UNKNOWN. */
+function caseOutcome(id, records, revision) {
+  const mine = records.filter((r) => r.case === id && r.revision === revision);
+  const o = mine.map((r) => (OUTCOMES.has(r.outcome) ? r.outcome : 'UNKNOWN'));
+  return o.includes('RED') ? 'RED' : o.length && o.every((x) => x === 'GREEN') ? 'GREEN' : 'UNKNOWN';
 }
-// every register in the tree, with each entry's Defect looked up in the same 14-defects folder
-export function readRegisters(root) {
-  const entries = [];
+
+/**
+ * The derived state of a Defect, from the Cases that point at it, at one revision.
+ * confirmed: some applicable Case is RED. answered: it has Cases and every one is GREEN. Otherwise unknown: no Case, a record of
+ * another revision (stale), or a result that is UNKNOWN, skipped, errored, timed out or incomplete. UNKNOWN is never RED and never GREEN.
+ */
+export function judgeDefect(defect, cases, records = [], revision) {
+  const o = cases.map((c) => caseOutcome(c, records, revision));
+  const state = o.includes('RED') ? 'confirmed' : o.length && o.every((x) => x === 'GREEN') ? 'answered' : 'unknown';
+  return { id: defect, state, cases: cases.map((c, i) => ({ case: c, outcome: o[i] })) };
+}
+
+/** Defect records, registers and the Cases that point at a Defect, read from a tree. */
+export function readTree(root) {
+  const defects = new Map(); // id -> { context, placed }
+  const registered = new Map(); // id -> context
+  const pointing = new Map(); // defect id -> [case ids]
   const walk = (d) => {
     for (const n of readdirSync(d)) {
       const p = join(d, n);
       if (statSync(p).isDirectory()) { if (n !== 'node_modules' && n !== '.git') walk(p); continue; }
-      if (n !== 'known.json' || !p.endsWith('/14-defects/known.json')) continue;
-      const dir = dirname(p);
-      const context = relative(root, dirname(dir)) || '.';
-      for (const e of JSON.parse(readFileSync(p, 'utf8'))) {
-        const rec = readdirSync(dir).filter((f) => f.endsWith('.md')).map((f) => readFileSync(join(dir, f), 'utf8')).find((t) => new RegExp(`^id:\\s*${e.defect.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'm').test(t));
-        entries.push({ ...e, context, exists: Boolean(rec), placed: rec?.match(/^placed:\s*(.+?)\s*$/m)?.[1] });
+      const text = () => readFileSync(p, 'utf8');
+      if (p.endsWith('/14-defects/known.json')) {
+        const context = relative(root, dirname(dirname(p))) || '.';
+        for (const id of JSON.parse(text())) registered.set(id, context);
+      } else if (/\/14-defects\/[^/]+\.md$/.test(p)) {
+        const t = text(); const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
+        if (id) defects.set(id, { context: relative(root, dirname(dirname(p))) || '.', placed: t.match(/^placed:\s*(.+?)\s*$/m)?.[1] });
+      } else if (/\/T\d+\.(red|test)\.mjs$/.test(p)) {
+        const h = /^\/\/ Case (\S+) tests: (.*)$/.exec(text().split('\n')[0]);
+        if (h) for (const t of h[2].split(',').map((s) => s.trim()).filter((s) => DEFECT.test(s))) (pointing.get(t) ?? pointing.set(t, []).get(t)).push(h[1]);
       }
     }
   };
   walk(root);
-  return entries;
+  return { defects, registered, pointing };
 }
+
+const valid = (tree, id) => tree.defects.get(id)?.context === tree.registered.get(id);
+
+/** One line per Defect record, `<state> <defect>` and ` known` when its own context registers it; `invalid <defect>` for a registered id with no record in that context. */
+export function report(tree, records, revision) {
+  const out = [];
+  for (const [id] of [...tree.defects].sort()) {
+    const j = judgeDefect(id, tree.pointing.get(id) ?? [], records, revision);
+    out.push(`${j.state} ${id}${tree.registered.has(id) && valid(tree, id) ? ' known' : ''}`);
+  }
+  for (const [id] of tree.registered) if (!valid(tree, id)) out.push(`invalid ${id}`);
+  return out;
+}
+
+/** What each owner has to fix: registered Defects that are not answered, grouped by `placed`, or by the holding context while there is none. */
+export function toFix(tree, records, revision) {
+  const g = {};
+  for (const [id] of tree.registered) {
+    const d = tree.defects.get(id);
+    if (!d || !valid(tree, id) || judgeDefect(id, tree.pointing.get(id) ?? [], records, revision).state === 'answered') continue;
+    (g[d.placed ?? d.context] ??= []).push(id);
+  }
+  return g;
+}
+
 if (process.argv[1] && process.argv[1].endsWith('known-defects.mjs')) {
   const a = process.argv.slice(2); const opt = (k) => a[a.indexOf(k) + 1];
-  const entries = readRegisters(opt('--root'));
-  if (a.includes('--list')) { for (const [o, ds] of Object.entries(toFix(entries))) console.log(`${o}: ${ds.join(', ')}`); process.exit(0); }
-  for (const e of entries) console.log(`${e.exists ? 'link' : 'invalid'} ${e.defect} ${e.case}`);
+  const tree = readTree(opt('--root'));
+  const records = a.includes('--records') ? JSON.parse(readFileSync(opt('--records'), 'utf8')) : [];
+  const revision = opt('--revision');
+  if (a.includes('--list')) { for (const [o, ds] of Object.entries(toFix(tree, records, revision))) console.log(`${o}: ${ds.join(', ')}`); }
+  else for (const l of report(tree, records, revision)) console.log(l);
 }

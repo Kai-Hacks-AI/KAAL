@@ -12,7 +12,8 @@ const script = join(pkg, 'skills/kaal-defect/scripts/known-defects.mjs');
 const skill = () => { assert.ok(existsSync(skillFile), 'the Skill packages/kaal-defect/skills/kaal-defect/SKILL.md is absent'); return readFileSync(skillFile, 'utf8'); };
 export const id = 'defect/T1214';
 export const tests = ['defect/N1'];
-export const title = 'the package depends on nothing but Foundation and Hosting, the script imports only Node and those, and it reads no execution evidence';
+
+export const title = 'the package depends on nothing but Foundation and Hosting, the script imports only Node and those, and it runs no Case';
 export async function run() {
   assert.ok(existsSync(join(pkg, 'package.json')), 'packages/kaal-defect/package.json is absent');
   const p = JSON.parse(readFileSync(join(pkg, 'package.json'), 'utf8'));
@@ -21,6 +22,5 @@ export async function run() {
   assert.ok(existsSync(script), 'the script is absent');
   const src = readFileSync(script, 'utf8');
   for (const m of src.matchAll(/(?:from|import\()\s*['"]([^'"]+)['"]/g)) assert.ok(m[1].startsWith('node:') || allowed.has(m[1]), `the script imports ${m[1]}`);
-  assert.ok(!/testing/i.test(src.replace(/Test Case/g, '')), 'the script names Testing');
-  for (const word of ['outcome', 'revision', 'results', 'reproduc']) assert.ok(!src.toLowerCase().includes(word), `the script reads or names ${word}: observing a condition is Testing's, not Defect's`);
+  assert.ok(!/child_process|\bspawn|execSync|execFile|\bfork\(/.test(src), 'the script runs no process, so no Case');
 }

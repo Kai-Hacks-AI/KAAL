@@ -12,11 +12,13 @@ const script = join(pkg, 'skills/kaal-defect/scripts/known-defects.mjs');
 const skill = () => { assert.ok(existsSync(skillFile), 'the Skill packages/kaal-defect/skills/kaal-defect/SKILL.md is absent'); return readFileSync(skillFile, 'utf8'); };
 export const id = 'defect/T1210';
 export const tests = ['defect/I1'];
-export const title = 'the Skill is named kaal-defect, says a Defect is a passive description with no state of its own, links to Test Cases, and leaves observing the condition to Testing';
+
+export const title = 'the Skill is named kaal-defect, says a Defect is a passive description whose state is derived from the Test Cases that point at it, and that this is not permission to merge';
 export async function run() {
   const t = skill();
   assert.match(t, /^name: kaal-defect$/m, 'the Skill is named kaal-defect');
   assert.match(t, /passive description of an undesirable condition/, 'a Defect is a passive description');
   assert.match(t, /no known, fixed or open state of its own/, 'a Defect holds no state');
-  assert.match(t, /hether the condition is reproduced is Testing's observation/, 'observing is Testing\'s');
+  assert.match(t, /its state is derived from the Test Cases that point at it/, 'state is derived from the Cases');
+  assert.match(t, /not permission to merge/, 'evidence is not permission to merge');
 }
