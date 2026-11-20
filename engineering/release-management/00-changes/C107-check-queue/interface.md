@@ -59,24 +59,7 @@ evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # release/CTL27 check Queue
 
-A detective control. `check Queue` says FAIL, naming them, when open pull requests are still based on the branch a promotion takes into `main` (the queue of the collector, release/I57, not GitHub's merge queue), PASS when there are none and UNKNOWN, which never passes, when the facts cannot be read or are not known to be complete. PASS is not an approval and not a merge decision, and it says nothing about work that enters the collector. It has one Intent, release/I57, which holds the details with the Requirements and Architecture under it. Making it required is release/CTL28.
-`````
-
-## Draft of CTL28.md
-
-`````
----
-id: release/CTL28
-title: block Queue
-description: It stops the promotion of a branch while its queue is not empty.
-type: preventive
-status: designed
-has: [release/I57]
-evidence: [fixture:2, real:2, provoked:1:fail]
----
-# release/CTL28 block Queue
-
-A preventive control. A branch is not promoted into `main` while its queue is not empty, so deleting the promoted collector cannot silently retarget the queued work to `main`. The Promoting station requires the detection of release/CTL27 on the promotion and again in the merge queue, on facts gathered in that run; UNKNOWN does not pass at either. It blocks only the promotion, never work that enters the collector. It has one Intent, release/I57. It is realized when the Owner has loaded the declaration, and release/CTL26 then observes that the requirement is in force.
+A detective control. `check Queue` says FAIL, naming them, when open pull requests are still based on the branch a promotion takes into `main` (the queue of the collector, release/I57, not GitHub's merge queue), PASS when there are none and UNKNOWN, which never passes, when the facts cannot be read or are not known to be complete. PASS is not an approval and not a merge decision, and it says nothing about work that enters the collector. It has one Intent, release/I57, which holds the details with the Requirements and Architecture under it. It rolls out detective first, as every new control does: (1) its verdict is observed on real promotions without blocking; (2) it runs as an advisory CI check behind a feature flag, on the promotion and in the merge queue, and the evidence is collected; (3) only after validation and the Owner's explicit go is it required on the Promoting station, by the Owner's load, and the preventive control `block Queue` is then declared in the Change that makes it so. The judge only judges; once the check is required UNKNOWN does not pass.
 `````
 
 ## Draft of judge-queue.mjs
