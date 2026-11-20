@@ -11,9 +11,9 @@
 
 Not authorized by this PLAN. On the merge of this PLAN into the collector, which is the go for the DO, and after the DO of C4 is in the collector:
 
-1. In `skills/kaal-retro/references/4l.md`, state the four questions of F5 at the head of each lens and add the paragraph on echo and mirror. In `SKILL.md`, one line that points to it and says the author decides. `SKILL.md` stays within its present size.
+1. In `skills/kaal-retro/references/4l.md`, state the four questions of F5 at the head of each lens and add the paragraph on echo and mirror and the guard on the Lacked and Longed For boundary in both directions. In `SKILL.md`, one line that points to it and says the author decides. `SKILL.md` stays within its present size.
 2. The package keeps its Cases green.
-3. Agent trial for F5: a fresh agent sees only the Skill and a replay that plants a finder which was both relied on and not pointed to, and a fix that a Lacked names and a Learned could repeat. The criterion is that, in the retro it writes, each planted point is in one lens and the judgement is `well-formed`. A person reads it; no script reads wording. Its limits (one run, a replay) go in the DO's evidence.
+3. Agent trial for F5: a fresh agent sees only the Skill and a replay that plants a finder which was both relied on and not pointed to, a fix that a Lacked names and a Learned could repeat, a blocker that is easy to call a wish and a wish that is easy to call a blocker. The criterion is that, in the retro it writes, each planted point is in one lens, a planted real blocker is a Lacked and a planted wish is a Longed For and the judgement is `well-formed`. A person reads it; no script reads wording. Its limits (one run, a replay) go in the DO's evidence.
 
 ## ACT
 
@@ -21,5 +21,4 @@ Not authorized by this PLAN. On the merge of this PLAN into the collector, which
 
 ## Left open
 
-- The reading of echo and mirror above is the retro thread's reading of Kai's words and is to be confirmed. The F5 paragraph says only what is written there.
 - No `about:` field, `Self-check` block, second judging agent or judging Skill is part of this Change: the retro is each agent's own judgement and only its format is deterministic.
