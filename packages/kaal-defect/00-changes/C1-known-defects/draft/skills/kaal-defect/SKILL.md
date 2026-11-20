@@ -14,7 +14,7 @@ A Test Case points at a Defect with its first line, `// Case <id> tests: <defect
 
 ## Reach
 
-A Defect claims its reach in its record: `reach: <part>, <part>`, where its condition can manifest, such as `.` (repo-wide), `packages/`, or `.kaal/, engineering/`. Each Case covers a corner of it. A record names the parts its run covered, `covers`. A claimed part that no `GREEN` applicable record covers counts toward `unknown`, never `answered`. A covered part covers the parts under it, and `.` covers all. A Defect that claims no reach cannot be answered.
+A Defect claims its reach in its record: `reach: <part>, <part>`, where its condition can manifest, such as `.` (repo-wide), `packages/`, or `.kaal/, engineering/`. Each Case covers a corner of it. A record names the parts its run covered, `covers`. A claimed part that no `GREEN` applicable record covers counts toward `unknown`, never `answered`. A covered part covers the parts under it, and `.` covers all. A Defect that claims no reach cannot be answered. What a Case covers is what its record declares in `covers`, not what the Case reads: a Case whose condition is fully decided by what it reads (for example a top-level listing that decides whether `packages/` holds a non-package entry) declares the whole part, `packages/`, and covers it.
 
 ## State
 

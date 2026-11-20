@@ -40,7 +40,7 @@ So Testing runs the Cases and makes the records. Defect judges records, runs not
 Each Defect claims its reach in its record (`reach:`), as parts of the repository: `.` for a condition that can manifest anywhere (a malformed Test Case), `packages/` for packages only (a malformed package structure), `.kaal/, engineering/` for what a failed package deployment touches. A Test Case covers a corner of that reach, and its record says which parts its run covered (`covers`), as a control's record says the kind of X it ran against. Rules:
 
 - A claimed part that no GREEN applicable record covers counts toward `unknown` and is named, never toward `answered`.
-- A covered part covers every part under it (`packages/` covers `packages/kaal-core`), and `.` covers all. Nothing is inferred the other way: several narrow Cases do not add up to a wider part unless the reach lists those parts.
+- A covered part covers every part under it What a Case covers is what its record declares in `covers`, not what the Case reads: a Case whose condition is fully decided by what it reads (for example a top-level listing that decides whether `packages/` holds a non-package entry) declares the whole part, `packages/`, and covers it. (`packages/` covers `packages/kaal-core`), and `.` covers all. Nothing is inferred the other way: several narrow Cases do not add up to a wider part unless the reach lists those parts.
 - A Defect that claims no reach cannot be `answered`: there is nothing to say was covered. It is reported `reach unclaimed`.
 - A RED applicable Case confirms the Defect whatever the reach. A stale or UNKNOWN run covers nothing.
 
