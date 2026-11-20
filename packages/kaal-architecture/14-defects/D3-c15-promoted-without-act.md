@@ -26,3 +26,7 @@ In prose, in `strategy.md` and `branching.md`, and as the aim of Pull Promotion,
 ## Not claimed
 
 How the ACT lands is the fix, a Change, not this Defect. branching.md already names the way: rebase the ACT onto the re-established collector and retarget it, and not merge #1631 as it stands (it carries the old collector history). That GitHub retargets an open pull request to `main` when its base is deleted is documented, not a Defect. Whether the promotion should have waited for #1631 is Release's to judge: Pull Promotion judges a collector from its files and cannot see an open pull request. Where the correction belongs is Architecture's.
+
+## Follow-up
+
+T30 finds C15's retrospective by its content (a C15 ACT heading and the four 4L section names). That is a stand-in. Retro models `retro -reflects-> Change`, found through `reflects` whatever the heading, file name or format. When the Retro Skill contract is ready, T30 takes the retrospective of C15 through `reflects` and Architecture keeps no reading of ACT coverage of its own. The C15 completion proof (Cases T14 to T22 closed, an ACT that follows) and the scope of this Defect stay as they are. Not blocking (CPO review on #2150).

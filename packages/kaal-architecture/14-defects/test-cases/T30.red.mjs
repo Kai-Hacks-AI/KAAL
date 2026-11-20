@@ -21,6 +21,7 @@ export async function run() {
   const ran = spawnSync('node', ['--test', 'test/cases.test.mjs'], { cwd: pkg, encoding: 'utf8' });
   assert.equal(ran.status, 0, 'the Cases of C15 are not all green, so C15 is not closed and no ACT is due');
 
+  // Stand-in: Retro's `retro -reflects-> Change` replaces this content match once its Skill contract is ready (see D3, Follow-up).
   // Closed. The ACT's result is a 4L retrospective of C15, found by what it says, not by its file name.
   const retro = execFileSync('git', ['-C', root, 'ls-files', '--', 'packages/kaal-architecture'], { encoding: 'utf8' })
     .split('\n').filter((p) => p.endsWith('.md')).filter((p) => {
