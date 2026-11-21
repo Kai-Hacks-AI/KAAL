@@ -1,5 +1,5 @@
 // The runner of the workflow controls-act (release/C122): asks one judge of the ACT about a pull request into a collector and says what the flag of that judge does with the answer.
-//   node run-controls-act.mjs <hold|demand|verify|limit> --main <default branch folder> --pr <merge result folder> --before <collector before folder> --contained <main as the result contains it folder>
+//   node run-controls-act.mjs <hold|demand|verify|limit|attribute> --main <default branch folder> --pr <merge result folder> --before <collector before folder> --contained <main as the result contains it folder>
 // The last two feed attribute Changes (release/C123): the judges judge the pull request's own paths, and without them the answer is UNKNOWN.
 // The flag is the variable KAAL_RELEASE_<CONTROL> handed in as KAAL_FLAG. It decides the exit code and nothing else: exactly `on` makes a FAIL or an UNKNOWN exit 1 (advisory:
 // a red check that no ruleset requires); anything else exits 0 with the same verdict written (detective). Printing and writing the summary are the same in both states.
@@ -38,10 +38,15 @@ export function judgeOf(name, tree, collector, attribution) {
 // The exit code: the verdict decides it only when the flag is exactly `on`.
 export const exitCodeOf = (answer, flag) => (flag === 'on' && answer.verdict !== 'PASS' ? 1 : 0);
 
+// The report of attribute Changes itself (release/CTL33): PASS when it could attribute every changed path, UNKNOWN when a folder was missing. It names the own paths, which are the ones the judges judge.
+export const attributionOf = (a) => (a.complete
+  ? pass(`${a.own.length} own, ${a.inherited.length} inherited${a.own.length ? `; own: ${a.own.join(', ')}` : ''}`, { applies: true })
+  : unknown(`no attribution without ${a.missing.join(', ')}`));
+
 export const reportOf = (name, answer, flag) => {
   const live = flag === 'on';
   const note = answer.verdict === 'PASS' ? '' : live ? ' (advisory, not required: no ruleset makes this check required)' : ' (reported only: the flag is not on, the check passes)';
-  return `${answer.verdict}: ${name} Act: ${answer.message}${note}`;
+  return `${answer.verdict}: ${name} ${name === 'attribute' ? 'Changes' : 'Act'}: ${answer.message}${note}`;
 };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -53,7 +58,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const main = arg('--main'), collector = arg('--pr');
     if (!main || !collector) throw new Error('--main and --pr are required');
     const attribution = attributeChanges({ before: arg('--before'), after: collector, contained: arg('--contained') });
-    answer = judgeOf(name, await readTree({ main, collector, changed: attribution.own }), collector, attribution);
+    answer = name === 'attribute' ? attributionOf(attribution) : judgeOf(name, await readTree({ main, collector, changed: attribution.own }), collector, attribution);
   } catch (e) { answer = unknown(String(e.message)); }
   const line = reportOf(name, answer, flag);
   console.log(line);

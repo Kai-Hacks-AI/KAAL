@@ -13,8 +13,8 @@ export async function run() {
     assert.doesNotMatch(readFileSync(join(phase, f), 'utf8'), /child_process|execFileSync|spawnSync|rev-list|git diff/, `${f} reads Git`);
   }
   const code = readFileSync(join(RM, '05-src/wiring/workflows/controls-act.yml'), 'utf8').split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
-  assert.equal((code.match(/git -C pr worktree add --detach \.\.\/before /g) ?? []).length, 4);
-  assert.equal((code.match(/git -C pr worktree add --detach \.\.\/contained "\$\(git -C pr merge-base HEAD FETCH_HEAD\)"/g) ?? []).length, 4);
-  assert.equal((code.match(/--before before --contained contained/g) ?? []).length, 4);
+  assert.equal((code.match(/git -C pr worktree add --detach \.\.\/before /g) ?? []).length, 5);
+  assert.equal((code.match(/git -C pr worktree add --detach \.\.\/contained "\$\(git -C pr merge-base HEAD FETCH_HEAD\)"/g) ?? []).length, 5);
+  assert.equal((code.match(/--before before --contained contained/g) ?? []).length, 5);
   assert.doesNotMatch(code, /pull_request_target|secrets\.|GITHUB_TOKEN|github\.token/);
 }
