@@ -1,10 +1,10 @@
 // Case release/T1357 tests: release/C123
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { RUNNER, OWN_PATH, makeFolders } from './attribution-fixtures.mjs';
+import { RUNNER, OWN_PATH, makeFolders } from './isolation-fixtures.mjs';
 export const id = 'release/T1357';
 export const tests = ['release/C123'];
-export const title = 'the runner asks attribute Changes once for all four judges: with the folders it judges the own paths, without them it says UNKNOWN, and the flag still decides the exit code only';
+export const title = 'the runner asks isolate Changes once for all four judges: with the folders it judges the own paths, without them it says UNKNOWN, and the flag still decides the exit code only';
 export async function run() {
   const f = makeFolders([{ path: OWN_PATH, before: null, after: 'own\n', contained: null }, { path: '.github/workflows/x.yml', before: 'old\n', after: 'from main\n' }]);
   try {

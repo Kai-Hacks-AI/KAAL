@@ -1,4 +1,4 @@
-// Attribute Changes (release/C123): which of the paths a pull request changes are the collector's own and which main already holds. Three folders of files are read and
+// Isolate Changes (release/C123): which of the paths a pull request changes are the collector's own and which main already holds. Three folders of files are read and
 // nothing in them is run; Git and GitHub only bring the folders, and no commit, parent or history is read here.
 //   before    the collector before the pull request
 //   after     the merge result
@@ -12,7 +12,7 @@ import { join } from 'node:path';
 const files = (root, rel = '') => readdirSync(join(root, rel), { withFileTypes: true }).flatMap((e) => (e.name === '.git' ? [] : e.isDirectory() ? files(root, join(rel, e.name)) : [join(rel, e.name)]));
 const same = (a, b, path) => { const x = existsSync(join(a, path)), y = existsSync(join(b, path)); return x === y && (!x || readFileSync(join(a, path)).equals(readFileSync(join(b, path)))); };
 
-export function attributeChanges({ before, after, contained }) {
+export function isolateChanges({ before, after, contained }) {
   const missing = Object.entries({ before, after, contained }).filter(([, dir]) => !dir || !existsSync(dir)).map(([name]) => name);
   const none = (why) => ({ own: [], inherited: [], unknown: [], complete: false, missing: why });
   if (missing.length) return none(missing);
