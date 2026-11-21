@@ -32,4 +32,4 @@ State: `main`. No package or production state is affected. Corrected by release/
 
 ## Follow-up
 
-The auto-merge requirement of Branching stays. Kai (21 Nov): optimise the Branching check when it moves into the new control setup. Whoever rebuilds that control takes this record, the runs above and Case T1320 as input. This Change stays minimal and optimises nothing else.
+The auto-merge requirement of Branching stays, and release/C114 fixes the race while keeping it: the merge method is judged only while auto-merge is on, by the method the pull request has when the run judges. Per-branch allowed merge methods in the rulesets are a candidate home for this control when it is rebuilt. Kai (21 Nov): optimise the Branching check when it moves into the new control setup. Whoever rebuilds that control takes this record, the runs above and Case T1320 as input. This Change stays minimal and optimises nothing else.

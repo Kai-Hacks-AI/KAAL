@@ -2,29 +2,29 @@
 
 ## PLAN
 
-1. Add the Defect `D12-branching-first-run.md` (the record of the hotfix track, with the source named as where it is corrected).
-2. Add the Case release/T1320, a plain `.test.mjs`, RED by its content, at `05-src/wiring/T1320.test.mjs`, where the wiring sources are judged: the source of the Branching workflow gives one run per pull request (a concurrency group by the pull request number with `cancel-in-progress`), and the judging step takes the auto-merge from the pull request as it is when the run judges, not from the event. It is RED while the source is absent and GREEN when the DO adds it; the Case is never renamed.
-3. Observe the expected RED and that the Case can pass with the DO's content (`evidence.md`).
-4. The PLAN changes nothing under `.github`, no judge, no gate, no ruleset source and no hook.
+One pull request into the collector, because the Case is a plain `.test.mjs` that is RED until its content exists and the Engineering check runs every Case (the phase judge that would excuse a RED Case at PLAN does not exist yet): the Case and the source travel together, so it is never RED on the collector.
+
+1. The Defect `D12-branching-first-run.md`.
+2. The Case release/T1320 at `05-src/wiring/T1320.test.mjs`, where the wiring sources are judged: the source of the workflow has one run per pull request (a concurrency group by the pull request number, `cancel-in-progress`) and takes the auto-merge from the pull request when the run judges, not from the event; `branching.sh`, run in a scratch clone with a stub checker, judges the merge method only when auto-merge is on (off or empty: nothing to judge, exit 0), and fails a wrong method when it is on.
+3. `05-src/wiring/workflows/lineage-synchronization.yml`: the installed workflow, byte for byte, with the two corrections (the concurrency group; the step that reads the method from the pull request when the run judges). Nothing else of it changes.
+4. `engineering/github/branching.sh`: the merge-method verdict runs only when `KAAL_AUTO_MERGE` is not empty. Nothing else of the check changes: the lineage verdicts, the exit codes and the rules read are as they were. `engineering/github/branching.md` says so in one sentence.
+5. Nothing under `.github`, no ruleset, no hook, and nothing of `lineage.ts`.
 
 ## Ids
 
 Change `release/C114`, Defect `release/D12`, Case `release/T1320` (the ids the hotfix track took; they are free on `main`). No Intent, Requirement or Architecture: the Defect names what is wrong, the Case what is right.
 
-## DO
+## Order of delivery
 
-On the merged PLAN:
-
-1. Add `05-src/wiring/workflows/lineage-synchronization.yml`: the installed workflow, byte for byte, with the two corrections. Nothing else of it changes (name, triggers, permissions, steps and checker call as installed).
-2. T1320 stays as it is: nothing is renamed.
+`branching.sh` is run from the default branch's tip, so it changes when this Change is promoted; the workflow follows in the WIRE (the Owner's step: `lineage-synchronization.yml` from the source, nothing else). Until the WIRE the installed workflow still passes the event's method; with the new `branching.sh` an empty method is not judged and a set one is judged as before, so the two orders are both safe.
 
 ## Accept list
 
-None. No existing Case reads this source.
+None. `lineage.test.ts` tests the checker, which does not change.
 
 ## What this does not do
 
-It does not touch `.github`: the installed copy follows from the source in a WIRE (the Owner's step), which copies `lineage-synchronization.yml` and nothing else. It does not change the Branching gate, its requirement of auto-merge or any verdict: a pull request without auto-merge still fails Branching, and the first run of a new pull request may still fail until the WIRE is installed and the runs are observed. The live proof is the first pull request into a collector after the WIRE: one verdict, no cycling of auto-merge.
+It does not change the checker (`lineage.ts`), the method each flow lands by or the audit after the fact. Per-branch allowed merge methods in the rulesets are a candidate home for this control when it is rebuilt; this Change keeps the check as it is. The live proof is the first pull request into a collector after the WIRE: one verdict, no cycling of auto-merge.
 
 ## ACT
 
