@@ -10,7 +10,7 @@ const S = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
 const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'approve Sync', description: 'A SYNC is approved when it is pure.', type: 'preventive', status: 'running', has: '[demo/I1]', ...o }; return '---\n' + Object.entries(f).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}: ${v}`).join('\n') + '\n---\n# ' + f.id + '\n'; };
 const MIN = '[fixture:3, merge:2, provoked:1:fail]';
 const CASE = '// Case demo/T1 tests: demo/CTL1\n';
-const rec = (x, run, outcome = 'GREEN', base) => ({ case: 'demo/T1', x, run, outcome, ...(base ? { base } : {}) });
+const rec = (x, run, outcome = 'GREEN', base) => ({ case: 'demo/T1', by: 'runner', x, run, outcome, ...(base ? { base } : {}) });
 const some = () => [rec('fixture', 1), rec('fixture', 2), rec('merge', 'a')];
 const all = () => [rec('fixture', 1), rec('fixture', 2), rec('fixture', 3), rec('merge', 'a'), rec('merge', 'b'), rec('provoked', 'x', 'GREEN', { run: 'x0', outcome: 'RED' })];
 const ctl = async (o = {}) => { const { findControls } = await import(pathToFileURL(join(S, 'find-controls.mjs')).href); return findControls([{ path: 'x/CTL1.md', text: item(o) }, { path: 'x/T1.test.mjs', text: CASE }]).controls[0]; };
