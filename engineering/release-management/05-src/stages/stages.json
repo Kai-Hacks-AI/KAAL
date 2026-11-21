@@ -166,6 +166,19 @@
               "control": "release/CTL20"
             }
           ]
+        },
+        {
+          "type": "merge_queue",
+          "control": "release/CTL32",
+          "parameters": {
+            "merge_method": "SQUASH",
+            "max_entries_to_build": 1,
+            "min_entries_to_merge": 1,
+            "max_entries_to_merge": 1,
+            "min_entries_to_merge_wait_minutes": 0,
+            "grouping_strategy": "ALLGREEN",
+            "check_response_timeout_minutes": 60
+          }
         }
       ],
       "also": [
