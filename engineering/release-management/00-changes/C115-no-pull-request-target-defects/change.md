@@ -2,13 +2,11 @@
 
 ## Records
 
-Five Defects, release/D13 to release/D17, one for each workflow that uses `pull_request_target` on `main` (af8f396): merge-group-admission, promotion-source, sync-review, change-isolation and Branching (`lineage-synchronization.yml`). Each has one Case, release/T1321 to release/T1325, RED on `main`: the workflow's top-level `on:` names the trigger, read by the reader release/CTL19 already uses. The expectation is release/I50, the Owner's directive.
-
-The Cases are `.red.mjs`, as the target Case release/T1123 is: a RED `.test.mjs` under release-management is found by the Pull Promotion Cases and fails the Engineering check until the workflow is fixed. Each becomes a plain `.test.mjs` in the Change that fixes its workflow, the same Change that turns it GREEN.
+Five Defects, release/D13 to release/D17, one for each workflow that uses `pull_request_target` on `main`: merge-group-admission, promotion-source, sync-review, change-isolation and Branching (`lineage-synchronization.yml`). The expectation is release/I50, the Owner's directive. Each Defect carries its reproduction with the reader release/CTL19 already uses, and no Case: the Case of each ships as a plain `.test.mjs` in the Change that fixes its workflow, together with the source, so it is never RED on a collector.
 
 ## Ids
 
-Change `release/C115`, Defects `release/D13` to `release/D17`, Cases `release/T1321` to `release/T1325`: the next free ones after main and the release collectors (D12, C114, T1320 at 21 Nov 08:13 UTC). Taken by hand; the release thread confirms.
+Change `release/C115`, Defects `release/D13` to `release/D17`: the next free ones after `main` and the release collectors (D12 and C114 were the last). Taken by hand; the release thread confirms.
 
 ## Remedy route (not part of the Defects)
 
