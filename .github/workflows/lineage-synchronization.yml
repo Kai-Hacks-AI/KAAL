@@ -28,6 +28,13 @@ on:
 
 permissions: {}
 
+# A pull request has one Branching verdict at a time, the newest. Events for one pull request (opened, then
+# auto_merge_enabled a moment later) start runs that may finish out of order; a stale run finishing last would
+# leave a failure that the next event cannot replace. The newest event cancels the older run.
+concurrency:
+  group: branching-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   lineage-synchronization:
     name: Branching
@@ -62,6 +69,17 @@ jobs:
             || { echo "::error title=Branching: cannot judge::the rules of $BASE_REF cannot be read"; exit 2; }
           echo "KAAL_RULES=$RUNNER_TEMP/rules.json" >> "$GITHUB_ENV"
 
+      # Auto-merge is read when the run judges, not taken from the event: the payload of `opened` (and of any
+      # event that reaches the runner late) is older than the auto-merge the pull request has by then.
+      - name: Read the auto-merge method the pull request has now
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          METHOD=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$NUMBER" --jq '.auto_merge.merge_method // ""') \
+            || { echo "::error title=Branching: cannot judge::the auto-merge of pull request $NUMBER cannot be read"; exit 2; }
+          echo "KAAL_AUTO_MERGE=$METHOD" >> "$GITHUB_ENV"
+
       # The fetch is unauthenticated: this repository is public. If it ever goes private, this fails closed.
       - name: Judge the proposed result with the default branch's checker
         env:
@@ -69,5 +87,4 @@ jobs:
           HEAD: ${{ github.event.pull_request.head.sha }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          KAAL_AUTO_MERGE: ${{ github.event.pull_request.auto_merge.merge_method }}
         run: npx --no kaal-guard run --check Branching --github --head "$HEAD" --base "$(git rev-parse HEAD)" --base-ref "$BASE_REF"
