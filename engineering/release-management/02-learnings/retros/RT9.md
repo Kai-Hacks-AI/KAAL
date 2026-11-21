@@ -3,7 +3,7 @@ id: release/RT9
 format: 4L
 reflects: [release/C122]
 ---
-Account of: I am the release thread. I took the four judges of the ACT from judges that nothing runs to a workflow source that runs them on pull requests into a collector (C122): the PLAN, the CPO's clarification of its states, and the DO with the runner, the library layer, the workflow source and Cases T1339 to T1345. This is my account only: the CPO, the Owner and Testing have not been asked what they lacked, and I wrote the retro of my own collector.
+Account of: I am the release thread. I took the four judges of the ACT from judges that nothing runs to a workflow source that runs them on pull requests into a collector (C122): the PLAN, the CPO's clarification of its states, and the DO with the runner, the library layer, the workflow source and Cases T1339 to T1345, and then the rename of the workflow and its runner to `controls-act`, the pattern `controls-<target>` that Kai set. This is my account only: the CPO, the Owner and Testing have not been asked what they lacked, and I wrote the retro of my own collector.
 
 ## Liked
 - subject: a Case that merges a branch into a main that has moved, with real Git, and runs the runner over the result
@@ -28,6 +28,11 @@ Account of: I am the release thread. I took the four judges of the ACT from judg
   cost: Testing found 36 Case files invisible to hold and asked for a change that is now a Change of its own.
   findable: no
   address: Skill
+- subject: the workflow was named for the judges, and Kai named it for the controls only after the DO and the ACT were approved
+  decision-point: naming the workflow source in the PLAN, before any name pattern for workflows existed.
+  cost: a second DO to move the file, the runner and seven Cases, and this retro amended; the PROMOTION was already raised.
+  findable: no
+  address: AGENTS.md
 
 ## Longed For
 - subject: a real run of act-judges on a real ACT pull request before the WIRE
