@@ -13,16 +13,16 @@ Owner: the release capability (the controls of the ACT, `05-src/phase`). Raised 
   "where": "engineering/release-management/05-src/phase/run-controls-act.mjs, changedPaths: `git diff --name-only --no-renames HEAD^1 HEAD` over the merge result of the pull request, whose first parent is the collector and whose second is the SYNC head, so the diff holds everything main brought.",
   "reach": "engineering/release-management/05-src/phase/run-controls-act.mjs; the workflow controls-act reads it through all four judges",
   "status": "confirmed",
-  "reproduction": "SYNC #2279 (run 44928498274) and SYNC #2280 (run 44928503067) on controls ACT. Locally: release/T1350 builds a repository, merges main into a collector with --no-ff, merges that result into the collector's earlier tip, and asks changedPaths and judgeLimitAct: FAIL, outside: .github/workflows/x.yml and 00-changes/C2/C2.md, where PASS and applies false is expected."
+  "reproduction": "SYNC #2279 (run 44928498274) and SYNC #2280 (run 44928503067) on controls ACT. Locally: a repository where main is merged into a collector with --no-ff, and that result merged into the collector's earlier tip, asked through changedPaths and judgeLimitAct, answers FAIL with the paths main brought, where PASS and applies false is expected."
 }
 ```
 
 ## What is shown, and what is not
 
-Shown: the paths the judge reads are the paths of the whole merge result, so any SYNC that brings a path of the route act or any path outside it is judged as an ACT. The reported cause was suspected; it is confirmed by reading `changedPaths` and by T1350.
+Shown: the paths the judge reads are the paths of the whole merge result, so any SYNC that brings a path of the route act or any path outside it is judged as an ACT. The reported cause was suspected; it is confirmed by reading `changedPaths` and by a local reproduction.
 
 Not shown, and not decided here: how the runner is to tell what a SYNC brings from the pull request's own change (by content, per the SYNC rule: the tree and the changed paths, no history), and whether a SYNC that also carries an own change is judged on the own change. Both are the remedy's. The flags are unset, so no check is red today; the defect shows when the flag of limit, demand or verify is set to `on`.
 
 ## Case
 
-release/T1350, a plain `.test.mjs` in this folder, RED on main. It ships with the fix and is not placed on a collector without it.
+The Cases are release's: release/C123 (#2285) removes the git-based `changedPaths` and carries Cases T1352 to T1358, which replace the first draft of a Case for this Defect (withdrawn, never landed). They point at this Defect and ship with the fix.

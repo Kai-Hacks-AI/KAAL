@@ -1,3 +1,3 @@
-# C123 change
+# C124 change
 
-Records release/D18 and its Case release/T1350 for a valid HOTFIX (one Defect, a Case RED on main, GREEN on hotfix/*). The fix is release's: `changedPaths` and the judges in `05-src/phase`. This Change changes no source.
+Records the Defect release/D18 only. The fix and its Cases are release/C123 (#2285). This Change changes no source and carries no Case.
