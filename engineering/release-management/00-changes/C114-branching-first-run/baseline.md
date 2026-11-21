@@ -1,0 +1,3 @@
+# C114 baseline
+
+The baseline is `main`. `.github/workflows/lineage-synchronization.yml` has no `concurrency` and sets `KAAL_AUTO_MERGE` from the event (`github.event.pull_request.auto_merge.merge_method`) in the judging step. `05-src/wiring/workflows` holds seven workflow sources (dispatcher, dispatcher-raise, sync-review, show-wip-page, analyze-vulnerabilities, verify-history, verify-triggers) and none for this workflow. The sources that exist are, byte for byte, the installed copies. The correction was written on a hotfix track (the development branches `claude/project-thread-adzyq2-wf` and `-rec`) and stopped in favour of this route (the Owner: "the game is the wiring: first into engineering, second the wire"); #2192 and #2196 are closed.
