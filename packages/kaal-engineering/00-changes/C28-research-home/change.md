@@ -17,6 +17,24 @@ C27 reasoned that Operations is where the package is run and what that shows. A 
 - `retros` and `research` are the two things a capability learned: one about its own work, one about the world. The 4L Learned lens cites a source note by id, which is a link inside one group.
 - `14-operations` stays one thing: controls and, where needed, `runs`. Putting trial transcripts into `runs` would mix the package's own fallback records with another object's evidence.
 
+## Two directions: inbound and own
+
+Research has two directions, as the Owner put it: **inbound** research, what comes from outside (a paper, a tool's documentation, market research), and **own** research, our trials and experiments. Engineering recommends **one folder and a `kind` on the note**, not two subfolders:
+
+- The layout judges folders. Two subfolders would make it name both and reserve them in the template; a third direction would be a template edit. A `kind` is the note's own field, checked by kaal-research's well-formed check, and costs the layout nothing.
+- One id space and one finder: `<capability>/R<n>` is unique across both, and "list the research" is one folder. With subfolders the id would have to ignore the folder, or the folder would become part of the id.
+- A note can cross directions: a trial of an outside tool is own research that cites inbound sources. A field says which it is, a folder would force a choice.
+- The names are kaal-research's to fix. The earlier sketch said `trial` and `source`; this PLAN says `inbound` and `own`, after the Owner, and the layout does not depend on either.
+
+What each kind's evidence holds (kaal-research states the rule; this is the shape engineering expects):
+
+| Kind | The note says | Evidence beside it |
+| --- | --- | --- |
+| inbound | the question, what the source says, its verdict for us | where (URL or citation), the date retrieved, first- or secondhand; an excerpt or a saved copy where the source can change or vanish |
+| own | the question, the setup, what happened, what went wrong, what it changed, its verdict | the key and criteria written before the first run, the prompt hashes, model and settings, the verbatim excerpts the judge used; whole transcripts only where kaal-research says so |
+
+Both live in `research/`, both are cited by id, and neither is a Case, since neither can be re-run to the same result.
+
 ## How notes and evidence sit beside Changes and Cases
 
 | Artefact | Place | Verified by | Relation to a note |
@@ -24,7 +42,7 @@ C27 reasoned that Operations is where the package is run and what that shows. A 
 | Change | `00-changes/C<n>-…` (the Change folder) | its Cases | cites `R<n>` by id when a decision rests on it |
 | Case | beside the element, `test-cases` | running it | never holds trial evidence; a Case is deterministic |
 | Retrospective | `02-learnings/retros/RT<n>` | kaal-retro | its Learned entries cite a source note by id |
-| Research note | `02-learnings/research/R<n>…` | kaal-research (to state) | the object |
+| Research note | `02-learnings/research/R<n>…`, `kind` inbound or own | kaal-research (to state) | the object |
 | Note evidence | inside `research/`, with its note | the note's rules | key, prompt hashes, model and settings, excerpts; whole transcripts only if kaal-research says so |
 
 The layout gives the place and says nothing about what is inside `research`. One-way citation by id is the edge, as for the other objects: the note never names its consumers.

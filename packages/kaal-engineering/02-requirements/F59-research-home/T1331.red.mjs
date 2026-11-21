@@ -30,6 +30,7 @@ export async function run() {
   assert.equal(judge(fixture([...GOOD, '02-learnings/research/R1.md'])).code, 0, 'research alone is not accepted');
   assert.equal(judge(fixture([...GOOD, '02-learnings/research/R1.md', '02-learnings/retros/RT1.md'])).code, 0, 'research beside retros is not accepted');
   assert.equal(judge(fixture([...GOOD, '02-learnings/research/R1/R1.md', '02-learnings/research/R1/key.md'])).code, 0, 'what sits inside research is judged by the layout');
+  assert.equal(judge(fixture([...GOOD, '02-learnings/research/inbound/R1.md', '02-learnings/research/own/R2.md'])).code, 0, 'a folder per direction inside research is judged by the layout');
   const stray = judge(fixture([...GOOD, '02-learnings/research/R1.md', '02-learnings/notes/n.md']));
   assert.equal(stray.code, 1);
   assert.match(stray.out, /02-learnings holds notes/);
