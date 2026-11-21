@@ -2,7 +2,7 @@
 
 ## HOTFIX
 
-Three pull requests into `hotfix/branching-first-run`, because `.github` travels alone (Change Isolation): (1) the records and the RED Case; (2) the correction in `.github` alone; (3) the Case renamed `.test.mjs` with the confirming runs. One Defect, release/D12 (`D12-branching-first-run.md`), one Case, release/T1320 (`T1320.red.mjs`), RED on `main` and on the branch until (2) lands, GREEN after. The correction is in `.github/workflows/lineage-synchronization.yml`:
+Two pull requests into `hotfix/branching-first-run`, because `.github` travels alone (Change Isolation): (1) the records and the Case; (2) the correction in `.github` alone. One Defect, release/D12 (`D12-branching-first-run.md`), one Case, release/T1320 (`T1320.test.mjs`), RED on `main` and on the branch until (2) lands, GREEN after. The Case is a plain `.test.mjs` from the start. The correction is in `.github/workflows/lineage-synchronization.yml`:
 
 1. A concurrency group per pull request, with `cancel-in-progress`: the newest event's run decides.
 2. The judging step takes the auto-merge from the pull request as it is when the run judges (`gh api` on the pull request), not from the event payload. No new permission: the repository is public and the call reads a public pull request, as the rules call already does.

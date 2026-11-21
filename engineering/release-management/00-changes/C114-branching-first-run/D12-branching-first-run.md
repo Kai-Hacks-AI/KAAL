@@ -26,6 +26,6 @@ Not shown: which ordering produced each stuck failure. Case T1320 judges the two
 
 | Identity | Role | File |
 | --- | --- | --- |
-| release/T1320 | RED on `main`: the workflow has no per-pull-request concurrency and judges auto-merge from the event; GREEN with the correction | T1320.red.mjs |
+| release/T1320 | RED on `main`: the workflow has no per-pull-request concurrency and judges auto-merge from the event; GREEN with the correction | T1320.test.mjs |
 
 State: `main`. No package or production state is affected.
