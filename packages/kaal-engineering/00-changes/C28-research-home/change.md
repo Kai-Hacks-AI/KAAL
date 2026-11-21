@@ -51,17 +51,17 @@ Only the layout template (`02-learnings` gets the child `research` and a role li
 
 ## PLAN
 
-1. Add Requirement F59 and gap G118 under `packages/kaal-engineering/`, and Cases T1330 and T1331 as `.red.mjs` beside F59.
+1. Add Requirement F59 and gap G118 under `packages/kaal-engineering/`, and Cases T1331 and T1332 as `.red.mjs` beside F59.
 2. Observe the expected RED against the collector, and show that each Case can pass on a throwaway copy that holds `draft/` (`evidence.md`).
 3. `draft/` holds the revised template, for review only.
 
 ## Ids
 
-Proposed: Change engineering/C28, Requirement engineering/F59, gap G118, Cases T1330 and T1331. They are the next free on `main` and every branch at the time of writing (highest Case seen: T1323; `engineering/acceptance` has its own C28, a different capability); the allocator confirms.
+Proposed: Change engineering/C28, Requirement engineering/F59, gap G118, Cases T1331 and T1332. They are the next free on `main` and every branch at the time of writing (highest Case seen: T1330, taken by release in #2216; `engineering/acceptance` has its own C28, a different capability); the allocator confirms.
 
 ## DO
 
-Not authorized by this PLAN. After the Owner's go: move the template from `draft/` into the Skill and remove `draft/`; update the order section of `package-layout.md`; amend T1245 to name `research` as a child; rename T1330 and T1331 to `.test.mjs`.
+Not authorized by this PLAN. After the Owner's go: move the template from `draft/` into the Skill and remove `draft/`; update the order section of `package-layout.md`; amend T1245 to name `research` as a child; rename T1331 and T1332 to `.test.mjs`.
 
 ## Questions for review
 

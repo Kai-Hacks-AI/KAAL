@@ -10,18 +10,18 @@ The PLAN of C28 observes its RED against the collector `kaal/engineering/researc
 
 | Case | Tests | In the tree of this PLAN |
 | --- | --- | --- |
-| T1330 | F59 | RED: research and retros are not the only children of `02-learnings` |
-| T1331 | F59 | RED: a package with its notes in `02-learnings/research` is not PASS (a stray `14-operations/research` is already refused) |
+| T1331 | F59 | RED: research and retros are not the only children of `02-learnings` |
+| T1332 | F59 | RED: a package with its notes in `02-learnings/research` is not PASS (a stray `14-operations/research` is already refused) |
 
 2 RED-observed, 0 error, 0 green. Each Case fails on its own assertion.
 
 ## Can each Case pass
 
-In a throwaway root outside the repository, holding this tree with `draft/` copied over `skills/kaal-engineering/`: T1330 and T1331 are GREEN.
+In a throwaway root outside the repository, holding this tree with `draft/` copied over `skills/kaal-engineering/`: T1331 and T1332 are GREEN.
 
 ## Can a Case fail for the right reason
 
-In that copy, adding `research` to the children of `14-operations` turned T1331 RED ("research inside operations is not refused").
+In that copy, adding `research` to the children of `14-operations` turned T1332 RED ("research inside operations is not refused").
 
 ## The amended Case
 
