@@ -13,4 +13,4 @@ Two gaps sit under that:
 
 Principle: Testing observes and describes; release judges (`hold`), and Guard enforces. A GREEN observation produced by the pull request's own CI is evidence from the work under judgment, so it is labelled as produced by the pull request. It is evidence, not enforcement.
 
-**Out of scope.** Where and when the observation runs. The producing CI job and the hold job, their workflow and the WIRE that installs it belong to release (`release/C122`) and engineering, under Kai's go. Release's own change of `applicableCases` to read this list is release's. No flag, no ruleset, no `.github/` change, no change to `kaal-testing run` or to its report schema.
+**Out of scope.** Where and when the observation runs. The producing CI job and the hold job, their workflow and the WIRE that installs it belong to release (`release/C122`) and engineering, under Kai's go. Release's own widening of `applicableCases` to both quote forms is release's. No flag, no ruleset, no `.github/` change, no change to `kaal-testing run` or to its report schema.
