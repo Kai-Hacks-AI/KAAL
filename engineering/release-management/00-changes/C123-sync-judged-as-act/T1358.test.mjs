@@ -2,13 +2,13 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { RM } from './attribution-fixtures.mjs';
+import { RM } from './isolation-fixtures.mjs';
 export const id = 'release/T1358';
 export const tests = ['release/C123'];
 export const title = 'Git only brings the folders: no judge and no library module reads Git, and the workflow brings before and contained as folders without a credential';
 export async function run() {
   const phase = join(RM, '05-src/phase');
-  for (const f of ['run-controls-act.mjs', 'lib/attribute-changes.mjs', 'judge-limit-act.mjs', 'judge-demand-act.mjs', 'judge-verify-act.mjs', 'judge-act.mjs']) {
+  for (const f of ['run-controls-act.mjs', 'lib/isolate-changes.mjs', 'judge-limit-act.mjs', 'judge-demand-act.mjs', 'judge-verify-act.mjs', 'judge-act.mjs']) {
     assert.ok(existsSync(join(phase, f)), `${f} is absent`);
     assert.doesNotMatch(readFileSync(join(phase, f), 'utf8'), /child_process|execFileSync|spawnSync|rev-list|git diff/, `${f} reads Git`);
   }
