@@ -1,5 +1,5 @@
 // limit Act: does a pull request that is an ACT write only the folders of the ACT route? Pure over facts: nothing is read from Git or GitHub.
-// judgeLimitAct({ changed, map, roots }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', message[, outside] }
+// judgeLimitAct({ changed, map, roots }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', applies, message[, outside] }
 // changed: every path the pull request changes, relative to the repository (both ends of a rename); roots: the capability roots, relative to the repository,
 // handed in by the wiring; map: the write map as in write-map.json, [{ route, folders, files? }]: the folders a route may write and the exact files
 // (the legacy places of an ACT), each relative to a capability root, so that the answer does not depend on where a capability stands. This judge reads only the row of the route 'act'; the other rows are other controls'.
@@ -12,7 +12,9 @@ import { inRoute } from './lib/write-map.mjs';
 
 export { inFolder, isFile } from './lib/write-map.mjs';
 
-const unknown = (message) => ({ verdict: 'UNKNOWN', message });
+import { pass, fail, unknown as cannotTell } from './lib/result.mjs';
+
+const unknown = (message) => cannotTell(message);
 const usable = (p) => typeof p === 'string' && p !== '' && !p.startsWith('/') && !p.split('/').includes('..') && !p.split('/').includes('.');
 
 export function judgeLimitAct(facts) {
@@ -28,10 +30,10 @@ export function judgeLimitAct(facts) {
   if (rows.length !== 1) return unknown('the write map has no single row for the route act');
   const { folders = [], files = [] } = rows[0];
   const lies = (p) => inRoute(p, { folders, files }, roots);
-  if (!changed.some(lies)) return { verdict: 'PASS', message: 'not an ACT: it changes no folder the route act writes', outside: [] };
+  if (!changed.some(lies)) return pass('not an ACT: it changes no folder the route act writes', { applies: false, outside: [] });
   const outside = changed.filter((p) => !lies(p));
-  if (outside.length) return { verdict: 'FAIL', message: `an ACT may write only its folders and files (${[...folders, ...files].join(', ')}): these paths are outside: ${outside.join(', ')}`, outside };
-  return { verdict: 'PASS', message: 'an ACT that writes only the folders and files of its route', outside: [] };
+  if (outside.length) return fail(`an ACT may write only its folders and files (${[...folders, ...files].join(', ')}): these paths are outside: ${outside.join(', ')}`, { outside });
+  return pass('an ACT that writes only the folders and files of its route', { applies: true, outside: [] });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

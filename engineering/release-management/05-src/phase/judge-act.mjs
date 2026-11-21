@@ -4,6 +4,7 @@
 // It holds the ACT: when no retro reflects a carried Change there is no ACT to hold and the answer is PASS; otherwise the Cases of the carried Changes decide.
 import { readFileSync } from 'node:fs';
 import { retrosOf, carriedChanges } from './lib/collector.mjs';
+import { pass } from './lib/result.mjs';
 import { casesAreGreen, applicableCasesAreGreen } from './lib/cases-green.mjs';
 
 // The facts this judge always offered stay offered, as the library's own.
@@ -12,20 +13,20 @@ export { elementsOf, justifiedBy, applicableCases, retrosOf, changeIdOf } from '
 // changes: the Changes the collector carries, each { id, applicable }; retros: each { reflects: [ids] }. Pure over those facts.
 // A retro holds the ACT of the Changes it reflects: the Cases of all the carried Changes together must be really green.
 export function judgeHold({ changes, retros, observed }) {
-  const cannot = (what) => ({ verdict: 'UNKNOWN', progress: { red: 0, green: 0, unknown: 0 }, findings: [], message: `cannot judge: ${what}` });
+  const cannot = (what) => ({ verdict: 'UNKNOWN', applies: true, progress: { red: 0, green: 0, unknown: 0 }, findings: [], message: `cannot judge: ${what}` });
   if (!Array.isArray(changes) || !changes.every((c) => c && typeof c.id === 'string' && c.id !== '' && Array.isArray(c.applicable))) return cannot('the carried Changes are not known');
   if (!Array.isArray(retros) || !retros.every((r) => r && Array.isArray(r.reflects) && r.reflects.every((s) => typeof s === 'string'))) return cannot('the retros are not known');
   const unqualified = retros.flatMap((r) => r.reflects).filter((id) => !id.includes('/'));
   if (unqualified.length) return cannot(`a retro reflects ${unqualified.join(', ')}, which is not a qualified Change id (<capability>/C<n>)`);
   const carried = new Set(changes.map((c) => c.id));
-  if (!retros.some((r) => r.reflects.some((id) => carried.has(id)))) return { verdict: 'PASS', findings: [], message: 'no retro reflects a carried Change: there is no ACT to hold' };
+  if (!retros.some((r) => r.reflects.some((id) => carried.has(id)))) return pass('no retro reflects a carried Change: there is no ACT to hold', { applies: false, findings: [] });
   return applicableCasesAreGreen({ changes, observed });
 }
 
 // acted: does a retro reflect the Change? Without one there is no ACT to hold; with one the Cases must be really green.
 export function judgeAct({ applicable, observed, acted }) {
-  if (acted !== true && acted !== false) return { verdict: 'UNKNOWN', progress: { red: 0, green: 0, unknown: 0 }, findings: [], message: 'cannot judge: it is not known whether a retro reflects the Change' };
-  if (acted === false) return { verdict: 'PASS', findings: [], message: 'no retro reflects the Change: there is no ACT to hold' };
+  if (acted !== true && acted !== false) return { verdict: 'UNKNOWN', applies: true, progress: { red: 0, green: 0, unknown: 0 }, findings: [], message: 'cannot judge: it is not known whether a retro reflects the Change' };
+  if (acted === false) return pass('no retro reflects the Change: there is no ACT to hold', { applies: false, findings: [] });
   return casesAreGreen({ applicable, observed });
 }
 
