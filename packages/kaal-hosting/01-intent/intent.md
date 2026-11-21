@@ -67,3 +67,7 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Reading the open pull requests of a repository
 
 - **hosting/I19.** KAAL code, an agent or a person that needs the open pull requests of a repository with their reviews, review threads and checks reads them through Hosting alone, from the library or from a command of the Skill, with one answer shape in every environment and no knowledge of which route or binary reached GitHub. A fact that could not be read is said to be unknown, never guessed; a failure in transit is a failure, never a fact that GitHub does not give.
+
+## Scanning a checkout
+
+- **hosting/I20.** KAAL code that must scan a normal checkout, with its dependency links and its version-control folder, lists it through Hosting alone, saying which names and which directory links to leave out, with the same result on every supported host and no `node:fs` of its own.
