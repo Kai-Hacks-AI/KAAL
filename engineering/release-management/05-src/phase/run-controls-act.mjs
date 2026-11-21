@@ -1,33 +1,29 @@
 // The runner of the workflow controls-act (release/C122): asks one judge of the ACT about a pull request into a collector and says what the flag of that judge does with the answer.
-//   node run-controls-act.mjs <hold|demand|verify|limit> --main <default branch folder> --pr <merge result folder>
+//   node run-controls-act.mjs <hold|demand|verify|limit|attribute> --main <default branch folder> --pr <merge result folder> --before <collector before folder> --contained <main as the result contains it folder>
+// The last two feed attribute Changes (release/C123): the judges judge the pull request's own paths, and without them the answer is UNKNOWN.
 // The flag is the variable KAAL_RELEASE_<CONTROL> handed in as KAAL_FLAG. It decides the exit code and nothing else: exactly `on` makes a FAIL or an UNKNOWN exit 1 (advisory:
 // a red check that no ruleset requires); anything else exits 0 with the same verdict written (detective). Printing and writing the summary are the same in both states.
 import { appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
 import { readTree } from './lib/tree-facts.mjs';
 import { applicableCases } from './lib/collector.mjs';
+import { attributeChanges } from './lib/attribute-changes.mjs';
 import { pass, unknown } from './lib/result.mjs';
 import { judgeLimitAct } from './judge-limit-act.mjs';
 import { judgeDemandAct } from './judge-demand-act.mjs';
 import { judgeVerifyAct } from './judge-verify-act.mjs';
 
-// The paths a revision changed against its first parent, both ends of a rename. A squash commit has one parent and the merge result of a pull request has two;
-// with any other number of parents the base is not known and nothing is read.
-export function changedPaths(tree, git = (...args) => execFileSync('git', ['-C', tree, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }), parents = [1, 2]) {
-  const n = git('rev-list', '--parents', '-n', '1', 'HEAD').trim().split(' ').length - 1;
-  if (!parents.includes(n)) throw new Error(`the revision has ${n} parents, not ${parents.join(' or ')}`);
-  return git('diff', '--name-only', '--no-renames', 'HEAD^1', 'HEAD').split('\n').filter(Boolean);
-}
-
 export const JUDGES = ['hold', 'demand', 'verify', 'limit'];
 export const NO_OBSERVATION = "Testing's observation of the Cases at this revision is not available";
 
 // The answer of one judge over the facts of a tree (see readTree). Pure over the facts, except that the Cases that apply are read from the collector folder.
-export function judgeOf(name, tree, collector) {
+// `attribution` is the answer of attribute Changes: a judge judges the paths it calls `own`, and a pull request whose origin it cannot tell is UNKNOWN, never a free PASS;
+// a FAIL on an own path stays a FAIL. Without an `attribution` the paths in the tree are taken as given.
+export function judgeOf(name, tree, collector, attribution) {
   if (!JUDGES.includes(name)) return unknown(`${name} is not a judge of the ACT`);
   const limit = judgeLimitAct({ changed: tree.changed, map: tree.map, roots: tree.roots });
+  if (attribution && !attribution.complete && limit.verdict !== 'FAIL') return unknown(`cannot tell what the pull request changed itself: no attribution without ${attribution.missing.join(', ')}`);
   if (name === 'limit') return limit;
   if (limit.verdict === 'UNKNOWN') return unknown(`cannot tell whether this is an ACT: ${limit.message}`);
   if (limit.verdict === 'PASS' && limit.applies === false) return pass('not an ACT: it changes no folder the route act writes', { applies: false });
@@ -42,10 +38,15 @@ export function judgeOf(name, tree, collector) {
 // The exit code: the verdict decides it only when the flag is exactly `on`.
 export const exitCodeOf = (answer, flag) => (flag === 'on' && answer.verdict !== 'PASS' ? 1 : 0);
 
+// The report of attribute Changes itself (release/CTL33): PASS when it could attribute every changed path, UNKNOWN when a folder was missing. It names the own paths, which are the ones the judges judge.
+export const attributionOf = (a) => (a.complete
+  ? pass(`${a.own.length} own, ${a.inherited.length} inherited${a.own.length ? `; own: ${a.own.join(', ')}` : ''}`, { applies: true })
+  : unknown(`no attribution without ${a.missing.join(', ')}`));
+
 export const reportOf = (name, answer, flag) => {
   const live = flag === 'on';
   const note = answer.verdict === 'PASS' ? '' : live ? ' (advisory, not required: no ruleset makes this check required)' : ' (reported only: the flag is not on, the check passes)';
-  return `${answer.verdict}: ${name} Act: ${answer.message}${note}`;
+  return `${answer.verdict}: ${name} ${name === 'attribute' ? 'Changes' : 'Act'}: ${answer.message}${note}`;
 };
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
@@ -56,7 +57,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     const main = arg('--main'), collector = arg('--pr');
     if (!main || !collector) throw new Error('--main and --pr are required');
-    answer = judgeOf(name, await readTree({ main, collector, changed: changedPaths(collector) }), collector);
+    const attribution = attributeChanges({ before: arg('--before'), after: collector, contained: arg('--contained') });
+    answer = name === 'attribute' ? attributionOf(attribution) : judgeOf(name, await readTree({ main, collector, changed: attribution.own }), collector, attribution);
   } catch (e) { answer = unknown(String(e.message)); }
   const line = reportOf(name, answer, flag);
   console.log(line);

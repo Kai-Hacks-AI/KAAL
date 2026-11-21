@@ -22,9 +22,9 @@ export async function run() {
   assert.match(code, /^on:\n  pull_request:/m); assert.doesNotMatch(code, /pull_request_target/);
   assert.doesNotMatch(code, /secrets\.|GH_TOKEN|GITHUB_TOKEN|create-github-app-token|permissions:\s*\n\s+(pull-requests|contents): write/);
   assert.doesNotMatch(code, /npm (ci|install)|pnpm|yarn/);
-  assert.equal((code.match(/persist-credentials: false/g) ?? []).length, 8);
-  assert.equal((code.match(/ref: \$\{\{ github\.event\.repository\.default_branch \}\}/g) ?? []).length, 4);
-  assert.equal((code.match(/refs\/pull\/\$\{\{ github\.event\.pull_request\.number \}\}\/merge/g) ?? []).length, 4);
+  assert.equal((code.match(/persist-credentials: false/g) ?? []).length, 10);
+  assert.equal((code.match(/ref: \$\{\{ github\.event\.repository\.default_branch \}\}/g) ?? []).length, 5);
+  assert.equal((code.match(/refs\/pull\/\$\{\{ github\.event\.pull_request\.number \}\}\/merge/g) ?? []).length, 5);
   for (const j of ['hold', 'demand', 'verify', 'limit']) {
     assert.match(code, new RegExp(`name: ${j} Act\\n`)); assert.match(code, new RegExp(`KAAL_FLAG: \\$\\{\\{ vars\\.KAAL_RELEASE_${j.toUpperCase()}_ACT \\}\\}`));
     assert.match(code, new RegExp(`run-controls-act\\.mjs ${j} --main \\. --pr pr`));
