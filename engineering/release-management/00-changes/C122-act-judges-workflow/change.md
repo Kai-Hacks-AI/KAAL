@@ -16,6 +16,14 @@ One workflow that runs the four judges of the ACT on every pull request into a c
 8. **Where the source lives.** `05-src/wiring/workflows/act-judges.yml`, where release's workflow sources are now (the Dispatcher's and the Branching one are there). When engineering/C29 puts the workflow sources in a per-capability home, this one moves with the rest in that Change; nothing here depends on the new home.
 9. **Installing is a WIRE with the Owner's go**, separate from the DO: copy `act-judges.yml` into `.github/workflows/`, then the Owner sets the four variables. Installing the workflow makes it run in the first state only.
 
+### The three station states, named plainly (CPO review)
+
+- **Detective (flag absent or not exactly `on`).** All four jobs report their real PASS, FAIL or UNKNOWN verdict in the run summary and exit successfully. No check is required.
+- **Advisory (flag exactly `on`).** An applicable FAIL or UNKNOWN makes the job exit 1: a red check that is **not required**. This is not preventive enforcement. A red check can still influence automation and how people read the pull request, so the job summary and the check name say "advisory, not required" when it is red.
+- **Preventive.** Only a separate Owner-approved ruleset change makes a check required. Never a variable.
+
+Each judge progresses on its own, only on recorded real or provoked evidence under C20. Hold stays reporting-only until Testing supplies its observation adapter. Installing the WIRE, turning a flag on and any ruleset change are three separate Owner decisions.
+
 ### The gate from detective to advisory to preventive (the evidence)
 
 Each judge's control states its gate in its own record, in the form controls/C20 reads (a run has a recorder; a RED or UNKNOWN run is handled in words before it counts). Per judge:
