@@ -2,7 +2,7 @@
 # its merge result checked out beside it, never installed or run, no credentials kept. Plain pull_request, never pull_request_target; no token, no secret.
 # Detective: a job reports its verdict and passes. Advisory: only when the variable of that judge is exactly `on`, a FAIL or an UNKNOWN makes the job red, and the check is still
 # not required by any ruleset. Preventive (requiring a check) is a ruleset change by the Owner, never this file or a variable.
-name: ACT judges
+name: controls-act
 
 on:
   pull_request:
@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
       - name: Judge
-        run: node engineering/release-management/05-src/phase/run-act-judges.mjs hold --main . --pr pr
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs hold --main . --pr pr
 
   demand-act:
     name: demand Act
@@ -59,7 +59,7 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
       - name: Judge
-        run: node engineering/release-management/05-src/phase/run-act-judges.mjs demand --main . --pr pr
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs demand --main . --pr pr
 
   verify-act:
     name: verify Act
@@ -83,7 +83,7 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
       - name: Judge
-        run: node engineering/release-management/05-src/phase/run-act-judges.mjs verify --main . --pr pr
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs verify --main . --pr pr
 
   limit-act:
     name: limit Act
@@ -107,4 +107,4 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
       - name: Judge
-        run: node engineering/release-management/05-src/phase/run-act-judges.mjs limit --main . --pr pr
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs limit --main . --pr pr

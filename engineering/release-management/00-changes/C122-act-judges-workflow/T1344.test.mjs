@@ -15,8 +15,8 @@ export const id = 'release/T1344';
 export const tests = ['release/A101'];
 export const title = "the workflow keeps the pull request as data: pull_request, never pull_request_target, no token, no installation, the judge is the default branch's, four jobs of their own flag";
 export async function run() {
-  const f = join(RM, '05-src/wiring/workflows/act-judges.yml');
-  assert.ok(existsSync(f), 'act-judges.yml is absent');
+  const f = join(RM, '05-src/wiring/workflows/controls-act.yml');
+  assert.ok(existsSync(f), 'controls-act.yml is absent');
   const t = readFileSync(f, 'utf8');
   const code = t.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
   assert.match(code, /^on:\n  pull_request:/m); assert.doesNotMatch(code, /pull_request_target/);
@@ -27,6 +27,6 @@ export async function run() {
   assert.equal((code.match(/refs\/pull\/\$\{\{ github\.event\.pull_request\.number \}\}\/merge/g) ?? []).length, 4);
   for (const j of ['hold', 'demand', 'verify', 'limit']) {
     assert.match(code, new RegExp(`name: ${j} Act\\n`)); assert.match(code, new RegExp(`KAAL_FLAG: \\$\\{\\{ vars\\.KAAL_RELEASE_${j.toUpperCase()}_ACT \\}\\}`));
-    assert.match(code, new RegExp(`run-act-judges\\.mjs ${j} --main \\. --pr pr`));
+    assert.match(code, new RegExp(`run-controls-act\\.mjs ${j} --main \\. --pr pr`));
   }
 }

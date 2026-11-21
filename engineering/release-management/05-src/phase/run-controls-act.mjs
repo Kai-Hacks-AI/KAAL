@@ -1,5 +1,5 @@
-// The runner of the workflow act-judges (release/C122): asks one judge of the ACT about a pull request into a collector and says what the flag of that judge does with the answer.
-//   node run-act-judges.mjs <hold|demand|verify|limit> --main <default branch folder> --pr <merge result folder>
+// The runner of the workflow controls-act (release/C122): asks one judge of the ACT about a pull request into a collector and says what the flag of that judge does with the answer.
+//   node run-controls-act.mjs <hold|demand|verify|limit> --main <default branch folder> --pr <merge result folder>
 // The flag is the variable KAAL_RELEASE_<CONTROL> handed in as KAAL_FLAG. It decides the exit code and nothing else: exactly `on` makes a FAIL or an UNKNOWN exit 1 (advisory:
 // a red check that no ruleset requires); anything else exits 0 with the same verdict written (detective). Printing and writing the summary are the same in both states.
 import { appendFileSync } from 'node:fs';

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 export const REPO = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const RM = join(REPO, 'engineering/release-management');
-export const RUNNER = join(RM, '05-src/phase/run-act-judges.mjs');
+export const RUNNER = join(RM, '05-src/phase/run-controls-act.mjs');
 export const ROOT = 'engineering/cap';
 export const RETROS = `${ROOT}/02-learnings/retros`;
 
