@@ -1,12 +1,12 @@
 # C28 change
 
-The Owner asked where research sits in the folder structure, and said research and rehearsals might deserve first-class attention (C27 left it open: "Operations is fine for now"). Then he sharpened it: research is external references, researching what is out there, and a rehearsal is where we test our own ideas, so the two are not one thing and not one folder; they might be siblings. He then named them so that the names share an R (retros, research, rehearsals), gave rehearsals the id `RH<n>` (`R<n>` is research, `RT<n>` is a retrospective), and added a fourth sibling, `reviews`, for targeted reviews that are deemed worth keeping. This page is engineering's answer, to be judged before anything is built. The capabilities that own the two objects, kaal-research and a rehearsal capability, are other threads' and do not exist yet. Engineering gives them a place and nothing more.
+The Owner asked where research sits in the folder structure, and said research and rehearsals might deserve first-class attention (C27 left it open: "Operations is fine for now"). Then he sharpened it: research is external references, researching what is out there, and a rehearsal is where we test our own ideas, so the two are not one thing and not one folder; they might be siblings. He then named them so that the names share an R (retros, research, rehearsals), gave rehearsals the id `RH<n>` (`R<n>` is research, `RT<n>` is a retrospective), and added a fourth sibling, `reviews`, for targeted reviews that are deemed worth keeping. This page is engineering's answer, to be judged before anything is built. The capability that owns the objects, kaal-research, is another thread's and does not exist yet; the Owner decided that rehearsal is part of research, so one capability, kaal-research, owns two Skills, one for research and one for rehearsal. Engineering gives them a place and nothing more.
 
 ## The answer in five lines
 
 1. **Two objects, two names.** Research is what is out there: papers, tool documentation, market research. A rehearsal is our own idea, run and observed.
 2. **Four siblings in `02-learnings`:** `retros/`, `research/`, `rehearsals/` and `reviews/`. Each lives with the capability that asked the question or owns the idea.
-3. **Owners:** `kaal-research` owns the research note (`<capability>/R<n>`). The rehearsal object (`RH<n>`) needs a capability of its own (nothing without a capability). `kaal-review` owns the review object (`RV<n>`).
+3. **Owners:** `kaal-research` owns the research note (`<capability>/R<n>`). `kaal-research` also owns the rehearsal object (`RH<n>`), as its second Skill: the Owner decided that rehearsal is part of research, so there is no separate rehearsal capability. `kaal-review` owns the review object (`RV<n>`).
 4. **`14-operations` stays one thing:** controls and, where needed, `runs`.
 5. **Reviews are kept only when deemed worthy.** The layout gives the place; whether a review is worth persisting, and what verifies one, is the review capability's decision. Not every review deserves a record.
 
@@ -28,7 +28,7 @@ A retrospective's Learned lens already carries its own `source` or `searched` li
 | Case | beside the element, `test-cases` | running it | never holds rehearsal evidence; a Case is deterministic |
 | Retrospective | `02-learnings/retros/RT<n>` | kaal-retro | its Learned entries cite research by id |
 | Research note | `02-learnings/research/R<n>…` | kaal-research (to state) | the object for what is out there |
-| Rehearsal | `02-learnings/rehearsals/…`, `RH<n>` | the rehearsal capability (to state) | the object for our own ideas |
+| Rehearsal | `02-learnings/rehearsals/…`, `RH<n>` | kaal-research, second Skill (to state) | the object for our own ideas |
 | Review | `02-learnings/reviews/…`, `RV<n>` | kaal-review (to state) | a targeted review deemed worth persisting; the rest are not kept |
 
 What the evidence holds is each capability's rule; the shape engineering expects: for research, where, date retrieved, first- or secondhand, an excerpt where the source can vanish; for a rehearsal, the key and criteria written before the first run, prompt hashes, model and settings, the judge's excerpts, and whole transcripts only where its capability says so. Neither is a Case, since neither can be re-run to the same result.
@@ -43,7 +43,7 @@ The layout template (`02-learnings` gets the children `research`, `rehearsals` a
 
 ## What this does not do
 
-No note, Skill, finder or check, no rehearsal capability, no rule for which review is worthy, no migration, no wiring, no ruleset, no publication, and no verifier for any of the three folders: as for `retros`, the layout names none.
+No note, Skill, finder or check, no Skills of kaal-research, no rule for which review is worthy, no migration, no wiring, no ruleset, no publication, and no verifier for any of the three folders: as for `retros`, the layout names none.
 
 ## Alternatives considered
 
@@ -68,7 +68,7 @@ Not authorized by this PLAN. After the Owner's go: move the template from `draft
 ## Questions for review
 
 1. Is `02-learnings` the right parent for both? The Owner answered yes (21 Nov 2026): trials could have been argued under Operations, but fit better here. Approval of this PLAN is still the go.
-2. Which capability owns the rehearsal object? (Engineering suggests a separate capability; the id is `RH<n>`.)
+2. Answered by the Owner (21 Nov 2026): rehearsal is part of research, and kaal-research owns two Skills, one for research and one for rehearsal; the folders stay siblings.
 3. Is "persist only when deemed worthy" the right selection rule for reviews, with the decision owned by review?
 
 ## ACT

@@ -51,7 +51,7 @@
       ],
       "retros": "per-collector retrospectives, each with front matter `reflects: [C…]`; the object belongs to kaal-retro, which also says what verifies one",
       "research": "research notes on external references, each with an id `R<n>`, asked by this capability; the object belongs to kaal-research, which also says what verifies one and what sits beside it",
-      "rehearsals": "rehearsals of this capability's own ideas, each run and observed, id `RH<n>`; the object belongs to a rehearsal capability, which also says what verifies one and what evidence sits beside it",
+      "rehearsals": "rehearsals of this capability's own ideas, each run and observed, id `RH<n>`; the object belongs to kaal-research (its second Skill), which also says what verifies one and what evidence sits beside it",
       "reviews": "targeted reviews deemed worth persisting, id `RV<n>`, not every review; the object belongs to kaal-review, which also decides what is worthy and what verifies one"
     },
     {
