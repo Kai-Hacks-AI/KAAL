@@ -17,6 +17,8 @@ Three small pieces and a stated bar. Nothing here sets a flag, installs a workfl
 5. **The loop closes in the ACT.** The retro of a collector quotes the summary of the judges that judged it, so the learning is read from the ledger and not from memory.
 6. **Not here.** `hold Act` reading Testing's evidence is release/C125; the workflow names control is C124; the source-versus-installed control is C126. This Change adds none of them and depends on none.
 
+7. **`isolate Changes` has a trust bar of its own, recorded in CTL33.** The Owner agreed that the control that sorts a pull request's paths reuses the shape of decision 4 and not a second one. The DO adds one line to `04-controls/CTL33-isolate-changes/CTL33.md` (its rollout, step 2): ten runs on distinct pull requests with complete attribution open the quality review. Any pull request into a collector counts, a SYNC and a DO included, because this control sorts paths and does not judge an ACT. The review must have seen at least one SYNC, one pull request that mixes own and inherited paths, and one conflict-resolution edit (real or provoked), and each run's attribution is checked by a person against the diff; one wrong attribution is a Defect and restarts the count. READY, NOT READY and MORE EVIDENCE NEEDED, and the Owner's go for advisory, are as in decision 4. This line sets no flag and installs nothing.
+
 ### Cases (ids are taken at the DO, after the highest on main)
 
 - the runner prints one record per judge with the six fields, and an incomplete attribution prints `missing`;
@@ -27,3 +29,4 @@ Three small pieces and a stated bar. Nothing here sets a flag, installs a workfl
 - the summary exercises-boundaries view lists PASS, FAIL and UNKNOWN as exercised only by applicable records, and lists the provoked violation only when its record is flagged as provoked;
 - a review entry sets the outcome and a next trigger; without one the summary reports `no review`, and a count alone never produces a review outcome;
 - the library imports no process and reads no history; the ledger is read as a file.
+- the record of `isolate Changes` carries the line of decision 7 (T1360 reads the record: it keeps its flag and check name).
