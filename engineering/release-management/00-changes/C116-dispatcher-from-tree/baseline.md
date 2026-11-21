@@ -1,0 +1,7 @@
+# C116 baseline
+
+The baseline is `main`. The Dispatcher (`05-src/promotion-raise/`, workflow `dispatcher-raise.yml`, which raises the PROMOTION as a draft when the final step of work merges into an integration branch) reads the event alone, and no branch code: `stepOf(body)` names the step from the chapters of the merged pull request's body (an ACT is exactly `Change` then `Records`), `decideFinal` accepts the merge when the step is the one the class needs, and the title is `PROMOTION: ` plus the first line under `## Change` of that body. Its body has two chapters, `Change` and `Why now` (a fixed sentence); the source template `05-src/wiring/templates/promotion.md` has three, with `HOW TO WORK`, and the installed copy two.
+
+The judges of the ACT are on `main` and pure over facts: `hold Act` (release/C103), `demand Act` (release/C108), `limit Act` (release/C110), `verify Act` (release/C111), each answering a verdict and `applies` (release/C113), over the library of release/C112 (`05-src/phase/lib`). Testing's adapter, the observation of which Cases are really green at a revision, does not exist yet.
+
+Known faults in what the Dispatcher does today: the title is whatever the ACT body's first line says (release/C113's ACT had to be corrected by hand because of it); `stepOf` names an ACT only when its body has exactly two chapters, so an ACT written on the three-chapter source template is not an ACT to it; and the final step is read from words, not from what the collector holds.
