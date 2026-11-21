@@ -8,7 +8,7 @@ Owner: the release capability (release management owns Branching and its sibling
 {
   "id": "release/D17",
   "context": "release (the workflow .github/workflows/lineage-synchronization.yml, Branching (freshness, synchronization and the auto-merge method); Intent release/I50)",
-  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories from 2 December 2026 (the Owner rejected an exception).",
+  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories (the Owner rejected an exception).",
   "observed": "It checks out the default branch, fetches the candidate as Git data, reads the rules of the base, and judges with the checker the default branch holds; the auto-merge method it judges is read from the pull request. Its trigger is `pull_request_target` (opened, synchronize, reopened, edited, auto_merge_enabled, auto_merge_disabled). It is one of five workflows that use the trigger on main; release/CTL19 only stops the number from rising, and the target Case release/T1123 is held RED at five.",
   "where": ".github/workflows/lineage-synchronization.yml",
   "reach": ".github/workflows/lineage-synchronization.yml",

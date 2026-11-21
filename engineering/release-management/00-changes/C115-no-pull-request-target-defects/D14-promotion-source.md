@@ -8,7 +8,7 @@ Owner: the release capability (release management owns Branching and its sibling
 {
   "id": "release/D14",
   "context": "release (the workflow .github/workflows/promotion-source.yml, the Promotion Source check (where a pull request comes from); Intent release/I50)",
-  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories from 2 December 2026 (the Owner rejected an exception).",
+  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories (the Owner rejected an exception).",
   "observed": "It checks out the default branch, judges only the event's refs with the checker the default branch holds, and reads the check runs through the API with `checks: read`. Its trigger is `pull_request_target` (opened, synchronize, reopened, edited). It is one of five workflows that use the trigger on main; release/CTL19 only stops the number from rising, and the target Case release/T1123 is held RED at five.",
   "where": ".github/workflows/promotion-source.yml",
   "reach": ".github/workflows/promotion-source.yml",

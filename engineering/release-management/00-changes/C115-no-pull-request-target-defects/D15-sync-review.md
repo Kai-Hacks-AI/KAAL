@@ -8,7 +8,7 @@ Owner: the release capability (release management owns Branching and its sibling
 {
   "id": "release/D15",
   "context": "release (the workflow .github/workflows/sync-review.yml, verify Sync, approve Sync and review Sync; Intent release/I50)",
-  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories from 2 December 2026 (the Owner rejected an exception).",
+  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories (the Owner rejected an exception).",
   "observed": "Three jobs split by what a token can do: `verify Sync` holds no token and reads the candidate as Git data; `approve Sync` and `review Sync` write to the pull request (approval, label, comment) and never fetch the candidate. Its trigger is `pull_request_target` (opened, synchronize, reopened, edited). It is one of five workflows that use the trigger on main; release/CTL19 only stops the number from rising, and the target Case release/T1123 is held RED at five.",
   "where": ".github/workflows/sync-review.yml",
   "reach": ".github/workflows/sync-review.yml",

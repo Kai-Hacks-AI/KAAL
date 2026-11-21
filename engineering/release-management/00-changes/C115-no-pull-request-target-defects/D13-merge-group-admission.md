@@ -8,7 +8,7 @@ Owner: the release capability (release management owns Branching and its sibling
 {
   "id": "release/D13",
   "context": "release (the workflow .github/workflows/merge-group-admission.yml, the admission to the merge queue (job `Change Isolation (review)`); Intent release/I50)",
-  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories from 2 December 2026 (the Owner rejected an exception).",
+  "expected": "No workflow under .github/workflows uses the trigger pull_request_target (release/I50): a pull request does not start a run with the base branch's token, and the repository does not depend on a trigger GitHub blocks by default in public repositories (the Owner rejected an exception).",
   "observed": "It holds no permission, no checkout and runs one `echo`: the check exists on the pull request head only so the pull request can enter the queue. Its trigger is `pull_request_target` (opened, synchronize, reopened, ready_for_review). It is one of five workflows that use the trigger on main; release/CTL19 only stops the number from rising, and the target Case release/T1123 is held RED at five.",
   "where": ".github/workflows/merge-group-admission.yml",
   "reach": ".github/workflows/merge-group-admission.yml",
