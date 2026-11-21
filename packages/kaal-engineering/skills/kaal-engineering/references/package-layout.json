@@ -39,15 +39,14 @@
       "role": "in flight, temporary"
     },
     {
-      "name": "02-controls",
+      "name": "02-learnings",
       "kind": "content",
-      "role": "controls over the package itself",
-      "scope": "package",
-      "covers": [
-        "development",
-        "delivery",
-        "solution"
-      ]
+      "role": "what we learned: the retrospectives of the package's collectors, kept with the capability",
+      "closed": true,
+      "children": [
+        "retros"
+      ],
+      "retros": "per-collector retrospectives, each with front matter `reflects: [C…]`; the object belongs to kaal-retro, which also says what verifies one"
     },
     {
       "name": "10-intent",
@@ -91,10 +90,36 @@
         "skill": "Agent to Skill",
         "scripts": "Skill to Script"
       },
-      "verifiedBy": "unit-tests"
+      "verifiedBy": "unit-tests",
+      "closed": true
     },
     {
-      "name": "14-defects",
+      "name": "14-operations",
+      "kind": "content",
+      "element": "operation",
+      "role": "execution and observation: where the package is run and what that shows",
+      "closed": true,
+      "children": [
+        "controls",
+        "runs"
+      ],
+      "optional": [
+        "runs"
+      ],
+      "controls": {
+        "role": "controls over the package itself",
+        "scope": "package",
+        "covers": [
+          "development",
+          "delivery",
+          "solution"
+        ]
+      },
+      "runs": "fallback records, judged and stamped, only where evidence cannot be re-run or re-derived",
+      "verifiedBy": "controls"
+    },
+    {
+      "name": "15-defects",
       "kind": "content",
       "element": "defect",
       "children": [
@@ -158,7 +183,7 @@
       "evidence",
       "operational state"
     ],
-    "packageControls": "govern the package itself"
+    "packageControls": "govern the package itself, and sit in 14-operations/controls"
   },
   "agents": [
     {
