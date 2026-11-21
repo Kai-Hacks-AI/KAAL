@@ -34,7 +34,7 @@ export function run() {
   for (const [name, ruleset] of Object.entries(sources)) if (name !== 'promoting') assert.equal(queues(ruleset).length, 0, `the ${name} source holds a merge queue`);
 
   const controls = readFileSync(join(RS, 'controls.md'), 'utf8');
-  const row = controls.split('\n').find((l) => /^\|\s*promoting\s*\|/.test(l));
+  const row = controls.split('\n').find((l) => /^\|\s*30 - promoting\s*\|/.test(l));
   assert.ok(row && /merge_queue/.test(row), 'the promoting row of the table of controls does not list the merge queue');
   assert.doesNotMatch(controls.split('\n')[2] ?? '', /merge queue/, 'the table still says the merge queue is enforced by the old rulesets');
 }
