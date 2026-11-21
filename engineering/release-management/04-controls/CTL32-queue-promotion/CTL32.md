@@ -5,7 +5,7 @@ description: It lands a promotion on the current tip of main, one at a time, by 
 type: preventive
 status: designed
 has: [release/I63]
-evidence: [fixture:2, real:1, provoked:1:fail]
+evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL32 queue Promotion
 
