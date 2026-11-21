@@ -10,7 +10,7 @@ export async function run() {
     const r = source(n);
     assert.equal(r.name, n.toLowerCase());
     assert.deepEqual(r.bypass_actors, [], `${n}: no bypass`);
-    assert.deepEqual(r.rules.map((x) => x.type), n === "Integrating" ? ["required_status_checks", "pull_request"] : ["required_status_checks"], `${n}: nothing but the status-check rule (Integrating also holds the approval rule of release/CTL10, release/C66)`);
+    assert.deepEqual(r.rules.map((x) => x.type), n === "Integrating" ? ["required_status_checks", "pull_request"] : n === "Promoting" ? ["required_status_checks", "merge_queue"] : ["required_status_checks"], `${n}: nothing but the status-check rule (Integrating also holds the approval rule of release/CTL10, release/C66)`);
     assert.deepEqual(contexts(r), n === "Integrating" ? [ctx(n), ctx("Developing")] : n === "Promoting" ? [ctx(n), "analyze Vulnerabilities (Promoting)", "verify Triggers"] : [ctx(n)], `${n}: exactly its own check (Integrating also requires Developing, release/C37; Promoting also requires analyze Vulnerabilities, release/CTL5)`);
     assert.equal(r.rules.find((x) => x.type === "required_status_checks").parameters.strict_required_status_checks_policy, false, `${n}: no up to date`);
   }
