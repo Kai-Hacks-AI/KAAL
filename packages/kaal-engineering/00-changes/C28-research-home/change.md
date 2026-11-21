@@ -16,6 +16,10 @@ The Owner asked where research sits in the folder structure, and said research a
 - A rehearsal is a run, which pulls toward `14-operations`. Against it: its product is a verdict that steers planning, not evidence that a Source delivers behaviour; rehearsal evidence (transcripts, keys, prompt hashes) differs from the package's own `runs`; and `14-operations` verifies by `controls`, so a rehearsal in it would need a control to exist beside it, a coupling that has nothing to do with the rehearsal.
 - Siblings keep the two names apart, as the Owner asked, and cost one template edit each.
 
+## What a persisted review is, and the BASS assessment
+
+A review is targeted: it is not run on everything, only where its question applies, and only the ones deemed worth keeping are persisted. The Owner's example is the BASS assessment, which is needed only when agent skills are reviewed. BASS is owned by the agents capability, which uses `kaal-review` to review for it; the assessment of one capability's Skill, if kept, sits in the reviewed capability's `02-learnings/reviews/` as an `RV<n>`. So the placement serves it without naming it: the layout carries no BASS rule, `kaal-review` owns the object and the selection, and `agents` owns what BASS asks. The `bass` fields in the template belong to the machinery folders and are unchanged.
+
 ## The small research of a retrospective
 
 A retrospective's Learned lens already carries its own `source` or `searched` line. That stays enough for small outside lookups: no note, nothing to migrate. A larger study, or a source several decisions rest on, becomes a research note, and the retrospective cites `R<n>` by id instead. The layout needs nothing for this beyond the place.
