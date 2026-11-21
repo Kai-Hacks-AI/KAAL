@@ -17,6 +17,13 @@ import { EXCLUSIONS, inspect } from "@kaihacksai/kaal-hosting/conformance";
 const BOUNDARY = { builtins: ["node:path", "node:url"] };
 
 /**
+ * The one module that reads the host directly: the Case catalog walks a checkout, which Hosting cannot (it reads
+ * asynchronously and refuses a link to a directory, which every node_modules holds). It may read, and nothing else.
+ * The exception ends when Hosting can list a tree without such links (testing/A54).
+ */
+const CATALOG = { file: "cases.mjs", builtins: ["node:path", "node:fs"] };
+
+/**
  * Findings that need validation and have been judged, each with its judgment.
  * A new one fails this suite until an Agent or a person has judged it and
  * recorded it here; a judged one that disappears fails too, so the list stays
@@ -26,9 +33,10 @@ const VALIDATED = [];
 
 const LIB = fileURLToPath(new URL("../lib/", import.meta.url));
 
-/** The JavaScript Testing delivers: lib/, as npm packs it. */
+/** The JavaScript Testing delivers: lib/, as npm packs it, less the catalog, which has its own declaration. */
 async function delivered() {
-  return read(LIB);
+  const { [CATALOG.file]: _catalog, ...files } = await read(LIB);
+  return files;
 }
 
 const judged = (v) => v.map(({ file, construct }) => ({ file, construct }));
@@ -36,9 +44,12 @@ const judged = (v) => v.map(({ file, construct }) => ({ file, construct }));
 describe("Testing's Hosting boundary", () => {
   it("permitted: the delivered JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting", async () => {
     const files = await delivered();
+    const catalog = (await read(LIB))[CATALOG.file];
     assert.ok(Object.keys(files).length >= 1);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
+    const own = await inspect({ [CATALOG.file]: catalog }, { builtins: CATALOG.builtins });
+    assert.deepEqual([own.violations, own.outside, own.validation], [[], [], []], "the catalog reads through node:fs and nothing else");
     assert.deepEqual([...new Set(report.outside.map((o) => o.specifier))], ["@kaihacksai/kaal-hosting"]);
     assert.deepEqual(judged(report.validation), VALIDATED.map(({ file, construct }) => ({ file, construct })));
     // A clean result is evidence within the inspection's coverage, not proof of compliance.
