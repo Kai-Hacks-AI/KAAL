@@ -9,7 +9,7 @@ export const title = 'observeCases gives UNKNOWN for no report, no revision or a
 export async function run() {
   const { collectCases } = await load('cases');
   const { observeCases } = await load('observe');
-  const { cases } = collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1'), 'p/T2.test.mjs': caseText('cap/T2') }));
+  const { cases } = await collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1'), 'p/T2.test.mjs': caseText('cap/T2') }));
   const good = report({ tests: [{ file: 'p/T1.test.mjs', actual: 'GREEN' }, { file: 'p/T2.test.mjs', actual: 'GREEN' }] });
   const ask = (extra) => observeCases({ report: good, cases, revision: REV, expectedRevision: REV, runId: '42', producedBy: 'pull-request', ...extra });
 

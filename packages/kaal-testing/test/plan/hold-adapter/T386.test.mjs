@@ -10,7 +10,7 @@ export async function run() {
   const { collectCases } = await load('cases');
   const { observeCases } = await load('observe');
   const root = tree(Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8].map((n) => [`p/T${n}.test.mjs`, caseText(`cap/T${n}`)])));
-  const { cases } = collectCases(root);
+  const { cases } = await collectCases(root);
   const f = (n) => `p/T${n}.test.mjs`;
   const r = report({
     tests: [
