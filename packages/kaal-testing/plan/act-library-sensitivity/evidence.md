@@ -13,3 +13,10 @@ A throwaway record outside the repository (a `pilot.md` with a pinned SHA, twelv
 ## What this does not show
 
 That the pilot itself finds anything. The record is the DO's, and its prose is judged by review, never by these Cases.
+
+## The pilot, run (`testing/C79`)
+
+Pinned to `main` at `7873330b51df80fffef943f4e5f30b9ed3c7d9b7`, Node 22.23. `pilot.md` holds the table. In short: 23 mutants, 19 killed, 4 survived (M12, M20, M21, M23), none invalid or unresolved; every mutant was loaded (interception check); the 12 release Cases were GREEN unmutated. The three justified Cases of `pilot.md` were each run once as a throwaway check against the unmutated tree and the mutant they target.
+
+`node --test packages/kaal-testing/test/plan/act-library-sensitivity.test.mjs`: 2 tests, 2 pass (`T395`, `T396`), where on the collector before this Change both were RED by assertion.
+
