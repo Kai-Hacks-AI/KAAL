@@ -21,7 +21,7 @@ export function judgeLayout(template, paths) {
     const under = paths.filter((p) => p.startsWith(`${f.name}/`)).map((p) => p.slice(f.name.length + 1));
     if (f.name === 'dist') findings.push('dist is committed');
     if (f.verifiedBy && !under.some((p) => p.startsWith(`${f.verifiedBy}/`))) findings.push(`${f.name} holds no ${f.verifiedBy}`);
-    if (f.name === '13-source') {
+    if (f.closed) {
       for (const child of new Set(under.filter((p) => p.includes('/')).map((p) => p.split('/')[0]))) if (!f.children.includes(child)) findings.push(`${f.name} holds ${child}, which the layout does not have`);
     }
   }

@@ -9,7 +9,7 @@ evidence: [fixture:2, real:1, provoked:1:fail]
 ---
 # engineering/CTL2 verify Layout
 
-A detective control. `verify Layout` reads the tracked files of a capability folder and the layout template of the kaal-engineering Skill, and says whether the folder follows it. PASS: no tracked file breaks the template. FAIL: a numbered folder the template does not have, an element folder or the source without the folder that verifies it, a stray folder inside `13-source`, or a committed `dist`. UNKNOWN: the template or the folder cannot be read; that never counts as a pass.
+A detective control. `verify Layout` reads the tracked files of a capability folder and the layout template of the kaal-engineering Skill, and says whether the folder follows it. PASS: no tracked file breaks the template. FAIL: a numbered folder the template does not have, an element folder, the source or `14-operations` without the folder that verifies it, a stray folder inside a closed folder (`13-source`, `14-operations` or `02-learnings`), or a committed `dist`. UNKNOWN: the template or the folder cannot be read; that never counts as a pass.
 
 It reveals; it gates nothing, writes nothing and runs nothing in the folder. It judges one folder and says nothing about the others, so a run over every capability gives the baseline the ratchet tightens against: the findings per package, never a count, and a finding once resolved must not come back. Making it preventive is a different control with the same check, made only after this one is Tested and the Owner decides.
 
