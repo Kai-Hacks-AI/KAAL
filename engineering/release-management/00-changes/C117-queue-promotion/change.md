@@ -1,4 +1,4 @@
-# C115 change
+# C117 change
 
 ## PLAN
 
@@ -13,7 +13,7 @@ Nothing under `.github`, no live ruleset and no other control changes.
 
 ## Ids
 
-Change `release/C115`, Intent `release/I63`, control `release/CTL32`, Case T1321.
+Change `release/C117`, Intent `release/I63`, control `release/CTL32`, Case T1321.
 
 ## Install
 
