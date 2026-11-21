@@ -2,7 +2,7 @@
 
 ## DO
 
-What the PLAN decided, as built (decisions 1 to 6; decision 7, the line in CTL33, follows once its PLAN is merged).
+What the PLAN decided, as built (decisions 1 to 6; decision 7: the line in CTL33 is added, see below).
 
 - **One record per judge per run (1).** `05-src/phase/lib/evidence.mjs` makes the record (`recordOf`, `evidenceLine`); the runner `run-controls-act.mjs` prints `act-evidence {...}` after the report of each of the four judges (not of `isolate Changes`, which is no judge). The fields are `kind, judge, check, pr, merge, run, verdict, applies, attribution`; the pull request, the merge result and the run come from the environment (`KAAL_PR`, `KAAL_MERGE_SHA`, `KAAL_RUN_ID`) that the workflow source hands to the four judge jobs, and a missing one is `null`. The workflow writes nothing and gains no permission.
 - **The ledger and its summary (2).** The ledger is a file, `evidence.jsonl` beside the control; none is created here because no record exists yet. `summarizeEvidence(ledger, judge)` is pure over data (the library reads no file, no process, no history) and `summarize-act-evidence.mjs <ledger> <judge>` reads the file and prints the summary. A ledger entry is a run record, which a person may complete with `expected` (the verdict the facts call for), `facts` (where those facts can be read), `provoked` and `handled: { by, open }`, or a review entry `{ kind: 'review', judge, outcome, reasons, nextTrigger, reviewer }`.
@@ -21,3 +21,7 @@ T1367 (the runner's record), T1368 (the trigger: ACT runs, distinct, attribution
 ### Evidence for the review of a judge
 
 Each counted run keeps its pull request, its merge result and its run id in the ledger, so the run can be opened again, and `expected` plus `facts` let a person who was not there compare what the judge said with what the pull request is.
+
+### The trust bar of isolate Changes (decision 7)
+
+`04-controls/CTL33-isolate-changes/CTL33.md`, in its rollout, now carries the bar: ten distinct pull requests into collectors with complete attribution open a quality review (a SYNC and a DO count); the review has seen a SYNC, a mixed own/inherited pull request and a conflict-resolution edit; a person checks each attribution; one wrong attribution is a Defect and restarts the count; the outcome is the reviewer's and advisory is the Owner's go. The control's flag, check name and evidence declaration are unchanged.
