@@ -1,6 +1,6 @@
 # C28 evidence
 
-The PLAN of C28 observes its RED against the collector `kaal/engineering/setup` at its tip after the retro merged. It cites nothing that is not on that collector.
+The PLAN of C28 observes its RED against the collector `kaal/engineering/research-home`, cut at `main` f61a2ca2, which holds C26, C27 and the retro RT1. It cites nothing that is not on that collector.
 
 ## Provenance
 

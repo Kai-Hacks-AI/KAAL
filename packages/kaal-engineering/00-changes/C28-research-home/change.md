@@ -57,7 +57,7 @@ Only the layout template (`02-learnings` gets the child `research` and a role li
 
 ## Ids
 
-Proposed: Change engineering/C28, Requirement engineering/F59, gap G118, Cases T1330 and T1331. They are the next free on `main` and every branch at the time of writing (highest Case seen: T1323); the allocator confirms.
+Proposed: Change engineering/C28, Requirement engineering/F59, gap G118, Cases T1330 and T1331. They are the next free on `main` and every branch at the time of writing (highest Case seen: T1323; `engineering/acceptance` has its own C28, a different capability); the allocator confirms.
 
 ## DO
 
