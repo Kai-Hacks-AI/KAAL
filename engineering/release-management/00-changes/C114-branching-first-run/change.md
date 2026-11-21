@@ -2,14 +2,14 @@
 
 ## HOTFIX
 
-One Defect, release/D2 (`D2-branching-first-run.md`), one Case, release/T1315 (`T1315.test.mjs`), RED on `main` and GREEN on `hotfix/*`. The correction is in `.github/workflows/lineage-synchronization.yml`:
+One Defect, release/D12 (`D12-branching-first-run.md`), one Case, release/T1320 (`T1320.red.mjs`), RED on `main` and GREEN on `hotfix/*`. The correction is in `.github/workflows/lineage-synchronization.yml`:
 
 1. A concurrency group per pull request, with `cancel-in-progress`: the newest event's run decides.
 2. The judging step takes the auto-merge from the pull request as it is when the run judges (`gh api` on the pull request), not from the event payload. No new permission: the repository is public and the call reads a public pull request, as the rules call already does.
 
 ## Ids
 
-Change `release/C114`, Defect `release/D2` (D1 is the only other), Case `release/T1315` (T1314 is the last). Taken as the next free ones; the coordinator allocates.
+Change `release/C114`, Defect `release/D12`, Case `release/T1320` (main and the release collectors hold up to D11, T1319 and C113). Taken as the next free ones; the coordinator allocates.
 
 ## Does not do
 

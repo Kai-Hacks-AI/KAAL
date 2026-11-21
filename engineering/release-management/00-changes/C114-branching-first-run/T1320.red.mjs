@@ -1,4 +1,4 @@
-// Case release/T1315 (release/C114): the newest event of a pull request decides its Branching verdict, and the verdict
+// Case release/T1320 (release/C114): the newest event of a pull request decides its Branching verdict, and the verdict
 // judges the auto-merge the pull request has when the run judges, not the auto-merge its event carried.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
-export const id = 'release/T1315';
-export const tests = ['release/D2'];
+export const id = 'release/T1320';
+export const tests = ['release/D12'];
 export const title = 'Branching: the newest event decides, and auto-merge is read when the run judges';
 
 const code = (text) => text.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
