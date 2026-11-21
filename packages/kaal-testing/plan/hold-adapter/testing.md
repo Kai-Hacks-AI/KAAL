@@ -10,6 +10,7 @@ The planned Cases live in `packages/kaal-testing/test/plan/hold-adapter/`, named
 | testing/T386: observing a Case | testing/F160 | GREEN needs a run, tests, all GREEN and a clean file; RED for a RED test; UNKNOWN for skipped, error, not run, no test, a file problem; attribution by catalog file and not by what a test says; every catalog Case observed and no other; uncataloged tests reported; a report that is not `run-report@1`, and a run incomplete with no problem to say where, give UNKNOWN |
 | testing/T387: provenance and a stale report | testing/F161 | revision, expected revision, run id and `producedBy` in the evidence; no report, no revision, no run id, no revision asked about, or another revision gives every Case UNKNOWN with a reason |
 | testing/T388: the command and the boundary | testing/F162, testing/N36 | writes the `{id: state}` map and an evidence file, exits 0 with a RED Case, 2 for a missing report and for no arguments, nothing written under root, the same bytes twice, two new exports, no new dependency, Node 24 or later |
+| testing/T390: form findings reach the completeness signal | testing/F163 | an `id-differs`, `case-id` or `duplicate-id` form finding with every Case GREEN gives `catalog.complete` false; a `first-line` or `target-missing` finding alone is copied into `catalog.form` and leaves it true; no form report gives `checked` false; a report that is not `case-form@1` gives false; `readCase` reads both quote forms and the catalog lists a Case whose form is wrong |
 
 T388 asserts the Node major last, so it is RED on any Node below 24 even against a correct implementation. That is the acceptance condition (`testing/N36`), as for `testing/T369`, and not a defect of the Case.
 
@@ -17,4 +18,4 @@ What these Cases do not decide: that Hold does not PASS on `catalog.complete: fa
 
 ## RED evidence
 
-`node --test packages/kaal-testing/test/plan/hold-adapter.test.mjs` on `main`: all six are RED by assertion (`missing: …/lib/cases.mjs`), none a load error. See `evidence.md`.
+`node --test packages/kaal-testing/test/plan/hold-adapter.test.mjs` on `main`: all seven are RED by assertion (`missing: …/lib/cases.mjs`), none a load error. See `evidence.md`.
