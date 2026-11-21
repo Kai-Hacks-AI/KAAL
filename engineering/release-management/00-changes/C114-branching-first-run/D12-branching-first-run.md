@@ -29,3 +29,7 @@ Not shown: which ordering produced each stuck failure. Case T1320 judges the two
 | release/T1320 | RED on `main`: the workflow has no per-pull-request concurrency and judges auto-merge from the event; GREEN with the correction | T1320.test.mjs |
 
 State: `main`. No package or production state is affected.
+
+## Follow-up
+
+The auto-merge requirement of Branching stays. Kai (21 Nov): optimise the Branching check when it moves into the new control setup. Whoever rebuilds that control takes this record, the runs above and Case T1320 as input. This hotfix stays minimal and optimises nothing else.
