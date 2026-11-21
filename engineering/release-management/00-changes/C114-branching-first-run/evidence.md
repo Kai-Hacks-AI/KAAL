@@ -8,7 +8,7 @@
 
 ## Can the Case pass
 
-In a throwaway copy of `main` with T1320 renamed to `.test.mjs` and the source added (the installed workflow with the two corrections of the hotfix track), the Case is green. Two mutations of that source are each caught: `cancel-in-progress: false`, and the line that sets `KAAL_AUTO_MERGE` from the pull request removed.
+In a throwaway copy of `main` with the source added (the installed workflow with the two corrections of the hotfix track), the Case is green. Two mutations of that source are each caught: `cancel-in-progress: false`, and the line that sets `KAAL_AUTO_MERGE` from the pull request removed.
 
 ## What this shows and does not show
 

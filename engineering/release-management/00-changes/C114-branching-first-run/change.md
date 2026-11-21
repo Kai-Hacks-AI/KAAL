@@ -3,7 +3,7 @@
 ## PLAN
 
 1. Add the Defect `D12-branching-first-run.md` (the record of the hotfix track, with the source named as where it is corrected).
-2. Add the Case release/T1320, RED, at `05-src/wiring/T1320.red.mjs`, where the wiring sources are judged: the source of the Branching workflow gives one run per pull request (a concurrency group by the pull request number with `cancel-in-progress`), and the judging step takes the auto-merge from the pull request as it is when the run judges, not from the event. It is RED while the source is absent.
+2. Add the Case release/T1320, a plain `.test.mjs`, RED by its content, at `05-src/wiring/T1320.test.mjs`, where the wiring sources are judged: the source of the Branching workflow gives one run per pull request (a concurrency group by the pull request number with `cancel-in-progress`), and the judging step takes the auto-merge from the pull request as it is when the run judges, not from the event. It is RED while the source is absent and GREEN when the DO adds it; the Case is never renamed.
 3. Observe the expected RED and that the Case can pass with the DO's content (`evidence.md`).
 4. The PLAN changes nothing under `.github`, no judge, no gate, no ruleset source and no hook.
 
@@ -16,7 +16,7 @@ Change `release/C114`, Defect `release/D12`, Case `release/T1320` (the ids the h
 On the merged PLAN:
 
 1. Add `05-src/wiring/workflows/lineage-synchronization.yml`: the installed workflow, byte for byte, with the two corrections. Nothing else of it changes (name, triggers, permissions, steps and checker call as installed).
-2. Rename T1320 from `.red.mjs` to `.test.mjs` when green.
+2. T1320 stays as it is: nothing is renamed.
 
 ## Accept list
 
