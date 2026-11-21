@@ -1,0 +1,110 @@
+# The four judges of the ACT on every pull request into a collector (release/C122, release/I65). The judge is the default branch's and is run; the pull request is data,
+# its merge result checked out beside it, never installed or run, no credentials kept. Plain pull_request, never pull_request_target; no token, no secret.
+# Detective: a job reports its verdict and passes. Advisory: only when the variable of that judge is exactly `on`, a FAIL or an UNKNOWN makes the job red, and the check is still
+# not required by any ruleset. Preventive (requiring a check) is a ruleset change by the Owner, never this file or a variable.
+name: controls ACT
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches: ['kaal/**']
+
+permissions:
+  contents: read
+
+jobs:
+  hold-act:
+    name: hold Act
+    runs-on: ubuntu-latest
+    env:
+      KAAL_FLAG: ${{ vars.KAAL_RELEASE_HOLD_ACT }}
+    steps:
+      - name: Check out the default branch, the judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Check out the merge result, as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: pr
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Judge
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs hold --main . --pr pr
+
+  demand-act:
+    name: demand Act
+    runs-on: ubuntu-latest
+    env:
+      KAAL_FLAG: ${{ vars.KAAL_RELEASE_DEMAND_ACT }}
+    steps:
+      - name: Check out the default branch, the judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Check out the merge result, as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: pr
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Judge
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs demand --main . --pr pr
+
+  verify-act:
+    name: verify Act
+    runs-on: ubuntu-latest
+    env:
+      KAAL_FLAG: ${{ vars.KAAL_RELEASE_VERIFY_ACT }}
+    steps:
+      - name: Check out the default branch, the judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Check out the merge result, as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: pr
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Judge
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs verify --main . --pr pr
+
+  limit-act:
+    name: limit Act
+    runs-on: ubuntu-latest
+    env:
+      KAAL_FLAG: ${{ vars.KAAL_RELEASE_LIMIT_ACT }}
+    steps:
+      - name: Check out the default branch, the judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Check out the merge result, as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          path: pr
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Judge
+        run: node engineering/release-management/05-src/phase/run-controls-act.mjs limit --main . --pr pr
