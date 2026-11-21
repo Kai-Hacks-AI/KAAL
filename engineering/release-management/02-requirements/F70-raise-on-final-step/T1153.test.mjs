@@ -10,12 +10,12 @@ export async function run() {
   const { decideFinal } = await load('final-step.mjs');
   assert.notEqual(decideFinal.constructor.name, 'AsyncFunction', 'it makes no call');
   const sha = 'c'.repeat(40);
-  const x = decideFinal(ev({ base: 'kaal/release/some-thing', body: ACT, mergeSha: sha }));
-  assert.equal(x.head, 'kaal/release/some-thing');
+  const x = decideFinal(ev({ base: 'hotfix/the-fix', body: HOTFIX, mergeSha: sha }));
+  assert.equal(x.head, 'hotfix/the-fix');
   assert.equal(x.base, 'main');
   assert.equal(x.revision, sha);
-  assert.equal(x.title, 'PROMOTION: release/C99 some thing: it does a small thing');
+  assert.equal(x.title, 'PROMOTION: release/C98 the fix');
   assert.deepEqual([...x.body.matchAll(/^## (.+)$/gm)].map((m) => m[1]), ['Change', 'Why now']);
-  assert.ok(x.body.startsWith('## Change\n\nrelease/C99 some thing: it does a small thing: ACT\n'));
-  assert.equal(decideFinal(ev({ base: 'kaal/release/some-thing', body: '## Change\n\n## Records\n\nx\n' })).reason, 'no-change-line');
+  assert.ok(x.body.startsWith('## Change\n\nrelease/C98 the fix: HOTFIX\n'));
+  assert.equal(decideFinal(ev({ base: 'hotfix/the-fix', body: '## Change\n\n## Defect\n\nx\n' })).reason, 'no-change-line');
 }

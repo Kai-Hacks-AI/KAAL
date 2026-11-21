@@ -1,5 +1,22 @@
 // Raises a PROMOTION from a decision that was read strictly (release/C73, release/I40). The only write is the creation of a pull request.
 const plain = (text, max) => String(text ?? '').replace(/[^A-Za-z0-9 .,'/*:()_#\n-]/g, '').slice(0, max);
+// The body is read by its structure, not filtered as free text (release/C116): the chapters of a decision, in order, and in HOW TO WORK nothing but the rows of a table.
+const CHAPTERS = [['Change', 'Why now'], ['Change', 'Reason'], ['Change', 'Why now', 'HOW TO WORK']];
+const table = (text) => {
+  const lines = String(text).split('\n').map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 3 || !lines.every((l) => /^\|.*\|$/.test(l))) return null;
+  return `\n${lines.map((l) => l.replace(/[^A-Za-z0-9 .,'/*:()_#|;<>\u2014-]/g, '')).join('\n')}\n`.slice(0, 4000);
+};
+export function readBody(body) {
+  const parts = String(body ?? '').split(/^## /m);
+  if (parts[0].trim() !== '') return null;
+  const chapters = parts.slice(1).map((p) => { const nl = p.indexOf('\n'); return { name: (nl < 0 ? p : p.slice(0, nl)).trim(), text: nl < 0 ? '' : p.slice(nl + 1) }; });
+  const names = chapters.map((c) => c.name);
+  if (!CHAPTERS.some((c) => c.length === names.length && c.every((n, i) => n === names[i]))) return null;
+  const out = chapters.map((c) => (c.name === 'HOW TO WORK' ? table(c.text) : plain(c.text, 2000)));
+  if (out.includes(null)) return null;
+  return chapters.map((c, i) => `## ${c.name}\n${out[i]}`).join('');
+}
 const COLLECTOR = /^(?:kaal\/[a-z0-9-]+\/[a-z0-9-]+|hotfix\/[a-z0-9-]+|wire\/[a-z0-9-]+)$/;
 export const marker = (head, revision) => `\n<!-- kaal-dispatch: ${head}@${revision} -->\n`;
 export function readDecision(d) {
@@ -8,7 +25,9 @@ export function readDecision(d) {
   if (d.base !== 'main') return { ok: false, why: 'the base is not main' };
   if (typeof d.revision !== 'string' || !/^[0-9a-f]{40}$/.test(d.revision)) return { ok: false, why: 'the revision is not a commit' };
   if (typeof d.title !== 'string' || d.title.includes('\n') || !d.title.startsWith('PROMOTION: ')) return { ok: false, why: 'the title is not a PROMOTION' };
-  return { ok: true, value: { title: plain(d.title, 200), head: d.head, base: 'main', body: plain(d.body, 2000) + marker(d.head, d.revision), revision: d.revision } };
+  const body = readBody(d.body);
+  if (body === null) return { ok: false, why: 'the body is not the chapters of a promotion' };
+  return { ok: true, value: { title: plain(d.title, 200), head: d.head, base: 'main', body: body + marker(d.head, d.revision), revision: d.revision } };
 }
 export async function raiseAll({ api, repo, decisions, live }) {
   const out = [];

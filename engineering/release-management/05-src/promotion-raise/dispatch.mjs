@@ -1,12 +1,27 @@
 // node dispatch.mjs decide | final | raise (release/C73; `final` is release/C93). `decide` reads facts with the token of the workflow and prints the decisions; `raise` takes them as data.
-import { appendFileSync } from 'node:fs';
+import { appendFileSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { decideRaise } from './decide.mjs';
 import { decideFinal } from './final-step.mjs';
+import { decideFromTree } from './final-tree.mjs';
+import { readTree, changedPaths } from './tree.mjs';
 import { listCollectors, gatherFacts, openPromotions } from './gather.mjs';
 import { oneAtATime, readCapacity } from './seat.mjs';
 import { raiseAll } from './raise.mjs';
 
 export const withRevision = (decision, facts) => (decision.action === 'raise' ? { ...decision, revision: facts.tip } : decision);
+
+export const TEMPLATE = 'engineering/release-management/05-src/wiring/templates/promotion.md';
+
+// The final step of a collector, from its tree: the default branch's checkout (the judge, in `main`) and the collector at the merge revision (data, in `collector`).
+export async function decideKaal(env) {
+  const main = env.KAAL_MAIN_DIR || '.', collector = env.KAAL_COLLECTOR_DIR || 'collector';
+  let changed, tree, template;
+  try { changed = changedPaths(collector); } catch { changed = undefined; }
+  try { tree = await readTree({ main, collector, changed }); } catch { tree = undefined; }
+  try { template = readFileSync(join(main, TEMPLATE), 'utf8'); } catch { template = undefined; }
+  return decideFromTree({ merged: env.KAAL_PR_MERGED === 'true', base: env.KAAL_PR_BASE, mergeSha: env.KAAL_PR_MERGE_SHA, number: Number(env.KAAL_PR_NUMBER), tree, template });
+}
 
 // The one way out. It allows reading, and the creation of a pull request, and nothing else.
 export function makeApi(token, fetchImpl = fetch) {
@@ -41,7 +56,9 @@ async function main(cmd, env) {
     return 0;
   }
   if (cmd === 'final') {
-    const d = decideFinal({ merged: env.KAAL_PR_MERGED === 'true', base: env.KAAL_PR_BASE, mergeSha: env.KAAL_PR_MERGE_SHA, body: env.KAAL_PR_BODY });
+    const d = /^kaal\//.test(String(env.KAAL_PR_BASE))
+      ? await decideKaal(env)
+      : decideFinal({ merged: env.KAAL_PR_MERGED === 'true', base: env.KAAL_PR_BASE, mergeSha: env.KAAL_PR_MERGE_SHA, body: env.KAAL_PR_BODY });
     console.log(JSON.stringify(d));
     const line = JSON.stringify(d.action === 'raise' ? [d] : []);
     if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, `decisions=${line}\n`);
