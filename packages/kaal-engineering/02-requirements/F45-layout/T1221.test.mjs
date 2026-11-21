@@ -18,7 +18,7 @@ export async function run() {
   const names = t.folders.map((f) => f.name);
   assert.equal(new Set(names).size, names.length, 'a folder is listed twice');
   const numbered = names.filter((n) => /^\d\d-/.test(n));
-  assert.deepEqual(numbered, ['00-backlog', '01-changes', '02-controls', '10-intent', '11-requirements', '12-architecture', '13-source', '14-defects']);
+  assert.deepEqual(numbered, ['00-backlog', '01-changes', '02-learnings', '10-intent', '11-requirements', '12-architecture', '13-source', '14-operations', '15-defects']);
   assert.deepEqual([...numbered].sort(), numbered, 'the folders are not in number order');
   assert.ok(names.includes('dist'), 'dist is absent');
   assert.equal(t.places.length, 3, 'three places share the layout');

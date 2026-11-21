@@ -27,8 +27,8 @@ export async function run() {
   const file = judge(fixture([...GOOD, 'notes.md']));
   assert.equal(file.code, 1);
   assert.match(file.out, /notes\.md/);
-  const folder = judge(fixture([...GOOD, '02-controls/CTL1.md']));
+  const folder = judge(fixture([...GOOD, '02-learnings/retros/R1.md']));
   assert.equal(folder.code, 1);
-  assert.match(folder.out, /02-controls/);
+  assert.match(folder.out, /02-learnings/);
   assert.equal(judge(fixture(['x.txt'])).code, 1);
 }

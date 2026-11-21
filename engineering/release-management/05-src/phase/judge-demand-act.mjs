@@ -7,7 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { retrosOf, carriedChanges } from './lib/collector.mjs';
 import { applicableCasesAreGreen } from './lib/cases-green.mjs';
 
-const unknown = (message) => ({ verdict: 'UNKNOWN', message });
+import { pass, fail, unknown as cannotTell } from './lib/result.mjs';
+
+const unknown = (message) => cannotTell(message);
 
 export function judgeDemandAct(facts) {
   const { changes, retros, observed } = facts && typeof facts === 'object' ? facts : {};
@@ -24,9 +26,9 @@ export function judgeDemandAct(facts) {
     if (finished === 'PASS') { due = unreflected; problems.push(`Changes closed, retro due: ${due.join(', ')}`); }
     else if (finished === 'UNKNOWN') cannot = true;
   }
-  if (problems.length) return { verdict: 'FAIL', message: problems.join('; '), due, acts: acts.length };
+  if (problems.length) return fail(problems.join('; '), { due, acts: acts.length });
   if (cannot) return unknown(`cannot tell whether the work is finished, and these Changes are reflected by no retro: ${unreflected.join(', ')}`);
-  return { verdict: 'PASS', message: 'nothing is due', due, acts: acts.length };
+  return pass('nothing is due', { applies: acts.length === 1 && unreflected.length === 0, due, acts: acts.length });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
