@@ -84,7 +84,8 @@
       "children": [
         "skill",
         "scripts",
-        "unit-tests"
+        "unit-tests",
+        "workflows"
       ],
       "bass": {
         "skill": "Agent to Skill",

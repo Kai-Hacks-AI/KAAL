@@ -14,7 +14,7 @@ The folders before the concerns steer the work: `00-backlog`, `01-changes` and `
 
 ## Machinery and content
 
-- **Machinery** is `AGENTS.md`, `13-source` (the Skill and the scripts) and what is built from it into `dist`. It is written only in `packages/` and deployed elsewhere. Outside `packages/`, a hand edit is waste, and the copy must match its source.
+- **Machinery** is `AGENTS.md`, `13-source` (the Skill, the scripts, and in `workflows` the source of each workflow the capability owns, which a WIRE installs under `.github/workflows` without change) and what is built from it into `dist`. It is written only in `packages/` and deployed elsewhere. Outside `packages/`, a hand edit is waste, and the copy must match its source.
 - **Content** is `00-backlog` to `15-defects`, including the controls in `14-operations`. It is content in context: owned locally, never deployed and never compared. In a package it is the capability's own. In `engineering/` and `.kaal/` it is the consumer's data, produced by the capability. A defect about our repository lives in `engineering/<cap>/15-defects`, since defects are local and the Defect Skill only helps find them.
 
 ## Four AGENTS.md
