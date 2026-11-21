@@ -8,7 +8,7 @@ export const title = 'raise reads the body by its structure: the chapters of a p
 export async function run() {
   const table = '| Step | Who |\n| --- | --- |\n| 0 | Predecessor |\n';
   const ok = `## Change\n\nx/C1 a: PLAN\n\n## Why now\n\nbecause.\n\n## HOW TO WORK\n\n${table}`;
-  assert.equal(readBody(ok), ok.replace(/\n$/, '\n'), 'a body of the Dispatcher\'s own making keeps its table');
+  assert.equal(readBody(ok), ok, 'a body of the Dispatcher\'s own making keeps its table');
   assert.equal(readDecision(decision({ body: ok })).ok, true);
   const refused = [
     ['free text before the first chapter', `intro\n${ok}`],
