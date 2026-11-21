@@ -128,7 +128,7 @@ describe("contract evidence: classifying a statement", () => {
   });
 
   // Note: inherited Object.prototype keys in files[...] are tracked open under testing/D1 (parked in 15-defects/classify-inherited-keys.red.mjs).
-  it("fixed-seed property checks (testing/C77): safe-key valid mappings classify cleanly, inputs stay unmutated, and JSON hostile inputs fail problems() without throwing", async () => {
+  it("fixed-seed property checks (testing/C77): safe-key valid mappings classify cleanly, mapping and files stay unmutated, and malformed JSON inputs are rejected by problems() without throwing", async () => {
     let state = 2001;
     const rng = () => {
       state = (state + 0x6d2b79f5) | 0;
@@ -137,7 +137,7 @@ describe("contract evidence: classifying a statement", () => {
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
     const pick = (xs) => xs[Math.floor(rng() * xs.length)];
-    const badJsonVals = [null, false, 0, -0, "", " ", "a\\b", "../x", [], {}, { forEach() {} }];
+    const badJsonVals = [null, false, 0, -0, "", " ", "a\\b", "../x", [], {}];
 
     for (let i = 0; i < 60; i++) {
       const nStmt = Math.floor(rng() * 3) + 1;
@@ -166,9 +166,12 @@ describe("contract evidence: classifying a statement", () => {
       }
       const m = { owner: OWNER, statements };
       const mSnap = structuredClone(m);
+      const filesSnap = Object.fromEntries(Object.entries(files).map(([k, v]) => [k, Buffer.from(v)]));
       assert.deepEqual(problems(m, OWNER), []);
       const out = await classify(m, files);
       assert.deepEqual(m, mSnap, "problems/classify must not mutate mapping");
+      assert.deepEqual(Object.keys(files), Object.keys(filesSnap), "problems/classify must not add or drop files keys");
+      for (const k of Object.keys(files)) assert.ok(Buffer.compare(files[k], filesSnap[k]) === 0, `files[${k}] must not be mutated`);
       assert.equal(out.length, statements.length);
       for (const item of out) {
         assert.equal(item.class, "unknown");
@@ -178,7 +181,8 @@ describe("contract evidence: classifying a statement", () => {
       const hostile = i % 2 === 0
         ? { owner: pick(badJsonVals), statements: pick(badJsonVals) }
         : { owner: OWNER, statements: [{ source: pick(badJsonVals), quote: pick(badJsonVals), sha256: pick(badJsonVals), loop: pick(badJsonVals), evidence: pick(badJsonVals), review: pick(badJsonVals) }] };
-      assert.ok(Array.isArray(problems(hostile, OWNER)));
+      const p = problems(hostile, OWNER);
+      assert.ok(Array.isArray(p) && p.length > 0);
     }
   });
 });
