@@ -28,7 +28,7 @@
     },
     {
       "name": "Integrating",
-      "ruleset": "integrating",
+      "ruleset": "20 - integrating",
       "kind": "ruleset",
       "targets": [
         "kaal/**",
@@ -38,7 +38,7 @@
       "parts": [
         {
           "name": "Collecting",
-          "ruleset": "collecting",
+          "ruleset": "23 - collecting",
           "target": "kaal/**",
           "rules": [
             {
@@ -60,7 +60,7 @@
         },
         {
           "name": "Hotfixing",
-          "ruleset": "hotfixing",
+          "ruleset": "21 - hotfixing",
           "target": "hotfix/**",
           "rules": [
             {
@@ -82,7 +82,7 @@
         },
         {
           "name": "Wiring",
-          "ruleset": "wiring",
+          "ruleset": "22 - wiring",
           "target": "wire/**",
           "rules": [
             {
@@ -143,7 +143,7 @@
     },
     {
       "name": "Promoting",
-      "ruleset": "promoting",
+      "ruleset": "30 - promoting",
       "kind": "ruleset",
       "target": "~DEFAULT_BRANCH",
       "rules": [
@@ -192,7 +192,7 @@
     },
     {
       "name": "Publishing",
-      "ruleset": "publishing",
+      "ruleset": "40 - publishing",
       "kind": "tag",
       "target": "trial-*@*",
       "rule": "update"
