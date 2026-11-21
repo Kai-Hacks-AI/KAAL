@@ -11,11 +11,11 @@ const template = () => { const f = join(dir, 'references/package-layout.json'); 
 const folder = (t, n) => t.folders.find((f) => f.name === n);
 export const id = 'engineering/T1223';
 export const tests = ['engineering/F47'];
-export const title = 'the source holds skill, scripts and unit-tests, and the BASS steps sit on the entries that stand for them';
+export const title = 'the source holds skill, scripts, unit-tests and workflows, and the BASS steps sit on the entries that stand for them';
 export async function run() {
   const t = template();
   const s = folder(t, '13-source');
-  assert.deepEqual([...s.children].sort(), ['scripts', 'skill', 'unit-tests']);
+  assert.deepEqual([...s.children].sort(), ['scripts', 'skill', 'unit-tests', 'workflows']);
   assert.equal(s.bass.skill, 'Agent to Skill');
   assert.equal(s.bass.scripts, 'Skill to Script');
   assert.equal(t.root.find((r) => r.name === 'AGENTS.md').bass, 'Bare to Agent');
