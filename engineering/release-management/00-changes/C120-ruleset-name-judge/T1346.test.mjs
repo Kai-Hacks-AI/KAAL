@@ -1,7 +1,7 @@
 // Case release/T1346 tests: release/I27
 import assert from 'node:assert/strict';
 import { GOOD, judge } from '../C35-stages/helper.mjs';
-const NAMES = { Integrating: 'integrating', Hotfixing: 'hotfixing', Wiring: 'wiring', Collecting: 'collecting', Promoting: 'promoting', Publishing: 'publishing' };
+const NAMES = { Integrating: '20 - integrating', Hotfixing: '21 - hotfixing', Wiring: '22 - wiring', Collecting: '23 - collecting', Promoting: '30 - promoting', Publishing: '40 - publishing' };
 const stageOf = (f, n) => f.stages.stages.find((s) => s.name === n) ?? f.stages.stages.find((s) => s.name === 'Integrating').parts.find((p) => p.name === n);
 const wellFormed = async () => {
   const { judge: j } = await judge();
