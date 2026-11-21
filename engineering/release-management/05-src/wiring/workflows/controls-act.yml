@@ -2,7 +2,7 @@
 # its merge result checked out beside it, never installed or run, no credentials kept. Plain pull_request, never pull_request_target; no token, no secret.
 # Detective: a job reports its verdict and passes. Advisory: only when the variable of that judge is exactly `on`, a FAIL or an UNKNOWN makes the job red, and the check is still
 # not required by any ruleset. Preventive (requiring a check) is a ruleset change by the Owner, never this file or a variable.
-name: controls-act
+name: controls ACT
 
 on:
   pull_request:

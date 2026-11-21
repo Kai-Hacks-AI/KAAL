@@ -21,4 +21,4 @@ T1314 (release/A77) pins the library to its layers and forbids a process in it. 
 
 ## Rename (Kai)
 
-The workflow is named after what it runs, `controls-<target>` (Kai): `controls-act.yml`, workflow name `controls-act`, the name GitHub shows, runner `run-controls-act.mjs`. The job and check names stay the names of the controls (`hold Act`, `demand Act`, `verify Act`, `limit Act`), the `judge-*.mjs` files and the flags `KAAL_RELEASE_<CONTROL>` stay. The PLAN and the records written before the rename keep the old file names as history. Cases T1339 to T1345 were moved along. The retro RT9 reflects the rename.
+The workflow is named after what it runs, `controls-<target>` (Kai): `controls-act.yml`, workflow name `controls ACT`, the name GitHub shows, runner `run-controls-act.mjs`. The job and check names stay the names of the controls (`hold Act`, `demand Act`, `verify Act`, `limit Act`), the `judge-*.mjs` files and the flags `KAAL_RELEASE_<CONTROL>` stay. The PLAN and the records written before the rename keep the old file names as history. Cases T1339 to T1345 were moved along. The retro RT9 reflects the rename.
