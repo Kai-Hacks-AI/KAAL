@@ -2,42 +2,36 @@
 
 ## PLAN
 
-A bounded, reusable attribution control. It answers one question, for each path a pull request changes: is the change the collector's own, inherited from main through a synchronization, or not established? Judges ask it and judge only what it attributes to the collector. It never says whether an ACT is valid.
+The judges of the ACT receive the pull request's own changes as a shared input computed from files. Three folders are read and nothing else: the collector before the pull request, the merge result (the collector after), and the default branch (main). Git and GitHub are transport: they bring the three folders to the runner, as they bring the two folders the check reads today.
 
-### Boundary
+### The input
 
-- **In:** the origin of each changed path (own, inherited, unknown). Nothing else.
-- **Out:** what an ACT may write (limit Act), whether the work is finished (demand Act), whether a retro reflects it (verify Act), Testing's observation (hold Act). No label, title, branch name or declared "SYNC" type is read: none is proof of origin.
-- **A layer, not a process.** `05-src/phase/lib/attribution.mjs` is pure over evidence it is handed and reads no Git (T1314 keeps processes out of `lib`). The runner gathers the evidence (Git objects, the folder of main) and hands it in.
+`lib/own-changes.mjs`, pure over the folders (it reads files and runs nothing, in the layer of `tree-facts`): `ownChanges({ before, after, main })` returns `{ own: [paths], inherited: [paths] }`.
 
-### The evidence of origin, per path, from independent sources
-
-1. **Same as the main side of the SYNC.** When the head of the pull request is itself a merge, its parent that is not the collector's tip is main as it was at the SYNC. A path whose bytes in the merge result equal that parent's is `inherited`. This proof holds when main advances after the SYNC, because it compares with main at the SYNC and not with today's main.
-2. **Same as the folder of main handed in** (the default branch the check already has). Equality is proof of `inherited`. Difference is not proof of anything, because main may have advanced.
-3. **Differs from both sides of the SYNC** (a conflict resolution or an edit made in the merge): `own`. A novel edit is a genuine contribution.
-4. **A path the head's first parent also changed** relative to the base is the collector's earlier work: `own`.
-5. **Neither source can be read** (a shallow checkout without the SYNC's parents and a path that differs from the folder of main): `unknown`. Never `own`, never `inherited`.
+- A path is **changed** when its bytes differ between `before` and `after`, or it exists in only one (a rename is both ends, a deletion and an addition are paths).
+- A changed path is **inherited** when it exists in `main` with the same bytes as in `after`, or is absent from both `after` and `main` (the deletion main made too). It is content that main already holds.
+- Every other changed path is **own**: a contribution of the collector, an edit made in a conflict resolution included, since it equals neither side.
+- Without a folder, or with an unreadable one, the answer is UNKNOWN naming the missing folder: never a guess, never PASS.
 
 ### The consumer contract
 
-`attribute(evidence)` returns `{ own: [paths], inherited: [paths], unknown: [paths], complete: boolean }`, `complete` being `unknown` empty.
+A judge judges `own` only. limit Act receives `own` as its changed paths; a pure SYNC has none and limit Act answers "not an ACT" (PASS, applies false), so demand, verify and hold, which ask limit first, say the same. A FAIL on an `own` path stays a FAIL: nothing genuine is lost. No judge reads Git, a label, a title or a declared "SYNC" type; none is proof of origin.
 
-- A judge judges `own` only. A FAIL on an `own` path stays a FAIL: a real contribution is never lost.
-- With a non-empty `unknown` and no FAIL on `own`, the judge answers **UNKNOWN**, saying which paths could not be attributed. Uncertain origin is neither a definitive FAIL nor a free PASS.
-- With `own` empty and `unknown` empty (a pure SYNC) the pull request changes nothing of its own: limit Act answers "not an ACT" (PASS, applies false), as for any pull request that touches no ACT folder.
-- Judges call it through the runner; no judge reads Git or duplicates the rule (T1345's single reader stands).
+### Main moves after a SYNC
 
-### Checkout depth
+A path main changed again after the SYNC no longer equals the merge result, so it is read as `own`: a FAIL on a SYNC that is behind main. That is the right state to FAIL in: the collector is behind main, Branching forces a SYNC before it can merge, and the SYNC makes the path equal again. No history is read to excuse it and nothing is tolerated as a residual risk. A mixed file (some lines inherited, some own) is judged as a whole file: the unit is the path.
 
-The check fetches the merge result at depth 2, so the SYNC's parents are absent and source 1 is unavailable there. This PLAN does not change the workflow. In the check, paths equal to main's folder are `inherited` and the rest `unknown`: never a false FAIL, and a known UNKNOWN instead of a false PASS. Raising the depth (a one-line change of the installed workflow, fetch-depth 3 or 0) would let source 1 prove the rest, including after main advanced. It is a WIRE with Kai's go and is recorded here as the follow-up that closes the UNKNOWN; it is not assumed.
+### Where the folders come from
 
-### Cases (independent of the fix; each with its own fixture)
+The check already checks out main (the judge) and the merge result (data). It also needs the collector before the pull request: a third checkout of `github.event.pull_request.base.sha`, into a folder `before`, no credentials, nothing run. The runner takes `--before`. The change of the workflow source is in the DO; installing it is a WIRE, on Kai's go. Order: the DO first (an older runner ignores `--before`), then the WIRE. Between the DO reaching main and the WIRE, the installed workflow passes no `--before`, so the runner answers UNKNOWN "the collector before the pull request is not available" and the flags are unset: a report only.
 
-Pure SYNC with the history (T1350, RED on main); pure SYNC in a depth-2 checkout with the folder of main (T1351); mixed contributions (own work and inherited in one pull request: only the own is judged); conflict resolution (a path differing from both sides is own); main advanced after the SYNC (with the history, still inherited; without it, unknown, not own and not FAIL); unavailable or ambiguous provenance (UNKNOWN, never PASS). Case ids are taken in the DO. They travel with the source, because the Engineering check runs every Case.
+### Cases (file fixtures, no Git)
+
+Pure SYNC (all changed paths equal main's: `own` empty); mixed contributions (an own path and an inherited path: only the own is judged); conflict resolution (a path equal to neither side is own); main moved after the SYNC (a path differing from main is own); a missing or unreadable folder (UNKNOWN, never PASS); and limit Act on a pure SYNC (PASS, applies false). The Cases travel with the source in the DO, because the Engineering check runs every Case. T1350 and T1351 of the closed hotfix read Git and are replaced by file fixtures; they are not carried.
 
 ### Identifier
 
-This Change keeps release/C123, which is already on the PLAN pull request and in the Defect record. The workflow-source against installed consistency control, queued earlier as C123, moves to release/C126 (C124 workflow names and C125 hold reads evidence are unchanged). Nothing of that scope is dropped; it is renumbered here and in release's queue, and C126 is used on no branch or pull request (checked 21 Nov).
+This Change keeps release/C123, already on the PLAN pull request and in the Defect record. The workflow-source against installed consistency control, queued earlier as C123, moves to release/C126 (C124 workflow names and C125 hold reads evidence are unchanged). Nothing of that scope is dropped; C126 is used on no branch or pull request (checked 21 Nov).
 
 ### Records
 
