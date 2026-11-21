@@ -1,8 +1,8 @@
-// Case change/T1132 tests: change/G16
+// Case change/T1364 tests: change/G16
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-export const id = 'change/T1132';
+export const id = 'change/T1364';
 export const tests = ['change/G16'];
 export const closes = ['change/G16'];
 export const title = "the guide marks claims stated, observed or inferred, says not known is never none, and allows one line for a small Change";

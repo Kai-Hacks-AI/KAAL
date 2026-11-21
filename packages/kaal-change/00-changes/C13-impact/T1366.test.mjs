@@ -1,11 +1,11 @@
-// Case change/T1130 tests: change/G16
+// Case change/T1366 tests: change/G16
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-export const id = 'change/T1130';
+export const id = 'change/T1366';
 export const tests = ['change/G16'];
 export const closes = ['change/G16'];
-export const title = "the guide asks whether the delivery passes under its own rule and who already under way a stricter rule stops";
+export const title = "the Skill points to the Impact and adoption section";
 const REF = new URL('../../skills/kaal-change/references/transition.md', import.meta.url);
 const SKILL = new URL('../../skills/kaal-change/SKILL.md', import.meta.url);
 const section = () => {
@@ -17,7 +17,7 @@ const section = () => {
   return j < 0 ? t.slice(i) : t.slice(i, j);
 };
 export function run() {
-  const s = section();
-  for (const w of ["own delivery pass under the rule it changes", "work already under way that it would now stop, and count it"]) assert.ok(s.includes(w), 'missing: ' + w);
+  section();
+  assert.ok(readFileSync(SKILL, 'utf8').includes('Impact and adoption'), 'the Skill does not point to the section');
 }
 test(id, () => run());

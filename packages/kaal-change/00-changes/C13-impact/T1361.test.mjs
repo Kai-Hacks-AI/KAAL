@@ -1,11 +1,11 @@
-// Case change/T1134 tests: change/G16
+// Case change/T1361 tests: change/G16
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-export const id = 'change/T1134';
+export const id = 'change/T1361';
 export const tests = ['change/G16'];
 export const closes = ['change/G16'];
-export const title = "the Skill points to the Impact and adoption section";
+export const title = "the transition guide has an Impact and adoption section that asks what becomes different, who is affected and what could go wrong";
 const REF = new URL('../../skills/kaal-change/references/transition.md', import.meta.url);
 const SKILL = new URL('../../skills/kaal-change/SKILL.md', import.meta.url);
 const section = () => {
@@ -17,7 +17,7 @@ const section = () => {
   return j < 0 ? t.slice(i) : t.slice(i, j);
 };
 export function run() {
-  section();
-  assert.ok(readFileSync(SKILL, 'utf8').includes('Impact and adoption'), 'the Skill does not point to the section');
+  const s = section();
+  for (const w of ["## Impact and adoption", "**What becomes different?**", "**Who is affected?**", "**What could go wrong?**", "will now be refused"]) assert.ok(s.includes(w), 'missing: ' + w);
 }
 test(id, () => run());

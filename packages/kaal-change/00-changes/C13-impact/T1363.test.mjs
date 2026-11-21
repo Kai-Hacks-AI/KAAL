@@ -1,8 +1,8 @@
-// Case change/T1131 tests: change/G16
+// Case change/T1363 tests: change/G16
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
-export const id = 'change/T1131';
+export const id = 'change/T1363';
 export const tests = ['change/G16'];
 export const closes = ['change/G16'];
 export const title = "the guide asks how the result reaches those affected without prescribing steps";
