@@ -1,6 +1,6 @@
 # release/D12: the Branching verdict of a new pull request can be a stale failure
 
-Owner: the release capability (the Branching gate and its workflow, engineering/github). Raised on 21 November 2026 from the Promoting flow, where the first Branching run of a new or un-drafted PROMOTION fails and auto-merge has to be switched off and on, about 35 seconds apart and several times, before the check passes.
+Owner: the release capability (the Branching gate and its workflow, engineering/github). Raised from the Promoting flow, where the first Branching run of a new or un-drafted PROMOTION fails and auto-merge has to be switched off and on, about 35 seconds apart and several times, before the check passes.
 
 ## Record
 
@@ -9,7 +9,7 @@ Owner: the release capability (the Branching gate and its workflow, engineering/
   "id": "release/D12",
   "context": "release (the Branching workflow .github/workflows/lineage-synchronization.yml; the gate engineering/github/branching.md, auto-merge)",
   "expected": "A pull request whose auto-merge is enabled with the method its flow lands by has a passing Branching verdict as soon as the run that follows the enabling has finished. No later or older run can leave a failure that enabling auto-merge does not replace.",
-  "observed": "Branching runs once per event (opened, edited, synchronize, auto_merge_enabled, auto_merge_disabled) with no ordering between the runs of one pull request, and takes the auto-merge from the event payload (KAAL_AUTO_MERGE = github.event.pull_request.auto_merge.merge_method). A pull request cannot be opened with auto-merge on, so the run of `opened` judges auto-merge as none and fails (`Auto-merge is disabled for this pull request`); the run of auto_merge_enabled passes. Whichever run finishes or starts last decides, and a run for an older event judges the auto-merge that event carried, not the one the pull request has. Runs of one head on 21 Nov: 9419 failure, 9420 success, 9421 failure, 9422 success (act-lib PROMOTION); 9438 failure, 9439 failure, 9440 success, 9441 failure, 9442 success (engineering PROMOTION).",
+  "observed": "Branching runs once per event (opened, edited, synchronize, auto_merge_enabled, auto_merge_disabled) with no ordering between the runs of one pull request, and takes the auto-merge from the event payload (KAAL_AUTO_MERGE = github.event.pull_request.auto_merge.merge_method). A pull request cannot be opened with auto-merge on, so the run of `opened` judges auto-merge as none and fails (`Auto-merge is disabled for this pull request`); the run of auto_merge_enabled passes. Whichever run finishes or starts last decides, and a run for an older event judges the auto-merge that event carried, not the one the pull request has. Runs of one head: 9419 failure, 9420 success, 9421 failure, 9422 success (act-lib PROMOTION); 9438 failure, 9439 failure, 9440 success, 9441 failure, 9442 success (engineering PROMOTION).",
   "where": ".github/workflows/lineage-synchronization.yml (no concurrency, and the KAAL_AUTO_MERGE line of the judging step); the workflow has no source under 05-src/wiring/workflows, it was installed by hand",
   "status": "confirmed",
   "tests": ["release/T1320"]
@@ -32,4 +32,4 @@ State: `main`. No package or production state is affected. Corrected by release/
 
 ## Follow-up
 
-The auto-merge requirement of Branching stays, and release/C114 fixes the race while keeping it: the merge method is judged only while auto-merge is on, by the method the pull request has when the run judges. Per-branch allowed merge methods in the rulesets are a candidate home for this control when it is rebuilt. Kai (21 Nov): optimise the Branching check when it moves into the new control setup. Whoever rebuilds that control takes this record, the runs above and Case T1320 as input. This Change stays minimal and optimises nothing else.
+The auto-merge requirement of Branching stays, and release/C114 fixes the race while keeping it: the merge method is judged only while auto-merge is on, by the method the pull request has when the run judges. Per-branch allowed merge methods in the rulesets are a candidate home for this control when it is rebuilt. Kai: optimise the Branching check when it moves into the new control setup. Whoever rebuilds that control takes this record, the runs above and Case T1320 as input. This Change stays minimal and optimises nothing else.
