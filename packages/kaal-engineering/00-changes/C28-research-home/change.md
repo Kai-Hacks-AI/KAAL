@@ -45,7 +45,7 @@ No note, Skill, finder or check, no trial capability, no migration, no wiring, n
 
 ## Alternatives considered
 
-- **`14-operations/research` and `14-operations/trials`**, as C27 left them. Rejected: Operations would hold objects whose verdicts steer planning, and `14-operations` would depend on controls for them.
+- **`14-operations/research` and `14-operations/trials`**, as C27 left them. Rejected: Operations would hold objects whose verdicts steer planning, and `14-operations` would depend on controls for them. The Owner agrees with the siblings under `02-learnings` and notes that trials could have been argued under Operations, but fit better in `02-learnings`.
 - **One `research` folder with a `kind` for inbound and own.** This PLAN's earlier shape. Rejected after the Owner's correction: the two should not be confused under one name.
 - **A numbered folder of their own** (for instance `03-research`). Rejected for now (YAGNI): siblings in `02-learnings` already give both first-class standing, and one template edit can split them out later.
 
@@ -65,7 +65,7 @@ Not authorized by this PLAN. After the Owner's go: move the template from `draft
 
 ## Questions for review
 
-1. Is `02-learnings` the right parent for both, or does the Owner prefer a parent of their own for the two (a `03-` folder)?
+1. Is `02-learnings` the right parent for both? The Owner answered yes (21 Nov 2026): trials could have been argued under Operations, but fit better here. Approval of this PLAN is still the go.
 2. Which capability owns the trial object, and what is its id? (Engineering suggests a separate capability and leaves the id to it.)
 
 ## ACT
