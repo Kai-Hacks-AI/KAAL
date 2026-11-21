@@ -11,7 +11,7 @@ Each element names, in brackets, the Requirements it answers.
     1. confirm the replacement hook actually intercepted the target module;
     2. preserve unrelated valid exports/behaviours when challenging a focused claim (never letting an unrelated export check like `LOOPS` mask `problems()` or `classify()`);
     3. attribute each kill to the specific detecting test and assertion, recording unrelated execution errors separately; and
-    4. justify every surviving candidate through an authoritative-claim evidence table (`Authoritative claim | Mutation | Witness | Observation | Judgment`) before adding durable `.test.mjs` Cases beside `test/contracts.test.mjs`—so implementation choices (such as hash-order sorting) are never promoted to permanent requirements without an authoritative claim or explicit proposal.
+    4. justify every surviving candidate through an authoritative-claim evidence table (`Authoritative claim | Mutation | Witness | Observation | Judgment`) before adding durable `.test.mjs` Cases beside `test/contracts.test.mjs`—so implementation choices (such as hash-order sorting) are never promoted to permanent requirements without an authoritative claim or explicit proposal, and any unrequested behaviour in `src` (since source answers the test cases, nothing else) is either proposed explicitly to the owner or removed from `src`.
     Whether a reusable `skills/kaal-testing/scripts/` runner is earned is an explicit retrospective judgment after `testing/C73`.
 
 ## Carried Change Set, ACT & Automatic Promotion (`kaal/testing/multi-loop-sensitivity -> main`)

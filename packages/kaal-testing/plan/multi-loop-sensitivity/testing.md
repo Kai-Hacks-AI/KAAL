@@ -45,7 +45,7 @@ The 15-mutant baseline run on `packages/kaal-testing/lib/contracts.mjs` (`eviden
 | Mutation | Exact violation introduced |
 | Witness | Concrete input distinguishing correct and mutated behaviour |
 | Observation | Which specific test detects it, or that none does |
-| Judgment | Required invariant, equivalent change, proposed new contract, out of scope, or unresolved |
+| Judgment | Required invariant, equivalent change, proposed new contract, unrequested code to remove (source answers the test cases, nothing else), out of scope, or unresolved |
 
 Turn only justified contract invariants into ordinary durable `.test.mjs` Cases beside `test/contracts.test.mjs`, leaving `npm test` free of an embedded mutation harness.
 
