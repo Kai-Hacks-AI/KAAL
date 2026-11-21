@@ -45,9 +45,9 @@ export async function run() {
   assert.equal(judgeHold({ changes: [{ id: 'x/C2', applicable: green }], retros: [{ reflects: ['x/C2'] }], observed: { 'x/T2': 'RED' } }).verdict, 'FAIL');
   for (const bad of [undefined, null, 'C1', [{ id: 'C1' }], [{ id: '', applicable: [] }]]) assert.equal(judgeHold({ changes: bad, retros: [], observed: {} }).verdict, 'UNKNOWN', `carried Changes ${JSON.stringify(bad)} must be UNKNOWN`);
   for (const bad of [undefined, null, 'RT1', [{ reflects: 'C1' }], [{ reflects: [1] }], [null]]) assert.equal(judgeHold({ changes, retros: bad, observed: {} }).verdict, 'UNKNOWN', `retros ${JSON.stringify(bad)} must be UNKNOWN`);
-  const { judgeFinished } = await load();
-  assert.equal(judgeFinished({ changes, observed: GREEN }).verdict, 'FAIL', 'the Cases of all the carried Changes are judged together');
-  assert.equal(judgeFinished({ changes: [changes[1]], observed: GREEN }).verdict, 'PASS');
+  const { applicableCasesAreGreen } = await import(pathToFileURL(join(RM, '05-src/phase/lib/cases-green.mjs')).href);
+  assert.equal(applicableCasesAreGreen({ changes, observed: GREEN }).verdict, 'FAIL', 'the Cases of all the carried Changes are judged together');
+  assert.equal(applicableCasesAreGreen({ changes: [changes[1]], observed: GREEN }).verdict, 'PASS');
   assert.equal(judgeHold({ changes, retros: [{ reflects: ['C2'] }], observed: GREEN }).verdict, 'UNKNOWN', 'an unqualified id is not guessed at: the ACT cannot be told');
   assert.match(judgeHold({ changes, retros: [{ reflects: ['C2'] }], observed: GREEN }).message, /not a qualified Change id/);
   // the real path: the record of this very Change names it release/C103, and a retro as kaal-retro writes it reflects exactly that
