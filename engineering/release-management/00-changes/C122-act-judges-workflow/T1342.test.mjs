@@ -1,6 +1,6 @@
 // Case release/T1342 tests: release/F90
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
@@ -25,15 +25,13 @@ export async function run() {
   }
   const ok = { verdict: 'PASS', applies: true, message: 'p' };
   assert.equal(exitCodeOf(ok, 'on'), 0); assert.equal(reportOf('limit', ok, 'on'), 'PASS: limit Act: p');
-  // end to end, over a real merge commit: the base moved, and only the pull request's own paths are changed
-  const t = makeTrees(); const g = gitMerge(t);
+  // end to end, over the folders of attribute Changes (release/C123): the own paths of the pull request are judged, what the base brought is not
+  const t = makeTrees(); const before = `${t.pr}-before`;
   try {
-    const { changedPaths } = await runner();
-    assert.deepEqual(changedPaths(g.repo).sort(), [...ACT_PATHS, `${ROOT}/00-changes/C2-first-thing/C2.md`, `${ROOT}/00-changes/C2-first-thing/change.md`, `${ROOT}/00-changes/C2-first-thing/do.md`].sort());
-    assert.ok(!changedPaths(g.repo).includes('unrelated.txt'), 'a change of the base is not the pull request\'s');
-    const run = (flag) => spawnSync('node', [RUNNER, 'limit', '--main', t.main, '--pr', g.repo], { encoding: 'utf8', env: { ...process.env, KAAL_FLAG: flag } });
+    cpSync(t.main, before, { recursive: true });
+    const run = (flag) => spawnSync('node', [RUNNER, 'limit', '--main', t.main, '--pr', t.pr, '--before', before, '--contained', before], { encoding: 'utf8', env: { ...process.env, KAAL_FLAG: flag } });
     const off = run(''), on = run('on');
     assert.match(off.stdout, /^FAIL: limit Act: /); assert.equal(off.status, 0);
     assert.equal(on.status, 1);
-  } finally { g.cleanup(); t.cleanup(); }
+  } finally { rmSync(before, { recursive: true, force: true }); t.cleanup(); }
 }
