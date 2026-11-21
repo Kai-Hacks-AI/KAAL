@@ -11,7 +11,7 @@ export const title = 'the integrating ruleset source requires one approving revi
 export async function run() {
   const draft = JSON.parse(readFileSync(join(RM, '00-changes/C66-integration-approval/interface.md'), 'utf8').split(/^## Draft of integrating\.json$/m)[1].match(/^`````\n([\s\S]*?)\n`````$/m)[1]);
   const real = JSON.parse(readFileSync(join(RM, '05-src/wiring/rulesets/integrating.json'), 'utf8'));
-  assert.deepEqual(real, draft, 'integrating.json differs from the draft');
+  assert.deepEqual(real, { ...draft, name: '20 - integrating' }, 'integrating.json differs from the draft, but for the name its stage declares (release/C106)');
   assert.deepEqual(real.conditions.ref_name.include, ['refs/heads/kaal/**', 'refs/heads/hotfix/**', 'refs/heads/wire/**']);
   assert.deepEqual(real.bypass_actors, [], 'a bypass actor is listed');
   const pr = real.rules.find((r) => r.type === 'pull_request');
