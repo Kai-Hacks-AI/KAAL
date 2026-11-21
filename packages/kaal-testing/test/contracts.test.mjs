@@ -38,7 +38,16 @@ const only = async (m, files, ...rest) => (await classify(m, files, ...rest))[0]
 describe("contract evidence: reading a mapping", () => {
   it("reads a capability's own mapping, and refuses one whose owner is not its claim's", async () => {
     assert.deepEqual(problems(await mapping(), OWNER), []);
+    assert.deepEqual(problems(await mapping(), { ...OWNER, kind: "skill" }), ["the mapping's owner is not the owner of the claim beside it"]);
+    assert.deepEqual(problems(await mapping(), { ...OWNER, name: "Beta" }), ["the mapping's owner is not the owner of the claim beside it"]);
     assert.deepEqual(problems(await mapping(), { ...OWNER, id: "b".repeat(64) }), ["the mapping's owner is not the owner of the claim beside it"]);
+  });
+
+  it("refuses a malformed owner or non-array statements list without crashing", async () => {
+    assert.deepEqual(problems({ owner: { ...OWNER, id: "not-hex" }, statements: [] }, OWNER), ["the mapping names no owner { kind, name, id }"]);
+    // Exercise non-array check cleanly before null so skipped Array.isArray guard returns [] (behavioural fail) rather than throwing.
+    assert.deepEqual(problems({ owner: OWNER, statements: { forEach() {} } }, OWNER), ["the mapping has no statements list"]);
+    assert.deepEqual(problems({ owner: OWNER, statements: null }, OWNER), ["the mapping has no statements list"]);
   });
 
   it("accepts only the conformance and acceptance loops: implementation tests are never contract evidence", async () => {
@@ -48,7 +57,16 @@ describe("contract evidence: reading a mapping", () => {
 
   it("requires an inference and its limits wherever evidence is offered, and a complete review record when there is one", async () => {
     assert.deepEqual(problems(await mapping({ inference: "" }), OWNER), ["statement 1: offered evidence needs an inference and its limits"]);
+    assert.deepEqual(problems(await mapping({ limits: "" }), OWNER), ["statement 1: offered evidence needs an inference and its limits"]);
     assert.deepEqual(problems(await mapping({ review: { reviewer: "someone" } }), OWNER), ["statement 1: a review records its reviewer, pr, commit and the statement and evidence hashes reviewed"]);
+  });
+
+  it("requires a non-empty statement quote and sha256, and for each evidence entry a sha256 and non-empty test path", async () => {
+    assert.deepEqual(problems(await mapping({ quote: "" }), OWNER), ["statement 1: needs a source, a nonempty quote and its sha256"]);
+    assert.deepEqual(problems(await mapping({ sha256: "short" }), OWNER), ["statement 1: needs a source, a nonempty quote and its sha256"]);
+    const file = await sha256(TEST_BYTES);
+    assert.deepEqual(problems(await mapping({}, [{ file: TEST, sha256: "short", test: PATH }]), OWNER), ["statement 1, evidence 1: needs a file, its sha256 and a test path"]);
+    assert.deepEqual(problems(await mapping({}, [{ file: TEST, sha256: file, test: [] }]), OWNER), ["statement 1, evidence 1: needs a file, its sha256 and a test path"]);
   });
 
   it("refuses a source or evidence file not written as a repository-relative path (syntax only, not containment)", async () => {
@@ -90,6 +108,9 @@ describe("contract evidence: classifying a statement", () => {
     const m = await mapping();
     m.statements[0].review = { reviewer: "owner", pr: 1, commit: "c", statement: m.statements[0].sha256, evidence: ["0".repeat(64)] };
     assert.equal((await only(m, FILES)).inference, "review declared at other hashes (stale)");
+    const mStmt = await mapping();
+    mStmt.statements[0].review = { reviewer: "owner", pr: 1, commit: "c", statement: "0".repeat(64), evidence: [mStmt.statements[0].evidence[0].sha256] };
+    assert.equal((await only(mStmt, FILES)).inference, "review declared at other hashes (stale)");
   });
 
   it("gives each gap in this tree its own reason", async () => {
@@ -98,6 +119,7 @@ describe("contract evidence: classifying a statement", () => {
     assert.equal(await reason({ ...FILES, [TEST]: Buffer.from("changed") }), `${TEST} no longer holds the pinned bytes (stale)`);
     assert.equal(await reason({ [SOURCE]: FILES[SOURCE] }), `${TEST} is missing`);
     assert.equal(await reason({ ...FILES, [SOURCE]: Buffer.from("# Alpha\n") }), `the statement is no longer in ${SOURCE} (stale)`);
+    assert.equal((await only(m, { [TEST]: TEST_BYTES })).reason, `the statement is no longer in ${SOURCE} (stale)`);
     assert.equal((await only({ ...m, statements: [{ ...m.statements[0], quote: "edited" }] }, FILES)).reason, "the quote does not match its pinned sha256");
   });
 
