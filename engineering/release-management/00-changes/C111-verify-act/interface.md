@@ -1,6 +1,6 @@
 # C111 interface
 
-Drafts of the files the DO adds, each equal to its file after the DO (the Cases compare them). The judge reuses `changeIdOf` of release/C103 (`judge-act.mjs`), so this Change's DO follows the DO of release/C103, and it consumes the finder and the form judgement of kaal-retro (`packages/kaal-retro`, on `main`) through the Exchange, given by path.
+Drafts of the files the DO adds, each equal to its file after the DO (the Cases compare them). The judge reuses `changeIdOf` and `walk` of the library of release/C112 and builds its answers with `lib/result.mjs` of release/C113, so this Change's DO follows both, and it consumes the finder and the form judgement of kaal-retro (`packages/kaal-retro`, on `main`) through the Exchange, given by path.
 
 ## Draft of I60.md
 
@@ -25,7 +25,7 @@ serves: [release/I60]
 ---
 # release/F86 verify-act
 
-The retros of the tree are found and judged for form by kaal-retro, not here: its finder (handed `{ path, text }` files) lists the retros with the Changes each reflects and refuses what does not fit, and its judgement says `well-formed`, `malformed` with the rules broken, or `unjudged` for a format it does not know. The verdict is over the Changes the collector carries, handed in as facts, and over those answers. It says FAIL naming each retro that reflects a carried Change and is malformed, with the rules, and each file the finder refuses (`retro form`). It says UNKNOWN, which never passes, when a retro that reflects a carried Change is unjudged or has no judgement. It says PASS when every retro that reflects a carried Change is well formed, or when none does (no ACT yet: that is `demand Act`). A retro of another collector is not judged again. It reads nothing of the history or the titles of the pull request, and nothing of the truth of a retro. The judge is one function; the places that ask it decide what a verdict does.
+The retros of the tree are found and judged for form by kaal-retro, not here: its finder (handed `{ path, text }` files) lists the retros with the Changes each reflects and refuses what does not fit, and its judgement says `well-formed`, `malformed` with the rules broken, or `unjudged` for a format it does not know. The verdict is over the Changes the collector carries, handed in as facts, and over those answers. It says FAIL naming each retro that reflects a carried Change and is malformed, with the rules, and each file the finder refuses (`retro form`). It says UNKNOWN, which never passes, when a retro that reflects a carried Change is unjudged or has no judgement. It says PASS when every retro that reflects a carried Change is well formed, or when none does (no ACT yet: that is `demand Act`). The answer says whether the verdict applies (`applies`, release/F88): false only for the PASS where no retro reflects a carried Change, because there is then no ACT to verify; FAIL and UNKNOWN always apply. A retro of another collector is not judged again. It reads nothing of the history or the titles of the pull request, and nothing of the truth of a retro. The judge is one function; the places that ask it decide what a verdict does.
 `````
 
 ## Draft of A76.md
@@ -38,7 +38,7 @@ addresses: [release/F86]
 ---
 # release/A76 judge-verify-act
 
-The component is the judge `05-src/phase/judge-verify-act.mjs`: a pure function `judgeVerifyAct({ carried, retros, refused })` over the ids of the carried Changes, the retros as kaal-retro's finder returns them each with the form judgement of kaal-retro, and what the finder refused, and a command line (`--root`, `--changes <dirs>`, `--retro <the scripts directory of the kaal-retro Skill>`) that reads the tree, hands its retros to those two scripts and exits 0 for PASS, 1 for FAIL and 2 for UNKNOWN. The scripts are given, never found by a fixed path, and a missing one is UNKNOWN. The qualified ids of the carried Changes come from their records through `changeIdOf` of release/A71, the form of kaal-retro's `reflects`. This is the Exchange with kaal-retro: release defines no form, and a change of the form needs no change here.
+The component is the judge `05-src/phase/judge-verify-act.mjs`: a pure function `judgeVerifyAct({ carried, retros, refused })` over the ids of the carried Changes, the retros as kaal-retro's finder returns them each with the form judgement of kaal-retro, and what the finder refused, and a command line (`--root`, `--changes <dirs>`, `--retro <the scripts directory of the kaal-retro Skill>`) that reads the tree, hands its retros to those two scripts and exits 0 for PASS, 1 for FAIL and 2 for UNKNOWN. The scripts are given, never found by a fixed path, and a missing one is UNKNOWN. The qualified ids of the carried Changes come from their records through `changeIdOf` of the library (release/A77), the form of kaal-retro's `reflects`. Its answers are built with `lib/result.mjs` (release/A78) and carry `applies`: false only on a PASS when no retro reflects a carried Change, true on every other PASS and on every FAIL and UNKNOWN. This is the Exchange with kaal-retro: release defines no form, and a change of the form needs no change here.
 
 Its parent is release/A68, the ruleset of the Promoting station, once release/C105 has placed it; the DO of this Change adds `parent: release/A68` then. Where it runs (at the collector with the ACT and at the promotion), its job, its declaration on a station and the advisory hook are the next Changes.
 `````
@@ -64,15 +64,18 @@ A detective control that is meant to become preventive. A retro that reflects a 
 
 `````
 // verify Act: is every retro that reflects a Change of the collector well formed? Pure over facts: nothing is read from Git or GitHub.
-// judgeVerifyAct({ carried, retros, refused }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', message[, malformed, unjudged] }
+// judgeVerifyAct({ carried, retros, refused }) -> { verdict: 'PASS' | 'FAIL' | 'UNKNOWN', applies, message, malformed, unjudged }
+// applies is false only on a PASS with no retro of a carried Change to verify (lib/result.mjs).
 // carried: the ids of the Changes a collector carries; retros: each { path, reflects: [ids], form: { result, problems } }, the finding and the form judgement of kaal-retro;
 // refused: what kaal-retro's finder refused, each { path, reason }. The form of a retro is kaal-retro's: this judge only says what its result means for the collector.
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { changeIdOf } from './judge-act.mjs';
+import { changeIdOf } from './lib/collector.mjs';
+import { walk } from './lib/tree.mjs';
+import { pass, fail, unknown as cannotTell } from './lib/result.mjs';
 
-const unknown = (message) => ({ verdict: 'UNKNOWN', message });
+const unknown = (message) => cannotTell(message, { malformed: [], unjudged: [] });
 
 export function judgeVerifyAct(facts) {
   const { carried, retros, refused = [] } = facts && typeof facts === 'object' ? facts : {};
@@ -87,12 +90,10 @@ export function judgeVerifyAct(facts) {
     ...refused.map((x) => `${x.path} is not a retro the finder accepts${x.reason ? ` (${x.reason})` : ''}`),
     ...malformed.map((r) => `${r.path} is not well formed (${rules(r).join(', ') || 'no rule named'})`),
   ];
-  if (problems.length) return { verdict: 'FAIL', message: `retro form: ${problems.join('; ')}`, malformed: malformed.map((r) => r.path), unjudged: unjudged.map((r) => r.path) };
-  if (unjudged.length) return { verdict: 'UNKNOWN', message: `cannot judge the form of: ${unjudged.map((r) => r.path).join(', ')}`, malformed: [], unjudged: unjudged.map((r) => r.path) };
-  return { verdict: 'PASS', message: ours.length ? 'every retro of the carried Changes is well formed' : 'no retro reflects a carried Change: there is no ACT to verify', malformed: [], unjudged: [] };
+  if (problems.length) return fail(`retro form: ${problems.join('; ')}`, { malformed: malformed.map((r) => r.path), unjudged: unjudged.map((r) => r.path) });
+  if (unjudged.length) return cannotTell(`cannot judge the form of: ${unjudged.map((r) => r.path).join(', ')}`, { malformed: [], unjudged: unjudged.map((r) => r.path) });
+  return pass(ours.length ? 'every retro of the carried Changes is well formed' : 'no retro reflects a carried Change: there is no ACT to verify', { applies: ours.length > 0, malformed: [], unjudged: [] });
 }
-
-const walk = (dir) => (existsSync(dir) ? readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name)).flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)])) : []);
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const arg = (k) => { const i = process.argv.indexOf(k); return i < 0 ? undefined : process.argv[i + 1]; };

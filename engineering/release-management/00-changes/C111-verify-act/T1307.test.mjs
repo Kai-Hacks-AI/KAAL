@@ -33,6 +33,15 @@ export async function run() {
   assert.equal(v(['x/C1'], [retro('a.md', ['x/C1'], ok), retro('b.md', ['x/C1'], ok)]).verdict, 'PASS', 'how many retros reflect a Change is demand Act\'s');
   assert.equal(v(['x/C2'], [retro('old.md', ['x/C1'], bad('account-of'))]).verdict, 'PASS', 'the retro of another collector is not judged again');
   assert.equal(v(['x/C2'], [retro('old.md', ['x/C1'], { result: 'unjudged', problems: [] })]).verdict, 'PASS');
+  // applies: false only for the PASS with no retro of a carried Change to verify
+  assert.equal(v(['x/C1'], []).applies, false, 'no ACT to verify: nothing to judge');
+  assert.equal(v([], []).applies, false);
+  assert.equal(v(['x/C2'], [retro('old.md', ['x/C1'], bad('account-of'))]).applies, false, 'the retro of another collector is nothing to judge');
+  assert.equal(v(['x/C1'], [retro('a.md', ['x/C1'], ok)]).applies, true, 'judged, and fine');
+  assert.equal(v(['x/C1'], [retro('a.md', ['x/C1'], bad('account-of'))]).applies, true, 'a FAIL always applies');
+  assert.equal(v(['x/C1'], [], [{ path: 'x.md' }]).applies, true, 'a refused file is a FAIL that applies');
+  assert.equal(v(['x/C1'], [retro('a.md', ['x/C1'])]).applies, true, 'an UNKNOWN always applies');
+  assert.equal(judgeVerifyAct(null).applies, true, 'unusable input is an UNKNOWN that applies');
   // FAIL: a malformed retro of a carried Change, with its rules; and a file the finder refused
   let f = v(['x/C1'], [retro('02-learnings/retros/RT3.md', ['x/C1'], bad('account-of', 'sections-in-order', 'account-of'))]);
   assert.equal(f.verdict, 'FAIL');
