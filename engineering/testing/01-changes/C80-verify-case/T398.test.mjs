@@ -1,4 +1,4 @@
-// Case testing/T397 tests: testing/I48
+// Case testing/T398 tests: testing/F173
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -11,15 +11,14 @@ const draft = (name) => norm(readFileSync(join(ET, '01-changes/C80-verify-case/i
   .split(new RegExp(`^## Draft of ${name.replace('.', '\\.')}$`, 'm'))[1]
   .match(/^`````\n([\s\S]*?)\n`````$/m)[1];
 
-export const id = 'testing/T397';
-export const tests = ['testing/I48'];
-export const title = 'testing/I48 states that every Case is well formed and explicitly attributed while leaving assertion sufficiency to review, equal to its draft';
+export const id = 'testing/T398';
+export const tests = ['testing/F173'];
+export const title = 'testing/F173 serves testing/I48 and preserves checker findings and uncertainty without re-parsing source, equal to its draft';
 
 export async function run() {
-  const real = join(ET, '10-intent/I48-cases-are-well-formed/I48.md');
-  assert.ok(existsSync(real), 'I48.md is absent');
+  const real = join(ET, '11-requirements/F173-verify-case/F173.md');
+  assert.ok(existsSync(real), 'F173.md is absent');
   const text = norm(readFileSync(real, 'utf8'));
-  assert.equal(text, `${draft('I48.md')}\n`, 'I48.md differs from the draft');
-  assert.match(text, /^id: testing\/I48$/m);
-  assert.match(text, /Owner: testing/);
+  assert.equal(text, `${draft('F173.md')}\n`, 'F173.md differs from the draft');
+  assert.match(text, /^serves: \[testing\/I48\]$/m);
 }
