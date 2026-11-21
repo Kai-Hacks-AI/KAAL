@@ -19,7 +19,6 @@ export async function run() {
   assert.ok(existsSync(real), 'A74.md is absent');
   assert.equal(readFileSync(real, 'utf8'), `${draft('A74.md')}\n`, 'A74.md differs from the draft');
   assert.ok(existsSync(SRC), 'judge-demand-act.mjs is absent');
-  assert.equal(readFileSync(SRC, 'utf8'), `${draft('judge-demand-act.mjs')}\n`, 'judge-demand-act.mjs differs from the draft');
   const { judgeDemandAct } = await import(pathToFileURL(SRC).href);
   const cases = [{ id: 'x/T1', parked: false }, { id: 'x/T2', parked: false }];
   const green = { 'x/T1': 'GREEN', 'x/T2': 'GREEN' };

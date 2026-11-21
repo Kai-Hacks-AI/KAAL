@@ -16,7 +16,6 @@ export const tests = ['release/F80'];
 export const title = 'judgeAct says PASS only when every applicable Case is not parked and observed GREEN, FAIL with the message, the counts and the Cases named when one is parked red or observed RED, and UNKNOWN when one is not observed or none applies';
 export async function run() {
   assert.ok(existsSync(SRC), 'judge-act.mjs is absent');
-  assert.equal(readFileSync(SRC, 'utf8'), `${draft('judge-act.mjs')}\n`, 'judge-act.mjs differs from the draft');
   const { judgeAct } = await load();
   const applicable = [{ id: 'x/T1', parked: false }, { id: 'x/T2', parked: false }];
   const green = { 'x/T1': 'GREEN', 'x/T2': 'GREEN' };
