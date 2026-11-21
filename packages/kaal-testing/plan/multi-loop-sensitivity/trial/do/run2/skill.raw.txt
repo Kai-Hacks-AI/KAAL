@@ -1,0 +1,171 @@
+## Provided `kaal-testing` Skill (`SKILL.md`)
+
+- **Name**: `kaal-testing`
+- **Title**: `# Testing a capability`
+- **`## ` Section Headings**:
+  1. `## Before writing a test`
+  2. `## Assessing a test against its claim`
+  3. `## Testing loops`
+  4. `## Running acceptance`
+  5. `## Measuring coverage`
+  6. `## Expected failures`
+  7. `## Reporting`
+  8. `## Rules`
+
+---
+
+## 1. Assessment of Each Claim in `budget-gate/spec.md`
+
+### `BG-I1` (Intent)
+> *"Prevent accidental overspend by checking itemized integer costs against a numeric budget limit before an action proceeds."*
+
+- **Concern owner & classification**: Intent — **Point at judgement** (soundness/fitness) plus higher-level integration/consumer verification (*"before an action proceeds"*).
+- **Assessment**:
+  - Whether checking itemized integer costs via `evaluateBudget(items, limit)` (returning `{ over, remaining }` rather than enforcing a block itself) is sound and fit to prevent accidental overspend cannot be settled by a test; it requires a **judgment** from a seat other than the claim's author.
+  - Whether callers actually invoke `evaluateBudget` *before* an action proceeds and honor `over === true` or thrown errors lies outside `budget.mjs` alone and belongs to consumer/integration testing and capability acceptance.
+- **Evidence needed / missing**:
+  - Recorded non-author judgment evaluating whether `evaluateBudget`'s contract fits `BG-I1`.
+  - Consumer/integration evidence confirming callers gate actions on `evaluateBudget` prior to execution (missing).
+
+### `BG-R1` [BG-I1] (Requirements)
+> *"`evaluateBudget(items, limit)` sums each item's `cost` (non-negative integer) and returns `{ over: boolean, remaining: number }`, where `over` is `total > limit` (exact equality `total === limit` is within budget: `over: false, remaining: 0`) and `remaining` is `limit - total`."*
+
+- **Concern owner & classification**: Requirements (owned by `budget-gate`) — **Verify**.
+- **Assessment**:
+  - Objectively verifiable: observables are the returned `{ over, remaining }` object; the oracle is unambiguous (`total = sum(item.cost)`, `over = total > limit`, `remaining = limit - total`, and `total === limit` yields `{ over: false, remaining: 0 }`).
+  - Minor edge-case ambiguities to clarify with the owner without rewriting the claim: (a) how `limit = -0` should behave (currently `-0` passes validation in `budget.mjs:4`, yielding `remaining: -0` for empty `items` at `budget.mjs:22`); (b) safe-integer bounds on `total += cost` (`Number.MAX_SAFE_INTEGER` precision loss); (c) behaviour for non-array `items` or missing/`null` item objects (`budget.mjs:7-9,12-14` currently throws `TypeError` for non-array `items` and `RangeError` for missing/non-object `item.cost`).
+- **Evidence needed / missing**:
+  - Existing `budget.checks.mjs` tests only two 2-item positive cases (`4+5 < 10` and `6+6 > 10`).
+  - Missing: boundary case `total === limit` (`over: false, remaining: 0`, e.g., `[{ cost: 5 }, { cost: 5 }], 10` and `[], 0`) — notably, an off-by-one `total >= limit` mutation would pass both existing tests; empty `items = []`; `cost: 0`; `limit: 0`; fractional finite `limit` (e.g., `10.5`); >2 items; Behavioural RED evidence; Targeted Mutation Verification; fresh-install capability acceptance; and coverage accounting (`kaal-testing/coverage` / `kaal-testing/report`).
+
+### `BG-R2` [BG-I1] (Requirements)
+> *"Any item with negative, non-integer, or non-finite `cost`, or a negative or non-finite `limit`, throws a `RangeError`."*
+
+- **Concern owner & classification**: Requirements (owned by `budget-gate`) — **Verify**.
+- **Assessment**:
+  - Objectively verifiable: observables are thrown `RangeError` instances on invalid `cost` or `limit` inputs (and absence of throw on valid `0` boundaries).
+  - Unresolved edge cases to clarify with the owner (uncovered behaviour): `budget.mjs:4,12-14` also throws `RangeError` for non-`number` `limit` (e.g., `"10"`, `undefined`), non-`number` `cost`, and `null`/missing-`cost` items, while `budget.mjs:7-9` throws `TypeError` for non-array `items`. Establish whether these are intentional contract obligations before writing contract assertions or removing them.
+- **Evidence needed / missing**:
+  - **None exists.** `budget.checks.mjs` has no error tests, and `broken.checks.mjs` failed to load (`ERR_MODULE_NOT_FOUND`), leaving `BG-R2` blocked (`unknown`).
+  - Needed: deterministic cases for negative `cost`, non-integer `cost`, non-finite `cost` (`NaN`, `Infinity`, `-Infinity`), negative `limit`, and non-finite `limit` (`NaN`, `Infinity`, `-Infinity`) throwing `RangeError` without mutating inputs; Behavioural RED; Targeted Mutation Verification; fresh-install capability acceptance.
+
+### `BG-R3` [BG-I1] (Requirements)
+> *"Large batches should complete promptly."*
+
+- **Concern owner & classification**: Requirements — **Challenge** (report as **unknown**).
+- **Assessment**:
+  - Underspecified to the point of being undecidable: neither "large batches" (item count $N$) nor "promptly" (time budget $T$, hardware/host conditions, or algorithmic complexity bound) is defined. Testing must not invent a batch size or latency threshold to obtain GREEN.
+- **Evidence needed / missing**:
+  - Owner specification defining concrete batch size(s), execution environment/conditions, and maximum time or complexity criteria, followed by a reproducible benchmark/complexity check once decidable.
+
+### `BG-R4` [BG-I1] (Requirements)
+> *"Error messages should be clear and helpful to operators."*
+
+- **Concern owner & classification**: Requirements — **Point at judgement** (and reject brittle wording assertions).
+- **Assessment**:
+  - Soundness/fitness for human operators cannot be settled by an automated test oracle; asserting exact message strings would be a brittle case testing author wording rather than operator helpfulness.
+- **Evidence needed / missing**:
+  - A recorded **Judgment** from a seat other than the author (e.g., operator representative or reviewer) inspecting the error messages produced by `budget.mjs:5,8,14` (`"limit must be a non-negative finite number"`, `"items must be an array"`, `"each item cost must be a non-negative integer"` — e.g., assessing whether omitting item index or offending value is clear enough for operators). Currently neither a judgment nor any error-triggering test exists.
+
+### `BG-A1` [BG-I1] (Architecture)
+> *"`budget.mjs` is pure domain logic with no host filesystem or subprocess access (it must not import `node:fs` or `node:child_process`)."*
+
+- **Concern owner & classification**: Architecture — **Verify** (for mechanical import boundaries) + **Judgment** (for undecidable constructs and "pure domain logic" scope).
+- **Assessment**:
+  - The import restriction (`node:fs`, `node:child_process`) is mechanically verifiable as an **Architecture conformance** loop with boundary declarations as data and three demonstration cases: **permitted**, **prohibited**, and **undecidable** (surfacing undecidable constructs for validation, never passing silently or counting as violations).
+  - Source inspection shows `budget.mjs:1` imports `existsSync` from `"node:fs"` and `budget.mjs:19-21` calls `existsSync(process.env.BUDGET_AUDIT_FILE)` (an empty prototype debug check). Additionally, reading `process.env` raises a boundary question under *"pure domain logic"* even if `node:fs` is removed.
+- **Evidence needed / missing**:
+  - A separately runnable architecture conformance check with boundary data declarations, all three demonstration cases (permitted, prohibited catching `budget.mjs:1`, undecidable), and validation records for undecidable/global host constructs (`process.env`). Currently **no architecture conformance check has been run**.
+
+---
+
+## 2. What the Existing Test Runs Establish (and What They Do Not)
+
+### `node --test budget.checks.mjs` (`tests 2, pass 2, fail 0`, exit `0`)
+- **What it establishes**:
+  - In a local workspace run importing `./budget.mjs` directly, no violation was found within the narrow coverage of two concrete inputs: `evaluateBudget([{ cost: 4 }, { cost: 5 }], 10)` returning `{ over: false, remaining: 1 }`, and `evaluateBudget([{ cost: 6 }, { cost: 6 }], 10)` returning `{ over: true, remaining: -2 }`.
+- **What it does not establish**:
+  - Does **not** establish that `budget.mjs` is correct or compliant with `BG-R1` (does not test `total === limit` -> `{ over: false, remaining: 0 }`, empty `items`, `0` costs/limits, fractional `limit`, >2 items, `-0` handling, or large integer sums).
+  - Does **not** establish **Behavioural RED** or **Targeted Mutation Verification** (e.g., mutating `total > limit` to `total >= limit` survives both passing tests).
+  - Does **not** establish **BG-R2**, **BG-R3**, **BG-R4**, **BG-A1**, or **BG-I1** (zero error cases, zero performance cases, zero judgments, and zero architecture checks ran; Node silently executes `import { existsSync } from "node:fs"`).
+  - Does **not** establish **capability acceptance** (direct workspace import does not substitute for fresh installation from a packed tarball on supported hosts through the public interface only).
+  - Does **not** measure **coverage** (`kaal-testing/coverage` and `kaal-testing/report` were not run; lines `4–9`, `13–15`, and `19–21` of `budget.mjs` were unexecuted or unmeasured).
+
+### `node --test broken.checks.mjs` (`tests 1, pass 0, fail 1`, exit `1`)
+- **What it establishes**:
+  - Deterministically establishes that `broken.checks.mjs` fails during module loading due to a missing module (`ERR_MODULE_NOT_FOUND` for `./missing-fixture.mjs`).
+- **What it does not establish**:
+  - Does **not** establish Behavioural RED or verify/falsify `budget.mjs` against `BG-R2` (`"rejects negative item cost"`). Per `SKILL.md`, a missing module/setup failure is **blocked (`unknown`)**, never RED evidence. Moreover, `broken.checks.mjs` does not import `evaluateBudget` and passes `() => sample` to `assert.throws`, so it could not verify `evaluateBudget` even if the fixture existed.
+
+---
+
+## 3. Classified Findings and Concrete Next Steps
+
+### Verified failures
+1. **Broken test file module resolution (`broken.checks.mjs`)**
+   - **Subject**: `budget-gate` (`budget-gate/broken.checks.mjs`, content as provided).
+   - **Where it is**: `budget-gate/broken.checks.mjs:3` (`import { loadFixture } from "./missing-fixture.mjs";`), case `"rejects negative item cost"`.
+   - **Evidence**: Deterministic run `node --test broken.checks.mjs` failed (`tests 1, pass 0, fail 1, exit 1`) with `Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../missing-fixture.mjs' imported from '.../broken.checks.mjs'`.
+
+### Potential defects
+1. **Direct `node:fs` import and `existsSync` call in `budget.mjs` conflicting with `BG-A1`**
+   - **Subject**: `budget-gate` (`budget-gate/budget.mjs`, content as provided).
+   - **Where it is**: `budget-gate/budget.mjs:1` (`import { existsSync } from "node:fs";`) and `budget-gate/budget.mjs:19-21` (`if (process.env.BUDGET_AUDIT_FILE && existsSync(process.env.BUDGET_AUDIT_FILE))`).
+   - **Evidence**: Source inspection shows an explicit `node:fs` import and synchronous filesystem probe left behind from an earlier prototype (`budget.mjs:20`), directly contradicting `BG-A1` (`"must not import node:fs or node:child_process"`). Classified as a potential defect because no deterministic architecture conformance check has yet executed to reproduce it as a verified failure.
+2. **Defective assertion / missing SUT invocation in `broken.checks.mjs`**
+   - **Subject**: `budget-gate` (`budget-gate/broken.checks.mjs`, content as provided).
+   - **Where it is**: `budget-gate/broken.checks.mjs:1-8`, case `"rejects negative item cost"`.
+   - **Evidence**: Source inspection shows `broken.checks.mjs` never imports `evaluateBudget` and writes `assert.throws(() => sample, RangeError)` (`broken.checks.mjs:7`), which evaluates an already-assigned variable rather than calling `evaluateBudget`. Even if `./missing-fixture.mjs` existed, it would not test `BG-R2`.
+3. **Unguarded `process.env` reference risks non-Node host failure (`ReferenceError`)**
+   - **Subject**: `budget-gate` (`budget-gate/budget.mjs`, content as provided).
+   - **Where it is**: `budget-gate/budget.mjs:19` (`process.env.BUDGET_AUDIT_FILE`), interface `evaluateBudget`.
+   - **Evidence**: Source inspection shows an unguarded global `process.env` access, which fails with `ReferenceError` on hosts without a Node `process` global. Awaits host-acceptance execution and architectural validation.
+4. **`limit = -0` produces `remaining: -0` at exact zero equality**
+   - **Subject**: `budget-gate` (`budget-gate/budget.mjs`, content as provided).
+   - **Where it is**: `budget-gate/budget.mjs:4,22` (`limit < 0` check and `return { over, remaining: limit - total };`), interface `evaluateBudget`.
+   - **Evidence**: Source inspection shows `-0` satisfies `typeof limit === "number" && Number.isFinite(-0) && !(-0 < 0)`. For `evaluateBudget([], -0)`, `-0 - 0` evaluates to `-0`, yielding `{ over: false, remaining: -0 }`, which differs under `Object.is` / `node:assert/strict` `deepEqual` from `{ over: false, remaining: 0 }` stated in `BG-R1` for `total === limit`. Awaits deterministic check reproduction and owner clarification.
+5. **Unbounded IEEE-754 summation (`total += cost`) may silently lose integer precision**
+   - **Subject**: `budget-gate` (`budget-gate/budget.mjs`, content as provided).
+   - **Where it is**: `budget-gate/budget.mjs:16` (`total += cost;`), interface `evaluateBudget`.
+   - **Evidence**: Source inspection shows `Number.isInteger(cost)` permits values up to `Number.MAX_VALUE`, and `total += cost` has no `Number.isSafeInteger` guard, so large batches or large integer costs exceeding `Number.MAX_SAFE_INTEGER` can miscompute `total > limit` or `limit - total`. Awaits owner boundary clarification and deterministic check.
+
+### Architectural concerns
+1. **Suspected boundary breach & misplaced responsibility: filesystem prototype check in domain module (`budget.mjs`)**
+   - **Subject**: `budget-gate` (`budget-gate/budget.mjs`, content as provided).
+   - **Where it is**: `budget-gate/budget.mjs:1,19-21`.
+   - **Evidence & status**: **Suspected** (unvalidated). Source inspection raises both a direct breach of `BG-A1` (`node:fs` import) and a responsibility concern: an empty prototype audit/debug marker hook resides inside pure domain logic rather than a separate hosting/instrumentation boundary. Awaits recorded architectural validation (and confirmation that no external consumer relies on the side effect before removal).
+2. **Suspected boundary ambiguity: ambient host state (`process.env`) under "pure domain logic"**
+   - **Subject**: `budget-gate` (`budget-gate/budget.mjs` and `budget-gate/spec.md` `BG-A1`, content as provided).
+   - **Where it is**: `budget-gate/budget.mjs:19` (`process.env.BUDGET_AUDIT_FILE`) and `budget-gate/spec.md` (`BG-A1`).
+   - **Evidence & status**: **Suspected** (unvalidated). `BG-A1` declares `budget.mjs` is `"pure domain logic"` while parenthetically banning only `node:fs` and `node:child_process`. Reading ambient `process.env` couples domain logic to host process state without an explicit import. Awaits architectural judgment on whether `process.env` / global host objects are disallowed by `BG-A1` and how mechanical checks should treat them (prohibited vs. undecidable requiring validation).
+
+### Unknowns
+1. **`BG-R1` unverified cases and test sensitivity**: Exact equality (`total === limit`), empty `items`, zero costs/limits, fractional finite `limit`, >2 items, Behavioural RED, and Targeted Mutation Verification were never run (`budget-gate/spec.md` `BG-R1`; `budget-gate/budget.checks.mjs`).
+2. **`BG-R2` validation behaviour (blocked / unrun)**: All negative, non-integer, and non-finite `cost`/`limit` `RangeError` paths in `evaluateBudget` are untested because `broken.checks.mjs` blocked at module load (`budget-gate/spec.md` `BG-R2`; `budget-gate/broken.checks.mjs`).
+3. **`BG-R3` large-batch promptness**: Both specification criteria (batch size, time/complexity bound, host conditions) and execution measurements are absent (`budget-gate/spec.md` `BG-R3`).
+4. **`BG-R4` error-message clarity and helpfulness**: No non-author judgment exists on error messages at `budget.mjs:5,8,14`, and no test executed those error paths (`budget-gate/spec.md` `BG-R4`).
+5. **`BG-A1` mechanical architecture conformance**: No architecture conformance loop ran (no boundary data declaration; no permitted/prohibited/undecidable demonstration cases or validation records) (`budget-gate/spec.md` `BG-A1`; `budget-gate/budget.mjs`).
+6. **`BG-I1` intent fitness and caller pre-action gating**: No non-author judgment on intent soundness and no caller/integration evidence showing actions check `evaluateBudget` before proceeding (`budget-gate/spec.md` `BG-I1`).
+7. **Capability acceptance on supported hosts**: No fresh tarball-install acceptance run (`kaal-testing/acceptance` in `test/acceptance/`) was performed through the public interface (`budget-gate` delivered package).
+8. **Code coverage and ownership mapping**: `kaal-testing/coverage` and `kaal-testing/report` were not executed; executed vs. non-blank lines and unexecuted delivered files are unknown.
+9. **Uncovered input-handling authority**: Contractual authority and consumer expectations for `TypeError` on non-array `items` (`budget.mjs:7-9`), `RangeError` on non-number `limit` (`budget.mjs:4-6`) and `null`/missing-`cost` items (`budget.mjs:12-15`), and any external reliance on `BUDGET_AUDIT_FILE` (`budget.mjs:19-21`) remain unresolved.
+
+---
+
+### Concrete Next Steps
+
+1. **Resolve specification, judgment, and authority gaps with owners (without inventing oracles)**:
+   - **Challenge `BG-R3`**: Ask the Requirements owner to define batch size(s), host/execution conditions, and time/complexity bounds so an objective oracle exists.
+   - **Obtain non-author Judgments for `BG-R4` and `BG-I1`**: Have an operator/reviewer seat (distinct from the author) judge error message clarity (`budget.mjs:5,8,14`) and intent soundness (`BG-I1`), recording each as a judgment.
+   - **Clarify uncovered behaviours**: Confirm with Requirements/Architecture owners the intended errors for non-array `items`, non-number `limit`/`cost`, `null`/missing-`cost` items, `limit = -0`, safe-integer summation limits, and whether `process.env` and the `BUDGET_AUDIT_FILE` hook have any consumer dependencies before removal.
+2. **Establish and run a separate Architecture Conformance loop (`BG-A1`)**:
+   - Declare allowed/prohibited host modules as data (`node:fs`, `node:child_process`, plus any host-global policy decided by Architecture).
+   - Demonstrate **permitted**, **prohibited** (expected to fail deterministically on `budget.mjs:1` — reproducing the potential defect as a verified failure until fixed), and **undecidable** (surfacing indirect/ambient host access such as `process.env` for recorded validation).
+   - Once validated, remove `node:fs` and the leftover prototype hook from `budget.mjs` (moving any needed instrumentation to Hosting) and re-run the architecture check.
+3. **Repair `broken.checks.mjs` and complete the Requirements / Implementation loop (`BG-R1`, `BG-R2`)**:
+   - Replace/fix `broken.checks.mjs`: drop `./missing-fixture.mjs`, import `evaluateBudget` from `./budget.mjs`, and assert `evaluateBudget(...)` throws `RangeError`.
+   - Add `BG-R1` boundary/normal cases (`total === limit`, `[]`, `0` cost/limit, fractional `limit`, multi-item arrays) and `BG-R2` invalid-input cases (negative, non-integer, non-finite `cost`; negative, non-finite `limit`; non-mutation checks).
+   - Verify **Behavioural RED** against an inert stub (failing on behavioural assertions, never setup errors), turn GREEN, and run **Targeted Mutation Verification** (e.g., `>` -> `>=`, `limit - total` -> `total - limit`, `total += cost` -> `total = cost`, dropping each validation guard, swapping `RangeError`), recording `killed`/`survived`/`invalid`/`unresolved`.
+4. **Measure coverage and execute Capability Acceptance as separate loops**:
+   - Run `kaal-testing/coverage` (`cover`) and `kaal-testing/report` (`report`), reporting non-blank text lines side-by-side with executed lines and naming any unexecuted delivered file.
+   - Add scenarios under `test/acceptance/` and run `kaal-testing/acceptance` (`accept`) against packed tarballs installed fresh on each supported host via public exports only (checking promised failures and host containment).
