@@ -19,5 +19,5 @@ export async function run() {
   assert.deepEqual([...(pkg.files ?? [])].sort(), ['payload', 'skills'], 'the package ships payload and skills only');
   const scripts = join(dir, 'skills/kaal-engineering/scripts');
   assert.deepEqual(existsSync(scripts) ? readdirSync(scripts) : [], ['check-layout.mjs'], 'the Skill has the one layout check and no other script');
-  assert.ok(!existsSync(join(dir, '02-controls')), 'the package declares no control');
+  assert.ok(!existsSync(join(dir, '14-operations')), 'the package declares no control');
 }

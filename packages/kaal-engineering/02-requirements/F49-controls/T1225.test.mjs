@@ -11,10 +11,10 @@ const template = () => { const f = join(dir, 'references/package-layout.json'); 
 const folder = (t, n) => t.folders.find((f) => f.name === n);
 export const id = 'engineering/T1225';
 export const tests = ['engineering/F49'];
-export const title = '02-controls is scoped to the package, controls belong to the consumer and link to an Intent, and consumer controls are not a folder';
+export const title = 'the controls of 14-operations are scoped to the package, controls belong to the consumer and link to an Intent, and consumer controls are not a folder';
 export async function run() {
   const t = template();
-  const c = folder(t, '02-controls');
+  const c = folder(t, '14-operations').controls;
   assert.equal(c.scope, 'package');
   assert.deepEqual([...c.covers].sort(), ['delivery', 'development', 'solution']);
   assert.ok(t.consumerSpace.length >= 1, 'consumer controls are not named as consumer space');
