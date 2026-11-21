@@ -1,4 +1,5 @@
 // The runner of the workflow controls-act (release/C122): asks one judge of the ACT about a pull request into a collector and says what the flag of that judge does with the answer.
+// One line `act-evidence {...}` follows the report of a judge (release/C127): the record of this run for the ledger of that judge. Environment: KAAL_PR, KAAL_MERGE_SHA, KAAL_RUN_ID.
 //   node run-controls-act.mjs <hold|demand|verify|limit|isolate> --main <default branch folder> --pr <merge result folder> --before <collector before folder> --contained <main as the result contains it folder>
 // The last two feed isolate Changes (release/C123): the judges judge the pull request's own paths, and without them the answer is UNKNOWN.
 // The flag is the variable KAAL_RELEASE_<CONTROL> handed in as KAAL_FLAG. It decides the exit code and nothing else: exactly `on` makes a FAIL or an UNKNOWN exit 1 (advisory:
@@ -10,6 +11,7 @@ import { readTree } from './lib/tree-facts.mjs';
 import { applicableCases } from './lib/collector.mjs';
 import { isolateChanges } from './lib/isolate-changes.mjs';
 import { pass, unknown } from './lib/result.mjs';
+import { recordOf, evidenceLine } from './lib/evidence.mjs';
 import { judgeLimitAct } from './judge-limit-act.mjs';
 import { judgeDemandAct } from './judge-demand-act.mjs';
 import { judgeVerifyAct } from './judge-verify-act.mjs';
@@ -53,15 +55,18 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const arg = (k) => { const i = process.argv.indexOf(k); return i < 0 ? undefined : process.argv[i + 1]; };
   const name = process.argv[2];
   const flag = process.env.KAAL_FLAG;
-  let answer;
+  let answer, attribution;
   try {
     const main = arg('--main'), collector = arg('--pr');
     if (!main || !collector) throw new Error('--main and --pr are required');
-    const attribution = isolateChanges({ before: arg('--before'), after: collector, contained: arg('--contained') });
+    attribution = isolateChanges({ before: arg('--before'), after: collector, contained: arg('--contained') });
     answer = name === 'isolate' ? isolationOf(attribution) : judgeOf(name, await readTree({ main, collector, changed: attribution.own }), collector, attribution);
   } catch (e) { answer = unknown(String(e.message)); }
   const line = reportOf(name, answer, flag);
   console.log(line);
-  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${line}\n`);
+  // One record per judge per run (release/C127): the pull request, the merge result and the run come from the workflow; a missing one is null and the run is not counted.
+  const record = JUDGES.includes(name) ? evidenceLine(recordOf({ judge: name, check: `${name} Act`, pr: Number(process.env.KAAL_PR) || null, merge: process.env.KAAL_MERGE_SHA || null, run: process.env.KAAL_RUN_ID || null, answer, attribution })) : '';
+  if (record) console.log(record);
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${line}\n${record ? `${record}\n` : ''}`);
   process.exit(exitCodeOf(answer, flag));
 }
