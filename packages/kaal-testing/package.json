@@ -14,7 +14,9 @@
     "./report": "./lib/report.mjs",
     "./duplicates": "./lib/duplicates.mjs",
     "./run": "./lib/run.mjs",
-    "./expectations": "./lib/expectations.mjs"
+    "./expectations": "./lib/expectations.mjs",
+    "./cases": "./lib/cases.mjs",
+    "./observe": "./lib/observe.mjs"
   },
   "files": [
     "bin",
@@ -25,7 +27,7 @@
   ],
   "scripts": {
     "pretest": "npm run build -w kaal-core -w @kaihacksai/kaal-hosting",
-    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/plan/duplicates.test.mjs test/duplicates-inputs.test.mjs test/plan/testability.test.mjs test/plan/run-cases.test.mjs test/run-termination.test.mjs test/plan/expected-failures.test.mjs test/expectations.test.mjs test/plan/multi-loop-sensitivity.test.mjs test/plan/act-library-sensitivity.test.mjs test/plan/seeded-properties.test.mjs"
+    "test": "node --test test/testing.test.mjs test/acceptance.test.mjs test/coverage.test.mjs test/boundary.test.mjs test/inventory.test.mjs test/attribution.test.mjs test/report.test.mjs test/contracts.test.mjs test/plan/duplicates.test.mjs test/duplicates-inputs.test.mjs test/plan/testability.test.mjs test/plan/run-cases.test.mjs test/run-termination.test.mjs test/plan/expected-failures.test.mjs test/expectations.test.mjs test/plan/multi-loop-sensitivity.test.mjs test/plan/act-library-sensitivity.test.mjs test/plan/hold-adapter.test.mjs test/plan/seeded-properties.test.mjs"
   },
   "engines": {
     "node": ">=24"
