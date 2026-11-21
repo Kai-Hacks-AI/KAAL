@@ -7,20 +7,20 @@
   "statements": [
     {
       "source": "packages/kaal-testing/README.md",
-      "quote": "Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`), and checks that declaration with Hosting's conformance inspection in its own tests.",
-      "sha256": "7abd8bd0c7a87cb334eeef18e14dc9133edb46855b8f824d10872a0e8019735c",
+      "quote": "Testing declares the only host modules its delivered code imports directly (`node:path`, `node:url`; the Case catalog also reads `node:fs`, read-only, because Hosting cannot list a checkout that holds links to directories), and checks that declaration with Hosting's conformance inspection in its own tests.",
+      "sha256": "a092384b8c2e37c7eed8944988252ec0ee1bf81159ad3e9af01d80998c43e4f6",
       "loop": "conformance",
       "evidence": [
         {
           "file": "packages/kaal-testing/test/boundary.test.mjs",
-          "sha256": "a8de2c63609d05af22d1e6617fa40d7bf611934ac31c668db7e86caef7550696",
+          "sha256": "e5a39883e94bc11c7dcdf9aa73837a409c95addd823c55bf0a8775a47fc0a73d",
           "test": [
             "Testing's Hosting boundary",
             "permitted: the delivered JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting"
           ]
         }
       ],
-      "inference": "The test runs Hosting's conformance inspection over every file in lib/ against the declared host modules, node:path and node:url, and asserts no violation and no other outside module than kaal-hosting.",
+      "inference": "The test runs Hosting's conformance inspection over every file in lib/ against the declared host modules, node:path and node:url (and, for lib/cases.mjs alone, node:path and node:fs), and asserts no violation and no other outside module than kaal-hosting.",
       "limits": "The inspection is static and covers only the constructs it lists; its exclusions and anything it reports for validation are not shown by this test to conform.",
       "review": null
     },

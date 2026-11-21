@@ -13,3 +13,9 @@ A throwaway reference (about 70 lines, kept outside the repository and not part 
 ## The present reading of Case ids
 
 On `main`, `grep -rE "^export const id = \"" --include='T*.mjs'` finds 36 Case files, and `grep -rE "^export const id = '"` finds 504. Release's `applicableCases` reads `export const id = '([^']+)'` and so does not see the 36, among them every Case of the open `kaal/testing/multi-loop-sensitivity` collector (`T381`–`T383`). That is the evidence for the F158 reading of both quote forms and for the alignment named in the Architecture.
+
+## The DO (`testing/C74`), run
+
+`lib/cases.mjs`, `lib/observe.mjs`, the `observe` command, the two exports and the README section are in. `T384` to `T390` pass against them. On this sandbox (Node 22.23) `T388` and `T369` stop at their Node 24 assertion, which is last in each; run under a shim that reports Node 24 both pass, so every assertion before it holds. The rest of `npm test -w kaal-testing` passes (105 of 107), and `engineering/contracts/measure.test.mjs` passes (7 of 7) with the README quote and the pin of `boundary.test.mjs` updated.
+
+**Found in the DO, and the choice made.** The catalog must walk a checkout synchronously and past the links to directories that every `node_modules` holds. Hosting reads asynchronously and refuses such a link, so `lib/cases.mjs` reads `node:fs` (read-only) and the boundary Case inspects it on its own. The alternative is a Hosting Change that lists a tree without those links, then an asynchronous catalog and `await` in `T384` to `T390`. The exception is written in `architecture.md` (A54), the README and the boundary Case, and ends with that Change.
