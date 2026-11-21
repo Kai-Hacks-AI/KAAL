@@ -17,7 +17,7 @@ export async function run() {
   assert.deepEqual(readCase(caseText('a/T1', ['a/F1', 'a/F2'], '"')).tests, ['a/F1', 'a/F2'], 'the claims likewise');
 
   // a Case of wrong form (no first line, an id without a namespace, a target that exists nowhere) is still in the catalog
-  const { cases, findings } = collectCases(tree({ 'p/T1.test.mjs': caseText('T1', ['nowhere/F99']) }));
+  const { cases, findings } = await collectCases(tree({ 'p/T1.test.mjs': caseText('T1', ['nowhere/F99']) }));
   assert.deepEqual(cases.map((c) => c.id), ['T1'], 'a Case whose form is wrong stays listed: C69 reports it, the catalog does not drop it');
   assert.deepEqual(findings, [], 'and is no catalog finding');
 

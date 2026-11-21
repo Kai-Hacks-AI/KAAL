@@ -21,7 +21,7 @@ export async function run() {
     'trap/T5.test.mjs': `${caseText('trap/T5')}\nthrow new Error('imported');\n`,
   };
   const root = tree(files);
-  const { cases, findings } = collectCases(root);
+  const { cases, findings } = await collectCases(root);
   assert.deepEqual(cases.map((c) => c.id), ['a/T1', 'x/T2', 'z/T3', 'trap/T5', 'root/T10'].sort((p, q) => Number(p.split('/T')[1]) - Number(q.split('/T')[1])), 'every Case file is listed once, ordered by number, none under node_modules or .git, none that is not named T<n>.(red|test).mjs');
   assert.deepEqual(findings, [], 'a well formed tree has no finding');
   const x = cases.find((c) => c.id === 'x/T2');
@@ -31,7 +31,7 @@ export async function run() {
   assert.equal(cases.find((c) => c.id === 'z/T3').parked, true, '.red.mjs is parked');
 
   // the same tree, written in another order, gives the same list
-  const again = collectCases(tree(Object.fromEntries(Object.entries(files).reverse())));
+  const again = await collectCases(tree(Object.fromEntries(Object.entries(files).reverse())));
   assert.deepEqual(again.cases, cases, 'the list does not depend on directory order');
-  assert.deepEqual(collectCases(root), { cases, findings }, 'the same twice');
+  assert.deepEqual(await collectCases(root), { cases, findings }, 'the same twice');
 }

@@ -16,7 +16,7 @@ export async function run() {
     // not this Change's to judge: no first line, an id whose number is not the file's, a target that exists nowhere
     'e/T4.test.mjs': caseText('cap/T9', ['nowhere/F99']),
   });
-  const { cases, findings } = collectCases(root);
+  const { cases, findings } = await collectCases(root);
   const kinds = (k) => findings.filter((f) => f.kind === k);
   assert.deepEqual(kinds('duplicate-id').map((f) => [f.id, f.files.slice().sort()]), [['cap/T2', ['b/T2.test.mjs', 'c/T2.red.mjs']]], 'a duplicate id names every file that declares it');
   assert.deepEqual(kinds('no-id').map((f) => f.files), [['d/T3.test.mjs']], 'a Case file without an id is named');

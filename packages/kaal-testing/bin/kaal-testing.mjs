@@ -19,7 +19,7 @@ if (argv[0] === 'observe') {
     if (!o.report || !o.observed || !o.evidence) throw new Error('--report, --observed and --evidence are required');
     const { collectCases } = await import('../lib/cases.mjs');
     const { observeCases } = await import('../lib/observe.mjs');
-    const { cases, findings } = collectCases(resolve(o.root ?? process.cwd()));
+    const { cases, findings } = await collectCases(resolve(o.root ?? process.cwd()));
     const read = async (path) => JSON.parse((await readFile(resolve(path))).toString('utf8'));
     const result = observeCases({
       report: await read(o.report),

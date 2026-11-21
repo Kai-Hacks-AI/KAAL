@@ -1,10 +1,9 @@
 // The Case catalog: which Case files a tree holds, and what each declares. Pure over a tree read as text: no file is imported or run,
 // and nothing about where a Case lives, which Change it belongs to or what its path says is assumed (testing/F158).
-// This is the one place in the package that reads the host directly (node:fs, read-only): Hosting reads a tree asynchronously
-// and refuses a link to a directory, which every node_modules holds, so it cannot walk a checkout. The exception is declared in
-// test/boundary.test.mjs and is meant to end when Hosting can list a tree without them (testing/A54).
-import { readdirSync, readFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+// The tree is listed and read through Hosting alone (list with skip and links, then readFile): Hosting owns the filesystem walk and
+// Testing owns what a Case file means. No host module is read here.
+import { list, readFile } from '@kaihacksai/kaal-hosting';
+import { join } from 'node:path';
 
 const CASE_FILE = /(^|\/)T(\d+)\.(red|test)\.mjs$/;
 const SKIPPED = new Set(['node_modules', '.git']);
@@ -18,21 +17,18 @@ export function readCase(text) {
   return { ids: [...text.matchAll(ID)].map((m) => m[2]), tests: strings(text.match(TESTS)?.[1] ?? '') };
 }
 
-const files = (dir) =>
-  readdirSync(dir, { withFileTypes: true }).flatMap((e) => (SKIPPED.has(e.name) ? [] : e.isDirectory() ? files(join(dir, e.name)) : [join(dir, e.name)]));
-
 /**
  * Every Case file under root, sorted: { cases: [{ id, file, tests, parked }], findings }.
  * A finding makes a file unusable and is never dropped silently: `no-id` (the file declares none) and `duplicate-id`
  * (the id is declared by several files, and none of them is listed; the finding carries the id so a consumer can hold it at UNKNOWN).
  */
-export function collectCases(root) {
+export async function collectCases(root) {
   const found = [];
   const findings = [];
-  for (const abs of files(root)) {
-    const file = relative(root, abs).split(sep).join('/');
-    if (!CASE_FILE.test(file)) continue;
-    const { ids, tests } = readCase(readFileSync(abs, 'utf8'));
+  for (const entry of await list(root, { skip: [...SKIPPED], links: 'skip' })) {
+    const file = entry.path;
+    if (entry.kind !== 'file' || !CASE_FILE.test(file)) continue;
+    const { ids, tests } = readCase((await readFile(join(root, file))).toString('utf8'));
     if (ids.length === 0) findings.push({ kind: 'no-id', files: [file], detail: 'the file declares no export const id' });
     else found.push({ id: ids[0], file, tests, parked: file.endsWith('.red.mjs') });
   }

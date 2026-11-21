@@ -17,13 +17,13 @@ export async function run() {
   const { observeCases } = await load('observe');
 
   // a clean catalog is complete
-  const clean = collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1') }));
+  const clean = await collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1') }));
   const cleanResult = ask(observeCases, clean.cases, clean.findings, allGreen(['p/T1.test.mjs']));
   assert.deepEqual(cleanResult.observed, { 'cap/T1': 'GREEN' });
   assert.equal(cleanResult.evidence.catalog.complete, true, 'a catalog with no finding is complete');
 
   // a duplicate id: the id stays in the map and is never GREEN
-  const dup = collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1'), 'p/T2.test.mjs': caseText('cap/T2'), 'q/T2.red.mjs': caseText('cap/T2') }));
+  const dup = await collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1'), 'p/T2.test.mjs': caseText('cap/T2'), 'q/T2.red.mjs': caseText('cap/T2') }));
   const dupResult = ask(observeCases, dup.cases, dup.findings, allGreen(['p/T1.test.mjs', 'p/T2.test.mjs', 'q/T2.red.mjs']));
   assert.equal(dupResult.observed['cap/T1'], 'GREEN', 'the other Case is GREEN');
   assert.equal(dupResult.observed['cap/T2'], 'UNKNOWN', 'a duplicate id is in the map as UNKNOWN, though every test of both files is GREEN');
@@ -31,7 +31,7 @@ export async function run() {
   assert.equal(dupResult.evidence.catalog.complete, false, 'the catalog is not complete');
 
   // a file with no id: nothing to put in the map, so the evidence must say the catalog is incomplete and name the file
-  const none = collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1'), 'p/T2.test.mjs': 'export const tests = [];\nexport function run() {}\n' }));
+  const none = await collectCases(tree({ 'p/T1.test.mjs': caseText('cap/T1'), 'p/T2.test.mjs': 'export const tests = [];\nexport function run() {}\n' }));
   const noneResult = ask(observeCases, none.cases, none.findings, allGreen(['p/T1.test.mjs', 'p/T2.test.mjs']));
   assert.deepEqual(noneResult.observed, { 'cap/T1': 'GREEN' }, 'the map has no id for it');
   assert.equal(noneResult.evidence.catalog.complete, false, 'the evidence says the catalog is incomplete');
