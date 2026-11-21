@@ -1,4 +1,5 @@
-// The final step of work merged into an integration branch, read from the event alone (release/C93). Pure: no network, no branch code.
+// The final step of work merged into an integration branch, read from the event alone (release/C93): a HOTFIX or a WIRE. The final step of a collector (the KAAL class)
+// is decided from its tree (final-tree.mjs, release/C116), never from the prose of the merged pull request. Pure: no network, no branch code.
 import { readLocations, wirableTarget } from '../delivery/locations.mjs';
 const CLASSES = [
   ['KAAL', /^kaal\/[a-z0-9-]+\/[a-z0-9-]+$/],
@@ -30,8 +31,9 @@ export function decideFinal(event, read = readLocations) {
   const cls = CLASSES.find(([, re]) => re.test(String(base)));
   if (!cls) return skip('not-an-integration-branch', String(base));
   if (!/^[0-9a-f]{40}$/.test(String(mergeSha))) return skip('no-revision');
+  if (cls[0] === 'KAAL') return skip('decided-from-the-tree', String(base));
   const step = stepOf(body);
-  if (step !== { KAAL: 'ACT', HOTFIX: 'HOTFIX', WIRE: 'WIRE' }[cls[0]]) return skip('not-a-final-step', `${cls[0]}: ${step}`);
+  if (step !== { HOTFIX: 'HOTFIX', WIRE: 'WIRE' }[cls[0]]) return skip('not-a-final-step', `${cls[0]}: ${step}`);
   const why = `The final step of this Change merged into ${base}. This draft was raised by the Dispatcher; it is picked when the seat is free.`;
   if (cls[0] === 'WIRE') {
     let known;

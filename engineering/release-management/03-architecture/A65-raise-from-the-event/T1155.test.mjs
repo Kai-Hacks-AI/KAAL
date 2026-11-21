@@ -17,7 +17,8 @@ export async function run() {
   assert.match(code, /name: classify Dispatch/);
   assert.match(code, /name: raise Dispatch/);
   const uses = (code.match(/actions\/checkout@/g) || []).length;
-  assert.ok(uses > 0 && (code.match(/ref: \$\{\{ github\.event\.repository\.default_branch \}\}/g) || []).length === uses, 'every checkout is the default branch');
+  // The collector's merge revision is the one other checkout: data beside the default branch (release/C116), kept apart by its path and read without credentials (release/T1328).
+  assert.ok(uses > 0 && (code.match(/ref: \$\{\{ github\.event\.repository\.default_branch \}\}/g) || []).length === uses - 1 && (code.match(/ref: \$\{\{ github\.event\.pull_request\.merge_commit_sha \}\}/g) || []).length === 1, 'every checkout is the default branch, but the collector at its merge revision');
   assert.ok(!/github\.event\.pull_request\.head/.test(code), 'the head of the pull request is never named');
   assert.ok(!code.split('\n').some((l) => /\brun:/.test(l) && /\$\{\{/.test(l)), 'no expression inside a shell command');
   assert.match(code, /if: \$\{\{ vars\.KAAL_DISPATCH_RAISE == 'on' \}\}/);
