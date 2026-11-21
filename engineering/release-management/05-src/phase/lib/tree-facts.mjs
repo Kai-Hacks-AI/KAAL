@@ -9,6 +9,9 @@ import { changeIdOf, retrosOf } from './collector.mjs';
 export const RETRO_SCRIPTS = 'packages/kaal-retro/skills/kaal-retro/scripts';
 export const WRITE_MAP = 'engineering/release-management/05-src/phase/write-map.json';
 
+// Whether a path holds the same bytes in two folders (both must have it): what a pull request got from main is not its own change (release/D18).
+export const sameContent = (a, b, path) => existsSync(join(a, path)) && existsSync(join(b, path)) && readFileSync(join(a, path)).equals(readFileSync(join(b, path)));
+
 const dirs = (p) => (existsSync(p) ? readdirSync(p, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort() : []);
 
 // The capability roots of a tree: every folder under engineering/ and packages/ that holds a 00-changes folder.

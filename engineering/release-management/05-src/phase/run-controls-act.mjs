@@ -6,7 +6,7 @@ import { appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { readTree } from './lib/tree-facts.mjs';
+import { readTree, sameContent } from './lib/tree-facts.mjs';
 import { applicableCases } from './lib/collector.mjs';
 import { pass, unknown } from './lib/result.mjs';
 import { judgeLimitAct } from './judge-limit-act.mjs';
@@ -15,10 +15,21 @@ import { judgeVerifyAct } from './judge-verify-act.mjs';
 
 // The paths a revision changed against its first parent, both ends of a rename. A squash commit has one parent and the merge result of a pull request has two;
 // with any other number of parents the base is not known and nothing is read.
-export function changedPaths(tree, git = (...args) => execFileSync('git', ['-C', tree, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }), parents = [1, 2]) {
+export function changedPaths(tree, git = (...args) => execFileSync('git', ['-C', tree, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }), parents = [1, 2], main) {
   const n = git('rev-list', '--parents', '-n', '1', 'HEAD').trim().split(' ').length - 1;
   if (!parents.includes(n)) throw new Error(`the revision has ${n} parents, not ${parents.join(' or ')}`);
-  return git('diff', '--name-only', '--no-renames', 'HEAD^1', 'HEAD').split('\n').filter(Boolean);
+  const paths = git('diff', '--name-only', '--no-renames', 'HEAD^1', 'HEAD').split('\n').filter(Boolean);
+  return n === 2 ? paths.filter((p) => !arrivedFromMain(tree, git, p, main)) : paths;
+}
+
+// A SYNC merges main into a collector, so the head of its pull request is itself a merge and what main brought is not the pull request's own change (release/D18).
+// A path is not its own when its content in the merge result equals its content on the main side: in the history when the head's parents are known, else in the folder of main.
+const blobAt = (git, rev, path) => { try { return git('rev-parse', `${rev}:${path}`).trim(); } catch { return ''; } };
+function arrivedFromMain(tree, git, path, main) {
+  const head = git('rev-list', '--parents', '-n', '1', 'HEAD^2').trim().split(' ').slice(1);
+  const side = head.length === 2 ? head.filter((p) => p !== git('rev-parse', 'HEAD^1').trim()) : [];
+  if (side.length) return side.some((p) => blobAt(git, 'HEAD', path) === blobAt(git, p, path));
+  return main ? sameContent(tree, main, path) : false;
 }
 
 export const JUDGES = ['hold', 'demand', 'verify', 'limit'];
@@ -56,7 +67,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   try {
     const main = arg('--main'), collector = arg('--pr');
     if (!main || !collector) throw new Error('--main and --pr are required');
-    answer = judgeOf(name, await readTree({ main, collector, changed: changedPaths(collector) }), collector);
+    answer = judgeOf(name, await readTree({ main, collector, changed: changedPaths(collector, undefined, undefined, main) }), collector);
   } catch (e) { answer = unknown(String(e.message)); }
   const line = reportOf(name, answer, flag);
   console.log(line);
