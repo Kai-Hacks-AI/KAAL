@@ -16,6 +16,8 @@ The PLAN observes its RED against `main`, which holds the runner and no `check-c
 
 On `main`: 3 RED-observed, 0 error, 0 green.
 
+`T391` (added with the alignment to `testing/C74`) is also RED-observed on `main`, by assertion: `check-cases --root` without files prints the `run` usage and exits 2. It cannot go green against the reference above, which has no catalog; it goes green with C74's DO, and that is not shown here.
+
 ## Can each Case pass, and can it fail for the right reason
 
 - A throwaway reference outside the repository (a copy of the package with `lib/form.mjs`, the export and a `check-cases` branch in the command) turns all three green.

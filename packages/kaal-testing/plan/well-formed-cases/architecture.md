@@ -1,12 +1,16 @@
 # Well formed Test Cases: Architecture
 
-**testing/A52** [testing/F152, testing/F153, testing/F154, testing/F155, testing/N34]: one pure module, `lib/form.mjs` (export `./form`), takes `[{ path, text }]` and an optional element list. The command reads files through Hosting (as `run` does), calls it and prints. Nothing is written. The module needs no dependency.
+**testing/A52** [testing/F152, testing/F153, testing/F154, testing/F155, testing/F164, testing/N34]: one pure module, `lib/form.mjs` (export `./form`), takes `[{ path, text }]` and an optional element list, and reads each file's declarations through `readCase` of the Case catalog (`testing/C74`, `lib/cases.mjs`) and has no id pattern of its own. The command reads files through Hosting (as `run` does), calls it and prints. Nothing is written. The module needs no dependency.
 
 Decisions made in this PLAN, open to CPO review:
 
 - **Report, not enforce.** The command exits 0 with findings, as `run` does with RED. A hook that must block reads `findings.length` itself. I recommend that over a `--fail-on-findings` flag, which would make Testing decide what a finding costs.
 - **Elements are supplied.** Testing does not parse intent or requirements documents. The caller hands over the ids that exist; without them the targets are unchecked.
 - **The edge word is a constant.** Kai kept `tests:` for now. The check only knows one word, so a later rename to `verifies` is one line here, and an accept-both window is a one-line change.
+
+## Order with `testing/C74`
+
+The catalog is one reader of Case identity for both Changes (`testing/F164`). `testing/C70`, the DO of this PLAN, begins after `testing/C74`'s DO is on its base, because `lib/form.mjs` imports `lib/cases.mjs`. Until then `T391` is RED by assertion.
 
 ## What Testing needs from others
 
