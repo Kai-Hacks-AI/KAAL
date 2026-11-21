@@ -126,6 +126,65 @@ describe("contract evidence: classifying a statement", () => {
   it("reports a statement with no evidence offered as unknown", async () => {
     assert.equal((await only(await mapping({}, []), FILES)).reason, "no evidence is offered for it");
   });
+
+  // Note: inherited Object.prototype keys in files[...] are tracked open under testing/D1 (parked in 15-defects/classify-inherited-keys.red.mjs).
+  it("fixed-seed property checks (testing/C77): safe-key valid mappings classify cleanly, mapping and files stay unmutated, and malformed JSON inputs are rejected by problems() without throwing", async () => {
+    let state = 2001;
+    const rng = () => {
+      state = (state + 0x6d2b79f5) | 0;
+      let t = Math.imul(state ^ (state >>> 15), 1 | state);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const pick = (xs) => xs[Math.floor(rng() * xs.length)];
+    const badJsonVals = [null, false, 0, -0, "", " ", "a\\b", "../x", [], {}];
+
+    for (let i = 0; i < 60; i++) {
+      const nStmt = Math.floor(rng() * 3) + 1;
+      const statements = [];
+      const files = {};
+      for (let sIdx = 0; sIdx < nStmt; sIdx++) {
+        const src = `docs/s${sIdx}.md`;
+        const q = `Claim ${sIdx}-${i}`;
+        const qHash = await sha256(Buffer.from(q));
+        const hasEv = rng() < 0.7;
+        const evPath = `test/e${sIdx}.test.mjs`;
+        const evBytes = Buffer.from(`it("${sIdx}", () => {});\n`);
+        const evHash = await sha256(evBytes);
+        const evidence = hasEv ? [{ file: evPath, sha256: rng() < 0.8 ? evHash : "f".repeat(64), test: ["suite", `c${sIdx}`] }] : [];
+        if (rng() < 0.7) files[src] = Buffer.from(rng() < 0.8 ? `${q}\n` : "other\n");
+        if (hasEv && rng() < 0.7) files[evPath] = rng() < 0.8 ? evBytes : Buffer.from("stale");
+        statements.push({
+          source: src,
+          quote: q,
+          sha256: rng() < 0.85 ? qHash : "0".repeat(64),
+          loop: rng() < 0.5 ? "acceptance" : "conformance",
+          evidence,
+          ...(hasEv ? { inference: "infers", limits: "one run" } : {}),
+          review: rng() < 0.5 ? null : { reviewer: "owner", pr: 1, commit: "c", statement: rng() < 0.5 ? qHash : "0".repeat(64), evidence: evidence.map((e) => e.sha256) },
+        });
+      }
+      const m = { owner: OWNER, statements };
+      const mSnap = structuredClone(m);
+      const filesSnap = Object.fromEntries(Object.entries(files).map(([k, v]) => [k, Buffer.from(v)]));
+      assert.deepEqual(problems(m, OWNER), []);
+      const out = await classify(m, files);
+      assert.deepEqual(m, mSnap, "problems/classify must not mutate mapping");
+      assert.deepEqual(Object.keys(files), Object.keys(filesSnap), "problems/classify must not add or drop files keys");
+      for (const k of Object.keys(files)) assert.ok(Buffer.compare(files[k], filesSnap[k]) === 0, `files[${k}] must not be mutated`);
+      assert.equal(out.length, statements.length);
+      for (const item of out) {
+        assert.equal(item.class, "unknown");
+        assert.ok(typeof item.reason === "string" && item.reason.length > 0);
+      }
+
+      const hostile = i % 2 === 0
+        ? { owner: pick(badJsonVals), statements: pick(badJsonVals) }
+        : { owner: OWNER, statements: [{ source: pick(badJsonVals), quote: pick(badJsonVals), sha256: pick(badJsonVals), loop: pick(badJsonVals), evidence: pick(badJsonVals), review: pick(badJsonVals) }] };
+      const p = problems(hostile, OWNER);
+      assert.ok(Array.isArray(p) && p.length > 0);
+    }
+  });
 });
 
 describe("Testing's own mapping", () => {
