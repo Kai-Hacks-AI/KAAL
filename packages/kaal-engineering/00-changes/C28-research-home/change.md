@@ -1,90 +1,72 @@
 # C28 change
 
-The Owner asked where a research capability sits in the folder structure, and said earlier that research, and trials with it, might deserve first-class attention (C27 left it open: "Operations is fine for now"). This page is engineering's answer, to be judged before anything is built. The capability itself, kaal-research, is another thread's: a note `R<n>`, a Skill, a finder and a well-formed check. Engineering gives it a place and nothing more.
+The Owner asked where research sits in the folder structure, and said research and trials might deserve first-class attention (C27 left it open: "Operations is fine for now"). Then he sharpened it: research is external references, researching what is out there, and a trial is where we test our own ideas, so the two are not one thing and not one folder; they might be siblings. This page is engineering's answer, to be judged before anything is built. The capabilities that own the two objects, kaal-research and a trial capability, are other threads' and do not exist yet. Engineering gives them a place and nothing more.
 
-## The answer in three lines
+## The answer in four lines
 
-1. **Package:** `kaal-research` owns the note, its Skill, finder and check, as `kaal-retro` owns the retrospective. It is not part of engineering.
-2. **Folder:** the note lives with the capability that asked the question, in `02-learnings/research/`, beside `02-learnings/retros/`. The id is `<capability>/R<n>`, as a retrospective is `<capability>/RT<n>`.
-3. **Evidence:** it stays with its note, inside `research/`. A Case is for what can be re-run; a trial cannot be, so its key, prompt hashes, settings and excerpts are the note's evidence, not Cases and not `runs`.
+1. **Two objects, two names.** Research is what is out there: papers, tool documentation, market research. A trial is our own idea, run and observed.
+2. **Siblings in `02-learnings`:** `02-learnings/research/` and `02-learnings/trials/`, beside `02-learnings/retros/`. Each lives with the capability that asked the question or owns the idea.
+3. **Owners:** `kaal-research` owns the research note (`<capability>/R<n>`). The trial object needs a capability of its own (nothing without a capability); the id is its to choose.
+4. **`14-operations` stays one thing:** controls and, where needed, `runs`.
 
-## Why `02-learnings` and not `14-operations`
+## Why siblings in `02-learnings`
 
-C27 reasoned that Operations is where the package is run and what that shows. A trial is a run, which pulls toward Operations, but the layout is ordered by what a folder is for:
+- The three are what a capability learned, by three routes: from its own work (`retros`), by reading what is out there (`research`), by trying its own idea (`trials`). The steering group holds what shapes the work, and each verdict is cited by id by a Change, an Intent, a Requirement or a retrospective.
+- A trial is a run, which pulls toward `14-operations`. Against it: its product is a verdict that steers planning, not evidence that a Source delivers behaviour; trial evidence (transcripts, keys, prompt hashes) differs from the package's own `runs`; and `14-operations` verifies by `controls`, so a trial in it would need a control to exist beside it, a coupling that has nothing to do with the trial.
+- Siblings keep the two names apart, as the Owner asked, and cost one template edit each.
 
-- Research is **input to planning**, not output of operating. A Change, an Intent, a Requirement or a retrospective cites `R<n>` to say why it is shaped as it is. The steering group, `00-backlog`, `01-changes` and `02-learnings`, holds what shapes the work; Operations answers the Source.
-- A source note, a verdict on an outside paper or a tool's documentation, is no execution at all. Splitting trials from sources across two folders would put one object in two places.
-- `retros` and `research` are the two things a capability learned: one about its own work, one about the world. The 4L Learned lens cites a source note by id, which is a link inside one group.
-- `14-operations` stays one thing: controls and, where needed, `runs`. Putting trial transcripts into `runs` would mix the package's own fallback records with another object's evidence.
+## The small research of a retrospective
 
-## Two directions: inbound and own
-
-Research has two directions, as the Owner put it: **inbound** research, what comes from outside (a paper, a tool's documentation, market research), and **own** research, our trials and experiments. Engineering recommends **one folder and a `kind` on the note**, not two subfolders:
-
-- The layout judges folders. Two subfolders would make it name both and reserve them in the template; a third direction would be a template edit. A `kind` is the note's own field, checked by kaal-research's well-formed check, and costs the layout nothing.
-- One id space and one finder: `<capability>/R<n>` is unique across both, and "list the research" is one folder. With subfolders the id would have to ignore the folder, or the folder would become part of the id.
-- A note can cross directions: a trial of an outside tool is own research that cites inbound sources. A field says which it is, a folder would force a choice.
-- The names are kaal-research's to fix. The earlier sketch said `trial` and `source`; this PLAN says `inbound` and `own`, after the Owner, and the layout does not depend on either.
-
-What each kind's evidence holds (kaal-research states the rule; this is the shape engineering expects):
-
-| Kind | The note says | Evidence beside it |
-| --- | --- | --- |
-| inbound | the question, what the source says, its verdict for us | where (URL or citation), the date retrieved, first- or secondhand; an excerpt or a saved copy where the source can change or vanish |
-| own | the question, the setup, what happened, what went wrong, what it changed, its verdict | the key and criteria written before the first run, the prompt hashes, model and settings, the verbatim excerpts the judge used; whole transcripts only where kaal-research says so |
-
-Both live in `research/`, both are cited by id, and neither is a Case, since neither can be re-run to the same result.
+A retrospective's Learned lens already carries its own `source` or `searched` line. That stays enough for small outside lookups: no note, nothing to migrate. A larger study, or a source several decisions rest on, becomes a research note, and the retrospective cites `R<n>` by id instead. The layout needs nothing for this beyond the place.
 
 ## How notes and evidence sit beside Changes and Cases
 
-| Artefact | Place | Verified by | Relation to a note |
+| Artefact | Place | Verified by | Relation |
 | --- | --- | --- | --- |
-| Change | `00-changes/C<n>-…` (the Change folder) | its Cases | cites `R<n>` by id when a decision rests on it |
+| Change | the Change folder | its Cases | cites `R<n>` or a trial by id when a decision rests on it |
 | Case | beside the element, `test-cases` | running it | never holds trial evidence; a Case is deterministic |
-| Retrospective | `02-learnings/retros/RT<n>` | kaal-retro | its Learned entries cite a source note by id |
-| Research note | `02-learnings/research/R<n>…`, `kind` inbound or own | kaal-research (to state) | the object |
-| Note evidence | inside `research/`, with its note | the note's rules | key, prompt hashes, model and settings, excerpts; whole transcripts only if kaal-research says so |
+| Retrospective | `02-learnings/retros/RT<n>` | kaal-retro | its Learned entries cite research by id |
+| Research note | `02-learnings/research/R<n>…` | kaal-research (to state) | the object for what is out there |
+| Trial | `02-learnings/trials/…` | the trial capability (to state) | the object for our own ideas |
 
-The layout gives the place and says nothing about what is inside `research`. One-way citation by id is the edge, as for the other objects: the note never names its consumers.
+What the evidence holds is each capability's rule; the shape engineering expects: for research, where, date retrieved, first- or secondhand, an excerpt where the source can vanish; for a trial, the key and criteria written before the first run, prompt hashes, model and settings, the judge's excerpts, and whole transcripts only where its capability says so. Neither is a Case, since neither can be re-run to the same result.
 
 ## Where the existing notes are
 
-`engineering/research/*.md` and the trials kept in the shared project folder predate any place. They are not moved here: the notes are re-homed one by one, by the capability that asked, once kaal-research exists. Until then `engineering/research/` is a folder the ratchet will name, and the layout check does not look at it.
+`engineering/research/*.md` and the trials kept in the shared project folder predate any place. They are not moved here: each is re-homed by the capability that asked, once its owner exists. Until then `engineering/research/` is a folder the ratchet will name.
 
 ## What this changes
 
-Only the layout template (`02-learnings` gets the child `research` and a role line) and the Case that pins its children (T1245, amended at the DO). The check reads the template and needs no new rule.
+The layout template (`02-learnings` gets the children `research` and `trials`) and the Case that pins its children (T1245, amended at the DO). The check reads the template and needs no new rule.
 
 ## What this does not do
 
-- No note, Skill, finder or well-formed check: that is kaal-research, after its own PLAN.
-- No migration of the existing trials, no wiring, no ruleset, no publication.
-- No decision on a verifier for `research`. As for `retros`, the layout names none.
+No note, Skill, finder or check, no trial capability, no migration, no wiring, no ruleset, no publication, and no verifier for either folder: as for `retros`, the layout names none.
 
 ## Alternatives considered
 
-- **`14-operations/research`**, as C27 left it. Possible and cheaper to describe, but it files a verdict on a paper next to the package's controls, and the cited-by-decision edge then crosses from the concerns into the steering group.
-- **A numbered folder of its own** (for instance `03-research`). Rejected for now (YAGNI): two children of `02-learnings` already give research first-class standing, and a folder of its own can be split out later by one template edit.
-- **Research notes at the repository level only**, without an asking capability. Rejected: nothing exists without a capability, and the capability that asked is the one that must act on the verdict.
+- **`14-operations/research` and `14-operations/trials`**, as C27 left them. Rejected: Operations would hold objects whose verdicts steer planning, and `14-operations` would depend on controls for them.
+- **One `research` folder with a `kind` for inbound and own.** This PLAN's earlier shape. Rejected after the Owner's correction: the two should not be confused under one name.
+- **A numbered folder of their own** (for instance `03-research`). Rejected for now (YAGNI): siblings in `02-learnings` already give both first-class standing, and one template edit can split them out later.
 
 ## PLAN
 
-1. Add Requirement F59 and gap G118 under `packages/kaal-engineering/`, and Cases T1331 and T1332 as `.red.mjs` beside F59.
+1. Add Requirements F59 and F60 and gap G118 under `packages/kaal-engineering/`, and Cases T1331, T1332 and T1333 as `.red.mjs` beside them.
 2. Observe the expected RED against the collector, and show that each Case can pass on a throwaway copy that holds `draft/` (`evidence.md`).
 3. `draft/` holds the revised template, for review only.
 
 ## Ids
 
-Proposed: Change engineering/C28, Requirement engineering/F59, gap G118, Cases T1331 and T1332. They are the next free on `main` and every branch at the time of writing (highest Case seen: T1330, taken by release in #2216; `engineering/acceptance` has its own C28, a different capability); the allocator confirms.
+Proposed: Change engineering/C28, Requirements engineering/F59 and F60, gap G118, Cases T1331 to T1333. They are the next free on `main` and every branch at the time of writing (highest Case seen: T1330, taken by release in #2216; `engineering/acceptance` has its own C28, a different capability); the allocator confirms.
 
 ## DO
 
-Not authorized by this PLAN. After the Owner's go: move the template from `draft/` into the Skill and remove `draft/`; update the order section of `package-layout.md`; amend T1245 to name `research` as a child; rename T1331 and T1332 to `.test.mjs`.
+Not authorized by this PLAN. After the Owner's go: move the template from `draft/` into the Skill and remove `draft/`; update the order section of `package-layout.md`; amend T1245 to name the three children; rename T1331 to T1333 to `.test.mjs`.
 
 ## Questions for review
 
-1. Is `02-learnings/research` the right place, or does the Owner prefer `14-operations/research` (the alternative above)? One template edit moves it either way.
-2. Should the id carry the asking capability (`engineering/R3`), as the retrospective does?
+1. Is `02-learnings` the right parent for both, or does the Owner prefer a parent of their own for the two (a `03-` folder)?
+2. Which capability owns the trial object, and what is its id? (Engineering suggests a separate capability and leaves the id to it.)
 
 ## ACT
 

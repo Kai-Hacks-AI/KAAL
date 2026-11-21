@@ -41,14 +41,16 @@
     {
       "name": "02-learnings",
       "kind": "content",
-      "role": "what we learned: the retrospectives of the package's collectors and the research notes of the questions it asked, kept with the capability",
+      "role": "what we learned: the retrospectives of the package's collectors, the research notes on what is out there, and the trials of our own ideas, kept with the capability",
       "closed": true,
       "children": [
         "retros",
-        "research"
+        "research",
+        "trials"
       ],
       "retros": "per-collector retrospectives, each with front matter `reflects: [C…]`; the object belongs to kaal-retro, which also says what verifies one",
-      "research": "research notes, each a trial or an outside source with an id `R<n>`, asked by this capability; the object belongs to kaal-research, which also says what verifies one and what evidence sits beside it"
+      "research": "research notes on external references, each with an id `R<n>`, asked by this capability; the object belongs to kaal-research, which also says what verifies one and what sits beside it",
+      "trials": "trials of this capability's own ideas, each run and observed; the object belongs to a trial capability, which also says what verifies one and what evidence sits beside it"
     },
     {
       "name": "10-intent",
