@@ -41,16 +41,18 @@
     {
       "name": "02-learnings",
       "kind": "content",
-      "role": "what we learned: the retrospectives of the package's collectors, the research notes on what is out there, and the trials of our own ideas, kept with the capability",
+      "role": "what we learned: the retrospectives of the package's collectors, the research notes on what is out there, the rehearsals of our own ideas, and the targeted reviews worth keeping, kept with the capability",
       "closed": true,
       "children": [
         "retros",
         "research",
-        "trials"
+        "rehearsals",
+        "reviews"
       ],
       "retros": "per-collector retrospectives, each with front matter `reflects: [C…]`; the object belongs to kaal-retro, which also says what verifies one",
       "research": "research notes on external references, each with an id `R<n>`, asked by this capability; the object belongs to kaal-research, which also says what verifies one and what sits beside it",
-      "trials": "trials of this capability's own ideas, each run and observed; the object belongs to a trial capability, which also says what verifies one and what evidence sits beside it"
+      "rehearsals": "rehearsals of this capability's own ideas, each run and observed, id `RH<n>`; the object belongs to a rehearsal capability, which also says what verifies one and what evidence sits beside it",
+      "reviews": "targeted reviews deemed worth persisting, id `RV<n>`, not every review; the object belongs to kaal-review, which also decides what is worthy and what verifies one"
     },
     {
       "name": "10-intent",
