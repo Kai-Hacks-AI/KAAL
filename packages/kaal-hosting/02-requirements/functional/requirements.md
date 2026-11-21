@@ -182,7 +182,7 @@ Each Requirement names, in brackets, the [Intents](intent.md) it serves. Functio
 
 ## Listing without what the caller leaves out
 
-These extend hosting/F72. Where they differ, these win from `hosting/C112`.
+These extend hosting/F72. Where they differ, these win.
 
 - **hosting/F90** [hosting/I20]: **`list(dir, { skip })`** leaves out every entry, file or directory, at any depth, whose own name equals one of the listed names: it is neither listed nor entered, and a skipped directory is not read, so nothing inside it can fail the listing. The match is on the whole name; a name holding `/` never matches.
 - **hosting/F91** [hosting/I20]: **`list(dir, { links })`** is `"refuse"` (the default), which keeps hosting/F72: a link to a directory is refused with `INVALID_PATH`; or `"skip"`, which neither lists, enters nor refuses it. A link to a file is listed as a file under both.
