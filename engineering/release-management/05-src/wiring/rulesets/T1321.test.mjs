@@ -1,4 +1,4 @@
-// Case release/T1321 tests release/C115: the promoting ruleset source holds the merge queue of the default branch, which lands a promotion by squash,
+// Case release/T1321 tests release/I63 and release/CTL32: the promoting ruleset source holds the merge queue of the default branch, which lands a promotion by squash,
 // one entry at a time, and no other ruleset source holds a queue.
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -8,11 +8,11 @@ import { fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const RS = join(repo, 'engineering/release-management/05-src/wiring/rulesets');
 export const id = 'release/T1321';
-export const tests = ['release/C115'];
+export const tests = ['release/I63', 'release/CTL32'];
 export const title = 'the promoting ruleset source holds the merge queue of the default branch (squash, one entry at a time), no other ruleset source holds one, and the table of controls says so';
 
 export const queues = (ruleset) => (ruleset.rules ?? []).filter((r) => r.type === 'merge_queue');
-// The queue as the live promotion ruleset has it (captured 16 Nov in release/C34): what it lands by, how it builds and how long it waits.
+// The queue as the live promotion ruleset has it (captured in release/C34): what it lands by, how it builds and how long it waits.
 export const asLive = (q) => q.parameters.merge_method === 'SQUASH' && q.parameters.grouping_strategy === 'ALLGREEN'
   && q.parameters.max_entries_to_build === 1 && q.parameters.min_entries_to_merge === 1 && q.parameters.max_entries_to_merge === 1
   && q.parameters.min_entries_to_merge_wait_minutes === 0 && q.parameters.check_response_timeout_minutes === 60;
