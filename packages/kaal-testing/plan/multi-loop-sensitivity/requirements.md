@@ -1,0 +1,15 @@
+# Multi-Loop Testing and Sensitivity: Requirements
+
+Each Requirement names, in brackets, the Intent it serves. All answer `testing/I43`.
+
+## Functional
+
+- **testing/F152** [testing/I43]: **Composable multi-loop model.** `skills/kaal-testing/SKILL.md` replaces the section `## The three loops` with `## Testing loops`, teaching testing as composable loops with clear boundaries rather than a fixed set of three. It covers an upward chain (`src -> architecture -> requirements -> intent`, with further loops composable on top), multiple and lateral targets from a layer (such as `architecture -> defect`), explicit tracing from inner work to the outer or lateral loop claims it serves, and keeping each loop's runnable evidence separate so no loop substitutes for another.
+- **testing/F153** [testing/I43]: **Behavioural RED and Targeted Mutation Verification.** `## Testing loops` teaches two sensitivity checkpoints at loop boundaries:
+  - **Behavioural RED:** before implementing, run the loop's tests against an inert stub (or unfixed target) with valid shape returning neutral values; the run must fail on a behavioural assertion, whereas a missing module, syntax error, or environment failure is *blocked*, never RED evidence.
+  - **Targeted Mutation Verification:** after turning GREEN, challenge the tests with targeted, contract-breaking mutations mapped to stated invariants and boundaries; a mutant is **killed** only by an assertion failure, outcomes are classified as `killed`, `survived`, `invalid`, or `unresolved`, each mutant traces back to its owning claim or requirement, and a surviving non-equivalent mutant is reported as a `potential defect` using [references/findings.md](../../skills/kaal-testing/references/findings.md) (or feeds a `defect` loop) rather than being hidden behind a passing suite.
+- **testing/F154** [testing/I43]: **Pilot on `lib/contracts.mjs`.** Following the landed Skill, run an outer-to-inner sensitivity pilot on `packages/kaal-testing/lib/contracts.mjs` and `packages/kaal-testing/test/contracts.test.mjs`: verify Behavioural RED against an inert stub of `lib/contracts.mjs`, challenge `test/contracts.test.mjs` with targeted contract mutants derived from `lib/contracts.mjs`'s clauses, strengthen `test/contracts.test.mjs` to kill genuine surviving mutants (or record explicit judgments for any equivalent/out-of-scope mutants), and record the pilot findings in the Change record without shipping bespoke pilot scripts in the package.
+
+## Nonfunctional
+
+- **testing/N34** [testing/I43]: **Consumer-agnostic and minimal Skill surface.** The Skill remains consumer-agnostic and introduces no KAAL runtime dependencies, no new exports, no `scripts/` directory, and no extra `references/` files (`skills/kaal-testing/` holds only `SKILL.md` and `references/findings.md`). The new Skill guidance names no hardcoded KAAL repository paths (such as `.kaal/`, `engineering/`, or `packages/`). `capability/Testing.md` and `payload/Testing.md` keep their exact bytes and SHA-256 identities, and `kaal-engineer-skill`'s `checkSkill("kaal-testing", ...)` passes with zero violations and zero warnings.
