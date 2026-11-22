@@ -1,0 +1,14 @@
+{
+  "name": "@kaihacksai/kaal-research",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Research: a rehearsal of our own idea, recorded so anyone can inspect it, found and judged for form.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "skills"
+  ],
+  "engines": {
+    "node": ">=24"
+  }
+}
