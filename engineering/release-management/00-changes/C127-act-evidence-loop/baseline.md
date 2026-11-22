@@ -1,0 +1,3 @@
+# C127 baseline
+
+The baseline is `main` after the PROMOTION of release/C123 and the C128 rename. The four judges are on main (release/CTL24, CTL29, CTL30, CTL31) and installed report-only by WIRE #2263 (flags `KAAL_RELEASE_<X>_ACT` unset). Each run prints a human report line per judge; nothing keeps it. The evidence of a control is a declared list in its record (`evidence: [fixture:N, real:N, provoked:N:fail]`) that a person edits. The installed workflow passes no attribution, so every judge answers UNKNOWN "no attribution without ..." on every run until the WIRE of `isolate Changes` lands; those answers say nothing about the judge (release thread, 21 Nov).
