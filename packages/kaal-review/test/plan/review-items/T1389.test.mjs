@@ -1,7 +1,7 @@
-// Case review/T301 tests: review/F30. A result applies to its revision; nothing carries silently.
+// Case review/T1389 tests: review/F30. A result applies to its revision; nothing carries silently.
 import assert from 'node:assert/strict';
 import { item, kinds, load, result, tree } from './lib.mjs';
-export const id = 'review/T301';
+export const id = 'review/T1389';
 export const tests = ['review/F30'];
 export const title = 'a result applies to the revision it names, reaches another only by a carry-forward that states its reason, and is otherwise stale';
 const A = 'a'.repeat(40);

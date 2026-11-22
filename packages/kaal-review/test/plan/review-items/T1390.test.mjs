@@ -1,9 +1,9 @@
-// Case review/T302 tests: review/F31, review/N5. No authority, the relation recorded, and independence of the consumer.
+// Case review/T1390 tests: review/F31, review/N5. No authority, the relation recorded, and independence of the consumer.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { PACKAGE, item, kinds, load, result, tree } from './lib.mjs';
-export const id = 'review/T302';
+export const id = 'review/T1390';
 export const tests = ['review/F31', 'review/N5'];
 export const title = 'a result that declares an approval or a merge, or that omits the appraiser relation, is a finding; no relation is refused for itself; the navigation needs no repository and the package no unrelated dependency';
 const REV = 'd'.repeat(40);

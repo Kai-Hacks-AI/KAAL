@@ -1,7 +1,7 @@
-// Case review/T300 tests: review/F29, review/F30. Execution apart from result, and the conclusions.
+// Case review/T1388 tests: review/F29, review/F30. Execution apart from result, and the conclusions.
 import assert from 'node:assert/strict';
 import { item, kinds, load, result, tree } from './lib.mjs';
-export const id = 'review/T300';
+export const id = 'review/T1388';
 export const tests = ['review/F29', 'review/F30'];
 export const title = 'satisfied, not-satisfied and unresolved are told apart from an assessment that could not be performed and from one that never ran, and an incoherent record is a named finding';
 const REV = 'c'.repeat(40);
