@@ -27,7 +27,7 @@ describe('the front matter parser of the navigation', () => {
   });
 
   it('treats a file without front matter as having no front matter and keeps its text', () => {
-    assert.deepEqual(parse('just text'), { front: {}, body: 'just text' });
+    assert.deepEqual(parse('just text'), { front: {}, body: 'just text', malformed: [] });
   });
 
   it('reads an empty value as an empty list', () => {
@@ -65,5 +65,30 @@ describe('an invalid carry-forward never changes what applies', async () => {
     const nav = await at('ns/RV9');
     assert.ok(nav.findings.some((x) => x.kind === 'carry-dangling'));
     assert.deepEqual(nav.current['ns/V1'].map((c) => c.result), ['ns/RV2']);
+  });
+});
+
+describe('malformed records are reported and never stop the navigation', async () => {
+  const { item, result, tree } = await import('./plan/review-items/lib.mjs');
+  const { navigate } = await import('../skills/kaal-review/scripts/navigate.mjs');
+  const A = 'a'.repeat(40);
+  const f = (extra = {}) => ({ appraises: 'ns/V1', revision: A, appraiser: 'an Agent', relation: 'not-author', execution: 'performed', conclusion: 'satisfied', ...extra });
+
+  it('reports a list item after a scalar as a finding of that file and still returns the valid records', async () => {
+    const nav = await navigate(tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'v/V2.md': '---\nid: ns/V2\n  - bad\n---\n## Question\n\nq\n' }), { revision: A });
+    assert.deepEqual(nav.findings.map((x) => [x.kind, x.files[0]]), [['malformed-front-matter', 'v/V2.md']]);
+    assert.deepEqual(nav.items.map((i) => i.id), ['ns/V1']);
+  });
+
+  it('reports a scalar where a list is expected', async () => {
+    const nav = await navigate(tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'r/RV1.md': result('ns/RV1', f({ parts: undefined })).replace('relation:', 'parts: oops\nrelation:') }), { revision: A });
+    assert.ok(nav.findings.some((x) => x.kind === 'malformed-front-matter' && x.files[0] === 'r/RV1.md'));
+  });
+
+  it('does not accept a conclusion from a result that does not declare it was performed', async () => {
+    for (const execution of [undefined, 'maybe']) {
+      const nav = await navigate(tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'r/RV1.md': result('ns/RV1', f({ execution })) }), { revision: A });
+      assert.ok(nav.findings.some((x) => x.kind === 'bad-execution'), String(execution));
+    }
   });
 });
