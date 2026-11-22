@@ -12,7 +12,7 @@ const SRC = join(ET, '13-source/scripts/judge-verify-case.mjs');
 
 export const id = 'testing/T400';
 export const tests = ['testing/F173'];
-export const title = 'the judge-verify-case CLI reads case-form@1 reports and exits 0 on PASS, 1 on FAIL (malformed attribution or non-callable run), and 2 on UNKNOWN (unverified target or missing report)';
+export const title = 'the judge-verify-case CLI reads case-form@1 reports and exits 0 on PASS, 1 on FAIL, and 2 on incomplete reports, unverified targets, or invalid exemption policies';
 
 export async function run() {
   assert.ok(existsSync(SRC), 'judge-verify-case.mjs is absent');
@@ -38,6 +38,16 @@ export async function run() {
     assert.equal(rOk.status, 0, rOk.stdout + rOk.stderr);
     assert.match(rOk.stdout, /^PASS:/);
 
+    // Incomplete report missing catalog/targets -> exit 2 (UNKNOWN), never PASS
+    const incompletePath = write('incomplete.json', {
+      schema: 'kaal-testing/case-form@1',
+      files: ['a/T1.test.mjs'],
+      findings: [],
+    });
+    const rInc = cli('--report', incompletePath);
+    assert.equal(rInc.status, 2, rInc.stdout + rInc.stderr);
+    assert.match(rInc.stdout, /^UNKNOWN:/);
+
     const failPath = write('fail.json', {
       schema: 'kaal-testing/case-form@1',
       files: ['a/T2.test.mjs', 'a/T3.test.mjs'],
@@ -51,6 +61,12 @@ export async function run() {
     const rFail = cli('--report', failPath);
     assert.equal(rFail.status, 1, rFail.stdout + rFail.stderr);
     assert.match(rFail.stdout, /^FAIL:.*malformed-attribution.*non-callable-run/);
+
+    // Empty wildcard policy -> exit 2 (UNKNOWN), never suppresses findings or passes
+    const badPolicyPath = write('bad-policy.json', { exempt: [{}] });
+    const rBadPol = cli('--report', okPath, '--policy', badPolicyPath);
+    assert.equal(rBadPol.status, 2, rBadPol.stdout + rBadPol.stderr);
+    assert.match(rBadPol.stdout, /^UNKNOWN:.*invalid-policy/);
 
     const unknownPath = write('unknown.json', {
       schema: 'kaal-testing/case-form@1',
