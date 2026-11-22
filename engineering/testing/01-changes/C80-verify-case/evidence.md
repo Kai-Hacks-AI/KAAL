@@ -3,9 +3,9 @@
 ## Provenance
 
 - **Baseline:** `origin/main` at `4a244cb3` (after `testing/C74` hold-adapter `#2291`, `testing/C75`–`C77` seeded-properties `#2296`, and `testing/C78`–`C79` act-library-sensitivity `#2264`), observed on Windows (`win32`, Node `v24.20.0`).
-- **Method:** At PLAN commit `8b872943`, each planned Case's `run()` (`T397.test.mjs`–`T401.test.mjs`) was executed on this PLAN tree (5/5 behavioural RED), checked for discovery via `kaal-testing/cases` (`collectCases`) and `engineering/cases/cases.test.mjs` (plus CI run `44965325563`), and executed against a disposable scratch DO copy (`KAAL_TESTING_DIR`) placing the five drafted files into `package-layout.json` folders (5/5 GREEN, without renaming `.test.mjs` files) before deferring the executable `.test.mjs` files to the DO PR per `C120` precedent. Layout conformance was checked via `judgeLayout` (`packages/kaal-engineering/skills/kaal-engineering/scripts/check-layout.mjs`).
+- **Method:** Following the **C30 (`#2316` PLAN -> `#2318` DO)** precedent, `T397.test.mjs`–`T401.test.mjs` are committed in PLAN as plain `.test.mjs` files in their destination `package-layout.json` folders (`10-intent/test-cases/T397.test.mjs`, `11-requirements/test-cases/T398.test.mjs`, `12-architecture/test-cases/T399.test.mjs`, `11-requirements/test-cases/T400.test.mjs`, `14-operations/controls/CTL1-verify-case/T401.test.mjs`). Each planned Case's `run()` was executed on this PLAN tree (5/5 behavioural RED), checked for discovery via `kaal-testing/cases` (`collectCases`) and execution boundary against `engineering/cases/cases.test.mjs` (plus prior CI run `44965325563` when they sat under `01-changes/`), and executed against a disposable scratch DO copy (`KAAL_TESTING_DIR`) placing the five drafted files into `package-layout.json` folders (5/5 GREEN in place without moving or renaming). Layout conformance was checked via `judgeLayout` (`packages/kaal-engineering/skills/kaal-engineering/scripts/check-layout.mjs`).
 
-## 1. RED Result on This PLAN Tree (`T397.test.mjs`–`T401.test.mjs`, observed at `8b872943` before DO deferral)
+## 1. RED Result on This PLAN Tree (`T397.test.mjs`–`T401.test.mjs` in `10-`..`14-`)
 
 | Case | Tests | Observed Result on PLAN Tree |
 | --- | --- | --- |
@@ -19,17 +19,12 @@ Summary: **5 RED-observed, 0 GREEN, 0 syntax/import errors.**
 
 ## 2. Case Discovery and Execution Lifecycle
 
-- **`kaal-testing/cases` (`collectCases('engineering/testing')` at `8b872943`):** Discovered all 5 Cases (`T397.test.mjs`–`T401.test.mjs`) cleanly with `parked: false` and `findings: []`.
-- **`engineering/cases/cases.test.mjs` is NOT phase-aware and is layout-bounded:**
-  - `cases.test.mjs` has no expected-RED handling (`await loaded.run()` runs as an ordinary Node test, so behavioral RED assertions fail the ordinary `Engineering` suite during PLAN rather than being accounted for as expected RED).
-  - On `win32` (`KAAL_CASES_ROOT` pointing at scratch `engineering/`), `cases.test.mjs` line 20 (`/\/T\d+\.test\.mjs$/`) matched 0 files (`status=0`, `tests 1 pass`); on Linux (`ubuntu-latest`), it matches `01-changes/` (`^0[0-6]-`) and fails on any RED `.test.mjs` Cases while missing Cases moved into `10-intent/`..`14-operations/` after DO.
-- **Observed CI run `44965325563` on `8b872943` (repo-level deadlock on PLAN RED `.test.mjs` files):**
-  - `Engineering` failed (650 pass, 6 fail): `testing/T397`–`testing/T401` (`I48.md`, `F173.md`, `A59.md`, `judge-verify-case.mjs`, `CTL1.md` absent as expected in PLAN) and `pull/T34` (`AssertionError: testing/T397 is logged but not as a success`).
-  - `Workspaces` (`@kaihacksai/kaal-release`, 40 pass, 1 fail) failed on `pull/T37` (`AssertionError: pull/T34 is logged but not as a success`).
-  - All 30+ other checks (`Branching`, `Change Isolation`, `Acceptance`, `Guard`, `Hosting`, `CodeQL`, `hold Act`, `demand Act`, `limit Act`, `verify Act`, and all other workspaces) passed.
-- **Resolution (`C120` precedent — travel with DO, never park as `.red.mjs`):**
-  - Because current `main` (`cases.test.mjs` + `pull/T34` + `pull/T37`) requires every discovered `engineering/<scope>/0[0-6]-*/**/T<n>.test.mjs` to pass, no PLAN PR can carry plain `.test.mjs` RED Cases and pass CI until prerequisite #4 lands. Following the existing `C120` precedent, `T397.test.mjs`–`T401.test.mjs` travel with the DO PR rather than being hidden/parked as `.red.mjs`.
-  - **After DO (`10-intent/`..`14-operations/`):** Execute via `collectCases` (`kaal-testing/cases`) + `kaal-testing run` + `kaal-testing/observe`, alongside updating `engineering/cases/cases.test.mjs` for `10-`..`15-` layout folders.
+- **`kaal-testing/cases` (`collectCases('engineering/testing')`):** Discovers all 5 Cases (`10-intent/test-cases/T397.test.mjs`, `11-requirements/test-cases/T398.test.mjs`, `12-architecture/test-cases/T399.test.mjs`, `11-requirements/test-cases/T400.test.mjs`, `14-operations/controls/CTL1-verify-case/T401.test.mjs`) cleanly with `parked: false` and `findings: []`.
+- **Separating discovery from mandatory green CI during PLAN (**`C30` precedent: `#2316` -> `#2318`**):**
+  - `engineering/cases/cases.test.mjs` has no expected-RED handling and scans only `/^0[0-6]-/` (`await loaded.run()` runs every discovered `0[0-6]-` Case as a required green check in `Engineering` and `Workspaces` via `pull/T34` and `pull/T37`).
+  - When `T397.test.mjs`–`T401.test.mjs` were placed under `01-changes/C80-verify-case/` at `8b872943`, CI run `44965325563` failed `Engineering` (650 pass, 6 fail: `testing/T397`–`testing/T401` RED as expected + `pull/T34`) and `Workspaces` (`@kaihacksai/kaal-release`: `pull/T37`), while all 30+ other checks passed.
+  - Following `C30` (`#2316` PLAN -> `#2318` DO), placing the five plain `.test.mjs` Cases directly in their destination `package-layout.json` folders (`10-`..`14-`) keeps them present and discoverable by `collectCases` (`parked: false`) and demonstrably 5/5 RED on PLAN, without triggering the green-required `0[0-6]-` runner (`cases.test.mjs`) before DO delivers `I48.md`, `F173.md`, `A59.md`, `CTL1.md`, and `judge-verify-case.mjs`.
+  - **In DO (`C80`):** The exact same 5 `.test.mjs` files in `10-intent/test-cases/`..`14-operations/controls/CTL1-verify-case/` turn GREEN in place without moving or renaming; Prerequisite #4 tracks wiring `10-`..`15-` execution into `engineering/cases/cases.test.mjs` / `kaal-testing run` so deployed post-DO Cases also execute in CI.
 
 ## 3. Throwaway DO Verification & Layout Conformance
 
@@ -52,5 +47,5 @@ With the five drafts from `interface.md` placed at `10-intent/I48-cases-are-well
 
 ## 5. What This Shows and Does Not Show
 
-- **Shows:** All five drafted `C80` Cases (`T397.test.mjs`–`T401.test.mjs`) were verified RED on the PLAN tree (`8b872943`), discovered cleanly as unparked `.test.mjs` Cases by `collectCases`, passed 5/5 in the throwaway DO tree under `package-layout.json` (`judgeLayout` `PASS`), and are deferred to travel with the DO PR per `C120` precedent because `cases.test.mjs` + `pull/T34`/`T37` on `main` are not yet phase-aware (`CI run 44965325563`), while the contextual Control fails closed on incomplete `case-form@1` reports and invalid/wildcard exemption policies and preserves checker uncertainty (`unverified-target` → `UNKNOWN`).
+- **Shows:** All five `C80` Cases (`T397.test.mjs`–`T401.test.mjs`) sit in their destination `package-layout.json` folders (`10-`..`14-`) per the `C30` precedent (`#2316` -> `#2318`), are verified 5/5 RED on this PLAN tree, are discovered cleanly as unparked `.test.mjs` Cases by `collectCases`, pass 5/5 in the throwaway DO tree in place (`judgeLayout` `PASS`), and remain outside the green-only `0[0-6]-` runner until DO while the contextual Control fails closed on incomplete `case-form@1` reports and invalid/wildcard exemption policies and preserves checker uncertainty (`unverified-target` → `UNKNOWN`).
 - **Does not show:** That Hosting's AST source inspection, `testing/C74`'s `readCase` upgrade, `testing/C69`'s amended `lib/form.mjs`, or phase-aware/layout-aware Case execution are implemented yet (those remain ordered prerequisites), that `verify Case` has run in CI or as a pre-push githook, or that any `fixture:2`, `real:1`, or `provoked:1:fail` evidence records exist (`testing/CTL1` stays `detective` and `designed`).
