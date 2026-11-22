@@ -50,7 +50,7 @@ export async function navigate(root, { revision } = {}) {
     if (r.conclusion && r.conclusion !== 'unresolved' && parts.some((p) => /: (unresolved|not-satisfied)$/.test(p))) flag('part-contradicts-conclusion', 'a part contradicts the conclusion');
     if (r.execution === 'performed' && !r.relation) flag('no-relation', 'no appraiser relation');
     if (res && /^\s*(Decision|Verdict):\s*(approve|merge)/im.test(res)) flag('authority-claim', 'a result states an approval or a merge');
-    if (r.carries) { const t = byId.get(r.carries); if (!t) flag('carry-dangling', 'carries a result that does not exist'); else if (t.front.conclusion !== r.conclusion) flag('carry-conclusion-differs', 'a carry-forward keeps the conclusion it carries'); if (!res) flag('carry-without-reason', 'a carry-forward states no reason'); }
+    if (r.carries) { const t = byId.get(r.carries); const carry = (k, d) => { flag(k, d); r.carryInvalid = true; }; if (!t) carry('carry-dangling', 'carries a result that does not exist'); else if (t.front.conclusion !== r.conclusion) carry('carry-conclusion-differs', 'a carry-forward keeps the conclusion it carries'); if (!res) carry('carry-without-reason', 'a carry-forward states no reason'); }
     if (!bad || r.appraises) results.push(r);
   }
   const validatedBy = {};
@@ -60,7 +60,7 @@ export async function navigate(root, { revision } = {}) {
   if (revision) for (const i of items) {
     const mine = results.filter((r) => r.appraises === i.id); const cur = [], seen = new Set();
     for (const r of mine.filter((r) => r.revision === revision)) { cur.push({ result: r.id, applicability: 'applies' }); seen.add(r.id); }
-    for (const r of mine.filter((r) => r.revision === revision && r.carries)) if (!seen.has(r.carries)) { cur.push({ result: r.carries, applicability: 'carried' }); seen.add(r.carries); }
+    for (const r of mine.filter((r) => r.revision === revision && r.carries && !r.carryInvalid)) if (!seen.has(r.carries)) { cur.push({ result: r.carries, applicability: 'carried' }); seen.add(r.carries); }
     current[i.id] = cur; stale[i.id] = mine.filter((r) => !seen.has(r.id)).map((r) => r.id);
   }
   findings.sort((a, b) => a.kind.localeCompare(b.kind) || a.files[0].localeCompare(b.files[0]));
