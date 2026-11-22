@@ -40,6 +40,10 @@ A control is contextual, not a shippable product. The consumer establishes and o
 
 Intent, requirements, architecture and defects each say what verifies that they are done, and their folder carries it in `test-cases/`. The source is verified by its `unit-tests/`. Only scripts, unit tests and test-cases are deterministic; the rest is validated by review.
 
+## Review items
+
+A Review item (`V<n>.md`) validates a subject by judgement. It sits beside the subject it validates, as a Case sits beside the subject it verifies: in a folder `review-items` inside the folder that holds the subject (`10-intent`, `11-requirements`, `12-architecture`, `13-source`, `14-operations` or `15-defects`). The folder is optional, never required, and never the verifier of its folder. What a Review item is, and who reads it, belongs to kaal-review.
+
 ## Rules
 
 - The numbers only order the folders for people.
