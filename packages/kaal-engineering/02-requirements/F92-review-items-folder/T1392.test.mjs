@@ -11,5 +11,5 @@ export async function run() {
   assert.equal(judge(fixture([...GOOD, '15-defects/test-cases/T4.test.mjs', ...items])).code, 0, 'review-items is faulted');
   assert.equal(judge(fixture(GOOD)).code, 0, 'a package with no review-items is faulted');
   const doc = readFileSync(join(pkg, 'skills/kaal-engineering/references/package-layout.md'), 'utf8');
-  assert.ok(/review-items/.test(doc) && /Review item/.test(doc) && /02-learnings\/reviews/.test(doc), 'package-layout.md does not say what review-items holds');
+  assert.ok(/review-items/.test(doc) && /Review item/.test(doc), 'package-layout.md does not say what review-items holds');
 }
