@@ -2,7 +2,7 @@
 
 ## Observed RED against `main`
 
-Each Case is called through its `run()` and fails on its own assertion:
+Each Case is a plain `.test.mjs`, never renamed, called through its `run()` and fails on its own assertion:
 
 ```
 RED controls/T1108 scripts/judge-mode.mjs is absent
@@ -25,7 +25,7 @@ The Cases show that each mode treats the same answer as it says, that a ratchet 
 
 ```
 for n in 1108 1109 1110 1111; do
-  f=$(find packages/kaal-controls -name "T$n.red.mjs")
+  f=$(find packages/kaal-controls -name "T$n.test.mjs")
   node -e "import('./$f').then(async m=>{try{await m.run();console.log('GREEN',m.id)}catch(x){console.log(x.code==='ERR_ASSERTION'?'RED-observed':'ERROR',m.id,String(x.message).split('\n')[0])}})"
 done
 ```

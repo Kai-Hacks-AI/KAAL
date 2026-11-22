@@ -1,6 +1,6 @@
 # C21 verification
 
-Every element states what verifies it. A script is verified by Test Cases that were RED in the PLAN and GREEN in the DO. Words are not verified by Cases: a Case on the wording of a reference breaks when someone improves the sentence and proves nothing about the agent. They are verified by what an agent does.
+Every element states what verifies it. A script is verified by Test Cases that were RED in the PLAN and GREEN in the DO, the same plain `.test.mjs` files in both. Words are not verified by Cases: a Case on the wording of a reference breaks when someone improves the sentence and proves nothing about the agent. They are verified by what an agent does.
 
 | Step | Element | What verifies it |
 | --- | --- | --- |
