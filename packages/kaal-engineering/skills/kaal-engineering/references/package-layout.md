@@ -12,6 +12,10 @@ The folders before the concerns steer the work: `00-backlog`, `01-changes` and `
 
 `14-operations` is where the package is run and what that shows. It holds `controls`, the controls over the package itself, and may hold `runs`, a fallback record kept only where evidence cannot be re-run or re-derived. Two things are stated apart. What a folder may hold is its list of children, and a closed folder (`13-source`, `14-operations`, `02-learnings`) holds nothing else. What verifies a folder is its `verifiedBy`, and for `14-operations` that is `controls`: a package that has the folder must hold them, and a package with no `14-operations` is not judged for it.
 
+## In or out of the specification
+
+The check says in or out, in both directions. **Missing:** a part the template marks `required` and the folder lacks. For `packages/<cap>` the required parts are the root files `AGENTS.md`, `README.md` and `package.json` and the folders `10-intent` to `14-operations`. `00-backlog`, `01-changes`, `02-learnings` and `15-defects` are optional, because their absence can be legitimate, and git holds no empty folder. **Too much:** a tracked root file or a folder that the template does not name, numbered or not; a file or folder common today is out until it is moved under `13-source` or the template names it. A required home is not proof that its content works: what verifies a folder stays its `verifiedBy`. `engineering/<cap>` and `.kaal/<cap>` share this vocabulary but not necessarily this required set (a consumer place does not need `package.json`); their requirements are defined when the check is extended to them.
+
 ## Machinery and content
 
 - **Machinery** is `AGENTS.md`, `13-source` (the Skill, the scripts, and in `workflows` the source of each workflow the capability owns, which a WIRE installs under `.github/workflows` without change) and what is built from it into `dist`. It is written only in `packages/` and deployed elsewhere. Outside `packages/`, a hand edit is waste, and the copy must match its source.
