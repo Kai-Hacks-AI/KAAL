@@ -12,7 +12,7 @@ const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'check layout', d
 const one = async (o) => { const { findControls } = await import(pathToFileURL(join(S, 'find-controls.mjs')).href); return findControls([{ path: 'x/CTL1.md', text: item(o) }]).controls[0]; };
 export const id = 'controls/T1110';
 export const tests = ['controls/F34'];
-export const title = 'the three modes are accepted at a station, a ratchet must state its exit, and a mode outside the four stays refused';
+export const title = 'the three modes are accepted at a station, a ratchet must state its exit, and a mode outside the three stays refused';
 export async function run() {
   for (const m of ['detective', 'preventive']) assert.equal((await one({ stations: '[Integrating:' + m + ']' })).valid, true, m + ' was refused');
   const noExit = await one({ stations: '[Integrating:ratchet]' });

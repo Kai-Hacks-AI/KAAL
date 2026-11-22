@@ -17,11 +17,11 @@ T1108, T1109, T1112 and T1113 are blocked at the first assertion because the scr
 
 ## Can each Case pass
 
-Against a throwaway copy of the package outside the repository, with `scripts/judge-mode.mjs`, the four modes and the `exit` rule in `find-controls.mjs`, and a short `AGENTS.md` shipped by `files`, all six Cases were GREEN. Of the 48 existing Cases, 47 stayed green and one failed: controls/T591 asserts that `files` is exactly `['skills']`. The DO makes that assertion `['skills', 'AGENTS.md']` and the change is named in `change.md`.
+Against a throwaway copy of the package outside the repository, with `scripts/judge-mode.mjs`, the three modes and the `exit` rule in `find-controls.mjs`, and a short `AGENTS.md` shipped by `files`, all six Cases were GREEN. Of the 48 existing Cases, 47 stayed green and one failed: controls/T591 asserts that `files` is exactly `['skills']`. The DO makes that assertion `['skills', 'AGENTS.md']` and the change is named in `change.md`.
 
 ## What this shows and does not show
 
-The Cases show that each mode treats the same answer as it says, that a ratchet blocks only what is new, only shrinks, advances as findings are resolved, fails growth and a stale allowance, treats a returned finding as new, is unknown without a usable reference, and is spent when its baseline is empty, that the finder accepts the four modes and requires a ratchet to state its exit, and that the package ships an instructions file that names a Skill that exists. They do not show that the Skill's wording makes an agent claim no more than the mode, or that the instructions file gets an agent to read the Skill: those are judged by the agent trial in `verification.md`, run in the DO, and nothing here shows them.
+The Cases show that each mode treats the same answer as it says, that a ratchet blocks only what is new, only shrinks, advances as findings are resolved, fails growth and a stale allowance, treats a returned finding as new, is unknown without a usable reference, and is spent when its baseline is empty, that the finder accepts the three modes and requires a ratchet to state its exit, and that the package ships an instructions file that names a Skill that exists. They do not show that the Skill's wording makes an agent claim no more than the mode, or that the instructions file gets an agent to read the Skill: those are judged by the agent trial in `verification.md`, run in the DO, and nothing here shows them.
 
 ## Reproduce
 
