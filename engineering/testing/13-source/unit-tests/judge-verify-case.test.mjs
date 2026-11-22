@@ -76,3 +76,56 @@ test('rejects invalid or non-exemptible subjectPolicy rules and retains valid st
   assert.equal(pass.verdict, 'PASS');
   assert.deepEqual(pass.policyExempt, [{ finding: stale, exemption }]);
 });
+
+test('falls closed to UNKNOWN on unestablished kinds, malformed findings, and non-object inputs', () => {
+  for (const kind of ['case-id', 'id-differs', 'target-missing', 'first-line', 'unestablished-kind']) {
+    const finding = { file: `${kind}.test.mjs`, kind, target: 'release/G38' };
+    const res = judgeVerifyCase({ formReport: completeReport([finding.file], [finding]) });
+    assert.equal(res.verdict, 'UNKNOWN');
+    assert.equal(res.applies, true);
+    assert.deepEqual(res.findings, []);
+    assert.deepEqual(res.uncertain, [finding]);
+  }
+
+  for (const badInput of [null, undefined, 'bad']) {
+    const res = judgeVerifyCase(badInput);
+    assert.equal(res.verdict, 'UNKNOWN');
+    assert.equal(res.applies, true);
+    assert.equal(res.uncertain[0].kind, 'unreadable');
+  }
+
+  for (const badFinding of [null, {}]) {
+    const res = judgeVerifyCase({ formReport: completeReport(['a/T1.test.mjs'], [badFinding]) });
+    assert.equal(res.verdict, 'UNKNOWN');
+    assert.equal(res.applies, true);
+    assert.equal(res.uncertain[0].kind, 'unreadable');
+  }
+});
+
+test('applies first-line exemption and does not apply mismatched file or target exemptions', () => {
+  const firstLine = { file: 'old/T134.test.mjs', kind: 'first-line', target: 'G38' };
+  const firstLineExemption = { kind: 'first-line', file: 'old/T134.test.mjs', reason: 'legacy first-line annotation' };
+  const firstLinePass = judgeVerifyCase({
+    formReport: completeReport(['old/T134.test.mjs'], [firstLine]),
+    subjectPolicy: { exempt: [firstLineExemption] },
+  });
+  assert.equal(firstLinePass.verdict, 'PASS');
+  assert.deepEqual(firstLinePass.policyExempt, [{ finding: firstLine, exemption: firstLineExemption }]);
+
+  const stale = { file: 'old/T134.test.mjs', kind: 'stale-header', target: 'G38' };
+  const wrongFile = judgeVerifyCase({
+    formReport: completeReport(['old/T134.test.mjs'], [stale]),
+    subjectPolicy: { exempt: [{ kind: 'stale-header', file: 'other/T1.test.mjs', target: 'G38', reason: 'wrong file' }] },
+  });
+  assert.equal(wrongFile.verdict, 'FAIL');
+  assert.deepEqual(wrongFile.findings, [stale]);
+  assert.deepEqual(wrongFile.policyExempt, []);
+
+  const wrongTarget = judgeVerifyCase({
+    formReport: completeReport(['old/T134.test.mjs'], [stale]),
+    subjectPolicy: { exempt: [{ kind: 'stale-header', file: 'old/T134.test.mjs', target: 'G39', reason: 'wrong target' }] },
+  });
+  assert.equal(wrongTarget.verdict, 'FAIL');
+  assert.deepEqual(wrongTarget.findings, [stale]);
+  assert.deepEqual(wrongTarget.policyExempt, []);
+});

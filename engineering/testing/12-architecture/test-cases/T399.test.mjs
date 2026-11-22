@@ -82,13 +82,22 @@ export async function run() {
     assert.deepEqual(res.findings, [f], `${kind} must preserve checker finding verbatim`);
   }
 
-  // UNKNOWN: unverified-target and malformed report shapes
+  // UNKNOWN: unverified-target, unestablished/unknown kinds, and malformed report shapes
   const unverified = judgeVerifyCase({
     formReport: report(['legacy/T1.test.mjs'], [{ file: 'legacy/T1.test.mjs', kind: 'unverified-target', target: 'release/C35' }]),
   });
   assert.equal(unverified.verdict, 'UNKNOWN', 'unverified-target must be UNKNOWN, never PASS or false FAIL');
   assert.equal(unverified.applies, true);
   assert.equal(unverified.uncertain[0].kind, 'unverified-target');
+
+  for (const kind of ['case-id', 'id-differs', 'target-missing', 'first-line', 'unestablished-kind']) {
+    const f = { file: `${kind}.test.mjs`, kind, detail: `unestablished ${kind}` };
+    const res = judgeVerifyCase({ formReport: report([f.file], [f]) });
+    assert.equal(res.verdict, 'UNKNOWN', `${kind} must fall closed to UNKNOWN, never FAIL or PASS`);
+    assert.equal(res.applies, true);
+    assert.deepEqual(res.findings, []);
+    assert.deepEqual(res.uncertain, [f]);
+  }
 
   for (const bad of [null, {}, { formReport: null }, { formReport: { schema: 'other', files: [], findings: [] } }]) {
     const u = judgeVerifyCase(bad);

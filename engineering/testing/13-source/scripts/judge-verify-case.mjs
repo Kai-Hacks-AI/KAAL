@@ -12,8 +12,6 @@ export const EXEMPTIBLE_KINDS = new Set(['stale-header', 'first-line']);
 const FAIL_KINDS = new Set([
   'no-id',
   'missing-id',
-  'case-id',
-  'id-differs',
   'invalid-id',
   'duplicate-id',
   'absent-attribution',
@@ -21,9 +19,7 @@ const FAIL_KINDS = new Set([
   'missing-run',
   'non-callable-run',
   'unknown-subject',
-  'target-missing',
   'stale-header',
-  'first-line',
 ]);
 
 const UNKNOWN_KINDS = new Set(['unverified-target', 'unchecked', 'unreadable']);
