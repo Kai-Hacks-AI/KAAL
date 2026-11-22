@@ -28,5 +28,6 @@ export async function run() {
     assert.equal(u.verdict, 'UNKNOWN', mode + ' with no answer passed');
     assert.equal(u.blocked, blocked, mode + ' with no answer had the wrong effect');
   }
-  assert.equal((await judge({ mode: 'sometimes', findings: [] })).verdict, 'UNKNOWN', 'a mode outside the three was taken');
+  const odd = await judge({ mode: 'sometimes', findings: [] });
+  assert.deepEqual([odd.verdict, odd.blocked], ['UNKNOWN', true], 'a mode outside the three was taken or did not block');
 }

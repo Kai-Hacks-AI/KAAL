@@ -34,6 +34,8 @@ Not authorized by this PLAN. On the merge of this PLAN into the collector, which
 - controls/C19 also changes how `find-controls.mjs` checks a station, and C18 and C20 touch `evidence.mjs`. The DO of C21 touches `find-controls.mjs` where C19 does: whichever lands second adapts.
 - The Cases are plain `.test.mjs` from the PLAN and are never renamed. They are RED through their own assertions until the DO: `npm test` in the package shows them RED, and no lane runs it, because the package is not a workspace. If it becomes one, the lane must treat a Case of an unmerged PLAN as its own matter (engineering/C30 meets the same).
 
+- Limits found by the CTO-side appraisal of J1 to J5, kept: the ratchet compares by finding name, so a known finding that worsens under the same name passes; the script cannot tell that `previous` is truly the last accepted baseline (the adopter's duty); `exit` is checked for presence only, once per control, and "temporary" is not enforced; the trial did not evidence J3.
+
 ## Revised after the CPO's review of the DO
 
 The CPO required: the control taxonomy stays directive, preventive, detective, corrective, and a ratchet is a temporary, special preventive mode; teaching narrowed to the ratchet lifecycle (what it is, how it ends) with no repository, CI, ruleset or station assumptions in the reusable Skill; `advisory` removed from this Change; and no development instructions shipped. So the DO adds no `advisory` and no `AGENTS.md`; Case T1111 is withdrawn, T1108 and T1110 changed to three modes (T1110 now asserts `advisory` is refused like any mode outside the three). These are changes to ratified target documents and Cases, recorded here.

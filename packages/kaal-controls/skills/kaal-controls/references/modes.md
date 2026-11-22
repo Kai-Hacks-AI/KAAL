@@ -11,14 +11,16 @@ A check gives findings: what is missing and what is too much, each a name that s
 3. **Resolved means removed.** The baseline is the last accepted baseline minus the findings no longer found. An allowance kept for a finding that is gone would excuse it if it came back, so it fails. A finding that was resolved and returns is new and blocks; putting it back into the baseline is growth.
 4. **Unknown blocks.** With no accepted baseline to compare to, one that cannot be compared, or a check that could not judge, the answer is unknown and blocks. Missing evidence is never success.
 
-A claim follows the mode: a ratchet stops what is new and nothing else. It does not say the rule holds.
+A claim follows the mode: a ratchet stops what is new and nothing else. It does not say the rule holds. "New" means a finding name not in the baseline: a known finding that gets worse under the same name passes, so make finding names fine enough to matter.
+
+The rule is strict on purpose: a change that resolves a finding must also remove its allowance in the same change, otherwise the stale allowance fails.
 
 ## How it ends
 
-A ratchet is temporary and says how it ends. When the target is achieved and the baseline is empty, remove the baseline and everything made only for the ratchet, and continue as an ordinary preventive control. A ratchet with no stated exit is not accepted: declare `exit:` as one sentence on what the control becomes when its baseline is empty.
+A ratchet is temporary and says how it ends. When the target is achieved and the baseline is empty, remove the baseline and everything made only for the ratchet, and continue as an ordinary preventive control. A ratchet with no stated exit is not accepted (only its presence is checked, once per control, and nothing forces the ratchet to end, so someone must notice an empty baseline): declare `exit:` as one sentence on what the control becomes when its baseline is empty.
 
 ## The script
 
-`scripts/judge-mode.mjs` does the comparison: `node judge-mode.mjs --mode <detective|preventive|ratchet> --findings <file> [--baseline <file> --previous <file>]`, JSON lists of names in (`previous` is the last accepted baseline), a verdict out (`PASS`, `REPORT`, `FAIL`, `UNKNOWN`), exit 0 when nothing is blocked, 1 when blocked, 2 when it could not judge. For a ratchet it also gives the baseline the next run must hold, and says when the baseline is empty and the control becomes preventive.
+`scripts/judge-mode.mjs` does the comparison: `node judge-mode.mjs --mode <detective|preventive|ratchet> --findings <file> [--baseline <file> --previous <file>]`, JSON lists of names in (`previous` is the last accepted baseline), a verdict out (`PASS`, `REPORT`, `FAIL`, `UNKNOWN`), exit 0 when nothing is blocked, 1 when blocked, 2 when it could not judge. Treat 2 as a stop, and a missing or malformed input file as a stop. For a ratchet it also gives the baseline the next run must hold, and says when the baseline is empty and the control becomes preventive.
 
 You supply the rest: where the last accepted baseline is read from, stable finding names, writing the next baseline, making the verdict stop the action, who may change the mode, and the evidence for each.
