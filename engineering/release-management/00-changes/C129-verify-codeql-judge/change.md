@@ -16,14 +16,14 @@ One script, one pure function, one thin reader and one control record. Nothing h
 8. **Staging stays the Owner's.** This Change gives a command and a record. The workflow DO is engineering's once this command is on main; the release WIRE that installs the source and the ruleset swap each need Kai's own go. Until the ruleset names `verify CodeQL`, a red job blocks nothing.
 9. **The verdict step is named.** `node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings <findings.json>` (read from `kaal/controls/control-modes` after controls C22, DO #2347; not on `main` until that collector is promoted). It exits 0 on PASS, 1 on FAIL, 2 on UNKNOWN, and answers UNKNOWN for a findings file that is absent, unreadable or malformed, which is what decision 3 relies on. The job runs the command of decision 1, then this one, and fails on a non-zero exit. The DO is built against that collector's script and the PROMOTION order is left to Promoting: if `judge-mode` is still not on `main` when the workflow DO is ready, engineering's DO waits for it, as its own sequence already says.
 
-### Cases (plain `.test.mjs`, RED until the DO)
+### Cases (plain `.test.mjs`; they land with the DO, ids taken then after the highest on main, as in C125)
 
-- T1395 `findingsOf`: a complete set with no alert is `[]`; a missing configuration is `missing:/language:actions`; an analysis with an error is `errored:`; an analysis of another sha is ignored; extra analyses of other categories are not findings.
-- T1396 thresholds: `high_or_higher` counts `high` and `critical` and not `medium`; `errors` counts rule severity `error` and not `warning`; both dimensions together; an alert that is not open does not count; an unknown threshold value throws.
-- T1397 `waitForAnalyses`: returns at once when all expected are present; polls at 30 seconds and returns when the last one arrives; at 600 seconds still missing is not ok and names them; an API error is not ok; with `analyzeResult` not `success` it reads once and returns what exists.
-- T1398 the command: an injected environment and fetch; findings written to `--out`, exit 0 even when the list is not empty; exit 2 and no file for each UNKNOWN of decision 3, a stale file removed; sha and ref come from the environment only.
-- T1399 layers and verdict: `lib/findings.mjs` imports nothing; `judge-codeql.mjs` never contains `PASS` or `FAIL` as an output; the only write is `--out`.
-- T1400 control record: CTL34 exists, type preventive, `has` release/I68, no `strategy`, and no `X:ratchet` registration.
+- `findingsOf`: a complete set with no alert is `[]`; a missing configuration is `missing:/language:actions`; an analysis with an error is `errored:`; an analysis of another sha is ignored; extra analyses of other categories are not findings.
+- thresholds: `high_or_higher` counts `high` and `critical` and not `medium`; `errors` counts rule severity `error` and not `warning`; both dimensions together; an alert that is not open does not count; an unknown threshold value throws.
+- `waitForAnalyses`: returns at once when all expected are present; polls at 30 seconds and returns when the last one arrives; at 600 seconds still missing is not ok and names them; an API error is not ok; with `analyzeResult` not `success` it reads once and returns what exists.
+- the command: an injected environment and fetch; findings written to `--out`, exit 0 even when the list is not empty; exit 2 and no file for each UNKNOWN of decision 3, a stale file removed; sha and ref come from the environment only.
+- layers and verdict: `lib/findings.mjs` imports nothing; `judge-codeql.mjs` never contains `PASS` or `FAIL` as an output; the only write is `--out`.
+- control record: CTL34 exists, type preventive, `has` release/I68, no `strategy`, and no `X:ratchet` registration.
 
 ### Open question for the CPO and engineering
 
