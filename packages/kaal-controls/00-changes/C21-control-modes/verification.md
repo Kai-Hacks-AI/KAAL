@@ -7,8 +7,13 @@ Every element states what verifies it. A script is verified by Test Cases that w
 | Bare | the concept, as agreed in conversation and written in `C21.md` and `I15.md` | the CPO's review of this PLAN |
 | Agent | `AGENTS.md` | Case T1111 (structure: it exists, `files` ships it, it names the Skill path and that path exists, it names no other package), and the agent trial |
 | Skill | `references/modes.md` and the pointer in `SKILL.md` | the Cases that already guard the Skill (it names no other package, its word limit), and the agent trial |
-| Script | `scripts/judge-mode.mjs` | Cases T1108 and T1109 |
+| Script | `scripts/judge-mode.mjs` | Cases T1108, T1109, T1112 and T1113, and the sensitivity record of the CHECK (`check.md`) |
+| Ratchet contract | protected property, advancement rule, responsibility placement, exit, uncertainty | judgments J1 to J5 (`judgments.md`), each with an explicit disposition in CHECK |
 | Script | `find-controls.mjs` accepting the modes | Case T1110 |
+
+## Testing and judgment: definition, execution, result
+
+The Cases and the judgment definitions exist in this PLAN, before anything runs. They are executed in CHECK, where a run record and a judgment record are produced; a definition is not a result. Each one points at the elements it examines (`F34`, `A20`, `interface.md`). The Skill states what an adopter inherits from this and what it supplies (`interface.md`).
 
 ## The agent trial (DO)
 
