@@ -11,8 +11,8 @@ const use = (name) => { const f = join(LIB, name); assert.ok(existsSync(f), `lib
 export const id = 'release/T1314';
 export const tests = ['release/A77'];
 export const title = 'the layers stay one-way: the library imports no judge and no layer above it, and no judge imports another judge';
-const LAYERS = ['tree', 'collector', 'cases-green', 'write-map', 'result', 'tree-facts', 'attribute-changes'];
-const BELOW = { tree: [], collector: ['tree'], 'cases-green': [], 'write-map': [], result: [], 'tree-facts': ['tree', 'collector'], 'attribute-changes': [] };
+const LAYERS = ['tree', 'collector', 'cases-green', 'write-map', 'result', 'tree-facts', 'isolate-changes', 'evidence'];
+const BELOW = { tree: [], collector: ['tree'], 'cases-green': [], 'write-map': [], result: [], 'tree-facts': ['tree', 'collector'], 'isolate-changes': [], evidence: [] };
 // The static imports of a module as written: import ... from '<spec>' and export ... from '<spec>'.
 const importsOf = (file) => [...readFileSync(file, 'utf8').matchAll(/^\s*(?:import|export)\b[^;'"]*?\bfrom\s+['"]([^'"]+)['"]/gm)].map((m) => m[1]);
 export async function run() {

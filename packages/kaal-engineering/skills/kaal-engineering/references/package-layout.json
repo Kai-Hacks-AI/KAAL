@@ -8,11 +8,13 @@
     {
       "name": "AGENTS.md",
       "kind": "machinery",
-      "bass": "Bare to Agent"
+      "bass": "Bare to Agent",
+      "required": true
     },
     {
       "name": "README.md",
-      "kind": "machinery"
+      "kind": "machinery",
+      "required": true
     },
     {
       "name": "LICENSE",
@@ -20,7 +22,8 @@
     },
     {
       "name": "package.json",
-      "kind": "machinery"
+      "kind": "machinery",
+      "required": true
     },
     {
       "name": "*.kaal.json",
@@ -62,7 +65,8 @@
         "intent",
         "test-cases"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "11-requirements",
@@ -72,7 +76,8 @@
         "requirements",
         "test-cases"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "12-architecture",
@@ -82,7 +87,8 @@
         "architecture",
         "test-cases"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "13-source",
@@ -98,7 +104,8 @@
         "scripts": "Skill to Script"
       },
       "verifiedBy": "unit-tests",
-      "closed": true
+      "closed": true,
+      "required": true
     },
     {
       "name": "14-operations",
@@ -123,7 +130,8 @@
         ]
       },
       "runs": "fallback records, judged and stamped, only where evidence cannot be re-run or re-derived",
-      "verifiedBy": "controls"
+      "verifiedBy": "controls",
+      "required": true
     },
     {
       "name": "15-defects",
