@@ -15,6 +15,10 @@ A claim follows the mode: a ratchet stops what is new and nothing else. It does 
 
 The rule is strict on purpose: a change that resolves a finding must also remove its allowance in the same change, otherwise the stale allowance fails.
 
+## Keep it removable
+
+Build the ratchet as a filter in front of the verdict, not inside the check. The check stays pure and only emits findings. The ratchet step subtracts the allowance from those findings and keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline the filter removes nothing, so it is an identity. Ending the ratchet is then deleting the filter step and the baseline, and the check and its Cases are not touched. `applyBaseline` in `scripts/judge-mode.mjs` is that filter.
+
 ## How it ends
 
 A ratchet is temporary and says how it ends. When the target is achieved and the baseline is empty, remove the baseline and everything made only for the ratchet, and continue as an ordinary preventive control. A ratchet with no stated exit is not accepted (only its presence is checked, once per control, and nothing forces the ratchet to end, so someone must notice an empty baseline): declare `exit:` as one sentence on what the control becomes when its baseline is empty.

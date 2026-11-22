@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Add the gap G98, the Intent I15, the Requirement F34 and the Architecture A20, with the draft in `interface.md`, and the Cases T1108 to T1113 as plain `T<n>.test.mjs`.
+1. Add the gap G98, the Intent I15, the Requirement F34 and the Architecture A20, with the draft in `interface.md`, and the Cases T1108 to T1114 as plain `T<n>.test.mjs`.
 2. Define testing and judgment before any execution: the Cases, and the judgment definitions J1 to J5 in `judgments.md`, each pointing at the elements it examines; and plan the sensitivity demonstration of the CHECK in `check.md`.
 2a. Observe the expected RED against `main` and the same Cases GREEN against a throwaway copy (`evidence.md`).
 3. State what verifies each element and the route to `main` (`verification.md`, `promotion.md`).
