@@ -37,13 +37,13 @@ Change engineering/C30, Requirement engineering/F91, gap G120, Cases T1380 to T1
 
 ## DO
 
-Not authorized by this PLAN. After the merged PLAN: edit the template in place, never moving the draft over it (a draft copy goes stale when another collector changes the template, as C29 learned); edit `check-layout.mjs` in place; amend T1231, T1243 and T1335 and F52, F57; rename T1380 to T1382 to `.test.mjs`; say in `package-layout.md` which parts are required; remove `draft/`; run the baseline over the packages and attach it to `do.md`.
+Not authorized by this PLAN. After the merged PLAN: edit the template in place, never moving the draft over it (a draft copy goes stale when another collector changes the template, as C29 learned); edit `check-layout.mjs` in place; amend T1231, T1243 and T1335 and F52, F57; say in `package-layout.md` which parts are required; remove `draft/`; run the baseline over the packages and attach it to `do.md`.
 
 ## Questions for review
 
-1. Is the required set right: `AGENTS.md`, `README.md`, `package.json` and `10-intent` to `14-operations`? Recommended: yes. `LICENSE` is a publishing need and is left optional here; `00` and `01` are optional because they are temporary and an empty folder is not tracked.
-2. Are the same required root files right for `engineering/<cap>` and `.kaal/<cap>`, where the machinery is deployed and the content is the consumer's? Recommended: this Change covers `packages/<cap>` and the check is told the place later (one more flag, YAGNI until a consumer folder is checked).
-3. Which root files beyond the template are allowed? Seen in packages today: `.gitattributes`, `.gitignore`, `tsconfig.json`, `contract.json`, `installation.kaal.json` (matches `*.kaal.json`), `concluding-act.md`. Recommended: allow none beyond the template now; they are findings in the baseline, each removed or named when its package migrates, so the template does not grow to bless whatever exists.
+1. Is the required set right: `AGENTS.md`, `README.md`, `package.json` and `10-intent` to `14-operations`? Answered by the CPO (22 Nov): yes, for `packages/<cap>`; `00` to `02` and `15` optional. `LICENSE` is a publishing need and is left optional here; `00` and `01` are optional because they are temporary and an empty folder is not tracked.
+2. Are the same required root files right for `engineering/<cap>` and `.kaal/<cap>`? Answered by the CPO: one shared vocabulary, not one identical mandatory set; a consumer place does not require `package.json` by default, and its requirements are defined deliberately when the control is extended. This Change covers `packages/<cap>` and the check is told the place later (one more flag, YAGNI until a consumer folder is checked).
+3. Which root files beyond the template are allowed? Answered by the CPO: none implicitly; an unknown file or folder is out of spec, and a genuinely necessary artifact is either moved under `13-source` or gets an explicit allowance in the template. Seen in packages today: `.gitattributes`, `.gitignore`, `tsconfig.json`, `contract.json`, `installation.kaal.json` (matches `*.kaal.json`), `concluding-act.md`. Recommended: allow none beyond the template now; they are findings in the baseline, each removed or named when its package migrates, so the template does not grow to bless whatever exists.
 4. Should the in-flight Change folders (`00-changes` and the older numbers) be named as legacy and accepted? Recommended: no. They are out of the specification and the baseline shows them.
 
 ## ACT

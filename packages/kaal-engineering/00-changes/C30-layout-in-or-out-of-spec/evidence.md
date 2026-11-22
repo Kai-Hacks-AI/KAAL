@@ -15,7 +15,7 @@ The PLAN of C30 observes its RED against the collector `kaal/engineering/layout-
 | T1381 | F91 | RED: an unnumbered folder lib is not FAIL |
 | T1382 | F91 | RED: the template marks no folder required |
 
-3 RED-observed, 0 error, 0 green. Each Case fails on its own assertion.
+3 RED-observed, 0 error, 0 green. Each Case is a plain `.test.mjs` from the PLAN and fails on its own assertion; none is renamed at the DO.
 
 ## Can each Case pass
 
