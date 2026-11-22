@@ -1,6 +1,6 @@
---- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs	2026-11-22 09:55:05.003024129 +0000
-+++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs	2026-11-22 09:55:05.013650057 +0000
-@@ -22,7 +22,7 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
+@@ -23,7 +23,7 @@
  // keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline it removes
  // nothing, so dropping the ratchet means deleting this step and the baseline, and the check is not touched.
  export function applyBaseline({ findings, baseline, previous } = {}) {

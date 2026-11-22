@@ -1,6 +1,6 @@
---- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs	2026-11-22 09:55:04.956708127 +0000
-+++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs	2026-11-22 09:55:04.965948186 +0000
-@@ -27,7 +27,7 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
+@@ -28,7 +28,7 @@
    return {
      remaining: findings.filter((f) => !baseline.includes(f)),
      known: findings.filter((f) => baseline.includes(f)),

@@ -15,8 +15,9 @@ export function judgeMode({ mode, findings, baseline, previous } = {}) {
   const { remaining, known, stale, grew, next } = a;
   const reasons = [grew.length && 'baseline-grew', stale.length && 'stale-allowance', remaining.length && 'new-finding'].filter(Boolean);
   const spent = baseline.length === 0;
-  const out = { mode, findings, known, new: remaining, stale, grew, reasons, next, spent, ...(spent ? { then: 'preventive' } : {}) };
-  return { ...out, verdict: reasons.length ? 'FAIL' : 'PASS', blocked: reasons.length > 0 };
+  const out = { mode, findings, known, new: remaining, stale, grew, reasons, spent, ...(spent ? { then: 'preventive' } : {}) };
+  // `next` is the baseline to store, and only an accepted run carries it: a rejected run advances nothing.
+  return reasons.length ? { ...out, verdict: 'FAIL', blocked: true } : { ...out, next, verdict: 'PASS', blocked: false };
 }
 // The ratchet is a filter in front of the verdict. The check only emits findings. This subtracts the allowance and
 // keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline it removes
@@ -34,8 +35,15 @@ export function applyBaseline({ findings, baseline, previous } = {}) {
 }
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const a = Object.fromEntries(process.argv.slice(2).reduce((r, x, i, v) => (x.startsWith('--') ? [...r, [x.slice(2), v[i + 1]]] : r), []));
-  const read = (p) => (p ? JSON.parse(readFileSync(p, 'utf8')) : undefined);
-  const r = judgeMode({ mode: a.mode, findings: read(a.findings) ?? null, baseline: read(a.baseline), previous: read(a.previous) });
+  const read = (p) => {
+    if (!p) return undefined;
+    let text;
+    try { text = readFileSync(p, 'utf8'); } catch { throw Object.assign(new Error(p), { reason: 'unreadable-input' }); }
+    try { return JSON.parse(text); } catch { throw Object.assign(new Error(p), { reason: 'malformed-input' }); }
+  };
+  let r;
+  try { r = judgeMode({ mode: a.mode, findings: read(a.findings) ?? null, baseline: read(a.baseline), previous: read(a.previous) }); }
+  catch (e) { r = { mode: a.mode, verdict: 'UNKNOWN', blocked: true, reason: e.reason ?? 'could-not-judge', file: e.message }; }
   console.log(JSON.stringify(r, null, 2));
   process.exit(r.verdict === 'UNKNOWN' ? 2 : r.blocked ? 1 : 0);
 }

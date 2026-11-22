@@ -1,11 +1,11 @@
---- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs	2026-11-22 09:55:04.920910960 +0000
-+++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs	2026-11-22 09:55:04.938410462 +0000
-@@ -16,7 +16,7 @@
-   const reasons = [grew.length && 'baseline-grew', stale.length && 'stale-allowance', remaining.length && 'new-finding'].filter(Boolean);
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
+@@ -17,7 +17,7 @@
    const spent = baseline.length === 0;
-   const out = { mode, findings, known, new: remaining, stale, grew, reasons, next, spent, ...(spent ? { then: 'preventive' } : {}) };
--  return { ...out, verdict: reasons.length ? 'FAIL' : 'PASS', blocked: reasons.length > 0 };
-+  return { ...out, verdict: 'PASS', blocked: false };
+   const out = { mode, findings, known, new: remaining, stale, grew, reasons, spent, ...(spent ? { then: 'preventive' } : {}) };
+   // `next` is the baseline to store, and only an accepted run carries it: a rejected run advances nothing.
+-  return reasons.length ? { ...out, verdict: 'FAIL', blocked: true } : { ...out, next, verdict: 'PASS', blocked: false };
++  return { ...out, next, verdict: 'PASS', blocked: false };
  }
  // The ratchet is a filter in front of the verdict. The check only emits findings. This subtracts the allowance and
  // keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline it removes
