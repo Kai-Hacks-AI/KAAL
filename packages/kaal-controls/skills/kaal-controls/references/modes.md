@@ -17,7 +17,7 @@ The rule is strict on purpose: a change that resolves a finding must also remove
 
 ## Keep it removable
 
-Build the ratchet as a filter in front of the verdict, not inside the check. The check stays pure and only emits findings. The ratchet step subtracts the allowance from those findings and keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline the filter removes nothing, so it is an identity. Ending the ratchet is then deleting the filter step and the baseline, and the check and its Cases are not touched. `applyBaseline` in `scripts/judge-mode.mjs` is that filter.
+Build the ratchet as a filter in front of the verdict, not inside the check. The check stays pure and only emits findings. The ratchet step subtracts the allowance from those findings and keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline the filter removes nothing, so it is an identity. Ending the ratchet is then deleting the filter step and the baseline, and the check and its Cases are not touched. `applyBaseline` in `scripts/judge-mode.mjs` is that filter. Use it only with the verdict that also blocks on a grown baseline, a stale allowance and an unknown answer, not on what remains alone: a grown baseline leaves nothing remaining and would pass. `judgeMode` does this.
 
 ## How it ends
 
