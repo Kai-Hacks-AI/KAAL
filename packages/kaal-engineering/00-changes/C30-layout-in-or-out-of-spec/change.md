@@ -24,6 +24,7 @@ All 14 packages with a `package.json` are FAIL with the draft check, with 10 to 
 - **Nothing runs the check today.** Only Cases call it, over fixtures, so no pull request, ruleset or job turns red.
 - **The first run is the baseline.** `check-layout.mjs <template> <folder>` over each package names the findings per package, as CTL2 says it does. Per CTL2, the ratchet tightens against that baseline: the findings per package, never a count, and a finding once resolved must not come back.
 - **The ratchet and any preventive use are later Changes,** each with the Owner's go. This Change adds neither.
+- **The ratchet's exit (the Owner, 22 Nov):** when the baseline reaches 0, the ratchet is cleaned up toward plain preventive. The baseline and everything that exists only to carry it are removed, and the check then fails any finding outright. The ratchet Change must state this exit and its Case: a ratchet with no exit is not accepted. This is the same exit as the workflow ratchet's closed baseline at 21/21.
 - **Migration is each package's own.** A package moves into the layout when its capability's thread plans it; the check then shows what is left.
 
 ## Not in this Change
