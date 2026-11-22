@@ -92,3 +92,41 @@ describe('malformed records are reported and never stop the navigation', async (
     }
   });
 });
+
+describe('subjects are arbitrary identifiers, a carry-forward stays with its item, and the command answers', async () => {
+  const { item, result, tree } = await import('./plan/review-items/lib.mjs');
+  const { navigate } = await import('../skills/kaal-review/scripts/navigate.mjs');
+  const { execFileSync } = await import('node:child_process');
+  const A = 'a'.repeat(40);
+  const B = 'b'.repeat(40);
+  const f = (appraises, revision, extra = {}) => ({ appraises, revision, appraiser: 'an Agent', relation: 'not-author', execution: 'performed', conclusion: 'satisfied', ...extra });
+  const script = join(dirname(fileURLToPath(import.meta.url)), '../skills/kaal-review/scripts/navigate.mjs');
+
+  it('navigates items whose subjects are names inherited by every object', async () => {
+    const nav = await navigate(tree({ 'v/V1.md': item('ns/V1', { validates: ['constructor', 'toString', '__proto__'] }), 'v/V2.md': item('ns/V2', { validates: ['x/F1'] }) }), { revision: A });
+    assert.deepEqual(nav.findings, []);
+    assert.deepEqual(Object.keys(nav.validatedBy).sort(), ['__proto__', 'constructor', 'toString', 'x/F1']);
+    assert.deepEqual(nav.validatedBy.constructor, ['ns/V1']);
+  });
+
+  it('does not let a result carry a result that appraises another item', async () => {
+    const nav = await navigate(tree({
+      'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'v/V2.md': item('ns/V2', { validates: ['x/F1'] }),
+      'r/RV1.md': result('ns/RV1', f('ns/V1', A)),
+      'r/RV2.md': result('ns/RV2', f('ns/V2', B, { carries: 'ns/RV1' })),
+    }), { revision: B });
+    assert.ok(nav.findings.some((x) => x.kind === 'carry-other-item'));
+    assert.deepEqual(nav.current['ns/V2'].map((c) => c.applicability), ['applies']);
+    assert.deepEqual(nav.stale['ns/V1'], ['ns/RV1']);
+  });
+
+  it('prints the answer as JSON from the command, limited to a subject when one is given, and exits 0 with findings', () => {
+    const root = tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'v/V2.md': item('ns/V2', { validates: ['x/F2'] }), 'v/bad.md': '', 'v/V3.md': '---\nvalidates: [x/F1]\n---\n' });
+    const all = JSON.parse(execFileSync(process.execPath, [script, '--root', root, '--revision', A], { encoding: 'utf8' }));
+    assert.deepEqual(all.items.map((i) => i.id), ['ns/V1', 'ns/V2']);
+    assert.ok(all.findings.some((x) => x.kind === 'no-id'));
+    const one = JSON.parse(execFileSync(process.execPath, [script, '--root', root, '--subject', 'x/F1'], { encoding: 'utf8' }));
+    assert.deepEqual(one.items.map((i) => i.id), ['ns/V1']);
+    assert.throws(() => execFileSync(process.execPath, [script, '--bogus'], { stdio: 'pipe' }), (e) => e.status === 2);
+  });
+});
