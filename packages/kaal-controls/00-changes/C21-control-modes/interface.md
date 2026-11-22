@@ -52,7 +52,7 @@ It inherits the comparison and the transition rule, shown by Cases T1109, T1112 
 | --- | --- | --- | --- |
 | detective | `REPORT` with findings, `PASS` without | never | |
 | preventive | `FAIL` with findings, `PASS` without | with findings | |
-| ratchet | `FAIL` with a new finding, a baseline that grew or a stale allowance; `PASS` otherwise | on `FAIL` | `known`, `new`, `stale`, `grew`, `reasons`, `next` (the baseline the next run must hold), `spent` and `then: 'preventive'` when the baseline is empty |
+| ratchet | `FAIL` with a new finding, a baseline that grew or a stale allowance; `PASS` otherwise | on `FAIL` (C22: `next` only on `PASS`) | `known`, `new`, `stale`, `grew`, `reasons`, `next` (the baseline the next run must hold), `spent` and `then: 'preventive'` when the baseline is empty |
 | ratchet, no findings list | `UNKNOWN`, reason `could-not-judge` | yes | |
 | ratchet, no reference | `UNKNOWN`, reason `no-reference` | yes | |
 | ratchet, a reference or baseline that is not a list of distinct names | `UNKNOWN`, reason `incompatible-reference` | yes | |

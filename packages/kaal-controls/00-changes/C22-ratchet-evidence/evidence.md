@@ -27,7 +27,7 @@ Against a throwaway copy of the package with the DO's two changes (the command's
 | a resolved allowance is gone | `M3-retain-resolved-allowances` | T1112 | an allowance kept for a resolved finding was accepted |
 | missing evidence is not success | `M4-missing-evidence-is-success` | T1113 | a missing reference passed |
 
-These replace the preview of C21 taken at `f4e099f`, which is marked superseded there. T1115 to T1117 are not part of that run; the DO runs M1 to M6 with them.
+These replace the preview of C21 taken at `f4e099f`, which is marked superseded there. T1115 to T1117 are not part of that run; the DO runs M1 to M8 with them. The record `mutations/run-at-do-head.txt` is part of the commit and cannot name its own revision; it is checked by re-running `run.sh` at the head. T1117's missing-reference assertion is not a witness for M4 (T1113 and T1115 are); M7 changes only the reason (`unreadable-input` to `could-not-judge`), M8 removes the outer handler so the command crashes.
 
 ## What this does not show
 

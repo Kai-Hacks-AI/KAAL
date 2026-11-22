@@ -19,6 +19,10 @@ The rule is strict on purpose: a change that resolves a finding must also remove
 
 Build the ratchet as a filter in front of the verdict, not inside the check. The check stays pure and only emits findings. The ratchet step subtracts the allowance from those findings and keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline the filter removes nothing, so it is an identity. Ending the ratchet is then deleting the filter step and the baseline, and the check and its Cases are not touched. `applyBaseline` in `scripts/judge-mode.mjs` is that filter. Use it only with the verdict that also blocks on a grown baseline, a stale allowance and an unknown answer, not on what remains alone: a grown baseline leaves nothing remaining and would pass. `judgeMode` does this.
 
+## Across runs
+
+The baseline last accepted is the reference of the next run, read from the accepted state and never from the change under review. Store the `next` that a passing run gives, and only that: a run that failed or could not judge carries no `next`, and the accepted baseline stays as it was. Each accepted baseline is a subset of the one before. After an improvement the allowance for a resolved finding is gone, so a resolved finding that returns blocks and its allowance put back is growth.
+
 ## How it ends
 
 A ratchet is temporary and says how it ends. When the target is achieved and the baseline is empty, remove the baseline and everything made only for the ratchet, and continue as an ordinary preventive control. A ratchet with no stated exit is not accepted (only its presence is checked, once per control, and nothing forces the ratchet to end, so someone must notice an empty baseline): declare `exit:` as one sentence on what the control becomes when its baseline is empty.
