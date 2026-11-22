@@ -27,7 +27,7 @@ export async function run() {
   assert.equal(s.closed, true, '13-source is no longer closed');
   assert.ok(s.children.includes('workflows'), 'workflows is not a child of 13-source');
   assert.equal(judge(fixture([...GOOD, '13-source/workflows/ci.yml'])).code, 0, 'a workflow source beside the Skill is not accepted');
-  assert.equal(judge(fixture(['AGENTS.md', 'README.md', 'package.json', '13-source/workflows/ci.yml', '13-source/unit-tests/u.test.mjs'])).code, 0, 'workflows without the Skill is not accepted');
+  assert.equal(judge(fixture([...GOOD.filter((f) => !f.startsWith('13-source/')), '13-source/workflows/ci.yml', '13-source/unit-tests/u.test.mjs'])).code, 0, 'workflows without the Skill is not accepted');
   const other = judge(fixture([...GOOD, '13-source/pipelines/ci.yml']));
   assert.equal(other.code, 1, 'another folder in 13-source is not refused');
   assert.match(other.out, /13-source holds pipelines/);

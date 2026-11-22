@@ -1,4 +1,4 @@
-// Fixtures of the Cases of release/C123: the three folders of attribute Changes on disk (before, after, contained), no Git. Not a Case.
+// Fixtures of the Cases of release/C123: the three folders of isolate Changes on disk (before, after, contained), no Git. Not a Case.
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,7 +6,7 @@ import { makeTrees } from '../C122-act-judges-workflow/act-fixtures.mjs';
 
 export const RM = fileURLToPath(import.meta.url).split('/00-changes/')[0];
 export const RUNNER = join(RM, '05-src/phase/run-controls-act.mjs');
-export const LIB = join(RM, '05-src/phase/lib/attribute-changes.mjs');
+export const LIB = join(RM, '05-src/phase/lib/isolate-changes.mjs');
 export const OWN_PATH = 'engineering/cap/00-changes/C2-first-thing/C2.md';   // outside the folders an ACT writes
 export const RETRO_PATH = 'engineering/cap/02-learnings/retros/RT1.md';       // a folder an ACT writes
 

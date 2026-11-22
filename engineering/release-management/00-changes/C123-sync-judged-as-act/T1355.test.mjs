@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { RUNNER, makeFolders } from './attribution-fixtures.mjs';
+import { RUNNER, makeFolders } from './isolation-fixtures.mjs';
 export const id = 'release/T1355';
 export const tests = ['release/C123'];
 export const title = 'main moving after the SYNC changes nothing: the reference is main as the result contains it, so a path main changed afterwards is not read as the collector\'s own';
