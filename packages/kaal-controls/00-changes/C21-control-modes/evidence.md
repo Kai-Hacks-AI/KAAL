@@ -31,7 +31,9 @@ for n in 1108 1109 1110 1112 1113; do
 done
 ```
 
-## Preview of the sensitivity (not the CHECK)
+## Preview of the sensitivity (not the CHECK; superseded)
+
+This preview was taken at `f4e099f`, on a throwaway, before the filter was extracted. It is superseded by the run of the exact patches at the final head of C21 in controls/C22 (`mutations/run-at-5ce2331b.txt`); read the table below as history, not as the evidence for the final script.
 
 To know before the DO that each weakening has a witness, four weakenings were loaded one at a time on the throwaway copy. Each was noticed by the Case named; this is a preview, and the CHECK repeats it on the DO's own script.
 
