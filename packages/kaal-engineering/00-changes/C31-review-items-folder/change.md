@@ -4,11 +4,11 @@ Asked by review (C5). Review items `V<n>.md` live in a folder `review-items` bes
 
 ## The answer
 
-1. **Where.** `review-items` is a child folder of each element folder that has a subject worth reviewing: `10-intent`, `11-requirements`, `12-architecture` and `15-defects`, listed beside `test-cases`.
-2. **A bounded first increment.** Review C5 lets a Review item validate any subject, including a control, a Skill, an instruction file or source. This Change defines a placement only for the element-local subjects above. Where Review items for controls (`14-operations`), source (`13-source`) and other subjects sit is not decided here and is not forbidden: it is a later Change, asked for by review when it names the need. Until then the closed folders `13-source` and `14-operations` do not list `review-items`, so the check would name one placed there; that is a gap of this first increment, not a rule. Results `RV<n>` go to `02-learnings/reviews`.
-3. **Optional.** `review-items` is not required; a package with no Review item is not faulted for it.
-4. **No change of the check.** `check-layout.mjs` judges the top level and the children of closed folders; element folders are not closed, so a `review-items` folder inside one is already not out of spec. The template is data: the folder is named there so the layout says what the reader of the template should find, and `package-layout.md` says what it holds.
-5. **`verifiedBy` stays `test-cases`.** A Review item validates by judgement; it is not the verifier of its folder.
+1. **Where.** The same principle as Cases: a Review item sits beside the subject it validates, as a Case sits beside the subject it verifies (the Owner, via the CPO). So `review-items` is a child folder of every folder that holds reviewable subjects: `10-intent`, `11-requirements`, `12-architecture`, `13-source` (Skills, scripts, instruction files), `14-operations` (controls) and `15-defects`. It sits beside `test-cases`, `unit-tests` or `controls`.
+2. **Results.** `RV<n>` results stay in `02-learnings/reviews`, which already exists. `02-learnings` is the home of results and of other capabilities' objects, not a subject folder, so it gets no `review-items`.
+3. **Optional, never required.** A package with no Review item is not faulted for it. No folder becomes required, nothing is enforced.
+4. **Closed folders.** `13-source` and `14-operations` are closed, so they must name the child or the check would flag it: both list `review-items` as a child. Element folders are not closed and already allow it.
+5. **`verifiedBy` stays as it is.** A Review item validates by judgement; it is never the verifier of its folder. Verification and validation stay separate.
 
 ## Not in this Change
 
