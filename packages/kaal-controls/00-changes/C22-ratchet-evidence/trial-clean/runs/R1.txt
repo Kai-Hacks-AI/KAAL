@@ -1,0 +1,29 @@
+**What it is:** `npm run lint:ratchet` (`scripts/lint-ratchet.mjs`) is a baseline ratchet. It's a detective check that gates by exit code: it exits 1 if there are new findings and 0 otherwise. The README says CI runs it on every pull request, so that would be a blocking pre-merge check. I'm not sure it blocks anything, because the repo has no CI config (`.github` is absent). I also didn't run it, since the run needed approval. What follows comes from reading the code.
+
+**What it stops:** any finding string, in `file:rule` form, that isn't in `lint-baseline.txt`.
+
+**What it doesn't stop:**
+- Existing findings. All of them are grandfathered.
+- Anything the linter itself misses.
+- Edits to the baseline. The script's own comment says the baseline is "edited by hand", so adding a line makes any finding pass, and nothing reviews that.
+- A baseline entry that no longer applies, such as `src/old.js:no-var`. The script never checks for that.
+
+**What I can claim:** the ratchet logic does what its comment says. Two things hold from the code alone:
+- `scripts/lint.mjs` is a stub. It prints a hardcoded list and never reads `src/`. It always exits 0.
+- `src/b.js` and `src/c.js` don't exist. `src/old.js` is in the baseline but doesn't exist either.
+
+The check's output has nothing to do with the real code. So it tells you nothing about code quality. I can't claim that it runs in CI or that it has ever blocked a PR.
+
+**What's missing or wrong:**
+- There is no real linter, such as ESLint, behind it.
+- There is no CI workflow in the repo, so the README's claim can't be verified from here.
+- The baseline is hand-edited, with no rule that it may only shrink.
+- Stale entries don't fail the check, so the baseline can't tighten as findings are fixed.
+- If `lint.mjs` crashes, the ratchet fails closed. If it prints nothing, the ratchet passes.
+- The `test` script is `echo ok`, so it checks nothing either.
+
+**When the goal (zero findings) is reached:**
+1. Empty or delete `lint-baseline.txt`.
+2. Make the check fail on any finding at all. Drop the ratchet and run the linter directly as a plain gate (`npm run lint`, with a real exit code).
+3. Until then, make the ratchet fail on stale baseline entries and on any baseline growth, so it can only shrink.
+4. Protect the baseline file, for example with CODEOWNERS.

@@ -1,0 +1,21 @@
+**Findings from the repo**
+- There's no Skill or script that handles baselines. `.claude/skills` is empty, so every step belongs to the repository owner.
+- `scripts/lint.mjs` prints a hardcoded list (`src/a.js:no-var` and `src/b.js:no-eval`). It doesn't run a linter, so it can't be trusted as a gate yet.
+- The only commit on the branch, `054f7a2`, adds `src/b.js:no-eval` to `lint-baseline.txt`. That finding was introduced on this branch.
+- `src/b.js` is untracked in this checkout, so the commit doesn't contain the file whose finding it baselines.
+
+**CI steps (GitHub Actions, on `pull_request` into main)**
+
+| # | Step | Responsible | Must be true to trust it |
+|---|---|---|---|
+| 1 | Check out the PR, plus main's `lint-baseline.txt` as `base-baseline.txt` (`git show origin/main:lint-baseline.txt`). | Repo owner (workflow) | Fetch depth includes main. The baseline comes from the **base branch**, not the PR. |
+| 2 | Run `npm run lint`, which writes `findings.txt`. | Repo owner (`scripts/lint.mjs`) | The script runs a real linter over the whole tree, with pinned version and config. Finding names are stable and the output is sorted and de-duplicated. The step fails if the linter itself errors. |
+| 3 | Gate: `comm -13 <(sort -u base-baseline.txt) <(sort -u findings.txt)` must be empty. Any output is a new finding, so fail the build and print it. | Repo owner (workflow) | The baseline is read from main (step 1). Names are line-independent, so unrelated edits don't create false "new" findings. |
+| 4 | Guard the baseline: fail if the PR's `lint-baseline.txt` has any line that main's doesn't. The baseline may only shrink. Also require owner review (CODEOWNERS) on that file. | Repo owner (workflow, CODEOWNERS, branch protection) | The PR can't alter the baseline to pass its own gate. The protection is enforced in branch settings. |
+| 5 | Flag stale entries: baseline lines that no longer appear in `findings.txt`. Warn at first, then require removal. | Repo owner | Same as step 3. |
+| 6 | Mark the lint job as a required status check on main. | Repo owner (branch protection) | Without this, none of the above blocks a merge. |
+
+To move to blocking all findings later, change step 3 to fail on any non-empty `findings.txt`, then delete the baseline and step 4. Do this when the baseline file is empty.
+
+**Conclusion on this PR**
+It should not pass. Under steps 1–3, `src/b.js:no-eval` isn't in main's baseline, so it's a new finding and the gate fails. Step 4 also fails, because the PR adds a baseline line. The commit hides a new finding by baselining it, which defeats the "block new findings" rule. The fix is to remove the `eval` from `src/b.js` and drop the baseline addition. Separately, `src/b.js` isn't committed, so the branch as committed doesn't contain the file at all. And since `lint.mjs` is hardcoded, a green run proves nothing until step 2 is real.

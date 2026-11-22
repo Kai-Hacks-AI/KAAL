@@ -1,0 +1,29 @@
+**What it is:** `npm run lint:ratchet` (`scripts/lint-ratchet.mjs`) is a detective check with a baseline ratchet. It runs `scripts/lint.mjs` and exits 1 only on findings that aren't in `lint-baseline.txt`. I read the scripts but did not run them, so none of this is observed behavior.
+
+**What it stops:** a new `file:rule` pair that isn't in the baseline. That fails the step, and it can only block a merge if branch protection requires the check.
+
+**What it doesn't stop:**
+- Anything already in the baseline, which is 4 entries.
+- More violations of an already-baselined rule in the same file. `src/a.js:no-var` is one key, so a second `var` is invisible.
+- Stale baseline entries. `src/old.js:no-var` is listed, but no such file exists, and nothing flags it.
+- Edits to the baseline itself. The script's own comment says it is "edited by hand", so a PR can add a line to silence a finding.
+
+**What I can claim from what I saw:**
+- `lint.mjs` is a stub. It prints a hardcoded list (`a.js`, `b.js`, `c.js`) and always exits 0, and it never reads any source.
+- `src/` contains only `a.js`. `b.js` and `c.js` don't exist, so the "findings" aren't real.
+- The ratchet's result therefore says nothing about the code.
+- There is no `.github` directory or other CI config in the repo. The README's claim that CI runs this on every PR is unverified from here.
+- I can't tell whether the check is required to merge.
+
+**What's missing or wrong:**
+1. The linter is fake. It needs a real linter (for example ESLint) that actually scans `src/`.
+2. No CI workflow or required-check setting is in the repo.
+3. The baseline is hand-edited and keyed without counts or lines. Generate it by a command, and track counts per file and rule.
+4. The script should fail on stale entries, so the baseline can only shrink.
+5. The script doesn't check `execSync` or the linter's exit status, so a linter crash could look like a clean run.
+6. Changes to the baseline should need review (CODEOWNERS).
+
+**When the goal (zero findings) is reached:**
+- Empty or delete `lint-baseline.txt`.
+- Replace the ratchet with a plain `npm run lint` that fails on any finding, and make it a required check.
+- Remove the baseline logic so it can't be used to re-add exceptions.

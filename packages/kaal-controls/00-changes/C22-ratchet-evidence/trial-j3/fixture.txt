@@ -1,0 +1,14 @@
+branches: main (baseline lists src/a.js:no-var), feature (adds src/b.js and lists src/b.js:no-eval in its own baseline)
+=== package.json
+{"name":"demo","scripts":{"lint":"node scripts/lint.mjs > findings.txt"}}
+=== scripts/lint.mjs
+// prints findings, one name per line, e.g. src/a.js:no-var (names are stable)
+console.log(['src/a.js:no-var','src/b.js:no-eval'].join('\n'));
+=== README.md
+# demo
+We want zero lint findings. Existing ones are listed in lint-baseline.txt and are tolerated until fixed. CI is GitHub Actions (not yet set up for lint). PRs go from feature branches into main.
+=== main lint-baseline.txt
+src/a.js:no-var
+=== feature lint-baseline.txt
+src/a.js:no-var
+src/b.js:no-eval

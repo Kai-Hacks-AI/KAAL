@@ -1,0 +1,22 @@
+**Conclusion on this PR:** it should be blocked. The PR adds `src/b.js` (finding `src/b.js:no-eval`) and adds that finding to `lint-baseline.txt`. `main`'s baseline is only `src/a.js:no-var`, so the baseline grew. Under a ratchet, growth is itself a failure (`baseline-grew`, plus `new-finding` against `main`'s baseline). If the check ran against the PR's own baseline it would pass. That's the loophole this design closes. Also note that no GitHub Actions workflow exists yet, and `src/b.js` and `.claude/` are untracked in this checkout. So nothing has judged this PR, and I have run nothing. The fix is to remove the `no-eval` in `b.js` instead of listing it, or to have the repository owner accept the growth on purpose.
+
+**CI steps** (all run on the PR; the script is `.claude/skills/kaal-controls/scripts/judge-mode.mjs`, the ratchet comparator from the kaal-controls Skill):
+
+| # | Step | Responsible | Must be true to trust it |
+|---|---|---|---|
+| 1 | Check out the PR merge commit, and also `main` as the base ref | Workflow (repository owner writes it) | The workflow file and the judge script are read from `main`, not from the PR. Otherwise the PR can change what judges it. |
+| 2 | Run `npm run lint`, which writes `findings.txt` | `scripts/lint.mjs` (repository owner) | Finding names are stable, one per line, and fine enough to matter. A worse finding under the same name passes. A crash gives "unknown", not "no findings". |
+| 3 | Convert `findings.txt` to JSON, and `main:lint-baseline.txt` to JSON as `previous` and the PR's `lint-baseline.txt` as `baseline` | Small glue script (repository owner) | `previous` comes from `main` via `git show`. Empty or missing files are errors, not "empty list". |
+| 4 | `node judge-mode.mjs --mode ratchet --findings … --baseline … --previous …` | Skill script | The script is pinned and its exit code is used: 0 pass, 1 blocked, 2 could not judge. Treat 2 as a stop. |
+| 5 | Make the job a required status check on `main` | Repository owner (branch protection) | This is what makes the check preventive for merges through the PR route. Admin bypass and direct pushes are outside it, and I haven't observed the setting. |
+| 6 | On merge, after resolving findings, update the baseline to `next` (remove resolved entries) | Author in the same PR; the judge fails stale entries. | The baseline only shrinks. |
+
+**What each part is:**
+- The ratchet is a preventive control that runs in a temporary mode.
+- The lint run is detective.
+- The README's "zero findings" is directive.
+- The required-check setting is what ties the result to the merge.
+
+**Exit:** declare it as `exit:`. When the baseline is empty, delete the baseline and the glue, and run `--mode preventive`, which blocks every finding.
+
+**Not yet observed:** any CI run, the branch protection settings, and any result of the judge on this PR.

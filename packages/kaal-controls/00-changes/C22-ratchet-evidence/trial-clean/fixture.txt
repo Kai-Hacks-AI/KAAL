@@ -1,0 +1,28 @@
+README.md
+lint-baseline.txt
+package.json
+scripts/lint-ratchet.mjs
+scripts/lint.mjs
+src/a.js
+---
+=== README.md
+# demo
+CI runs `npm run lint:ratchet` on every pull request. Lint findings that existed when we adopted the rule are listed in lint-baseline.txt. Goal: zero findings.
+=== lint-baseline.txt
+src/a.js:no-var
+src/b.js:no-var
+src/c.js:no-eval
+src/old.js:no-var
+=== package.json
+{"name":"demo","scripts":{"lint":"node scripts/lint.mjs","lint:ratchet":"node scripts/lint-ratchet.mjs","test":"echo ok"}}
+=== scripts/lint-ratchet.mjs
+// CI step: runs lint, fails only on findings that are not in lint-baseline.txt. Baseline is edited by hand.
+import { readFileSync } from 'node:fs'; import { execSync } from 'node:child_process';
+const base=new Set(readFileSync(new URL('../lint-baseline.txt',import.meta.url),'utf8').split('\n').filter(Boolean));
+const found=execSync('node scripts/lint.mjs').toString().split('\n').filter(Boolean);
+const fresh=found.filter(f=>!base.has(f)); if(fresh.length){console.log('new:',fresh);process.exit(1)}
+=== scripts/lint.mjs
+// prints findings (file:rule), one per line; always exits 0
+console.log(['src/a.js:no-var','src/b.js:no-var','src/c.js:no-eval'].join('\n'));
+=== src/a.js
+var a=1

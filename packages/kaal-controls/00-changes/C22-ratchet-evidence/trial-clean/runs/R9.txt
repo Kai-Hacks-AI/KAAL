@@ -1,0 +1,26 @@
+**What it is:** `npm run lint:ratchet` (`scripts/lint-ratchet.mjs`) is the lint check. The README says CI runs it on every pull request. It has two parts:
+- **Detective:** `scripts/lint.mjs` prints findings and always exits 0, so it reveals violations and blocks nothing.
+- **Preventive, if CI enforces it:** the ratchet exits 1 on any finding that isn't in `lint-baseline.txt`. That would stop only new findings in a pull request. The baseline lists the findings that already existed.
+
+**What it stops and what it doesn't**
+- It would stop a new `file:rule` finding from passing the CI step, but only if CI runs it and merging is blocked on the result.
+- It doesn't stop existing baselined findings, and it doesn't fix anything.
+- It doesn't stop direct pushes, bypassing CI, or edits to the baseline.
+
+**What I can claim**
+- I read the files but did not run anything.
+- The repo has no CI config: there is no `.github`, and I saw no hooks. I can't claim CI runs it, that merges are gated on it, or that it has ever blocked anything.
+- The README says it runs on every PR. That is a directive, not an observation.
+
+**What's missing or wrong**
+- **The linter is a stub.** `lint.mjs` prints a hardcoded list and never reads `src/`. Real violations would pass, so a green result shows nothing about the code. `src/` contains only `a.js`.
+- **The baseline can be edited freely.** It is edited by hand, and nothing stops a PR from adding a line to hide a new finding. Nothing requires review of baseline changes (CODEOWNERS or similar).
+- **The baseline is stale.** It lists `src/b.js`, `src/c.js` and `src/old.js`, and none of them exist. Fixed or deleted findings stay in the baseline, because the ratchet only fails on new findings and never forces entries out. A later regression of one of those findings would be silently allowed.
+- **No corrective step.** Nothing prunes the baseline or tracks progress toward zero.
+- **No gate in the repo.** There is no branch protection or required-check configuration I can see.
+
+**When the goal (zero findings) is reached**
+- Empty `lint-baseline.txt`, or remove it and the baseline logic.
+- Make lint itself fail on any finding, with a real exit code, so the check is a plain gate instead of a ratchet.
+- Make the CI check required for merging.
+- Until then, make the ratchet fail on stale baseline entries, so the list can only shrink.

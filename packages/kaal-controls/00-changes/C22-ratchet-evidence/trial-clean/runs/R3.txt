@@ -1,0 +1,23 @@
+**What it is.** The check is `npm run lint:ratchet`, which runs `scripts/lint-ratchet.mjs`. It is a preventive control run in ratchet mode. It exits 1 on any finding that isn't in `lint-baseline.txt`. The README is a directive that says CI runs it on every pull request.
+
+**What it stops.** It stops new findings, meaning `file:rule` names that aren't in the baseline, but only where the script is run and its exit code is enforced. It does not stop:
+- Findings already in the baseline.
+- A known finding getting worse under the same name.
+- Anyone editing the baseline by hand, which the script comment confirms. That edit is the bypass.
+- A merge, because I found no gate that enforces the result.
+
+**What I can claim.**
+- From reading the code, the script compares lint output to the baseline and exits 1 on new findings. If `lint.mjs` itself crashes, `execSync` throws, so the check fails rather than passing.
+- I did not see it operate. The sandbox refused my run of `npm run lint:ratchet`.
+- "CI runs it on every PR" is unobserved. The repo has no `.github` directory and no CI config, so the README is only a directive here.
+- `scripts/lint.mjs` is a stub. It prints three hard-coded findings and always exits 0, and it doesn't read any source files. Two of those findings point at `src/b.js` and `src/c.js`, which don't exist. A clean ratchet result would therefore show nothing about the code.
+
+**What is missing or wrong.**
+1. **No wiring.** No CI config enforces the check, and nothing makes the verdict block a merge.
+2. **The baseline can grow.** It is edited by hand, and there is no "previous accepted baseline" to compare against. A new finding can be excused by adding it to the baseline.
+3. **Stale allowances pass.** `src/old.js:no-var` is in the baseline but isn't found. The ratchet should fail on it, because an allowance for a finding that is gone would excuse that finding if it returned. The script only checks for new findings.
+4. **"Unknown blocks" isn't implemented.** A missing baseline file throws, which happens to fail, but that is by accident rather than design.
+5. **Finding names are coarse.** `file:rule` lets a file go from 1 to 50 `no-var` findings and still pass.
+6. **No exit statement.** The ratchet doesn't say what it becomes when it ends.
+
+**When the goal is reached.** When there are zero findings and the baseline is empty, delete `lint-baseline.txt` and the baseline logic in the ratchet script. Run `npm run lint` as an ordinary preventive check, where any finding blocks, and make sure CI enforces it. Write that down as the control's `exit:` line. Replace the stub linter with a real one before then, or "zero findings" means nothing.
