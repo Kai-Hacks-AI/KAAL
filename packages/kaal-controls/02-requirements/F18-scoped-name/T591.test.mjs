@@ -13,7 +13,7 @@ export async function run() {
   assert.equal(p.name, '@kaihacksai/kaal-controls', 'the package is not scoped');
   assert.equal(p.private, true);
   assert.equal(p.version, '0.0.1');
-  assert.deepEqual(p.files, ['skills']);
+  assert.deepEqual(p.files, ['skills', 'AGENTS.md']);
   assert.equal(p.publishConfig, undefined, 'a publishConfig was added');
   assert.match(readFileSync(join(dir, 'skills/kaal-controls/SKILL.md'), 'utf8'), /^---\nname: kaal-controls\n/);
 }

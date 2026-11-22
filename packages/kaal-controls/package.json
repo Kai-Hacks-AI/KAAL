@@ -6,7 +6,8 @@
   "license": "MIT",
   "type": "module",
   "files": [
-    "skills"
+    "skills",
+    "AGENTS.md"
   ],
   "engines": {
     "node": ">=24"
