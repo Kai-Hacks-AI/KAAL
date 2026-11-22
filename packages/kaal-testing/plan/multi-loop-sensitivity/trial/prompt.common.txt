@@ -1,0 +1,112 @@
+You are acting as Testing. Review the testing situation for the `budget-gate` module below using only the `kaal-testing` Skill (`SKILL.md` and `references/findings.md`) provided in this prompt. Answer from this prompt alone: use no tools, read no repository files, and modify nothing.
+
+First, list the Skill `name`, title (`# ...`), and every `## ` section heading of `SKILL.md` you received.
+
+Then review the module and its test output below. State:
+1. Your assessment of each claim in `spec.md` and what evidence is needed or missing.
+2. What the existing test runs establish (and what they do not).
+3. Your classified findings and concrete next steps.
+
+---
+
+### `budget-gate/spec.md`
+
+```markdown
+# budget-gate Specification
+
+## Intent
+
+- **BG-I1**: Prevent accidental overspend by checking itemized integer costs against a numeric budget limit before an action proceeds.
+
+## Requirements
+
+- **BG-R1** [BG-I1]: `evaluateBudget(items, limit)` sums each item's `cost` (non-negative integer) and returns `{ over: boolean, remaining: number }`, where `over` is `total > limit` (exact equality `total === limit` is within budget: `over: false, remaining: 0`) and `remaining` is `limit - total`.
+- **BG-R2** [BG-I1]: Any item with negative, non-integer, or non-finite `cost`, or a negative or non-finite `limit`, throws a `RangeError`.
+- **BG-R3** [BG-I1]: Large batches should complete promptly.
+- **BG-R4** [BG-I1]: Error messages should be clear and helpful to operators.
+
+## Architecture
+
+- **BG-A1** [BG-I1]: `budget.mjs` is pure domain logic with no host filesystem or subprocess access (it must not import `node:fs` or `node:child_process`).
+```
+
+### `budget-gate/budget.mjs`
+
+```js
+import { existsSync } from "node:fs";
+
+export function evaluateBudget(items, limit) {
+  if (typeof limit !== "number" || !Number.isFinite(limit) || limit < 0) {
+    throw new RangeError("limit must be a non-negative finite number");
+  }
+  if (!Array.isArray(items)) {
+    throw new TypeError("items must be an array");
+  }
+  let total = 0;
+  for (const item of items) {
+    const cost = item?.cost;
+    if (typeof cost !== "number" || !Number.isInteger(cost) || cost < 0) {
+      throw new RangeError("each item cost must be a non-negative integer");
+    }
+    total += cost;
+  }
+  const over = total > limit;
+  if (process.env.BUDGET_AUDIT_FILE && existsSync(process.env.BUDGET_AUDIT_FILE)) {
+    // Optional debug marker lookup left behind from an earlier prototype.
+  }
+  return { over, remaining: limit - total };
+}
+```
+
+### `budget-gate/budget.checks.mjs`
+
+```js
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { evaluateBudget } from "./budget.mjs";
+
+describe("budget-gate", () => {
+  it("reports under budget when total is strictly below limit", () => {
+    assert.deepEqual(evaluateBudget([{ cost: 4 }, { cost: 5 }], 10), { over: false, remaining: 1 });
+  });
+
+  it("reports over budget when total exceeds limit", () => {
+    assert.deepEqual(evaluateBudget([{ cost: 6 }, { cost: 6 }], 10), { over: true, remaining: -2 });
+  });
+});
+```
+
+### `budget-gate/broken.checks.mjs`
+
+```js
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { loadFixture } from "./missing-fixture.mjs";
+
+it("rejects negative item cost", () => {
+  const sample = loadFixture();
+  assert.throws(() => sample, RangeError);
+});
+```
+
+### Observed test output (`node --test`)
+
+```text
+$ node --test budget.checks.mjs
+▶ budget-gate
+  ✔ reports under budget when total is strictly below limit (2.5ms)
+  ✔ reports over budget when total exceeds limit (0.4ms)
+✔ budget-gate (5.2ms)
+ℹ tests 2
+ℹ pass 2
+ℹ fail 0
+(exit 0)
+
+$ node --test broken.checks.mjs
+✖ broken.checks.mjs (1.2ms)
+  Error [ERR_MODULE_NOT_FOUND]: Cannot find module '.../missing-fixture.mjs' imported from '.../broken.checks.mjs'
+ℹ tests 1
+ℹ pass 0
+ℹ fail 1
+(exit 1)
+```
