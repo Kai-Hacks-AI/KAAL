@@ -1,0 +1,34 @@
+# C129 change
+
+## PLAN
+
+One script, one pure function, one thin reader and one control record. Nothing here installs a workflow, sets a flag or changes a ruleset. The workflow job is engineering's (`engineering/C32`); this Change is the command that job calls.
+
+### Decisions (the approval of this pull request is the go for the DO)
+
+1. **The command.** `node 05-src/codeql-gate/judge-codeql.mjs --out <findings.json>`. It takes everything else from the environment of the job, so the job passes no argument that could name another sha: `GITHUB_REPOSITORY`, `GITHUB_SHA`, `GITHUB_REF`, `GITHUB_TOKEN` (read only: `security-events: read`), `CODEQL_EXPECTED` (one quoted, space-separated string of `/language:<name>`, as engineering's F93 pins), `CODEQL_ANALYZE_RESULT` (`needs.analyze.result`), and the two thresholds `CODEQL_SECURITY_ALERTS_THRESHOLD` and `CODEQL_ALERTS_THRESHOLD`. Optional `CODEQL_WAIT_SECONDS` (default 600) and `CODEQL_POLL_SECONDS` (default 30). The sha and ref are never read from the pull request's head or the event payload.
+2. **What it writes.** A JSON list of finding names, sorted, in `--out`. `missing:<category>` for an expected configuration with no analysis for the sha; `errored:<category>` for an analysis whose `error` is not empty; `alert:<number>` for an open alert on the ref at or above a threshold. An empty list is a complete clean set. The script prints no verdict and never writes the words PASS or FAIL: the verdict comes from kaal-controls' `judge-mode` in preventive mode, and one rule is not written twice.
+3. **UNKNOWN is the absence of the file.** An API error, an unreadable response, an unknown threshold value, an unset `CODEQL_EXPECTED`, or an analysis still absent when the wait ends exits 2 and writes no file (and removes a stale one). A missing findings file is UNKNOWN in `judge-mode`, so the job fails closed with no code of ours deciding it. The message on stderr names the reason and, for the wait, the configurations still missing.
+4. **The wait depends on what is known.** If `CODEQL_ANALYZE_RESULT` is not `success`, an analysis did not complete and none will arrive: the script reads once and reports what is missing, without waiting. If it is `success`, every expected analysis should arrive: it polls every 30 seconds up to 10 minutes (engineering's recommendation, question 3 of C32), and the end of the budget is UNKNOWN, not `missing`, because a late upload is the failure of #2313 and the script cannot tell lateness from absence. Time and sleep are injected, so no Case waits.
+5. **Two threshold dimensions, carried over as data.** `security_alerts_threshold` takes `critical`, `high_or_higher`, `medium_or_higher`, `all`, `off`; an alert counts when its security severity reaches it. `alerts_threshold` takes `errors`, `errors_and_warnings`, `all`, `off`; an alert counts when its rule severity reaches it. An alert at or above either is a finding. Any other value is UNKNOWN. The values come from the workflow source; the CPO states the legacy rule's values (engineering C32 question 2). *Open question below: the alert set.*
+6. **Layers.** `lib/findings.mjs` is pure over facts and imports nothing: `findingsOf` and `waitForAnalyses` (time, sleep and the read are arguments). `lib/read.mjs` is the only reader: it pages `GET /repos/{r}/code-scanning/analyses?sha=&ref=` and `GET /repos/{r}/code-scanning/alerts?ref=&state=open`, with `fetch` as an argument. `judge-codeql.mjs` wires them and does the only file write. T1314 style: a Case pins that `findings.mjs` imports nothing.
+7. **The control.** `04-controls/CTL34-verify-codeql/CTL34.md`, registered preventive at the station of the workflow, `status: designed`, `has: [release/I68]`, evidence from fixture, one real run and one provoked FAIL. It declares no ratchet strategy: there is no baseline, the check is in or out from the first run. It gets no flag: engineering's C32 stages it as a job that is seen to run (detective), then the Owner's go makes it required, so release's flag convention does not apply (decision 8).
+8. **Staging stays the Owner's.** This Change gives a command and a record. The workflow DO is engineering's once this command is on main; the release WIRE that installs the source and the ruleset swap each need Kai's own go. Until the ruleset names `verify CodeQL`, a red job blocks nothing.
+9. **Dependencies named.** `judge-mode` is not on main. The DO needs the command line of `judge-mode` (its name, how it takes `--findings` and `--mode`) from kaal-controls C22 and says it in `do.md`; this PLAN does not guess it. Until it lands, the DO lands the judge and its Cases and the job's hand-over is the command of decision 1 only.
+
+### Cases (plain `.test.mjs`, RED until the DO)
+
+- T1395 `findingsOf`: a complete set with no alert is `[]`; a missing configuration is `missing:/language:actions`; an analysis with an error is `errored:`; an analysis of another sha is ignored; extra analyses of other categories are not findings.
+- T1396 thresholds: `high_or_higher` counts `high` and `critical` and not `medium`; `errors` counts rule severity `error` and not `warning`; both dimensions together; an alert that is not open does not count; an unknown threshold value throws.
+- T1397 `waitForAnalyses`: returns at once when all expected are present; polls at 30 seconds and returns when the last one arrives; at 600 seconds still missing is not ok and names them; an API error is not ok; with `analyzeResult` not `success` it reads once and returns what exists.
+- T1398 the command: an injected environment and fetch; findings written to `--out`, exit 0 even when the list is not empty; exit 2 and no file for each UNKNOWN of decision 3, a stale file removed; sha and ref come from the environment only.
+- T1399 layers and verdict: `lib/findings.mjs` imports nothing; `judge-codeql.mjs` never contains `PASS` or `FAIL` as an output; the only write is `--out`.
+- T1400 control record: CTL34 exists, type preventive, `has` release/I68, no `strategy`, and no `X:ratchet` registration.
+
+### Open question for the CPO and engineering
+
+The alert set. Engineering's contract reads the open alerts of the merge ref. An alert already open on the base would then block every pull request until it is fixed, which the legacy rule does not do (it blocks alerts a change introduces). The REST list takes a `pr` parameter for the alerts of a pull request; whether that gives "introduced by this change" on `merge_group` and `push` refs is not verified. Recommended: the DO reads the alerts of the ref, a provoked pull request on a disposable branch shows whether an inherited alert blocks, and the answer decides before the ruleset swap, not before this DO.
+
+### Not in this Change
+
+No workflow job, no WIRE, no `.github` change, no ruleset change, no removal of the legacy rule. Dependency Review has the same gap and is its own Change.
