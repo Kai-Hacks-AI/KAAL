@@ -144,3 +144,13 @@ describe('incomplete and mis-shaped records are reported and never stop the navi
     assert.deepEqual(nav.items.map((i) => i.id), ['ns/V1']);
   });
 });
+
+describe('ordinary formatting does not hide a contradiction', async () => {
+  const { item, result, tree } = await import('./plan/review-items/lib.mjs');
+  const { navigate } = await import('../skills/kaal-review/scripts/navigate.mjs');
+  it('sees an unresolved part written with trailing whitespace', async () => {
+    const r = result('ns/RV1', { appraises: 'ns/V1', revision: 'a', appraiser: 'an Agent', relation: 'not-author', execution: 'performed', conclusion: 'satisfied', parts: ['component: unresolved  '] });
+    const nav = await navigate(tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'r/RV1.md': r }), { revision: 'a' });
+    assert.ok(nav.findings.some((x) => x.kind === 'part-contradicts-conclusion'));
+  });
+});

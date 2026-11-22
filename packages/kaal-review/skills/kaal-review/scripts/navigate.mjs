@@ -15,9 +15,9 @@ export function parse(text) {
   const m = text.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/); if (!m) return { front: {}, body: text, malformed: [] };
   const front = {}, malformed = []; let key = null;
   for (const line of m[1].split('\n')) {
-    const li = line.match(/^\s+-\s+(.*)$/); if (li && key) { if (Array.isArray(front[key])) front[key].push(li[1]); else malformed.push(`${key}: a list item follows a scalar value`); continue; }
+    const li = line.match(/^\s+-\s+(.*)$/); if (li && key) { if (Array.isArray(front[key])) front[key].push(li[1].trim()); else malformed.push(`${key}: a list item follows a scalar value`); continue; }
     const kv = line.match(/^([\w-]+):\s*(.*)$/); if (!kv) continue; key = kv[1];
-    const v = kv[2]; if (v === '') front[key] = []; else if (/^\[.*\]$/.test(v)) front[key] = v.slice(1, -1).split(',').map((s) => s.trim()).filter(Boolean); else front[key] = v;
+    const v = kv[2].trim(); if (v === '') front[key] = []; else if (/^\[.*\]$/.test(v)) front[key] = v.slice(1, -1).split(',').map((s) => s.trim()).filter(Boolean); else front[key] = v;
   }
   return { front, body: m[2], malformed };
 }
