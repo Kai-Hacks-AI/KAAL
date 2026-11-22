@@ -2,12 +2,11 @@
 
 ## Modes
 
-A station mode is one of four. It says what the control does with the answer of its check at that station:
+A station mode is one of three. It says what the control does with the answer of its check at that station:
 
 | Mode | The answer is | Blocks |
 | --- | --- | --- |
 | detective | reported | nothing |
-| advisory | shown as a warning where the author is acting | nothing |
 | preventive | enforced: any finding stops the action | the action |
 | ratchet | enforced against a baseline: a finding not in the baseline stops the action | what is new |
 
@@ -52,7 +51,6 @@ It inherits the comparison and the transition rule, shown by Cases T1109, T1112 
 | Mode | Verdict | Blocked | Also says |
 | --- | --- | --- | --- |
 | detective | `REPORT` with findings, `PASS` without | never | |
-| advisory | `WARN` with findings, `PASS` without | never | |
 | preventive | `FAIL` with findings, `PASS` without | with findings | |
 | ratchet | `FAIL` with a new finding, a baseline that grew or a stale allowance; `PASS` otherwise | on `FAIL` | `known`, `new`, `stale`, `grew`, `reasons`, `next` (the baseline the next run must hold), `spent` and `then: 'preventive'` when the baseline is empty |
 | ratchet, no findings list | `UNKNOWN`, reason `could-not-judge` | yes | |
@@ -60,6 +58,6 @@ It inherits the comparison and the transition rule, shown by Cases T1109, T1112 
 | ratchet, a reference or baseline that is not a list of distinct names | `UNKNOWN`, reason `incompatible-reference` | yes | |
 | any other mode, findings not given | `UNKNOWN` | in preventive | |
 
-## Reference, instructions file
+## Reference
 
-`references/modes.md`: the four modes, that the type stays, that the claim follows the mode (only preventive and ratchet may be said to prevent, and a ratchet only what is new; detective and advisory only reveal), the ratchet contract, what a ratchet must state as its exit, what an adopter inherits and supplies, and the questions an agent asks of a check it finds. `SKILL.md` gains one pointer line. `AGENTS.md` at the package root, which `files` ships beside `skills`, says in a few lines when to read the Skill and where it is, and repeats none of it.
+`references/modes.md`: what a ratchet is, how it ends (the exit), that its type stays preventive and only the mode differs, that a claim follows the mode, and what an adopter supplies. `SKILL.md` gains one pointer line. No instructions file is added by this Change.

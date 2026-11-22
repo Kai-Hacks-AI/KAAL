@@ -1,32 +1,24 @@
-# Modes of a check
+# Ratchet
 
-A check gives one answer: the thing is in its specification, or it is out. An out answer names what is missing and what is too much, as findings, each a name that stays the same from run to run. A check that could not judge gives no answer, and that is unknown, never a pass.
+A ratchet is a temporary, special way of running a preventive control. It is not a fifth type: the type of a control is its design, and a ratchet is a mode it operates in for a while. Use it when a rule is right but the thing it governs does not meet it yet, so blocking everything now would stop all work.
 
-What the check does with its answer is its mode:
+## What a ratchet is
 
-- **Detective** reports the findings and blocks nothing.
-- **Advisory** warns where the author is acting and blocks nothing.
-- **Preventive** blocks the action when there is any finding.
-- **Ratchet** is preventive against a baseline: it blocks only a finding that is not in the baseline. Its purpose is to raise the target step by step, never to allow more.
+A check gives findings: what is missing and what is too much, each a name that stays the same from run to run. A ratchet records the findings that exist today as an allowance, the baseline, and then:
 
-The type of a control is its design and does not change with the mode. The claim does: only a preventive or ratchet mode may be said to prevent, a ratchet only what is new. A detective or advisory mode reveals; say that, and not that it protects.
+1. **No new regressions.** A finding that is not in the baseline blocks. A finding in the baseline passes.
+2. **The allowance only shrinks.** The baseline holds nothing the last accepted baseline did not hold.
+3. **Resolved means removed.** The baseline is the last accepted baseline minus the findings no longer found. An allowance kept for a finding that is gone would excuse it if it came back, so it fails. A finding that was resolved and returns is new and blocks; putting it back into the baseline is growth.
+4. **Unknown blocks.** With no accepted baseline to compare to, one that cannot be compared, or a check that could not judge, the answer is unknown and blocks. Missing evidence is never success.
 
-## The ratchet
+A claim follows the mode: a ratchet stops what is new and nothing else. It does not say the rule holds.
 
-The baseline is the allowance, the findings known and tolerated. It is held across accepted runs against a reference, the baseline last accepted:
+## How it ends
 
-1. **Preserve.** The baseline holds nothing the reference did not hold. A baseline only shrinks.
-2. **Advance.** The baseline is the reference minus the findings no longer found. An allowance kept for a finding that is gone would excuse it when it came back, so it fails. A finding that was resolved and returns is new and blocks; adding it back to the baseline is growth.
-3. **Unknown blocks.** With no reference, a reference that cannot be compared, or a check that could not judge, the answer is unknown and blocks. Missing evidence is never success.
+A ratchet is temporary and says how it ends. When the target is achieved and the baseline is empty, remove the baseline and everything made only for the ratchet, and continue as an ordinary preventive control. A ratchet with no stated exit is not accepted: declare `exit:` as one sentence on what the control becomes when its baseline is empty.
 
-A ratchet states its exit: what it becomes when its baseline is empty, normally the plain preventive check, with the baseline removed. A ratchet with no exit is not accepted.
+## The script
 
-`scripts/judge-mode.mjs` does the comparison: `node judge-mode.mjs --mode <mode> --findings <file> [--baseline <file> --previous <file>]`, JSON lists of names in, a verdict out (`PASS`, `REPORT`, `WARN`, `FAIL`, `UNKNOWN`), exit 0 when nothing is blocked, 1 when blocked, 2 when it could not judge. It also gives the baseline the next run must hold.
+`scripts/judge-mode.mjs` does the comparison: `node judge-mode.mjs --mode <detective|preventive|ratchet> --findings <file> [--baseline <file> --previous <file>]`, JSON lists of names in (`previous` is the last accepted baseline), a verdict out (`PASS`, `REPORT`, `FAIL`, `UNKNOWN`), exit 0 when nothing is blocked, 1 when blocked, 2 when it could not judge. For a ratchet it also gives the baseline the next run must hold, and says when the baseline is empty and the control becomes preventive.
 
-## What it leaves to you
-
-The script compares. You supply: which accepted state the reference is read from, stable finding names, writing the next baseline where you keep it, making the verdict stop the action, who may change a mode, and the evidence for each of these.
-
-## Questions to ask of a check you find
-
-What is its answer, and does it flag both what is missing and what is too much? Which mode does it run in here? What does it stop, and for whom? If it is a ratchet: what is the baseline, where is the reference read from, and what is its exit?
+You supply the rest: where the last accepted baseline is read from, stable finding names, writing the next baseline, making the verdict stop the action, who may change the mode, and the evidence for each.

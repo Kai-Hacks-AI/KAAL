@@ -12,15 +12,16 @@ const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'check layout', d
 const one = async (o) => { const { findControls } = await import(pathToFileURL(join(S, 'find-controls.mjs')).href); return findControls([{ path: 'x/CTL1.md', text: item(o) }]).controls[0]; };
 export const id = 'controls/T1110';
 export const tests = ['controls/F34'];
-export const title = 'the four modes are accepted at a station, a ratchet must state its exit, and a mode outside the four stays refused';
+export const title = 'the three modes are accepted at a station, a ratchet must state its exit, and a mode outside the four stays refused';
 export async function run() {
-  for (const m of ['detective', 'advisory', 'preventive']) assert.equal((await one({ stations: '[Integrating:' + m + ']' })).valid, true, m + ' was refused');
+  for (const m of ['detective', 'preventive']) assert.equal((await one({ stations: '[Integrating:' + m + ']' })).valid, true, m + ' was refused');
   const noExit = await one({ stations: '[Integrating:ratchet]' });
   assert.equal(noExit.valid, false, 'a ratchet with no exit was accepted');
   assert.ok(noExit.problems.some((p) => p.field === 'exit'), 'the missing exit was not named');
   const withExit = await one({ stations: '[Integrating:ratchet]', exit: 'it becomes plain preventive and the baseline is removed' });
   assert.equal(withExit.valid, true, 'a ratchet with its exit was refused');
-  assert.equal((await one({ stations: '[Integrating:advisory]', exit: 'not needed' })).valid, true, 'an exit on a control with no ratchet was refused');
-  assert.equal((await one({ stations: '[Integrating:sometimes]' })).valid, false, 'a mode outside the four was accepted');
+  assert.equal((await one({ stations: '[Integrating:preventive]', exit: 'not needed' })).valid, true, 'an exit on a control with no ratchet was refused');
+  assert.equal((await one({ stations: '[Integrating:advisory]' })).valid, false, 'advisory was accepted');
+  assert.equal((await one({ stations: '[Integrating:sometimes]' })).valid, false, 'a mode outside the three was accepted');
   assert.equal((await one({ stations: '[Integrating:ratchet]', exit: '' })).valid, false, 'an empty exit was accepted');
 }

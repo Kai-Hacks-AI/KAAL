@@ -30,7 +30,7 @@ function idList(value) {
 }
 
 const STATIONS = ['Developing', 'Collecting', 'Integrating', 'Hotfixing', 'Wiring', 'Promoting', 'Publishing'];
-const MODES = ['detective', 'advisory', 'preventive', 'ratchet'];
+const MODES = ['detective', 'preventive', 'ratchet'];
 const STATUSES = ['designed', 'implemented', 'running', 'tested'];
 const KIND = /^[a-z][a-z0-9-]*$/;
 const REF = 'references/declaring-controls.md';

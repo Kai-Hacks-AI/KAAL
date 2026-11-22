@@ -10,10 +10,10 @@ const judge = async (o) => { const f = join(S, 'judge-mode.mjs'); assert.ok(exis
 
 export const id = 'controls/T1108';
 export const tests = ['controls/F34'];
-export const title = 'the same answer is used as each mode says: detective and advisory block nothing, preventive blocks, an answer that could not be given is unknown';
+export const title = 'the same answer is used as each mode says: detective blocks nothing, preventive blocks, an answer that could not be given is unknown';
 export async function run() {
   const found = ['x is missing', 'y is too much'];
-  for (const [mode, verdict] of [['detective', 'REPORT'], ['advisory', 'WARN']]) {
+  for (const [mode, verdict] of [['detective', 'REPORT']]) {
     const r = await judge({ mode, findings: found });
     assert.equal(r.verdict, verdict, mode + ' did not say ' + verdict);
     assert.equal(r.blocked, false, mode + ' blocked');
@@ -23,10 +23,10 @@ export async function run() {
   const p = await judge({ mode: 'preventive', findings: found });
   assert.deepEqual([p.verdict, p.blocked], ['FAIL', true], 'preventive with findings did not block');
   assert.deepEqual([(await judge({ mode: 'preventive', findings: [] })).verdict, (await judge({ mode: 'preventive', findings: [] })).blocked], ['PASS', false], 'preventive with nothing found blocked');
-  for (const [mode, blocked] of [['detective', false], ['advisory', false], ['preventive', true], ['ratchet', true]]) {
+  for (const [mode, blocked] of [['detective', false], ['preventive', true], ['ratchet', true]]) {
     const u = await judge({ mode, findings: null, baseline: [] });
     assert.equal(u.verdict, 'UNKNOWN', mode + ' with no answer passed');
     assert.equal(u.blocked, blocked, mode + ' with no answer had the wrong effect');
   }
-  assert.equal((await judge({ mode: 'sometimes', findings: [] })).verdict, 'UNKNOWN', 'a mode outside the four was taken');
+  assert.equal((await judge({ mode: 'sometimes', findings: [] })).verdict, 'UNKNOWN', 'a mode outside the three was taken');
 }

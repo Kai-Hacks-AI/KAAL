@@ -2,14 +2,13 @@
 // Applies a mode to the answer of a check. Pure: it knows no repository, path or tool.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-const MODES = ['detective', 'advisory', 'preventive', 'ratchet'];
+const MODES = ['detective', 'preventive', 'ratchet'];
 const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f) && new Set(x).size === x.length;
 export function judgeMode({ mode, findings, baseline, previous } = {}) {
   if (!MODES.includes(mode)) return { mode, verdict: 'UNKNOWN', blocked: false, reason: 'no-mode' };
   const blocking = mode === 'preventive' || mode === 'ratchet';
   if (!Array.isArray(findings)) return { mode, verdict: 'UNKNOWN', blocked: blocking, reason: 'could-not-judge' };
   if (mode === 'detective') return { mode, verdict: findings.length ? 'REPORT' : 'PASS', blocked: false, findings };
-  if (mode === 'advisory') return { mode, verdict: findings.length ? 'WARN' : 'PASS', blocked: false, findings };
   if (mode === 'preventive') return { mode, verdict: findings.length ? 'FAIL' : 'PASS', blocked: findings.length > 0, findings };
   const unknown = (reason) => ({ mode, verdict: 'UNKNOWN', blocked: true, reason });
   if (previous === undefined || previous === null) return unknown('no-reference');

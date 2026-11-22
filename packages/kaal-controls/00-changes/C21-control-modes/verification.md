@@ -5,7 +5,7 @@ Every element states what verifies it. A script is verified by Test Cases that w
 | Step | Element | What verifies it |
 | --- | --- | --- |
 | Bare | the concept, as agreed in conversation and written in `C21.md` and `I15.md` | the CPO's review of this PLAN |
-| Agent | `AGENTS.md` | Case T1111 (structure: it exists, `files` ships it, it names the Skill path and that path exists, it names no other package), and the agent trial |
+| Agent | none in this Change | no instructions file is added |
 | Skill | `references/modes.md` and the pointer in `SKILL.md` | the Cases that already guard the Skill (it names no other package, its word limit), and the agent trial |
 | Script | `scripts/judge-mode.mjs` | Cases T1108, T1109, T1112 and T1113, and the sensitivity record of the CHECK (`check.md`) |
 | Ratchet contract | protected property, advancement rule, responsibility placement, exit, uncertainty | judgments J1 to J5 (`judgments.md`), each with an explicit disposition in CHECK |
@@ -17,4 +17,4 @@ The Cases and the judgment definitions exist in this PLAN, before anything runs.
 
 ## The agent trial (DO)
 
-A throwaway repository with no KAAL object and a few checks of different shapes: one that only reports, one that warns, one that blocks, one that blocks only what is new against a recorded list. A fresh agent has only `AGENTS.md` and the Skill, and is asked what each check does with its answer, to claim what each stops, and to add a new check and say how it will run. It is judged on: whether it says the mode of each check and does not claim that a reporting or warning check prevents; whether it says a ratchet stops only what is new; whether it asks for an exit when it is given a ratchet. Run with the instructions file and the Skill, with the Skill alone, and with neither, three runs each, and the result recorded as it is, including a run that fails.
+A throwaway repository with no KAAL object and a few checks, one of which blocks only what is new against a recorded list. A fresh agent has only the Skill and is asked what each check does, what it stops, how a ratchet ends, and to say what it would claim; it is judged on: does it say a ratchet stops only what is new, does it keep the type of the control distinct from its mode, does it ask for the exit and say the baseline is removed at empty. Run with the Skill and without it, three runs each, the result recorded as it is, including a run that fails. Kept separate from the sensitivity demonstration.
