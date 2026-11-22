@@ -18,7 +18,7 @@ export async function run() {
   }
   assert.equal(findRehearsals([]).rehearsals.length, 0);
   // Authorability: a record written for a real trial, with only the essentials and honest limits, is listed and well-formed.
-  const example = readFileSync(fileURLToPath(new URL('./example/RH1.md', import.meta.url)), 'utf8');
+  const example = readFileSync(fileURLToPath(new URL('../../skills/kaal-research/references/example-rehearsal.md', import.meta.url)), 'utf8');
   const found = findRehearsals([{ path: 'example/RH1.md', text: example }]);
   assert.equal(found.rehearsals.length, 1, 'the authored example is not listed');
   const held = [...example.matchAll(/path: (\S+)\n\s+sha256: (\w+)/g)].map((m) => ({ path: m[1], sha256: m[2] }));
