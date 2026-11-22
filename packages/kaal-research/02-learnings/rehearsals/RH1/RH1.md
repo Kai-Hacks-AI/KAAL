@@ -89,8 +89,7 @@ treatment-fixed: 2026-11-22T10:30:36Z
   exposure: none
 - run: r2
   arm: skill
-  exposure: opened
-  excerpt: evidence/exposure/agent-reports-skill-arm.md
+  exposure: delivered
 - run: r3
   arm: example-only
   exposure: none
@@ -99,12 +98,10 @@ treatment-fixed: 2026-11-22T10:30:36Z
   exposure: none
 - run: r5
   arm: skill
-  exposure: opened
-  excerpt: evidence/exposure/agent-reports-skill-arm.md
+  exposure: delivered
 - run: r6
   arm: skill
-  exposure: opened
-  excerpt: evidence/exposure/agent-reports-skill-arm.md
+  exposure: delivered
 ## Claims
 - id: c1
   claim: all six agents produced a record of the past trial; the form script judged five of the six well-formed, and the one it did not, an example-only record, was a favourable verdict resting on a claim marked partly
@@ -122,6 +119,6 @@ treatment-fixed: 2026-11-22T10:30:36Z
   scope: effect
   rests-on: r1, r2, r3, r4, r5, r6
   demonstrated: no
-  not-shown: honesty was not better in the skill arm; the example, which both arms had, already carried most of the honesty (no record in either arm marked an effect claim as shown or a run as opened without an excerpt); exposure is the agent's own report of the files it opened, not a trace; the treatment bundles guidance, example and script; three runs per arm; one trial, one judge, one runner
+  not-shown: honesty was not better in the skill arm; the example, which both arms had, already carried most of the honesty (no record in either arm marked an effect claim as shown or a run as opened without an excerpt); exposure is delivered, not opened: the only record of what each skill-arm agent read is its own report (evidence/exposure/agent-reports-skill-arm.md) and no tool trace was kept, so no run is shown to have opened the Skill; the treatment bundles guidance, example and script; three runs per arm; one trial, one judge, one runner
 ## Limits
 n-shows: three runs per arm show whether a clear difference is visible, and none is: form leans to the skill arm and honesty leans to example-only, each by about one record, so the result is not a rate and not a reason to prefer either

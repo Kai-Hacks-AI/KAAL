@@ -24,3 +24,6 @@
 - The trial setup gave agents an unclear role (5 of 6 unsure).
 - The judge script and the blinded judge disagree on r1's overstatement.
 - Exposure is agents' self-report, not a trace; the script confound should be separated in a later rehearsal.
+
+## Review correction (CPO, d13280a)
+RH1 first labelled the three skill-arm runs `exposure: opened` on the strength of the agents' own reports. No tool trace was kept, so that was not verified opening. They are now `delivered`, the excerpt lines are removed from the runs, and c3's not-shown names this as a limitation. The inconclusive verdict is unchanged. The self-report file stays in the evidence, labelled as a report.
