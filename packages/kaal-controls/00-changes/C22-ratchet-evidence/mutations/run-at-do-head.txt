@@ -1,3 +1,4 @@
+judge-mode.mjs 44dab44a275c978a7c3cb5c995e048648672f252 on parent 38971dd6
 baseline (no mutation)
   controls/T1108 GREEN
   controls/T1109 GREEN
@@ -68,7 +69,7 @@ M6-cli-exits-zero-when-blocked
   controls/T1115 GREEN
   controls/T1116 RED: preventive, findings exited 0, not 1
   controls/T1117 GREEN
-M7-cli-throws-on-missing-file
+M7-cli-loses-reason-on-missing-file
   controls/T1108 GREEN
   controls/T1109 GREEN
   controls/T1110 GREEN
@@ -76,5 +77,15 @@ M7-cli-throws-on-missing-file
   controls/T1113 GREEN
   controls/T1114 GREEN
   controls/T1115 RED: a missing findings file was not UNKNOWN with unreadable-input
+  controls/T1116 GREEN
+  controls/T1117 GREEN
+M8-cli-crashes-on-missing-file
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 GREEN
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 RED: a missing findings file did not exit 2 (exit 1)
   controls/T1116 GREEN
   controls/T1117 GREEN

@@ -21,7 +21,7 @@ Build the ratchet as a filter in front of the verdict, not inside the check. The
 
 ## Across runs
 
-The baseline last accepted is the reference of the next run. Store the `next` that a passing run gives, and only that: a run that failed or could not judge carries no `next`, and the accepted baseline stays as it was. Each accepted baseline is a subset of the one before. After an improvement the allowance for a resolved finding is gone, so a resolved finding that returns blocks and its allowance put back is growth.
+The baseline last accepted is the reference of the next run, read from the accepted state and never from the change under review. Store the `next` that a passing run gives, and only that: a run that failed or could not judge carries no `next`, and the accepted baseline stays as it was. Each accepted baseline is a subset of the one before. After an improvement the allowance for a resolved finding is gone, so a resolved finding that returns blocks and its allowance put back is growth.
 
 ## How it ends
 
