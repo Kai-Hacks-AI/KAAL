@@ -130,3 +130,17 @@ describe('subjects are arbitrary identifiers, a carry-forward stays with its ite
     assert.throws(() => execFileSync(process.execPath, [script, '--bogus'], { stdio: 'pipe' }), (e) => e.status === 2);
   });
 });
+
+describe('incomplete and mis-shaped records are reported and never stop the navigation', async () => {
+  const { item, result, tree } = await import('./plan/review-items/lib.mjs');
+  const { navigate } = await import('../skills/kaal-review/scripts/navigate.mjs');
+  it('reports a result without a revision, an appraiser or an Execution chapter', async () => {
+    const nav = await navigate(tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'r/RV1.md': '---\nid: ns/RV1\nappraises: ns/V1\nrelation: not-author\nexecution: performed\nconclusion: satisfied\n---\n## Result\n\nIt holds.\n' }), { revision: 'a' });
+    assert.ok(nav.findings.some((x) => x.kind === 'result-incomplete' && x.files[0] === 'r/RV1.md'));
+  });
+  it('reports a list where a single value is expected and still returns the valid items', async () => {
+    const nav = await navigate(tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'] }), 'v/V2.md': item('ns/V2', { validates: ['x/F1'] }).replace('id: ns/V2', 'id: [ns/V2]') }), { revision: 'a' });
+    assert.ok(nav.findings.some((x) => x.kind === 'malformed-front-matter' && x.files[0] === 'v/V2.md'));
+    assert.deepEqual(nav.items.map((i) => i.id), ['ns/V1']);
+  });
+});

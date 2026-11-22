@@ -29,7 +29,7 @@ export async function navigate(root, { revision } = {}) {
   const add = (kind, files, detail) => findings.push({ kind, files, detail });
   const files = await walk(root);
   const found = { item: [], res: [] };
-  for (const f of files) { const t = ITEM.test(f) ? 'item' : RES.test(f) ? 'res' : null; if (!t) continue; const { front, body, malformed } = parse((await readFile(join(root, f))).toString('utf8')); for (const k of ['validates', 'parts']) if (k in front && !Array.isArray(front[k])) malformed.push(`${k}: a list is expected`); if (malformed.length) { add('malformed-front-matter', [f], malformed.join('; ')); continue; } if (!front.id) { add('no-id', [f], 'the file declares no id'); continue; } found[t].push({ f, front, body }); }
+  for (const f of files) { const t = ITEM.test(f) ? 'item' : RES.test(f) ? 'res' : null; if (!t) continue; const { front, body, malformed } = parse((await readFile(join(root, f))).toString('utf8')); for (const k of ['validates', 'parts']) if (k in front && !Array.isArray(front[k])) malformed.push(`${k}: a list is expected`); for (const k of ['id', 'appraises', 'revision', 'appraiser', 'relation', 'execution', 'conclusion', 'carries']) if (k in front && typeof front[k] !== 'string') malformed.push(`${k}: a single value is expected`); if (malformed.length) { add('malformed-front-matter', [f], malformed.join('; ')); continue; } if (!front.id) { add('no-id', [f], 'the file declares no id'); continue; } found[t].push({ f, front, body }); }
   const dup = (list) => { const m = new Map(); for (const x of list) m.set(x.front.id, [...(m.get(x.front.id) ?? []), x]); const ok = []; for (const [id, xs] of m) { if (xs.length > 1) add('duplicate-id', xs.map((x) => x.f), `duplicate id: ${id}`); else ok.push(xs[0]); } return ok; };
   for (const { f, front, body } of dup(found.item)) {
     const q = chapter(body, 'Question'), c = bullets(chapter(body, 'Criteria')), e = bullets(chapter(body, 'Expected evidence')), v = front.validates ?? [];
@@ -44,6 +44,7 @@ export async function navigate(root, { revision } = {}) {
     const res = chapter(body, 'Result'); const parts = front.parts ?? [];
     const r = { id: front.id, file: f, appraises: front.appraises, revision: front.revision, execution: front.execution, conclusion: front.conclusion ?? null, carries: front.carries ?? null, relation: front.relation ?? null, appraiser: front.appraiser, parts };
     let bad = false; const flag = (k, d) => { add(k, [f], d); bad = true; };
+    if (!r.revision || !r.appraiser || chapter(body, 'Execution') === null) flag('result-incomplete', 'a result names a revision and an appraiser and has an Execution chapter');
     if (!itemIds.has(r.appraises)) flag('dangling-appraises', 'appraises an item that is not listed');
     if (r.execution !== 'performed' && r.execution !== 'could-not-perform') flag('bad-execution', 'the execution is neither performed nor could-not-perform');
     else if (r.execution === 'could-not-perform' && r.conclusion) flag('conclusion-without-performance', 'a conclusion without a performed assessment');
