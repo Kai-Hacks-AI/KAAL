@@ -1,33 +1,43 @@
 # C22 evidence
 
-## Observed RED against the collector
+## Observed against the collector
 
-`controls/T1115` (plain `.test.mjs`, never renamed), on its own assertion: `a missing findings file did not exit 2 (exit 1)`. The rest of the package is GREEN (58 of 59).
+Each Case is a plain `.test.mjs`, never renamed, called through its `run()`:
 
-## Can the Case pass
+```
+RED   controls/T1115 a missing findings file did not exit 2 (exit 1)
+GREEN controls/T1116
+RED   controls/T1117 a new finding carried a next baseline although it did not pass
+```
 
-Against a throwaway copy with the command reading its files inside a handler and answering `UNKNOWN`, `blocked: true`, reason `unreadable-input` or `malformed-input` as JSON with exit 2, T1115 is GREEN. (The copy fails T777 only because the copy lacks the repository's `engineering/` folder; that is the copy, not the change.)
+T1116 is coverage of what the command already does on valid input, so it is GREEN today; its sensitivity is shown in the DO (M6). The rest of the package is GREEN.
 
-## Mutations on the final version of C21
+## Can the RED Cases pass
 
-`mutations/run.sh` at `5ce2331b` (`mutations/run-at-5ce2331b.txt`): the baseline is GREEN on T1108 to T1110 and T1112 to T1114. Each mutation, loaded alone, is RED:
+Against a throwaway copy of the package with the DO's two changes (the command's input handling, and `next` only on a pass), T1115 and T1117 are GREEN, T1116 stays GREEN, and T1108 to T1114 stay GREEN. (The copy fails T777 only for lack of the repository's `engineering/` folder.)
 
-| Claim | Mutation | Witness | Failed assertion |
+## The weakenings of C21 on its final version
+
+`mutations/run.sh` at `5ce2331b` (`mutations/run-at-5ce2331b.txt`): the baseline is GREEN on T1108 to T1110 and T1112 to T1114; each weakening, loaded alone, is RED:
+
+| Claim | Weakening | Witness | Failed assertion |
 | --- | --- | --- | --- |
 | a finding outside the baseline blocks | `M1-accept-all-findings` | T1109, T1112, T1114 | a new finding did not block; a baseline that grew was accepted; a spent ratchet did not judge like preventive |
 | a baseline only shrinks | `M2-no-growth-detection` | T1112 | a baseline that grew was accepted |
 | a resolved allowance is gone | `M3-retain-resolved-allowances` | T1112 | an allowance kept for a resolved finding was accepted |
 | missing evidence is not success | `M4-missing-evidence-is-success` | T1113 | a missing reference passed |
 
-The earlier table in C21 was taken at `f4e099f`; this one replaces it for the final version and keeps the exact patches.
+These replace the preview of C21 taken at `f4e099f`, which is marked superseded there. T1115 to T1117 are not part of that run; the DO runs M1 to M6 with them.
 
 ## What this does not show
 
-The trial bundles are author-reported observations: prompts, fixtures, rubrics, anonymised answers, keys and yes/no scores are kept, and the raw transcripts, the scorer's per-cell quotes and whether a run opened the Skill are not. They show what agents said in these two scenarios, with the Skill and without it, and that no benefit of the Skill was observed for the responsibility split. They do not show persistence of the next baseline, which no run addressed.
+That agents apply the lifecycle, or that the Skill teaches it. The trials of C21 were run by the author, are described only in the pull request, and are author-reported observations; they are not retained here and no claim of this Change rests on them.
 
 ## Reproduce
 
 ```
-node -e "import('./packages/kaal-controls/02-requirements/F35-cli-says-unknown/T1115.test.mjs').then(async m=>{try{await m.run();console.log('GREEN')}catch(e){console.log('RED',e.message.split('\n')[0])}})"
+for t in F35-cli-says-unknown/T1115 F35-cli-says-unknown/T1116 F36-ratchet-lifecycle/T1117; do
+  node -e "import('./packages/kaal-controls/02-requirements/$t.test.mjs').then(async m=>{try{await m.run();console.log('GREEN',m.id)}catch(e){console.log('RED',m.id,e.message.split('\n')[0])}})"
+done
 sh packages/kaal-controls/00-changes/C22-ratchet-evidence/mutations/run.sh "$PWD"
 ```

@@ -1,1 +1,0 @@
-Find the lint check in this repository. Say what kind of control it is and what mode it runs in, what it stops and what it does not, and what you can claim about it from what you observe. Then say what is missing or wrong with how it is set up, and what should happen when the goal in the README is reached. Read only; change nothing. Be brief.
