@@ -4,8 +4,8 @@
 // It holds the ACT: when no retro reflects a carried Change there is no ACT to hold and the answer is PASS; otherwise the Cases of the carried Changes decide.
 import { readFileSync } from 'node:fs';
 import { retrosOf, carriedChanges } from './lib/collector.mjs';
-import { pass } from './lib/result.mjs';
-import { casesAreGreen, applicableCasesAreGreen } from './lib/cases-green.mjs';
+import { pass, unknown } from './lib/result.mjs';
+import { casesAreGreen, applicableCasesAreGreen, observationOf } from './lib/cases-green.mjs';
 
 // The facts this judge always offered stay offered, as the library's own.
 export { elementsOf, justifiedBy, applicableCases, retrosOf, changeIdOf } from './lib/collector.mjs';
@@ -21,6 +21,19 @@ export function judgeHold({ changes, retros, observed }) {
   const carried = new Set(changes.map((c) => c.id));
   if (!retros.some((r) => r.reflects.some((id) => carried.has(id)))) return pass('no retro reflects a carried Change: there is no ACT to hold', { applies: false, findings: [] });
   return applicableCasesAreGreen({ changes, observed });
+}
+
+// hold Act over the evidence of Testing (release/C125): the file `observe` wrote, `{ observed, evidence }`, read as data.
+// No ACT to hold is a PASS that needs no evidence. Otherwise: evidence that is missing, not the contracted shape or of another revision is UNKNOWN (a RED in it is not read);
+// a Case that applies and is RED is a FAIL even when the catalog is incomplete; a PASS, or an UNKNOWN that rested on the map alone, needs a catalog that is exactly complete.
+export function judgeHoldWithEvidence({ changes, retros, evidence }) {
+  const seen = observationOf(evidence);
+  const base = judgeHold({ changes, retros, observed: seen.observed });
+  if (base.verdict === 'PASS' && base.applies === false) return base;
+  if (seen.reason) return unknown(seen.reason);
+  if (base.verdict === 'FAIL') return base;
+  if (seen.incomplete) return unknown(`cannot judge: ${seen.incomplete}, so a Case it does not list could be red`, { progress: base.progress, findings: base.findings });
+  return base;
 }
 
 // acted: does a retro reflect the Change? Without one there is no ACT to hold; with one the Cases must be really green.

@@ -11,14 +11,14 @@ const use = (name) => { const f = join(LIB, name); assert.ok(existsSync(f), `lib
 export const id = 'release/T1314';
 export const tests = ['release/A77'];
 export const title = 'the layers stay one-way: the library imports no judge and no layer above it, and no judge imports another judge';
-const LAYERS = ['tree', 'collector', 'cases-green', 'write-map', 'result'];
-const BELOW = { tree: [], collector: ['tree'], 'cases-green': [], 'write-map': [], result: [] };
+const LAYERS = ['tree', 'collector', 'cases-green', 'write-map', 'result', 'tree-facts', 'isolate-changes', 'evidence'];
+const BELOW = { tree: [], collector: ['tree'], 'cases-green': [], 'write-map': [], result: [], 'tree-facts': ['tree', 'collector'], 'isolate-changes': [], evidence: [] };
 // The static imports of a module as written: import ... from '<spec>' and export ... from '<spec>'.
 const importsOf = (file) => [...readFileSync(file, 'utf8').matchAll(/^\s*(?:import|export)\b[^;'"]*?\bfrom\s+['"]([^'"]+)['"]/gm)].map((m) => m[1]);
 export async function run() {
   assert.ok(existsSync(LIB), 'lib/ is absent');
   const modules = readdirSync(LIB).filter((f) => f.endsWith('.mjs')).map((f) => f.replace(/\.mjs$/, ''));
-  assert.deepEqual(modules.sort(), [...LAYERS].sort(), 'the library holds exactly the four layers');
+  assert.deepEqual(modules.sort(), [...LAYERS].sort(), 'the library holds exactly the layers');
   for (const m of modules) for (const spec of importsOf(join(LIB, `${m}.mjs`))) {
     if (spec.startsWith('node:')) { assert.ok(spec !== 'node:child_process', `${m} must not start processes (Git is not read)`); continue; }
     const target = spec.replace(/^\.\//, '').replace(/\.mjs$/, '');
