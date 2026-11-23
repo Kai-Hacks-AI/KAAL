@@ -22,4 +22,5 @@ A short retro entry in the collector (`controls/RT1` addition or `RT2`, as the C
 
 - Field names `strategy`, `baseline-source`, `owner` are proposed; the CPO may rename them in review.
 - Ids G100, F37, T1118 are taken by hand; on a clash the newer pull request renumbers.
+- The linkage between the ratchet's findings and the corrective Changes that eliminate them is undefined and is not designed here. It is a separate follow-up PLAN (proposed id C24), after C23's DO; C23 only states the distinction and its dependency on detective evidence (`C23.md`).
 - Release adopts the declaration for CTL19 under its own release Change (C130); this Change gives the generic contract and a finder that accepts it.
