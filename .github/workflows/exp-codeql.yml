@@ -52,6 +52,7 @@ jobs:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set +e
+          git fetch -q origin main && mkdir -p packages/kaal-controls/skills/kaal-controls/scripts && git show origin/main:packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs > packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
           echo "ref=$GITHUB_REF merge-sha=$GITHUB_SHA head-sha=$HEAD_SHA"
           for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
             n=$(gh api "repos/$GITHUB_REPOSITORY/code-scanning/analyses?ref=$GITHUB_REF&per_page=100" --jq '[.[] | select(.category == "/exp:inherited")] | length')
@@ -64,8 +65,8 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=$GITHUB_REF&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, path: .most_recent_instance.location.path}' || echo "alerts read failed"
           echo "--- open alerts on the base ref"
           gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=refs/heads/claude/exp-codeql-base&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, path: .most_recent_instance.location.path}' || echo "alerts read failed"
-          echo "--- waiting 150 s, then the alerts of the merge ref again"
-          sleep 150
+          echo "--- waiting 60 s, then the alerts of the merge ref again"
+          sleep 60
           gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=$GITHUB_REF&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, path: .most_recent_instance.location.path}' || echo "alerts read failed"
           echo "--- all alerts (any state) on the merge ref"
           gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?ref=$GITHUB_REF&per_page=100" --jq '.[] | {number, state, dismissed_reason, path: .most_recent_instance.location.path}' || echo "alerts read failed"
