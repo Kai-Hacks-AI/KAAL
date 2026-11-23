@@ -23,11 +23,13 @@ const BASE = ['AGENTS.md', 'README.md', 'package.json', '10-intent/intent/I1.md'
 const GOOD = [...BASE, '14-operations/controls/CTL1/CTL1.md'];
 export const id = 'engineering/T1243';
 export const tests = ['engineering/F57'];
-export const title = 'the new numbering is PASS with or without runs; the earlier numbering and a stray folder in operations or source are FAIL and named';
+export const title = 'the new numbering is PASS with or without runs; a package with no operations folder is FAIL (F91); the earlier numbering and a stray folder in operations or source are FAIL and named';
 export async function run() {
   assert.equal(judge(fixture(GOOD)).code, 0, 'a correct setup is not PASS');
   assert.equal(judge(fixture([...GOOD, '14-operations/runs/r1.json'])).code, 0, 'runs is not accepted');
-  assert.equal(judge(fixture(BASE)).code, 0, 'a package with no operations folder is not PASS');
+  const noOps = judge(fixture(BASE));
+  assert.equal(noOps.code, 1, 'a package with no operations folder is not FAIL');
+  assert.match(noOps.out, /14-operations is missing/);
   const bare = judge(fixture([...BASE, '14-operations/runs/r1.json']));
   assert.equal(bare.code, 1);
   assert.match(bare.out, /14-operations holds no controls/);

@@ -30,7 +30,8 @@ export async function run() {
   assert.equal(r.out.split(';').length, 1, 'more than the one fault is reported');
   const none = judge(fixture(['README.md', 'lib/x.mjs', 'capability/c.md']));
   assert.equal(none.code, 1, 'a folder with none of the layout is not FAIL');
-  assert.match(none.out, /none of the layout/);
-  const other = judge(fixture([...GOOD, 'node_modules/m/index.js', 'kaal/x.md']));
-  assert.equal(other.code, 0, 'a folder that is not numbered is judged');
+  assert.match(none.out, /10-intent is missing/, 'what the folder lacks is not named');
+  const other = judge(fixture([...GOOD, 'kaal/x.md']));
+  assert.equal(other.code, 1, 'a folder that is not numbered is not judged (F91)');
+  assert.match(other.out, /kaal is a folder the layout does not have/);
 }
