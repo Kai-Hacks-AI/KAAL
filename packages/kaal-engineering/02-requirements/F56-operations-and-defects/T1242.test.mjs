@@ -21,8 +21,8 @@ export async function run() {
   assert.ok(!names.includes('14-defects'), '14-defects is still in the layout');
   const ops = t.folders.find((f) => f.name === '14-operations');
   assert.ok(ops, '14-operations is absent');
-  assert.deepEqual([...ops.children].sort(), ['controls', 'runs']);
-  assert.deepEqual(ops.optional, ['runs'], 'runs is not optional');
+  assert.deepEqual([...ops.children].sort(), ['controls', 'review-items', 'runs']);
+  assert.deepEqual(ops.optional, ['runs', 'review-items'], 'runs is not optional');
   assert.equal(ops.verifiedBy, 'controls', 'operations does not say what verifies it');
   assert.equal(ops.closed, true, 'operations holds more than it names');
   assert.equal(ops.controls.scope, 'package');
