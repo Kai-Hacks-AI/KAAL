@@ -1,6 +1,6 @@
 // Shared by the Cases of this Change. Review knows no subject: every Case runs over each application under applications/,
 // whose own subject.json names its focus, its reference and its actual, what is inspected and the questions to answer.
-// At least one application is required. The focuses promotion and capability are defined here; any other focus carries its own.
+// At least one application is required. The focuses promotion, capability and finding are defined here; any other focus carries its own.
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 export const dir = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const A = join(dir, '00-changes/C1-focused-review/applications');
 const rd = (p, what) => { assert.ok(existsSync(p), `${what} is absent`); return readFileSync(p, 'utf8'); };
-export const FOCI = { promotion: ['what the promotion promised to change', 'what changed'], capability: ['the Intent of the capability', 'what the capability delivers'] };
+export const FOCI = { promotion: ['what the promotion promised to change', 'what changed'], capability: ['the Intent of the capability', 'what the capability delivers'], finding: ['what the work under review declared it would do', 'what the finding says is wrong'] };
 // The optional field `subject` names the element a review validates, by the id the element states: one non-empty id without whitespace.
 // Review does not resolve the id, does not know the kind of element and does not check that the element exists.
 export function checkSubject(value, name = 'subject.json') {
