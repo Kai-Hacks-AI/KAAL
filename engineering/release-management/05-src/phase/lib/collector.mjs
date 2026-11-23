@@ -42,7 +42,7 @@ export function applicableCases(root, changeDir) {
   const cases = new Map();
   for (const file of walk(root).filter((f) => CASE_FILE.test(f))) {
     const text = readFileSync(file, 'utf8');
-    const id = text.match(/export const id = '([^']+)'/)?.[1];
+    const id = text.match(/export const id = (['"])([^'"]+)\1/)?.[2];
     if (!id) continue;
     const tests = (text.match(/export const tests = \[([^\]]*)\]/)?.[1] ?? '').split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
     const inChange = relative(root, file).startsWith(`${changeDir}/`);
