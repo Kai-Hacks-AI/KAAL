@@ -6,6 +6,10 @@ type: preventive
 status: designed
 has: [release/I50]
 evidence: [fixture:2, real:2, provoked:1:fail]
+strategy: ratchet
+baseline-source: the workflows of the base commit of the pull request that use pull_request_target, read as Git data by the judge of the base
+owner: release management
+exit: The accepted baseline is empty, so the filter is removed and the control is a plain preventive control that fails on any use.
 ---
 # release/CTL20 gate verify Triggers
 

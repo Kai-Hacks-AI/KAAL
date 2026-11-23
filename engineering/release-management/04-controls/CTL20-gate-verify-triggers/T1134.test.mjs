@@ -39,13 +39,14 @@ export async function run() {
   try {
     const WF = '.github/workflows';
     const J = 'engineering/release-management/05-src/triggers/verify-triggers.mjs';
+    const JM = 'packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs'; // the shared judge the judge hands its findings to
     const mod = readFileSync(join(RM, '05-src/triggers/verify-triggers.mjs'), 'utf8');
     const put = (dir, files) => { for (const [p, c] of Object.entries(files)) { mkdirSync(join(dir, p, '..'), { recursive: true }); writeFileSync(join(dir, p), c); } };
     const origin = join(tmp, 'origin.git');
     g(tmp, 'init', '-q', '--bare', origin);
     const seed = join(tmp, 'seed');
     g(tmp, 'init', '-q', seed);
-    put(seed, { [`${WF}/a.yml`]: 'on:\n  pull_request:\n', [`${WF}/b.yml`]: 'on:\n  pull_request_target:\n', [J]: mod });
+    put(seed, { [`${WF}/a.yml`]: 'on:\n  pull_request:\n', [`${WF}/b.yml`]: 'on:\n  pull_request_target:\n', [J]: mod, [JM]: readFileSync(join(repo, JM), 'utf8') });
     g(seed, 'add', '-A'); g(seed, 'commit', '-q', '-m', 'base');
     const base = g(seed, 'rev-parse', 'HEAD');
     g(seed, 'push', '-q', origin, 'HEAD:refs/heads/main');
