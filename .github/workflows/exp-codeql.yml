@@ -48,25 +48,35 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Observe
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          echo "ref=$GITHUB_REF sha=$GITHUB_SHA"
-          echo "--- alerts on the merge ref"
-          gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=$GITHUB_REF&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, level: .rule.severity, path: .most_recent_instance.location.path}' || echo "alerts read failed"
-          echo "--- alerts on the base ref"
-          gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=refs/heads/claude/exp-codeql-base&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, path: .most_recent_instance.location.path}' || echo "alerts read failed"
-          echo "--- analysis judge"
-          node engineering/release-management/05-src/codeql-gate/judge-codeql-analysis.mjs --out "$RUNNER_TEMP/analysis.json"; echo "command exit $?"
-          node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/analysis.json"; echo "verdict exit $?"
-          echo "--- findings judge"
-          node engineering/release-management/05-src/codeql-gate/judge-codeql-findings.mjs --out "$RUNNER_TEMP/findings.json"; echo "command exit $?"
-          cat "$RUNNER_TEMP/findings.json" 2>/dev/null; echo
-          node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"; echo "verdict exit $?"
-        continue-on-error: true
-      - name: Dismiss the test alerts
-        if: ${{ always() }}
-        run: |
-          for ref in "$GITHUB_REF" refs/heads/claude/exp-codeql-base; do
-            for n in $(gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=$ref&per_page=100" --jq '.[] | select(.most_recent_instance.location.path | startswith("experiment/")) | .number'); do
-              gh api -X PATCH "repos/$GITHUB_REPOSITORY/code-scanning/alerts/$n" -f state=dismissed -f dismissed_reason="used in tests" -f dismissed_comment="Disposable experiment for release/C129" --jq '"dismissed \(.number)"'
-            done
+          set +e
+          echo "ref=$GITHUB_REF merge-sha=$GITHUB_SHA head-sha=$HEAD_SHA"
+          for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            n=$(gh api "repos/$GITHUB_REPOSITORY/code-scanning/analyses?ref=$GITHUB_REF&per_page=100" --jq '[.[] | select(.category == "/exp:inherited")] | length')
+            echo "poll $i: analyses of category /exp:inherited on the merge ref: $n"
+            [ "$n" != "0" ] && break; sleep 10
           done
+          echo "--- analyses of the merge ref"
+          gh api "repos/$GITHUB_REPOSITORY/code-scanning/analyses?ref=$GITHUB_REF&per_page=100" --jq '.[] | {id, category, commit_sha, ref, error, created_at}' || echo "analyses read failed"
+          echo "--- open alerts on the merge ref"
+          gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=$GITHUB_REF&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, path: .most_recent_instance.location.path}' || echo "alerts read failed"
+          echo "--- open alerts on the base ref"
+          gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=refs/heads/claude/exp-codeql-base&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, path: .most_recent_instance.location.path}' || echo "alerts read failed"
+          echo "--- waiting 150 s, then the alerts of the merge ref again"
+          sleep 150
+          gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?state=open&ref=$GITHUB_REF&per_page=100" --jq '.[] | {number, rule: .rule.id, sev: .rule.security_severity_level, path: .most_recent_instance.location.path}' || echo "alerts read failed"
+          echo "--- all alerts (any state) on the merge ref"
+          gh api "repos/$GITHUB_REPOSITORY/code-scanning/alerts?ref=$GITHUB_REF&per_page=100" --jq '.[] | {number, state, dismissed_reason, path: .most_recent_instance.location.path}' || echo "alerts read failed"
+          for sha in "$GITHUB_SHA" "$HEAD_SHA"; do
+            echo "=== judges with GITHUB_SHA=$sha"
+            export GITHUB_SHA="$sha" CODEQL_WAIT_SECONDS=20
+            node engineering/release-management/05-src/codeql-gate/judge-codeql-analysis.mjs --out "$RUNNER_TEMP/analysis.json"; echo "analysis command exit $?"
+            node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/analysis.json"; echo "analysis verdict exit $?"
+            node engineering/release-management/05-src/codeql-gate/judge-codeql-findings.mjs --out "$RUNNER_TEMP/findings.json"; echo "findings command exit $?"
+            cat "$RUNNER_TEMP/findings.json" 2>/dev/null; echo
+            node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"; echo "findings verdict exit $?"
+            rm -f "$RUNNER_TEMP/analysis.json" "$RUNNER_TEMP/findings.json"
+          done
+        continue-on-error: true
