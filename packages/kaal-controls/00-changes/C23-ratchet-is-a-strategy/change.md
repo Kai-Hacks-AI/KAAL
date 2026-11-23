@@ -22,4 +22,4 @@ A short retro entry in the collector (`controls/RT1` addition or `RT2`, as the C
 
 - Field names `strategy`, `baseline-source`, `owner` are proposed; the CPO may rename them in review.
 - Ids G100, F37, T1118 are taken by hand; on a clash the newer pull request renumbers.
-- Release adopts the declaration for CTL19 under C124; this Change gives the generic contract and a finder that accepts it.
+- Release adopts the declaration for CTL19 under its own release Change (C130); this Change gives the generic contract and a finder that accepts it.
