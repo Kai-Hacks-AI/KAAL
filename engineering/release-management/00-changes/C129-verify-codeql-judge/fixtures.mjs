@@ -3,7 +3,7 @@ export const ANALYSIS = DIR + 'lib/analysis.mjs';
 export const ALERTS = DIR + 'lib/alerts.mjs';
 export const ANALYSIS_JUDGE = DIR + 'judge-codeql-analysis.mjs';
 export const FINDINGS_JUDGE = DIR + 'judge-codeql-findings.mjs';
-export const an = (category, o = {}) => ({ category, sha: 'abc', ref: 'refs/pull/9/merge', error: '', ...o });
+export const an = (category, o = {}) => ({ category, commit_sha: 'abc', ref: 'refs/pull/9/merge', error: '', ...o });
 export const alert = (number, severity, security, o = {}) => ({ number, state: 'open', rule: { severity, security_severity_level: security }, ...o });
 export const EXPECTED = ['/language:actions', '/language:javascript-typescript'];
 export const BOTH = EXPECTED.map((c) => an(c));
