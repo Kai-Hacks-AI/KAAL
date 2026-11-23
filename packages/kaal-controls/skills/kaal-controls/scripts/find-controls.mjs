@@ -30,12 +30,13 @@ function idList(value) {
 }
 
 const STATIONS = ['Developing', 'Collecting', 'Integrating', 'Hotfixing', 'Wiring', 'Promoting', 'Publishing'];
-const MODES = ['detective', 'preventive'];
+const MODES = ['detective', 'preventive', 'ratchet'];
 const STATUSES = ['designed', 'implemented', 'running', 'tested'];
 const KIND = /^[a-z][a-z0-9-]*$/;
 const REF = 'references/declaring-controls.md';
 const recovery = (field) => field === 'evidence' ? `Write evidence as [<x>:<runs>, ...], the kinds of X the Cases of the control run against, each once, runs a whole number from 1, and at least one entry written <x>:<runs>:fail, an X that is a real failure. See ${REF}.`
   : field === 'stations' ? `Write stations as [<Station>:<mode>, ...] with each station once. Stations: ${STATIONS.join(', ')}. Modes: ${MODES.join(', ')}. See ${REF}.`
+  : field === 'exit' ? `Add an \`exit:\` line of one sentence saying what the control becomes when its baseline is empty. See references/modes.md.`
   : field === 'status' ? `Add or correct the \`status:\` line as one of ${STATUSES.join(', ')}, as the evidence supports. See ${REF}.`
   : field === 'id' ? `Give the control an id of its own. See ${REF}.`
   : FIELDS.includes(field) ? `Add or correct the \`${field}:\` line. See ${REF}.`
@@ -61,7 +62,7 @@ export function findControls(files) {
     if (fields.type && !TYPES.includes(fields.type)) bad.push(['type', `type is not one of ${TYPES.join(', ')}`]);
     if (fields.status && !STATUSES.includes(fields.status)) bad.push(['status', `status is not one of ${STATUSES.join(', ')}`]);
     if (fields.has && !has?.length) bad.push(['has', 'has lists no Intent']);
-    for (const k of Object.keys(fields).filter((k) => !FIELDS.includes(k) && k !== 'stations' && k !== 'evidence')) bad.push([k, `${k} is not a field of a control`]);
+    for (const k of Object.keys(fields).filter((k) => !FIELDS.includes(k) && k !== 'stations' && k !== 'evidence' && k !== 'exit')) bad.push([k, `${k} is not a field of a control`]);
     let stations = [];
     if (fields.stations !== undefined) {
       const list = idList(fields.stations);
@@ -70,6 +71,7 @@ export function findControls(files) {
       if (ok) stations = parsed.map(([station, mode]) => ({ station, mode }));
       else bad.push(['stations', 'stations is not a list of <Station>:<mode>, each station once']);
     }
+    if (stations.some((s) => s.mode === 'ratchet') && !fields.exit) bad.push(['exit', 'a ratchet has no exit']);
     let evidence = [];
     if (fields.evidence !== undefined) {
       const list = idList(fields.evidence);
