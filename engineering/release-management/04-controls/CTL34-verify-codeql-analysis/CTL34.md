@@ -5,7 +5,7 @@ description: It reveals whether an expected CodeQL configuration has no analysis
 type: preventive
 status: designed
 has: [release/I68]
-evidence: [fixture:3, provoked:1:fail]
+evidence: [fixture:3, real:2, provoked:1:fail]
 ---
 # release/CTL34 verify CodeQL analysis
 

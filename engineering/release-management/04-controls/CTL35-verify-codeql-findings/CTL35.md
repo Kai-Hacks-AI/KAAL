@@ -5,7 +5,7 @@ description: It reveals an open CodeQL alert on the merge ref at or above the th
 type: preventive
 status: designed
 has: [release/I69]
-evidence: [fixture:3, provoked:1:fail]
+evidence: [fixture:3, real:2, provoked:1:fail]
 ---
 # release/CTL35 verify CodeQL findings
 
