@@ -1,0 +1,3 @@
+# C129 baseline
+
+The baseline is `main` after the PROMOTION of release/C125. Nothing reads code-scanning data: `codeql.yml` has the matrix `[actions, javascript-typescript]` and no job after `analyze`; the merge rule is the ruleset's. Engineering's C32 PLAN (collector `kaal/engineering/codeql-gate`, not on main) pins the job in the workflow source, the declared `CODEQL_EXPECTED`, the order of the sequence (release PLAN and DO of the judge, then the workflow DO, then a release WIRE on the Owner's go, then the ruleset swap on the Owner's go) and three questions to the CPO: the judge's owner (release, recommended), the threshold, and the wait. kaal-controls' `judge-mode` (`kaal/controls/control-modes`, C21) is not on main, and its input handling is changed by C22 (#2323).
