@@ -15,7 +15,7 @@ export const title = 'the source holds skill, scripts, unit-tests and workflows,
 export async function run() {
   const t = template();
   const s = folder(t, '13-source');
-  assert.deepEqual([...s.children].sort(), ['scripts', 'skill', 'unit-tests', 'workflows']);
+  assert.deepEqual([...s.children].sort(), ['review-items', 'scripts', 'skill', 'unit-tests', 'workflows']);
   assert.equal(s.bass.skill, 'Agent to Skill');
   assert.equal(s.bass.scripts, 'Skill to Script');
   assert.equal(t.root.find((r) => r.name === 'AGENTS.md').bass, 'Bare to Agent');

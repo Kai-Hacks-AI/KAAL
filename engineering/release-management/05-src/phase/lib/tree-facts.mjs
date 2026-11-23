@@ -39,3 +39,9 @@ export async function readTree({ main, collector, changed, scripts = join(main, 
     map: JSON.parse(readFileSync(mapFile, 'utf8')),
   };
 }
+
+// The file Testing's `observe` wrote (release/C125), parsed. No path: undefined. A file that cannot be read or parsed: null, which the judge answers as not the contracted shape.
+export function readEvidenceFile(path) {
+  if (!path) return undefined;
+  try { return JSON.parse(readFileSync(path, 'utf8')); } catch { return null; }
+}
