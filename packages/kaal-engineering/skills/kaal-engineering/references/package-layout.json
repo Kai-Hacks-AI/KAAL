@@ -8,11 +8,13 @@
     {
       "name": "AGENTS.md",
       "kind": "machinery",
-      "bass": "Bare to Agent"
+      "bass": "Bare to Agent",
+      "required": true
     },
     {
       "name": "README.md",
-      "kind": "machinery"
+      "kind": "machinery",
+      "required": true
     },
     {
       "name": "LICENSE",
@@ -20,7 +22,8 @@
     },
     {
       "name": "package.json",
-      "kind": "machinery"
+      "kind": "machinery",
+      "required": true
     },
     {
       "name": "*.kaal.json",
@@ -60,9 +63,11 @@
       "element": "intent",
       "children": [
         "intent",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "11-requirements",
@@ -70,9 +75,11 @@
       "element": "requirement",
       "children": [
         "requirements",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "12-architecture",
@@ -80,9 +87,11 @@
       "element": "architecture",
       "children": [
         "architecture",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "13-source",
@@ -91,14 +100,16 @@
         "skill",
         "scripts",
         "unit-tests",
-        "workflows"
+        "workflows",
+        "review-items"
       ],
       "bass": {
         "skill": "Agent to Skill",
         "scripts": "Skill to Script"
       },
       "verifiedBy": "unit-tests",
-      "closed": true
+      "closed": true,
+      "required": true
     },
     {
       "name": "14-operations",
@@ -108,10 +119,12 @@
       "closed": true,
       "children": [
         "controls",
-        "runs"
+        "runs",
+        "review-items"
       ],
       "optional": [
-        "runs"
+        "runs",
+        "review-items"
       ],
       "controls": {
         "role": "controls over the package itself",
@@ -123,7 +136,8 @@
         ]
       },
       "runs": "fallback records, judged and stamped, only where evidence cannot be re-run or re-derived",
-      "verifiedBy": "controls"
+      "verifiedBy": "controls",
+      "required": true
     },
     {
       "name": "15-defects",
@@ -131,7 +145,8 @@
       "element": "defect",
       "children": [
         "defects",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
       "verifiedBy": "test-cases"
     },
