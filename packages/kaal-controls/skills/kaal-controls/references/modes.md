@@ -1,6 +1,6 @@
 # Ratchet
 
-A ratchet is a temporary, special way of running a preventive control. It is not a fifth type: the type of a control is its design, and a ratchet is a mode it operates in for a while. Use it when a rule is right but the thing it governs does not meet it yet, so blocking everything now would stop all work.
+A ratchet is a temporary, special way of running a preventive control. It is not a fifth type: the type of a control is its design, and a ratchet is a strategy it follows for a while. Use it when a rule is right but the thing it governs does not meet it yet, so blocking everything now would stop all work.
 
 ## What a ratchet is
 
@@ -25,7 +25,7 @@ The baseline last accepted is the reference of the next run, read from the accep
 
 ## How it ends
 
-A ratchet is temporary and says how it ends. When the target is achieved and the baseline is empty, remove the baseline and everything made only for the ratchet, and continue as an ordinary preventive control. A ratchet with no stated exit is not accepted (only its presence is checked, once per control, and nothing forces the ratchet to end, so someone must notice an empty baseline): declare `exit:` as one sentence on what the control becomes when its baseline is empty.
+A ratchet is temporary and says how it ends. When the target is achieved and the baseline is empty, remove the baseline and everything made only for the ratchet, and continue as an ordinary preventive control. A ratchet is declared on a preventive control, never as a station mode: `strategy: ratchet`, with `baseline-source:` (where the accepted baseline is read from, the accepted state and never the change under review), `owner:` and `exit:` (one sentence on what the control becomes when its baseline is empty). One missing is listed as a problem. Only their presence is checked and nothing forces the ratchet to end, so someone must notice an empty baseline. A deadline is the planner's, not a field of the control. The ratchet needs a detective control's findings to judge; correcting them is separate work.
 
 ## The script
 
