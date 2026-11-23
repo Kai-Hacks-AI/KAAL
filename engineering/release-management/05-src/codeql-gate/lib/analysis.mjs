@@ -1,5 +1,6 @@
+// The analyses carry their commit as `commit_sha`, as the real API answers (observed on the experiment of release/C129); the first fixtures wrote `sha`.
 // The analysis side of the CodeQL gate (release/I68). Pure over facts: no import, no clock, no network. Time, sleep and the read are arguments.
-const forSha = (analyses, sha) => analyses.filter((x) => x.sha === sha);
+const forSha = (analyses, sha) => analyses.filter((x) => x.commit_sha === sha);
 export const missingOf = (expected, analyses, sha) => expected.filter((c) => !forSha(analyses, sha).some((x) => x.category === c));
 
 // The findings of release/CTL34: an expected configuration with no analysis of the sha is `missing:<category>`, one whose analyses all report an error is `errored:<category>`.

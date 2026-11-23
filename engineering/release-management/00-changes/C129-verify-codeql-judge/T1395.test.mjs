@@ -10,7 +10,7 @@ export async function run() {
   assert.deepEqual(f(BOTH), []);
   assert.deepEqual(f([BOTH[1]]), ['missing:/language:actions']);
   assert.deepEqual(f([an('/language:actions', { error: 'out of memory' }), BOTH[1]]), ['errored:/language:actions']);
-  assert.deepEqual(f([an('/language:actions', { sha: 'other' }), BOTH[1]]), ['missing:/language:actions']);   // an analysis of another sha is no analysis
+  assert.deepEqual(f([an('/language:actions', { commit_sha: 'other' }), BOTH[1]]), ['missing:/language:actions']);   // an analysis of another sha is no analysis
   assert.deepEqual(f([...BOTH, an('/language:python')]), []);                                               // an extra configuration is not a finding
   assert.deepEqual(f([]), ['missing:/language:actions', 'missing:/language:javascript-typescript']);
   assert.ok(f([an('/language:actions', { error: 'x' }), an('/language:actions'), BOTH[1]]).length === 0, 'one good analysis of the sha is enough');
