@@ -1,0 +1,6 @@
+r1 example-only
+r2 skill
+r3 example-only
+r4 example-only
+r5 skill
+r6 skill
