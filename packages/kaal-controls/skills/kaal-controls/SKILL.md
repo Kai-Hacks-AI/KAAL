@@ -6,11 +6,11 @@ license: MIT
 
 # Working with controls
 
-A control is a measure taken so that an unwanted outcome does not happen, is noticed, or is put right. This Skill covers what the four types are for, how they work together, and how far a claim about one may go. It prescribes no tool, no naming and no procedure.
+A control is a measure taken so that an unwanted outcome does not happen, is noticed, or is put right. This Skill covers what the four types are for, how they combine, and how far a claim may go. It prescribes no tool, naming or procedure.
 
 ## The four types
 
-Tell the type by what the control does when its rule is broken. Do not tell it by its name, by the tool that runs it, or by how firmly it is worded.
+Tell the type by what the control does when its rule is broken. Not by its name, its tool, or how firmly it is worded.
 
 - **Directive** states the behavior that is required. The rule can be broken and nothing happens to the rule. A policy, a guideline or an instruction is directive.
 - **Preventive** stops a prohibited action from taking effect. It does this for a named actor or interface, inside a named boundary where it is enforced.
@@ -42,4 +42,4 @@ Verification is a Case, validation a judgment, a finding what either reveals.
 
 When you describe a control, say its type and what it does when the rule is broken, then what you have observed and what you have not.
 
-Declaring: `references/declaring-controls.md`. Status: `references/judging-status.md`. Stations: `references/enforcing-controls.md`.
+Declaring: `references/declaring-controls.md`. Status: `references/judging-status.md`. Stations: `references/enforcing-controls.md`. Modes, ratchet: `references/modes.md`.

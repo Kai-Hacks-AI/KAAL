@@ -86,6 +86,8 @@ describe("kaal-review", () => {
       "payload/Review.md",
       "payload/TOGETHER-WE-CAN-GO-FAR.md",
       "skills/kaal-review/SKILL.md",
+      "skills/kaal-review/references/review-items.md",
+      "skills/kaal-review/scripts/navigate.mjs",
     ]);
   });
 });

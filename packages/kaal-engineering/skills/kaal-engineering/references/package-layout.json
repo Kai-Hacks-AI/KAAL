@@ -8,11 +8,13 @@
     {
       "name": "AGENTS.md",
       "kind": "machinery",
-      "bass": "Bare to Agent"
+      "bass": "Bare to Agent",
+      "required": true
     },
     {
       "name": "README.md",
-      "kind": "machinery"
+      "kind": "machinery",
+      "required": true
     },
     {
       "name": "LICENSE",
@@ -20,7 +22,8 @@
     },
     {
       "name": "package.json",
-      "kind": "machinery"
+      "kind": "machinery",
+      "required": true
     },
     {
       "name": "*.kaal.json",
@@ -41,12 +44,18 @@
     {
       "name": "02-learnings",
       "kind": "content",
-      "role": "what we learned: the retrospectives of the package's collectors, kept with the capability",
+      "role": "what we learned: the retrospectives of the package's collectors, the research notes on what is out there, the rehearsals of our own ideas, and the targeted reviews worth keeping, kept with the capability",
       "closed": true,
       "children": [
-        "retros"
+        "retros",
+        "research",
+        "rehearsals",
+        "reviews"
       ],
-      "retros": "per-collector retrospectives, each with front matter `reflects: [C…]`; the object belongs to kaal-retro, which also says what verifies one"
+      "retros": "per-collector retrospectives, each with front matter `reflects: [C…]`; the object belongs to kaal-retro, which also says what verifies one",
+      "research": "research notes on external references, each with an id `R<n>`, asked by this capability; the object belongs to kaal-research, which also says what verifies one and what sits beside it",
+      "rehearsals": "rehearsals of this capability's own ideas, each run and observed, id `RH<n>`; the object belongs to kaal-research (its second Skill), which also says what verifies one and what evidence sits beside it",
+      "reviews": "targeted reviews deemed worth persisting, id `RV<n>`, not every review; the object belongs to kaal-review, which also decides what is worthy and what verifies one"
     },
     {
       "name": "10-intent",
@@ -54,9 +63,11 @@
       "element": "intent",
       "children": [
         "intent",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "11-requirements",
@@ -64,9 +75,11 @@
       "element": "requirement",
       "children": [
         "requirements",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "12-architecture",
@@ -74,9 +87,11 @@
       "element": "architecture",
       "children": [
         "architecture",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
-      "verifiedBy": "test-cases"
+      "verifiedBy": "test-cases",
+      "required": true
     },
     {
       "name": "13-source",
@@ -84,14 +99,17 @@
       "children": [
         "skill",
         "scripts",
-        "unit-tests"
+        "unit-tests",
+        "workflows",
+        "review-items"
       ],
       "bass": {
         "skill": "Agent to Skill",
         "scripts": "Skill to Script"
       },
       "verifiedBy": "unit-tests",
-      "closed": true
+      "closed": true,
+      "required": true
     },
     {
       "name": "14-operations",
@@ -101,10 +119,12 @@
       "closed": true,
       "children": [
         "controls",
-        "runs"
+        "runs",
+        "review-items"
       ],
       "optional": [
-        "runs"
+        "runs",
+        "review-items"
       ],
       "controls": {
         "role": "controls over the package itself",
@@ -116,7 +136,8 @@
         ]
       },
       "runs": "fallback records, judged and stamped, only where evidence cannot be re-run or re-derived",
-      "verifiedBy": "controls"
+      "verifiedBy": "controls",
+      "required": true
     },
     {
       "name": "15-defects",
@@ -124,7 +145,8 @@
       "element": "defect",
       "children": [
         "defects",
-        "test-cases"
+        "test-cases",
+        "review-items"
       ],
       "verifiedBy": "test-cases"
     },

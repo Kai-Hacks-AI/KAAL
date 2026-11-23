@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findControls } from './find-controls.mjs';
 
-// Evidence is a Test Case run against an X. A record is { case, x, run, outcome } where `case` is the id of a Case that tests the
+// Evidence is a Test Case run against an X. A record is { case, x, run, outcome, by } where `case` is the id of a Case that tests the
 // control (its first line `// Case <id> tests: <control id>`), `x` is the kind of thing it ran against (a fixture, a real merge,
 // a provoked failure, a before/after pair of trees, any word the control declares), `run` identifies the run and `outcome` is
 // GREEN, RED or UNKNOWN as a Case runner reports it. Only GREEN counts, each run once. A kind marked `fail` is an X that is a
@@ -16,7 +16,13 @@ import { findControls } from './find-controls.mjs';
 export function judgeEvidence(control, records = []) {
   if (!control.evidence?.length) return { id: control.id, verdict: 'UNKNOWN', reason: 'no-minimum', met: [], missing: [], notGreen: [] };
   const own = new Set((control.tests ?? []).map((t) => t.id));
-  const mine = records.filter((r) => own.has(r.case));
+  const all = records.filter((r) => own.has(r.case));
+  // A record says who or what recorded it; one that does not is listed and counts nowhere.
+  const unrecorded = all.filter((r) => !String(r.by ?? '').trim());
+  const mine = all.filter((r) => String(r.by ?? '').trim());
+  // A run that was not GREEN keeps the claim unproven until it is explained (`handled`); an explained one counts toward no kind.
+  const unhandled = mine.filter((r) => r.outcome !== 'GREEN' && !r.handled);
+  const handledRuns = mine.filter((r) => r.outcome !== 'GREEN' && r.handled);
   const notGreen = mine.filter((r) => r.outcome !== 'GREEN').map((r) => ({ case: r.case, x: r.x, run: r.run, outcome: r.outcome }));
   const met = [];
   const missing = [];
@@ -26,8 +32,10 @@ export function judgeEvidence(control, records = []) {
     const have = new Set(mine.filter((r) => r.x === kind && r.outcome === 'GREEN' && caught(r)).map((r) => String(r.run)));
     (have.size >= runs ? met : missing).push({ kind, runs, have: have.size, fail });
   }
-  if (!mine.length) return { id: control.id, verdict: 'UNKNOWN', reason: 'no-records', met, missing, notGreen };
-  return { id: control.id, verdict: missing.length ? 'UNKNOWN' : 'PASS', reason: missing.length ? 'below-minimum' : 'met', met, missing, notGreen };
+  const extra = { unrecorded, unhandled, handledRuns };
+  if (!mine.length) return { id: control.id, verdict: 'UNKNOWN', reason: 'no-records', met, missing, notGreen, ...extra };
+  if (unhandled.length) return { id: control.id, verdict: 'UNKNOWN', reason: 'unhandled', met, missing, notGreen, ...extra };
+  return { id: control.id, verdict: missing.length ? 'UNKNOWN' : 'PASS', reason: missing.length ? 'below-minimum' : 'met', met, missing, notGreen, ...extra };
 }
 
 // The state the package can show for a control: `tested` only when its declared minimum is shown, `designed` for any other valid
@@ -41,7 +49,7 @@ export function computedState(control, verdict) {
 export function stateLine(control, verdict) {
   const seen = [...verdict.met, ...verdict.missing];
   const progress = control.evidence.map((e) => { const s = seen.find((x) => x.kind === e.kind); return `${e.kind} ${s ? s.have : 0}/${e.runs}${e.fail ? ' fail' : ''}`; });
-  return [control.id, `claimed ${control.status}`, `computed ${computedState(control, verdict)}`, ...progress, `${verdict.verdict} ${verdict.reason}`].join(' · ');
+  return [control.id, `claimed ${control.status}`, `computed ${computedState(control, verdict)}`, ...progress, `${verdict.verdict} ${verdict.reason}`, ...(verdict.unhandled?.length ? [`${verdict.unhandled.length} unhandled`] : [])].join(' · ');
 }
 
 export function readRecords(path) {
