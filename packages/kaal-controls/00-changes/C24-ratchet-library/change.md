@@ -18,6 +18,14 @@ Not authorized by this PLAN. On its merge into the collector:
 
 A retro entry in the collector.
 
+## Recorded in the DO
+
+- T1118 (C23) changes on purpose: the PLAN said its fixtures already named a path, but they wrote prose in `baseline-source`. Its fixtures now name `x/baseline.json` and provide the file; the assertions are the same.
+- The directory readers (`find-controls.mjs`, `check-controls.mjs`, `registry.mjs`) also read `.json` files (not `package-lock.json`) so the baseline file is among the files the finder sees. The source is matched by path, or by path suffix when the directory is scanned from a subfolder.
+- The C22 mutation patches M1 to M5 now target `ratchet.mjs`, where the comparison lives; M6 to M8 are unchanged.
+
+- Promotion evidence so far: `check-controls` with this finder on main's real controls says CTL36 valid and release/CTL20 invalid (`baseline-source is not the path of a JSON file`), every other control as before. This is why the collector is not promoted until release's CTL20 change is on main; the same run is repeated then.
+
 ## Sequence with release (no invalid state, no loss of enforcement)
 
 Today CTL36's `baseline-source` is already the path of a valid `baseline.json` (a list of unique strings) and stays valid. CTL20's `baseline-source` is prose and it has no baseline file, so the strict finder of C24 would list it as invalid. The order is expand, then tighten:
@@ -33,3 +41,7 @@ The promotion order is enforced by the PLAN's promotion note (the sync of the co
 - Whether the file check belongs to the finder (a declaration check that reads a second file) or to `check-controls.mjs`. Recommendation: the finder, so a control with a missing baseline never appears as valid.
 - Whether the file is named `baseline.json` by convention or by `baseline-source` alone. Recommendation: `baseline-source` names it; `baseline.json` is the usual name.
 - Ids G101, F38, T1119 are taken by hand; on a clash the newer pull request renumbers.
+
+## DO: cross-capability fixtures (recorded)
+
+`judge-mode.mjs` now imports `ratchet.mjs` beside it. Two release Cases build a tiny repository and copy `judge-mode.mjs` alone into it (release/T1126 for CTL19 and release/T1134 for CTL20), so the judge there exited 2 ("judge: 2"). Both fixtures now copy `ratchet.mjs` too, one added line each. The Cases assert the same things as before. The scripts directory is the unit of the shared judge: any other fixture that copies `judge-mode.mjs` alone needs its sibling `ratchet.mjs`.
