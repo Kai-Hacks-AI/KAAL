@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export const TARGET = 'pull_request_target';
+// The accepted baseline of the ratchet is a file kept with the control (release/C131), a sorted JSON list of workflow paths. The judge reads it as Git data from the base (previous) and from the head (baseline).
+export const BASELINE = 'engineering/release-management/04-controls/CTL20-gate-verify-triggers/baseline.json';
 
 // A workflow uses the trigger only when its top-level `on:` names it. Comments and strings do not count.
 export function uses(text) {
@@ -25,18 +27,26 @@ let judgeMode = null;
 try { ({ judgeMode } = await import(new URL('../../../../packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs', import.meta.url).href)); } catch { judgeMode = null; }
 
 // The findings of a tree: the sorted paths of the workflows that use the trigger.
-export const findingsOf = (tree) => Object.keys(tree).filter((p) => uses(tree[p])).sort();
+export const findingsOf = (tree) => Object.keys(tree).filter((p) => /\.ya?ml$/.test(p) && uses(tree[p])).sort();
 
-// previous: the findings of the base, read as Git data, never a file of the pull request. baseline: previous without what the head resolved, so an improvement leaves no stale allowance.
+const listOf = (text) => { try { const x = JSON.parse(text); return Array.isArray(x) ? x : null; } catch { return null; } };
+
+// previous: the accepted baseline, the baseline file of the base, read as Git data, never a file of the pull request. baseline: the baseline file of the head. A pull request that resolves a use names it out of the file in the same change, or the allowance is stale (controls' ratchet says so).
 export function judge({ base, head }) {
   if (!base || !head || !Object.keys(base).length) return { verdict: 'UNKNOWN', reasons: ['the base or the head workflows could not be read'] };
   if (!judgeMode) return { verdict: 'UNKNOWN', reasons: ['judge-mode is absent on the base'] };
-  const previous = findingsOf(base);
+  const previous = listOf(base[BASELINE]);
+  if (!previous) return { verdict: 'UNKNOWN', reasons: ['the accepted baseline of the base could not be read'] };
+  const baseline = listOf(head[BASELINE]);
+  if (!baseline) return { verdict: 'UNKNOWN', reasons: ['the baseline of the head could not be read'] };
   const findings = findingsOf(head);
-  const baseline = previous.filter((f) => findings.includes(f));
   const r = judgeMode({ mode: 'ratchet', findings, baseline, previous });
   if (r.verdict === 'UNKNOWN') return { verdict: 'UNKNOWN', reasons: [`the ratchet could not judge: ${r.reason}`] };
-  const reasons = (r.new ?? []).map((p) => `${p} uses ${TARGET} and did not on the base`);
+  const reasons = [
+    ...(r.new ?? []).map((p) => `${p} uses ${TARGET} and did not on the base`),
+    ...(r.grew ?? []).map((p) => `${p} is in the baseline of the head and not in the accepted baseline of the base`),
+    ...(r.stale ?? []).map((p) => `${p} is in the baseline and no longer uses ${TARGET}: take it out of the baseline in the same change`),
+  ];
   return { verdict: r.verdict, reasons, base: previous.length, head: findings.length, findings, previous, ...(r.next ? { next: r.next } : {}) };
 }
 
@@ -51,6 +61,7 @@ export function read(root, ref) {
   git('rev-parse', '--verify', '--quiet', `${ref}^{commit}`);
   const out = {};
   for (const p of git('ls-tree', '-r', '--name-only', ref, '--', '.github/workflows').split('\n').filter((x) => /\.ya?ml$/.test(x))) out[p] = git('show', `${ref}:${p}`);
+  try { out[BASELINE] = git('show', `${ref}:${BASELINE}`); } catch { /* absent: the judge answers UNKNOWN */ }
   return out;
 }
 
