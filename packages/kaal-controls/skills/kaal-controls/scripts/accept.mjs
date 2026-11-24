@@ -12,7 +12,8 @@ export function judgeAcceptance({ results, acceptances } = {}) {
     else if (!a.voided) valid.push(a);
   }
   const used = new Set();
-  const report = results.map((r) => {
+  const report = results.map((entry) => {
+    const r = entry !== null && typeof entry === 'object' ? entry : {};
     const cited = r.status === 'FAIL' && Array.isArray(r.failing) ? r.failing : [];
     const uncovered = cited.filter((t) => {
       const covering = valid.filter((a) => a.control === r.control && a.testCase === t);
@@ -21,7 +22,8 @@ export function judgeAcceptance({ results, acceptances } = {}) {
     });
     return { control: r.control, status: r.status, accepted: r.status === 'FAIL' && cited.length > 0 && uncovered.length === 0, uncovered };
   });
-  const blocked = report.some((e) => e.status === 'UNKNOWN' || (e.status === 'FAIL' && !e.accepted));
+  // Positive rule: delivery is permitted only when every result is PASS or an accepted FAIL.
+  const permitted = report.every((e) => e.status === 'PASS' || (e.status === 'FAIL' && e.accepted));
   const unused = acceptances.filter((a) => !used.has(a) && (a.voided || valid.includes(a)));
-  return { verdict: blocked ? 'BLOCK' : 'PERMIT', report, unused, reasons };
+  return { verdict: permitted ? 'PERMIT' : 'BLOCK', report, unused, reasons };
 }
