@@ -18,6 +18,16 @@ Not authorized by this PLAN. On its merge into the collector:
 
 A retro entry in the collector.
 
+## Sequence with release (no invalid state, no loss of enforcement)
+
+Today CTL36's `baseline-source` is already the path of a valid `baseline.json` (a list of unique strings) and stays valid. CTL20's `baseline-source` is prose and it has no baseline file, so the strict finder of C24 would list it as invalid. The order is expand, then tighten:
+
+1. **Release adopts first, on the current finder.** Release's own Change gives CTL20 a `baseline.json` with its five workflows, sets `baseline-source` to that path (free text today, so valid under the old and the new finder), and switches its judge to read the base's file. It proves, before the switch, that the file equals what the judge derives today, so enforcement is the same on both sides of the change. CTL36 needs nothing.
+2. **C24's DO merges into its collector** (not main). The collector is promoted only after release's CTL20 change is on main, and the promotion evidence is `check-controls` run with the DO's finder on the real controls of main: every control valid, CTL20 and CTL36 included. Until then main keeps the lenient finder and nothing is invalid.
+3. **C25 follows the same rule**: `judgeProgress` answers UNKNOWN when a history is missing and the finder does not require the file, so adding it breaks no control. Release then adds `history.jsonl` to CTL20 and CTL36 in its own Change.
+
+The promotion order is enforced by the PLAN's promotion note (the sync of the collector names it), not by a flag. Release confirms this order before the DO.
+
 ## Left open
 
 - Whether the file check belongs to the finder (a declaration check that reads a second file) or to `check-controls.mjs`. Recommendation: the finder, so a control with a missing baseline never appears as valid.
