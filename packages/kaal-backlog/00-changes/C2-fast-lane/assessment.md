@@ -68,10 +68,11 @@ Idea: an event extracts the item files of a mixed PR into a separate BACKLOG PR,
 
 ## 9. Open decisions (one at a time)
 
-1. **What is "Zero"?** Read as the `00` slot of the layout, the place of Backlog artifacts. Today `00-changes` holds Changes, and Kai's earlier layout was `packages/<capability>/backlog/`. Recommended: the roots are declared data, so the PLAN does not fix the folder; the first proof uses one root owned by Backlog alone, `packages/kaal-backlog/backlog/`. Which folder name and where?
-2. **Approval of BACKLOG PRs.** The ruleset keeps its approving review. By whom: the CPO per PR, a designated reviewer after the controls are green, or batch review? "Fast" must not mean unreviewed.
-3. **Queue priority** of BACKLOG entries (proposed lowest).
-4. **Branch kind name** (`backlog/*` proposed) and its stage name in Engineering.
-5. **Cross-owner roots.** Product backlogs of other capabilities would sit inside their packages (`ownership.kaal.json` claims the whole package, inventories digest it, tarballs ship it). Needs an ownership rule before roots widen beyond the first proof.
-6. **B2 first.** A BACKLOG template is only as good as the API body builder behind it; do B2 (one truth, generated interfaces) before or with step 2.
-7. **Change Isolation rebuild (B1).** Its per-kind permitted sets should be declarative so hotfix (exemption) and backlog (restriction) are the same mechanism.
+Closed (CTO/CPO, 2026-11-24): "Zero is backlog" means each package's `00-backlog` folder, by the target layout (00 backlog, 01 changes, 02 learnings, 10 intent to 15 defects). The declared roots are `packages/<capability>/00-backlog/`. The `00-changes` folders on `main` are legacy, not yet migrated. The first proof uses one root, `packages/kaal-backlog/00-backlog/`.
+
+1. **Approval of BACKLOG PRs.** The ruleset keeps its approving review. By whom: the CPO per PR, a designated reviewer after the controls are green, or batch review? "Fast" must not mean unreviewed.
+2. **Queue priority** of BACKLOG entries (proposed lowest).
+3. **Branch kind name** (`backlog/*` proposed) and its stage name in Engineering.
+4. **Cross-owner roots.** Product backlogs of other capabilities would sit inside their packages (`ownership.kaal.json` claims the whole package, inventories digest it, tarballs ship it). Needs an ownership rule before roots widen beyond the first proof.
+5. **B2 first.** A BACKLOG template is only as good as the API body builder behind it; do B2 (one truth, generated interfaces) before or with step 2.
+6. **Change Isolation rebuild (B1).** Its per-kind permitted sets should be declarative so hotfix (exemption) and backlog (restriction) are the same mechanism.
