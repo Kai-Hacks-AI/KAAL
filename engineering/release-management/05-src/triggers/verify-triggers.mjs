@@ -32,10 +32,12 @@ export const findingsOf = (tree) => Object.keys(tree).filter((p) => /\.ya?ml$/.t
 const listOf = (text) => { try { const x = JSON.parse(text); return Array.isArray(x) ? x : null; } catch { return null; } };
 
 // previous: the accepted baseline, the baseline file of the base, read as Git data, never a file of the pull request. baseline: the baseline file of the head. A pull request that resolves a use names it out of the file in the same change, or the allowance is stale (controls' ratchet says so).
-export function judge({ base, head }) {
+// fallback: the baseline file of the default branch, as text. It is the accepted baseline only when the base holds no baseline file at all, a base that predates the control (a collector not yet synced); a base whose file is unreadable stays UNKNOWN. The head cannot widen it: a name the head's file adds to the allowance is growth against it.
+export function judge({ base, head, fallback }) {
   if (!base || !head || !Object.keys(base).length) return { verdict: 'UNKNOWN', reasons: ['the base or the head workflows could not be read'] };
   if (!judgeMode) return { verdict: 'UNKNOWN', reasons: ['judge-mode is absent on the base'] };
-  const previous = listOf(base[BASELINE]);
+  const fromDefault = base[BASELINE] === undefined && fallback !== undefined;
+  const previous = listOf(fromDefault ? fallback : base[BASELINE]);
   if (!previous) return { verdict: 'UNKNOWN', reasons: ['the accepted baseline of the base could not be read'] };
   const baseline = listOf(head[BASELINE]);
   if (!baseline) return { verdict: 'UNKNOWN', reasons: ['the baseline of the head could not be read'] };
@@ -47,7 +49,7 @@ export function judge({ base, head }) {
     ...(r.grew ?? []).map((p) => `${p} is in the baseline of the head and not in the accepted baseline of the base`),
     ...(r.stale ?? []).map((p) => `${p} is in the baseline and no longer uses ${TARGET}: take it out of the baseline in the same change`),
   ];
-  return { verdict: r.verdict, reasons, base: previous.length, head: findings.length, findings, previous, ...(r.next ? { next: r.next } : {}) };
+  return { verdict: r.verdict, reasons, base: previous.length, head: findings.length, findings, previous, ...(fromDefault ? { fromDefault } : {}), ...(r.next ? { next: r.next } : {}) };
 }
 
 export function readTree(dir) {
@@ -68,7 +70,12 @@ export function read(root, ref) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (k) => { const i = process.argv.indexOf(k); return i < 0 ? undefined : process.argv[i + 1]; };
   let r;
-  try { r = judge({ base: read(arg('--root') || '.', arg('--base')), head: read(arg('--root') || '.', arg('--head')) }); } catch (e) { r = { verdict: 'UNKNOWN', reasons: [String(e.message)] }; }
-  console.log(`${r.verdict}${r.reasons.length ? `: ${r.reasons.join('; ')}` : ''}`);
+  try {
+    const root = arg('--root') || '.';
+    // --fallback <ref>: the default branch, whose baseline file is the accepted one when the base predates the control
+    const fb = arg('--fallback') ? read(root, arg('--fallback'))[BASELINE] : undefined;
+    r = judge({ base: read(root, arg('--base')), head: read(root, arg('--head')), fallback: fb });
+  } catch (e) { r = { verdict: 'UNKNOWN', reasons: [String(e.message)] }; }
+  console.log(`${r.verdict}${r.reasons.length ? `: ${r.reasons.join('; ')}` : ''}${r.fromDefault ? " (the accepted baseline is the default branch's: the base holds none)" : ''}`);
   process.exit({ PASS: 0, FAIL: 1, UNKNOWN: 2 }[r.verdict]);
 }

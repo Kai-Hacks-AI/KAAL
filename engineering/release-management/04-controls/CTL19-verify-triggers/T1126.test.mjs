@@ -26,7 +26,7 @@ export async function run() {
     assert.ok(m, `step ${name} has no run block`);
     return m[1].replace(/^ {10}/gm, '');
   };
-  const FETCH = step('Fetch the proposed head as Git data');
+  const FETCH = step('Fetch the base and the proposed head as Git data');
   const JUDGE = step('Judge');
   const sh = (cwd, cmd, env = {}) => { try { execFileSync('bash', ['-ec', cmd], { cwd, env: { ...process.env, ...env }, stdio: 'pipe' }); return 0; } catch (e) { return e.status; } };
   const g = (cwd, ...a) => execFileSync('git', ['-C', cwd, '-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { encoding: 'utf8', stdio: 'pipe' }).trim();
