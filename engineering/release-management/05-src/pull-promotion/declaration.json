@@ -86,7 +86,7 @@
       "(^|/)00-changes/[^/]+/(change|gap)\\.md$"
     ],
     "do": [
-      "^(?!.*(^|/)plan/)(packages|engineering|\\.github|\\.githooks)/.+"
+      "^(?!.*(^|/)plan/)(packages|engineering)/.+"
     ],
     "cases": {
       "files": [

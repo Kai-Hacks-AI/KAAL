@@ -1,0 +1,39 @@
+# The merge queue's counterpart of engineering.yml: `main` has a merge queue, so a context its ruleset requires must
+# also report on the merge group. Only the check of the ruleset that targets the default branch, `verify Stages
+# (Promoting)`, is needed here; it runs only for a merge_group event, so no job is ever skipped. The judge is the
+# default branch's own, and the merge group commit is only read.
+name: Engineering merge group
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+permissions: {}
+
+jobs:
+  promoting:
+    name: verify Stages (Promoting)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the default branch (the trusted judge)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: trusted
+          persist-credentials: false
+
+      - name: Check out the merge group commit (only read)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: candidate
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Judge the stages with the default branch's judge
+        run: node trusted/engineering/release-management/05-src/stages/judge.mjs candidate Promoting
