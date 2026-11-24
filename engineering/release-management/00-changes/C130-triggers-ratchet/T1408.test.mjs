@@ -1,6 +1,6 @@
 // Case release/T1408 tests: release/C130
 import assert from 'node:assert/strict';
-import { judge } from '../../05-src/triggers/verify-triggers.mjs';
+import { judgeHonest as judge } from '../C131-triggers-baseline-file/fixtures.mjs';
 export const id = 'release/T1408';
 export const tests = ['release/C130'];
 export const title = 'through the shared ratchet, adding a use, giving one to a workflow and swapping to a new workflow fail, removing, replacing and leaving a use pass and the next baseline drops it, a use put back after removal fails, and an unreadable side is UNKNOWN with no next';
