@@ -21,7 +21,7 @@ export async function run() {
   assert.equal(n.verdict, 'QUALIFIED');
   assert.deepEqual(n.findings, ['a', 'b', 'c'], 'the findings were not listed sorted');
   assert.equal(n.needs, 'review', 'findings did not need Review');
-  for (const k of ['as', 'baseline', 'history']) assert.equal(n[k], undefined, 'qualification proposed a response: ' + k);
+  assert.deepEqual(Object.keys(n).sort(), ['findings', 'needs', 'verdict'], 'a non-empty scan carried more than evidence for the decision (a response, a ratchet, a baseline)');
   const x = (mut) => { const r = ready(['a']); mut(r); return qualify(r); };
   assert.equal(x((r) => { r.property.holds = false; }).reason, 'property-fails', 'a failing property was not named');
   assert.equal(x((r) => { r.provoked.seeded.found = false; }).reason, 'not-provoked', 'a seed that was not found passed');

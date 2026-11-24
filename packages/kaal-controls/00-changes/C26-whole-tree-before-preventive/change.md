@@ -22,5 +22,5 @@ A retro entry in the collector.
 - One Change or two: the property (item 1) and the gate (item 2) could be separate. Recommendation: one, they share `scope.mjs` and the gate is meaningless without the property.
 - Where the stable finding id is defined: the control's own `findingsOf` (recommended), checked here for uniqueness and type only.
 - The `provoked` input is two booleans from the caller (`seeded.found`, `removed.cleared`) for now; its relation to C18/C19's provoked evidence is for them when they resume.
-- Qualification evidence only: no ratchet or other response is proposed. The response decision model is a separate Change (see `C26.md`).
+- Qualification evidence only: no ratchet or other response is proposed. The response decision model is CARE (Contain, Accept, Ratchet, Eliminate), a separate Controls Change (see `C26.md`); a non-empty scan is evidence for that decision, not a ratchet recommendation.
 - Ids G103, F40, T1121, T1122 are taken by hand; on a clash the newer pull request renumbers. It needs no code from C24 or C25.
