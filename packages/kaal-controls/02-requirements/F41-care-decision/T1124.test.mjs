@@ -9,7 +9,7 @@ const who = { proposedBy: 'a reviewer', selectedBy: 'the decider', reason: 'beca
 const ok = {
   contain: { finding: 'f1', response: 'contain', owner: 'o', limits: 'read only', ...who },
   accept: { finding: 'f2', response: 'accept', owner: 'o', ...who },
-  ratchet: { finding: 'f3', response: 'ratchet', corrects: 'work-1', ...who },
+  ratchet: { finding: 'f3', response: 'ratchet', owner: 'o', corrects: 'work-1', ...who },
   eliminate: { finding: 'f4', response: 'eliminate', corrects: 'work-2', ...who },
 };
 const valid = (finding) => ({ finding, disposition: 'valid', reviewedBy: 'a reviewer' });
@@ -53,7 +53,8 @@ export async function run() {
   assert.deepEqual(kinds({ decisions: [{ ...ok.contain, response: 'ignore' }, ...decisions.slice(1)] }), ['bad-response:f1'], 'an unknown response passed');
   assert.deepEqual(kinds({ decisions: [{ finding: 'f2', response: 'accept', ...who }, ...without(decisions, 'f2')] }), ['missing-field:f2:owner'], 'an accept without an owner passed');
   assert.deepEqual(kinds({ decisions: [{ ...ok.contain, limits: '' }, ...decisions.slice(1)] }), ['missing-field:f1:limits'], 'a contain without what limits it passed');
-  assert.deepEqual(kinds({ decisions: [{ finding: 'f3', response: 'ratchet', ...who }, ...without(decisions, 'f3')] }), ['missing-field:f3:corrects'], 'a ratchet without the corrective work stood for acceptance');
+  assert.deepEqual(kinds({ decisions: [{ finding: 'f3', response: 'ratchet', corrects: 'work-1', ...who }, ...without(decisions, 'f3')] }), ['missing-field:f3:owner'], 'a ratchet without a named owner passed');
+  assert.deepEqual(kinds({ decisions: [{ finding: 'f3', response: 'ratchet', owner: 'o', ...who }, ...without(decisions, 'f3')] }), ['missing-field:f3:corrects'], 'a ratchet without the corrective work stood for acceptance');
   assert.deepEqual(kinds({ decisions: [{ ...ok.eliminate, selectedBy: '' }, ...decisions.slice(0, 3)] }), ['missing-field:f4:selectedBy'], 'a response nobody selected passed');
   assert.deepEqual(kinds({ decisions: [{ ...ok.eliminate, proposedBy: undefined }, ...decisions.slice(0, 3)] }), ['missing-field:f4:proposedBy'], 'a response nobody proposed passed');
   assert.deepEqual(judgeDecision({ findings: [], dispositions: [], decisions: [] }), { verdict: 'PASS', reasons: [], unresolved: [] }, 'a clean scan needs nothing and was refused');
