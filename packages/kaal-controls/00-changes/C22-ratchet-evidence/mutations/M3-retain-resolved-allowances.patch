@@ -1,6 +1,6 @@
---- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
-+++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
-@@ -29,7 +29,7 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -26,7 +26,7 @@
      remaining: findings.filter((f) => !baseline.includes(f)),
      known: findings.filter((f) => baseline.includes(f)),
      grew: baseline.filter((f) => !previous.includes(f)),
