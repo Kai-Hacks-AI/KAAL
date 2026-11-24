@@ -19,7 +19,7 @@ export function holdsProperty({ findingsOf, judge, base, head }) {
 // CARE decision and nothing more: it proposes no response, baseline or history.
 export function qualify({ property, provoked, scan } = {}) {
   if (!property || !provoked || !scan || !provoked.seeded || !provoked.removed || !Array.isArray(scan.findings)) return { verdict: 'UNKNOWN' };
-  if (property.holds !== true) return { verdict: 'NOT_QUALIFIED', reason: 'property-fails' };
+  if (property.holds !== true) return { verdict: 'NOT_QUALIFIED', reason: property.reason === 'unstable-findings' ? 'unstable-findings' : 'property-fails' };
   if (provoked.seeded.found !== true || provoked.removed.cleared !== true) return { verdict: 'NOT_QUALIFIED', reason: 'not-provoked' };
   if (!stable(scan.findings)) return { verdict: 'NOT_QUALIFIED', reason: 'unstable-findings' };
   const findings = [...scan.findings].sort();
