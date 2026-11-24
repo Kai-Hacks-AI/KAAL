@@ -34,6 +34,7 @@ export async function run() {
   try {
     const WF = '.github/workflows';
     const J = 'engineering/release-management/05-src/triggers/verify-triggers.mjs';
+    const BL = 'engineering/release-management/04-controls/CTL20-gate-verify-triggers/baseline.json'; // the accepted baseline, a file of the base (release/C131)
     const JM = 'packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs'; // the shared judge the judge hands its findings to
     const mod = readFileSync(MOD, 'utf8');
     const put = (dir, files) => { for (const [p, c] of Object.entries(files)) { mkdirSync(join(dir, p, '..'), { recursive: true }); writeFileSync(join(dir, p), c); } };
@@ -41,7 +42,7 @@ export async function run() {
     g(tmp, 'init', '-q', '--bare', origin);
     const seed = join(tmp, 'seed');
     g(tmp, 'init', '-q', seed);
-    put(seed, { [`${WF}/a.yml`]: 'on:\n  pull_request:\n', [`${WF}/b.yml`]: 'on:\n  pull_request_target:\n', [J]: mod, [JM]: readFileSync(join(repo, JM), 'utf8') });
+    put(seed, { [`${WF}/a.yml`]: 'on:\n  pull_request:\n', [`${WF}/b.yml`]: 'on:\n  pull_request_target:\n', [J]: mod, [BL]: JSON.stringify([`${WF}/b.yml`]), [JM]: readFileSync(join(repo, JM), 'utf8') });
     g(seed, 'add', '-A'); g(seed, 'commit', '-q', '-m', 'base');
     const base = g(seed, 'rev-parse', 'HEAD');
     g(seed, 'push', '-q', origin, 'HEAD:refs/heads/main');
@@ -54,7 +55,7 @@ export async function run() {
       g(seed, 'push', '-q', origin, `HEAD:refs/pull/${n}/head`);
     };
     pr(1, { [`${WF}/c.yml`]: 'on:\n  pull_request_target:\n' });
-    pr(2, {}, [`${WF}/b.yml`]);
+    pr(2, { [BL]: '[]' }, [`${WF}/b.yml`]); // removing the use takes its name out of the baseline in the same change
     pr(3, {});
     pr(4, { [J]: "process.exit(0);\n", [`${WF}/c.yml`]: 'on:\n  pull_request_target:\n' });
     const run = (n, cmdFetch = FETCH) => {
