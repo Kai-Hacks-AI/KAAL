@@ -29,222 +29,239 @@ Use the experiment collector and existing repository execution/PR conventions. E
 
 ## PLAN completion
 
-PLAN status: ready for CPO review (no experimental runs executed; no results included).
+PLAN status: revised per CPO review (Rev 2) — ready for CPO re-review (no E1 experimental runs executed; no experimental results included).
 
 Frozen pre-execution artifacts in this directory (digests computed with `@kaihacksai/kaal-foundation` via `node packages/kaal-foundation/bin/kaal-foundation.mjs sha256`):
 
 - `prompt.txt` — verbatim subject prompt (`980505144df299fb524e3de1e678fc2cb2a7bc79cc8049af90b6332464993008`)
-- `key.md` — domain-neutral evaluation key, 7-dimension scoring rubric, anti-jargon contract, and blinded judge protocol (`28684c96dd5e68535498a46f18d46d32eef7472040d0090a34fe5a548323c796`)
+- `key.md` — revised two-track evaluation key & scoring rubric separating general domain-standard ratchet understanding (`G1`–`G6`) from KAAL governance-model alignment (`K1`–`K5`), anti-jargon neutrality contract, and blinded judge protocol (`ce927764377623bc1ae5f0595dfe76a8205d1e4197a2eb0e38e26208758a590a`)
 
 ---
 
-### 1. Methodology and Outcome Mapping
+### 1. Methodology, Two-Track Evaluation, and Outcome Mapping
 
 #### Design Summary
 E1 is a two-arm controlled agent trial comparing:
 
-- **Arm A (`blank`, untreated):** Fresh Antigravity subagent with an empty disposable workspace and no KAAL access.
-- **Arm B (`kaal`, treated):** Otherwise identical fresh Antigravity subagent with pinned KAAL available in its disposable workspace.
+- **Arm A (`blank`, untreated):** Fresh Antigravity agent with genuine preventive isolation from KAAL — zero KAAL files, zero KAAL skills, zero KAAL `<user_rules>`/`AGENTS.md`, and zero attached KAAL repository/context (see Section 3 for isolation evidence and CPO decision).
+- **Arm B (`kaal`, treated):** Otherwise identical fresh Antigravity agent with the pinned deployed consumer KAAL surface (`3aafe4f708bd6ce16293d5bd6b6410de8c345449`, Option D-1 accepted by CPO) available.
 
-The design aligns with KAAL Research (`packages/kaal-research/skills/kaal-research/SKILL.md`, `F1`–`F4`) while respecting the four-stage experiment lifecycle (`plan.md` → `do.md` → `check.md` → `act.md`) mandated above.
+The design aligns with KAAL Research (`packages/kaal-research/skills/kaal-research/SKILL.md`, `F1`–`F4`), follows the four-stage experiment lifecycle (`plan.md` → `do.md` → `check.md` → `act.md`), and will emit a companion `kaal-research`-conforming rehearsal record (`research/RH2`) in CHECK per CPO disposition C-1.
 
-#### What Each Outcome Would Inform
+#### Separate Reporting of Two Outcomes (Per CPO Second Correction)
+Evaluation and reporting strictly preserve two separate outcomes — **never** collapsed into a single blended total:
+
+1. **Outcome 1 — General Domain-Standard Ratchet Understanding (`Track 1: G1`–`G6`, max 18):** Measures whether the explanation is accurate, clear, operationally useful, and well-grounded under general software engineering governance standards. A strong answer that has never seen KAAL and adopts none of KAAL's specific design choices (such as mandatory retirement at zero, fail-closed `UNKNOWN` semantics, or KAAL's four-type control taxonomy) can score **18/18 (3/3 on every dimension)**.
+2. **Outcome 2 — Alignment with KAAL's Governance Model (`Track 2: K1`–`K5`, max 15):** Separately measures whether the explanation expresses KAAL's specific governance design choices (`kaal-controls`: control type vs strategy separation, strict accepted-state provenance and stale-allowance removal, fail-closed uncertainty, mandatory retirement at zero, removable filter separation and mode-scoped epistemic claims), scored strictly on conceptual substance with zero points for KAAL terminology alone.
+
+#### What Each Outcome Pattern Would Inform
 Recommendations from E1 are research findings, never implementation authorization; the Owner retains final authority.
 
-- **Favourable (Arm B consistently outperforms Arm A on governance precision, distinction from ordinary gates, inherited-violation lifecycle, type-vs-strategy clarity, or epistemic grounding, with verified KAAL opening):** Supports the hypothesis that KAAL's `kaal-controls` knowledge improves explanation quality beyond base model knowledge; motivates follow-on applied experiments (e.g., designing/reviewing a ratcheted control in a real repository) and multi-model replication.
-- **Null or Inconclusive (comparable scores across arms, mixed directionality, high within-arm variance, or Arm B rarely/never opens KAAL):**
-  - If Arm B receives KAAL (`delivered`) but rarely opens `kaal-controls` (`opened`), E1 identifies a **Skill discoverability finding** (notably, `packages/kaal-controls/skills/kaal-controls/SKILL.md` frontmatter `description` does not currently contain the word "ratchet" or "baseline").
-  - If Arm B opens `kaal-controls` yet performs comparably to Arm A, E1 indicates base model knowledge already matches KAAL's conceptual guidance for this explanatory prompt, pointing future evaluations toward harder operational/code-review tasks.
-- **Unfavourable (Arm B underperforms Arm A — e.g., leaks unexplained KAAL jargon, narrows practical applicability, introduces errors, or degrades signal-to-noise):** Identifies concrete failure modes in how KAAL Skills present portable governance concepts to general-purpose agents.
+- **Higher Track 1 + Higher Track 2 in Arm B (with verified KAAL opening):** Indicates KAAL both strengthens general software engineering explanation quality and transmits KAAL's specific governance design principles; motivates follow-on applied tasks (design/review/implementation) and multi-model replication.
+- **Comparable Track 1 + Higher Track 2 in Arm B:** Indicates base Antigravity already provides strong general domain-standard explanations, while KAAL specifically shifts the agent toward KAAL's governance design choices (control-type/strategy clarity, strict provenance, fail-closed semantics, zero-exit lifecycle, removable filter architecture).
+- **Comparable Track 1 + Comparable Track 2 (Null / Inconclusive):**
+  - If Arm B rarely or never opens `kaal-controls` (`exposure: delivered` rather than `opened`), surfaces a **Skill discoverability finding** (notably, `packages/kaal-controls/skills/kaal-controls/SKILL.md` frontmatter `description` does not currently contain "ratchet" or "baseline").
+  - If Arm B opens `kaal-controls` yet shows no separation on either track, indicates the current Skill wording did not alter responses on this prompt.
+- **Lower Track 1 in Arm B (Unfavourable):** Surfaces a concrete harm mode (e.g., unexplained KAAL-internal jargon, narrowed practical applicability, or verbosity degrading clarity) for future Skill authoring consideration.
 
-#### Claim Scope Discipline (Per `kaal-research` F4)
-In CHECK, every claim will carry an explicit scope and disposition (`yes`, `partly`, `no`, with mandatory `not-shown` whenever not `yes`):
-
-- `description`: what the observed runs in each arm actually produced.
-- `comparison`: whether and how Arm A and Arm B differed across the observed runs.
-- `effect`: whether KAAL availability *caused* an observed difference. Under `kaal-research` F4, an `effect` claim may be marked `yes` only when untreated and treated runs exist, scoring is blind, every treated run relied upon has trace-verified `exposure: opened`, and the key-freezing and isolation conditions hold (see Section 8 and Decision C-5 for honest scope bounds).
+#### Claim Scope Discipline (Per CPO Disposition C-5 & `kaal-research` F4)
+- **Primary outcome / verdict scope:** **`comparison`** (whether and how Arm A and Arm B differed on Track 1 and Track 2 across the observed runs), as accepted by the CPO under C-5.
+- **No overstated causality:** `effect: yes` will **not** be claimed where `kaal-research` F4 prerequisites are unmet (including pre-existing KAAL authoring prior to key creation, or any arm/run lacking verified `exposure: opened`, genuine Arm A isolation, or blind scoring). Every claim carries an explicit scope (`description`, `comparison`, `effect`), disposition (`yes`, `partly`, `no`), and mandatory `not-shown` whenever not `yes`.
 
 ---
 
-### 2. Experimental Setup and Treatment Specification
+### 2. Pinned KAAL Revision and Delivered Consumer Surface (C-4 Accepted: Option D-1)
 
 #### Pinned KAAL Revision
 - **Repository:** `Kai-Hacks-AI/KAAL`
-- **Pinned commit SHA:** `3aafe4f708bd6ce16293d5bd6b6410de8c345449` (`origin/main` and `origin/kaal/research/ratchet-understanding` base at PLAN completion: `PROMOTION: engineering codeql-gate (#2388)`).
-- **Relevant KAAL capabilities present at this commit:** `kaal-controls` through `d3c7c77` (`PROMOTION: controls ratchet-strategy (#2366)`: `I15`, `F34`–`F37`, `SKILL.md`, `references/modes.md`, `scripts/judge-mode.mjs`), `kaal-research` through `91f40dd` (`PROMOTION: research rehearsal-method (#2360)`), and all 14 package Agent Skills.
-- **Zero E1 leakage at pinned commit:** Commit `3aafe4f708bd6ce16293d5bd6b6410de8c345449` predates PR #2393 and contains no `engineering/research/experiments/E1-ratchet-understanding/` directory.
+- **Pinned commit SHA:** `3aafe4f708bd6ce16293d5bd6b6410de8c345449` (`origin/main` and `origin/kaal/research/ratchet-understanding` base: `PROMOTION: engineering codeql-gate (#2388)`).
+- **Relevant KAAL capabilities at this commit:** `kaal-controls` through `d3c7c77` (`PROMOTION: controls ratchet-strategy (#2366)`), `kaal-research` through `91f40dd` (`PROMOTION: research rehearsal-method (#2360)`), and all 14 package Agent Skills.
+- **Zero E1 leakage at pinned commit:** `3aafe4f708bd6ce16293d5bd6b6410de8c345449` predates PR #2393 and contains no `engineering/research/experiments/E1-ratchet-understanding/` files.
 
-#### Arm B Delivery Mechanism (Recommended: Option D-1 — Deployed Consumer KAAL Surface)
-For each Arm B run (`b1`–`b5`), a fresh disposable directory `/tmp/e1-runs/<run-id>/workspace/` is materialized deterministically from `git archive 3aafe4f708bd6ce16293d5bd6b6410de8c345449` containing the **consumer-facing deployed KAAL surface** (matching `engineering/MOVE.md`'s separation between `engineering/` development history and deployed KAAL):
+#### Exact Delivered Consumer Surface (Verbatim from `3aafe4f708bd6ce16293d5bd6b6410de8c345449`)
+Extracted deterministically via `git archive 3aafe4f708bd6ce16293d5bd6b6410de8c345449` (no development history, no `engineering/release-management/`, no `00-changes/`, no retros, no test fixtures outside skill folders, and no E1 artifacts):
 
-1. **All 14 KAAL Agent Skills** extracted verbatim from `3aafe4f708bd6ce16293d5bd6b6410de8c345449` into `workspace/skills/<skill-name>/` (`kaal-architecture`, `kaal-change`, `kaal-controls`, `kaal-engineering`, `kaal-engineer-skill`, `kaal-foundation`, `kaal-graph`, `kaal-guard`, `kaal-hosting`, `kaal-release`, `kaal-research`, `kaal-retro`, `kaal-review`, `kaal-testing`), preserving each skill's exact `SKILL.md`, `references/`, and `scripts/`.
-2. **KAAL Engine** (`engineering/core/`) extracted verbatim into `workspace/.kaal/`.
-3. **Neutral Skill Index** (`workspace/AGENTS.md` and `workspace/skills/INDEX.md`) generated mechanically from the exact YAML `name`, `description`, and relative path of all 14 skills in alphabetical order — mirroring native Agent Skills discovery without highlighting `kaal-controls`, mentioning ratchets, or hinting at the prompt.
+1. **All 14 KAAL Agent Skills** placed verbatim under `skills/<skill-name>/`:
+   - `packages/kaal-architecture/skills/kaal-architecture/` → `skills/kaal-architecture/`
+   - `packages/kaal-change/skills/kaal-change/` → `skills/kaal-change/`
+   - `packages/kaal-controls/skills/kaal-controls/` → `skills/kaal-controls/`
+   - `packages/kaal-engineering/skills/kaal-engineering/` → `skills/kaal-engineering/`
+   - `packages/kaal-engineer-skill/skills/kaal-engineer-skill/` → `skills/kaal-engineer-skill/`
+   - `packages/kaal-foundation/skills/kaal-foundation/` → `skills/kaal-foundation/`
+   - `packages/kaal-graph/skills/kaal-graph/` → `skills/kaal-graph/`
+   - `packages/kaal-guard/skills/kaal-guard/` → `skills/kaal-guard/`
+   - `packages/kaal-hosting/05-src/skills/kaal-hosting/` → `skills/kaal-hosting/`
+   - `packages/kaal-release/skills/kaal-release/` → `skills/kaal-release/`
+   - `packages/kaal-research/skills/kaal-research/` → `skills/kaal-research/`
+   - `packages/kaal-retro/skills/kaal-retro/` → `skills/kaal-retro/`
+   - `packages/kaal-review/skills/kaal-review/` → `skills/kaal-review/`
+   - `packages/kaal-testing/skills/kaal-testing/` → `skills/kaal-testing/`
+2. **KAAL Engine** (`engineering/core/`) placed verbatim under `.kaal/` (`KAAL-KERNEL.md`, `AGENTS.md`, and `core/*.md`).
 
-Rationale: Providing all 14 deployed skills tests realistic KAAL availability (both skill discovery and knowledge application) without giving Arm B an artificial shortcut (handing `modes.md` directly) or exposing internal repository engineering history (`engineering/release-management/`, PR retros, change records) that an external KAAL consumer does not receive. (See Decision C-4 for CPO confirmation vs Option D-2 full repository archive.)
+#### Explicit Staging Additions (Separately Recorded in `evidence/treatment-manifest.json`)
+To expose the deployed consumer surface neutrally without hinting at `kaal-controls` or ratchets, exactly **two** staging files are added (under Option I-A1; zero added under Option I-A2 if native Antigravity skill upload is used):
 
-Before the first run, the staged Arm B bundle's file list and `@kaihacksai/kaal-foundation` SHA-256 hashes are written to `evidence/treatment-manifest.json`, and every Arm B run receives a byte-identical copy.
+1. `skills/INDEX.md` — mechanically generated alphabetical table containing **only** each of the 14 skills' exact verbatim YAML `name`, verbatim YAML `description`, and relative path `skills/<name>/SKILL.md`.
+2. `AGENTS.md` (root of disposable Arm B workspace) — minimal neutral consumer entrypoint (<= 10 lines) stating: this workspace has the KAAL Engine in `.kaal/` (start with `.kaal/AGENTS.md`) and 14 installed Agent Skills indexed in `skills/INDEX.md`; zero mention of ratchets, controls, or the experiment.
 
-#### Arm A Setup (Untreated / Blank)
-For each Arm A run (`a1`–`a5`), a fresh empty disposable directory `/tmp/e1-runs/<run-id>/workspace/` is created containing zero files.
-
-#### Held-Constant Execution Parameters (Identical Across Arm A and Arm B)
-| Parameter | Value for Arm A and Arm B |
-| --- | --- |
-| Agent platform | Antigravity subagent runtime (`define_subagent` + `invoke_subagent`) |
-| Model | `inherit` (identical session model across all 10 runs; recorded explicitly in `do.md` provenance) |
-| Tool permissions | Identical read-only subagent tools (`enable_write_tools: false`, `enable_mcp_tools: false`, `enable_subagent_tools: false`) |
-| Workspace mode | `inherit` (only mode supported in this environment; see Section 3) |
-| User prompt | Verbatim contents of `prompt.txt`: `"Explain what a ratchet is in the context of software engineering governance. Explain its purpose, behaviour and limitations. Provide a practical example."` |
-| System prompt template | Identical wording in both arms, differing only in `<WORKSPACE_PATH>`:<br>`You are a software engineering assistant. Your workspace directory is <WORKSPACE_PATH>. If files or skills exist inside your workspace directory, you may consult them when relevant; do not inspect files outside your assigned workspace directory. Answer the user's request directly, accurately, and clearly.` |
-| Follow-up turns | None (strictly single-turn response; no hints, retries, or clarifications) |
-| Hashing tool | `@kaihacksai/kaal-foundation` (`node packages/kaal-foundation/bin/kaal-foundation.mjs sha256`), verified first via `kaal-foundation verify` |
+Every file in the delivered Arm B surface is hashed with `@kaihacksai/kaal-foundation` SHA-256 and recorded in `evidence/treatment-manifest.json` with an explicit `"origin"` tag (`"pinned-3aafe4f"` vs `"staging-addition"`) so reviewers can inspect both the verbatim KAAL bytes and the exact staging additions.
 
 ---
 
-### 3. Isolation Controls and Honest Residual Disclosure
+### 3. Arm A Isolation Investigation, Empirical Evidence, and Feasible Options (C-3 — For CPO Decision)
 
-Following KAAL Controls discipline, isolation measures are classified strictly by what they actually do:
+Per CPO review on C-3, we investigated genuine preventive isolation of Arm A inside this Antigravity environment using documented, sanctioned mechanisms only (no harness tampering or sandbox bypass, and zero E1 prompt execution).
 
-1. **Preventive controls (enforced by runtime/filesystem setup):**
-   - Each run (`a1`–`a5`, `b1`–`b5`) executes in a brand-new subagent conversation with an empty conversation history — zero visibility into the coordinating agent's chat, other runs' outputs, or the judge sessions.
-   - Each run gets its own freshly created disposable directory `/tmp/e1-runs/<run-id>/workspace/`; Arm A's directory contains zero files and Arm B's contains only the pinned `3aafe4f708bd6ce16293d5bd6b6410de8c345449` bundle (never `E1-ratchet-understanding/`).
-   - Write, MCP, and subagent-spawning tools are disabled for all subject runs, preventing cross-run state mutation or environment tampering.
-2. **Directive controls (instructions only — never claimed as preventive):**
-   - Both arms receive the identical instruction: `"do not inspect files outside your assigned workspace directory"`.
-3. **Detective controls (post-run transcript audit — verified after every run):**
-   - Immediately after each run completes, its full subagent transcript (`transcript.jsonl` / `transcript_full.jsonl`, located via `manage_subagents`) is audited deterministically:
-     - **Arm A contamination check:** Verify that **zero** tool calls read, list, or search `/home/antigravity/Kai-Hacks-AI/KAAL` or any `/tmp/e1-runs/b*` directory. Any violation marks the run `contaminated` (retained in raw evidence, excluded from uncontaminated comparison, and disclosed).
-     - **Arm B contamination check:** Verify that **zero** tool calls touch `/home/antigravity/Kai-Hacks-AI/KAAL` (especially `E1-ratchet-understanding/plan.md` or `key.md`). Any violation marks the run `contaminated`.
-     - **Arm B exposure classification (per `kaal-research` F4 & RT1 lesson):**
-       - `opened`: **only** if a retained verbatim tool-call excerpt in `evidence/excerpts/<run-id>.excerpt.txt` proves the agent opened/read at least one KAAL file inside its assigned workspace.
-       - `delivered`: KAAL was staged in the workspace, transcript confirms clean execution, and no KAAL file was opened.
-       - `unchecked`: transcript unavailable or unreadable (prevents `effect` claims).
-       - Never infer `opened` from an agent's self-report or output prose alone.
+#### Empirical Findings from Non-E1 Harness Diagnostic
+A non-E1 environment diagnostic subagent (`harness-isolation-probe`, conversation `ac2cbdf4582eec8abc07506dd491f577`, launched via `define_subagent` with `enable_write_tools: false`, `enable_mcp_tools: false`, `enable_subagent_tools: false`, `Model: inherit`, `Workspace: inherit` — the only workspace mode supported here) was asked strictly about its own inherited session context and available tools without reading any files. Verified observations:
 
-#### Disclosed Harness-Level Isolation Residual (Important — Raised in Decision C-3)
-In this Antigravity remote VM, subagents must use `Workspace: inherit` (branched/isolated subagent workspaces are unsupported by the platform). Consequently, two harness-level residuals cannot be preventively eliminated inside this VM without bypassing environment boundaries (which is prohibited):
+1. **Inherited Active Workspaces:** Every in-VM subagent automatically receives both `/home/antigravity` and `/home/antigravity/Kai-Hacks-AI/KAAL`.
+2. **Automatically Injected `<user_rules>`:** Every in-VM subagent automatically receives `/home/antigravity/Kai-Hacks-AI/KAAL/AGENTS.md` in its system context (explicitly stating *"This repository is governed by KAAL"*, pointing to `engineering/core/AGENTS.md`, `packages/`, `engineering/`, and `@kaihacksai/kaal-foundation`).
+3. **Inherited `<project_resources>`:** Every in-VM subagent automatically sees `[github/repo] Kai-Hacks-AI/KAAL (https://github.com/Kai-Hacks-AI/KAAL) -> /home/antigravity/Kai-Hacks-AI/KAAL`.
+4. **Unrestricted Read Tool Path & Missing Discovery Tools:** The read-only subagent tool list is `send_message`, `view_file`, `generate_image`, `list_skills`, `lookup_skill`, `lookup_skills`, `get_skill_resources`. `view_file` accepts any absolute path in the VM (including `/home/antigravity/Kai-Hacks-AI/KAAL/...`), so filesystem access to KAAL cannot be preventively blocked per subagent; meanwhile, without write/shell tools, a workspace-staged Arm B subagent would have no directory-listing or search tool.
+5. **No On-Disk Subagent Transcripts in This Devbox:** `manage_subagents list` returned **no** `transcript` URI for `ac2cbdf4582eec8abc07506dd491f577`, and `/home/antigravity/.gemini/jetski/brain/` contains **no** `transcript.jsonl` or `transcript_full.jsonl` files. Consequently, in-VM subagents lack even detective post-run transcript auditing and cannot yield trace-verified `exposure: opened` excerpts.
+6. **No In-VM Standalone Antigravity Runtime:** The VM hosts only standard developer toolchains and plugin CLIs (`/opt/antigravity/bin`: `gh`, Google Workspace CLIs); the Antigravity agent loop and LLM inference run host-side outside the VM with no in-VM Antigravity CLI or model API credentials. Local Docker/chroot containers therefore cannot host an independent Antigravity agent.
 
-1. **Workspace metadata and root `AGENTS.md` injection:** The Antigravity host runtime may automatically include `<user_information>` (naming `/home/antigravity/Kai-Hacks-AI/KAAL`) and `<user_rules>` (root `AGENTS.md`, which mentions KAAL, `engineering/core/AGENTS.md`, and `@kaihacksai/kaal-foundation`, though not `kaal-controls` or ratchets) in subagent context. During DO, the first Arm A transcript will be inspected to verify and record exact observed harness context in `do.md` and `fresh-means`.
-2. **Shared-VM filesystem readability:** Because read tools exist on both arms for comparability, `/home/antigravity/Kai-Hacks-AI/KAAL` remains technically reachable on disk if a subagent disobeys the directive boundary. Post-run transcript audit detects any breach reliably, but does not prevent it beforehand.
+#### Conclusion on In-VM Arm A Isolation
+**Genuine preventive isolation of Arm A from KAAL is provably unavailable via in-VM subagents launched from this KAAL-attached Antigravity session.** Running Arm A as an in-VM subagent violates the blank-agent boundary (inherited KAAL `AGENTS.md`, inherited KAAL project resource, unrestricted `view_file` access to KAAL, and no on-disk transcript log). Per the CPO's instruction (*"Do not silently weaken the blank condition"*), in-VM Arm A execution is **rejected** and we return the following feasible options for CPO decision before DO:
 
-Decision C-3 below asks the CPO to choose between **Option I-1** (automated in-VM subagents with full transcript audit and explicit disclosure of this residual) and **Option I-2** (CPO/Owner-supplied Arm A outputs from separate Antigravity conversations with zero attached repository).
+| Option | Arm A (`blank`) | Arm B (`kaal`, pinned `3aafe4f`) | Genuine Arm A Isolation? | Model & Platform Parity? | Exposure Trace Verification? | Key Trade-Off |
+| --- | --- | --- | --- | --- | --- | --- |
+| **I-A1 (Recommended)** | 5 fresh standalone Antigravity conversations with **no repository, no project, and no KAAL skills attached** | 5 fresh standalone Antigravity conversations attached **only** to a clean disposable workspace/repo holding the pinned D-1 consumer KAAL surface (exact 14 Skills + `.kaal/` + 2 staging index files; zero `engineering/` or E1 files) | **Yes (preventive):** zero KAAL files, zero `AGENTS.md`, zero KAAL project resources, zero KAAL skills | **Yes:** both arms run as identical standalone top-level Antigravity sessions with the same model, default settings, and verbatim `prompt.txt`; supports interleaved order (`a1, b1, …`) | **Yes:** operator exports conversation tool-call logs / opened-file excerpts alongside each Arm B raw output | Requires external operator (CPO/Owner or authorized external Antigravity runner outside this KAAL project) to run the 10 isolated conversations and hand raw outputs + traces into DO. (This agent can produce the deterministic D-1 staging bundle/recipe for the disposable Arm B workspace once authorized.) |
+| **I-A2 (Alternative)** | 5 fresh zero-repo standalone Antigravity conversations with **zero KAAL skills installed** | 5 fresh zero-repo standalone Antigravity conversations with the 14 pinned KAAL Skills (`3aafe4f`) uploaded to Antigravity's native Skills interface (`list_skills`/`lookup_skill`/`get_skill_resources`) | **Yes (preventive)** provided Arm A completes before skills are installed (or uses a separate non-KAAL profile) | **High:** neither arm attaches a repo; exact native Antigravity Skills discovery without staging `AGENTS.md`/`INDEX.md` | **Yes:** operator exports `lookup_skill` / `get_skill_resources` call traces for Arm B | If Antigravity custom skills are account-global, runs must execute in a sequential block (all 5 Arm A before installing skills for Arm B) rather than interleaved, adding a temporal-order limitation; also delivers Skills only without `.kaal/` Engine files. |
+| **I-B (Not Recommended — Hybrid)** | 5 operator-run standalone zero-repo Antigravity conversations | 5 in-VM subagents in this KAAL-attached VM | Yes for Arm A | **No:** mixes standalone top-level Antigravity (A) with KAAL-mounted subagent inheriting root `AGENTS.md` and different tool surface (B) | **No for Arm B:** no on-disk subagent transcript available in devbox | Breaks execution-condition comparability and loses verifiable Arm B exposure traces. Documented only so it can be explicitly rejected. |
+| **I-C (Ruled Out)** | 5 in-VM subagents in this VM | 5 in-VM subagents in this VM | **No** (empirically disproved above) | Same subagent harness, but Arm A is not blank | **No** (no on-disk transcripts) | Violates CPO blank-condition boundary. Included only as empirical record of why in-VM execution is blocked. |
+
+#### Exact Operator Execution Protocol Under Recommended Option I-A1 (Zero Leakage, Single Turn)
+If CPO approves **Option I-A1**:
+1. This agent generates a reproducible, deterministic D-1 staging script / bundle from `git archive 3aafe4f708bd6ce16293d5bd6b6410de8c345449` (producing the exact 14 Skills + `.kaal/` + neutral `AGENTS.md` + `skills/INDEX.md`) and computes `evidence/treatment-manifest.json` using `@kaihacksai/kaal-foundation`.
+2. The operator mounts that disposable D-1 bundle in a clean, non-KAAL disposable workspace/repo (never `Kai-Hacks-AI/KAAL`, never containing `E1-ratchet-understanding/`).
+3. Using the **same Antigravity model and default settings** (recorded explicitly in `evidence/provenance.json`), the operator executes 10 fresh single-turn conversations in interleaved order (`a1, b1, a2, b2, a3, b3, a4, b4, a5, b5`), pasting the exact byte-identical contents of `prompt.txt` with no follow-up turns or hints.
+4. For each run, the operator supplies: (a) verbatim raw assistant response (`raw/<id>.md`), (b) session metadata (exact model name/version, settings, workspace state, start/end timestamps), and (c) exported tool-call trace/excerpts (proving zero KAAL reads in Arm A and verifying `opened` vs `delivered` vs `unchecked` exposure in Arm B).
+5. This agent ingests the verbatim artifacts into `evidence/`, verifies all SHA-256 digests with `@kaihacksai/kaal-foundation`, checks stopping/contamination rules, writes `do.md`, and raises the DO PR for CPO review.
 
 ---
 
 ### 4. Repetition Count and Execution Order
 
 - **Planned repetitions:** **`n = 5` independent runs per arm** (`10` runs total: `a1`–`a5` and `b1`–`b5`).
-- **Execution order:** Strictly interleaved (`a1, b1, a2, b2, a3, b3, a4, b4, a5, b5`), sequentially one at a time, to minimize temporal/backend drift bias and eliminate any concurrent cross-talk.
+- **Execution order:** Interleaved (`a1, b1, a2, b2, a3, b3, a4, b4, a5, b5`) under Option I-A1 (or disclosed sequential A-then-B block if CPO selects Option I-A2 with account-global skills).
 - **What `n = 5` per arm can and cannot show (`n-shows`, no invented threshold):**
-  - *Can show:* Whether consistent structural patterns, omissions, or traps appear across repeated independent runs of each arm; whether Arm B reliably discovers and opens KAAL Skills without hints; within-arm response variability; and whether a clear, consistent directional difference is visible in these runs.
-  - *Cannot show:* Statistically powered effect sizes, population rates, p-values, or generalization beyond this model, single prompt, and KAAL revision. No arbitrary score cutoff or statistical significance threshold is invented; CHECK reports the full per-run, per-dimension distributions, medians/ranges, qualitative quotes, and counterevidence.
+  - *Can show:* Whether consistent patterns, omissions, or traps appear across repeated independent runs on Track 1 (general understanding) and Track 2 (KAAL governance alignment); whether Arm B reliably discovers and opens KAAL Skills without hints; within-arm variance; and whether a consistent directional difference is visible in these runs.
+  - *Cannot show:* Statistically powered effect sizes, population rates, p-values, or generalization beyond this model, single prompt, and KAAL revision. No arbitrary pass/fail score threshold is invented; CHECK reports the full per-run, per-dimension distributions for Track 1 and Track 2 separately, alongside qualitative quotes and counterevidence.
 
 ---
 
 ### 5. Evidence Format and Provenance
 
-All DO and CHECK artifacts live inside `engineering/research/experiments/E1-ratchet-understanding/` (no reliance on temporary directories after DO completes). Every evidence file is hashed with `@kaihacksai/kaal-foundation` SHA-256 and listed in `evidence/manifest.json`.
+All DO and CHECK artifacts live inside `engineering/research/experiments/E1-ratchet-understanding/`. Every evidence file is hashed with `@kaihacksai/kaal-foundation` SHA-256 (`node packages/kaal-foundation/bin/kaal-foundation.mjs sha256`) and listed in `evidence/manifest.json`.
 
 #### Planned Directory Layout (Populated in DO and CHECK — Not Present in PLAN)
 ```text
 engineering/research/experiments/E1-ratchet-understanding/
-├── plan.md                          # PLAN (this file; frozen upon PLAN PR acceptance)
+├── plan.md                          # PLAN (this file; frozen upon PLAN acceptance)
 ├── prompt.txt                       # Frozen verbatim prompt (PLAN)
-├── key.md                           # Frozen evaluation key & rubric (PLAN)
+├── key.md                           # Frozen two-track key & rubric (PLAN, Rev 2)
 ├── do.md                            # DO execution record, provenance, deviations (DO PR)
-├── check.md                         # CHECK blinded analysis, scores, counterevidence (CHECK PR)
+├── check.md                         # CHECK blinded Track 1 + Track 2 analysis & counterevidence (CHECK PR)
+├── RH2.md                           # Companion kaal-research rehearsal record (id: research/RH2; CHECK PR)
 ├── act.md                           # ACT conclusions, lessons, proposed next steps (ACT PR)
-├── RH2.md                           # Optional kaal-research rehearsal record (CHECK PR; see Decision C-1)
 └── evidence/
     ├── manifest.json                # Relative paths + kaal-foundation SHA-256 of all evidence files
-    ├── provenance.json              # Timestamps, pinned SHA, VM/Node/Antigravity info, key/treatment times
-    ├── treatment-manifest.json      # Exact file list + SHA-256 of staged Arm B KAAL bundle
-    ├── arm-mapping.json             # Run IDs (a1..a5, b1..b5) -> arm, conversation ID, timestamps, metrics
+    ├── provenance.json              # Model, settings, isolation option, timestamps, pinned SHA, key/treatment times
+    ├── treatment-manifest.json      # Exact file list + SHA-256 + origin ("pinned-3aafe4f" vs "staging-addition")
+    ├── arm-mapping.json             # Run IDs (a1..a5, b1..b5) -> arm, session provenance, timestamps, exposure
     ├── raw/
     │   ├── a1.md ... a5.md          # Verbatim raw outputs from Arm A
     │   └── b1.md ... b5.md          # Verbatim raw outputs from Arm B
     ├── excerpts/
-    │   ├── a1.audit.txt ... a5.audit.txt       # Transcript audit proving zero out-of-workspace reads
-    │   └── b1.excerpt.txt ... b5.excerpt.txt   # Verbatim tool-call trace excerpts (exposure & audit)
+    │   ├── a1.audit.txt ... a5.audit.txt       # Session/isolation provenance & trace verification for Arm A
+    │   └── b1.excerpt.txt ... b5.excerpt.txt   # Verbatim tool-call trace excerpts (verifying opened vs delivered)
     ├── blinded/                     # Added in CHECK PR
     │   ├── blind-mapping.json       # Shuffled labels s01..s10 -> a1..b5 (withheld from judges)
     │   ├── packet-raw.md            # Shuffled s01..s10 verbatim responses handed to Judges 1 & 2
-    │   ├── judge-1-scores.json      # Raw output of independent blinded Judge 1
-    │   ├── judge-2-scores.json      # Raw output of independent blinded Judge 2
-    │   ├── packet-redacted.md       # Conditional minimally de-identified packet (if KAAL cues appear)
+    │   ├── judge-1-scores.json      # Independent blinded Judge 1 (separate Track 1 & Track 2 scores + quotes)
+    │   ├── judge-2-scores.json      # Independent blinded Judge 2 (separate Track 1 & Track 2 scores + quotes)
+    │   ├── packet-redacted.md       # Conditional minimally de-identified packet (if explicit KAAL cues appear)
     │   ├── redaction.diff           # Exact diff between packet-raw.md and packet-redacted.md
     │   └── judge-3-scores.json      # Conditional Judge 3 scores on packet-redacted.md
-    └── metrics.json                 # Deterministic D7b metrics (word/byte counts, tool calls, durations)
+    └── metrics.json                 # Deterministic Track 3 metrics (M1..M4)
 ```
 
-Note on transcripts: Full subagent transcripts can be large and may contain internal system metadata; DO retains deterministic structured tool-call audit logs and verbatim relevant excerpts under `evidence/excerpts/` (never unredacted credentials/tokens) and verifies every path and SHA-256 in `evidence/manifest.json`.
+In CHECK, `RH2.md` (`id: research/RH2`, verified unused across `packages/`, `engineering/`, open PRs, and remote branches at PLAN Rev 2; re-verified against `main` before CHECK) will be validated for form using `packages/kaal-research/skills/kaal-research/scripts/judge-rehearsal.mjs` and `find-rehearsals.mjs`.
 
 ---
 
 ### 6. Scoring and Blinded Evaluation Protocol
 
-Full criteria, conceptual traps (`T1`–`T7`), 0–3 anchor descriptors, and anti-jargon neutrality rules are frozen in `key.md` (`28684c96dd5e68535498a46f18d46d32eef7472040d0090a34fe5a548323c796`). Summary:
+Full criteria, conceptual traps (`GT1`–`GT4`), 0–3 anchor descriptors, anti-jargon neutrality rules, and judge instructions are frozen in `key.md` (`ce927764377623bc1ae5f0595dfe76a8205d1e4197a2eb0e38e26208758a590a`). Summary:
 
-- **Seven mandated dimensions:**
-  - `D1` Correctness (purpose, non-regression, monotonicity, fail-closed, exit) — 0–3
-  - `D2` Distinction from ordinary gates (vs strict blocking gate, vs detective/advisory check, check/filter separation) — 0–3
-  - `D3` Treatment of inherited violations (baseline allowance, shrinkage, stale-allowance removal, provenance, identity vs count) — 0–3
-  - `D4` Control type versus strategy (control design category vs temporary preventive enforcement strategy/mode; distinct from corrective work) — 0–3
-  - `D5` Practical applicability & concrete example (end-to-end operational lifecycle) — 0–3
-  - `D6` Grounding, precision & limitations (honest non-compliance claim scoping, granularity/masking, stagnation, provenance/boundary limits) — 0–3
-  - `D7a` Efficiency — qualitative signal-to-noise & clarity — 0–3
-  - `D7b` Efficiency — objective metrics computed deterministically by script (word/byte counts, tool call counts, run duration, token/turn counts where exposed)
+- **Track 1 — General Domain-Standard Ratchet Understanding (0–3 each, max 18; reported separately):**
+  - `G1` Core correctness (purpose & monotonic non-regression)
+  - `G2` Distinction from ordinary gates and passive checks
+  - `G3` Treatment of inherited violations (baseline allowance, tightening, integrity/design trade-offs)
+  - `G4` Practical applicability & concrete example
+  - `G5` Grounding, precision & general limitations
+  - `G6` Efficiency — qualitative signal-to-noise & clarity
+- **Track 2 — Alignment with KAAL's Governance Model (0–3 each, max 15; reported separately, never summed with Track 1):**
+  - `K1` Control type versus strategy / mode
+  - `K2` Strict accepted-state provenance, monotonicity & stale-allowance discipline
+  - `K3` Fail-closed uncertainty handling (`UNKNOWN` blocks)
+  - `K4` Temporary lifecycle & mandatory retirement at zero
+  - `K5` Removable filter architecture & mode-scoped epistemic claims
+- **Track 3 — Measurable Efficiency Metrics (`M1`–`M4`, deterministic outside judges):**
+  - `M1` Output word count & UTF-8 byte length; `M2` Tool call count; `M3` Wall-clock duration; `M4` Token/turn count where exposed.
 - **Blinded judging (executed in CHECK only):**
-  - Shuffled labels `s01`–`s10` generated from a recorded deterministic seed/permutation stored in `evidence/blind-mapping.json`.
-  - **Two independent fresh judge subagents** (`Judge 1`, `Judge 2`) score `packet-raw.md` against frozen `key.md` without seeing arm labels, run IDs, transcripts, or each other's scores.
-  - Each judge supplies per-dimension integer scores, verbatim supporting quotes/omissions, traps observed, counterevidence, and an explicit **blinding check** (`guessed-arm` + triggering cues).
-  - **Conditional de-identification sensitivity pass (`Judge 3`):** Triggered automatically if any response contains explicit KAAL brand/file identifiers (`KAAL`, `RATCHETS`, `judge-mode`, `kaal-controls`, `modes.md`, `F34`–`F37`); strips only those explicit identifiers into neutral placeholders (preserving exact diff) to check whether explicit brand cues altered scores.
-  - **No silent reconciliation:** All inter-judge disagreements, blinding-guess accuracy, counterevidence, and Arm A/B overlap are reported verbatim in `check.md`.
+  - Shuffled neutral labels `s01`–`s10` mapped in `evidence/blind-mapping.json` (withheld from all judges).
+  - **Two independent fresh judge sessions** (`Judge 1`, `Judge 2`) score `packet-raw.md` against frozen `key.md`, returning separate Track 1 (`G1`–`G6`) and Track 2 (`K1`–`K5`) integer scores, verbatim evidence quotes/omissions, traps observed, counterevidence, and an explicit **blinding check** (`guessed-arm` + triggering cues).
+  - **Conditional de-identification sensitivity pass (`Judge 3`):** Triggered automatically if any response contains explicit KAAL brand/file identifiers (`KAAL`, `RATCHETS`, `judge-mode`, `kaal-controls`, `modes.md`, `F34`–`F37`), replacing only explicit identifiers with neutral placeholders (exact diff retained in `evidence/blinded/redaction.diff`) to test whether explicit brand cues shifted either Track 1 or Track 2 scores.
+  - **No silent reconciliation:** All inter-judge disagreements, blinding-guess accuracy, counterevidence, and Track 1 vs Track 2 divergences are reported verbatim in `check.md`.
 
 ---
 
 ### 7. Stopping Conditions
 
-1. **Normal completion:** All 10 interleaved runs (`a1`–`a5`, `b1`–`b5`) complete with raw outputs, provenance, and transcript audits archived. Strictly **no optional stopping or post-hoc extension**: `n` is fixed at 5 per arm and will not be increased or reduced after inspecting results.
+1. **Normal completion:** All 10 runs (`a1`–`a5`, `b1`–`b5`) complete under the CPO-approved isolation option with verbatim raw outputs, provenance, and trace audits archived. Strictly **no optional stopping or post-hoc extension**: `n` stays fixed at 5 per arm.
 2. **Contamination stop / escalation:**
-   - Inspect `a1`'s transcript immediately after `a1` finishes (before running `b1`–`b5`). If `a1` shows harness-injected ratchet/controls content or accesses `/home/antigravity/Kai-Hacks-AI/KAAL`, **pause DO immediately** and escalate to the CPO.
-   - If any Arm B run reads `engineering/research/experiments/E1-ratchet-understanding/`, **halt DO immediately** and escalate.
-   - If a single isolated run suffers out-of-workspace read contamination later in the sequence, preserve it in `evidence/`, mark it `contaminated`, and do not silently discard or replace it; if `>= 2` runs in either arm show out-of-workspace reads, **halt DO** and report a systemic isolation failure.
-3. **Comparability or runtime failure stop:** If the runtime changes model, loses tool parity, or fails to produce auditable transcripts for `>= 2` runs, halt DO, preserve all partial evidence, and report the blocker to the CPO.
-4. **Governance boundary stop:** If any step would require editing KAAL packages, workflows, rulesets, or bypassing repository checks, stop immediately and escalate.
+   - If any Arm A session has any KAAL repository, KAAL `AGENTS.md`, or KAAL skill attached/loaded, **halt DO immediately** and escalate to the CPO.
+   - If any Arm B session accesses `engineering/research/experiments/E1-ratchet-understanding/` (this PLAN or `key.md`) or non-D-1 development repo files, **halt DO immediately** and escalate.
+   - Any contaminated run is never silently discarded or replaced; it is preserved in raw evidence, flagged, and reported.
+3. **Comparability or provenance failure stop:** If identical model/settings cannot be maintained across all 10 runs, or if provenance/raw outputs cannot be captured intact, halt DO, preserve partial evidence, and report the blocker to the CPO.
+4. **Governance boundary stop:** Any circumstance requiring changes to KAAL capabilities, controls, workflows, or rulesets, or bypassing repository gates, is an immediate hard stop and escalation.
 
 ---
 
 ### 8. Limitations and Threats to Validity (Disclosed Upfront)
 
-1. **Harness `Workspace: inherit` residual (Arm A purity):** Under Option I-1, Arm A runs in the same VM where `/home/antigravity/Kai-Hacks-AI/KAAL` is mounted, so workspace metadata and root `AGENTS.md` (mentioning KAAL and `kaal-foundation`, not ratchets) may appear in harness context, and filesystem isolation relies on directive + detective controls rather than a preventive sandbox.
-2. **Historical order of KAAL authoring vs key freezing (`kaal-research` F3/F4):** KAAL's `kaal-controls` ratchet documentation (`3aafe4f`) existed before E1's `key.md` was written, and the PLAN author read `kaal-controls` while preparing E1. Although `key.md` is strictly vendor-neutral, reviewed by the CPO, and frozen **prior to DO execution and Arm B bundle assembly**, it was not written independently of KAAL's existence. This creates a residual rubric-alignment threat and must be disclosed when assessing whether `effect`-scope claims can be marked `yes` under `kaal-research` F4.
-3. **Imperfect blinding due to distinctive content cues:** Even with shuffled labels and a conditional brand-redaction pass, responses influenced by `kaal-controls` may remain partially recognizable by conceptual structure (e.g., four-type control taxonomy or filter-in-front-of-verdict framing). Judge blinding-guess accuracy will be measured and disclosed explicitly.
-4. **Single-model, single-prompt, single-turn scope:** Results apply only to the observed Antigravity model, this single explanatory prompt, and KAAL at commit `3aafe4f708bd6ce16293d5bd6b6410de8c345449`. Explanation quality does not automatically transfer to code implementation, CI configuration, or review judgment.
-5. **Small sample size (`n = 5` per arm):** Sufficient to surface consistent structural differences and failure modes, insufficient for statistical rate estimation.
-6. **Same-platform orchestrator and judges:** While Judge 1, Judge 2 (and Judge 3) run in fresh sessions blind to arm identity, they share the same underlying Antigravity model family as the subject runs (potential self-preference bias); raw responses and quotes are preserved so the CPO and Owner can independently audit every score.
+1. **Operator mediation under Option I-A1 / I-A2:** Genuine preventive isolation of Arm A requires executing the 10 standalone Antigravity conversations outside this KAAL-attached VM; provenance accuracy therefore relies on disciplined operator capture of verbatim outputs, session settings, and exported tool traces.
+2. **Workspace-attachment bundling under Option I-A1:** Arm B has a disposable D-1 KAAL workspace attached while Arm A has no repository attached, and two minimal staging index files (`AGENTS.md`, `skills/INDEX.md`) expose the 14 skills cleanly. Both are recorded explicitly in `evidence/treatment-manifest.json` as part of the delivered treatment.
+3. **Historical order of KAAL authoring vs key freezing (`kaal-research` F3/F4):** KAAL's `kaal-controls` docs (`3aafe4f`) existed before `key.md` was written. Separating Track 1 (general domain-standard understanding) from Track 2 (KAAL governance alignment) mitigates rubric bias against blank answers, and freezing `key.md` before DO prevents post-hoc tailoring — but strict F4 `key-frozen < treatment-created` causality is still unmet, so `comparison` remains the primary verdict scope and `effect: yes` is not claimed.
+4. **Imperfect blinding due to distinctive content cues:** Even under shuffled labels and conditional brand redaction, KAAL-influenced answers may be recognizable by structure or specific governance concepts. Judge blinding-guess accuracy is measured and reported verbatim.
+5. **Single-model, single-prompt, single-turn scope and small `n = 5`:** Results apply only to the observed Antigravity model, this single explanatory prompt, and KAAL at `3aafe4f708bd6ce16293d5bd6b6410de8c345449`; they surface consistent patterns rather than statistical rates, and explanation quality does not establish implementation/review effectiveness.
+6. **Same-platform judges:** Blinded judges run in fresh Antigravity sessions sharing the underlying model family (potential self-preference bias); all raw outputs and verbatim scoring quotes are preserved for independent CPO/Owner audit.
 
 ---
 
-### 9. Repository Convention Alignment and Decisions Raised for CPO
+### 9. CPO Dispositions and Remaining Decision Before DO
 
-No existing repository conventions, capabilities, workflows, or rulesets are changed by this PLAN. The following five alignment points are raised explicitly for CPO decision prior to DO acceptance:
+No existing repository conventions, capabilities, controls, workflows, or rulesets are changed by this PLAN.
 
-| ID | Topic / Potential Convention Conflict | Analysis | Recommended Resolution (For CPO Confirmation) |
+| ID | Topic | Status | Disposition / Action Needed |
 | --- | --- | --- | --- |
-| **C-1** | **Experiment home & `kaal-research` record format** | `kaal-engineering/C28` places capability rehearsals under `<capability>/02-learnings/rehearsals/RH<n>/` and notes `engineering/research/` predates C28; `kaal-research` (`F1`–`F4`) defines a plain-text `RH<n>.md` record checked by `judge-rehearsal.mjs`. Meanwhile, this mandate places E1 at `engineering/research/experiments/E1-ratchet-understanding/` with `plan.md`, `do.md`, `check.md`, `act.md`, `evidence/`. | Keep all E1 artifacts under `engineering/research/experiments/E1-ratchet-understanding/` per the CPO mandate (zero changes to `packages/`). In CHECK, **also** emit a companion `kaal-research`-conforming record (`RH2.md` with `id: research/RH2`, or `controls/RH1` if CPO prefers attributing it to Controls) inside this same folder and verify its form with `judge-rehearsal.mjs` and `find-rehearsals.mjs`. Confirm whether companion `RH<n>.md` is desired and which ID namespace to use. |
-| **C-2** | **Four-PR stage flow (`PLAN`/`DO`/`CHECK`/`ACT`) vs PR templates and `ACT` controls** | `.github/PULL_REQUEST_TEMPLATE/` has `plan.md`, `do.md`, `act.md` (with `<capability>/C<n>` Change IDs) and no `check.md` template. `controls-act.yml` watches `02-learnings/retros/`, `00-changes/*/act.md`, and `plan/*/act.md`, so `engineering/research/experiments/E1-ratchet-understanding/` triggers no capability-Change ACT gate (verified green on PR #2393). | Raise four separate squash PRs into `kaal/research/ratchet-understanding` (`PLAN` #2393, then `DO`, `CHECK`, `ACT`), each awaiting CPO acceptance. Do not fabricate a capability Change ID (`C<n>`) or a capability 4L retro unless CPO directs otherwise; use concise structured stage PR bodies matching the mandate. Confirm promotion to `main` remains out of scope unless authorized after ACT. |
-| **C-3** | **Arm A isolation residual (`Workspace: inherit`)** | In-VM Antigravity subagents enforce `Workspace: inherit`, so `/home/antigravity/Kai-Hacks-AI/KAAL` remains on disk and root `AGENTS.md` may be injected by the harness (see Section 3). | **Confirm Option I-1 (recommended):** Run both arms via automated in-VM subagents with empty vs staged disposable workspaces, strict post-run transcript audits, immediate pause on any contamination, and explicit disclosure of any observed harness metadata in `do.md`/`fresh-means`. Alternatively, select **Option I-2** if the CPO/Owner prefers supplying external zero-repo Arm A outputs directly. |
-| **C-4** | **Arm B KAAL delivery surface** | "KAAL available" can mean either the deployed consumer surface (all 14 Agent Skills + KAAL Engine + neutral frontmatter index) or a full repository checkout at `3aafe4f708bd6ce16293d5bd6b6410de8c345449`. | **Confirm Option D-1 (recommended):** Staged deployed consumer surface (all 14 Skills + KAAL Engine + neutral `AGENTS.md`/`INDEX.md` at `3aafe4f708bd6ce16293d5bd6b6410de8c345449`), avoiding leakage of internal `engineering/` development docs. Alternatively, select **Option D-2** (full clean `git archive` of `3aafe4f708bd6ce16293d5bd6b6410de8c345449`). |
-| **C-5** | **`key-frozen` vs pre-existing KAAL under `kaal-research` F3/F4** | `kaal-research` F4 requires `key-frozen < treatment-fixed` for `effect` claims marked `yes`. Here `key.md` is frozen in PLAN prior to DO execution and Arm B bundle assembly, but KAAL's underlying `kaal-controls` docs already existed at `3aafe4f`. | Record both timestamps honestly in `provenance.json` (`key-frozen` at PLAN freeze; `kaal-revision-date` of `3aafe4f`; `treatment-bundle-fixed` at DO staging) and disclose the pre-existing-treatment limitation in CHECK. Confirm whether CPO accepts capping automated `effect` claims at `partly` (or reporting `comparison` as the primary verdict scope) if either C-3 or C-5 prevents strict F4 `effect: yes`. |
+| **C-1** | Experiment home & companion `kaal-research` record | **Accepted by CPO** | Keep all E1 artifacts under `engineering/research/experiments/E1-ratchet-understanding/`; emit companion rehearsal record `RH2.md` with `id: research/RH2` in CHECK (not Controls). Availability of `research/RH2` verified unused across `packages/`, `engineering/`, open PRs, and remote branches as of PLAN Rev 2 (re-verified at CHECK). |
+| **C-2** | Four-PR stage flow (`PLAN`/`DO`/`CHECK`/`ACT`) | **Accepted by CPO** | Four separate stage PRs into `kaal/research/ratchet-understanding`, awaiting CPO acceptance between stages; no fabricated Change ID (`C<n>`) or capability retro; promotion to `main` is a separate decision after ACT. |
+| **C-3** | **Genuine Arm A isolation** | **Open — CPO Decision Required** | In-VM subagents empirically proven unable to isolate Arm A (`ac2cbdf4582eec8abc07506dd491f577`: inherited KAAL workspace, root `AGENTS.md`, `<project_resources>`, unrestricted `view_file`, no on-disk transcripts). **Approve Option I-A1 (recommended: 10 operator-run standalone Antigravity conversations, blank zero-repo Arm A vs disposable D-1 consumer KAAL workspace Arm B, interleaved)** or **Option I-A2 (zero-repo standalone conversations with native KAAL Skills upload, sequential block if skills are account-global)**. |
+| **C-4** | Arm B KAAL delivery surface (D-1) | **Accepted by CPO** | Pinned deployed consumer surface at `3aafe4f708bd6ce16293d5bd6b6410de8c345449` (all 14 Skills + `.kaal/` Engine, excluding development repo), with exact delivered files and the 2 staging additions (`AGENTS.md`, `skills/INDEX.md`) tagged separately in `evidence/treatment-manifest.json`. |
+| **C-5** | Primary outcome & claim scope | **Accepted by CPO** | `comparison` is the primary outcome/verdict scope; `effect: yes` will not be claimed where `kaal-research` F4 prerequisites are unmet. |
+| **R-2** | Two-track rubric separation | **Revised — CPO Re-Review** | `key.md` (Rev 2, SHA-256 `ce927764377623bc1ae5f0595dfe76a8205d1e4197a2eb0e38e26208758a590a`) separates Track 1 (`G1`–`G6` general understanding; 18/18 achievable without KAAL design choices) from Track 2 (`K1`–`K5` KAAL governance alignment), preserving separate scores and reporting both outcomes independently. |
 
 ---
 
 ### 10. Readiness Checklist Before DO Execution
 
 DO will **not** begin until:
-1. All required CI checks on PR #2393 are green.
-2. The CPO reviews and explicitly accepts this PLAN PR (including dispositions on Decisions C-1 through C-5) and PR #2393 is merged into `kaal/research/ratchet-understanding` (or CPO authorizes DO directly from accepted PLAN).
-3. `node packages/kaal-foundation/bin/kaal-foundation.mjs verify` returns `verified` (exit 0) in the execution environment before any evidence digest is recorded.
+1. All required CI checks on PR #2393 are green on the revised head commit.
+2. The CPO approves this revised PLAN (including C-3 isolation option selection — Option I-A1 or I-A2 — and acceptance of frozen `key.md` Rev 2) and PR #2393 is accepted/merged into `kaal/research/ratchet-understanding`.
+3. `node packages/kaal-foundation/bin/kaal-foundation.mjs verify` returns `verified` (exit 0) before any DO manifest digest is recorded.
+
 

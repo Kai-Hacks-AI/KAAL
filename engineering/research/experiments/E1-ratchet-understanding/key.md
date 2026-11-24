@@ -1,119 +1,115 @@
-# E1 — Evaluation Key and Scoring Rubric (Frozen Pre-Execution)
+# E1 — Evaluation Key and Two-Track Scoring Rubric (Frozen Pre-Execution, Rev 2)
 
-Status: frozen as part of E1 PLAN prior to DO execution. Do not expose this file to experimental subject sessions (Arm A or Arm B).
+Status: revised per CPO PLAN review and frozen prior to DO execution. Do not expose this file to experimental subject sessions (Arm A or Arm B).
 
-## Purpose and Neutrality Contract
+## Purpose, Separation Principle, and Neutrality Contract
 
-This key defines what a strong, accurate, operationally useful explanation of a **ratchet in software engineering governance** looks like, together with the common conceptual traps and the scoring rubric used by blinded judges in CHECK.
+This key separates two distinct evaluation tracks so that a strong, domain-standard software engineering explanation is **never penalized** for omitting KAAL-specific governance design choices, while KAAL-specific governance alignment is measured transparently alongside it:
 
-### Anti-Jargon / KAAL-Terminology Neutrality Rule (Mandatory)
+- **Track 1 — General Domain-Standard Ratchet Understanding (`G1`–`G6`, 0–3 each, max 18):** Assesses core correctness, distinction from ordinary gates and passive checks, handling of inherited violations, practical applicability/example, grounded limitations, and signal-to-noise efficiency strictly against general software engineering governance standards. A sound domain-standard answer that has never seen KAAL can achieve **18/18 (3/3 on every dimension)**.
+- **Track 2 — Alignment with KAAL's Governance Model (`K1`–`K5`, 0–3 each, max 15):** Separately assesses whether an answer expresses the specific governance design choices codified in KAAL's Controls capability (control type vs strategy separation, strict stale-allowance/provenance discipline, fail-closed uncertainty semantics, mandatory retirement at zero, and removable filter-vs-check separation with mode-scoped claims).
+- **Track 3 — Objective Efficiency Metrics (`M1`–`M4`):** Computed deterministically outside the judge sessions and reported beside Tracks 1 and 2.
 
-- **Never reward KAAL-specific terminology alone.** Terms such as `KAAL`, `RATCHETS`, `judge-mode`, `applyBaseline`, `station`, `strategy: ratchet`, `baseline-source`, or capability/requirement identifiers (`CTL`, `F34`, `F36`, `F37`, `I15`) earn **zero** points by themselves.
-- **Accept equivalent domain-standard vocabulary.** Standard software engineering and governance terms (e.g., *baseline / allowlist / grandfathered debt / known-issues list*, *high-water mark / monotonic non-regression*, *audit / warn / advisory vs blocking / enforcing gate*, *transitional enforcement pattern / rollout strategy*, *fail-closed*) receive full credit whenever the underlying concept is stated accurately.
-- **Penalize unexplained internal jargon.** If an answer relies on framework-specific names or internal file/tool references without explaining their general software engineering meaning, treat that as a clarity/applicability weakness under D5 and D7 rather than a strength.
-- **Judge substance, not length or style.** A concise, precise explanation that covers the concepts accurately scores higher than a verbose, padded response.
+**Mandatory Reporting Separation Rule:** Track 1 and Track 2 scores are **always preserved and reported separately** (per-dimension and per-track). They must **never** be summed into a single blended total.
+
+### Anti-Jargon / KAAL-Terminology Neutrality Rule (Mandatory Across Both Tracks)
+
+- **Never reward KAAL-specific terminology alone.** Terms such as `KAAL`, `RATCHETS`, `judge-mode`, `applyBaseline`, `station`, `strategy: ratchet`, `baseline-source`, or capability/requirement identifiers (`CTL`, `F34`, `F36`, `F37`, `I15`) earn **zero** points on either Track 1 or Track 2 by themselves.
+- **Accept equivalent domain-standard vocabulary.** Standard software engineering and governance terms (e.g., *baseline / allowlist / grandfathered debt / known-issues list*, *high-water mark / monotonic non-regression*, *audit / warn / advisory vs blocking / enforcing gate*, *transitional enforcement pattern / rollout mode*, *fail-closed*) receive full credit whenever the underlying concept is stated accurately.
+- **Penalize unexplained internal jargon.** On Track 1 (`G4`, `G6`), relying on framework-specific names or internal file/tool references without explaining their portable software engineering meaning lowers practical applicability and clarity rather than helping.
+- **Judge substance, not length.** Concise, accurate explanations outscore verbose or padded responses.
 
 ---
 
-## Reference Key (Domain-Neutral Governance Concepts and Traps)
+## Reference Key — Track 1: General Domain-Standard Ratchet Understanding
 
-### What a Strong Explanation Covers
+### What a Strong Domain-Standard Answer Covers (No KAAL-Specific Design Required)
 
-1. **Purpose (Why ratchets exist):**
-   - Enables adopting or tightening a governance standard on a codebase/system with pre-existing (inherited) violations without halting all delivery ("stop the bleeding" / incremental compliance).
-   - Bridges the gap between passive reporting (which allows debt to grow) and strict immediate blocking (which blocks every change until all legacy debt is cleared).
-
-2. **Core Behaviour and Lifecycle:**
-   - **Baseline / allowance:** Captures the current known violations as an explicit baseline (allowance).
-   - **No new regressions:** Any new violation outside the baseline causes the gate to fail/block; grandfathered violations in the baseline are tolerated temporarily.
-   - **Monotonic tightening (one-way movement):** The baseline can only shrink (or remain equal), never grow. When an inherited violation is resolved, its allowance is removed so the standard permanently tightens.
-   - **No silent return:** A previously resolved violation that reappears is treated as a new regression and blocks; re-adding it to the baseline is rejected as baseline growth.
-   - **Stale-allowance discipline:** Keeping an allowance for a finding that no longer exists leaves hidden slack that could mask a future regression; strict ratchets reject or remove stale allowances in the same change.
-   - **Fail-closed on uncertainty:** Missing, unreadable, or incomparable baselines, or an analysis/check that failed to produce a verdict, must block/fail rather than silently pass ("missing evidence is not success").
-   - **Temporary lifecycle and explicit exit:** A ratchet is transitional, not permanent. It requires clear ownership and an exit condition: once the baseline reaches zero (empty), the ratchet machinery/baseline is removed and the control operates as an ordinary full preventive gate.
-
+1. **Purpose:** Enables teams to introduce or tighten a software engineering standard (e.g., linting, SAST, type safety, test coverage, dependency/architecture rules, performance budgets) on a system with pre-existing technical debt without freezing delivery for a big-bang rewrite.
+2. **Core One-Way Behaviour:** Records the current level or set of violations as a baseline/threshold; blocks changes that make things worse (new regressions); tightens monotonically as improvements are made so progress cannot silently slip backward.
 3. **Distinction from Ordinary Gates and Passive Checks:**
-   - **Ordinary (strict) preventive gate:** Fails on *any* violation (new or inherited); enforces full compliance immediately.
-   - **Detective / advisory / reporting check:** Surfaces violations without blocking changes; provides visibility but does not stop regression.
-   - **Ratchet:** Blocks *only* regressions relative to the accepted baseline (plus baseline integrity violations and unknown outcomes).
-   - **Clean architectural separation (desirable):** The underlying rule/check stays pure and reports all violations; the ratchet acts as a removable filter/wrapper around the check's findings so retiring the ratchet does not require rewriting the check.
+   - Contrasts with a **strict/static blocking gate** (which rejects all violations including pre-existing ones, halting delivery immediately — or holds a fixed threshold that never tightens).
+   - Contrasts with **passive / warning / advisory reporting** (which surfaces violations without blocking regressions).
+4. **Treatment of Inherited Violations:** Explains grandfathering/baselining existing violations so unrelated changes can proceed while new regressions fail; explains how improvements shrink/tighten the baseline; notes relevant baseline design trade-offs (e.g., numeric count/percentage thresholds vs itemised/finding-level baselines, and why baseline updates need governance/integrity so developers cannot casually raise the allowance).
+5. **Practical Applicability & Example:** Walks through a concrete, realistic engineering scenario (e.g., static analysis findings, lint rules, test coverage, compiler warnings, or architectural rules) showing the baseline with legacy issues, blocking a newly introduced violation, passing unrelated work, and tightening the baseline after a fix, plus practical workflow ownership.
+6. **Grounded Limitations:** Accurately scopes what a ratchet achieves (stopping backsliding is not the same as achieving compliance or fixing legacy debt) and identifies real engineering failure modes such as:
+   - does not drive remediation of inherited debt by itself (stagnation risk),
+   - gaming / Goodhart effects or violation-swapping in count-based thresholds ("fix one, add another"),
+   - brittle identifiers (e.g., line-number baselines breaking on refactors),
+   - friction or bypass/override risks outside the enforced check.
 
-4. **Treatment of Inherited Violations and Baseline Integrity:**
-   - Distinguishes between **identity-based baselines** (tracking specific stable finding identifiers, e.g., file/rule/symbol) and **count-based / aggregate thresholds** (e.g., "at most N warnings" or "coverage >= X%"), ideally noting why stable finding identities prevent violation-swapping ("fix one, break another").
-   - **Trusted baseline provenance:** The reference baseline must be read from the last *accepted* state (e.g., default branch / last passing release), never trusted blindly from the candidate change under review.
-   - **Advancement only on accepted runs:** A failing or unjudgable run must never modify or advance the accepted baseline.
+### General Conceptual Traps (Track 1 — Do Not Name in Subject Prompt)
 
-5. **Control Type versus Strategy / Mode:**
-   - Distinguishes what a control *is by design* (e.g., directive policy/standard, detective check/scan, preventive gate/block, corrective remediation) from *how it is operated or rolled out*.
-   - A ratchet is a **temporary enforcement strategy (or operating mode) of a preventive control** (relying on a detective check's findings to decide what to block), **not** a fifth/separate control type and **not** a corrective control (it stops backsliding; remediation of legacy debt is separate work).
-
-6. **Practical Example:**
-   - Gives a realistic, concrete software engineering scenario (e.g., static analysis / SAST findings, linter rules, dependency/license checks, API/schema rules, workflow/policy checks, or coverage) demonstrating:
-     1. Existing codebase with inherited violations recorded in an accepted baseline,
-     2. A change introducing a new violation -> blocked,
-     3. A change touching unrelated code while legacy violations remain -> passes,
-     4. A change resolving a legacy violation -> baseline shrinks (and returning it later fails),
-     5. Reaching zero baseline -> baseline removed and control continues as a standard blocking gate.
-   - Reflects realistic operational mechanics (where the baseline lives, how updates are enforced/reviewed, who owns retirement).
-
-7. **Limitations and Epistemic Discipline:**
-   - **Does not prove compliance:** Passing a ratcheted gate only shows *no new regressions* (within what was checked), never that the system satisfies the underlying rule.
-   - **Granularity / masking weakness:** Count-based ratchets allow swapping one violation for another ("net-zero churn"); even identity-based ratchets miss a known finding getting *worse* under the same identifier unless identifiers are fine-grained enough.
-   - **No automatic remediation or retirement ("permanent temporary" trap):** A ratchet prevents worsening but does not fix inherited debt by itself; without dedicated remediation and an owner monitoring for an empty baseline, the ratchet can linger indefinitely.
-   - **Operational fragility / bypass risks:** Unstable finding identifiers (e.g., line-number-only keys) break baseline matching during refactoring; allowing unreviewed baseline edits or overrides outside the gate defeats the ratchet; enforcement only covers actions passing through the gate boundary.
-
-### Common Conceptual Traps (Do Not Name These in the Subject Prompt)
-
-- **Trap T1 — Conflating ratchet with compliance:** Implying a passing ratcheted check means the codebase meets the rule.
-- **Trap T2 — Treating ratchet as a control type:** Calling a ratchet a standalone control type (e.g., alongside preventive/detective/corrective) rather than a temporary enforcement strategy/mode of a preventive control.
-- **Trap T3 — Count-only blind spot:** Describing ratchets purely as numeric thresholds (e.g., "warning count <= 42") without recognizing swap/masking limits or finding-identity baselines.
-- **Trap T4 — Omitting baseline shrinkage / stale-allowance removal:** Describing grandfathering ("ignore existing issues") without explaining how allowances shrink permanently when fixed and why stale allowances or re-added allowances must be rejected.
-- **Trap T5 — Missing fail-closed / provenance discipline:** Ignoring where the trusted baseline comes from (candidate vs accepted state) or failing to address missing/unjudgable evidence.
-- **Trap T6 — Omitting exit / permanence:** Treating the ratchet as an end state rather than a temporary transitional strategy with an explicit retirement/exit to plain preventive enforcement.
-- **Trap T7 — Overclaiming protection:** Claiming a ratchet "guarantees" improvement or "makes regressions impossible" without noting gate boundaries, overrides, or separate corrective work.
+- **GT1 — Conflating ratchet with compliance:** Implying a passing ratcheted check means the codebase meets the underlying standard.
+- **GT2 — Omitting tightening / one-way locking:** Describing only static grandfathering ("ignore existing issues forever") without explaining monotonic tightening as issues are fixed.
+- **GT3 — Ignoring violation-swapping or gaming:** Treating count-only thresholds as equivalent to tracking specific violations without acknowledging swap/masking limits.
+- **GT4 — Overclaiming protection:** Claiming a ratchet "guarantees" improvement or makes regressions "impossible" without acknowledging enforcement boundaries, overrides, or separate remediation work.
 
 ---
 
-## Scoring Rubric (7 Dimensions)
+## Reference Key — Track 2: Alignment with KAAL's Governance Model (Design Choices, Not Universal Requirements)
 
-Score each qualitative dimension (D1–D6, plus D7a) on a **0–3 integer scale**:
+Track 2 records whether an answer incorporates specific governance design choices reflected in KAAL's Controls capability (`kaal-controls`). Omitting these choices does **not** reduce Track 1 scores; they are evaluated strictly as a separate alignment dimension.
 
+1. **Control Type versus Strategy / Mode (`K1`):** Explicitly separates control *type* by design (directive, preventive, detective, corrective — or equivalent standard governance taxonomy) from operating *strategy/mode*, identifying a ratchet as a temporary enforcement strategy/mode applied to a preventive control (relying on a detective check's findings; distinct from corrective remediation), not a fifth/standalone control type.
+2. **Strict Baseline Monotonicity, Stale-Allowance Removal & Accepted-State Provenance (`K2`):** Explicitly states that the reference baseline is read from the last *accepted* state (never trusted from the candidate under review), rejected/failed runs never advance the accepted baseline, resolved allowances must be removed (stale allowances for resolved findings fail rather than staying as slack), and re-adding a resolved finding's allowance is rejected as baseline growth.
+3. **Fail-Closed Uncertainty Semantics (`K3`):** Explicitly states that missing, unreadable, or incomparable baselines, or a check that could not judge, produce an unknown/blocking outcome rather than silently passing ("missing evidence is never success").
+4. **Temporary Lifecycle & Mandatory Retirement at Zero (`K4`):** Explicitly treats a ratchet as strictly temporary with an assigned owner and explicit exit condition: once the baseline is empty (zero), ratchet machinery and baseline are removed and the control continues as an ordinary preventive gate (distinguishing the control's exit condition from a planner's deadline).
+5. **Removable Filter Separation & Mode-Scoped Epistemic Claims (`K5`):** Explicitly separates the pure finding-emitting check from a removable ratchet filter in front of the verdict (empty baseline = identity; removing the ratchet leaves the check unchanged), AND scopes claims tightly to mode and granularity (a ratchet proves only no *new* named findings within its boundary; name-based membership misses same-name severity worsening; written rules or settings are not observed operation/effectiveness).
+
+---
+
+## Scoring Rubric
+
+Score every qualitative dimension on a **0–3 integer scale**:
 - **0 — Absent or Incorrect:** Missing, factually wrong, or seriously misleading.
-- **1 — Surface / Partial:** Touches the concept generically with major omissions, ambiguities, or conflations.
-- **2 — Solid / Competent:** Accurate and substantively covers the core concept with only minor omissions.
-- **3 — Rigorous / Comprehensive:** Accurate, operationally precise, handles key edge cases/failure modes, and maintains disciplined claims.
+- **1 — Surface / Partial:** Touches the idea generically with notable omissions, ambiguities, or conflations.
+- **2 — Solid / Competent:** Accurate and substantively covers the core concept with minor omissions.
+- **3 — Rigorous / Comprehensive:** Accurate, operationally clear, nuanced, and well-grounded.
+
+### Track 1 Table — General Domain-Standard Ratchet Understanding (`G1`–`G6`, max 18)
 
 | ID | Dimension | 0 (Absent / Incorrect) | 1 (Surface / Partial) | 2 (Solid / Competent) | 3 (Rigorous / Comprehensive) |
 | --- | --- | --- | --- | --- | --- |
-| **D1** | **Correctness** (purpose, behaviour, monotonicity, lifecycle) | Misdefines ratchet or misses core one-way non-regression behaviour. | States "don't get worse" generically; misses key mechanics (e.g., tightening, fail-closed, or temporary exit). | Accurately explains purpose, baseline non-regression, monotonic tightening, and temporary nature with no material errors. | All of 2, plus crisp handling of no-return after resolution, fail-closed/unknown semantics, and clean exit to full enforcement. |
-| **D2** | **Distinction from ordinary gates** | Does not distinguish a ratchet from ordinary gates or passive checks. | Notes it is less strict than a normal gate, without clearly contrasting blocking vs passive/detective behaviour. | Clearly contrasts a ratchet against both strict blocking gates (blocks inherited debt) and passive/reporting checks (blocks nothing). | All of 2, plus clean separation between the underlying rule/check (emitting findings) and the removable ratchet filter/enforcement layer. |
-| **D3** | **Treatment of inherited violations** | Does not explain how legacy/inherited violations are handled. | Mentions grandfathering/ignoring legacy debt, but vague on how baselines shrink or stay honest. | Explains baseline allowance for inherited debt, monotonic shrinkage on resolution, and blocking new/returning violations. | All of 2, plus addresses baseline provenance (trusted accepted state vs candidate), stale-allowance removal, and identity-based vs count-based trade-offs. |
-| **D4** | **Control type versus strategy** | Does not address control classification, or wrongly calls a ratchet a separate control type / corrective control. | Implicitly treats ratchet as a way of running a check/gate, without clearly separating control type from strategy/mode. | Explicitly distinguishes control type (preventive/detective/directive/corrective) from ratchet as a temporary strategy/operating mode of a preventive control (relying on detective input, distinct from corrective remediation). | All of 2, stated with precision: explains that control type reflects design while ratchet is a temporary enforcement strategy/mode whose claims are bounded accordingly. |
-| **D5** | **Practical applicability & example** | No practical example, or example is incoherent/non-operational. | Generic or toy example showing only initial baseline or one step, lacking realistic workflow behaviour. | Concrete software engineering example walking through inherited debt, blocking a new violation, and tightening on resolution. | Realistic end-to-end example covering all transitions (inherited pass, new block, fix & shrink, return block, exit to full gate) plus concrete operational ownership/mechanics. |
-| **D6** | **Grounding, precision & limitations** | Omits limitations or makes unsupported/overstated guarantees ("guarantees compliance/impossibility"). | Lists 1–2 generic caveats (e.g., "legacy debt stays") without operational depth or claim-scoping. | Identifies multiple concrete limitations (e.g., no compliance claim, stagnation/no auto-remediation, granularity/masking or bypass risk) with grounded claims. | Disciplined epistemic framing ("stops new regressions only, never proves rule compliance"), covers granularity/masking, stagnation/exit ownership, baseline integrity/provenance, and enforcement boundary limits. |
-| **D7a** | **Efficiency — Signal-to-noise & clarity** (qualitative) | Disorganized, padded, or obscure; jargon impairs comprehension. | Understandable but noticeably verbose, repetitive, or relies on unexplained framework jargon. | Clear, well-structured, concise, and accessible to a general software engineering reader. | High information density with crisp structure, minimal filler, and zero unexplained internal jargon. |
+| **G1** | **Core correctness** (purpose & monotonic non-regression) | Misdefines ratchet or misses one-way non-regression behaviour. | States "don't get worse" generically; misses monotonic tightening or governance purpose. | Accurately explains purpose (incremental adoption with legacy debt), baseline non-regression, and monotonic tightening with no material errors. | Crisp, accurate, error-free explanation of purpose, one-way locking of gains, and how regressions vs improvements behave across changes. (Does NOT require exit-at-zero or fail-closed.) |
+| **G2** | **Distinction from ordinary gates** | Does not distinguish a ratchet from ordinary gates or passive checks. | Notes it is less strict than a normal gate, without clearly contrasting strict blocking vs passive reporting. | Clearly contrasts a ratchet against both strict/static blocking gates and passive warning/advisory checks. | All of 2, clearly articulating the distinct trade-off each mode occupies in software governance (delivery halt vs unchecked drift vs controlled non-regression). |
+| **G3** | **Treatment of inherited violations** | Does not explain how pre-existing/inherited violations are handled. | Mentions grandfathering/ignoring legacy debt, but vague on tightening or preventing silent re-introduction. | Explains baseline allowance for inherited violations, blocking new ones, and tightening the baseline when legacy issues are resolved. | All of 2, plus thoughtful treatment of baseline design (e.g., itemised/finding-level vs count-based baselines and protecting baseline integrity against casual inflation). |
+| **G4** | **Practical applicability & concrete example** | No practical example, or example is incoherent/non-operational. | Generic or toy example showing only one step without realistic workflow behaviour. | Concrete software engineering example showing inherited debt, blocking a new violation, allowing unrelated changes, and tightening on resolution. | Realistic, operationally actionable end-to-end example with clear workflow mechanics (baseline storage, review/update flow, team ownership) accessible to any engineering team. |
+| **G5** | **Grounding, precision & general limitations** | Omits limitations or makes unsupported guarantees ("guarantees compliance/impossibility"). | Lists 1–2 generic caveats without operational depth. | Accurately scopes claims (does not prove compliance) and identifies multiple concrete limitations (e.g., stagnation/no auto-remediation, metric gaming/swapping, maintenance friction, bypasses). | Disciplined, balanced, operationally grounded analysis of limitations (compliance gap, stagnation, granularity/gaming, identifier fragility, and enforcement boundary limits) with zero overclaiming. |
+| **G6** | **Efficiency — Signal-to-noise & clarity** | Disorganized, padded, or obscure; unexplained jargon impairs comprehension. | Understandable but noticeably verbose, repetitive, or relies on unexplained framework jargon. | Clear, well-structured, concise, and accessible to a general software engineering reader. | High information density, crisp structure, minimal filler, and zero unexplained framework-specific jargon. |
 
-### D7b — Measurable Efficiency Metrics (Computed Deterministically Outside Judge)
+### Track 2 Table — KAAL Governance-Model Alignment (`K1`–`K5`, max 15; Reported Separately)
 
-The following objective metrics are computed by script from raw outputs and transcripts and reported beside D7a in `check.md` (never folded into a composite score):
-- Output word count and UTF-8 byte length
-- Tool call count (total, file reads, directory/search calls)
-- Wall-clock run duration (seconds)
-- Token/turn count (if exposed in subagent transcript; otherwise reported as `unavailable`)
+| ID | Design Choice | 0 (Not Present) | 1 (Implicit / Partial) | 2 (Substantially Present) | 3 (Explicit & Precise) |
+| --- | --- | --- | --- | --- | --- |
+| **K1** | **Control type vs strategy / mode** | Does not separate control type from operating strategy/mode (or calls ratchet a control type / corrective control). | Hints at enforcement mode vs check without naming control types or strategy separation clearly. | Distinguishes control types (preventive/detective/directive/corrective or equivalent) and identifies ratchet as a temporary strategy/mode of a preventive control, distinct from corrective remediation. | All of 2, stated cleanly: control type reflects design, ratchet is a temporary preventive strategy consuming detective findings, and claims follow the active mode. |
+| **K2** | **Strict baseline provenance & stale-allowance discipline** | Does not address accepted-state provenance or stale-allowance rejection. | Mentions protecting baseline edits or shrinking baselines without specifying accepted-state reference or stale-allowance failure. | Specifies reading reference baseline from accepted state (not candidate), rejecting baseline growth, and removing resolved allowances cleanly. | All of 2, explicitly covering accepted-state provenance, no advancement on rejected runs, stale-allowance failure on resolved findings, and blocking re-introduction/re-addition. |
+| **K3** | **Fail-closed uncertainty (`UNKNOWN` blocks)** | Does not discuss missing/corrupt baselines or unjudgable checks. | Briefly mentions error handling or missing baseline as a caveat without specifying fail-closed blocking. | Explicitly states that missing/unreadable/incomparable baselines or failed checks must block rather than pass. | Explicitly articulates fail-closed governance semantics ("missing or incomparable evidence is unknown and never success") for both baseline and check failures. |
+| **K4** | **Temporary lifecycle & mandatory retirement at zero** | Treats ratchet as open-ended/permanent or omits retirement. | Mentions ratchets are ideally temporary without specifying an exit condition or retirement transition. | Explicitly frames ratchet as temporary with an exit at empty/zero baseline transitioning to an ordinary full preventive gate. | All of 2, plus explicit operational retirement requirements (named owner, explicit exit condition removing ratchet-only machinery, distinguishing exit condition from planning deadline). |
+| **K5** | **Removable filter architecture & mode-scoped claims** | Does not discuss check/filter separation or name-based granularity/claim-scoping limits. | Mentions one of the two superficially (e.g., wrapper idea or basic non-compliance caveat). | Clearly articulates either removable check-vs-filter separation or rigorous mode/granularity claim-scoping, and touches the other. | Clearly articulates both: pure finding-emitting check behind a removable filter (empty baseline = identity) AND disciplined mode/granularity/boundary claim scoping (including same-name severity worsening). |
+
+### Track 3 — Measurable Efficiency Metrics (`M1`–`M4`, Deterministic Outside Judges)
+
+Computed by script from raw outputs and provenance logs and reported alongside Tracks 1 and 2 (never folded into a composite score):
+- `M1`: Output word count and UTF-8 byte length
+- `M2`: Tool call count (total and breakdown where trace-captured; otherwise `unavailable`)
+- `M3`: Wall-clock execution duration in seconds (where captured; otherwise `unavailable`)
+- `M4`: Token/turn count (if exposed by platform; otherwise `unavailable`)
 
 ---
 
 ## Blinded Judge Procedure (For CHECK)
 
-1. Two independent fresh Antigravity subagent sessions (**Judge 1** and **Judge 2**) each receive ONLY:
+1. Two independent fresh Antigravity sessions (**Judge 1** and **Judge 2**) each receive ONLY:
    - This frozen `key.md`,
    - The verbatim `prompt.txt`, and
    - The 10 raw subject responses under shuffled neutral labels `s01`–`s10` (with zero arm IDs, run IDs, timestamps, transcripts, or file paths revealing Arm A vs Arm B).
 2. Each judge outputs a structured per-item evaluation for `s01`–`s10` containing:
-   - Integer scores (0–3) for `D1`, `D2`, `D3`, `D4`, `D5`, `D6`, `D7a`,
+   - **Track 1 scores** (`G1`–`G6`, integers 0–3, plus Track 1 sum 0–18),
+   - **Track 2 scores** (`K1`–`K5`, integers 0–3, plus Track 2 sum 0–15) — **never summed with Track 1**,
    - For every dimension score, a short **evidence quote or specific omission** from that response justifying the score,
-   - Traps observed (`T1`–`T7`, if any),
-   - **Counterevidence / notable strengths or weaknesses** that qualify the numeric score,
-   - **Blinding check:** `guessed-arm` (`A`, `B`, or `uncertain`) and exact textual cues (if any) that led to the guess.
-3. **Sensitivity de-identification pass (conditional):** If any response contains explicit KAAL brand/artifact identifiers (`KAAL`, `RATCHETS`, `judge-mode`, `kaal-controls`, `modes.md`, `F34`/`F36`/`F37`), a minimally redacted copy of the 10-response packet (replacing only explicit brand/artifact identifiers with neutral placeholders while keeping all conceptual text intact, diff preserved in `evidence/`) is scored by a third fresh blinded judge session (**Judge 3**) to measure whether explicit KAAL cues shifted scoring.
-4. No silent reconciliation: CHECK reports Judge 1, Judge 2 (and Judge 3, if triggered) side-by-side, highlighting every disagreement of >= 1 point and every blinding-guess accuracy rate.
+   - Track 1 traps observed (`GT1`–`GT4`, if any),
+   - **Counterevidence / notable strengths or weaknesses** that qualify numeric scores,
+   - **Blinding check:** `guessed-arm` (`A`, `B`, or `uncertain`) and exact textual cues (if any) that triggered the guess.
+3. **Conditional de-identification sensitivity pass (`Judge 3`):** Triggered automatically if any response contains explicit KAAL brand/artifact identifiers (`KAAL`, `RATCHETS`, `judge-mode`, `kaal-controls`, `modes.md`, `F34`/`F36`/`F37`). Strips only explicit brand/file identifiers into neutral placeholders (preserving exact diff in `evidence/blinded/redaction.diff`) and runs a third fresh blinded judge session on the redacted packet to test whether brand cues affected Track 1 or Track 2 scores.
+4. **No silent reconciliation:** CHECK reports Judge 1, Judge 2 (and Judge 3, if triggered) side-by-side for Track 1 and Track 2 separately, highlighting every disagreement of >= 1 point and every blinding-guess accuracy rate.
