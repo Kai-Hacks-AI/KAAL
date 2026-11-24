@@ -15,7 +15,7 @@ n: blank=5, kaal=5
 fresh-means: ten brand-new standalone Antigravity Cloud single-turn chats outside the KAAL project, launched manually by the human operator (Option I-A1); blank arm had zero repository, zero project, and zero KAAL skills attached; kaal arm ran in clean disposable project E1-Arm-B attached only to ChBrain/test-kaal@f35a04c5d3e09aedba6ab5fa06b08af40dabd847 (91 files: 89 verbatim from Kai-Hacks-AI/KAAL@3aafe4f708bd6ce16293d5bd6b6410de8c345449 plus 2 neutral staging index files AGENTS.md and skills/INDEX.md, fresh ephemeral VM clone per chat); launches a1, b1, a2, b2 ran sequentially interleaved and a3..b5 ran interleaved with Cloud concurrency
 model: Medium neon (Antigravity Cloud)
 settings: default settings, single turn, no follow-ups, verbatim prompt.txt
-blind: yes
+blind: no
 blind-how: deterministic seeded shuffle of a1..a5 and b1..b5 into neutral labels s01..s10 (evidence/blinded/blind-mapping.json withheld from judges); two independent fresh Antigravity judge sessions (judge-1, judge-2) scored evidence/blinded/packet-raw.md against frozen key.md, plus a third independent judge session (judge-3) scored minimally brand-and-path-redacted evidence/blinded/packet-redacted.md (diff in evidence/blinded/redaction.diff); effective blinding was NOT achieved because all three judges guessed 10/10 arms correctly from workspace links, redaction placeholders, and KAAL schema tokens (new-finding, baseline-grew, stale-allowance, baseline-source, spent)
 key-frozen: 2026-11-24T09:10:30Z
 treatment-fixed: 2026-11-24T09:12:13Z
