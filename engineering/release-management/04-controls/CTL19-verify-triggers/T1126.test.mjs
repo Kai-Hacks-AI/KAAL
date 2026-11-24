@@ -36,13 +36,14 @@ export async function run() {
     const J = 'engineering/release-management/05-src/triggers/verify-triggers.mjs';
     const BL = 'engineering/release-management/04-controls/CTL20-gate-verify-triggers/baseline.json'; // the accepted baseline, a file of the base (release/C131)
     const JM = 'packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs'; // the shared judge the judge hands its findings to
+    const LIB = 'packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs'; // the library beside it that judge-mode imports (controls/C24)
     const mod = readFileSync(MOD, 'utf8');
     const put = (dir, files) => { for (const [p, c] of Object.entries(files)) { mkdirSync(join(dir, p, '..'), { recursive: true }); writeFileSync(join(dir, p), c); } };
     const origin = join(tmp, 'origin.git');
     g(tmp, 'init', '-q', '--bare', origin);
     const seed = join(tmp, 'seed');
     g(tmp, 'init', '-q', seed);
-    put(seed, { [`${WF}/a.yml`]: 'on:\n  pull_request:\n', [`${WF}/b.yml`]: 'on:\n  pull_request_target:\n', [J]: mod, [BL]: JSON.stringify([`${WF}/b.yml`]), [JM]: readFileSync(join(repo, JM), 'utf8') });
+    put(seed, { [`${WF}/a.yml`]: 'on:\n  pull_request:\n', [`${WF}/b.yml`]: 'on:\n  pull_request_target:\n', [J]: mod, [BL]: JSON.stringify([`${WF}/b.yml`]), [JM]: readFileSync(join(repo, JM), 'utf8'), [LIB]: readFileSync(join(repo, LIB), 'utf8') });
     g(seed, 'add', '-A'); g(seed, 'commit', '-q', '-m', 'base');
     const base = g(seed, 'rev-parse', 'HEAD');
     g(seed, 'push', '-q', origin, 'HEAD:refs/heads/main');

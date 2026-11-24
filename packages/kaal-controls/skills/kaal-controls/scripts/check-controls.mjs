@@ -14,7 +14,7 @@ export function checkControls(files, records = null) {
   }
   return { ok: problems.length === 0, controls, problems };
 }
-const gather = (d, f = []) => { for (const n of readdirSync(d)) { if (n === 'node_modules' || n === '.git') continue; const p = join(d, n); if (statSync(p).isDirectory()) gather(p, f); else if (/\.(md|mjs)$/.test(n)) f.push({ path: p, text: readFileSync(p, 'utf8') }); } return f; };
+const gather = (d, f = []) => { for (const n of readdirSync(d)) { if (n === 'node_modules' || n === '.git') continue; const p = join(d, n); if (statSync(p).isDirectory()) gather(p, f); else if (/\.(md|mjs|json)$/.test(n) && n !== 'package-lock.json') f.push({ path: p, text: readFileSync(p, 'utf8') }); } return f; };
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const a = process.argv.slice(2);
   const i = a.indexOf('--records');
