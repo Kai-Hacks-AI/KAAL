@@ -18,6 +18,14 @@ Not authorized by this PLAN. On its merge into the collector:
 
 A retro entry in the collector.
 
+## Recorded in the DO
+
+- T1118 (C23) changes on purpose: the PLAN said its fixtures already named a path, but they wrote prose in `baseline-source`. Its fixtures now name `x/baseline.json` and provide the file; the assertions are the same.
+- The directory readers (`find-controls.mjs`, `check-controls.mjs`, `registry.mjs`) also read `.json` files (not `package-lock.json`) so the baseline file is among the files the finder sees. The source is matched by path, or by path suffix when the directory is scanned from a subfolder.
+- The C22 mutation patches M1 to M5 now target `ratchet.mjs`, where the comparison lives; M6 to M8 are unchanged.
+
+- Promotion evidence so far: `check-controls` with this finder on main's real controls says CTL36 valid and release/CTL20 invalid (`baseline-source is not the path of a JSON file`), every other control as before. This is why the collector is not promoted until release's CTL20 change is on main; the same run is repeated then.
+
 ## Sequence with release (no invalid state, no loss of enforcement)
 
 Today CTL36's `baseline-source` is already the path of a valid `baseline.json` (a list of unique strings) and stays valid. CTL20's `baseline-source` is prose and it has no baseline file, so the strict finder of C24 would list it as invalid. The order is expand, then tighten:
