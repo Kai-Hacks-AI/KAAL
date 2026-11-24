@@ -1,0 +1,47 @@
+{
+  "experiment": "E1-ratchet-understanding",
+  "stage": "DO",
+  "plan_pr": 2393,
+  "plan_merge_commit": "6d35c0f0ac99c169df3ee5a5fb5538544acbcdab",
+  "plan_merged_utc": "2026-11-24T09:10:30Z",
+  "isolation_option": "I-A1 (Cloud realization — operator-run standalone Antigravity Cloud conversations outside KAAL project)",
+  "delivery_option": "D-1 (pinned deployed consumer KAAL surface)",
+  "pinned_kaal_repository": "Kai-Hacks-AI/KAAL",
+  "pinned_kaal_commit": "3aafe4f708bd6ce16293d5bd6b6410de8c345449",
+  "staged_arm_b_repository": "ChBrain/test-kaal",
+  "staged_arm_b_commit": "f35a04c5d3e09aedba6ab5fa06b08af40dabd847",
+  "runtime": "Antigravity Cloud",
+  "model_and_settings": "Medium neon (identical across all 10 runs; default settings; single turn, no follow-ups)",
+  "arm_a_setup": "5 fresh standalone Antigravity Cloud chats outside any project; zero repository, zero project instructions, zero KAAL skills attached",
+  "arm_b_setup": "5 fresh Antigravity Cloud chats inside disposable project E1-Arm-B (zero project instructions, zero extra docs, only ChBrain/test-kaal@f35a04c5d3e09aedba6ab5fa06b08af40dabd847 attached; fresh ephemeral VM clone per chat)",
+  "manual_orchestration_disclosure": "All 10 isolated Antigravity Cloud conversations were launched and collected manually by the human operator (Owner) outside this KAAL-attached Antigravity project to preserve genuine preventive isolation of Arm A (C-3 Option I-A1). This coordinating agent staged ChBrain/test-kaal, verified byte-identity against treatment-manifest.json, detached ChBrain/test-kaal from the KAAL project prior to execution, and archived all verbatim outputs and tool-call excerpts without modification.",
+  "key_frozen_utc": "2026-11-24T09:10:30Z",
+  "treatment_bundle_staged_utc": "2026-11-24T09:12:13.287Z",
+  "execution_window_utc": {
+    "launches_started": "2026-11-24T09:22:00Z to 2026-11-24T12:50:31Z",
+    "outputs_collected": "2026-11-24T16:03:28Z to 2026-11-24T16:12:16Z"
+  },
+  "frozen_inputs": {
+    "plan.md": {
+      "bytes": 34820,
+      "sha256": "1ab9debb3fd472388ba63f541e2a03442b7ea9c8afeec303a8cc64f134db74e9"
+    },
+    "prompt.txt": {
+      "bytes": 154,
+      "sha256": "980505144df299fb524e3de1e678fc2cb2a7bc79cc8049af90b6332464993008"
+    },
+    "key.md": {
+      "bytes": 18027,
+      "sha256": "ce927764377623bc1ae5f0595dfe76a8205d1e4197a2eb0e38e26208758a590a"
+    }
+  },
+  "hash_tool": {
+    "package": "@kaihacksai/kaal-foundation@0.0.1",
+    "verification": "verified (exit 0 via node packages/kaal-foundation/bin/kaal-foundation.mjs verify)"
+  },
+  "deviations": [
+    "Interleaved launch with partial concurrency: a1, b1, a2, b2 were launched sequentially interleaved (09:22-12:46 UTC), and a3, b3, a4, b4, a5, b5 were launched in interleaved order (12:46-12:50 UTC) and allowed to complete concurrently in isolated ephemeral Cloud VMs before collection.",
+    "Cloud project wrapper asymmetry: Antigravity Cloud requires a Project to attach a GitHub repository, so Arm B runs executed inside a clean disposable project (E1-Arm-B, zero instructions, only ChBrain/test-kaal attached) while Arm A runs executed as standalone Cloud chats outside any project.",
+    "Per-run wall-clock durations (M3) and token/turn counts (M4) were not exposed in the copied Antigravity Cloud UI exports and are recorded honestly as unavailable."
+  ]
+}

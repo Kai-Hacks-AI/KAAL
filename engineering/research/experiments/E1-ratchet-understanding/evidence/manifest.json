@@ -1,0 +1,143 @@
+{
+  "experiment": "E1-ratchet-understanding",
+  "stage": "DO",
+  "hash_algorithm": "@kaihacksai/kaal-foundation/sha256",
+  "generated_at_utc": "2026-11-24T16:14:17.892Z",
+  "files": [
+    {
+      "path": "plan.md",
+      "bytes": 34820,
+      "sha256": "1ab9debb3fd472388ba63f541e2a03442b7ea9c8afeec303a8cc64f134db74e9"
+    },
+    {
+      "path": "prompt.txt",
+      "bytes": 154,
+      "sha256": "980505144df299fb524e3de1e678fc2cb2a7bc79cc8049af90b6332464993008"
+    },
+    {
+      "path": "key.md",
+      "bytes": 18027,
+      "sha256": "ce927764377623bc1ae5f0595dfe76a8205d1e4197a2eb0e38e26208758a590a"
+    },
+    {
+      "path": "evidence/arm-mapping.json",
+      "bytes": 4981,
+      "sha256": "f2e02ce9bc5391987f4875f64d8250c37cf6f48da87aade4be390c13f7bb7925"
+    },
+    {
+      "path": "evidence/excerpts/a1.audit.txt",
+      "bytes": 273,
+      "sha256": "f476703d7859d94c5a6cdf34acafa2be0bd9c4a00c353203e772100e3b49a84b"
+    },
+    {
+      "path": "evidence/excerpts/a2.audit.txt",
+      "bytes": 273,
+      "sha256": "58dec514575b8fc8937be960182c7c10ef57457574a83f1e13bfc9bdbcba6cbd"
+    },
+    {
+      "path": "evidence/excerpts/a3.audit.txt",
+      "bytes": 273,
+      "sha256": "acc744a9347e5dbe0be40efa067b8f357c21ae5f5a802149924a5183aaefa478"
+    },
+    {
+      "path": "evidence/excerpts/a4.audit.txt",
+      "bytes": 273,
+      "sha256": "a02474355e29ccc00ba3b8879287d365e0e0d441c2720b8a1ab1c980db5dd848"
+    },
+    {
+      "path": "evidence/excerpts/a5.audit.txt",
+      "bytes": 273,
+      "sha256": "8a12c1df957382a299877a6cded3d0efcac739557b9027c5e4a82a857cd37681"
+    },
+    {
+      "path": "evidence/excerpts/b1.excerpt.txt",
+      "bytes": 317,
+      "sha256": "da7bd0c41b29287b14746bcdd3822e3b4ec4f41c064a1384e561fdbdb771e073"
+    },
+    {
+      "path": "evidence/excerpts/b2.excerpt.txt",
+      "bytes": 353,
+      "sha256": "cbf2ac99461fb4804b84bbfe63de2881ca2c6401409bcb785e5cc22f7cc7fd56"
+    },
+    {
+      "path": "evidence/excerpts/b3.excerpt.txt",
+      "bytes": 366,
+      "sha256": "f0967a5bc6f15fb0f47acc0e52631cf73824d93098f2af38ff3144d050665595"
+    },
+    {
+      "path": "evidence/excerpts/b4.excerpt.txt",
+      "bytes": 351,
+      "sha256": "f7bc9d9b71d654d3240ebbb92ba6c297768e42636da15a5214abed6bccac240d"
+    },
+    {
+      "path": "evidence/excerpts/b5.excerpt.txt",
+      "bytes": 351,
+      "sha256": "f0e9bd25c53b344096810add51b76c77aa5c2e2c8542a409b443d91815563fed"
+    },
+    {
+      "path": "evidence/metrics.json",
+      "bytes": 4257,
+      "sha256": "71a7495daf1a61e83b099acaf6b2b1adad3ea38e559ec171a0270e93c4979fe4"
+    },
+    {
+      "path": "evidence/provenance.json",
+      "bytes": 3359,
+      "sha256": "681982eb90b90c2dc95b7c783345974e7190bc538adf9bb93838de4b84619a07"
+    },
+    {
+      "path": "evidence/raw/a1.md",
+      "bytes": 5307,
+      "sha256": "8b3ba059e6fd22a71006ccfd898fc85e961433d008c2d11b2c50be2445127a29"
+    },
+    {
+      "path": "evidence/raw/a2.md",
+      "bytes": 5394,
+      "sha256": "4d121c293d5ed5253d3f02a56e70d6c4528992c67633380db95b52f5dd94120d"
+    },
+    {
+      "path": "evidence/raw/a3.md",
+      "bytes": 4947,
+      "sha256": "1622d780b0fd74fd2f85d4da0c09000bd7cc6e2b4c9a9f60275ad88d5f7ee531"
+    },
+    {
+      "path": "evidence/raw/a4.md",
+      "bytes": 4793,
+      "sha256": "ca3a0e15ea054a9dd653c5e307edacd2a0a87f864f5801b30dcecf672eb5ae1f"
+    },
+    {
+      "path": "evidence/raw/a5.md",
+      "bytes": 5023,
+      "sha256": "1207e612b7aad0a0e98be28ca14ff9adf484e04d0f0c87a785923fc5087b2f5c"
+    },
+    {
+      "path": "evidence/raw/b1.md",
+      "bytes": 6649,
+      "sha256": "c09ea27f81ae419ae7d2d41ef78116777def36720c4d72a9c7b1d061c7ac5fc5"
+    },
+    {
+      "path": "evidence/raw/b2.md",
+      "bytes": 6187,
+      "sha256": "5bba211124123162a5f730990b6d87c9e8b9a42810dfe317b51d84f5d3bc2cf6"
+    },
+    {
+      "path": "evidence/raw/b3.md",
+      "bytes": 6458,
+      "sha256": "2c19cdcfb335edad6fb01cc7984df5066c9b6de700c6996c777279528fb5ac5e"
+    },
+    {
+      "path": "evidence/raw/b4.md",
+      "bytes": 5726,
+      "sha256": "9f386fb8b1732a6db7294a049e81abde0159bda0d52e20359bd8801ce3f26a03"
+    },
+    {
+      "path": "evidence/raw/b5.md",
+      "bytes": 6554,
+      "sha256": "afaf43ef7a00e9d4872e5f3c1ffcab0be1819f161de161796ca6c64cb45e7134"
+    },
+    {
+      "path": "evidence/treatment-manifest.json",
+      "bytes": 19366,
+      "sha256": "d7fbbf476119db6a7ed1e4c25aca0716011ed2f679ec8b0c7c8701aa95511562"
+    }
+  ]
+}

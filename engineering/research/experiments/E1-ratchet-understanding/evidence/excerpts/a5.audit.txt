@@ -1,0 +1,8 @@
+run: a5
+arm: blank
+runtime: Antigravity Cloud (standalone conversation outside any project)
+repository: none
+kaal_skills: none
+exposure: none
+tool_calls_observed: 0
+source: operator-confirmed (no tool calls shown in Antigravity Cloud UI; no repository or project attached)
