@@ -1,0 +1,251 @@
+{
+  "judge_id": "judge-2",
+  "packet": "packet-raw.md",
+  "files_read": [
+    "/tmp/e1-judge-raw/prompt.txt",
+    "/tmp/e1-judge-raw/key.md",
+    "/tmp/e1-judge-raw/packet.md"
+  ],
+  "evaluations": [
+    {
+      "label": "s01",
+      "track1": { "G1": 3, "G2": 1, "G3": 2, "G4": 2, "G5": 2, "G6": 3, "sum": 13 },
+      "track2": { "K1": 0, "K2": 1, "K3": 0, "K4": 1, "K5": 0, "sum": 2 },
+      "evidence": {
+        "G1": "\"allows a metric to improve (or stay the same) but prevents it from regressing... turning every improvement into the new minimum standard.\"",
+        "G2": "Contrasts fixing all upfront and \"manual code review vigilance\"; omits contrast with passive/advisory warning checks.",
+        "G3": "\"Worse than baseline -> Fail... Better than baseline -> Pass and tighten.\" Omits itemised vs count trade-offs and baseline-inflation protection.",
+        "G4": "Runnable `strictNullChecks` CI script with 412 baseline, 414 fail, 407 tighten, and exit at 0; omits unrelated PR step and ownership.",
+        "G5": "\"prevents backsliding, not stagnation\", Goodhart's Law, merge conflicts, refactor friction, proxy validity; omits violation-swapping and explicit compliance gap.",
+        "G6": "Crisp, well-structured, concise sections with zero unexplained framework jargon.",
+        "K1": "Calls ratchet an \"automated quality gate\"; no separation of control types vs operating strategy/mode.",
+        "K2": "Fails CI when errors drop to prompt updating `.ratchet-baseline.json`; omits accepted-state provenance and finding-level stale-allowance semantics.",
+        "K3": "Omitted; catch block falls back to empty stdout without fail-closed semantics on missing/corrupt baseline or check failure.",
+        "K4": "\"Once the count reaches 0, the ratchet script is deleted\" in example only; does not frame ratchets generally as temporary with owner/exit.",
+        "K5": "Omitted; no check-vs-filter architectural separation or mode/same-name granularity claim scoping."
+      },
+      "traps_observed": ["GT3"],
+      "counterevidence": "Clean, readable explanation with working CI code, but relies strictly on a global scalar count without noting violation-swapping (GT3) or protecting baseline edits against PR-branch inflation.",
+      "blinding_check": {
+        "guessed_arm": "A",
+        "cues": "General CI/CD watermark framing, scalar TypeScript error-count script, Goodhart's Law; zero KAAL terms or workspace links."
+      }
+    },
+    {
+      "label": "s02",
+      "track1": { "G1": 3, "G2": 1, "G3": 3, "G4": 2, "G5": 3, "G6": 2, "sum": 14 },
+      "track2": { "K1": 2, "K2": 3, "K3": 3, "K4": 2, "K5": 3, "sum": 13 },
+      "evidence": {
+        "G1": "\"prevents a system from getting worse while permanently locking in every improvement made over time.\"",
+        "G2": "Contrasts with \"enabling a full preventive block immediately\"; mentions \"detective\" only in passing without contrasting passive reporting checks.",
+        "G3": "Finding-level baseline, blocks `new-finding`/`baseline-grew`/`stale-allowance`, reads `previous` from accepted state, warns against coarse file-level finding names.",
+        "G4": "Five-scenario `no-explicit-any` table and retirement, but couples example directly to workspace script `judge-mode.mjs` and `spent: true` / `then: \"preventive\"`.",
+        "G5": "\"only proves no new violations\", same-name degradation (1 to 10), ossification, human retirement, refactor naming friction, unsuitable for hard invariants.",
+        "G6": "High density and clear structure, but embeds local workspace file links and unexplained internal tokens (`spent: true`, `then: \"preventive\"`, `baseline-source`).",
+        "K1": "\"temporary enforcement strategy applied to a preventive control. It is not a separate category of control (alongside detective or preventive controls).\"",
+        "K2": "Reads `previous` from accepted state, \"Failed or unknown runs advance nothing\", blocks `baseline-grew`/re-adding, fails `stale-allowance`.",
+        "K3": "\"If previous is missing, unreadable, malformed, or the check cannot produce a verdict, the result is UNKNOWN and blocks.\"",
+        "K4": "\"explicitly temporary. It declares a baseline-source, an owner, and an exit condition.\" Deletes scaffolding at empty; omits exit-vs-deadline distinction.",
+        "K5": "\"wraps a pure check with a baseline filter in front of the verdict\" plus \"only proves no new violations\" and same-name 1-to-10 degradation."
+      },
+      "traps_observed": [],
+      "counterevidence": "Technically rigorous governance mechanics and strong limitations, but relies on local workspace scripts/tokens in the example (lowering G4/G6 portability) and omits passive-check contrast (G2) and exit-vs-deadline distinction (K4).",
+      "blinding_check": {
+        "guessed_arm": "B",
+        "cues": "Local workspace links to `skills/kaal-controls/references/modes.md` and `scripts/judge-mode.mjs`, plus `applyBaseline`, `judgeMode`, `spent: true`, `then: \"preventive\"`, `baseline-source`."
+      }
+    },
+    {
+      "label": "s03",
+      "track1": { "G1": 3, "G2": 1, "G3": 3, "G4": 3, "G5": 2, "G6": 3, "sum": 15 },
+      "track2": { "K1": 0, "K2": 1, "K3": 0, "K4": 1, "K5": 0, "sum": 2 },
+      "evidence": {
+        "G1": "\"prevents a codebase metric from regressing while automatically tightening the allowed threshold whenever the metric improves.\"",
+        "G2": "Contrasts with turning rule on as \"hard error\" and \"subjective code-review policing\"; omits explicit contrast with passive/warning reporting.",
+        "G3": "Explicitly contrasts \"Aggregate (watermark) ratchets\" vs \"Granular (allowlist/baseline-diff) ratchets\" (PHPStan/Semgrep) and explains debt-trading mitigation.",
+        "G4": "End-to-end `no-explicit-any` example with baseline JSON, runnable CI script enforcing tightening, PR A/B/C walkthrough, bot/author update flow, and exit at 0.",
+        "G5": "Covers debt trading, stagnation, Goodhart's Law, merge conflicts, noisy metrics, and escape hatches; omits explicit compliance-gap wording and bypass/tampering limits.",
+        "G6": "Concise, well-organized, high signal-to-noise, and zero framework-specific jargon.",
+        "K1": "Calls ratchet an \"automated control\"; no control-type vs strategy/mode separation.",
+        "K2": "Fails CI on improvement to require tightening and notes fingerprinted baselines, but omits accepted-state provenance and stale-allowance failure.",
+        "K3": "Omitted; does not discuss missing/corrupt baselines or unjudgable checks.",
+        "K4": "Mentions removing script and promoting to `error` at 0 in example only; omits temporary lifecycle framing and owner/exit requirements.",
+        "K5": "Omitted; no pure-check vs removable-filter architecture or mode-scoped / same-name severity claim scoping."
+      },
+      "traps_observed": [],
+      "counterevidence": "Strong domain-standard coverage of aggregate vs granular ratchets and a complete runnable example, though the script itself uses an aggregate count without a baseline-inflation guard and the text omits passive-check contrast (G2).",
+      "blinding_check": {
+        "guessed_arm": "A",
+        "cues": "General CI/CD watermark vs granular baseline-diff framing, PHPStan/Psalm/Semgrep examples, Goodhart's Law, ESLint script; zero KAAL references."
+      }
+    },
+    {
+      "label": "s04",
+      "track1": { "G1": 3, "G2": 3, "G3": 3, "G4": 3, "G5": 3, "G6": 2, "sum": 17 },
+      "track2": { "K1": 2, "K2": 3, "K3": 3, "K4": 3, "K5": 3, "sum": 14 },
+      "evidence": {
+        "G1": "\"records the current violations as a baseline (allowance) and enforces one-way progress: nothing new may break, and any improvement permanently tightens\"",
+        "G2": "Contrasts strict preventive gate (\"halt delivery\"), \"detective (report-only) mode\" (\"debt to keep growing\"), and ratchet bridging the gap.",
+        "G3": "Finding-level baseline on `main`, blocks new/growth/stale allowances, warns against coarse file names, and requires protecting baseline integrity.",
+        "G4": "End-to-end `no-explicit-any` workflow (`baseline.json` on `main`, PR vs `main` CI filter, 5-scenario table A-E, owner retirement) explained portably.",
+        "G5": "\"only certifies that no new violations were introduced\", coarse-name worsening, separate remediation, non-self-terminating, baseline/downgrade protection, churn friction.",
+        "G6": "Very clear and dense, but embeds workspace file links (`modes.md`, `judge-mode.mjs`) and unexplained framework tokens (`spent: true`, `baseline-source`).",
+        "K1": "\"temporary strategy for enforcing a preventive control\", contrasts detective mode and separate remediation; omits full four-type taxonomy.",
+        "K2": "Reads `previous` from `main`, \"failed runs never advance the accepted baseline\", blocks `baseline-grew` and `stale-allowance`.",
+        "K3": "\"previous baseline is missing, unreadable, malformed, or the check itself fails to run, the verdict is UNKNOWN and blocks.\"",
+        "K4": "Temporary with `baseline-source`, `owner`, `exit`, notes \"nothing automatically enforces a deadline or retires it\", removes scaffolding at empty.",
+        "K5": "\"filter in front of the verdict—keeping the underlying check pure... empty baseline is an identity\" plus non-compliance and coarse-name worsening."
+      },
+      "traps_observed": [],
+      "counterevidence": "Exceptionally well-rounded across both tracks (even contrasting all three governance modes and exit-vs-deadline); minor blemishes are local workspace file links, unexplained `spent: true`, and a \"Four scenarios\" heading above five table rows.",
+      "blinding_check": {
+        "guessed_arm": "B",
+        "cues": "Local links to `skills/kaal-controls/references/modes.md` and `scripts/judge-mode.mjs`, `applyBaseline`, `judgeMode`, `baseline-source`, `spent: true`."
+      }
+    },
+    {
+      "label": "s05",
+      "track1": { "G1": 3, "G2": 1, "G3": 3, "G4": 2, "G5": 3, "G6": 2, "sum": 14 },
+      "track2": { "K1": 2, "K2": 3, "K3": 3, "K4": 2, "K5": 3, "sum": 13 },
+      "evidence": {
+        "G1": "\"allows movement in only one direction: quality can stay the same or improve, never regress\" and \"every fixed violation permanently raises the bar.\"",
+        "G2": "Contrasts with \"turning on a strict preventive gate immediately\"; never mentions or contrasts passive/warning/advisory/detective checks.",
+        "G3": "Finding-level baseline on `main`, blocks new/growth/stale allowances, demonstrates re-introduction blocking, covers coarse-name blind spots and trusted-reference integrity.",
+        "G4": "Strong 6-row `no-eval` table (including re-introduction), but relies on unexplained `strategy: ratchet` config syntax and omits portable CI wiring details.",
+        "G5": "Covers compliance gap, coarse-name worsening, separate debt burn-down, risk of permanence, opportunistic-fix/merge friction, and trusted-reference dependency.",
+        "G6": "Well-structured and concise, but uses unexplained internal jargon (\"KAAL governance model\", \"station mode\", `strategy: ratchet`, `spent: true`) and local workspace links.",
+        "K1": "\"not a separate control type or station mode—it is a temporary strategy (strategy: ratchet) applied to a preventive control\"; omits detective/directive/corrective types.",
+        "K2": "Reads `previous` from accepted state (`main`, never PR), blocks `baseline-grew` and `stale-allowance`, explicitly shows re-introduction blocking.",
+        "K3": "\"If the check cannot run, or if the accepted baseline is missing, unreadable, or incompatible, the verdict is UNKNOWN and blocks.\"",
+        "K4": "Temporary with `baseline-source`, `owner`, `exit`, deletes ratchet/baseline at `[]` to leave standard preventive control; omits exit-vs-deadline distinction.",
+        "K5": "\"removable filter in front of an otherwise pure check... empty baseline ([]) is an identity operation\" plus non-compliance and coarse-name worsening."
+      },
+      "traps_observed": [],
+      "counterevidence": "Includes an excellent re-introduction row in the example table and strong filter/claim-scoping semantics, but contains explicit unexplained KAAL jargon (\"station mode\", `strategy: ratchet`) and omits passive-check contrast (G2) and explicit failed-run non-advancement.",
+      "blinding_check": {
+        "guessed_arm": "B",
+        "cues": "Explicitly cites \"KAAL governance model\", \"station mode\", `strategy: ratchet`, `declaring-controls.md`, `modes.md`, `judge-mode.mjs`, `applyBaseline`, `spent: true`."
+      }
+    },
+    {
+      "label": "s06",
+      "track1": { "G1": 3, "G2": 1, "G3": 2, "G4": 2, "G5": 2, "G6": 3, "sum": 13 },
+      "track2": { "K1": 0, "K2": 1, "K3": 0, "K4": 1, "K5": 0, "sum": 2 },
+      "evidence": {
+        "G1": "\"allows a metric to move in only one direction—toward improvement—while blocking any change that makes it worse.\"",
+        "G2": "Contrasts with \"all-or-nothing perfection standard\" / \"strict rule immediately\"; omits contrast with passive/warning/advisory checks.",
+        "G3": "Explains baselining, blocking regressions, tightening, and notes file/violation-level baselines mitigate global-counter trade-offs; however, example script allows stale baselines to pass silently.",
+        "G4": "Concrete `no-explicit-any` example with PR A/B/C and Bash script, but script only echoes on improvement without enforcing tightening or protecting baseline edits.",
+        "G5": "Covers stagnation, Goodhart's Law, merge conflicts, refactor/dead-code friction with overrides, and global-counter trade-offs; omits explicit compliance gap and tamper/identifier fragility.",
+        "G6": "Clear, concise, accessible, and completely free of framework-specific jargon.",
+        "K1": "Calls ratchet an \"automated quality gate\"; no separation of control type vs strategy/mode.",
+        "K2": "Mentions optional failure on improvement and file/violation-level baselines, but lacks accepted-state provenance and lets stale counts pass by default.",
+        "K3": "Omitted; no discussion of missing/corrupt baselines or unjudgable check verdicts.",
+        "K4": "\"until it reaches the target state (e.g., 0 violations), at which point the ratchet can be replaced\"; not framed as mandatory temporary lifecycle with owner/exit.",
+        "K5": "Omitted; no pure-check vs removable-filter architecture or mode/same-name severity claim scoping."
+      },
+      "traps_observed": [],
+      "counterevidence": "Clean, readable domain-standard explanation that explicitly calls out global-counter trade-offs, but its Bash CI script fails to enforce monotonic tightening when violations drop (`echo` only) and omits passive-check contrast.",
+      "blinding_check": {
+        "guessed_arm": "A",
+        "cues": "General quality-gate/high-water-mark framing, Bash + `jq` ESLint count script, Goodhart's Law; zero KAAL terms or workspace links."
+      }
+    },
+    {
+      "label": "s07",
+      "track1": { "G1": 3, "G2": 1, "G3": 3, "G4": 3, "G5": 3, "G6": 2, "sum": 15 },
+      "track2": { "K1": 2, "K2": 3, "K3": 3, "K4": 2, "K5": 3, "sum": 13 },
+      "evidence": {
+        "G1": "\"allows compliance to improve (or stay flat) while blocking any regression\" and \"once an existing violation is fixed, it cannot silently reappear.\"",
+        "G2": "Contrasts with halting delivery via strict enforcement; mentions \"detective mode\" only once as a bypass risk without contrasting passive reporting.",
+        "G3": "Finding-level baseline from trusted target branch, blocks new/growth/stale allowances, covers coarse-key blind spots, refactor identifier churn, and baseline-edit governance.",
+        "G4": "Clean, portable 6-row `no-raw-sql` table (`main` baseline, unrelated/new/expand/stale/clean-fix/graduation by owner) with zero workspace links inside the example.",
+        "G5": "Hits compliance gap, coarse-key same-name worsening (+5 violations), stagnation, refactoring identifier fragility, and baseline/detective-downgrade governance limits with zero overclaiming.",
+        "G6": "High density and clean prose, but includes local workspace links (`modes.md`, `judgeMode`, `applyBaseline`) and unexplained tokens (`baseline-source`, `detective mode`).",
+        "K1": "\"temporary enforcement strategy for a preventive control\", notes separate planned remediation and detective mode; omits explicit control-type design separation.",
+        "K2": "Reads accepted baseline from trusted target branch (never solely PR), rejects baseline growth, fails `stale-allowance`, blocks re-introduction.",
+        "K3": "\"accepted baseline is missing, unreadable, malformed, or the check cannot produce a verdict, the ratchet returns UNKNOWN and blocks.\"",
+        "K4": "Declares `baseline-source`, `owner`, `exit` condition; spent and removed at empty to run as ordinary preventive gate; omits exit-vs-deadline distinction.",
+        "K5": "\"filter in front of the verdict: the underlying check remains pure\" plus \"only proves no new regressions\" and coarse-key worsening."
+      },
+      "traps_observed": [],
+      "counterevidence": "One of the strongest Limitations sections (explicitly covering refactor identifier fragility alongside granularity, compliance gap, stagnation, and downgrade bypass) and a clean portable example; held back on G2 (no passive-check contrast) and G6 (workspace links).",
+      "blinding_check": {
+        "guessed_arm": "B",
+        "cues": "Parenthetical links to `skills/kaal-controls/references/modes.md` and `scripts/judge-mode.mjs`, plus `baseline-source`, `stale-allowance`, `baseline-grew`, `PASS (spent)`."
+      }
+    },
+    {
+      "label": "s08",
+      "track1": { "G1": 3, "G2": 1, "G3": 3, "G4": 2, "G5": 3, "G6": 2, "sum": 14 },
+      "track2": { "K1": 1, "K2": 3, "K3": 3, "K4": 2, "K5": 3, "sum": 12 },
+      "evidence": {
+        "G1": "\"records existing violations as a baseline (allowance)... no new violations are allowed, and every fixed violation permanently tightens the standard.\"",
+        "G2": "Contrasts with turning on a \"hard preventive gate immediately\"; never mentions or contrasts passive/warning/advisory/detective checks.",
+        "G3": "Finding-level baseline from `main`, blocks new/growth/stale allowances and re-regression, contrasts too-coarse vs too-brittle line-number IDs, addresses sorted-list merge hygiene.",
+        "G4": "Clear 5-row `no-raw-sql` table and graduation, but relies on unexplained framework config fields (`strategy: ratchet`, `baseline-source`, `spent`) without CI wiring.",
+        "G5": "\"Proves 'no worse,' not 'compliant'\", stagnation, too-coarse AND too-brittle IDs, non-self-terminating, trusted baseline source bypass risk, merge friction.",
+        "G6": "Crisp and dense, but includes workspace `file://` links (`modes.md`, `judgeMode`, `applyBaseline`) and unexplained config tokens (`strategy: ratchet`, `baseline-source`).",
+        "K1": "\"temporary enforcement strategy for a preventive control\" and \"remediation is separate work\"; never distinguishes other control types or states ratchet is not a type.",
+        "K2": "Reads last accepted baseline from `main` (never solely PR), rejects `baseline-grew`, fails `stale-allowance`, blocks re-appearance as new.",
+        "K3": "\"accepted baseline is missing, unreadable, malformed, or the underlying check fails to produce findings, the verdict is UNKNOWN and blocks.\"",
+        "K4": "Temporary with `owner`, `baseline-source`, `exit` condition; deletes baseline and filter at `[]` to leave standard preventive check; omits exit-vs-deadline distinction.",
+        "K5": "\"filter around an unmodified check... empty baseline makes the filter a no-op\" plus \"only guarantees no new violations\" and coarse-ID same-name worsening."
+      },
+      "traps_observed": [],
+      "counterevidence": "Notably strong treatment of identifier granularity from both sides (too coarse vs too brittle line numbers) and merge-conflict mitigation; intro briefly overstates \"guarantees that quality can only move in one direction\" before thoroughly qualifying it in Limitations, and K1 omits control-type distinctions.",
+      "blinding_check": {
+        "guessed_arm": "B",
+        "cues": "Local links to `skills/kaal-controls/references/modes.md` and `scripts/judge-mode.mjs`, plus `strategy: ratchet`, `baseline-source`, `stale-allowance`, `baseline-grew`, `spent`."
+      }
+    },
+    {
+      "label": "s09",
+      "track1": { "G1": 3, "G2": 3, "G3": 3, "G4": 3, "G5": 3, "G6": 3, "sum": 18 },
+      "track2": { "K1": 0, "K2": 1, "K3": 0, "K4": 1, "K5": 0, "sum": 2 },
+      "evidence": {
+        "G1": "\"prevents a codebase metric or quality standard from getting worse while locking in every improvement made over time.\"",
+        "G2": "\"Enabling the rule as an error immediately would block all work; enabling it as a warning would be ignored.\"",
+        "G3": "Contrasts numeric vs file/instance-scoped baselines, adopts per-file `.lint-baseline.json` to close global-count loopholes, deletes cleared file entries permanently.",
+        "G4": "Actionable per-file `no-explicit-any` workflow with `.lint-baseline.json`, update command, real tools (`betterer`/`eslint-nibble`), file graduation at 0, and final rule promotion.",
+        "G5": "Covers stagnation (\"sit indefinitely at a mediocre baseline\"), Goodhart's Law, volatility/tool-upgrade false positives, bypass erosion, wrong granularity/localized decay, merge conflicts.",
+        "G6": "Crisp, tightly structured, high information density, and zero unexplained framework jargon.",
+        "K1": "Calls ratchet an \"automated control mechanism\"; no control-type vs strategy/mode separation.",
+        "K2": "Checks baseline update on reduction and deletes zero-count files, but omits accepted-state provenance and explicit stale-allowance failure rules.",
+        "K3": "Omitted; does not address missing/corrupt baselines or unjudgable checks.",
+        "K4": "Mentions deleting ratchet script and promoting to global `error` in example outcome only; omits mandatory temporary lifecycle with owner/exit.",
+        "K5": "Omitted; no pure-check vs removable-filter architecture or mode/same-name severity claim scoping."
+      },
+      "traps_observed": [],
+      "counterevidence": "Exemplary domain-standard answer hitting every Track 1 dimension cleanly without KAAL design choices; minor gaps not warranting Track 1 deductions are omitting an explicit unrelated-PR bullet in the example and not addressing PR-branch baseline-tampering controls.",
+      "blinding_check": {
+        "guessed_arm": "A",
+        "cues": "General SE ratchet framing (`betterer`, `eslint-nibble`, Goodhart's Law, per-file counts); zero KAAL terms or workspace references."
+      }
+    },
+    {
+      "label": "s10",
+      "track1": { "G1": 3, "G2": 1, "G3": 2, "G4": 2, "G5": 2, "G6": 3, "sum": 13 },
+      "track2": { "K1": 0, "K2": 1, "K3": 0, "K4": 1, "K5": 0, "sum": 2 },
+      "evidence": {
+        "G1": "\"allows a quality metric or engineering standard to move in only one direction (improvement) while blocking any regression.\"",
+        "G2": "Contrasts with \"enabling a strict rule globally would halt development\"; omits contrast with passive/warning/advisory checks.",
+        "G3": "Explains grandfathering, blocking new violations, and tightening on improvement; mentions file ignore lists briefly without explaining count-vs-itemised trade-offs or baseline integrity.",
+        "G4": "Runnable ESLint ratchet script and ecosystem tooling notes (`betterer`/`rubocop`/`phpstan`), but script counts all `warningCount` rather than the target rule and omits unrelated-PR walkthrough.",
+        "G5": "Covers Goodhart's Law, perverse percentage edge cases, merge conflicts, passivity/stagnation, and noisy signals; omits violation-swapping (GT3) and explicit compliance gap.",
+        "G6": "Clear, concise, well-organized prose with zero framework jargon.",
+        "K1": "Calls ratchet an \"automated enforcement mechanism\"; no control-type vs strategy/mode separation.",
+        "K2": "Fails CI when `currentWarnings < maxWarnings` to lock in lower count, but omits accepted-state provenance and finding-level stale-allowance semantics.",
+        "K3": "Omitted; no discussion of missing/corrupt baselines or unjudgable checks.",
+        "K4": "Mentions promoting rule to `error` and removing script at 0 in example only; does not frame ratchets generally as temporary with owner/exit.",
+        "K5": "Omitted; no pure-check vs removable-filter separation or mode/same-name severity claim scoping."
+      },
+      "traps_observed": ["GT3"],
+      "counterevidence": "Clear prose and helpful ecosystem tooling pointers, but relies on a global count baseline without acknowledging violation-swapping (GT3), omits passive-check contrast (G2), and has a subtle script mismatch counting all warnings instead of only `no-explicit-any`.",
+      "blinding_check": {
+        "guessed_arm": "A",
+        "cues": "General CI/CD watermark ratchet framing, ESLint warning-count script, Goodhart's Law, `betterer`/`rubocop`/`phpstan`; zero KAAL terms or workspace links."
+      }
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+--- packet-raw.md	2026-11-24 16:22:44.822909407 +0000
++++ packet-redacted.md	2026-11-24 16:22:44.822909407 +0000
+@@ -1,6 +1,6 @@
+-# E1 Blinded Evaluation Packet — Raw Verbatim Responses (`s01`–`s10`)
++# E1 Blinded Evaluation Packet — Minimally De-Identified Sensitivity Pass (`s01`–`s10`)
+ 
+-Each section below is one verbatim subject response under a shuffled neutral label (`s01`–`s10`). Arm identities, run IDs, and tool traces are withheld.
++Each section below is the corresponding subject response under the same shuffled neutral label (`s01`–`s10`), with ONLY explicit framework brand names, local workspace file links, and internal script symbol names replaced by neutral placeholders (`redaction.diff` records every edit). Conceptual content, examples, and structure are unchanged.
+ 
+ ---
+ 
+@@ -102,7 +102,7 @@
+ 
+ In software engineering governance, a **ratchet** is a temporary enforcement strategy applied to a preventive control. Like a mechanical ratchet that only turns in one direction, a governance ratchet prevents a system from getting worse while permanently locking in every improvement made over time.
+ 
+-It is not a separate category of control (alongside detective or preventive controls). Instead, as defined in [modes.md](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/references/modes.md), it wraps a pure check with a **baseline filter** in front of the verdict: existing violations are recorded as an allowance (the baseline), and the control blocks anything outside that allowance.
++It is not a separate category of control (alongside detective or preventive controls). Instead, as defined in [reference specification], it wraps a pure check with a **baseline filter** in front of the verdict: existing violations are recorded as an allowance (the baseline), and the control blocks anything outside that allowance.
+ 
+ ---
+ 
+@@ -110,13 +110,13 @@
+ 
+ - **Adopt strict rules without halting delivery:** When a governance rule is right, but a legacy codebase does not yet comply, enabling a full preventive block immediately would stop all work. A ratchet lets you enforce the rule *from today forward*.
+ - **Stop the bleeding and lock in progress:** New regressions are blocked immediately, and whenever existing debt is cleaned up, the bar permanently tightens.
+-- **Keep checks pure and ratchets removable:** By implementing the ratchet as a filter in front of the verdict (such as [`applyBaseline`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L25-L35)), the underlying check only emits findings. When the baseline reaches zero, you delete the baseline and filter step without touching the check itself.
++- **Keep checks pure and ratchets removable:** By implementing the ratchet as a filter in front of the verdict (such as `[baseline filter function]`), the underlying check only emits findings. When the baseline reaches zero, you delete the baseline and filter step without touching the check itself.
+ 
+ ---
+ 
+ ### Behaviour
+ 
+-A check produces a set of uniquely named, stable **findings** (violations). The ratchet compares the current run's `findings` and proposed `baseline` against the last accepted baseline (`previous`, read from the accepted state—never from the change under review). As implemented in [`judgeMode`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L7-L21), it enforces four rules:
++A check produces a set of uniquely named, stable **findings** (violations). The ratchet compares the current run's `findings` and proposed `baseline` against the last accepted baseline (`previous`, read from the accepted state—never from the change under review). As implemented in `[mode evaluator function]`, it enforces four rules:
+ 
+ 1. **No new regressions (`new-finding`):** Any finding not in the baseline fails and blocks the change. Findings already in the baseline are allowed to pass.
+ 2. **The allowance only shrinks (`baseline-grew`):** The proposed baseline cannot contain anything that was not in `previous`. Attempting to add a new violation—or re-add a previously resolved one—to the baseline blocks the change.
+@@ -142,7 +142,7 @@
+ 
+ ### Practical Example
+ 
+-Suppose a team adopts a rule forbidding explicit `any` types in TypeScript (`no-explicit-any`), enforced via [judge-mode.mjs](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs) at integration time. Two legacy files currently violate the rule, so the team creates an initial accepted baseline (`previous`):
++Suppose a team adopts a rule forbidding explicit `any` types in TypeScript (`no-explicit-any`), enforced via `[mode evaluator script]` at integration time. Two legacy files currently violate the rule, so the team creates an initial accepted baseline (`previous`):
+ 
+ ```json
+ [
+@@ -161,7 +161,7 @@
+ | **4. Fix `auth.ts`, forget baseline** | `["src/billing.ts#calcTax:..."]` | Still has both entries | `FAIL` | Blocked with `stale-allowance`. |
+ | **5. Fix `auth.ts` & shrink baseline** | `["src/billing.ts#calcTax:..."]` | `["src/billing.ts#calcTax:..."]` | `PASS` | Accepted baseline shrinks to `["src/billing.ts#calcTax:..."]`. If `auth.ts` later reintroduces `any`, it is now a `new-finding` and blocks. |
+ 
+-Finally, when `src/billing.ts#calcTax` is fixed and the baseline becomes `[]`, [`judgeMode`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L17-L20) returns `PASS` with `spent: true` and `then: "preventive"`. The team deletes the baseline file and the ratchet step, leaving the `no-explicit-any` check running as a standard preventive control.
++Finally, when `src/billing.ts#calcTax` is fixed and the baseline becomes `[]`, `[mode evaluator function]` returns `PASS` with `spent: true` and `then: "preventive"`. The team deletes the baseline file and the ratchet step, leaving the `no-explicit-any` check running as a standard preventive control.
+ 
+ ---
+ 
+@@ -265,7 +265,7 @@
+ 
+ In software engineering governance, a **ratchet** is a temporary strategy for enforcing a preventive control on a system that does not yet meet the rule. Rather than blocking all work until every historical violation is fixed, a ratchet records the current violations as a **baseline** (an allowance) and enforces one-way progress: nothing new may break, and any improvement permanently tightens the baseline.
+ 
+-In this workspace, the model is specified in [modes.md](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/references/modes.md) and implemented in [`judgeMode`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L7-L21) / [`applyBaseline`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L25-L35).
++In one reference governance model, the model is specified in [reference specification] and implemented in `[mode evaluator function]` / `[baseline filter function]`.
+ 
+ ---
+ 
+@@ -301,7 +301,7 @@
+ * **Does not prove compliance:** A passing ratchet only certifies that *no new violations were introduced*. It does not mean the system satisfies the rule.
+ * **Sensitive to finding granularity:** "New" means a finding identifier not in the baseline. If finding names are too coarse (for example, `src/billing.ts` instead of `src/billing.ts:no-explicit-any:calculateTax`), a known violation can get worse under the same name and still pass.
+ * **Does not fix debt by itself:** A ratchet only prevents backsliding and preserves gains; actually paying down the baseline requires separate remediation work.
+-* **Not self-terminating:** A ratchet is meant to be temporary (declaring a `baseline-source`, `owner`, and `exit` condition as in [modes.md](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/references/modes.md)), but nothing automatically enforces a deadline or retires it—someone must actively drive the baseline to zero and remove the ratchet scaffolding.
++* **Not self-terminating:** A ratchet is meant to be temporary (declaring a `baseline-source`, `owner`, and `exit` condition as in [reference specification]), but nothing automatically enforces a deadline or retires it—someone must actively drive the baseline to zero and remove the ratchet scaffolding.
+ * **Baseline integrity must be protected:** If a contributor can freely overwrite the accepted reference baseline or downgrade the control from preventive to detective without review, the ratchet can be bypassed.
+ * **Churn friction:** Strict stale-allowance checks mean unrelated refactors that accidentally fix a baselined issue require updating the baseline file in the same change.
+ 
+@@ -322,7 +322,7 @@
+ ]
+ ```
+ 
+-The CI gate runs the pure check, then passes `findings`, the branch's `baseline.json`, and `main`'s accepted `previous` baseline into the ratchet filter (like [`judge-mode.mjs`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L36-L48)).
++The CI gate runs the pure check, then passes `findings`, the branch's `baseline.json`, and `main`'s accepted `previous` baseline into the ratchet filter (like `[mode evaluator script]`).
+ 
+ #### 2. Four scenarios in Pull Requests
+ 
+@@ -343,7 +343,7 @@
+ 
+ In software engineering governance, a **ratchet** is a temporary enforcement strategy for a **preventive control**. Like its mechanical namesake, it allows movement in only one direction: quality can stay the same or improve, never regress.
+ 
+-In this workspace's KAAL governance model (see [modes.md](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/references/modes.md)), a ratchet is not a separate control type or station mode—it is a temporary strategy (`strategy: ratchet`) applied to a preventive control until the governed system reaches full compliance.
++In this governance model (see [reference specification]), a ratchet is not a separate control type or station mode—it is a temporary strategy (`strategy: ratchet`) applied to a preventive control until the governed system reaches full compliance.
+ 
+ ---
+ 
+@@ -353,13 +353,13 @@
+ 
+ - **Stopping the bleeding immediately** without requiring a "big bang" remediation up front.
+ - **Locking in progress** so that every fixed violation permanently raises the bar.
+-- **Providing a clean path to full enforcement** by acting as a removable filter in front of an otherwise pure check (as implemented in [`applyBaseline`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L25-L35)).
++- **Providing a clean path to full enforcement** by acting as a removable filter in front of an otherwise pure check (as implemented in `[baseline filter function]`).
+ 
+ ---
+ 
+ ### Behaviour
+ 
+-A check emits a list of **findings**—each with a stable identifier from run to run. The ratchet records today's existing findings as an allowance (the **baseline**) and evaluates every change against four rules (see [`judgeMode`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L7-L21)):
++A check emits a list of **findings**—each with a stable identifier from run to run. The ratchet records today's existing findings as an allowance (the **baseline**) and evaluates every change against four rules (see `[mode evaluator function]`):
+ 
+ 1. **No new regressions:** Any finding *not* in the baseline blocks the change (`FAIL` / `new-finding`). Known findings in the baseline are allowed to pass.
+ 2. **The allowance only shrinks:** The baseline in the change under review is compared against the **last accepted baseline** (`previous`, read from the accepted state such as `main`, never from the PR itself). Adding any entry that was not in `previous` blocks (`baseline-grew`).
+@@ -375,7 +375,7 @@
+ - **Does not prove compliance:** A passing ratchet only proves that *nothing new* was broken—not that the underlying rule holds across the system.
+ - **Granularity blind spots:** "New" is defined by finding identity. If a finding is named too broadly (e.g., `src/auth.ts` instead of `src/auth.ts:line-or-symbol:rule`), an existing violation can get worse under the same name and still pass.
+ - **Does not fix existing debt on its own:** A ratchet prevents backsliding; actually burning down the baseline requires separate engineering work.
+-- **Risk of becoming permanent:** Nothing automatically retires a ratchet. Even when governance requires declaring `baseline-source`, `owner`, and `exit` criteria (as in [declaring-controls.md](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/references/declaring-controls.md)), someone must actively notice an empty baseline—or an aging one—and close it out.
++- **Risk of becoming permanent:** Nothing automatically retires a ratchet. Even when governance requires declaring `baseline-source`, `owner`, and `exit` criteria (as in [control declaration specification]), someone must actively notice an empty baseline—or an aging one—and close it out.
+ - **Workflow friction:** Strict stale-allowance enforcement means a developer who opportunistically fixes a legacy issue must also update the baseline file in the same change, and shared baseline files can create merge conflicts in high-churn repositories.
+ - **Depends on a trusted reference:** If the process does not read `previous` from a protected, accepted state (e.g., the target branch), a change could tamper with both the baseline and its reference to bypass the ratchet.
+ 
+@@ -498,7 +498,7 @@
+ 
+ Rather than rewriting a check to ignore legacy issues, a ratchet is implemented as a **filter in front of the verdict**: the underlying check remains pure and emits all findings, while the ratchet compares those findings against an accepted **baseline** (an explicit allowance of known violations) and only lets the change pass if the baseline stays honest and no new findings appear.
+ 
+-*(In this workspace, this model is documented in [modes.md](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/references/modes.md) and implemented by [`judgeMode`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L7-L21) and [`applyBaseline`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L25-L35).)*
++*(In one reference governance model, this model is documented in [reference specification] and implemented by `[mode evaluator function]` and `[baseline filter function]`.)*
+ 
+ ---
+ 
+@@ -564,7 +564,7 @@
+ 
+ In software engineering governance, a **ratchet** is a temporary enforcement strategy for a preventive control that allows a team to adopt a strict rule incrementally. Rather than blocking all work until a codebase is 100% compliant, a ratchet records existing violations as a **baseline (allowance)** and guarantees that quality can only move in one direction: **no new violations are allowed, and every fixed violation permanently tightens the standard**.
+ 
+-In this workspace, the ratchet model is documented in [modes.md](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/references/modes.md) and implemented in [`judgeMode`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L7-L21) and [`applyBaseline`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L25-L35).
++In one reference governance model, the ratchet is documented in [reference specification] and implemented in `[mode evaluator function]` and `[baseline filter function]`.
+ 
+ ---
+ 
+@@ -585,7 +585,7 @@
+ 2. **The allowance only shrinks:** The proposed baseline cannot contain anything that was not in the last accepted baseline. Adding an entry to excuse a new violation blocks (`FAIL` / `baseline-grew`).
+ 3. **Resolved means removed:** If a finding no longer occurs, its entry must be removed from the baseline in the same change. Leaving a resolved item in the baseline fails (`FAIL` / `stale-allowance`), because a stale allowance would silently permit the violation to return later. Once removed, if the issue reappears, it is treated as new and blocks.
+ 4. **Unknown blocks (fail-closed):** If the accepted baseline is missing, unreadable, malformed, or the underlying check fails to produce findings, the verdict is `UNKNOWN` and blocks. Missing evidence is never treated as success.
+-5. **Removable by design:** Because the ratchet is a filter around an unmodified check (see [`applyBaseline`](file:///home/antigravity/ChBrain/test-kaal/skills/kaal-controls/scripts/judge-mode.mjs#L25-L35)), an empty baseline makes the filter a no-op. Retiring the ratchet only requires removing the filter and baseline file—the check itself stays untouched.
++5. **Removable by design:** Because the ratchet is a filter around an unmodified check (see `[baseline filter function]`), an empty baseline makes the filter a no-op. Retiring the ratchet only requires removing the filter and baseline file—the check itself stays untouched.
+ 
+ ---
+ 

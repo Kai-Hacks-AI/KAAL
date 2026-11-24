@@ -1,8 +1,8 @@
 {
   "experiment": "E1-ratchet-understanding",
-  "stage": "DO",
+  "stage": "CHECK",
   "hash_algorithm": "@kaihacksai/kaal-foundation/sha256",
-  "generated_at_utc": "2026-11-24T16:14:17.892Z",
+  "generated_at_utc": "2026-11-24T16:34:14.122Z",
   "files": [
     {
       "path": "plan.md",
@@ -20,9 +20,49 @@
       "sha256": "ce927764377623bc1ae5f0595dfe76a8205d1e4197a2eb0e38e26208758a590a"
     },
     {
+      "path": "do.md",
+      "bytes": 10715,
+      "sha256": "e72d41697dd1b5b4db51433e1ad17d1e44e60a4044a1a4aa0c2dda7258c20f5d"
+    },
+    {
       "path": "evidence/arm-mapping.json",
       "bytes": 4981,
       "sha256": "f2e02ce9bc5391987f4875f64d8250c37cf6f48da87aade4be390c13f7bb7925"
+    },
+    {
+      "path": "evidence/blinded/blind-mapping.json",
+      "bytes": 2277,
+      "sha256": "45189d73e0741e2725907a3a9041d55515df8f1b1ecfc5a6d2cef2961e738607"
+    },
+    {
+      "path": "evidence/blinded/judge-1-scores.json",
+      "bytes": 24088,
+      "sha256": "1505067f0d74da6ddbb64719cce91ee38acbf8e45582904d993167584e68f049"
+    },
+    {
+      "path": "evidence/blinded/judge-2-scores.json",
+      "bytes": 25300,
+      "sha256": "a13358ed7fe0de1a91cdbbd140aac49698150873a7fba54463da08db8c29bec9"
+    },
+    {
+      "path": "evidence/blinded/judge-3-scores.json",
+      "bytes": 26606,
+      "sha256": "2db4e50c51bb0a8c1a65bd969873f3110163405cdcea6f185befa1b255fa3c5e"
+    },
+    {
+      "path": "evidence/blinded/packet-raw.md",
+      "bytes": 57499,
+      "sha256": "59c06785d2137a69c2a66e3668a3bbb1ecec25b208e47d9c9875b1304d692318"
+    },
+    {
+      "path": "evidence/blinded/packet-redacted.md",
+      "bytes": 56062,
+      "sha256": "b81b31341cc1bd827db7278b0c3fb99b9c3d33d33ea6e0ecfe9fd8c86a2bb745"
+    },
+    {
+      "path": "evidence/blinded/redaction.diff",
+      "bytes": 16983,
+      "sha256": "d41b51b655b50de08cb52f0ca1918d3e5217141a97c0b19407483030e24aabe8"
     },
     {
       "path": "evidence/excerpts/a1.audit.txt",

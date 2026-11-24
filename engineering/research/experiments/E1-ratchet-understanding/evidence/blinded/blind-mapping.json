@@ -1,0 +1,78 @@
+{
+  "experiment": "E1-ratchet-understanding",
+  "seed": "E1-ratchet-understanding-check-v1-b942354",
+  "generated_at_utc": "2026-11-24T16:22:44.823Z",
+  "note": "WITHHELD from Judge 1, Judge 2, and Judge 3 during blinded scoring.",
+  "entries": [
+    {
+      "label": "s01",
+      "run": "a3",
+      "arm": "blank",
+      "raw_path": "evidence/raw/a3.md",
+      "raw_sha256": "1622d780b0fd74fd2f85d4da0c09000bd7cc6e2b4c9a9f60275ad88d5f7ee531"
+    },
+    {
+      "label": "s02",
+      "run": "b1",
+      "arm": "kaal",
+      "raw_path": "evidence/raw/b1.md",
+      "raw_sha256": "c09ea27f81ae419ae7d2d41ef78116777def36720c4d72a9c7b1d061c7ac5fc5"
+    },
+    {
+      "label": "s03",
+      "run": "a2",
+      "arm": "blank",
+      "raw_path": "evidence/raw/a2.md",
+      "raw_sha256": "4d121c293d5ed5253d3f02a56e70d6c4528992c67633380db95b52f5dd94120d"
+    },
+    {
+      "label": "s04",
+      "run": "b3",
+      "arm": "kaal",
+      "raw_path": "evidence/raw/b3.md",
+      "raw_sha256": "2c19cdcfb335edad6fb01cc7984df5066c9b6de700c6996c777279528fb5ac5e"
+    },
+    {
+      "label": "s05",
+      "run": "b2",
+      "arm": "kaal",
+      "raw_path": "evidence/raw/b2.md",
+      "raw_sha256": "5bba211124123162a5f730990b6d87c9e8b9a42810dfe317b51d84f5d3bc2cf6"
+    },
+    {
+      "label": "s06",
+      "run": "a4",
+      "arm": "blank",
+      "raw_path": "evidence/raw/a4.md",
+      "raw_sha256": "ca3a0e15ea054a9dd653c5e307edacd2a0a87f864f5801b30dcecf672eb5ae1f"
+    },
+    {
+      "label": "s07",
+      "run": "b4",
+      "arm": "kaal",
+      "raw_path": "evidence/raw/b4.md",
+      "raw_sha256": "9f386fb8b1732a6db7294a049e81abde0159bda0d52e20359bd8801ce3f26a03"
+    },
+    {
+      "label": "s08",
+      "run": "b5",
+      "arm": "kaal",
+      "raw_path": "evidence/raw/b5.md",
+      "raw_sha256": "afaf43ef7a00e9d4872e5f3c1ffcab0be1819f161de161796ca6c64cb45e7134"
+    },
+    {
+      "label": "s09",
+      "run": "a5",
+      "arm": "blank",
+      "raw_path": "evidence/raw/a5.md",
+      "raw_sha256": "1207e612b7aad0a0e98be28ca14ff9adf484e04d0f0c87a785923fc5087b2f5c"
+    },
+    {
+      "label": "s10",
+      "run": "a1",
+      "arm": "blank",
+      "raw_path": "evidence/raw/a1.md",
+      "raw_sha256": "8b3ba059e6fd22a71006ccfd898fc85e961433d008c2d11b2c50be2445127a29"
+    }
+  ]
+}
