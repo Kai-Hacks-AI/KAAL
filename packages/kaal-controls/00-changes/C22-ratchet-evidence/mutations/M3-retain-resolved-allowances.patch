@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
+@@ -29,7 +29,7 @@
+     remaining: findings.filter((f) => !baseline.includes(f)),
+     known: findings.filter((f) => baseline.includes(f)),
+     grew: baseline.filter((f) => !previous.includes(f)),
+-    stale: baseline.filter((f) => !findings.includes(f)),
++    stale: [],
+     next: previous.filter((f) => findings.includes(f)),
+   };
+ }

@@ -23,3 +23,18 @@ export function applicableCasesAreGreen({ changes, observed }) {
   const applicable = [...all.values()].sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
   return casesAreGreen({ applicable, observed });
 }
+
+// The observation of Testing as the judge may trust it (release/C125). `file` is what `observe` of Testing wrote: { observed, evidence }, read as data, never by importing Testing.
+// It reads `observed`, `evidence.revision`, `evidence.expectedRevision` and `evidence.catalog` ({ complete, findings, unobservable }) and nothing else.
+// The answer is { reason } when the evidence cannot be used at all (missing, not the contracted shape, of another revision): nothing may be read from it, a RED included.
+// Otherwise { observed, incomplete } where `incomplete` is a sentence when the catalog is not exactly complete: a RED Case still stands, but no PASS may rest on it.
+export function observationOf(file) {
+  if (file === undefined) return { reason: "Testing's observation of the Cases at this revision is not available" };
+  const e = file?.evidence;
+  if (!file || typeof file.observed !== 'object' || file.observed === null || Array.isArray(file.observed) || !e || typeof e !== 'object' || !e.catalog || typeof e.catalog !== 'object') return { reason: "Testing's observation is not the shape the contract names (observed, and evidence with a catalog)" };
+  if (typeof e.revision !== 'string' || e.revision === '' || typeof e.expectedRevision !== 'string' || e.expectedRevision === '' || e.revision !== e.expectedRevision) return { reason: "Testing's observation is not for this revision (revision and expectedRevision are absent or differ)" };
+  const c = e.catalog;
+  if (c.complete === true) return { observed: file.observed };
+  const named = [...(Array.isArray(c.findings) ? c.findings.map((f) => `${f?.kind ?? 'finding'}${f?.id ? ` ${f.id}` : ''}`) : []), ...(Array.isArray(c.unobservable) ? c.unobservable.map((f) => `unobservable ${f}`) : [])];
+  return { observed: file.observed, incomplete: `the catalog of Cases is not complete${named.length ? ` (${named.join(', ')})` : ''}` };
+}
