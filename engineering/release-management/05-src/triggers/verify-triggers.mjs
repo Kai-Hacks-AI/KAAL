@@ -1,4 +1,4 @@
-// verify Triggers: does a change add or raise a workflow that uses pull_request_target?
+// verify Triggers: does a change add or raise a workflow that uses pull_request_target? It reports findings and hands the verdict to the shared ratchet (kaal-controls judge-mode).
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -19,13 +19,25 @@ export function uses(text) {
   return block.some((l) => l.match(/^ */)[0].length === indent && (new RegExp(`^ {${indent}}(-\\s*)?${TARGET}\\s*:?\\s*$`)).test(l));
 }
 
+// The ratchet rule is written once, in kaal-controls' judge-mode. This judge only reports findings and hands them over.
+// If judge-mode is absent on the base, the answer is UNKNOWN, which never passes.
+let judgeMode = null;
+try { ({ judgeMode } = await import(new URL('../../../../packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs', import.meta.url).href)); } catch { judgeMode = null; }
+
+// The findings of a tree: the sorted paths of the workflows that use the trigger.
+export const findingsOf = (tree) => Object.keys(tree).filter((p) => uses(tree[p])).sort();
+
+// previous: the findings of the base, read as Git data, never a file of the pull request. baseline: previous without what the head resolved, so an improvement leaves no stale allowance.
 export function judge({ base, head }) {
   if (!base || !head || !Object.keys(base).length) return { verdict: 'UNKNOWN', reasons: ['the base or the head workflows could not be read'] };
-  const n = (m) => Object.keys(m).filter((p) => uses(m[p])).length;
-  const reasons = [];
-  for (const p of Object.keys(head)) if (uses(head[p]) && !(p in base && uses(base[p]))) reasons.push(`${p} uses ${TARGET} and did not on the base`);
-  if (n(head) > n(base)) reasons.push(`the count of workflows that use ${TARGET} rises from ${n(base)} to ${n(head)}`);
-  return { verdict: reasons.length ? 'FAIL' : 'PASS', reasons, base: n(base), head: n(head) };
+  if (!judgeMode) return { verdict: 'UNKNOWN', reasons: ['judge-mode is absent on the base'] };
+  const previous = findingsOf(base);
+  const findings = findingsOf(head);
+  const baseline = previous.filter((f) => findings.includes(f));
+  const r = judgeMode({ mode: 'ratchet', findings, baseline, previous });
+  if (r.verdict === 'UNKNOWN') return { verdict: 'UNKNOWN', reasons: [`the ratchet could not judge: ${r.reason}`] };
+  const reasons = (r.new ?? []).map((p) => `${p} uses ${TARGET} and did not on the base`);
+  return { verdict: r.verdict, reasons, base: previous.length, head: findings.length, findings, previous, ...(r.next ? { next: r.next } : {}) };
 }
 
 export function readTree(dir) {

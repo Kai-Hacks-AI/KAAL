@@ -1,0 +1,91 @@
+judge-mode.mjs 44dab44a275c978a7c3cb5c995e048648672f252 on parent 38971dd6
+baseline (no mutation)
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 GREEN
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 GREEN
+  controls/T1116 GREEN
+  controls/T1117 GREEN
+M1-accept-all-findings
+  controls/T1108 GREEN
+  controls/T1109 RED: a new finding did not block
+  controls/T1110 GREEN
+  controls/T1112 RED: a baseline that grew was accepted
+  controls/T1113 GREEN
+  controls/T1114 RED: a spent ratchet did not judge like preventive
+  controls/T1115 GREEN
+  controls/T1116 RED: ratchet, new finding exited 0, not 1
+  controls/T1117 RED: a new finding was not rejected
+M2-no-growth-detection
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 RED: a baseline that grew was accepted
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 GREEN
+  controls/T1116 GREEN
+  controls/T1117 RED: its allowance put back was not rejected
+M3-retain-resolved-allowances
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 RED: an allowance kept for a resolved finding was accepted
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 GREEN
+  controls/T1116 GREEN
+  controls/T1117 RED: a stale allowance was not rejected
+M4-missing-evidence-is-success
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 GREEN
+  controls/T1113 RED: a missing reference passed
+  controls/T1114 GREEN
+  controls/T1115 RED: no previous file for a ratchet did not exit 2 (exit 1)
+  controls/T1116 GREEN
+  controls/T1117 GREEN
+M5-blocked-run-still-advances
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 GREEN
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 GREEN
+  controls/T1116 GREEN
+  controls/T1117 RED: a new finding carried a next baseline although it did not pass
+M6-cli-exits-zero-when-blocked
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 GREEN
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 GREEN
+  controls/T1116 RED: preventive, findings exited 0, not 1
+  controls/T1117 GREEN
+M7-cli-loses-reason-on-missing-file
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 GREEN
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 RED: a missing findings file was not UNKNOWN with unreadable-input
+  controls/T1116 GREEN
+  controls/T1117 GREEN
+M8-cli-crashes-on-missing-file
+  controls/T1108 GREEN
+  controls/T1109 GREEN
+  controls/T1110 GREEN
+  controls/T1112 GREEN
+  controls/T1113 GREEN
+  controls/T1114 GREEN
+  controls/T1115 RED: a missing findings file did not exit 2 (exit 1)
+  controls/T1116 GREEN
+  controls/T1117 GREEN
