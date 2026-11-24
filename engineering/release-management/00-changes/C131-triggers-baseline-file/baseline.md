@@ -1,0 +1,3 @@
+# C131 baseline
+
+The baseline is `main` after #2392. `engineering/release-management/05-src/triggers/verify-triggers.mjs` (release/C130) takes the accepted baseline (`previous`) from the workflows of the base commit, as Git data, and hands the findings of the head to kaal-controls' `judge-mode --mode ratchet`. The findings of `main` today are the five workflows that use `pull_request_target`: `change-isolation`, `lineage-synchronization`, `merge-group-admission`, `promotion-source` and `sync-review`. `CTL20.md` declares `strategy: ratchet` with `baseline-source` as prose and has no baseline file. CTL36 already has its file, `baseline.json`, a sorted list of unique names, named by its `baseline-source`.
