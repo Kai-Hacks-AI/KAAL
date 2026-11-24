@@ -1,0 +1,7 @@
+{"type":"pass","name":"passes","nesting":1,"line":4,"column":3,"testNumber":1,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}
+{"type":"fail","name":"fails by assertion","nesting":1,"line":5,"column":3,"testNumber":2,"kind":"test","skip":false,"todo":false,"failureType":"testCodeFailure","code":"ERR_ASSERTION","message":"Expected values to be strictly equal:"}
+{"type":"pass","name":"dup","nesting":2,"line":7,"column":5,"testNumber":1,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}
+{"type":"fail","name":"dup","nesting":2,"line":8,"column":5,"testNumber":2,"kind":"test","skip":false,"todo":false,"failureType":"testCodeFailure","code":"ERR_ASSERTION","message":"second dup"}
+{"type":"fail","name":"inner","nesting":1,"line":6,"column":3,"testNumber":3,"kind":"suite","skip":false,"todo":false,"failureType":"subtestsFailed","code":"ERR_TEST_FAILURE","message":"1 subtest failed"}
+{"type":"fail","name":"suite A","nesting":0,"line":3,"column":1,"testNumber":1,"kind":"suite","skip":false,"todo":false,"failureType":"subtestsFailed","code":"ERR_TEST_FAILURE","message":"2 subtests failed"}
+{"type":"pass","name":"top","nesting":0,"line":11,"column":1,"testNumber":2,"kind":"test","skip":false,"todo":false,"failureType":null,"code":null,"message":null}

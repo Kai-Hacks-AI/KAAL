@@ -1,0 +1,201 @@
+{
+  "stages": [
+    {
+      "name": "Developing",
+      "kind": ".githooks",
+      "exact": true,
+      "files": [
+        {
+          "path": "pre-push",
+          "source": "wiring/hooks/pre-push-dispatcher",
+          "mode": "755"
+        },
+        {
+          "path": "old/pre-push",
+          "sha256": "df18ff0179e9a10ae340cd463d7012305c438b7148f0217348974b7ab56c8c06",
+          "mode": "755"
+        },
+        {
+          "path": "new/pre-push.d/README.md",
+          "mode": "644"
+        },
+        {
+          "path": "new/pre-push.d/verify-stages-developing",
+          "source": "wiring/hooks/verify-stages-developing",
+          "mode": "755"
+        }
+      ]
+    },
+    {
+      "name": "Integrating",
+      "ruleset": "20 - integrating",
+      "kind": "ruleset",
+      "targets": [
+        "kaal/**",
+        "hotfix/**",
+        "wire/**"
+      ],
+      "parts": [
+        {
+          "name": "Collecting",
+          "ruleset": "23 - collecting",
+          "target": "kaal/**",
+          "rules": [
+            {
+              "type": "required_status_checks",
+              "control": "release/CTL1",
+              "parameters": {
+                "strict_required_status_checks_policy": false,
+                "do_not_enforce_on_create": true
+              },
+              "checks": [
+                {
+                  "name": "verify Stages (Collecting)",
+                  "integration_id": 15368,
+                  "control": "release/CTL1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Hotfixing",
+          "ruleset": "21 - hotfixing",
+          "target": "hotfix/**",
+          "rules": [
+            {
+              "type": "required_status_checks",
+              "control": "release/CTL1",
+              "parameters": {
+                "strict_required_status_checks_policy": false,
+                "do_not_enforce_on_create": true
+              },
+              "checks": [
+                {
+                  "name": "verify Stages (Hotfixing)",
+                  "integration_id": 15368,
+                  "control": "release/CTL1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Wiring",
+          "ruleset": "22 - wiring",
+          "target": "wire/**",
+          "rules": [
+            {
+              "type": "required_status_checks",
+              "control": "release/CTL1",
+              "parameters": {
+                "strict_required_status_checks_policy": false,
+                "do_not_enforce_on_create": true
+              },
+              "checks": [
+                {
+                  "name": "verify Stages (Wiring)",
+                  "integration_id": 15368,
+                  "control": "release/CTL1"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "type": "required_status_checks",
+          "control": "release/CTL1",
+          "parameters": {
+            "strict_required_status_checks_policy": false,
+            "do_not_enforce_on_create": true
+          },
+          "checks": [
+            {
+              "name": "verify Stages (Integrating)",
+              "integration_id": 15368,
+              "control": "release/CTL1"
+            },
+            {
+              "name": "verify Stages (Developing)",
+              "integration_id": 15368,
+              "control": "release/CTL1"
+            }
+          ]
+        },
+        {
+          "type": "pull_request",
+          "control": "release/CTL10",
+          "parameters": {
+            "required_approving_review_count": 1,
+            "dismiss_stale_reviews_on_push": true,
+            "require_code_owner_review": false,
+            "require_last_push_approval": false,
+            "required_review_thread_resolution": false
+          }
+        }
+      ],
+      "requires": [
+        "Integrating",
+        "Developing"
+      ]
+    },
+    {
+      "name": "Promoting",
+      "ruleset": "30 - promoting",
+      "kind": "ruleset",
+      "target": "~DEFAULT_BRANCH",
+      "rules": [
+        {
+          "type": "required_status_checks",
+          "control": "release/CTL1",
+          "parameters": {
+            "strict_required_status_checks_policy": false,
+            "do_not_enforce_on_create": false
+          },
+          "checks": [
+            {
+              "name": "verify Stages (Promoting)",
+              "integration_id": 15368,
+              "control": "release/CTL1"
+            },
+            {
+              "name": "analyze Vulnerabilities (Promoting)",
+              "integration_id": 15368,
+              "control": "release/CTL5"
+            },
+            {
+              "name": "verify Triggers",
+              "integration_id": 15368,
+              "control": "release/CTL20"
+            }
+          ]
+        },
+        {
+          "type": "merge_queue",
+          "control": "release/CTL32",
+          "parameters": {
+            "merge_method": "SQUASH",
+            "max_entries_to_build": 1,
+            "min_entries_to_merge": 1,
+            "max_entries_to_merge": 1,
+            "min_entries_to_merge_wait_minutes": 0,
+            "grouping_strategy": "ALLGREEN",
+            "check_response_timeout_minutes": 60
+          }
+        }
+      ],
+      "also": [
+        "analyze Vulnerabilities (Promoting)"
+      ]
+    },
+    {
+      "name": "Publishing",
+      "ruleset": "40 - publishing",
+      "kind": "tag",
+      "target": "trial-*@*",
+      "rule": "update"
+    }
+  ]
+}

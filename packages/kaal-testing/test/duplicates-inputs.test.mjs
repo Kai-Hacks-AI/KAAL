@@ -38,3 +38,76 @@ it("unknown input plans nothing, even beside valid requests; findings and floati
   const equalWaste = ["a", "b"].flatMap((c) => [1, 2].map((ms) => ({ ...run, subject: c.repeat(64), ms })));
   assert.deepEqual(duplicates({ runs: equalWaste }), duplicates({ runs: [...equalWaste].reverse() }));
 });
+
+it("fixed-seed property checks (testing/C77): schedule key uniqueness, read/request conservation, non-mutation, and permutation invariance", () => {
+  let state = 1001;
+  const rng = () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const pick = (xs) => xs[Math.floor(rng() * xs.length)];
+  const shuffle = (xs) => {
+    const out = [...xs];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+    return out;
+  };
+  const filesPool = ["a.mjs", "b.mjs", "c.mjs", "d.mjs"].map((p, k) => ({ path: p, sha256: String(k + 1).repeat(64) }));
+  const subjects = ["a", "b", "c"].map((c) => c.repeat(64));
+
+  for (let n = 0; n < 80; n++) {
+    const k = 1 + Math.floor(rng() * 6);
+    const reqs = Array.from({ length: k }, (_, idx) => ({
+      by: `req/${idx}`,
+      files: Array.from({ length: 1 + Math.floor(rng() * 4) }, () => pick(filesPool)),
+      subject: pick(subjects),
+      platform: pick(["linux", "win32", "darwin"]),
+      node: pick(["v24.0.0", "v24.20.0"]),
+    }));
+    const reqSnap = structuredClone(reqs);
+    const planned = schedule(reqs);
+    assert.deepEqual(reqs, reqSnap, "schedule must not mutate requests");
+    assert.deepEqual(planned.findings, []);
+    const keys = planned.runs.map((r) => JSON.stringify([r.file, r.sha256, r.subject, r.platform, r.node]));
+    assert.equal(new Set(keys).size, planned.runs.length, "planned runs must be unique by scheduling key");
+
+    const expectedPairs = [];
+    for (const q of reqs) {
+      const seen = new Set();
+      for (const f of q.files) {
+        const key = `${f.path}:${f.sha256}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          expectedPairs.push({ by: q.by, file: f.path, sha256: f.sha256, subject: q.subject, platform: q.platform, node: q.node });
+        }
+      }
+    }
+    assert.equal(planned.reads.length, expectedPairs.length, "reads equal deduplicated requested files");
+    for (const pair of expectedPairs) {
+      const matched = planned.reads.filter((rd) => {
+        const r = planned.runs[rd.run];
+        return rd.by === pair.by && rd.file === pair.file && r && r.file === pair.file && r.sha256 === pair.sha256 && r.subject === pair.subject && r.platform === pair.platform && r.node === pair.node && r.for.includes(pair.by);
+      });
+      assert.equal(matched.length, 1);
+    }
+    assert.deepEqual(schedule(shuffle(reqs)), planned, "schedule output must be permutation invariant");
+
+    const runs = Array.from({ length: 1 + Math.floor(rng() * 8) }, () => ({
+      case: `c/T${Math.floor(rng() * 4)}`,
+      file: pick(["a.mjs", "b.mjs"]),
+      sha256: pick(subjects),
+      subject: pick(subjects),
+      platform: pick(["linux", "win32"]),
+      node: pick(["v24.0.0", "v24.20.0"]),
+      ms: pick([0, 0.1, 1, 2, 1e16]),
+    }));
+    const runSnap = structuredClone(runs);
+    const obs = duplicates({ runs });
+    assert.deepEqual(runs, runSnap, "duplicates must not mutate runs");
+    assert.deepEqual(duplicates({ runs: shuffle(runs) }), obs, "duplicates output must be permutation invariant");
+  }
+});

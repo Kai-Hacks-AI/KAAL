@@ -1,5 +1,5 @@
 {
-  "name": "publishing",
+  "name": "40 - publishing",
   "target": "tag",
   "enforcement": "active",
   "conditions": {
@@ -13,16 +13,7 @@
   "bypass_actors": [],
   "rules": [
     {
-      "type": "creation"
-    },
-    {
       "type": "update"
-    },
-    {
-      "type": "deletion"
-    },
-    {
-      "type": "non_fast_forward"
     }
   ]
 }
