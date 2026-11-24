@@ -133,12 +133,22 @@ A non-E1 environment diagnostic subagent (`harness-isolation-probe`, conversatio
 | **I-C (Ruled Out)** | 5 in-VM subagents in this VM | 5 in-VM subagents in this VM | **No** (empirically disproved above) | Same subagent harness, but Arm A is not blank | **No** (no on-disk transcripts) | Violates CPO blank-condition boundary. Included only as empirical record of why in-VM execution is blocked. |
 
 #### Exact Operator Execution Protocol Under Recommended Option I-A1 (Zero Leakage, Single Turn)
-If CPO approves **Option I-A1**:
-1. This agent generates a reproducible, deterministic D-1 staging script / bundle from `git archive 3aafe4f708bd6ce16293d5bd6b6410de8c345449` (producing the exact 14 Skills + `.kaal/` + neutral `AGENTS.md` + `skills/INDEX.md`) and computes `evidence/treatment-manifest.json` using `@kaihacksai/kaal-foundation`.
-2. The operator mounts that disposable D-1 bundle in a clean, non-KAAL disposable workspace/repo (never `Kai-Hacks-AI/KAAL`, never containing `E1-ratchet-understanding/`).
-3. Using the **same Antigravity model and default settings** (recorded explicitly in `evidence/provenance.json`), the operator executes 10 fresh single-turn conversations in interleaved order (`a1, b1, a2, b2, a3, b3, a4, b4, a5, b5`), pasting the exact byte-identical contents of `prompt.txt` with no follow-up turns or hints.
-4. For each run, the operator supplies: (a) verbatim raw assistant response (`raw/<id>.md`), (b) session metadata (exact model name/version, settings, workspace state, start/end timestamps), and (c) exported tool-call trace/excerpts (proving zero KAAL reads in Arm A and verifying `opened` vs `delivered` vs `unchecked` exposure in Arm B).
-5. This agent ingests the verbatim artifacts into `evidence/`, verifies all SHA-256 digests with `@kaihacksai/kaal-foundation`, checks stopping/contamination rules, writes `do.md`, and raises the DO PR for CPO review.
+If CPO approves **Option I-A1**, all 10 conversations are executed **outside this KAAL project's scope** on the **same Antigravity runtime** (either **all 10 in Antigravity Cloud** or **all 10 in Antigravity Local**, never mixed across arms), with identical model and default settings:
+
+- **Workspace count (only 1 disposable Arm B bundle — not 5 repos):**
+  - **Local realization (simplest, 100% symmetric):**
+    - **Arm A (`a1`–`a5`):** 1 empty local folder (`e1-blank/`, 0 files, no KAAL skills). Open 5 brand-new conversations against `e1-blank/`.
+    - **Arm B (`b1`–`b5`):** 1 local folder (`e1-kaal-d1/`) holding *only* the unpacked D-1 consumer bundle from `3aafe4f708bd6ce16293d5bd6b6410de8c345449`, set read-only (`chmod -R a-w e1-kaal-d1`) or verified unmodified between runs. Open 5 brand-new conversations against `e1-kaal-d1/`.
+  - **Cloud realization:**
+    - **Arm A (`a1`–`a5`):** 5 fresh standalone conversations outside any KAAL project with **no repository** attached (or attached to 1 empty disposable repository with 0 files).
+    - **Arm B (`b1`–`b5`):** 1 single disposable private repository containing *only* the pinned D-1 consumer bundle (never `Kai-Hacks-AI/KAAL`), mounted in a separate disposable non-KAAL project. Open 5 brand-new conversations against that single repo — Cloud provisions a fresh ephemeral VM clone per conversation, isolating `b1`–`b5` automatically. Delete/detach the disposable repo after DO is archived.
+
+- **Execution and handoff steps (after PLAN approval):**
+  1. This agent generates the deterministic D-1 staging bundle/recipe from `git archive 3aafe4f708bd6ce16293d5bd6b6410de8c345449` (exact 14 Skills + `.kaal/` + neutral `AGENTS.md` + `skills/INDEX.md`) and computes `evidence/treatment-manifest.json` using `@kaihacksai/kaal-foundation`.
+  2. The operator mounts that single D-1 bundle in the clean disposable Arm B folder/repo (never `Kai-Hacks-AI/KAAL`, never containing `E1-ratchet-understanding/`).
+  3. Using the **same Antigravity runtime, model, and default settings** (recorded explicitly in `evidence/provenance.json`), the operator executes 10 fresh single-turn conversations in interleaved order (`a1, b1, a2, b2, a3, b3, a4, b4, a5, b5`), pasting the exact byte-identical contents of `prompt.txt` with no follow-up turns or hints.
+  4. For each run, the operator hands back into this thread: (a) verbatim raw assistant response (`raw/<id>.md`), (b) session metadata (runtime cloud/local, exact model name/version, settings, workspace state, timestamps/durations where visible), and (c) exported tool-call trace/excerpts (confirming zero KAAL reads in Arm A and verifying `opened` vs `delivered` vs `unchecked` exposure in Arm B).
+  5. This agent ingests all verbatim artifacts into `evidence/`, verifies every SHA-256 digest with `@kaihacksai/kaal-foundation`, checks stopping/contamination rules, writes `do.md`, and raises the DO PR against `kaal/research/ratchet-understanding` for CPO review.
 
 ---
 
