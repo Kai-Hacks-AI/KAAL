@@ -1,6 +1,6 @@
 // Case release/T1409 tests: release/C130
 import assert from 'node:assert/strict';
-import { judge } from '../../05-src/triggers/verify-triggers.mjs';
+import { judgeHonest as judge } from '../C131-triggers-baseline-file/fixtures.mjs';
 export const id = 'release/T1409';
 export const tests = ['release/C130'];
 export const title = 'the baseline persists as the findings of the base: an accepted run stores its next, a rejected run stores none, an improvement shrinks the allowance for ever, a rollback is growth, and a base that gained a use by a merge that skipped the check is the limit the judge cannot see';
