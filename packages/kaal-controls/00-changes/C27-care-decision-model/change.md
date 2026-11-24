@@ -22,6 +22,8 @@ A retro entry in the collector.
 ## Left open (for the CPO, with a recommendation)
 
 - Where decisions are stored. Recommendation: a plain JSON list beside the control it concerns, written by the Change that decides, so the history of a decision is the history of that file. The check takes the list as input and does not read a place.
+- What counts as the evidence of an invalid finding. Recommendation: a non-empty text or reference in the record; whether it is good evidence is Review's judgement and not a script's.
+- Whether an unknown finding may stay unknown. Recommendation: yes, it is listed as `unresolved` in every answer and nothing is activated on it; a deadline for judging it again is planning's.
 - Whether the proposer and the selector must differ. Recommendation: both are required and recorded, and the check does not compare them, because who may select is the Owner's authority and not a property a script can judge.
 - Whether an Accept expires. Recommendation: no field here. A date is planning's, and an Accept is reviewed when its owner or reason changes.
 - Whether a decision covers a finding by its stable id only. Recommendation: yes, the same id the C26 scan lists, so a renamed finding is undecided again.
