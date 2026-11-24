@@ -1,0 +1,1 @@
+Explain what a ratchet is in the context of software engineering governance. Explain its purpose, behaviour and limitations. Provide a practical example.
