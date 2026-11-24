@@ -1,0 +1,10 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -75,6 +75,6 @@
+   if (base.baseline.length !== 0) return fail('retired-early');
+   if (!isList(head.history) || !sameJson(head.history, base.history)) return fail('history-removed');
+   const last = base.history[base.history.length - 1];
+-  if (!last || last.to !== 0) return fail('history-incomplete');
++  // mutated: incomplete history allowed
+   return { verdict: 'PASS' };
+ }

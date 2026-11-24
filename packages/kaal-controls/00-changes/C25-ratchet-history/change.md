@@ -21,3 +21,7 @@ A retro entry in the collector.
 ## Not here
 
 The report that reads the history, the adoption in CTL20 and CTL36 (release), and how a judge reads the commit times (release's, as transport).
+
+## DO record
+
+`mutations/` keeps twelve weakenings of `judgeProgress` and `judgeRetirement` (P1 to P9, R1 to R3) as exact patches with a runner, as in C22. `mutations/run-at-do-head.txt` is the run on the DO: the baseline is GREEN on T1120 and T1123, and each weakening, loaded alone, is RED on the Case that guards it (P1 is caught with the reason `line-mismatch` where `baseline-grew` is wanted, since the line is wrong too). The record cannot name its own revision; re-run `sh mutations/run.sh <repo root>` at the DO's head and compare with it.
