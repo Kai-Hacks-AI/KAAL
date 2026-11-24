@@ -1,0 +1,83 @@
+# The event raise of the Dispatcher (release/C93, release/I52). When the final step of work merges into an integration branch, the PROMOTION of
+# that branch is raised as a draft. It reads the event as data: no pull_request_target, no checkout of the pull request, and the event reaches
+# the script only through env. Live only when the variable KAAL_DISPATCH_RAISE is exactly `on`; otherwise a dry run.
+name: Dispatcher raise
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - 'kaal/**'
+      - 'hotfix/**'
+      - 'wire/**'
+
+permissions: {}
+
+concurrency:
+  group: dispatch-raise-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
+jobs:
+  classify:
+    name: classify Dispatch
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      decisions: ${{ steps.final.outputs.decisions }}
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Classify the merge
+        id: final
+        env:
+          KAAL_REPO: ${{ github.repository }}
+          KAAL_PR_MERGED: ${{ github.event.pull_request.merged }}
+          KAAL_PR_BASE: ${{ github.event.pull_request.base.ref }}
+          KAAL_PR_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          KAAL_PR_BODY: ${{ github.event.pull_request.body }}
+        run: node engineering/release-management/05-src/promotion-raise/dispatch.mjs final
+
+  raise:
+    name: raise Dispatch
+    needs: classify
+    if: ${{ needs.classify.outputs.decisions != '' && needs.classify.outputs.decisions != '[]' }}
+    runs-on: ubuntu-latest
+    permissions: {}
+    env:
+      KAAL_REPO: ${{ github.repository }}
+      KAAL_DECISIONS: ${{ needs.classify.outputs.decisions }}
+      KAAL_DISPATCH_RAISE: ${{ vars.KAAL_DISPATCH_RAISE }}
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Mint the Dispatcher token
+        id: app
+        if: ${{ vars.KAAL_DISPATCH_RAISE == 'on' }}
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          app-id: ${{ vars.KAAL_DISPATCHER_APP_ID }}
+          private-key: ${{ secrets.KAAL_DISPATCHER_KEY }}
+          permission-pull-requests: write
+
+      - name: Raise
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: node engineering/release-management/05-src/promotion-raise/dispatch.mjs raise

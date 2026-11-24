@@ -1,0 +1,10 @@
+Case architecture/T3 on the collector at 4b6642b (#1600), run against the unchanged run 3 (trial/skill.*), observed 14 Nov 2026.
+Result: RED
+T3 architecture/T3 RED: S4: the agent found none, the key says ambiguous
++ actual - expected
+
++ 'none'
+- 'ambiguous'
+
+
+historical-T3.mjs is the Case as it stood, with one change: its import path, from ../../00-changes/C1-classification/lib.mjs to ../lib.mjs, because the file moved. Its name is not T<n>.test.mjs, so the package runner does not run it. Run it with: node -e "import('./historical-T3.mjs').then(m=>m.run())" from this folder.

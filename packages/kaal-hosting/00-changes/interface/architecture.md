@@ -2,7 +2,7 @@
 
 Each element names, in brackets, the Requirements it answers.
 
-- **hosting/A15** [hosting/F35]: Hosting's package interface is the table below, between the `kaal-hosting:interface` markers. It is the one authoritative declaration, and hosting/T41 reads it from this file. An entry is added only by an approved Architecture: hosting/A1–hosting/A11 for the delivered and `hosting/C12` entries, hosting/A13 (#650) for the `hosting/C14` entries, and hosting/A17 (#674) for `./fixtures`, delivered by `hosting/C17`. `Target` is the default condition of an export or the path of a command; an export may also name `types`, which must then ship as well.
+- **hosting/A15** [hosting/F35]: Hosting's package interface is the table below, between the `kaal-hosting:interface` markers. It is the one authoritative declaration, and hosting/T41 reads it from this file. An entry is added only by an approved Architecture: hosting/A1–hosting/A11 for the delivered and `hosting/C12` entries, hosting/A13 (#650) for the `hosting/C14` entries, and hosting/A17 (#674) for `./fixtures`, delivered by `hosting/C17`, and hosting/A38 for the command `kaal-hosting-revision`, delivered by `hosting/C110`. `Target` is the default condition of an export or the path of a command; an export may also name `types`, which must then ship as well.
 
 The main entry `.` also exports the operations `list` and `scratch`, which hosting/A34 declares; the table lists subpaths, so they need no row.
 
@@ -15,6 +15,8 @@ The main entry `.` also exports the operations `list` and `scratch`, which hosti
 | export | `./boundary` | `./dist/skills/kaal-hosting/scripts/boundary.js` | delivered |
 | export | `./fixtures` | `./dist/skills/kaal-hosting/scripts/fixtures.js` | delivered |
 | bin | `kaal-hosting-boundary` | `dist/skills/kaal-hosting/scripts/boundary-cli.mjs` | delivered |
+| bin | `kaal-hosting-revision` | `dist/skills/kaal-hosting/scripts/revision-cli.mjs` | delivered |
+| bin | `kaal-hosting-pulls` | `dist/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs` | delivered |
 | files | `dist` |  | delivered |
 <!-- /kaal-hosting:interface -->
 

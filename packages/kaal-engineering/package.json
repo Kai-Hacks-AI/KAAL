@@ -1,0 +1,18 @@
+{
+  "name": "@kaihacksai/kaal-engineering",
+  "version": "0.0.1",
+  "private": true,
+  "description": "KAAL Engineering: how KAAL's own engineering setup holds one source in packages, engineering, npmjs and .kaal, and installs approved copies. Private; not expected to live outside KAAL.",
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "payload",
+    "skills"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "test": "node --test test/cases.test.mjs"
+  }
+}

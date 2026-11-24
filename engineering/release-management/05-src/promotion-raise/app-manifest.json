@@ -1,0 +1,8 @@
+{
+  "name": "App",
+  "url": "https://github.com",
+  "public": false,
+  "hook_attributes": { "url": "https://example.invalid", "active": false },
+  "default_events": [],
+  "default_permissions": { "metadata": "read", "pull_requests": "write" }
+}
