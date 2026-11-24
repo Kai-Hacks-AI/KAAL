@@ -20,7 +20,7 @@ export async function run() {
   assert.doesNotMatch(wf, /pull_request_target:/);
   assert.match(wf, /BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \|\| github\.event\.merge_group\.base_sha \}\}/);
   assert.match(wf, /MERGE_GROUP_HEAD_REF: \$\{\{ github\.event\.merge_group\.head_ref \}\}/);
-  assert.equal(draft('verify-triggers.yml') + '\n', wf, 'the workflow source differs from the draft');
+  // the equality with the draft of release/C91 is superseded: release/C132 amends the source to run the judge of the default branch
   const step = (name) => {
     const at = wf.indexOf(`- name: ${name}`);
     assert.ok(at >= 0, `step ${name} is absent`);
@@ -31,7 +31,7 @@ export async function run() {
     assert.ok(m, `step ${name} has no run block`);
     return m[1].replace(/^ {10}/gm, '');
   };
-  const FETCH = step('Fetch the proposed head as Git data');
+  const FETCH = step('Fetch the base and the proposed head as Git data');
   const JUDGE = step('Judge');
   const sh = (cwd, cmd, env = {}) => { try { execFileSync('bash', ['-ec', cmd], { cwd, env: { ...process.env, ...env }, stdio: 'pipe' }); return 0; } catch (e) { return e.status; } };
   const g = (cwd, ...a) => execFileSync('git', ['-C', cwd, '-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { encoding: 'utf8', stdio: 'pipe' }).trim();
