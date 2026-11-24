@@ -41,3 +41,7 @@ The promotion order is enforced by the PLAN's promotion note (the sync of the co
 - Whether the file check belongs to the finder (a declaration check that reads a second file) or to `check-controls.mjs`. Recommendation: the finder, so a control with a missing baseline never appears as valid.
 - Whether the file is named `baseline.json` by convention or by `baseline-source` alone. Recommendation: `baseline-source` names it; `baseline.json` is the usual name.
 - Ids G101, F38, T1119 are taken by hand; on a clash the newer pull request renumbers.
+
+## DO: cross-capability fixtures (recorded)
+
+`judge-mode.mjs` now imports `ratchet.mjs` beside it. Two release Cases build a tiny repository and copy `judge-mode.mjs` alone into it (release/T1126 for CTL19 and release/T1134 for CTL20), so the judge there exited 2 ("judge: 2"). Both fixtures now copy `ratchet.mjs` too, one added line each. The Cases assert the same things as before. The scripts directory is the unit of the shared judge: any other fixture that copies `judge-mode.mjs` alone needs its sibling `ratchet.mjs`.
