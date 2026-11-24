@@ -24,6 +24,8 @@ export async function run() {
   assert.deepEqual(Object.keys(n).sort(), ['findings', 'needs', 'verdict'], 'a non-empty scan carried more than evidence for the decision (a response, a ratchet, a baseline)');
   const x = (mut) => { const r = ready(['a']); mut(r); return qualify(r); };
   assert.equal(x((r) => { r.property.holds = false; }).reason, 'property-fails', 'a failing property was not named');
+  assert.equal(x((r) => { r.property = { holds: false, reason: 'unstable-findings' }; }).reason, 'unstable-findings', 'malformed evidence from the property was reported as a property mismatch');
+  assert.equal(x((r) => { r.property = { holds: false, onlyInDiff: ['a'] }; }).reason, 'property-fails', 'a genuine mismatch lost its reason');
   assert.equal(x((r) => { r.provoked.seeded.found = false; }).reason, 'not-provoked', 'a seed that was not found passed');
   assert.equal(x((r) => { r.provoked.removed.cleared = false; }).reason, 'not-provoked', 'a finding that did not clear passed');
   assert.equal(x((r) => { r.scan.findings = ['a', 'a']; }).reason, 'unstable-findings', 'a name twice passed');
