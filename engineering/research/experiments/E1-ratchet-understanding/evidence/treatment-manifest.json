@@ -1,0 +1,561 @@
+{
+  "experiment": "E1-ratchet-understanding",
+  "option": "D-1 (deployed consumer KAAL surface)",
+  "pinned_repository": "Kai-Hacks-AI/KAAL",
+  "pinned_commit": "3aafe4f708bd6ce16293d5bd6b6410de8c345449",
+  "staged_at_utc": "2026-11-24T09:12:13.287Z",
+  "hash_algorithm": "@kaihacksai/kaal-foundation/sha256",
+  "file_count": 91,
+  "pinned_file_count": 89,
+  "staging_addition_count": 2,
+  "files": [
+    {
+      "path": ".kaal/AGENTS.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1035,
+      "sha256": "66cd64c78ccfc874023442db3fcfbace014aee9c5af3aeec93d9271317029d93"
+    },
+    {
+      "path": ".kaal/KAAL-KERNEL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1448,
+      "sha256": "14864b6ee33a5c0e4105dfa2354d5af191013c9a4ecd9c264b1e710fe66579fc"
+    },
+    {
+      "path": ".kaal/core/Agent-Realization.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 863,
+      "sha256": "983ccaace5f9ff133eb3444e8a134e779029acae6fa0856410e9edb96b97a7d4"
+    },
+    {
+      "path": ".kaal/core/CASE.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 373,
+      "sha256": "46541b3bc4543b9021126f9e1a3a37e4542872846fcd31711b5c7f4ce5e6acc9"
+    },
+    {
+      "path": ".kaal/core/Installation-Contract.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1846,
+      "sha256": "20c46d8e84ac4502d3b4a2b497f75f8bd999fb826ee5f85b6912b77afaaefa5b"
+    },
+    {
+      "path": ".kaal/core/KAAL-Agent.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 245,
+      "sha256": "d632c1fb4c4201d65c7834d4af0463cd1bd3928dd0fb8cc0b503521a4d2cf447"
+    },
+    {
+      "path": ".kaal/core/KAAL-Capability.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 340,
+      "sha256": "56fe97bfa390114264f234bc3198103cb46da306736200af7bc47c0484bcf02e"
+    },
+    {
+      "path": ".kaal/core/KAAL-Definition.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 250,
+      "sha256": "a07df32ba1ed40c7c25d60b00fb4ef868b816f65c8c65c4b9e5b6030cc41abb2"
+    },
+    {
+      "path": ".kaal/core/KAAL-Extension.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 359,
+      "sha256": "f72271c291ef6f15a7bea234111616e5213af57160daa11d0db1045e83267a94"
+    },
+    {
+      "path": ".kaal/core/KAAL-Skill.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 241,
+      "sha256": "4e01b2d4da8bbaea7c73eb1a02a4f5e898f7a4154a0186c16cedfd1ef9a53933"
+    },
+    {
+      "path": ".kaal/core/Node.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 151,
+      "sha256": "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663"
+    },
+    {
+      "path": "AGENTS.md",
+      "origin": "staging-addition",
+      "bytes": 227,
+      "sha256": "f68f3f057bc617320d947f48a8cd7b4dfa3c43b1c859c0d8750effbe76dbec75"
+    },
+    {
+      "path": "skills/INDEX.md",
+      "origin": "staging-addition",
+      "bytes": 5434,
+      "sha256": "3ca526bd74d0f1a6683539ad89a6ca815421d804d4c6aab4db2121ed3df7dac7"
+    },
+    {
+      "path": "skills/kaal-architecture/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3524,
+      "sha256": "7cf06be30ee848c63ae4809db736e5c420e769df8aac2e139e0d3a1ebd47adca"
+    },
+    {
+      "path": "skills/kaal-change/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 5684,
+      "sha256": "80aaa4cfdc61174dfe8a14c8426f8060959551b500943d9e947b245cf5685585"
+    },
+    {
+      "path": "skills/kaal-change/references/isolation.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3156,
+      "sha256": "a088caf1f7ec5ead2ffd1a3057e93a1bece72a4462445770fd8866ac956293f0"
+    },
+    {
+      "path": "skills/kaal-change/references/transition.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 5776,
+      "sha256": "4d7fff4b06d58b4a3522ace09ec6f588f6861341e608a65af71be1da67e4a470"
+    },
+    {
+      "path": "skills/kaal-change/references/worksheet.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1352,
+      "sha256": "27e65f8d1967a23a1bc434a4f56b5ad3b748757334758326c4f52fc39248adb4"
+    },
+    {
+      "path": "skills/kaal-change/scripts/example-model.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 6076,
+      "sha256": "10a28e4971c00d8a135da1774f7418b1993ae28482cbe07f4ca0a297aa78b6b0"
+    },
+    {
+      "path": "skills/kaal-change/scripts/example.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1071,
+      "sha256": "13b92a46a3da479b2d5027e8fd19a6539643e575bab489fc93dbf9cfd5427bf3"
+    },
+    {
+      "path": "skills/kaal-controls/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3405,
+      "sha256": "6643105bd78be262d47261d4b19efac5775e138a76eccc4b03832f82cb57ef77"
+    },
+    {
+      "path": "skills/kaal-controls/references/declaring-controls.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3987,
+      "sha256": "ebc6d8fcedf79d753197a622439607f0e0ff6407993f14b47d3f51a8298eb6a5"
+    },
+    {
+      "path": "skills/kaal-controls/references/enforcing-controls.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1752,
+      "sha256": "8b44821699a3468e9c71c577a0523a73ba0c481ea1ae0f4fa5c5d6783d1ecc0d"
+    },
+    {
+      "path": "skills/kaal-controls/references/judging-status.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4285,
+      "sha256": "313043239d1161cf72a340e488e244a0e9df64c95f449f259b60a64c3dc5a84e"
+    },
+    {
+      "path": "skills/kaal-controls/references/modes.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4538,
+      "sha256": "a6004c3ee1cab606e092c6485d004dbd127933945eba73c08c1d2492a1ffc538"
+    },
+    {
+      "path": "skills/kaal-controls/scripts/check-controls.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1931,
+      "sha256": "7c74d3872d0773e4711742ee7b88fa3c5c30a894f52c60f674ce328dd7bdd70e"
+    },
+    {
+      "path": "skills/kaal-controls/scripts/evidence.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 5543,
+      "sha256": "a9d2b4eee63c47bd1212df5660adecbd4658da25b6443719f70d313a60b08df6"
+    },
+    {
+      "path": "skills/kaal-controls/scripts/find-controls.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 7364,
+      "sha256": "a729723702271cfbf67447effc0f4cb5ce640b2fffdc3a333a1a5b8aefef1694"
+    },
+    {
+      "path": "skills/kaal-controls/scripts/judge-mode.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3523,
+      "sha256": "d6803cafe6caf219e2344b9e384ef69db8ab2663b6fb1ffad1c27305bba423a9"
+    },
+    {
+      "path": "skills/kaal-controls/scripts/registry.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 990,
+      "sha256": "1c74f7ca8e7271fa7516ffe28d1c145d3f0954bc93a202e7ffc016540b1d1ef6"
+    },
+    {
+      "path": "skills/kaal-engineer-skill/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3281,
+      "sha256": "740861d7cedecddd5ec040d14bf445af2aa9ee3b03dd13cb7cd0dc00b935fda9"
+    },
+    {
+      "path": "skills/kaal-engineer-skill/references/agent-skills.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1905,
+      "sha256": "d1946f6ec9d27fe1486ed7459f0eb1b7691f632b5a2a731bd6788b442401bac7"
+    },
+    {
+      "path": "skills/kaal-engineer-skill/references/kaal-skill.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 745,
+      "sha256": "13d5d8d4d857bfa0a777e080ada1fad638432e59e9c2037db4a3919a50bb3d64"
+    },
+    {
+      "path": "skills/kaal-engineer-skill/scripts/check-skill.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1473,
+      "sha256": "0bf8e4975780355c77f771e00eb1e62c71096fc287dc5c9b4820308126b3dcb8"
+    },
+    {
+      "path": "skills/kaal-engineer-skill/scripts/validate.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 8683,
+      "sha256": "f0b284eb25032e39839a25fbe149717dc7ea0783ea809176ca49258282e3a0e0"
+    },
+    {
+      "path": "skills/kaal-engineering/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2249,
+      "sha256": "e0353fc0a3f0e58666f693af225adf22f38e968a8edcae0acea6bc8295bba852"
+    },
+    {
+      "path": "skills/kaal-engineering/references/package-layout.json",
+      "origin": "pinned-3aafe4f",
+      "bytes": 6184,
+      "sha256": "df484af18342625733efee6abdeb362bedfb4466c99cd00d031d767deda67e63"
+    },
+    {
+      "path": "skills/kaal-engineering/references/package-layout.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 6076,
+      "sha256": "e546dda7218e5f9b45216c0661c92c0cbb258be0735584af89b192cadf1f512e"
+    },
+    {
+      "path": "skills/kaal-engineering/scripts/check-layout.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4697,
+      "sha256": "714f039f4543dbe21fe14b98d89099c86d03496f988e45ab58711254babe3611"
+    },
+    {
+      "path": "skills/kaal-foundation/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4198,
+      "sha256": "dfdb8e497699757a62b430ec6b642a345cc42afb8b9ac48ff80412e0ecaac7f6"
+    },
+    {
+      "path": "skills/kaal-graph/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2683,
+      "sha256": "04484c4b1f2c526fba43b34e520aa535b99e2d9481b81282571fad843f90078d"
+    },
+    {
+      "path": "skills/kaal-graph/references/edges.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1004,
+      "sha256": "9d634d34986d07d8627eb47c33a58605d8e205379075708c7b2b35fa9791a702"
+    },
+    {
+      "path": "skills/kaal-graph/scripts/edges.d.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2881,
+      "sha256": "d183d6b61f89150b0a587637f9a761b05b07ac0f9b630efb555b99d6d94cb08a"
+    },
+    {
+      "path": "skills/kaal-graph/scripts/edges.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 13357,
+      "sha256": "41860d72d81abdf2b05a64b11aedb007e7df518980fe6f9b1b1e5d3acfcd649a"
+    },
+    {
+      "path": "skills/kaal-graph/scripts/form.d.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1018,
+      "sha256": "553e228faf8458ca9c838a84b80449d36335a0b1b4acfa444ab3367212843428"
+    },
+    {
+      "path": "skills/kaal-graph/scripts/form.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3983,
+      "sha256": "9fe10b6e05d0e98add28e26690dab1d4a397ec6b0a221d6b45f204cf3ac22884"
+    },
+    {
+      "path": "skills/kaal-graph/scripts/graph.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3655,
+      "sha256": "f18647c92c3b50a8f2c8ec6f4ca8b7b4884608b7e53070196eb8ec93fa1d3ad2"
+    },
+    {
+      "path": "skills/kaal-graph/scripts/node.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4523,
+      "sha256": "5139128c5d698dfd51250f8e67aa202e6b82198bffb3f2435c0619e6f572fe7b"
+    },
+    {
+      "path": "skills/kaal-guard/.gitattributes",
+      "origin": "pinned-3aafe4f",
+      "bytes": 125,
+      "sha256": "1c6803649686447b5a771e3eb8639d30fee8725a269fa78fdd6fca1ff5e190a6"
+    },
+    {
+      "path": "skills/kaal-guard/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 5116,
+      "sha256": "bc856bb457dede8b4a7c5302d2c6977e056e79064d41b9284e7c4afa04a69ed0"
+    },
+    {
+      "path": "skills/kaal-hosting/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 8518,
+      "sha256": "4b438adffd2a4e2917f10e5dcc227081a6d44264d89502622f25946bbb54555c"
+    },
+    {
+      "path": "skills/kaal-hosting/references/boundary-result.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4028,
+      "sha256": "d5013171d9423106d02ed8bb44d0a257ebce8b4431910346229747797368a2dc"
+    },
+    {
+      "path": "skills/kaal-hosting/references/hosts.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4839,
+      "sha256": "dc41d938106590333207c34781943a58cdc02dc28e15c80e7e4a05d2a9931f1a"
+    },
+    {
+      "path": "skills/kaal-hosting/references/operations.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 7744,
+      "sha256": "57cf5aa9b2ac1dc3522f552c83c65649961f6d07ca08e09f2e2ef79f5888f0e5"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/boundary-cli.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2362,
+      "sha256": "9ded0dcdeb4bc694729707206f516c93996099178a57ded370df4197a046a4f6"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/boundary-core.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 16475,
+      "sha256": "b2acb49b21517c3d6ecd8a045ffa5aec313c4a23d78e815f095c08be928970b0"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/boundary.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3410,
+      "sha256": "34848054ee29c9c90fdee70cf79bf928c46060ce143916f0e871cb65fea9870e"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/conformance.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 7551,
+      "sha256": "7c4404bc0117294a8037b1ffd1001565b289934501ff78588d04631493370161"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/couplings.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 37509,
+      "sha256": "47f878c63a059d15acdfa8c20d8506162e1e2e1a8f38142f749e76ab61706288"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/fixtures.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 6350,
+      "sha256": "1177ed099007f62584b966289685057618a163eae8b2d51c921e741fd2db794b"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/cloud-threads.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1101,
+      "sha256": "50885a77d2a929762f7b0747057beb2bcfb21a4f64bcd79a7de4d60bf5a62ffa"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/gh-graphql.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3666,
+      "sha256": "636980e5a5c81cf8d4ce27e52ec51f8946f57baad70f437353b6fb77e7d0eaa2"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/gh-rest.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3628,
+      "sha256": "7037201949bc57f10280578762df47a7d7fc6eb46282312c27ddc0d5e2035d9b"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/gh.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2476,
+      "sha256": "894bf6a9375859fabff2099ee8ec3554de473a7505a4ddbccc0cf092ac4d7155"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/pull-requests-cli.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 635,
+      "sha256": "ef16908c5da1aca8598e63a9e24385398e89dc7fb68ca3e018340b43376d479b"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/pull-requests-command.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1309,
+      "sha256": "f154236bc0b17ed18f052f26bd9124abe79be7b4c3df5fea4facd99bde30730c"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/pull-requests.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1824,
+      "sha256": "28384535b2f863df3e3edcf0ca53bab36beb1fd160e2634ec88dc87bdad0f202"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/github/types.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2643,
+      "sha256": "fda5a4974294cdea6dcaf47f17b9c9ed11414baea557f1800e8ad3f42ab05e81"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/index.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 47253,
+      "sha256": "e6b82ae4c84e705d1892f3f6a3cb5f57d41a633e15ded70a928eabd0c7b7e338"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/revision-cli.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1842,
+      "sha256": "eb9b740da37a21e02c73521ab4896ecf5a2bad4a482afb4caa67dcccdb22ec86"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/revision.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 5604,
+      "sha256": "0940f4129ad8c7155ef663722b51c529378f1c2163c6a3e3bd27e0dbc15c8dfb"
+    },
+    {
+      "path": "skills/kaal-hosting/scripts/scan.ts",
+      "origin": "pinned-3aafe4f",
+      "bytes": 9290,
+      "sha256": "d722e26f82e7403780bb7f74a5086512e4cda5c9459ea3e5bb9cbfa5fc3c5314"
+    },
+    {
+      "path": "skills/kaal-release/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 7040,
+      "sha256": "b85893b440c84bcbb18d49feebe108858c3ad1990176d0b5cf693b99c90c4df6"
+    },
+    {
+      "path": "skills/kaal-release/references/npm.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1379,
+      "sha256": "d8202a92129dcb79d837aaf681435d2b040116d32ef812af3d94d4c7c695a76b"
+    },
+    {
+      "path": "skills/kaal-release/scripts/pull-promotion.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 9504,
+      "sha256": "152925b48e7562596b5c5e68e0be319550363d43588b80feeda8fc0afb183bc1"
+    },
+    {
+      "path": "skills/kaal-release/scripts/show-wip.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 12486,
+      "sha256": "2e3d6233993b63cbacdb494a357846f10aa128c0b2c89dbd3c33863e11b07b48"
+    },
+    {
+      "path": "skills/kaal-research/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2998,
+      "sha256": "4fddf79701cc634720183affab73b74d163f71e4626bcf63d0a1d4f45309fd50"
+    },
+    {
+      "path": "skills/kaal-research/references/example-rehearsal.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2686,
+      "sha256": "50ffa52ce18686e22a157be8c309ad459f18b6af9d53bfffe16db3172f6b0020"
+    },
+    {
+      "path": "skills/kaal-research/references/rehearsal.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1732,
+      "sha256": "d71d5141bf777bfdea41a1debb028849602a8b783724ec1ebd6272f75dcd04d6"
+    },
+    {
+      "path": "skills/kaal-research/scripts/find-rehearsals.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1245,
+      "sha256": "f2da7803bb72c5d471ffd10f7f343fd77147ed41d7df77e0c7845c3155939193"
+    },
+    {
+      "path": "skills/kaal-research/scripts/judge-rehearsal.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 6014,
+      "sha256": "edcdca60a9aa9fb71be83c49f7fb3f3c4c0086e128d80a1cb3654d4efd1c7816"
+    },
+    {
+      "path": "skills/kaal-research/scripts/parse.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 1042,
+      "sha256": "18a353f3657c2f4b8994e4cc704b95b95c780683b3e0880bd29334904f44a940"
+    },
+    {
+      "path": "skills/kaal-retro/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2796,
+      "sha256": "a349e9d1d002e0f90c923c448c79854f3336e7fbb82d9dbd97ad63d74d6be190"
+    },
+    {
+      "path": "skills/kaal-retro/references/4l.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 4068,
+      "sha256": "c548e96944e5fc1fbc9279f569e6160d4e52c78697024f70a0b351fc3ace00eb"
+    },
+    {
+      "path": "skills/kaal-retro/scripts/find-retros.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2839,
+      "sha256": "9613dfbe7e4fc78bb38f1b6f0d3654850f7d7c91581eed083c3caa7e7cdb1722"
+    },
+    {
+      "path": "skills/kaal-retro/scripts/judge-retro.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 3530,
+      "sha256": "908ef46a486e64f106e51c8b77368f5b0ebf36515a310b34971235fdad2ffcf7"
+    },
+    {
+      "path": "skills/kaal-review/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2102,
+      "sha256": "af77c55826ddec0b57bb66fd4b96e3a773e0240d0ead97661b9c6f69a7d3a9b1"
+    },
+    {
+      "path": "skills/kaal-review/references/review-items.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2956,
+      "sha256": "8c6638dcfde9f83b016512a5891ef3955c97dba56ad97b058171c774934d4a83"
+    },
+    {
+      "path": "skills/kaal-review/scripts/navigate.mjs",
+      "origin": "pinned-3aafe4f",
+      "bytes": 9035,
+      "sha256": "e458a765bc940fe5a571260c0a478a6ea30ae35963417704889c0ddf79dbb4f1"
+    },
+    {
+      "path": "skills/kaal-testing/SKILL.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 10276,
+      "sha256": "8a91d888925c33d20b5e6e84d3f97961d0058e10d356c42f11bf1b7d6468852b"
+    },
+    {
+      "path": "skills/kaal-testing/references/findings.md",
+      "origin": "pinned-3aafe4f",
+      "bytes": 2130,
+      "sha256": "4f83bd5761cd3149a483a8d7b16402668daafec417be252aae14e9703ceff42b"
+    }
+  ],
+  "staged_repository": "ChBrain/test-kaal",
+  "staged_commit": "f35a04c5d3e09aedba6ab5fa06b08af40dabd847"
+}

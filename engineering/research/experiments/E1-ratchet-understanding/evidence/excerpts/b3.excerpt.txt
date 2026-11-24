@@ -1,0 +1,10 @@
+run: b3
+arm: kaal
+repository: ChBrain/test-kaal@f35a04c5d3e09aedba6ab5fa06b08af40dabd847
+source: Antigravity Cloud UI tool-call steps (operator-captured verbatim)
+exposure: opened
+tool_calls_observed: 3
+---
+Ran command: Workspace search for ratchet (`rg -i "ratchet" /home/antigravity/ChBrain/test-kaal | head -n 20`)
+Viewed modes.md:1-35
+Viewed judge-mode.mjs:1-50

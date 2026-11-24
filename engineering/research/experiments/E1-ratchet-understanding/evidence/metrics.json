@@ -1,0 +1,195 @@
+{
+  "experiment": "E1-ratchet-understanding",
+  "track": "Track 3 — Deterministic Objective Efficiency Metrics (M1-M4)",
+  "computed_at_utc": "2026-11-24T16:14:17.887Z",
+  "by_arm": {
+    "blank": {
+      "n": 5,
+      "M1_words": {
+        "min": 694,
+        "median": 740,
+        "max": 753,
+        "mean": 725.4
+      },
+      "M1_utf8_bytes": {
+        "min": 4793,
+        "median": 5023,
+        "max": 5394,
+        "mean": 5092.8
+      },
+      "M2_tool_calls": {
+        "min": 0,
+        "max": 0,
+        "values": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    "kaal": {
+      "n": 5,
+      "M1_words": {
+        "min": 806,
+        "median": 893,
+        "max": 936,
+        "mean": 880.8
+      },
+      "M1_utf8_bytes": {
+        "min": 5726,
+        "median": 6458,
+        "max": 6649,
+        "mean": 6314.8
+      },
+      "M2_tool_calls": {
+        "min": 3,
+        "max": 3,
+        "values": [
+          3,
+          3,
+          3,
+          3,
+          3
+        ]
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    }
+  },
+  "runs": [
+    {
+      "run": "a1",
+      "arm": "blank",
+      "M1_words": 740,
+      "M1_utf8_bytes": 5307,
+      "M2_tool_calls": 0,
+      "M2_tool_breakdown": {
+        "command": 0,
+        "view_file": 0
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "b1",
+      "arm": "kaal",
+      "M1_words": 906,
+      "M1_utf8_bytes": 6649,
+      "M2_tool_calls": 3,
+      "M2_tool_breakdown": {
+        "command": 1,
+        "view_file": 2
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "a2",
+      "arm": "blank",
+      "M1_words": 742,
+      "M1_utf8_bytes": 5394,
+      "M2_tool_calls": 0,
+      "M2_tool_breakdown": {
+        "command": 0,
+        "view_file": 0
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "b2",
+      "arm": "kaal",
+      "M1_words": 863,
+      "M1_utf8_bytes": 6187,
+      "M2_tool_calls": 3,
+      "M2_tool_breakdown": {
+        "command": 1,
+        "view_file": 2
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "a3",
+      "arm": "blank",
+      "M1_words": 694,
+      "M1_utf8_bytes": 4947,
+      "M2_tool_calls": 0,
+      "M2_tool_breakdown": {
+        "command": 0,
+        "view_file": 0
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "b3",
+      "arm": "kaal",
+      "M1_words": 893,
+      "M1_utf8_bytes": 6458,
+      "M2_tool_calls": 3,
+      "M2_tool_breakdown": {
+        "command": 1,
+        "view_file": 2
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "a4",
+      "arm": "blank",
+      "M1_words": 698,
+      "M1_utf8_bytes": 4793,
+      "M2_tool_calls": 0,
+      "M2_tool_breakdown": {
+        "command": 0,
+        "view_file": 0
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "b4",
+      "arm": "kaal",
+      "M1_words": 806,
+      "M1_utf8_bytes": 5726,
+      "M2_tool_calls": 3,
+      "M2_tool_breakdown": {
+        "command": 1,
+        "view_file": 2
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "a5",
+      "arm": "blank",
+      "M1_words": 753,
+      "M1_utf8_bytes": 5023,
+      "M2_tool_calls": 0,
+      "M2_tool_breakdown": {
+        "command": 0,
+        "view_file": 0
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    },
+    {
+      "run": "b5",
+      "arm": "kaal",
+      "M1_words": 936,
+      "M1_utf8_bytes": 6554,
+      "M2_tool_calls": 3,
+      "M2_tool_breakdown": {
+        "command": 1,
+        "view_file": 2
+      },
+      "M3_duration_seconds": "unavailable",
+      "M4_tokens_or_turns": "unavailable"
+    }
+  ]
+}
