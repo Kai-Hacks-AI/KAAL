@@ -1,9 +1,10 @@
 // backlog/F4 to F8, N2: judges the complete effective diff of a BACKLOG change. Pure: the diff, the roots and the existing items arrive as data.
-// A diff entry is { path, status, oldPath?, mode? } with status A, M, D, R or T. The result is { verdict, findings } with verdict
-// qualified, refused, nothing-to-land or unknown. Anything but an added or modified item file in a root refuses the whole change.
+// A diff entry is { path, status, oldPath?, mode? } with status A, M, D, R or T; any other or missing status is refused. The result is { verdict, findings } with verdict
+// qualified, refused, nothing-to-land or unknown. Permission is positive: only an explicit A or M item file in a root qualifies; anything else refuses the whole change.
 const ROOT = /^packages\/[a-z0-9]+(?:-[a-z0-9]+)*\/00-backlog\/$/;
 const ITEM = /^B([1-9][0-9]*)(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?\.md$/;
 const REGULAR = '100644';
+const ALLOWED = ['A', 'M'];
 const unsafe = (path) => typeof path !== 'string' || path === '' || path.startsWith('/') || path.includes('\\') || path.split('/').some((part) => part === '' || part === '.' || part === '..');
 const number = (path) => ITEM.exec(path.slice(path.lastIndexOf('/') + 1))?.[1];
 
@@ -36,7 +37,8 @@ export function qualify(diff, { roots, existing = [] } = {}) {
       continue;
     }
     if (!judge(e.path)) continue;
-    if (e.status === 'T' || e.mode !== REGULAR) { add('mode', e.path); continue; }
+    if (e.status === 'T' || (ALLOWED.includes(e.status) && e.mode !== REGULAR)) { add('mode', e.path); continue; }
+    if (!ALLOWED.includes(e.status)) { add('status', e.path); continue; }
     const n = number(e.path);
     const other = held.get(n);
     if ((e.status === 'A' && other !== undefined && other !== e.path) || (taken.has(n) && taken.get(n) !== e.path)) add('duplicate-number', e.path);
