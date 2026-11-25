@@ -5,5 +5,17 @@
   "description": "KAAL Defect: a Defect is a passive description; its state is derived from the Test Cases that point at it, and its record is authoritative and the inventory is discovered from the records.",
   "license": "MIT",
   "type": "module",
-  "files": ["skills"]
+  "files": [
+    "skills"
+  ],
+  "scripts": {
+    "pretest": "npm run build -w @kaihacksai/kaal-hosting",
+    "test": "node --test test/cases.test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@kaihacksai/kaal-hosting": "0.0.1"
+  }
 }
