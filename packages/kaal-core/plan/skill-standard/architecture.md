@@ -6,9 +6,7 @@ Each element names, in brackets, the Requirements it answers.
 - **core/A49** [core/F93, core/F94, core/F98, core/N26]: `judgeSize(text)` returns `{ words, level, warning }`. It finds the end of the frontmatter block by its two delimiter lines and counts the rest. A warning is data: `{ level, words, rules, remedy, response, required, blocks }`, from which the message is rendered. `rules` are ids from A48, `remedy` is `review-router`, `consolidate`, `move-to-references`, `required` grows by stage, and `blocks` is true only for `hard`. Tests read the data, never the message.
 - **core/A50** [core/F95]: `judgeLayout(paths)` is pure over relative paths and returns findings `{ rule, path }`. The caller lists the directory, so Core stays free of I/O.
 - **core/A51** [core/F96, core/N25, core/N26]: `kaal skill check <dir>` is the one place that reads a directory, through Hosting, and calls the pure functions. It is the mechanism Controls, WIRE or CI run, and it is the same call on both deployment paths.
-- **core/A52** [core/F97, core/N26]: The ratchet is a filter in front of the verdict, as Controls' ratchet strategy builds it: the check emits `hard` and the filter subtracts the baseline. Core supplies the comparison for this one rule and reads the baseline as data, keyed by the canonical Skill's name and carrying its owner. Where the baseline file lives, who accepts a change to it and how a run reads the last accepted one from the base branch are the gate's. Release proposed owning that gate.
-- **core/A53** [core/F99, core/F102, core/F103, core/N25, core/N26]: Identity is the Skill's name, the directory name agentskills.io requires `name` to equal. `compareTrees(sourceFiles, instanceFiles)` is the one pure comparison, by SHA-256 of the exact bytes. Core reports the alignment as data, and whether it blocks is the control's choice, through `--enforce alignment`. Core infers no role from a name, and its only look at a path is that a `.kaal/` location is installed content (`core/F101`).
-- **core/A54** [core/F100, core/F101, core/F104, core/N26]: Who declares and who supplies. The owning capability authors the variant declaration in its own package, and the control passes it with `--owner`, derived from where the canonical lives, never from where the instance is. The npmjs artifact and the tagged source are supplied by the control for the version the installation record names. Core compares them and records the version, and reads no registry, tag or record itself. The lifecycle is chosen by the role, not by a path: development for the package, `engineering` and `deployed --from engineering`; published for `installed` and `deployed --from kaal`.
+- **core/A52** [core/F97, core/F99, core/N26]: The ratchet is a filter in front of the verdict, as Controls' ratchet strategy builds it: the check emits `hard` and the filter subtracts the baseline. Core supplies the comparison for this one rule and reads the baseline as data, keyed by the Skill's name and carrying its owner. `--instance` makes the entry a ceiling for a copy, and `--lifecycle` chooses whether the verdict blocks. The lifecycle is told, never inferred: the control passes it from `core/C53`'s verdict, so the Skill check holds no provenance rule. Where the baseline file lives, who accepts a change to it and how a run reads the last accepted one from the base branch are the gate's. Release proposed owning that gate.
 
 ## Options considered
 
@@ -20,45 +18,40 @@ Each element names, in brackets, the Requirements it answers.
 
 ## Evidence: the 15 `SKILL.md` on `main` at 357229a, counted body-only (25 Nov 2026)
 
-The first version of this PLAN counted the whole file and found seven hard Skills. Counted under the rule the Owner agreed, six instances are hard: five canonical Skills and Guard's delivery template, a variant of `kaal-guard`.
+The first version of this PLAN counted the whole file and found seven hard Skills. Counted under the rule the Owner agreed, six are hard: five Skills and Guard's delivery template, which is a copy of `kaal-guard` (below).
 
 | Level | Skills, body words |
 | --- | --- |
-| `hard`, above 600 | testing 1446, hosting 1198, release 1102, guard 858, change 724 (canonical), and Guard's delivery template 700 (a variant of guard) |
+| `hard`, above 600 | testing 1446, hosting 1198, release 1102, guard 858, change 724, and Guard's delivery template 700 (a variant of guard) |
 | `medium`, above 400 | foundation 586 (it was 637 with its frontmatter), architecture 545, controls 527, engineer-skill 485, research 450, retro 408, graph 401 |
 | `soft`, above 200 | review 331, engineering 306 |
 
-The baseline of the `skill-size` ratchet is therefore five entries, `kaal-testing: 1446`, `kaal-hosting: 1198`, `kaal-release: 1102`, `kaal-guard: 858` (owner guard) and `kaal-change: 724`, each at its current word count: five canonical Skills. Guard's delivery template, at 700, is a variant of `kaal-guard`, so it has no entry; it is held to the `kaal-guard` ceiling of 858 (`core/F99`). Every Skill has at least a soft stage. Layout today: ten have `SKILL.md`, `references/` and `scripts/`, and the rest have `SKILL.md` alone or with `references/` only, which `core/F95` accepts.
+The baseline of the `skill-size` ratchet is therefore five entries, `kaal-testing: 1446`, `kaal-hosting: 1198`, `kaal-release: 1102`, `kaal-guard: 858` (owner guard) and `kaal-change: 724`, each at its current word count. Guard's delivery template, at 700, is judged with `--instance` under `kaal-guard`, so it has no entry and is held to the ceiling of 858 (`core/F97`). Every Skill has at least a soft stage. Layout today: ten have `SKILL.md`, `references/` and `scripts/`, and the rest have `SKILL.md` alone or with `references/` only, which `core/F95` accepts.
 
-## Canonical Skills and their instances (CPO correction, 25 Nov)
+## One Skill, two paths (CPO correction, 25 Nov)
 
-The five canonical Skills with entries are not five times as many Skills as the paths show. A Skill appears in its owning package, Engineering's deployment source, `.kaal/`, `.agents/skills/` and `.claude/skills/`; those are locations of one Skill.
-
-**Are the two `kaal-guard` entries two Skills?** No. Checked on the repository at the PLAN's base:
+Is Guard's delivery template a second Skill? No. Checked on the repository at this PLAN's base:
 
 | Test | Package (`packages/kaal-guard/skills/kaal-guard`) | Template (`engineering/guard/external/templates/skills/kaal-guard`) |
 | --- | --- | --- |
 | Ownership | Guard | Guard's External delivery tooling (`guard/N14`, `guard/F25`); Engineering transports it |
-| Name | `kaal-guard` | `kaal-guard`, the same, which `deliver.mjs` writes to `.agents/skills/kaal-guard/SKILL.md` |
-| Content | The product Skill, which names the `kaal-guard` command and its declarations | The same sections and the same rules, with External's wording: the delivered `.githooks/guard.sh` replaces the command, and no KAAL or npm |
-| Semantics | The Skill of the installed product | What a target repository receives as its `kaal-guard` Skill |
-| Relation | The source | Derived from it: `guard/N14` requires it, and `guard/C105` plans the declared transformation that will produce it byte for byte |
+| Name | `kaal-guard` | `kaal-guard`, which `deliver.mjs` writes to `.agents/skills/kaal-guard/SKILL.md` |
+| Content | The product Skill, naming the `kaal-guard` command and its declarations | The same sections and rules, in External's wording: the delivered `.githooks/guard.sh` replaces the command, and no KAAL or npm |
+| Relation | The source | Derived from it: `guard/N14` requires it, and `guard/C105` plans the transformation that will produce it |
 
-The template is a variant of the canonical `kaal-guard`. It is not a second Skill, so it has no baseline entry. It is held to the canonical's allowance: 700 is at or below 858 and passes, and if the canonical shrinks below it, the template blocks as `grew` until its derivation follows. The template is Engineering's delivery, so it is of the development lifecycle. A copy in `.kaal/`, `.agents/skills/` or `.claude/skills/` must be identical to its selected source, and one that differs is a `differs` finding (`core/F99`), not a second Skill and not a way to an allowance of its own. `core/T109` and `core/T112` carry this.
+So the template has no baseline entry. The baseline key is a Skill's name with its owner, and a copy is held to the ceiling of that entry (`core/F97`). Whether a given deployed copy is the content it claims to be, or a variant its owner supplied, is `core/C53`'s question.
 
-## Provenance, versions and lifecycle (CPO clarifications, 25 Nov)
+## Lifecycle, and what moved to `core/C53` (CPO clarifications, 25 Nov)
 
-Two questions stay apart. Is this content the content it claims to be, from the version it claims? That is alignment, a detective finding, the same for every role. Is this content within the Skill standard? That is conformance, and it follows the lifecycle the content belongs to.
+Conformance and provenance are separate questions. This Change answers conformance, by lifecycle:
 
-| Location | Selected source | Alignment compares | Conformance |
-| --- | --- | --- | --- |
-| Owning package | none: it is N+1 | none | development: standard and ratchet, `stale` included |
-| Engineering | the package, N+1 (`core/F102`) | copy against package, both named with source and version | development: the entry as a ceiling |
-| `.kaal/` | the exact published version (`core/F101`) | content against the npmjs artifact, and the artifact against its Git tag | as published: reported, never blocking |
-| `.agents/skills/`, `.claude/skills/` | `.kaal/` or Engineering (`core/F103`) | content against that source, owner-declared variants respected | as its source: published or development |
-| A variant, such as Guard's External template | the package, under the owner's declaration (`core/F100`) | declared, `unauthorized` or `undeclared` | development: the canonical's entry as a ceiling |
+| Content | Lifecycle | Conformance |
+| --- | --- | --- |
+| The owning package at N+1 | development | the standard and the ratchet, `stale` included |
+| Engineering's copy and deployments made from Engineering | development | the entry as a ceiling (`--instance`) |
+| Installed `.kaal/` content and deployments made from it | published | reported, never blocking |
 
-Exact identity of installed content with its published artifact remains a product invariant. It is reported as a finding for now, because it starts as a detective control and does not make a deviation legitimate. Making it preventive is the Owner's go, through `--enforce alignment`. Improving N+1 so that the allowance shrinks does not invalidate a published N: the ratchet reads the development lifecycle only, and a new publication comes from an N+1 that met the standard.
+Improving N+1 so that the allowance shrinks does not invalidate a published N. Everything about alignment (the three comparisons, detective-first, owner-only variants, the published-artifact identity) moved to `core/C53`, together with Cases T109 to T111 of the earlier revision. This Change keeps no copy of it.
 
 ## Decided by the Owner (25 Nov, review of this PLAN)
 
@@ -71,8 +64,7 @@ Exact identity of installed content with its published artifact remains a produc
 ## Open for confirmation
 
 - **The baseline's home.** Release proposed owning the gate and the baseline. This PLAN takes that and keeps Core out of it (`core/A52`).
-- **Detective, then preventive.** Alignment starts as a finding with exit 0, as the Owner decided. The control registered for it reaches `--enforce alignment` on the Owner's go, by the protocol detective, advisory, preventive.
-- **Where the declaration and the registry copy come from.** The owner's declaration lives in the owner's package. Guard's `guard/C105` declares the transformation for its template. The gate and Hosting supply the published artifact. Both are agreed with Release and Hosting before the DO.
+- **The prerequisite.** The C52 DO waits for `core/C53`. Until it exists, a control has no verdict to take the lifecycle from, so it would pass `--lifecycle` by hand. That is the Owner's call.
 
 ## Who confirms what
 
@@ -89,6 +81,7 @@ Exact identity of installed content with its published artifact remains a produc
 | Change | Owner | Depends on |
 | --- | --- | --- |
 | `core/C52` PLAN, this Change | Core | none |
-| `core/C52` DO: `kaal-core/skill`, the Definition, the CLI verb | Core | the merged PLAN |
-| The control that runs the check with the `skill-size` baseline, and WIRE governance | Release and Controls | the DO |
-| Each capability's Skill brought to the standard | each owner | the DO |
+| `core/C53` generic installation integrity, PLAN, DO | Core | none; the prerequisite of the C52 DO |
+| `core/C52` DO: `kaal-core/skill`, the Definition, the CLI verb | Core | the merged C52 PLAN and the C53 DO |
+| The control that runs the check with the `skill-size` baseline, and WIRE governance | Release and Controls | the C52 DO |
+| Each capability's Skill brought to the standard | each owner | the C52 DO |
