@@ -11,10 +11,11 @@ import { EXCLUSIONS, inspect } from "@kaihacksai/kaal-hosting/conformance";
 
 /**
  * The host modules Testing's delivered code may import directly: path and URL
- * handling, to name report files and the c8 it runs. Commands, reads and every
- * other host operation go through kaal-hosting.
+ * handling, to name report files and the c8 it runs, and node:test, which the
+ * run child registers a Case's run() with (testing/F174). Commands, reads and
+ * every other host operation go through kaal-hosting.
  */
-const BOUNDARY = { builtins: ["node:path", "node:url"] };
+const BOUNDARY = { builtins: ["node:path", "node:test", "node:url"] };
 
 /**
  * Findings that need validation and have been judged, each with its judgment.
@@ -22,7 +23,13 @@ const BOUNDARY = { builtins: ["node:path", "node:url"] };
  * recorded it here; a judged one that disappears fails too, so the list stays
  * exact.
  */
-const VALIDATED = [];
+const VALIDATED = [
+  {
+    file: "run-case.mjs",
+    construct: "import(pathToFileURL(file).href)",
+    judgment: "Judged: the run child imports the Case file it was started for, a file under the repository being run; it is Testing's own user content, not a host module, and reaches no host operation (testing/F174).",
+  },
+];
 
 const LIB = fileURLToPath(new URL("../lib/", import.meta.url));
 
@@ -60,6 +67,6 @@ describe("Testing's Hosting boundary", () => {
     files["coverage.mjs"] = Buffer.concat([files["coverage.mjs"], Buffer.from('\nexport const clear = (dir) => process.getBuiltinModule("fs").rmSync(dir);\n')]);
     const report = await inspect(files, BOUNDARY);
     assert.deepEqual(report.violations, []);
-    assert.deepEqual(judged(report.validation), [{ file: "coverage.mjs", construct: "process.getBuiltinModule" }]);
+    assert.deepEqual(judged(report.validation), [{ file: "coverage.mjs", construct: "process.getBuiltinModule" }, ...judged(VALIDATED)]);
   });
 });
