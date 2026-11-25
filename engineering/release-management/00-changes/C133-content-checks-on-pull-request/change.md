@@ -2,32 +2,37 @@
 
 ## PLAN
 
-Each gate becomes a workflow on plain `pull_request` that judges content only, and the ruleset makes its definition unreachable from any pull request that is not a WIRE. Nothing is built here; the approval of this pull request is the go for the first DO.
+Route A stays the preferred direction, conditional on proof. The PLAN separates two outcomes, each evidenced on its own, and authorizes no DO until the first one is demonstrated. It builds nothing and changes no workflow, WIRE, ruleset or flag.
+
+### The two outcomes
+
+1. **Delivery-path isolation.** The declared delivery machinery (`.github`, `.githooks`, `.kaal`, `.agents`, `.claude`, from `delivery-locations.json`) can be changed only by an authorized WIRE. Required properties, each shown, not assumed:
+   1. ordinary capability pull requests cannot modify declared delivery machinery;
+   2. only authorized WIRE changes can modify it;
+   3. a proposed change and its author cannot alter or bypass its own enforcement (the enforcement lives where the pull request cannot edit it, and has no bypass actor);
+   4. the hotfix, SYNC, merge-queue and merge-group paths are covered explicitly, each with its own evidence: hotfix because the rule is not limited to `kaal/**`; a SYNC that carries a WIRE from main by a content-equals-main check, not by an exemption that opens a hole; the merge queue and merge group because the group commit is main plus the pull request and is safe only if the pull request could not touch delivery.
+2. **Trusted judge execution.** A gate runs the judge of the default branch or the base, and treats the candidate only as data: its commits read as Git data, never checked out, built or run (release/C132 is the shape). This holds whatever the trigger is, and is shown by a Case per gate.
+
+The outcomes are independent. Outcome 2 alone is not enough on a plain `pull_request`, because the workflow file is the pull request's own; it is safe only behind outcome 1. Outcome 1 without outcome 2 leaves a judge that reads candidate code.
 
 ### Decisions
 
-1. **Content-only means data in, verdict out.** A gate on `pull_request` reads the pull request's commits as Git data and runs the judge of the checked-out base commit, never code from the pull request. It never checks out, builds or runs the candidate. `verify Triggers` is the shape (release/C132: the judge of the default branch, the candidate as data).
-2. **The trust is the ruleset, not the trigger.** The gate is trusted only while no pull request on `kaal/**` can change `.github`. That is wire controls step 3 (declared roots only on `wire/*`, Kai's go). Until it is on, a gate on `pull_request` stays judged by a pull request that edits it, so no WIRE of a converted gate is raised before the ruleset is verified in force. The ruleset is not in this Change; it is its own Change with its own go.
-3. **Writing gates keep their write, only without the trigger.** `approve Sync` and `review Sync` write to the pull request (approval, label, comment). On a same-repository branch the token of `pull_request` may write, so they keep working; a fork pull request has a read-only token and is blocked for now (it was before). `sync-review` splits no further: `verify Sync` holds no token and reads the candidate as Git data, the two writers read the verdict of verify Sync as data.
-4. **One Change per gate, smallest first.** D15 `sync-review`, then D16 `change-isolation`, then D17 Branching (`lineage-synchronization`), whose source rework release has in hand. Each DO changes the engineering source and its Case first (a plain `.test.mjs` judging the criterion: the workflow does not name `pull_request_target`, and the verdict is the base's judge), then its WIRE installs it on Kai's go. Each WIRE removes one name from the CTL20 baseline in the same pull request, so the ratchet ends at empty and the control becomes a plain preventive.
-5. **The relay and handler of D14 stay.** Promotion Source already runs through a relay and a handler (C121) and is not reworked here. Whether it later simplifies to route A is a question for after the ruleset is on.
-6. **What the live rulesets give today (Defect's read-only validation).** The only real boundary is the Owner's code-owner review at promotion into main. No ruleset has a path rule, and `kaal/**`, `hotfix/**` and `wire/**` need no code-owner review, so delivery can change in every lane and the content checks are a first line only. Route A therefore needs one GitHub-side rule a pull request cannot edit. Two options: (a) path-scoped CODEOWNERS on the delivery roots plus code-owner review in 20 integrating (recommended); (b) a push ruleset with a file-path restriction, availability unverified. This is the ruleset of the wire controls plan (step 3), Kai's go, detective then advisory then preventive, and it is its own Change.
-7. **Availability first, and the edges (Defect's validation).** No live ruleset has a `file_path_restriction` rule (nine rulesets: required status checks, pull request, non-fast-forward, deletion, code scanning, merge queue), and a push ruleset with a path rule is unverified for this public repository: the ruleset Change verifies availability before anything else. The fallback is option (a), approval-based rather than "only `wire/*`": it needs the Owner for any delivery touch and also stops a pull request editing its gate unreviewed. `old promotion` on main already needs code-owner review (`* @kaihacksai`). Hotfix is covered only if the rule is not limited to `kaal/**`; `20 integrating` includes `hotfix/**`. A path rule on non-wire branches would block a SYNC that carries a WIRE from main, so the rule needs a SYNC exemption or a check that the content equals main's. The merge queue and merge group run the group commit (main plus the pull request), which is safe only if the pull request could not touch delivery, so the same rule covers them.
-8. **Each DO's Case carries `// Case <id> tests: release/D15`** (D16 and D17 in turn), so the Defects close by their Cases.
-9. **The CTO validates the trust boundary** (CPO handover, decision 3) on this PLAN before the first DO: that no delivery path reaches a gate through a pull request that is not a WIRE, including a hotfix, and that the merge-queue and merge-group runs of each gate are covered.
+1. **CODEOWNERS is not an acceptable fallback by itself.** It is an approval boundary, not an isolation boundary: it relies on a person judging each proposed change correctly. It may be added as a second line, never as the proof of outcome 1.
+2. **The CTO proves outcome 1 first.** Before any DO, the CTO demonstrates, on the rules GitHub offers this repository (a path rule in a ruleset, its availability for a public repository in an organisation, its bypass actors, its reach over `kaal/**`, `hotfix/**`, `wire/**`, the merge queue and merge group), an enforceable and independent boundary with properties 1 to 4, using a deliberately introduced violation per property that is shown blocked. The live state read on 24 November: nine rulesets, none with a path rule; `20 - integrating` requires one approval with code-owner review off; only `old promotion` on main requires code-owner review. So today the boundary does not exist.
+3. **If GitHub's rules cannot give it, this PLAN is returned.** The alternative architecture is then proposed to the CPO; CODEOWNERS judgment does not stand in for it.
+4. **Order, not authority.** The proposed order stays D15 `sync-review`, D16 `change-isolation`, D17 Branching (`lineage-synchronization`), with D13 and D14 untouched and the relay and handler of D14 kept. The approval of this PLAN does not authorize a DO. A separate decision after the CTO's proof of outcome 1 does, and a WIRE of a converted gate waits for that proof and for Kai's go.
+5. **Gate design, for the later DOs.** Each gate is a workflow on plain `pull_request` that judges content only. `sync-review` keeps `verify Sync` without a token and the two writers (`approve Sync`, `review Sync`) reading its verdict as data; on a same-repository branch the `pull_request` token may write, and a fork pull request stays blocked as before. Each WIRE removes one name from the CTL20 baseline in its own pull request, so the ratchet ends at empty.
+6. **Case links.** Each DO's Case carries `// Case <id> tests: release/D15` (D16 and D17 in turn), so the Defects close by their Cases.
 
-### Cases (plain `.test.mjs`; they land with each DO)
+### Evidence the PLAN asks for
 
-- the converted workflow does not name `pull_request_target` and runs on `pull_request`.
-- it checks out nothing from the pull request and runs no candidate code (the checkout is the base commit or the default branch).
-- its verdict equals the verdict of the old source for the same pairs.
-- a pull request that edits the gate cannot change the verdict of the base's judge (the judge runs from the base).
-- the CTL20 baseline lost exactly the converted workflow's name.
+- Outcome 1: per property, the rule as configured, and the violation introduced on a disposable branch and shown rejected, for each lane (a capability pull request, a hotfix, a SYNC carrying a WIRE, a merge-queue entry).
+- Outcome 2 (with each DO, as plain `.test.mjs` Cases): the converted workflow does not name `pull_request_target`; it checks out nothing from the pull request and runs no candidate code; its verdict equals the old source's for the same pairs; a pull request that edits the gate cannot change the verdict of the base's judge; the CTL20 baseline lost exactly the converted workflow's name.
 
 ### Questions for the CPO
 
-1. **Which ruleset, and the order.** Option (a) of decision 6 is recommended. And the order: Recommended: DOs D15 to D17 are built now, but no WIRE is raised until the delivery ruleset (wire controls step 3) is verified in force, because a converted gate is only safe behind it. The alternative, wiring early, opens a window where a pull request can edit its own judge.
+None open. The two outcomes, the CODEOWNERS ruling and the gate on the DO follow the CPO's review of this PLAN.
 
 ### Not in this Change
 
-No source, workflow, WIRE, ruleset change or flag. No change to D13, D14, CTL20 or CTL36. No hotfix bypass.
+No source, workflow, WIRE, ruleset change or flag. No DO authorized. No change to D13, D14, CTL20 or CTL36. No hotfix bypass.
