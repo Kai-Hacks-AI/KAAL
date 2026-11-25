@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -25,7 +25,7 @@
+   return {
+     remaining: findings.filter((f) => !baseline.includes(f)),
+     known: findings.filter((f) => baseline.includes(f)),
+-    grew: baseline.filter((f) => !previous.includes(f)),
++    grew: [],
+     stale: baseline.filter((f) => !findings.includes(f)),
+     next: previous.filter((f) => findings.includes(f)),
+   };
