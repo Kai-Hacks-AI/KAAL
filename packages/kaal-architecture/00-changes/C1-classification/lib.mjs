@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 export const dir = join(dirname(fileURLToPath(import.meta.url)), '../..');
 export const read = (rel, what) => { const p = join(dir, rel); assert.ok(existsSync(p), `${what} is absent`); return readFileSync(p, 'utf8'); };
 export const KEY = '00-changes/C1-classification/trial/key/scenarios.json';
-export const SKILL = 'skills/kaal-architecture/SKILL.md';
+// The Skill as it was when the trials ran: the recorded prompts hold it, and the Skill of the package has since been restructured (C18).
+export const SKILL = '00-changes/C1-classification/trial/skill-as-trialled.md';
 const T = '00-changes/C1-classification/trial/';
 const sha = (s) => createHash('sha256').update(s).digest('hex');
 const same = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
