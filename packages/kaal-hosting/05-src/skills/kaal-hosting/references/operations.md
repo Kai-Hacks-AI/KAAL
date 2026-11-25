@@ -7,7 +7,7 @@ Read the installed Hosting contract for exact inputs, errors and limits. These e
 | Need | Existing operation | Boundary to retain |
 | --- | --- | --- |
 | Read a tree's file bytes | `read(dir)` | Missing tree is empty; directory links are refused, not traversed. |
-| List a tree's paths and kinds | `list(dir)` | Files and directories, empty directories included, in one order on every host; no bytes read; a directory link is refused like `read`. Use it, not `read`, when only names matter. |
+| List a tree's paths and kinds | `list(dir)` | Files and directories, empty directories included, in one order on every host; no bytes read; a directory link is refused like `read`. Use it, not `read`, when only names matter. `list(dir, { skip: ["node_modules", ".git"], links: "skip" })` leaves out those names at any depth, unread, and the links to directories, so a normal checkout can be scanned without `node:fs`. |
 | Work in a throwaway directory | `scratch(use)` | `use` gets a fresh absolute path; the whole tree is removed when `use` settles. A removal failure is `SCRATCH_LEFTOVER`; `use`'s own error is never replaced. |
 | Read one file | `readFile(path)` | Missing is an error, not empty bytes. |
 | Inspect a path's kind | `kind(path)` | Preserve directory/file/missing/other and inspection errors. |
@@ -18,6 +18,7 @@ Read the installed Hosting contract for exact inputs, errors and limits. These e
 | Run an installed command | `execute(command, args, { cwd, env })` | Arguments are an array, no shell interpretation; preserve status and streams. |
 | Run an installed command, synchronously | `executeSync(command, args, { cwd, env, input, timeout })` | As `execute`; a signal or timeout is `status: null`; standard input is closed unless `input` is given. |
 | Read the files of a Git revision | `readRevision(root, ref, { under })`, `revision(root, ref)`, or the command `kaal-hosting-revision` | The committed bytes, never the working tree. No such revision (`REVISION_NOT_FOUND`) is not an unreadable one (`REVISION_UNREADABLE`). A link or submodule entry in what you ask for is refused (`REVISION_ENTRY`); narrow `under`. The command prints facts and exits 0 or 2. Use it, not `read`, for a revision. |
+| Read the open pull requests of a repository | `readPullRequests(repository, { gh })` or the command `kaal-hosting-pulls` | One record shape in every environment; a fact no route could read is `{ unknown: true, reason }`, never none or zero. A refusal moves to the next route; a failure in transit rejects with `PULLS_UNREADABLE`. |
 | Decide how a command starts | `startPlan(command, args)` | `npm` and `npx` start without `cmd.exe` on Windows; `NO_DIRECT_START` when that is impossible, `viaShim` to accept the shim openly. |
 | Isolate a process from the user's configuration | `isolatedEnvironment(dir)` | Private home, config and npm cache under `dir`, set over `base`; pass the result as `env`, which is the child's whole environment. |
 | Build a disposable fixture once | `prepare(build, { exclude })` | `copy()` gives each Case an independent copy; `dispose()` removes all. |

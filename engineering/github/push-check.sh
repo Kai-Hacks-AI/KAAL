@@ -59,6 +59,8 @@ if git show "$default_ref:engineering/github/lineage.ts" >"$tmp/lineage.ts" 2>/d
 else
   fail "Branching: cannot judge: $default_ref does not hold engineering/github/lineage.ts"
 fi
+git show "$base:engineering/release-management/05-src/delivery/locations.mjs" >"$tmp/kaal-delivery-locations.mjs" 2>/dev/null || rm -f "$tmp/kaal-delivery-locations.mjs"
+git show "$base:engineering/release-management/03-architecture/A67-delivery-locations/delivery-locations.json" >"$tmp/kaal-delivery-locations.json" 2>/dev/null || rm -f "$tmp/kaal-delivery-locations.json"
 if ! git show "$base:engineering/change-isolation/check.mjs" >"$tmp/check.mjs" 2>/dev/null; then
   fail "Change Isolation: not verified: $target does not hold engineering/change-isolation/check.mjs"
 elif [ -n "$change" ] && git merge-base --is-ancestor "$head" "$default_ref" 2>/dev/null; then
