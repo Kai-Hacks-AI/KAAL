@@ -22,4 +22,5 @@ export async function run() {
   assert.match(t, /its state is derived from the Test Cases that point at it/, 'state is derived from the Cases');
   assert.match(t, /not permission to merge/, 'evidence is not permission to merge');
   assert.match(t, /does not select a CARE treatment \(Contain, Accept, Ratchet, Eliminate\) or authorize a release/, 'Defect reports evidence and selects no treatment');
+  assert.match(t, /A validated Finding stays a Finding/, 'a Finding is not automatically a Defect');
 }
