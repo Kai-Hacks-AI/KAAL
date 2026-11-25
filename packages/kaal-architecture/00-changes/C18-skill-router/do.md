@@ -6,7 +6,7 @@
 - `skills/kaal-architecture/references/` holds the detail, moved from the previous Skill: `concerns.md`, `unclean.md`, `report.md` and `scope.md`.
 - The Test Cases that read the Skill read it as an agent does, through `skillText()` in `test/lib.mjs` (the router and every reference together): T14, T15, T18, T19 and T20. What they assert about the Skill is unchanged. T15 drops its 120-line limit and keeps its word ban, now over the whole Skill. A2 says router and references.
 - T30 (F19) and T31 (F20) are `.red.mjs` renamed `.test.mjs` and moved beside their Requirement.
-- Three Test Cases of the earlier trials (T1, T9 and T11) assert that the recorded prompts hold the Skill that was trialled. The Skill has changed, so the trial's own copy is kept as `00-changes/C1-classification/trial/skill-as-trialled.md`, byte for byte the previous `SKILL.md`, and the two trial `lib.mjs` read it. Their assertions are unchanged. This is the one change outside the Skill and its Cases, and the reviewer should look at it.
+- Three Test Cases of the earlier trials (T1, T9 and T11) assert that the recorded prompts hold the Skill that was trialled. The Skill has changed, so the trial's own copy is kept as `00-changes/C1-classification/trial/skill-as-trialled.txt`, byte for byte the previous `SKILL.md`, and the two trial `lib.mjs` read it. Their assertions are unchanged. This is the one change outside the Skill and its Cases, and the reviewer should look at it.
 
 ## Mapping of the previous Skill to the new places
 

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 export const dir = join(dirname(fileURLToPath(import.meta.url)), '../..');
 export const read = (rel, what) => { const p = join(dir, rel); assert.ok(existsSync(p), `${what} is absent`); return readFileSync(p, 'utf8'); };
 // The Skill as it was when the trials ran: the recorded prompts hold it, and the Skill of the package has since been restructured (C18).
-export const SKILL = '00-changes/C1-classification/trial/skill-as-trialled.md';
+export const SKILL = '00-changes/C1-classification/trial/skill-as-trialled.txt';
 const C = '00-changes/C2-realistic-trial/';
 export const sha = (s) => createHash('sha256').update(s).digest('hex');
 export const requests = () => JSON.parse(read(`${C}requests.json`, 'the requests')).requests;
