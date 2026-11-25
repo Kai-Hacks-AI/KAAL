@@ -1,0 +1,10 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -97,6 +97,6 @@
+   const last = base.history[base.history.length - 1];
+   if (!last || last.to !== 0) return fail('history-incomplete');
+   // Keeping history is not proof of progress: the kept history must itself be a sound chain.
+-  if (!soundHistory(base.history)) return fail('history-invalid');
++  // mutated: unsound history allowed
+   return { verdict: 'PASS' };
+ }

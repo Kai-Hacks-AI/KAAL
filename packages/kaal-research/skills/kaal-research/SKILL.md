@@ -1,6 +1,6 @@
 ---
 name: kaal-research
-description: Record a trial of your own idea on agents, a rehearsal, so a reader who was not there can inspect what was run and tell what it shows from what it only suggests. Use when you test whether a Skill, prompt or process works, run or judge a trial with agents, or are asked for a trial report, experiment record or rehearsal. Also finds rehearsal records and checks their form.
+description: Record a trial of your own idea on agents, a rehearsal, so a reader who was not there can inspect what was run, rerun it in another setup, and tell what it shows from what it only suggests. Use when you test whether a Skill, prompt or process works, run or judge a trial with agents, challenge someone else's trial, or are asked for a trial report, experiment record or rehearsal. Also finds rehearsal records and checks their form.
 license: MIT
 ---
 
@@ -22,6 +22,18 @@ A rehearsal is your own idea tried on agents. You write it down so that someone 
 2. For each run, record whether the treatment reached the agent: `opened` only if an excerpt you keep shows it, otherwise `delivered` or `unchecked`.
 3. Have the answers scored by a session that did not run them, blind to the arm where you can, and keep what it saw.
 4. Report a favourable, an unfavourable and an inconclusive result alike.
+
+## The protocol
+
+Write the record so that someone with another agent, model or harness can rerun it from the record alone. State the harness that ran the agents. Add a Protocol: the materials a rerun needs (the prompt always; the key, the treatment text or its hash and the notes when they exist), how each arm is run, how and by whom the answers are scored, what a rerun would show that supports your claims and what would go against them. If something a rerun needs was not kept (the sandbox, the texts of the Skills or files used, the settings, the traces), say so in the Protocol; naming the materials is not enough, and a reader cannot tell what is missing. Do not write it from memory afterwards without saying so.
+
+## Challenging a record
+
+To check someone's rehearsal in your own setup, follow its Protocol, change only what your setup forces, and write your own record with `challenges: <its id>`. Say in `differs-in` what differs (agent, model, harness, judge, materials, or none), and give an `outcome`: `replicates`, `differs` or `inconclusive`. If the Protocol cannot be followed, say what was missing; that is a result. Do not edit the record you challenge.
+
+## Techniques
+
+A technique is a named way of running and judging a trial, with a version. Name the one you used in the record as `<name>@<n>`. Read [judged-trial](references/techniques/judged-trial.md) for the one that exists so far; when you change the steps of a technique, raise its version, and keep the old one readable.
 
 ## The record
 
