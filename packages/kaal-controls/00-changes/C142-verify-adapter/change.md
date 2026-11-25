@@ -15,6 +15,7 @@ A retro entry in the collector.
 
 ## Left open (for the CPO, with a recommendation)
 
+- How the observation is made. Recommendation: release's, from the delivered entry of each control as it is at the revision, never from a declaration or a hand-kept list.
 - The station and the flag are release's. Recommendation: wire after the DO, detective first.
 - The `evidence` minimum is `[fixture:2, real:1, provoked:1:fail]`. Recommendation: accept it as the protocol's minimum.
 - Ids C142, I20, G108, F206, A203, CTL1, T1517 are taken by hand; on a clash the newer pull request renumbers.
