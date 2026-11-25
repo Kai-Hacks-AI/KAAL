@@ -1,1 +1,2 @@
 experiment pr1: an ordinary change, no workflow edit
+second push: checks the required workflow also runs on synchronize
