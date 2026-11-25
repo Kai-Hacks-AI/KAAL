@@ -14,7 +14,9 @@ export const id = 'release/T1121';
 export const tests = ['release/CTL19'];
 export const title = 'a head that removes a use, or replaces it, passes; a swap to a new workflow fails';
 export async function run() {
-  const { judge } = await load();
+  const { judge: raw } = await load();
+  const { honest } = await import(new URL('../../00-changes/C131-triggers-baseline-file/fixtures.mjs', import.meta.url).href);
+  const judge = (x) => raw(honest(x));
   const on = (e) => `name: x\non:\n  ${e}:\njobs: {}\n`;
   const pr = on('pull_request');
   const prt = on('pull_request_target');

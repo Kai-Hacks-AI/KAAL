@@ -1,0 +1,24 @@
+{
+  "subject": "trial/subject (budget-gate)",
+  "baselineCommit": "69025fca",
+  "keySha256": "4dad8f19483404577140eadb1d6e334fd7e091f7d37841c1060ba24f4dd51481",
+  "commonPromptSha256": "be7240e98fb74256f86d9226bb974ab1f58069af95014f7b18093a473ba86a54",
+  "arms": {
+    "baseline": {
+      "skillSha256": "fa1147c01e12088f4be3fb9e1dc8fbaeb0b614310da6c148798215cf128a199e",
+      "promptSha256": "39f61373086637092ff1260ca1f6438fba6bf952210f3153c2c493a5f6d13457",
+      "runs": [
+        "run1/baseline.raw.txt",
+        "run2/baseline.raw.txt"
+      ]
+    },
+    "skill": {
+      "skillSha256": "89c9712c34cde3f734bfff1ffa6d6d50ebaffdbb275f83034cb3e2911094b1be",
+      "promptSha256": "3d13044c2462d37bda30b26827c251638141566349d9c5e8f25b5483e35ad48f",
+      "runs": [
+        "run1/skill.raw.txt",
+        "run2/skill.raw.txt"
+      ]
+    }
+  }
+}
