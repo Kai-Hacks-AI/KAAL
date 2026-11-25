@@ -12,11 +12,13 @@ The planned outer tests live in `packages/kaal-core/test/plan/installation-integ
 | core/T115: a source whose tree digest does not match, or that lacks an asset its manifest lists, is unknown (digest, incomplete), whatever the installation holds | core/F108, core/F110, core/A53 | Requirements |
 | core/T116: the three comparisons require their sources (`installed` the artifact and its tag, `engineering` the package, `deployed` the selected source), a missing one is unknown (unavailable), and an artifact and a tag that disagree are unknown (disagree) with the differing paths, never aligned and never a difference | core/F106, core/F109, core/F110 | Requirements |
 | core/T117: a variant is accepted only when its owner and path match the ownership declaration, `not-owner` and `no-ownership` are unknown, a location is verified against the one set selected for it, and matching another set is a difference that names it | core/F105, core/F110 | Requirements |
+| core/T118: a contract registered with Core gives its expected set and its observation scope by the existing contract alone: the targets of its assets, a directory asset's files all under it, and never a surface-gated asset; verifying with them is aligned, with no list of any entity in Core | core/F107, core/F111, core/A53 | Requirements |
+| core/T119: an observed inventory is judged only when it states its scope, is complete and matches its tree digest; a file outside the scope or an expected asset outside it is unknown (inventory), and unexpected is claimed only inside the scope | core/F111, core/F110 | Requirements |
 
-## Planned, written when the decision closes
+## What the CTO still decides
 
-- **core/T118 (D1, D3, D4, the CTO's).** An entity registered with its contract has its installation location found and verified by the existing contracts alone, with the reach of `unexpected` the CTO chose.
+core/T118 uses only what the contracts already say. D1 (which published package supplies the source files), D3 (whether a location's reach is wider than the contract's scope, the scope being what the observer states) and D4 (which entities get a contract) change what a caller supplies, never what the contracts require. A decision that changes the entry points amends these Cases in a PLAN, never in the DO.
 
 ## RED evidence
 
-Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/installation-integrity.test.mjs`, outside Core's `npm test` until the DO. At `core/C53` all eight are RED, blocked before behavioural assertion: Core has no `kaal-core/integrity` entry point.
+Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/installation-integrity.test.mjs`, outside Core's `npm test` until the DO. At `core/C53` all ten are RED, blocked before behavioural assertion: Core has no `kaal-core/integrity` entry point.

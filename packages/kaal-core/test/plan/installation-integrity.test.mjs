@@ -26,6 +26,12 @@ const set = (files) => Object.fromEntries(Object.entries(files).map(([path, text
 /** The tree digest core/F101 states: SHA-256 over the sorted lines `path NUL sha256 LF`. */
 const tree = (digests) => sha(Object.keys(digests).sort().map((p) => `${p}\0${digests[p]}\n`).join(""));
 
+/** An observed inventory (core/F111): the scope the observer enumerated, the files found in it, and the tree digest it states. "." is the whole location. */
+const observe = (files, scope = ["."], extra = {}) => {
+  const digests = set(files);
+  return { scope, files: digests, treeDigest: tree(digests), ...extra };
+};
+
 const entity = { kind: "capability", name: "x" };
 const establisher = { role: "gate", id: "release/gate" };
 /** One source of evidence: the manifest names the entity and every asset, the digests and the tree digest follow. */
@@ -36,7 +42,7 @@ const source = (kind, files, extra = {}) => {
 const KINDS = { installed: ["artifact", "tag"], engineering: ["package"], deployed: ["selected"] };
 const evidence = (files, comparison = "engineering") => ({ establisher, sources: KINDS[comparison].map((k) => source(k, files)) });
 const verify = (m, expected, observed, { comparison = "engineering", ...extra } = {}) =>
-  m.verifyInstallation({ entity, version: "1.0.0", comparison, evidence: evidence(expected, comparison), observed: set(observed), ...extra });
+  m.verifyInstallation({ entity, version: "1.0.0", comparison, evidence: evidence(expected, comparison), observed: observe(observed), ...extra });
 
 describe("Installation integrity (core/C53)", () => {
   it("core/T110 [core/F100, core/N29, core/A53]: the verdict lists missing, unexpected and modified assets by content identity, in path order, and is aligned only when none exist; the same bytes at another path are one missing and one unexpected; the same name with other bytes is modified", async () => {
@@ -72,11 +78,11 @@ describe("Installation integrity (core/C53)", () => {
       ["self-authority", { establisher, sources: [source("record", files)] }],
     ];
     for (const [reason, evidence_] of cases) {
-      const r = m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: evidence_, observed: set(files) });
+      const r = m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: evidence_, observed: observe(files) });
       assert.equal(r.status, "unknown", `unknown for ${reason}`);
       assert.equal(r.reason, reason);
     }
-    assert.equal(m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", expected: set(files), observed: set(files) }).status, "unknown", "a bare expected set, a label, is no evidence");
+    assert.equal(m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", expected: set(files), observed: observe(files) }).status, "unknown", "a bare expected set, a label, is no evidence");
   });
 
   it("core/T112 [core/F102, core/F110, core/A53]: the result names the entity, the version, the comparison, the establisher and each source; a source naming another entity or version is unknown (identity); another version's evidence gives that version's differences", async () => {
@@ -88,13 +94,13 @@ describe("Installation integrity (core/C53)", () => {
     assert.equal(r.comparison, "engineering");
     assert.deepEqual(r.establisher, establisher);
     assert.deepEqual(r.sources.map((s) => [s.kind, s.origin]), [["package", "x@1.0.0#package"]]);
-    const wrongVersion = m.verifyInstallation({ entity, version: "2.0.0", comparison: "engineering", evidence: evidence(v2), observed: set(v1) });
+    const wrongVersion = m.verifyInstallation({ entity, version: "2.0.0", comparison: "engineering", evidence: evidence(v2), observed: observe(v1) });
     assert.equal(wrongVersion.status, "unknown", "a source whose manifest names version 1.0.0 is not evidence for 2.0.0");
     assert.equal(wrongVersion.reason, "identity");
-    const named = (name) => { const ev = evidence(v1); ev.sources[0].manifest.name = name; return m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: ev, observed: set(v1) }); };
+    const named = (name) => { const ev = evidence(v1); ev.sources[0].manifest.name = name; return m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: ev, observed: observe(v1) }); };
     assert.equal(named("y").reason, "identity", "another entity");
     const ev2 = evidence(v2); ev2.sources[0].manifest.version = "2.0.0"; ev2.sources[0].origin = "x@2.0.0#package";
-    const other = m.verifyInstallation({ entity, version: "2.0.0", comparison: "engineering", evidence: ev2, observed: set(v1) });
+    const other = m.verifyInstallation({ entity, version: "2.0.0", comparison: "engineering", evidence: ev2, observed: observe(v1) });
     assert.deepEqual([other.status, other.missing, other.modified], ["differs", ["b.md"], ["a.md"]], "that version's differences");
     assert.equal(r.status, "aligned", "and nothing of the other leaks into the first");
   });
@@ -105,8 +111,8 @@ describe("Installation integrity (core/C53)", () => {
       const e = { kind, name: "n" };
       const src = source("package", { p: "p" }); src.manifest = { ...src.manifest, kind, name: "n" };
       const ev = { establisher, sources: [src] };
-      assert.equal(m.verifyInstallation({ entity: e, version: "1.0.0", comparison: "engineering", evidence: ev, observed: set({ p: "p" }) }).status, "aligned", `a ${kind}`);
-      assert.equal(m.verifyInstallation({ entity: e, version: "1.0.0", comparison: "engineering", evidence: ev, observed: {} }).status, "differs");
+      assert.equal(m.verifyInstallation({ entity: e, version: "1.0.0", comparison: "engineering", evidence: ev, observed: observe({ p: "p" }) }).status, "aligned", `a ${kind}`);
+      assert.equal(m.verifyInstallation({ entity: e, version: "1.0.0", comparison: "engineering", evidence: ev, observed: observe({}) }).status, "differs");
     }
     const here = new URL("../../", import.meta.url);
     const text = readFileSync(new URL("dist/integrity.js", here), "utf8");
@@ -120,7 +126,7 @@ describe("Installation integrity (core/C53)", () => {
     const m = await integrity();
     const ok = verify(m, { "a.md": "a" }, { "a.md": "a" });
     const bad = verify(m, { "a.md": "a" }, { "a.md": "b" });
-    const unknown = m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", observed: set({ "a.md": "a" }) });
+    const unknown = m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", observed: observe({ "a.md": "a" }) });
     assert.equal(m.exitStatus(ok, { enforce: false }), 0);
     assert.equal(m.exitStatus(ok, { enforce: true }), 0);
     assert.equal(m.exitStatus(bad, { enforce: false }), 0, "a finding is not a veto");
@@ -132,7 +138,7 @@ describe("Installation integrity (core/C53)", () => {
   it("core/T115 [core/F108, core/F110, core/A53]: a source whose tree digest does not match, or that lacks an asset its manifest lists, is unknown (digest, incomplete), whatever the installation holds", async () => {
     const m = await integrity();
     const files = { "a.md": "a", "b.md": "b" };
-    const run = (change) => { const ev = evidence(files); change(ev.sources[0]); return m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: ev, observed: set(files) }); };
+    const run = (change) => { const ev = evidence(files); change(ev.sources[0]); return m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: ev, observed: observe(files) }); };
     const tampered = run((s) => { s.files["a.md"] = sha("tampered"); });
     assert.deepEqual([tampered.status, tampered.reason], ["unknown", "digest"], "a digest changed after the tree digest was stated");
     const truncated = run((s) => { delete s.files["b.md"]; s.treeDigest = tree(s.files); });
@@ -149,7 +155,7 @@ describe("Installation integrity (core/C53)", () => {
       assert.equal(verify(m, files, files, { comparison }).status, "aligned", `${comparison} with its sources`);
     }
     const only = (kinds) => ({ establisher, sources: kinds.map((k) => source(k, files)) });
-    const judge = (comparison, ev) => m.verifyInstallation({ entity, version: "1.0.0", comparison, evidence: ev, observed: set(files) });
+    const judge = (comparison, ev) => m.verifyInstallation({ entity, version: "1.0.0", comparison, evidence: ev, observed: observe(files) });
     assert.deepEqual([judge("installed", only(["artifact"])).status, judge("installed", only(["artifact"])).reason], ["unknown", "unavailable"], "the artifact alone is not enough for .kaal/");
     assert.equal(judge("installed", only(["tag"])).reason, "unavailable", "nor is the tag alone");
     assert.equal(judge("engineering", only(["artifact"])).reason, "unavailable", "engineering needs the package, not a published artifact");
@@ -170,7 +176,7 @@ describe("Installation integrity (core/C53)", () => {
       m.verifyInstallation({
         entity, version: "1.0.0", comparison: "engineering",
         evidence: { establisher, sources: [source("package", base)], variants: { external: { suppliedBy: supplier, sources: [source("package", variant)] } } },
-        observed: set(observed), ownership: own, selected,
+        observed: observe(observed), ownership: own, selected,
       });
     assert.equal(judge(variant).status, "aligned", "the owner's variant, selected, matches");
     assert.deepEqual([judge(variant, { supplier: { owner: "y", path: "packages/x/external/" } }).status, judge(variant, { supplier: { owner: "y", path: "packages/x/external/" } }).reason], ["unknown", "not-owner"], "supplied by another capability");
@@ -180,5 +186,43 @@ describe("Installation integrity (core/C53)", () => {
     assert.equal(selectedBase.status, "differs", "a variant is no blanket exemption: the location was selected against the base");
     assert.equal(selectedBase.matches, "external", "and the result names the set it matches");
     assert.equal(judge(base, { selected: "base" }).status, "aligned");
+  });
+  it("core/T119 [core/F111, core/F110]: an observed inventory is judged only when it states its scope, is complete and matches its tree digest; a file outside the scope or an expected asset outside it is unknown (inventory), and unexpected is claimed only inside the scope", async () => {
+    const m = await integrity();
+    const files = { "dir/a.md": "a", "dir/b.md": "b" };
+    const judge = (observed) => m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: evidence(files), observed });
+    const reason = (r) => [r.status, r.reason];
+    assert.equal(judge(observe(files, ["dir/"])).status, "aligned", "a complete inventory of its scope is judged");
+    assert.deepEqual(reason(judge({ files: set(files), treeDigest: tree(set(files)) })), ["unknown", "inventory"], "no scope: nobody said what was enumerated");
+    assert.deepEqual(reason(judge(observe(files, []))), ["unknown", "inventory"], "an empty scope enumerates nothing");
+    assert.deepEqual(reason(judge(observe(files, ["dir/"], { complete: false }))), ["unknown", "inventory"], "an observer that says it did not finish");
+    const tampered = observe(files, ["dir/"]); tampered.files["dir/a.md"] = sha("other");
+    assert.deepEqual(reason(judge(tampered)), ["unknown", "inventory"], "a digest changed after the tree digest was stated");
+    assert.deepEqual(reason(judge(observe({ ...files, "elsewhere/x.md": "x" }, ["dir/"]))), ["unknown", "inventory"], "a file the scope does not cover was not enumerated by it");
+    assert.deepEqual(reason(judge(observe({ "dir/a.md": "a" }, ["dir/a.md"]))), ["unknown", "inventory"], "an expected asset outside the scope cannot be called missing or present");
+    const extra = judge(observe({ ...files, "dir/c.md": "c" }, ["dir/"]));
+    assert.deepEqual([extra.status, extra.unexpected], ["differs", ["dir/c.md"]], "unexpected inside the scope");
+    assert.equal(judge(observe({}, ["dir/"])).status, "differs", "a complete inventory that is empty is a finding: everything is missing");
+    assert.deepEqual(judge(observe({}, ["dir/"])).missing, ["dir/a.md", "dir/b.md"]);
+  });
+
+  it("core/T118 [core/F107, core/F111, core/A53]: a contract registered with Core gives its expected set and its observation scope by the existing contract alone: the targets of its assets, a directory asset's files all under it, and never a surface-gated asset", async () => {
+    const m = await integrity();
+    for (const name of ["expectedSet", "observationScope"]) if (typeof m[name] !== "function") assert.fail(`blocked before behavioural assertion: kaal-core/integrity exports no ${name}`);
+    const contract = JSON.parse(readFileSync(new URL("../../installation.kaal.json", import.meta.url), "utf8"));
+    const sources = { "payload/AGENTS.md": "agents", "payload/KAAL-KERNEL.md": "kernel" };
+    const tiny = { ...contract, assets: [
+      { name: "a", source: "payload/AGENTS.md", target: ".kaal/AGENTS.md", kind: "file" },
+      { name: "k", source: "payload/KAAL-KERNEL.md", target: ".kaal/KAAL-KERNEL.md", kind: "file" },
+      { name: "d", source: "payload/dir", target: ".kaal/dir", kind: "directory" },
+      { name: "h", source: "payload/hook", target: ".githooks/pre-push", kind: "file", surface: "hook" },
+    ] };
+    const read = (p) => ({ ...sources, "payload/dir/one.md": "1", "payload/dir/sub/two.md": "2" })[p];
+    const list = (p) => (p === "payload/dir" ? ["one.md", "sub/two.md"] : undefined);
+    const expected = m.expectedSet({ contract: tiny, read, list });
+    assert.deepEqual(expected, set({ ".kaal/AGENTS.md": "agents", ".kaal/KAAL-KERNEL.md": "kernel", ".kaal/dir/one.md": "1", ".kaal/dir/sub/two.md": "2" }), "file and directory assets by target; the surface-gated asset is not Core's");
+    assert.deepEqual(m.observationScope({ contract: tiny }), [".kaal/AGENTS.md", ".kaal/KAAL-KERNEL.md", ".kaal/dir/"], "a file asset is its own path, a directory asset is everything under it");
+    const r = m.verifyInstallation({ entity: { kind: "capability", name: "core" }, version: contract.version, comparison: "installed", evidence: { establisher, sources: ["artifact", "tag"].map((k) => ({ ...source(k, {}), manifest: { kind: "capability", name: "core", version: contract.version, assets: Object.keys(expected) }, files: expected, treeDigest: tree(expected) })) }, observed: { scope: m.observationScope({ contract: tiny }), files: expected, treeDigest: tree(expected) } });
+    assert.equal(r.status, "aligned", "what the contract says is what is verified, with no list in Core of any entity");
   });
 });
