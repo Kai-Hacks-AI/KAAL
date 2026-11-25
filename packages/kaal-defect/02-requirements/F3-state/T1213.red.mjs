@@ -18,10 +18,10 @@ function fixture({ contexts, records = [] }) {
   assert.ok(existsSync(script), 'the script scripts/known-defects.mjs is absent');
   const d = mkdtempSync(join(tmpdir(), 'known-'));
   const places = [];
-  for (const [ctx, { defects = [], cases = {}, addresses = {}, reaches = {} }] of Object.entries(contexts)) {
+  for (const [ctx, { defects = [], cases = {}, addresses = {} }] of Object.entries(contexts)) {
     mkdirSync(join(d, ctx, 'anywhere'), { recursive: true });
     places.push({ context: ctx, defects: join(d, ctx, 'anywhere'), architecture: [join(d, ctx, 'elsewhere')], cases: [join(d, ctx)] });
-    for (const i of defects) writeFileSync(join(d, ctx, 'anywhere', i.replace('/', '-') + '.md'), `---\nid: ${i}\n${reaches[i] === null ? '' : `reach: ${reaches[i] ?? '.'}\n`}---\n# ${i}\n`);
+    for (const i of defects) writeFileSync(join(d, ctx, 'anywhere', i.replace('/', '-') + '.md'), `---\nid: ${i}\n---\n# ${i}\n`);
     mkdirSync(join(d, ctx, 'elsewhere'), { recursive: true });
     for (const [el, ids] of Object.entries(addresses)) writeFileSync(join(d, ctx, 'elsewhere', el.replace('/', '-') + '.md'), `---\nid: ${el}\naddresses: [${ids.join(', ')}]\n---\n`);
     for (const [c, target] of Object.entries(cases)) writeFileSync(join(d, ctx, `T${c.split('T')[1]}.red.mjs`), `// Case ${c} tests: ${target}\n`);
@@ -31,7 +31,7 @@ function fixture({ contexts, records = [] }) {
   return d;
 }
 const R = 'r1';
-const rec = (c, outcome, revision = R, run = '1', covers = ['.']) => ({ case: c, run, revision, outcome, covers });
+const rec = (c, outcome, revision = R, run = '1') => ({ case: c, run, revision, outcome });
 const check = (d, ...more) => spawnSync(process.execPath, [script, '--places', join(d, 'places.json'), '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
 const lines = (r) => r.stdout.split('\n').filter(Boolean);
 
@@ -42,6 +42,7 @@ const state = (c, records) => lines(check(fixture({ contexts: c, records })))[0]
 export async function run() {
   assert.equal(state(one, [rec('x/T1', 'RED')]), 'confirmed x/D1');
   assert.equal(state(one, [rec('x/T1', 'GREEN')]), 'answered x/D1', 'a derived state, nothing is stored on the Defect');
+  assert.equal(state(one, [{ ...rec('x/T1', 'GREEN'), covers: ['nowhere/'] }]), 'answered x/D1', 'no coverage metadata is read: complete GREEN evidence answers');
   assert.equal(state(one, [rec('x/T1', 'UNKNOWN')]), 'unknown x/D1');
   for (const outcome of ['skipped', 'error', 'timeout', 'incomplete']) assert.equal(state(one, [rec('x/T1', outcome)]), 'unknown x/D1', `${outcome} is neither RED nor GREEN`);
   assert.equal(state(one, []), 'unknown x/D1', 'no record is unknown');

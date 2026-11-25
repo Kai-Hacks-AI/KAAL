@@ -2,13 +2,13 @@
 
 ## PLAN
 
-1. Add the gap G114, the Intent I1, the Requirements F1 to F5 and N1 and the Architecture A1 under `packages/kaal-defect/`. Their Test Cases T1210 to T1216 sit beside the element they test as `T<n>.red.mjs`.
+1. Add the gap G114, the Intent I1, the Requirements F1 to F4 and N1 and the Architecture A1 under `packages/kaal-defect/`. Their Test Cases T1210 to T1215 sit beside the element they test as `T<n>.red.mjs`.
 2. Observe the expected RED against `main` (`evidence.md`) and show that each Test Case can pass on a throwaway copy that holds `draft/`.
 3. The PLAN adds no package file: no `package.json`, no Skill, no script. `draft/` holds the intended Skill and script for review only.
 
 ## Ids
 
-Proposed, to be confirmed by the allocator: Change defect/C1, Intent defect/I1, Requirements defect/F1 to F5 and N1, Architecture defect/A1, Test Cases T1210 to T1216, gap G114.
+Proposed, to be confirmed by the allocator: Change defect/C1, Intent defect/I1, Requirements defect/F1 to F4 and N1, Architecture defect/A1, Test Cases T1210 to T1215, gap G114.
 
 ## Defect is like a Control
 
@@ -18,7 +18,7 @@ A Defect is what a Control is in the way that matters here: what it is about is 
 | --- | --- | --- |
 | The edge | the Case's first line `// Case <id> tests: <control id>` | the Case's first line `// Case <id> tests: <defect id>` |
 | What it is about | free text (the declaration) | free text (the description, `expected`, `observed`) |
-| Evidence | records `{case, x, run, outcome}`, outcome GREEN, RED or UNKNOWN as a runner reports it | records `{case, run, revision, outcome, covers}`, the same outcomes, and `covers` where `x` is |
+| Evidence | records `{case, x, run, outcome}`, outcome GREEN, RED or UNKNOWN as a runner reports it | records `{case, run, revision, outcome}`, the same outcomes |
 | Judged by | the package's own judge over the records | the package's own judge over the records |
 | Who runs the Cases | the repository that uses the package (Testing's runner) | the same: Testing |
 
@@ -28,23 +28,15 @@ So Testing runs the Cases and makes the records. Defect judges records, runs not
 
 - A record counts only when it names the revision judged. A record of another revision is stale.
 - A missing record, or any outcome other than GREEN or RED (skipped, errored, timed out, incomplete), is UNKNOWN, and UNKNOWN is never read as RED or GREEN.
-- A Defect claims its reach (below), and a part of it that no GREEN applicable record covers counts toward UNKNOWN.
 - A Case is RED if any applicable run is RED, GREEN if every applicable run is GREEN, otherwise UNKNOWN.
-- A Defect is `confirmed` when some applicable Case is RED, even if every other Case is UNKNOWN: one RED Case is enough to show that the Defect exists. It is `answered` only when it has Cases, every applicable Case is GREEN with complete evidence, and every part of its claimed reach is covered. Without a RED and without complete GREEN evidence it is `unknown`, including when no Case points at it. These are the words Hosting's records already use for the status they claim.
+- A Defect is `confirmed` when some applicable Case is RED, even if every other Case is UNKNOWN: one RED Case is enough to show that the Defect exists. It is `answered` only when it has Cases, every applicable Case is GREEN with complete evidence. Without a RED and without complete GREEN evidence it is `unknown`, including when no Case points at it. These are the words Hosting's records already use for the status they claim.
 - Several Cases pointing at one Defect are different manifestations, contexts or conditions of the same undesirable condition. They do not make several Defects and do not make several fix locations.
 - Each Case's own outcome is kept alongside the derived state and is never merged into it: the output lists the Defect's state, then one line per Case with its outcome.
 - The state is never stored on the Defect. A `status` a record claims today is a claim; showing a claim beside the derived state, as Controls does, is a later Change.
 
-## Reach: where the condition can manifest
+## Scope: semantic, not path metadata
 
-Each Defect claims its reach in its record (`reach:`), as parts of the repository: `.` for a condition that can manifest anywhere (a malformed Test Case), `packages/` for packages only (a malformed package structure), `.kaal/, engineering/` for what a failed package deployment touches. A Test Case covers a corner of that reach, and its record says which parts its run covered (`covers`), as a control's record says the kind of X it ran against. Rules:
-
-- A claimed part that no GREEN applicable record covers counts toward `unknown` and is named, never toward `answered`.
-- A covered part covers every part under it What a Case covers is what its record declares in `covers`, not what the Case reads: a Case whose condition is fully decided by what it reads (for example a top-level listing that decides whether `packages/` holds a non-package entry) declares the whole part, `packages/`, and covers it. (`packages/` covers `packages/kaal-core`), and `.` covers all. Nothing is inferred the other way: several narrow Cases do not add up to a wider part unless the reach lists those parts.
-- A Defect that claims no reach cannot be `answered`: there is nothing to say was covered. It is reported `reach unclaimed`.
-- A RED applicable Case confirms the Defect whatever the reach. A stale or UNKNOWN run covers nothing.
-
-The reach is also what a consumer such as Engineering's ratchet reads to know where a Defect applies. This PLAN only states and judges the claim; using it is that consumer's Change.
+A Defect describes the underlying undesirable condition, not merely the observed symptom or where it was found, and expresses its scope in its description. There is no mandatory path-based `reach` and no `covers` in the records: neither brittle Defects nor brittle Test Cases are wanted, and no complex metamodel is invented. Cases are designed to verify the condition robustly, including its relevant manifestations and contexts. The existing relationships carry the rest: Test Case verifies Defect; Review validates Defect (its meaningful scope) and validates Test Case (adequacy, robustness, reproducibility); Testing owns the verification evidence; Architecture owns where the correction is placed. The state derives from the applicable linked Case evidence at the judged revision: RED confirms, complete GREEN answers, missing, stale, incomplete or unknown evidence stays unknown. Review and Testing guidance is coordinated with their owners; this Change does not implement it.
 
 ## The inventory: the record is authoritative
 
@@ -61,7 +53,7 @@ Three dimensions stay separate:
 | | |
 | --- | --- |
 | **Suppliers** | Review (the finding, and where it was found); Testing (the Cases and the records of their runs); Architecture (the `addresses:` of its elements, and so the functional placement of the correction); Hosting (reading files) |
-| **Inputs** | the Defect records, the Architecture elements and the Cases at the places the caller hands over; records `{case, run, revision, outcome, covers}`; the revision judged |
+| **Inputs** | the Defect records, the Architecture elements and the Cases at the places the caller hands over; records `{case, run, revision, outcome}`; the revision judged |
 | **Process** | discover the Defect records; derive each state from the records of its Cases; list the unresolved inventory |
 | **Outputs** | per Defect `<state> <defect>` with each Case's own outcome beside it; the unresolved inventory |
 | **Customers** | planning, which takes the unresolved inventory as input; the consumer or integration gate, which owns every policy decision |

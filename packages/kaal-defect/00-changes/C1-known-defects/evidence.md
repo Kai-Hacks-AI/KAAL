@@ -16,18 +16,17 @@ The PLAN of defect/C1 observes its RED against `main` at `fa07abe`. It cites not
 | T1213 | F3 | RED: the script is absent |
 | T1214 | N1 | RED: package.json is absent |
 | T1215 | F4 | RED: the script is absent |
-| T1216 | F5 | RED: the script is absent |
 
-7 RED-observed, 0 error, 0 green. Every Test Case fails on its own assertion.
+6 RED-observed, 0 error, 0 green. Every Test Case fails on its own assertion.
 
 
 ## Can each Test Case pass
 
-In a throwaway root outside the repository, holding `draft/package.json` and `draft/skills/kaal-defect/` as the package, all seven were green.
+In a throwaway root outside the repository, holding `draft/package.json` and `draft/skills/kaal-defect/` as the package, all six were green.
 
 ## What this shows and does not show
 
-They show that a Case points at a Defect with its first line (several Cases per Defect), that the inventory is discovered from the Defect records alone with no second list, that the state is derived from the records of the Cases at a revision (confirmed, answered, unknown), that stale, UNKNOWN, skipped, errored and missing results are unknown, that the unresolved list follows the addressing Architecture element or the holding context, that a Defect claims its reach and an uncovered part keeps it unknown, and that the package depends only on Foundation and Hosting and names no layout. They do not show how Testing makes the records, how Review establishes a Defect, or any CI wiring.
+They show that a Case points at a Defect with its first line (several Cases per Defect), that the inventory is discovered from the Defect records alone with no second list, that the state is derived from the records of the Cases at a revision (confirmed, answered, unknown), that stale, UNKNOWN, skipped, errored and missing results are unknown, that the unresolved list follows the addressing Architecture element or the holding context, that evidence carries no coverage metadata, and that the package depends only on Foundation and Hosting and names no layout. They do not show how Testing makes the records, how Review establishes a Defect, or any CI wiring.
 
 ## Reproduce
 

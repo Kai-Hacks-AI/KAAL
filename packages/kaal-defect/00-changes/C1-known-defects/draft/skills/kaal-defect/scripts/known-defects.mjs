@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 // known-defects: derive each Defect's state from the Test Cases that point at it, as Controls derive a status from the Cases of a control.
 // A Defect holds no state. Edges run from a Case to a Defect (the Case's first line `// Case <id> tests: <defect id>`).
-// A record is { case, run, revision, outcome, covers }, outcome GREEN, RED or UNKNOWN as a Case runner reports it, and `covers` the
-// parts of the Defect's claimed reach that run covered (as a control's record carries the kind of X it ran against). The runner is Testing's; nothing here runs a Case.
+// A record is { case, run, revision, outcome }, outcome GREEN, RED or UNKNOWN as a Case runner reports it. The runner is Testing's; nothing here runs a Case.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -16,22 +15,15 @@ function caseOutcome(id, records, revision) {
   return o.includes('RED') ? 'RED' : o.length && o.every((x) => x === 'GREEN') ? 'GREEN' : 'UNKNOWN';
 }
 
-const norm = (p) => (p === '.' ? '.' : p.replace(/\/+$/, ''));
-/** A covered part covers a claimed part when they are the same, when the claimed part lies under it, or when it is the whole repository. */
-const covers = (c, part) => norm(c) === '.' || norm(c) === norm(part) || norm(part).startsWith(`${norm(c)}/`);
-
 /**
  * The derived state of a Defect, from the Cases that point at it, at one revision.
  * confirmed: some applicable Case is RED, even if every other Case is UNKNOWN. answered: it has Cases, every applicable Case is GREEN with
- * complete evidence, and every part of its claimed reach is covered by a GREEN applicable record. Otherwise unknown: no Case, a stale or
- * UNKNOWN result, an unclaimed reach, or a part of the claimed reach that no Case covers. UNKNOWN is never RED and never GREEN.
+ * complete evidence. Otherwise unknown: no Case, or a stale, missing, incomplete or UNKNOWN result. UNKNOWN is never RED and never GREEN.
  */
-export function judgeDefect(defect, cases, records = [], revision, reach = []) {
+export function judgeDefect(defect, cases, records = [], revision) {
   const o = cases.map((c) => caseOutcome(c, records, revision));
-  const greens = records.filter((r) => cases.includes(r.case) && r.revision === revision && r.outcome === 'GREEN');
-  const uncovered = reach.filter((part) => !greens.some((r) => (r.covers ?? []).some((c) => covers(c, part))));
-  const state = o.includes('RED') ? 'confirmed' : o.length && o.every((x) => x === 'GREEN') && reach.length && !uncovered.length ? 'answered' : 'unknown';
-  return { id: defect, state, cases: cases.map((c, i) => ({ case: c, outcome: o[i] })), reached: reach.length > 0, uncovered };
+  const state = o.includes('RED') ? 'confirmed' : o.length && o.every((x) => x === 'GREEN') ? 'answered' : 'unknown';
+  return { id: defect, state, cases: cases.map((c, i) => ({ case: c, outcome: o[i] })) };
 }
 
 /**
@@ -41,7 +33,7 @@ export function judgeDefect(defect, cases, records = [], revision, reach = []) {
  * A Defect record is authoritative: the inventory is every record found, and there is no second list of them.
  */
 export function readTree(places) {
-  const defects = new Map(); // id -> { context, reach }
+  const defects = new Map(); // id -> { context }
   const addressedBy = new Map(); // defect id -> [contexts of the Architecture elements that address it]
   const pointing = new Map(); // defect id -> [case ids]
   const walk = (d, each) => {
@@ -60,7 +52,7 @@ export function readTree(places) {
     for (const n of dir && existsSync(dir) ? readdirSync(dir) : []) {
       if (!n.endsWith('.md')) continue;
       const t = readFileSync(join(dir, n), 'utf8'); const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
-      if (id) defects.set(id, { context, reach: (t.match(/^reach:\s*(.+?)\s*$/m)?.[1] ?? '').split(',').map((x) => x.trim()).filter(Boolean) });
+      if (id) defects.set(id, { context });
     }
     for (const dir of architecture) if (existsSync(dir)) walk(dir, (p, n) => {
       if (!n.endsWith('.md')) return;
@@ -76,11 +68,9 @@ export function readTree(places) {
 export function report(tree, records, revision) {
   const out = [];
   for (const [id] of [...tree.defects].sort()) {
-    const j = judgeDefect(id, tree.pointing.get(id) ?? [], records, revision, tree.defects.get(id).reach);
+    const j = judgeDefect(id, tree.pointing.get(id) ?? [], records, revision);
     out.push(`${j.state} ${id}`);
     for (const c of j.cases) out.push(`  ${c.case} ${c.outcome}`); // each Case's own outcome stays beside the derived state
-    if (!j.reached) out.push('  reach unclaimed');
-    for (const part of j.uncovered) out.push(`  uncovered ${part}`); // a claimed part no GREEN Case covers: it counts toward unknown
   }
   return out;
 }
@@ -93,7 +83,7 @@ export function report(tree, records, revision) {
 export function toFix(tree, records, revision) {
   const g = {};
   for (const [id, d] of tree.defects) {
-    if (judgeDefect(id, tree.pointing.get(id) ?? [], records, revision, d.reach).state === 'answered') continue;
+    if (judgeDefect(id, tree.pointing.get(id) ?? [], records, revision).state === 'answered') continue;
     for (const o of tree.addressedBy.get(id) ?? [d.context]) (g[o] ??= []).push(id);
   }
   return g;
