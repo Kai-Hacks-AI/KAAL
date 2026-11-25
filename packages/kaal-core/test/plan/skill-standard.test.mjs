@@ -168,6 +168,19 @@ describe("Skill standard (core/C52)", () => {
       assert.equal(JSON.parse(copy(651, "kaal-x").stdout).ratchet, "grew");
       assert.equal(JSON.parse(copy(650, "kaal-y").stdout).ratchet, "new", "a copy of a Skill with no entry is new, never given an entry of its own");
       assert.equal(copy(650, "kaal-y").status, 1);
+      const withVariant = baseline({ "kaal-x": { owner: "x", words: 650, variants: { external: 620 } } });
+      const variant = (n, id = "external") => run(skillDir(n), withVariant, "--variant", id);
+      assert.equal(variant(620).status, 0, "a declared variant is known at its own recorded words");
+      assert.equal(JSON.parse(variant(620).stdout).ratchet, "known");
+      const regress = variant(621);
+      assert.equal(regress.status, 1, "a variant above its own words grew, though it is still below the Skill's");
+      assert.equal(JSON.parse(regress.stdout).ratchet, "grew");
+      assert.equal(variant(650).status, 1, "and never grows up to the Skill's allowance");
+      assert.equal(JSON.parse(variant(610).stdout).ratchet, "stale", "below its own words the entry is stale: only shrinking is allowed");
+      assert.equal(variant(610).status, 1);
+      assert.equal(JSON.parse(variant(620, "other").stdout).ratchet, "new", "a variant the baseline does not name is new");
+      assert.equal(run(skillDir(620), withVariant, "--variant", "external", "--instance").status, 2, "an instance cannot be both a copy and a variant");
+      assert.equal(run(skillDir(620), baseline({ "kaal-x": { owner: "x", words: 650, variants: { external: "620" } } }), "--variant", "external").status, 2, "a variant that is not a number is an unreadable baseline");
     } finally {
       for (const d of made) rmSync(d, { recursive: true, force: true });
     }
