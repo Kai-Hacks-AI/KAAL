@@ -7,7 +7,7 @@ The planned outer tests live in `packages/kaal-core/test/plan/skill-standard.tes
 | core/T103: the size levels change exactly at 200, 400 and 600 words, and the count is the same with CRLF | core/F93, core/A49 | Requirements |
 | core/T104: a warning carries rule ids that exist, always the three remedies and never trimming, and only `hard` blocks | core/F94, core/A49, core/N26 | Requirements |
 | core/T105: a Skill needs one top-level entry, and nothing but `SKILL.md`, `references/`, `scripts/` and `assets/` sits at the top | core/F95, core/A50 | Requirements |
-| core/T106: `kaal skill check` exits 1 on `hard` or a layout finding and 0 on the other levels, and judges the same files alike wherever they come from | core/F96, core/A51, core/N25 | Architecture |
+| core/T106: `kaal skill check` exits 1 on `hard` or a layout finding, 0 on the other levels and 2 when it cannot judge, prints the verdict as data with `--json`, and judges the same files alike wherever they come from | core/F96, core/A51, core/N25 | Architecture |
 | core/T107: the payload carries a `Skill Standard` Definition typed by `KAAL Definition`, and the foundational Nodes are unchanged | core/F92, core/A48 | Requirements |
 
 ## RED evidence

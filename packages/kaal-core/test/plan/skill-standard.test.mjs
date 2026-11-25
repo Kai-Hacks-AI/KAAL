@@ -33,7 +33,7 @@ function make(files) {
   return dir;
 }
 
-const check = (dir) => spawnSync(process.execPath, [CLI, "skill", "check", dir], { encoding: "utf8" });
+const check = (dir, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, ...flags], { encoding: "utf8" });
 
 describe("Skill standard (core/C52)", () => {
   it("core/T103 [core/F93, core/A49]: the size levels change exactly at 200, 400 and 600 words, and the count is the same with CRLF", async () => {
@@ -89,6 +89,15 @@ describe("Skill standard (core/C52)", () => {
       assert.equal(run({ "SKILL.md": words(601) }).status, 1, "hard blocks");
       assert.equal(run({ "SKILL.md": words(50), "README.md": "x" }).status, 1, "a layout finding blocks");
       assert.equal(run({ "references/a.md": "x" }).status, 1, "no entry blocks");
+      assert.equal(check(join(tmpdir(), "kaal-no-such-skill-dir")).status, 2, "a directory it cannot judge is unknown, never clean");
+      const data = JSON.parse(check(dirs[dirs.length - 1], "--json").stdout);
+      assert.equal(data.level, "ok", "--json prints the verdict as data");
+      const hard = make({ "SKILL.md": words(650), "x.md": "x" });
+      dirs.push(hard);
+      const verdict = JSON.parse(check(hard, "--json").stdout);
+      assert.equal(verdict.level, "hard");
+      assert.equal(verdict.warning.blocks, true);
+      assert.deepEqual(verdict.findings.map((f) => f.path), ["x.md"]);
       const a = run({ "SKILL.md": words(450), "references/r.md": "r" });
       const b = run({ "SKILL.md": words(450), "references/r.md": "r" });
       assert.equal(a.status, b.status);
