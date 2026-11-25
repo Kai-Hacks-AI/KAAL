@@ -18,7 +18,7 @@ A Defect is what a Control is in the way that matters here: what it is about is 
 | --- | --- | --- |
 | The edge | the Case's first line `// Case <id> tests: <control id>` | the Case's first line `// Case <id> tests: <defect id>` |
 | What it is about | free text (the declaration) | free text (the description, `expected`, `observed`) |
-| Evidence | records `{case, x, run, outcome}`, outcome GREEN, RED or UNKNOWN as a runner reports it | records `{case, run, revision, outcome}`, the same outcomes |
+| Evidence | records `{case, x, run, outcome}`, outcome GREEN, RED or UNKNOWN as a runner reports it | records `{case, run, revision, outcome, complete}`, the same outcomes, and `complete` where the runner says the run observed everything that should count |
 | Judged by | the package's own judge over the records | the package's own judge over the records |
 | Who runs the Cases | the repository that uses the package (Testing's runner) | the same: Testing |
 
@@ -53,7 +53,7 @@ Three dimensions stay separate:
 | | |
 | --- | --- |
 | **Suppliers** | Review (the finding, and where it was found); Testing (the Cases and the records of their runs); Architecture (the `addresses:` of its elements, and so the functional placement of the correction); Hosting (reading files) |
-| **Inputs** | the Defect records, the Architecture elements and the Cases at the places the caller hands over; records `{case, run, revision, outcome}`; the revision judged |
+| **Inputs** | the Defect records, the Architecture elements and the Cases at the places the caller hands over; records `{case, run, revision, outcome, complete}`; the revision judged |
 | **Process** | discover the Defect records; derive each state from the records of its Cases; list the unresolved inventory |
 | **Outputs** | per Defect `<state> <defect>` with each Case's own outcome beside it; the unresolved inventory |
 | **Customers** | planning, which takes the unresolved inventory as input; the consumer or integration gate, which owns every policy decision |
