@@ -7,11 +7,12 @@ On `main`, `kaal-testing run <Case file>` for a Case in the export form (`export
 ## PLAN
 
 1. Place `I49.md`, `F174.md` and `A60.md` (drafts in `interface.md`) in the DO, with the change in `lib/run.mjs` and a bootstrap the child imports; `reconstruct`, `observe` and the report schema stay as they are.
-2. Cases `testing/T402` to `testing/T406`, plain `.test.mjs` files in their destination folders (the `C30` and `C80` precedent), RED on this PLAN tree and GREEN in place in the DO:
+2. Cases `testing/T402` to `testing/T407`, plain `.test.mjs` files in their destination folders (the `C30` and `C80` precedent), RED on this PLAN tree and GREEN in place in the DO:
    - `T402` (`testing/I49`), `T403` (`testing/F174`), `T404` (`testing/A60`): each file equals its draft.
    - `T405` (`testing/F174`): `runCases` over fixture Cases reads an export-form Case that returns as one GREEN test under its own file, a `run()` that throws an assertion error as RED, a `run()` that throws a `TypeError` as UNKNOWN (never RED), and `execution.complete` stays true for the first.
    - `T406` (`testing/F174`): unchanged behaviour and the edges: a node:test file still reports its tests, a file with neither still has `empty-inventory`, `export const run = 42` is not executed (`empty-inventory`), a file with node:test tests and a callable `run` reports both, and a file with a syntax error is `file-failed`.
-3. Evidence: `T402` to `T406` RED on this tree, GREEN on a throwaway DO, and the same fixtures giving the report above on `main` versus the DO.
+   - `T407` (`testing/F174`): the consumer contract end to end, not report assertions alone. Fixture Cases under one root: `collectCases` lists them, `runCases` runs them (short timeout), `observeCases` reads the report against that catalog and the judged revision. A returning export-form Case is `GREEN` with no reason and `catalog.complete`; an assertion failure is `RED`; a `TypeError`, a Case that never ends (timeout), an unimportable file and a cataloged file left out of the run are each `UNKNOWN` and never `GREEN`; the same report observed against another expected revision, or with no run id, is `UNKNOWN` for every Case.
+3. Evidence: `T402` to `T407` RED on this tree, GREEN on a throwaway DO, and the same fixtures giving the report above on `main` versus the DO.
 
 ## Order and overlap
 
@@ -22,7 +23,7 @@ On `main`, `kaal-testing run <Case file>` for a Case in the export form (`export
 
 ## Ids
 
-Change `testing/C81`, Intent `testing/I49`, Requirement `testing/F174`, Architecture `testing/A60`, Cases `testing/T402` to `testing/T406`. The ids are taken by hand and need the release capability's confirmation; on a clash the newer PR renumbers.
+Change `testing/C81`, Intent `testing/I49`, Requirement `testing/F174`, Architecture `testing/A60`, Cases `testing/T402` to `testing/T407`. The ids are taken by hand and need the release capability's confirmation; on a clash the newer PR renumbers.
 
 ## Risk for the DO
 

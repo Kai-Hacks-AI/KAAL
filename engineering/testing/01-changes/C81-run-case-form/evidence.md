@@ -17,9 +17,10 @@
 | `testing/T404` | `testing/A60` | RED: `A60.md is absent` |
 | `testing/T405` | `testing/F174` | RED: `a returning run() is one test under its own file` |
 | `testing/T406` | `testing/F174` | RED: `a file with node:test tests and a callable run reports both` |
+| `testing/T407` | `testing/F174` | RED: `a returning export-form Case is GREEN end to end` |
 
-5 RED by assertion, 0 GREEN, 0 import or syntax errors.
+6 RED by assertion, 0 GREEN, 0 import or syntax errors.
 
 ## 3. Throwaway DO
 
-With the three drafts placed in `10-intent`, `11-requirements` and `12-architecture` (`KAAL_TESTING_DIR`), `T402` to `T404` are GREEN. `T405` is GREEN with a prototype of the runner change; `T406` and the existing `testing/C63` Cases are the DO's obligation (see the risk in `change.md`).
+With the three drafts placed in `10-intent`, `11-requirements` and `12-architecture` (`KAAL_TESTING_DIR`), `T402` to `T404` are GREEN. `T405` and `T407` (end to end through `observe`) are GREEN with a prototype of the runner change; `T406` and the existing `testing/C63` Cases are the DO's obligation (see the risk in `change.md`).
