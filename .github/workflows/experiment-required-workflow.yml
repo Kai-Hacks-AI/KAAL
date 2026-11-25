@@ -1,7 +1,7 @@
 name: Experiment required workflow
 # Disposable experiment (defect): is a workflow required by an organization ruleset enforced for this public repository?
 # Not wired anywhere; delete this branch when the experiment ends.
-# Phase B (follow-up): fails on purpose to see whether a failing required workflow blocks the merge.
+# Phase C (follow-up): passes again; also runs in merge groups.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -12,6 +12,4 @@ jobs:
     name: Experiment required workflow
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo "required workflow FAILS on purpose (phase B)"
-          exit 1
+      - run: echo "required workflow ran (phase C); this is an experiment, not an attestation"
