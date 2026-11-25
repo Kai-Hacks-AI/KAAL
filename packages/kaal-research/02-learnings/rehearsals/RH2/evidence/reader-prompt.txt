@@ -1,0 +1,3 @@
+You are working in the directory R (given below). Work only inside R: do not read or list anything outside it. R holds one rehearsal record, RH1.md, and the evidence files it names. Someone with a different setup (another agent, model or harness) wants to rerun that trial from this record alone, to check or challenge its result. Do not run anything.
+
+Reply with three parts: (1) the steps you would carry out to rerun it, numbered, in order, as concretely as the record lets you; (2) each point where you would have to guess or ask for something the record does not give, naming what is missing; (3) whether you could start the first run right now, yes or no, and why. Also list which files you opened.
