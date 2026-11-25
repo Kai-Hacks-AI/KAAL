@@ -166,42 +166,104 @@ describe("Skill standard (core/C52)", () => {
     }
   });
 
-  it("core/T109 [core/F99, core/A53, core/N26]: a deployed instance is judged under its canonical's name: an identical copy passes as it does, a differing copy blocks and names the paths, a declared variant is held to the entry as a ceiling and is never stale, above it or without an entry it blocks, and --variant alone is unknown", async () => {
-    await skill();
+  /** Shared set-up for the instance Cases: a baseline, a runner, and directories removed afterwards. */
+  const instances = () => {
     const made = [];
     const mk = (files, name = "kaal-x") => { const d = make(files, name); made.push(d); return d; };
-    const baseline = (obj) => { const d = mkdtempSync(join(tmpdir(), "kaal-skill-baseline-")); made.push(d); const f = join(d, "baseline.json"); writeFileSync(f, JSON.stringify(obj)); return f; };
-    const at = baseline({ "kaal-x": { owner: "x", words: 650 } });
+    const json = (obj) => { const d = mkdtempSync(join(tmpdir(), "kaal-skill-json-")); made.push(d); const f = join(d, "f.json"); writeFileSync(f, JSON.stringify(obj)); return f; };
+    const at = json({ "kaal-x": { owner: "x", words: 650 } });
     const run = (dir, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, "--baseline", at, "--json", ...flags], { encoding: "utf8" });
+    return { mk, json, run, done: () => { for (const d of made) rmSync(d, { recursive: true, force: true }); } };
+  };
+
+  it("core/T109 [core/F99, core/F100, core/A53, core/A54]: a deployed instance is judged under its canonical's name as a ceiling and never stale; an identical copy passes, a differing copy blocks and names the paths; a variant passes only when the owner's declaration lists it, is unauthorized when another owner declared it and undeclared when its id is missing, an instance never declares itself, and a missing option is unknown", async () => {
+    await skill();
+    const { mk, json, run, done } = instances();
     try {
       const canonical = mk({ "SKILL.md": words(650), "references/a.md": "a\n" });
-      const copy = mk({ "SKILL.md": words(650), "references/a.md": "a\n" });
-      const same = run(copy, "--of", canonical);
-      assert.equal(same.status, 0, "an identical copy has the canonical's verdict, known at its entry");
+      const same = run(mk({ "SKILL.md": words(650), "references/a.md": "a\n" }), "--of", canonical);
+      assert.equal(same.status, 0, "an identical copy has the canonical's verdict");
       assert.equal(JSON.parse(same.stdout).instance, "identical");
-      const drift = mk({ "SKILL.md": words(650), "references/a.md": "changed\n" });
-      const differs = run(drift, "--of", canonical);
-      assert.equal(differs.status, 1, "a copy that differs blocks, however few words it has");
-      const out = JSON.parse(differs.stdout);
-      assert.equal(out.instance, "differs");
-      assert.deepEqual(out.differs, ["references/a.md"], "the differing paths are data");
-      const crlf = mk({ "SKILL.md": words(650, "\r\n"), "references/a.md": "a\n" });
-      assert.equal(JSON.parse(run(crlf, "--of", canonical).stdout).instance, "differs", "exact bytes: line endings count");
-      const smaller = mk({ "SKILL.md": words(300) });
-      const variant = run(smaller, "--of", canonical, "--variant");
-      assert.equal(variant.status, 0, "a declared variant below the canonical's allowance passes, and its entry is not stale for it");
-      assert.notEqual(JSON.parse(variant.stdout).ratchet, "stale");
-      assert.equal(run(mk({ "SKILL.md": words(650) }), "--of", canonical, "--variant").status, 0, "a variant at the ceiling is known");
-      const over = run(mk({ "SKILL.md": words(651) }), "--of", canonical, "--variant");
-      assert.equal(over.status, 1, "a variant above the canonical's allowance blocks");
+      const differs = run(mk({ "SKILL.md": words(650), "references/a.md": "changed\n" }), "--of", canonical);
+      assert.equal(differs.status, 1, "a copy that differs blocks");
+      assert.deepEqual(JSON.parse(differs.stdout).differs, ["references/a.md"], "the differing paths are data");
+      assert.equal(JSON.parse(run(mk({ "SKILL.md": words(650, "\r\n"), "references/a.md": "a\n" }), "--of", canonical).stdout).instance, "differs", "exact bytes: line endings count");
+
+      const declared = json({ "kaal-x": { owner: "x", variants: { external: { transformation: "External wording" } } } });
+      const other = json({ "kaal-x": { owner: "y", variants: { external: { transformation: "External wording" } } } });
+      const variant = (words_, ...flags) => run(mk({ "SKILL.md": words(words_) }), "--of", canonical, "--as", "variant", ...flags);
+      const ok = variant(300, "--owner", "x", "--declared", declared, "--id", "external");
+      assert.equal(ok.status, 0, "an owner-declared variant below the canonical's allowance passes, and its entry is not stale for it");
+      assert.notEqual(JSON.parse(ok.stdout).ratchet, "stale");
+      assert.equal(variant(650, "--owner", "x", "--declared", declared, "--id", "external").status, 0, "a declared variant at the ceiling is known");
+      const over = variant(651, "--owner", "x", "--declared", declared, "--id", "external");
+      assert.equal(over.status, 1, "a declared variant above the canonical's allowance blocks");
       assert.equal(JSON.parse(over.stdout).ratchet, "grew");
-      const nobase = spawnSync(process.execPath, [CLI, "skill", "check", mk({ "SKILL.md": words(650) }), "--of", canonical, "--variant", "--baseline", baseline({}), "--json"], { encoding: "utf8" });
-      assert.equal(nobase.status, 1, "a hard variant whose canonical has no entry is new and blocks");
-      assert.equal(JSON.parse(nobase.stdout).ratchet, "new");
-      assert.equal(run(copy, "--variant").status, 2, "--variant without --of cannot be judged");
-      assert.equal(run(copy, "--of", join(tmpdir(), "kaal-no-such-canonical")).status, 2, "a missing canonical cannot be judged");
-    } finally {
-      for (const d of made) rmSync(d, { recursive: true, force: true });
-    }
+      const foreign = variant(300, "--owner", "x", "--declared", other, "--id", "external");
+      assert.equal(foreign.status, 1, "a declaration by another capability is not the owner's");
+      assert.equal(JSON.parse(foreign.stdout).variant, "unauthorized");
+      const missing = variant(300, "--owner", "x", "--declared", declared, "--id", "elsewhere");
+      assert.equal(missing.status, 1, "an id the owner did not declare blocks");
+      assert.equal(JSON.parse(missing.stdout).variant, "undeclared");
+      const selfDeclared = run(mk({ "SKILL.md": words(300), "variant.json": "{}" }), "--of", canonical, "--as", "variant", "--owner", "x", "--declared", declared, "--id", "external");
+      assert.equal(selfDeclared.status, 1, "a file in the instance is a layout finding, never a declaration");
+      assert.equal(variant(300, "--owner", "x", "--id", "external").status, 2, "no declaration: cannot be judged");
+      assert.equal(variant(300, "--declared", declared, "--id", "external").status, 2, "no owner: cannot be judged");
+      assert.equal(run(canonical, "--as", "variant", "--owner", "x", "--declared", declared, "--id", "external").status, 2, "a variant of nothing: cannot be judged");
+      assert.equal(run(canonical, "--of", join(tmpdir(), "kaal-no-such-canonical")).status, 2, "a missing reference cannot be judged");
+    } finally { done(); }
+  });
+
+  it("core/T110 [core/F101, core/A54, core/I33]: content under .kaal/ is installed content: it must equal the published artifact of the given version exactly (an altered file blocks and is named), is compared with that version and not another, cannot be judged without the artifact or its version or under another role, and is still held to the standard", async () => {
+    await skill();
+    const { mk, run, done } = instances();
+    const root = mkdtempSync(join(tmpdir(), "kaal-skill-installed-"));
+    const installed = (files) => { const d = join(root, ".kaal", "kaal-x"); rmSync(d, { recursive: true, force: true }); mkdirSync(d, { recursive: true }); for (const [path, text] of Object.entries(files)) { mkdirSync(join(d, path, ".."), { recursive: true }); writeFileSync(join(d, path), text); } return d; };
+    try {
+      const v1 = mk({ "SKILL.md": words(300), "references/a.md": "one\n" });
+      const v2 = mk({ "SKILL.md": words(300), "references/a.md": "two\n" });
+      const dir = installed({ "SKILL.md": words(300), "references/a.md": "one\n" });
+      const good = run(dir, "--as", "installed", "--of", v1, "--version", "1.0.0");
+      assert.equal(good.status, 0, "installed content equal to its published version passes");
+      assert.equal(JSON.parse(good.stdout).provenance.version, "1.0.0", "the result names the version compared");
+      const wrongVersion = run(dir, "--as", "installed", "--of", v2, "--version", "2.0.0");
+      assert.equal(wrongVersion.status, 1, "compared with another published version, it is altered: like with like");
+      assert.deepEqual(JSON.parse(wrongVersion.stdout).differs, ["references/a.md"]);
+      const altered = installed({ "SKILL.md": words(300), "references/a.md": "one\n", "references/extra.md": "local\n" });
+      const bad = run(altered, "--as", "installed", "--of", v1, "--version", "1.0.0");
+      assert.equal(bad.status, 1, "a file the published artifact does not have is an alteration");
+      assert.equal(JSON.parse(bad.stdout).instance, "altered");
+      assert.deepEqual(JSON.parse(bad.stdout).differs, ["references/extra.md"]);
+      installed({ "SKILL.md": words(300), "references/a.md": "one\n" });
+      assert.equal(run(dir).status, 2, "installed content with no published artifact cannot be judged, never clean");
+      assert.equal(run(dir, "--as", "installed", "--of", v1).status, 2, "no version: cannot be judged");
+      assert.equal(run(dir, "--of", v1, "--version", "1.0.0").status, 0, "under .kaal/ the role is installed without being named");
+      assert.equal(run(dir, "--as", "development", "--of", v1, "--version", "1.0.0", "--source", "engineering@1.1.0").status, 2, ".kaal/ is never a development version");
+      const big = mk({ "SKILL.md": words(700) }); const bigInstalled = installed({ "SKILL.md": words(700) });
+      const over = run(bigInstalled, "--as", "installed", "--of", big, "--version", "0.9.0");
+      assert.equal(over.status, 1, "an installed published version above the allowance still blocks: no allowance of its own");
+      assert.equal(JSON.parse(over.stdout).ratchet, "grew");
+    } finally { done(); rmSync(root, { recursive: true, force: true }); }
+  });
+
+  it("core/T111 [core/F102, core/A53, core/I34]: a development version is judged as a canonical in full, its differences from the published version are reported as data naming both sources and never block by themselves, and it cannot be judged without them", async () => {
+    await skill();
+    const { mk, run, done } = instances();
+    try {
+      const published = mk({ "SKILL.md": words(300), "references/a.md": "one\n" });
+      const dev = mk({ "SKILL.md": words(650), "references/a.md": "two\n" });
+      const r = run(dev, "--as", "development", "--of", published, "--version", "1.0.0", "--source", "engineering@1.1.0");
+      assert.equal(r.status, 0, "a difference alone is no violation");
+      const out = JSON.parse(r.stdout);
+      assert.deepEqual(out.compared, { development: "engineering@1.1.0", published: "1.0.0" }, "both sides are named");
+      assert.deepEqual(out.differs, ["SKILL.md", "references/a.md"], "the differences are reported as data");
+      const grew = run(mk({ "SKILL.md": words(651) }), "--as", "development", "--of", published, "--version", "1.0.0", "--source", "engineering@1.1.0");
+      assert.equal(grew.status, 1, "a development version is no waiver of the ratchet");
+      assert.equal(JSON.parse(grew.stdout).ratchet, "grew");
+      const stale = run(mk({ "SKILL.md": words(640) }), "--as", "development", "--of", published, "--version", "1.0.0", "--source", "engineering@1.1.0");
+      assert.equal(JSON.parse(stale.stdout).ratchet, "stale", "judged as a canonical: the entry is retired when it shrinks");
+      assert.equal(run(dev, "--as", "development", "--of", published, "--source", "engineering@1.1.0").status, 2, "no published version: cannot be judged");
+      assert.equal(run(dev, "--as", "development", "--of", published, "--version", "1.0.0").status, 2, "no development source: cannot be judged");
+    } finally { done(); }
   });
 });

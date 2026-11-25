@@ -7,7 +7,8 @@ Each element names, in brackets, the Requirements it answers.
 - **core/A50** [core/F95]: `judgeLayout(paths)` is pure over relative paths and returns findings `{ rule, path }`. The caller lists the directory, so Core stays free of I/O.
 - **core/A51** [core/F96, core/N25, core/N26]: `kaal skill check <dir>` is the one place that reads a directory, through Hosting, and calls the pure functions. It is the mechanism Controls, WIRE or CI run, and it is the same call on both deployment paths.
 - **core/A52** [core/F97, core/N26]: The ratchet is a filter in front of the verdict, as Controls' ratchet strategy builds it: the check emits `hard` and the filter subtracts the baseline. Core supplies the comparison for this one rule and reads the baseline as data, keyed by the canonical Skill's name and carrying its owner. Where the baseline file lives, who accepts a change to it and how a run reads the last accepted one from the base branch are the gate's. Release proposed owning that gate.
-- **core/A53** [core/F99, core/N25, core/N26]: Identity is the Skill's name, the directory name agentskills.io requires `name` to equal; ownership is the baseline entry's `owner`. `kaal skill check --of` adds one pure comparison, `compareTrees(canonicalFiles, instanceFiles)`, which returns `identical` or the differing paths. Core says what differs. Whether an instance is a copy or a declared variant is the owner's declaration (Guard's, for its template, as `guard/C105` plans), passed by the gate as `--variant`. Core never infers it from a path or a name.
+- **core/A53** [core/F99, core/F102, core/N25, core/N26]: Identity is the Skill's name, the directory name agentskills.io requires `name` to equal. `compareTrees(referenceFiles, instanceFiles)` is the one pure comparison: it returns the differing paths, by SHA-256 of the exact bytes. Core says what differs and what the verdict is for the role it was given; it infers no role from a name, and its only look at a path is that a `.kaal/` location is installed content (`core/F101`).
+- **core/A54** [core/F100, core/F101, core/N26]: Who declares and who supplies. The owning capability authors the variant declaration in its own package, and the gate passes it with `--owner`, derived from where the canonical lives, never from where the instance is. The published artifact is supplied by the gate from the registry for the version the installation record names; Core compares it and records its version, and Hosting's installation record is where `.kaal/` content says which version it is. Core reads no registry and no record itself.
 
 ## Options considered
 
@@ -45,6 +46,18 @@ The five canonical Skills with entries are not five times as many Skills as the 
 
 The template is a variant of the canonical `kaal-guard`. It is not a second Skill, so it has no baseline entry. It is held to the canonical's allowance: 700 is at or below 858 and passes, and if the canonical shrinks below it, the template blocks as `grew` until its derivation follows. A copy in `.kaal/`, `.agents/skills/` or `.claude/skills/` must be identical to its canonical, and a copy that differs blocks as `differs`. Its words never earn it an allowance. `core/F99` and `core/T109` carry this.
 
+## Ownership, `.kaal/` and development versions (CPO clarification, 25 Nov)
+
+| Location | What it holds | Compared with | A difference is |
+| --- | --- | --- | --- |
+| Owning package, published | The published artifact of a version | nothing; it is the reference | not applicable |
+| `.kaal/` | Installed content of one published version, strictly | that exact published artifact (`core/F101`) | `altered`, blocking, always |
+| Engineering, development | A development version of the Skill | the published version it is shown against (`core/F102`) | reported, never blocking by itself |
+| `.agents/skills/`, `.claude/skills/` | A deployed copy | its reference (`core/F99`) | `differs`, blocking |
+| An owner-declared variant, such as Guard's External template | The owner's derivation | the canonical, under the owner's declaration (`core/F100`) | allowed when declared, `unauthorized` or `undeclared` otherwise |
+
+Every row meets the standard and the ratchet's ceiling. A development version meets them as a canonical, including `stale`. Nothing in this table can declare a variant except the owning capability, and an instance's own content is never read as a declaration.
+
 ## Decided by the Owner (25 Nov, review of this PLAN)
 
 1. Hard blocking is active, with a named shrink-only ratchet and a body-only baseline. No new violations or growth.
@@ -56,8 +69,8 @@ The template is a variant of the canonical `kaal-guard`. It is not a second Skil
 ## Open for confirmation
 
 - **The baseline's home.** Release proposed owning the gate and the baseline. This PLAN takes that and keeps Core out of it (`core/A52`).
-- **Where a declared variant is recorded.** `--variant` is passed by the gate from the owner's declaration. Guard's `guard/C105` declares the transformation for its template; until then the gate holds the template as a declared variant by name. Where the declaration lives is the owner's and Release's.
-- **Version skew.** A copy in `.kaal/` is the published version N, and Engineering's source is N+1, so they legitimately differ. The gate compares each instance with the canonical of the same version, the base branch's for a WIRE. Core compares what it is given.
+- **Old published versions above a shrunk allowance.** An installed instance is exactly its published version, and an instance has no allowance of its own. So an old published version of `kaal-guard` above the current allowance blocks as `grew`, and above 600 with no entry blocks as `new`. The consequence is that `.kaal/` may only hold published versions that meet the current allowance, until the capability publishes one that does. The CPO's rulings say this follows; it is stated here so the gate's timing is planned.
+- **Where the declaration and the registry copy come from.** The owner's declaration lives in the owner's package. Guard's `guard/C105` declares the transformation for its template. The gate and Hosting supply the published artifact. Both are agreed with Release and Hosting before the DO.
 
 ## Who confirms what
 
