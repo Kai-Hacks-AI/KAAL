@@ -44,6 +44,7 @@ export function compareClaims({ id, claimed, facts } = {}) {
 // The one fact the adapter can show: running. A committed record is a claim, not proof of its own authenticity,
 // so a record counts only when it is valid and complete and the adopter has independently established the run.
 export function executed({ id, records, revision, established } = {}) {
+  if (!text(id) || !text(revision)) throw new Error('executed: id and revision must be non-empty strings');
   if (!Array.isArray(records) || !Array.isArray(established)) throw new Error('executed: records and established must be lists');
   const proven = (r) => established.some((e) => e && e.control === id && e.run === r.run && e.sha === revision);
   const valid = (r) => r && r.control === id && r.x === 'real' && text(r.run) && r.sha === revision && VERDICTS.includes(r.verdict) && r.by === 'adapter';
