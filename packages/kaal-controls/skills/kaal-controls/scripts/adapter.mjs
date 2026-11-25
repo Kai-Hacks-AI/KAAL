@@ -10,15 +10,17 @@ const names = (v) => Array.isArray(v) && v.every((x) => typeof x === 'string') &
 export async function runControl({ id, mode, check, input, baseline, previous, boundary } = {}) {
   const b = boundary ?? {};
   let findings = null;
+  let confirmed = null;
   if (text(id) && MODES.includes(mode) && typeof check === 'function') {
-    try { findings = await check(input); } catch { findings = null; }
+    // A check that cannot judge everything may keep what it confirmed on the error it throws; the answer stays UNKNOWN.
+    try { findings = await check(input); } catch (e) { findings = null; if (names(e?.confirmed)) confirmed = e.confirmed; }
   }
   const judged = judgeMode({ mode, findings: names(findings) ? findings : null, baseline, previous });
   const verdict = text(id) ? judged.verdict : 'UNKNOWN';
   const blocked = !text(id) ? mode !== 'detective' : judged.blocked;
-  const log = { control: id, mode, verdict, findings: names(findings) ? findings.length : null, run: b.run ?? null, sha: b.sha ?? null };
+  const log = { control: id, mode, verdict, findings: names(findings) ? findings.length : null, run: b.run ?? null, sha: b.sha ?? null, ...(confirmed ? { confirmed: confirmed.length } : {}) };
   const record = text(b.x) && text(b.run) && text(b.sha) && text(id) ? { control: id, x: b.x, run: b.run, sha: b.sha, verdict, by: 'adapter' } : null;
-  return { ...judged, id, mode, verdict, blocked, log, record };
+  return { ...judged, id, mode, verdict, blocked, log, record, ...(confirmed ? { confirmed } : {}) };
 }
 
 // Compares each declared claim with its own fact. The four facts are independent: none implies another.

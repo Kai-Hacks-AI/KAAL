@@ -8,7 +8,7 @@ A control is a pure check plus a declaration. Everything every control needs is 
 
 1. **Mode.** It applies the mode the caller resolved (detective, preventive or ratchet) to the findings. Which flag or ruleset chose the mode is the adopter's.
 2. **The ratchet filter.** In ratchet mode it applies the allowance, with the base's baseline and never the change's own.
-3. **Fail closed.** A check that throws, or returns something that is not a list of unique names, is unknown. Unknown never passes and no allowance filters it.
+3. **Fail closed.** A check that throws, or returns something that is not a list of unique names, is unknown. Unknown never passes and no allowance filters it. A check that confirmed some findings before it could not judge the rest keeps them on the error it throws, and the answer carries them beside the unknown.
 4. **One log line.** Control, mode, verdict, number of findings, run, revision. No date.
 5. **One record of the run.** Control, kind of run, run, revision, verdict, and `by: adapter`. A run that cannot say its run and revision leaves no record.
 
