@@ -2,13 +2,13 @@
 
 ## PLAN
 
-1. Add the gap G114, the Intent I1, the Requirements F1 to F4 and N1 and the Architecture A1 under `packages/kaal-defect/`. Their Test Cases T1210 to T1215 sit beside the element they test as `T<n>.red.mjs`.
+1. Add the gap G114, the Intent I1, the Requirements F1 to F4 and N1 and the Architecture A1 under `packages/kaal-defect/`. Their Test Cases T1210 to T1217 sit beside the element they test as `T<n>.red.mjs`.
 2. Observe the expected RED against `main` (`evidence.md`) and show that each Test Case can pass on a throwaway copy that holds `draft/`.
 3. The PLAN adds no package file: no `package.json`, no Skill, no script. `draft/` holds the intended Skill and script for review only.
 
 ## Ids
 
-Proposed, to be confirmed by the allocator: Change defect/C1, Intent defect/I1, Requirements defect/F1 to F4 and N1, Architecture defect/A1, Test Cases T1210 to T1215, gap G114.
+Proposed, to be confirmed by the allocator: Change defect/C1, Intent defect/I1, Requirements defect/F1 to F4 and N1, Architecture defect/A1, Test Cases T1210 to T1217, gap G114.
 
 ## Defect is like a Control
 
@@ -23,6 +23,10 @@ A Defect is what a Control is in the way that matters here: what it is about is 
 | Who runs the Cases | the repository that uses the package (Testing's runner) | the same: Testing |
 
 So Testing runs the Cases and makes the records. Defect judges records, runs nothing, and imports no Testing. A Defect lists no Test Case; today Hosting's records do (`tests`), which is the legacy copy of this edge.
+
+## Discovery is complete or says it is not
+
+The caller hands over locations; each is discovered or unavailable. An existing folder with no Defect is a verified empty inventory, and the run exits 0 with nothing to list. A location that is missing, not a folder or unreadable is reported as `incomplete <role> <path> (<reason>)` and the run exits 2: what was found is still reported, nothing unresolved is dropped, and no Defect is `answered` from a partial Case inventory (`unknown` instead), while a RED still confirms. A location the caller did not hand over is the caller's scope and no failure. T1216 shows the first, T1217 the second. No register and no list of locations is added.
 
 ## State, derived each time
 
