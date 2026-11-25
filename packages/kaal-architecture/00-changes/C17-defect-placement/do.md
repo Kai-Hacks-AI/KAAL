@@ -5,6 +5,8 @@
 - `lib/records.mjs`: the reference form accepts a Defect id, `<capability>/D<n>`, beside a Requirement id, so `checkAddresses` gives it the same verdicts (F17), and `addressing(id, records)` returns the records that address an id, in the order handed in, derived and never stored (F18). Nothing else changes: no new field, no new library, no import, no write.
 - The Cases T27 (F17), T28 (F18) and T29 (N3), `.red.mjs` renamed `.test.mjs` and moved beside their Requirement.
 
+- F18 and C17 say that a validated finding stays a Finding and a Defect is verified by a Test Case with reproducible evidence, as the Owner corrected on defect/C1 (#2113). The wording only: no mechanism changes.
+
 ## Refactor
 
 None. No A-record, Defect or Requirement of any package is read or changed, and no Control or gate is added. CARE, Born and Fixed are not recorded here (N3).
