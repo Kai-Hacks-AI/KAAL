@@ -21,6 +21,13 @@ export async function run() {
     ['history-removed', (x) => { x.head.history = undefined; }],
     ['history-removed', (x) => { x.head.history = H.slice(0, 2); }],
     ['history-removed', (x) => { x.head.history = [{ ...H[0], to: 9 }, H[1], H[2]]; }],
+    // A kept history that is not a sound chain proves no progress, however it ends.
+    ['history-invalid', (x) => { x.base.history = [H[0], { at: '2026-11-25T09:00Z', change: 'demo/C10', from: 5, to: 0, removed: ['a', 'b', 'c', 'd', 'e'] }]; x.head.history = x.base.history; }],
+    ['history-invalid', (x) => { x.base.history = [H[0], H[1], { ...H[2], removed: [] }]; x.head.history = x.base.history; }],
+    ['history-invalid', (x) => { x.base.history = [H[0], H[1], { ...H[2], change: '' }]; x.head.history = x.base.history; }],
+    ['history-invalid', (x) => { x.base.history = [H[0], H[2]]; x.head.history = x.base.history; }],
+    ['history-invalid', (x) => { x.base.history = [H[0], H[1], { ...H[2], at: '2026-11-01T09:00Z' }]; x.head.history = x.base.history; }],
+    ['history-invalid', (x) => { x.base.history = [H[0], 'done', H[2]]; x.head.history = x.base.history; }],
     ['history-incomplete', (x) => { x.base.history = H.slice(0, 2); x.head.history = H.slice(0, 2); }],
   ];
   for (const [reason, mut] of fails) { const r = c(mut); assert.equal(r.verdict, 'FAIL', reason + ' did not fail'); assert.equal(r.reason, reason, 'wrong reason: ' + r.reason + ' for ' + reason); }
