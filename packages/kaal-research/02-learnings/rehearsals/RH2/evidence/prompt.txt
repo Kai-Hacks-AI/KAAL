@@ -1,0 +1,5 @@
+You are working in the directory W (given below). Work only inside W: do not read or list anything outside it.
+
+W/materials/ holds the notes of a past trial: prompt.txt, setup.md, answers.md and scores.md. Write the rehearsal record of that trial as the file W/record/RH1.md, with the id core/RH1. Copy every evidence file the record names, unchanged, into W/record/evidence/ and compute each file's SHA-256 yourself. W/example/RH1.md is a record of another trial, for the shape. Use only what the notes hold; do not invent evidence.
+
+When you are done, reply with three things: the path of the record, which files you opened (list them), and anything you could not decide or had to guess.
