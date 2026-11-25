@@ -25,12 +25,12 @@ export interface Evidence {
   readonly unavailable?: boolean;
   readonly variants?: { readonly [id: string]: Variant };
 }
-/** An observed inventory (core/F111): the scope enumerated, every file found in it, a tree digest, and `complete: false` when unfinished. */
+/** An observed inventory (core/F111): the scope enumerated, every file found in it, a tree digest, and `complete: true`, which the observer states and Core never infers. */
 export interface Observed {
   readonly scope: readonly string[];
   readonly files: Digests;
   readonly treeDigest: string;
-  readonly complete?: boolean;
+  readonly complete: true;
 }
 export interface Ownership { readonly owner: string; readonly paths: readonly string[] }
 
@@ -114,7 +114,7 @@ export function verifyInstallation({ entity, version, comparison, evidence, obse
   const expected = sets[name];
   if (!expected) return unknown("unavailable");
   const o = observed;
-  if (!o || !Array.isArray(o.scope) || o.scope.length === 0 || o.complete === false || !isObject(o.files) || tree(o.files) !== o.treeDigest) return unknown("inventory");
+  if (!o || !Array.isArray(o.scope) || o.scope.length === 0 || o.complete !== true || !isObject(o.files) || tree(o.files) !== o.treeDigest) return unknown("inventory");
   if (Object.keys(o.files).some((p) => !covers(o.scope, p))) return unknown("inventory");
   const judge = (set: Digests) => ({
     missing: Object.keys(set).sort().filter((p) => !(p in o.files)),
@@ -146,14 +146,27 @@ interface ContractLike { readonly assets: readonly ContractAsset[] }
 /**
  * The expected set an Installation Contract states: each file asset's target with the SHA-256 of its source,
  * each directory asset's files under its target. A surface-gated asset is not Core's and is left out (core/F107).
- * `read` returns a source file's bytes, `list` the relative files under a directory source. Pure over them.
+ * `read` returns a source file's bytes, or `undefined` when it cannot be read; `list` the relative files under a
+ * directory source, or `undefined` when they cannot be enumerated. Either unavailable makes the whole set `null`,
+ * never a smaller set: an enumerated empty directory is verified empty, an unavailable one is not (core/F107). Pure over them.
  */
-export function expectedSet({ contract, read, list }: { contract: ContractLike; read: (source: string) => string | Uint8Array; list: (source: string) => readonly string[] | undefined }): Digests {
+export function expectedSet({ contract, read, list }: { contract: ContractLike; read: (source: string) => string | Uint8Array | undefined; list: (source: string) => readonly string[] | undefined }): Digests | null {
   const out: Record<string, string> = {};
   for (const a of contract.assets) {
     if (a.surface !== undefined) continue;
-    if (a.kind === "directory") for (const f of list(a.source) ?? []) out[`${a.target}/${f}`] = sha(read(`${a.source}/${f}`));
-    else out[a.target] = sha(read(a.source));
+    if (a.kind === "directory") {
+      const files = list(a.source);
+      if (files === undefined) return null;
+      for (const f of files) {
+        const bytes = read(`${a.source}/${f}`);
+        if (bytes === undefined) return null;
+        out[`${a.target}/${f}`] = sha(bytes);
+      }
+    } else {
+      const bytes = read(a.source);
+      if (bytes === undefined) return null;
+      out[a.target] = sha(bytes);
+    }
   }
   return out;
 }

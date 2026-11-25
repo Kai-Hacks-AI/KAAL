@@ -15,7 +15,7 @@ const source = (kind: string, files: Record<string, string>): Source => {
 const evidence = (files: Record<string, string>): Evidence => ({ establisher: { role: "gate", id: "g" }, sources: [source("package", files)] });
 const observed = (files: Record<string, string>, scope: string[] = ["."]): Observed => {
   const d = digests(files);
-  return { scope, files: d, treeDigest: tree(d) };
+  return { scope, files: d, treeDigest: tree(d), complete: true };
 };
 const verdict = (e: Evidence | undefined, o: Observed | undefined, extra = {}) => verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: e, observed: o, ...extra });
 
@@ -38,6 +38,12 @@ describe("installation integrity (core/C53)", () => {
     assert.equal(verdict(e, undefined).reason, "inventory");
     assert.equal(verdict(e, { scope: ["."], files: null, treeDigest: "" } as never).reason, "inventory");
   });
+  it("completeness is stated, never inferred", () => {
+    const o = observed({ a: "a" });
+    const { complete: _omitted, ...silent } = o;
+    assert.equal(verdict(evidence({ a: "a" }), silent as never).reason, "inventory");
+    assert.equal(verdict(evidence({ a: "a" }), o).status, "aligned");
+  });
   it("exit defaults to no enforcement", () => {
     assert.equal(exitStatus({ status: "differs" }), 0);
     assert.equal(exitStatus({ status: "unknown" }), 2);
@@ -50,9 +56,10 @@ describe("installation integrity (core/C53)", () => {
     ] };
     const read = (p: string) => p;
     const set = expectedSet({ contract, read, list: (p) => (p === "s/d" ? ["x", "y/z"] : undefined) });
-    assert.deepEqual(Object.keys(set), ["t/a", "t/d/x", "t/d/y/z"]);
-    assert.equal(set["t/d/y/z"], sha("s/d/y/z"));
+    assert.deepEqual(Object.keys(set ?? {}), ["t/a", "t/d/x", "t/d/y/z"]);
+    assert.equal(set?.["t/d/y/z"], sha("s/d/y/z"));
     assert.deepEqual(observationScope({ contract }), ["t/a", "t/d/"]);
-    assert.deepEqual(Object.keys(expectedSet({ contract, read, list: () => undefined })), ["t/a"], "an unlisted directory has no files");
+    assert.equal(expectedSet({ contract, read, list: () => undefined }), null, "an unavailable enumeration is not an empty directory");
+    assert.deepEqual(Object.keys(expectedSet({ contract, read, list: () => [] }) ?? {}), ["t/a"], "an enumerated empty directory is verified empty");
   });
 });
