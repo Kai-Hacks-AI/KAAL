@@ -9,14 +9,15 @@ const load = async (name) => { const f = join(scripts, name); assert.ok(existsSy
 export const id = 'controls/T1520';
 export const tests = ['controls/F209'];
 export const title = 'demand Record decides when a correction is due on the owning capability\'s next applicable pull request, relative to installation and evidence, never defers an overclaim, and never turns unknown into clean';
+const tm = (v, o = {}) => ['c/CTL1', 'c/CTL2', 'c/CTL3'].flatMap((control) => ['defined', 'implemented', 'running', 'tested'].map((fact) => ({ control, fact, revision: 's', followsEvidence: v, ...o })));
 const obs = (control, o = {}) => ({ control, revision: 's', installed: true, operationalEvidence: true, testing: 'operational', ...o });
 export async function run() {
   const { findRecordDue } = await load('demand-record.mjs');
   const owners = { 'c/CTL1': 'controls', 'c/CTL2': 'controls', 'c/CTL3': 'release' };
-  const due = (discrepancies, o = {}) => findRecordDue({ discrepancies, unknown: [], owners, pr: { capability: 'controls', followsEvidence: true }, observed: [obs('c/CTL1'), obs('c/CTL2'), obs('c/CTL3')], revision: 's', ...o });
+  const due = (discrepancies, o = {}) => findRecordDue({ discrepancies, unknown: [], owners, pr: { capability: 'controls' }, timing: tm(true), observed: [obs('c/CTL1'), obs('c/CTL2'), obs('c/CTL3')], revision: 's', ...o });
   assert.deepEqual(due(['running:lags:c/CTL1', 'tested:overclaims:c/CTL2']), ['record-due:running:lags:c/CTL1', 'record-due:tested:overclaims:c/CTL2'], 'a discrepancy on the owner\'s applicable pull request was not made due');
   // timing relative to installation and evidence, not installation alone
-  const early = { pr: { capability: 'controls', followsEvidence: false } };
+  const early = { timing: tm(false) };
   assert.deepEqual(due(['running:lags:c/CTL1'], early), [], 'an early pull request, before the evidence, made a post-WIRE lag due');
   assert.deepEqual(due(['running:lags:c/CTL1'], { observed: [obs('c/CTL1', { operationalEvidence: false }), obs('c/CTL2'), obs('c/CTL3')] }), [], 'installation alone made a post-WIRE lag due');
   assert.deepEqual(due(['running:lags:c/CTL1'], { observed: [obs('c/CTL1', { installed: false }), obs('c/CTL2'), obs('c/CTL3')] }), [], 'a lag of a control not installed was due');
@@ -24,13 +25,21 @@ export async function run() {
   assert.deepEqual(due(['tested:lags:c/CTL1'], { observed: [obs('c/CTL1', { installed: false, operationalEvidence: false }), obs('c/CTL2'), obs('c/CTL3')] }), [], 'operational testing was due before installation');
   assert.deepEqual(due(['defined:lags:c/CTL1', 'implemented:overclaims:c/CTL2'], { ...early, observed: [obs('c/CTL1', { installed: false }), obs('c/CTL2', { installed: false }), obs('c/CTL3')] }), ['record-due:defined:lags:c/CTL1', 'record-due:implemented:overclaims:c/CTL2'], 'a pre-WIRE discrepancy was deferred');
   assert.deepEqual(due(['running:overclaims:c/CTL1'], { ...early, observed: [obs('c/CTL1', { installed: false, operationalEvidence: false }), obs('c/CTL2'), obs('c/CTL3')] }), ['record-due:running:overclaims:c/CTL1'], 'a genuine overclaim was deferred because the control is not installed');
+  // mixed: two controls (and two facts) on the same owning pull request acquire their evidence at different times
+  const mixedTiming = tm(true).map((x) => (x.control === 'c/CTL2' ? { ...x, followsEvidence: false } : x));
+  assert.deepEqual(due(['running:lags:c/CTL1', 'running:lags:c/CTL2'], { timing: mixedTiming }), ['record-due:running:lags:c/CTL1'], 'one control that follows its evidence and one that does not were not told apart on the same pull request');
+  const mixedFacts = tm(true).map((x) => (x.control === 'c/CTL1' && x.fact === 'tested' ? { ...x, followsEvidence: false } : x));
+  assert.deepEqual(due(['running:lags:c/CTL1', 'tested:lags:c/CTL1'], { timing: mixedFacts }), ['record-due:running:lags:c/CTL1'], 'one fact that follows its evidence and one that does not were not told apart for the same control');
   // an unrelated capability's pull request
-  assert.deepEqual(due(['running:lags:c/CTL3'], { pr: { capability: 'controls', followsEvidence: true } }), [], 'an unrelated pull request made a correction due');
-  assert.deepEqual(due(['running:lags:c/CTL3'], { pr: { capability: 'release', followsEvidence: true } }), ['record-due:running:lags:c/CTL3'], 'the owner\'s pull request was not applicable');
+  assert.deepEqual(due(['running:lags:c/CTL3'], {}), [], 'an unrelated pull request made a correction due');
+  assert.deepEqual(due(['running:lags:c/CTL3'], { pr: { capability: 'release' } }), ['record-due:running:lags:c/CTL3'], 'the owner\'s pull request was not applicable');
   // unknown is never clean
   for (const [what, o] of Object.entries({
     'unknown evidence for an owned control': { unknown: ['running:c/CTL1'] },
-    'no followsEvidence': { pr: { capability: 'controls' } },
+    'no timing entry for the fact': { timing: tm(true).filter((x) => !(x.control === 'c/CTL1' && x.fact === 'running')) },
+    'timing of another revision': { timing: tm(true, { revision: 'other' }) },
+    'timing not a boolean': { timing: tm('yes') },
+    'no timing': { timing: undefined },
     'no owner': { owners: {} },
     'no observation': { observed: [obs('c/CTL2'), obs('c/CTL3')] },
     'observation of another revision': { observed: [obs('c/CTL1', { revision: 'other' }), obs('c/CTL2'), obs('c/CTL3')] },
