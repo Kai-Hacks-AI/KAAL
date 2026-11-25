@@ -186,6 +186,12 @@ describe("Installation integrity (core/C53)", () => {
     assert.equal(selectedBase.status, "differs", "a variant is no blanket exemption: the location was selected against the base");
     assert.equal(selectedBase.matches, "external", "and the result names the set it matches");
     assert.equal(judge(base, { selected: "base" }).status, "aligned");
+    const named = (selected, variants) => m.verifyInstallation({ entity, version: "1.0.0", comparison: "engineering", evidence: { establisher, sources: [source("package", base)], ...(variants ? { variants } : {}) }, observed: observe(base), ownership, selected });
+    assert.equal(named("base").status, "aligned", "the base set is always selectable");
+    assert.equal(named(undefined).status, "aligned", "and is the default");
+    assert.deepEqual([named("external").status, named("external").reason], ["unknown", "unavailable"], "a variant is selected but none is defined: never silently judged against the base");
+    assert.equal(named("external", {}).status, "unknown", "empty variants define none either");
+    assert.equal(named("other", { external: { suppliedBy: { owner: "x", path: "packages/x/external/" }, sources: [source("package", variant)] } }).status, "unknown", "a selection that names no defined set");
   });
   it("core/T119 [core/F111, core/F110]: an observed inventory is judged only when it states its scope, is complete and matches its tree digest; a file outside the scope or an expected asset outside it is unknown (inventory), and unexpected is claimed only inside the scope", async () => {
     const m = await integrity();
