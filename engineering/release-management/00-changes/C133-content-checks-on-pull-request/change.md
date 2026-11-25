@@ -39,9 +39,20 @@ Defect ran an organisation ruleset with a required workflow on disposable branch
 9. **Writing gates (follow-up).** A required workflow's token carries the permissions the workflow declares (contents read, pull-requests write) and it posted a PR comment and an approving review on same-repository pull requests, so `approve Sync` and `review Sync` can be converted. A bot approval is visible on the pull request and any branch protection that counts approvals counts it, which is how `approve Sync` already works today behind its flag.
 10. **Merge group (follow-up).** With a repository ruleset requiring the merge queue on an exact branch name and that branch included in the organisation ruleset, the required workflow ran in the merge group (on a `gh-readonly-queue/...` ref) and passed. So a required workflow covers the merge group when its file has the `merge_group` trigger. Two cautions: the gate's judge must itself judge the group commit (the experiment's judge only echoed there), and a merge queue exists only on repository rulesets for an exact branch name, never a wildcard, so collectors (`kaal/**`) have none and the merge group matters for `main` alone.
 
-### The ladder: file level, then repo level, then org level
+### Design in files first, hosting second
 
-The Owner's design rule (25 November): prefer file level, meaning judges that read files only; use git or GitHub at repo level only when file level cannot deliver it; use org level only when repo level cannot. Each outcome goes down the ladder only as far as it must, and every level names its residual risk.
+KAAL lives in files. Git and GitHub are only the hosting. So the design starts from files and asks the hosting for the least it must give, going to repo level only where files cannot deliver it, and to org level only where repo level cannot (Owner's design rule, 25 November).
+
+**What the files carry (the whole design, no hosting needed to state it).**
+
+- The judges are files: the declared-set judge (release/A67 `delivery-locations.json`, F73 `deliveryMixed`), the content-equals-main judge, and the judge of each gate. They read files only, the candidate and main's copy as data.
+- Trust is a property of content, not of a place: a gate file is trusted when its content equals main's copy of it, byte for byte. A pull request that changes a gate file is judged by main's copy of the judge, never by its own, and the verdict is "the gate file is unchanged, or the pull request is a WIRE or SYNC whose content equals main's or the engineering source".
+- The delivery set is a declared file, so "only a WIRE changes delivery" is a file-level statement checked by the declared-set judge.
+- The relay and handler of the repo-level route are themselves files, with sources in engineering, installed by a WIRE, and held byte-equal by the same content judge.
+
+**What files cannot give.** A verdict nobody is bound to. Something outside the pull request has to run the trusted copy of the judge and make its result count at merge. That is the only thing asked of the hosting, and it is asked at the lowest level that can give it, set out below per outcome. Residual risk common to every level: the hosting setting (ruleset) is not a file, so a detective judge of the ruleset names (release/C120) stays, and the bypass list stays empty.
+
+### The ladder per outcome
 
 **Outcome 2: trusted judge execution** (the judge that gates a pull request is not one that pull request can change).
 
