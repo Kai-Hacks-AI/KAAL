@@ -1,11 +1,11 @@
-// Case controls/T1523 tests: controls/F211
+// Case controls/T1530 tests: controls/F211
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 const lib = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs');
-export const id = 'controls/T1523';
+export const id = 'controls/T1530';
 export const tests = ['controls/F211'];
 export const title = 'the adoption line of a ratchet is judged by the library: the first line, its Change and its time, and nothing else is accepted';
 const window = { from: '2026-11-25T08:00Z', to: '2026-11-25T12:00Z' };
