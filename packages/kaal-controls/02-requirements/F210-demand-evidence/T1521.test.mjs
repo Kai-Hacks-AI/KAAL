@@ -8,21 +8,20 @@ const scripts = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts'
 const load = async (name) => { const f = join(scripts, name); assert.ok(existsSync(f), `scripts/${name} is absent`); return import(pathToFileURL(f).href); };
 export const id = 'controls/T1521';
 export const tests = ['controls/F210'];
-export const title = 'demand Evidence names a control whose mode rose without the facts the new mode needs, each fact on its own, and never accepts a missing proof';
+export const title = 'demand Evidence names each fact and the authorization that a proposed activation or enforcement transition lacks, with no mode ladder, each fact on its own proof, and a missing proof never accepted';
 export async function run() {
   const { findEvidenceDue } = await load('demand-evidence.mjs');
-  const m = (mode) => [{ id: 'c/CTL1', mode }];
-  const f = (base, head, facts) => findEvidenceDue({ base, head, facts });
-  const D = ['evidence-due:c/CTL1'];
-  assert.deepEqual(f(m('off'), m('detective'), { 'c/CTL1': { running: false, tested: false } }), D, 'a control switched on without a run was allowed');
-  assert.deepEqual(f(m('off'), m('detective'), { 'c/CTL1': { running: true, tested: false } }), [], 'a run did not satisfy the raise to detective');
-  assert.deepEqual(f(m('off'), m('detective'), { 'c/CTL1': { running: null, tested: true } }), D, 'tested was taken to imply running');
-  assert.deepEqual(f(m('off'), m('detective'), {}), D, 'a missing proof let a raise pass');
-  assert.deepEqual(f(m('detective'), m('preventive'), { 'c/CTL1': { running: true, tested: false } }), D, 'preventive without tested evidence was allowed');
-  assert.deepEqual(f(m('detective'), m('preventive'), { 'c/CTL1': { running: false, tested: true } }), D, 'running was taken to be implied by tested');
-  assert.deepEqual(f(m('detective'), m('preventive'), { 'c/CTL1': { running: true, tested: true } }), []);
-  assert.deepEqual(f(m('detective'), m('detective'), {}), [], 'a mode that did not rise was asked');
-  assert.deepEqual(f(m('preventive'), m('detective'), {}), [], 'lowering a mode was asked');
-  assert.deepEqual(f([], m('detective'), {}), D, 'a control absent from the base was not taken as off');
-  for (const bad of [[null, m('detective'), {}], [[], m('detective'), 'x'], [[], null, {}]]) assert.throws(() => f(...bad), 'bad input did not throw');
+  const all = { defined: true, implemented: true, running: true, tested: true };
+  const t = (kind, authorized = true) => [{ control: 'c/CTL1', kind, authorized }];
+  const f = (tr, facts) => findEvidenceDue({ transitions: tr, facts });
+  assert.deepEqual(f(t('activation'), { 'c/CTL1': { ...all, running: null } }), [], 'running, which only exists after a WIRE, was demanded before it');
+  assert.deepEqual(f(t('activation'), { 'c/CTL1': { ...all, implemented: false, tested: null } }), ['evidence-due:activation:implemented:c/CTL1', 'evidence-due:activation:tested:c/CTL1'], 'a prerequisite before the WIRE was accepted without proof, or one finding did not name its fact');
+  assert.deepEqual(f(t('enforcement'), { 'c/CTL1': { ...all, running: false } }), ['evidence-due:enforcement:running:c/CTL1'], 'enforcement without a run was allowed');
+  assert.deepEqual(f(t('enforcement'), { 'c/CTL1': { ...all, tested: false, running: true } }), ['evidence-due:enforcement:tested:c/CTL1'], 'running was taken to imply tested');
+  assert.deepEqual(f(t('enforcement'), { 'c/CTL1': { ...all, running: false, tested: true } }), ['evidence-due:enforcement:running:c/CTL1'], 'tested was taken to imply running');
+  assert.deepEqual(f(t('enforcement', false), { 'c/CTL1': all }), ['evidence-due:enforcement:authorized:c/CTL1'], 'a transition without the Owner authorization passed');
+  assert.deepEqual(f(t('enforcement'), { 'c/CTL1': all }), []);
+  assert.deepEqual(f(t('activation'), {}), ['evidence-due:activation:defined:c/CTL1', 'evidence-due:activation:implemented:c/CTL1', 'evidence-due:activation:tested:c/CTL1'], 'a missing proof let a transition pass');
+  assert.deepEqual(f([], {}), [], 'a control with no transition was asked');
+  for (const bad of [[null, {}], [t('detective'), {}], [t('activation'), 'x'], [[{ control: 'c/CTL1', kind: 'activation' }], {}]]) assert.throws(() => f(...bad), 'bad input did not throw');
 }
