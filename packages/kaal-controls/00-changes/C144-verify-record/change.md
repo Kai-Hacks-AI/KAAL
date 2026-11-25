@@ -18,3 +18,4 @@ A retro entry in the collector.
 - The station and the flag are release's. Recommendation: wire after the DO, detective first.
 - The `evidence` minimum is `[fixture:2, real:1, provoked:1:fail]`. Recommendation: accept it as the protocol's minimum.
 - Ids C144, I22, G110, F208, A205, CTL3, T1519 are taken by hand; on a clash the newer pull request renumbers.
+- Whether the adapter's UNKNOWN answer carries `confirmed` from an `UnknownEvidence` error so the confirmed discrepancies stay in its log. Recommendation: yes, as one line in the C141 library DO and its Case; this Change already keeps them on the error.
