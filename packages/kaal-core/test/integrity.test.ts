@@ -29,6 +29,12 @@ describe("installation integrity (core/C53)", () => {
     const r = verdict(e, observed({ a: "a" }), { ownership: { owner: "x", paths: ["p/"] }, selected: "other" });
     assert.equal(r.status, "unknown");
   });
+  it("a variant selected where none is defined is unknown, never judged against the base", () => {
+    const e = evidence({ a: "a" });
+    assert.equal(verdict(e, observed({ a: "a" }), { selected: "external" }).status, "unknown");
+    assert.equal(verdict(e, observed({ a: "a" }), { selected: "base" }).status, "aligned");
+    assert.equal(verdict(e, observed({ a: "a" }), { selected: "constructor" }).status, "unknown", "a name on the object prototype is not a set");
+  });
   it("a variant without sources is unknown", () => {
     const e: Evidence = { ...evidence({ a: "a" }), variants: { v: { suppliedBy: { owner: "x", path: "p/" }, sources: [] } } };
     assert.equal(verdict(e, observed({ a: "a" }), { ownership: { owner: "x", paths: ["p/"] } }).status, "unknown");

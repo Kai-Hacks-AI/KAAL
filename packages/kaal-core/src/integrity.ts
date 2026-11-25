@@ -110,8 +110,8 @@ export function verifyInstallation({ entity, version, comparison, evidence, obse
     if (why) return unknown(why);
     sets[id] = source.files;
   }
-  if (selected && evidence.variants) name = selected;
-  const expected = sets[name];
+  if (selected !== undefined) name = selected;
+  const expected = Object.hasOwn(sets, name) ? sets[name] : undefined;
   if (!expected) return unknown("unavailable");
   const o = observed;
   if (!o || !Array.isArray(o.scope) || o.scope.length === 0 || o.complete !== true || !isObject(o.files) || tree(o.files) !== o.treeDigest) return unknown("inventory");
