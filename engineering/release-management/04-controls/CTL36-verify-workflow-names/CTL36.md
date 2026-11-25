@@ -18,5 +18,3 @@ A preventive control on a ratchet, and it blocks nothing yet. `judge-workflow-na
 The baseline is the five `generic-name` findings of today. A rename passes and shrinks it in the same pull request; a new finding, or a baseline that grows, fails. The rule is deliberately narrow: a display name that is present, not `KAAL`, and unique. A stricter naming scheme is a separate Change with its own baseline.
 
 The ratchet is declared here and nowhere else: no `:ratchet` station, no third mode, and no deadline, which is a planning concern outside the control. It operates only once a workflow job that runs it is installed by a WIRE and a ruleset names the check; both need the Owner's go. It has one Intent, release/I70.
-
-Its history is `history.jsonl` beside the baseline (release/C134, controls/C25): one line for the adoption, then one line for every pull request that removes a name from the baseline, appended by that pull request with its Change id. Until a later Change judges it, the line is recorded by hand and is not yet trusted.

@@ -18,5 +18,3 @@ A preventive control. The `promoting` ruleset requires `verify Triggers`, the re
 The requirement is stated in the ruleset source, `05-src/wiring/rulesets/promoting.json`, and declared in `stages.json`. It operates only once the Owner has loaded that ruleset, by the ruleset update procedure, and the workflow that makes the check is installed, for the pull request and for the merge queue. Until then no operation is claimed. It does not touch `integrating`: a branch whose base holds no judge would fail closed there.
 
 It has one Intent, release/I50. Whether a use of the trigger can reach `main` in a promotion is answered from the Intent, by its Requirements and Architecture, not stated here.
-
-Its history is `history.jsonl` beside the baseline (release/C134, controls/C25): one line for the adoption, then one line for every pull request that removes a name from the baseline, appended by that pull request with its Change id. Until a later Change judges it, the line is recorded by hand and is not yet trusted.
