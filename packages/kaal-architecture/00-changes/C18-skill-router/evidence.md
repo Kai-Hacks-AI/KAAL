@@ -1,18 +1,17 @@
 # C18 evidence
 
-The state of the Test Cases of this PLAN, in the tree of this PLAN. No job executes the Cases yet.
+The state of the Test Cases of this Change, in the tree of the DO. No job executes the Cases yet.
 
-| Case | Tests | In this PLAN |
-| --- | --- | --- |
-| T30 | F19 | RED: the router body has 545 words, more than 200 |
-| T31 | F20 | RED: there is no references folder |
-| T32 | N4 | GREEN: all eleven families of rule are stated in the present Skill, and stay green after the DO |
+| Case | Tests | PLAN | DO |
+| --- | --- | --- | --- |
+| T30 | F19 | RED: the router body had 545 words | GREEN: 147 words |
+| T31 | F20 | RED: there was no references folder | GREEN: four references, each named by the router |
+| T32 | N4 | GREEN: eleven families of rule stated | GREEN: the same, now across the router and the references |
 
-The earlier Cases are unchanged and green.
+The earlier Cases are green: T14, T15, T18, T19 and T20 read the router and the references together, and T1, T9 and T11 read the Skill as it was trialled. The package suite is green: 50 of 50 tests of `packages/kaal-architecture`.
 
 ## Reproduce
 
 ```
 node --test $(find packages/kaal-architecture -name '*.test.mjs' | sort)
-for t in packages/kaal-architecture/00-changes/C18-skill-router/T3[01].red.mjs; do node -e "import('./$t').then(m=>m.run()).then(()=>console.log('GREEN'),e=>console.log('RED:',e.message))"; done
 ```
