@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -51,7 +51,7 @@
+   // A baseline never grows, whatever the history says.
+   if (head.baseline.some((f) => !base.baseline.includes(f))) return fail('baseline-grew');
+   // The history of the base is a prefix of the head's: lines are appended, never changed.
+-  if (head.history.length < base.history.length || !base.history.every((line, i) => sameJson(line, head.history[i]))) return fail('history-rewritten');
++  // mutated: rewriting not checked
+   const added = head.history.slice(base.history.length);
+   const removed = sorted(base.baseline.filter((f) => !head.baseline.includes(f)));
+   if (removed.length === 0) return added.length ? fail('history-without-change') : { verdict: 'PASS' };
