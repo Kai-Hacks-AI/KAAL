@@ -20,7 +20,7 @@ A retro entry in the collector.
 ## Left open (for the CPO, with a recommendation)
 
 - Where the record lives. Recommendation: `records.jsonl` beside the control, written by the Change that claims the status. CI run artifacts are not files and no judge reads them.
-- How `running` is proven. Recommendation: a record for this control and revision, of a real-kind X, with a verdict other than `UNKNOWN`, by the adapter; otherwise unknown, never false. Whether the run exists is release's check, by run id and revision, outside the pure library.
+- How `running` is proven. Recommendation: a valid, complete record (real kind, run, revision, verdict `PASS` or `FAIL`, by the adapter) whose control, run and revision the adopter has independently established; otherwise unknown, never false. The service verification is release's, by run id and revision, outside the pure library.
 - Who proves the other three facts. Recommendation: not the adapter. Defined is the declaration check, implemented is the delivery found as it is (C142, C143), tested is `evidence.mjs`; each is passed in as true, false or unknown.
 - Whether a claim ever becomes derived and not declared. Recommendation: not now; claims stay declared and are only compared fact by fact.
 - Order: C142 to C146 depend on this DO. Recommendation: each PLAN may merge now, and each DO waits for this one.

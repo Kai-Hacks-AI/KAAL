@@ -29,9 +29,16 @@ export async function run() {
   for (const bad of [[undefined, facts()], [claim(), undefined], [claim({ running: 'yes' }), facts()], [claim(), 'x']]) assert.throws(() => cmp(...bad), 'a malformed input was accepted');
   assert.throws(() => compareClaims({ claimed: claim(), facts: facts() }), 'a missing id was accepted');
   // execution evidence: the control and the applicable revision, real kind, not UNKNOWN, by the adapter
-  const ex = (records, revision = 'abc') => executed({ id: 'c/CTL1', records, revision });
-  assert.equal(ex([rec()]), true, 'a real run of this control at this revision was not found');
+  const est = [{ control: 'c/CTL1', run: 'r1', sha: 'abc' }];
+  const ex = (records, established = est, revision = 'abc') => executed({ id: 'c/CTL1', records, revision, established });
+  assert.equal(ex([rec()]), true, 'an established, valid run of this control at this revision was not found');
+  assert.equal(ex([rec({ verdict: 'FAIL' })]), true, 'an allowed FAIL verdict was refused');
   assert.equal(ex([]), null, 'no record was taken as proof of absence');
-  for (const nothing of [rec({ verdict: 'UNKNOWN' }), rec({ control: 'c/CTL2' }), rec({ by: '' }), rec({ x: 'fixture' }), rec({ sha: 'other' })]) assert.equal(ex([nothing]), null, 'a record that counts for nothing counted: ' + JSON.stringify(nothing));
+  assert.equal(ex([rec()], []), null, 'a committed record counted as proof of its own authenticity');
+  assert.equal(ex([rec({ run: 'fabricated' })]), null, 'a fabricated record that is not established counted');
+  assert.equal(ex([rec()], [{ control: 'c/CTL1', run: 'r1', sha: 'other' }]), null, 'evidence of another revision counted');
+  assert.equal(ex([rec()], [{ control: 'c/CTL2', run: 'r1', sha: 'abc' }]), null, 'evidence of another control counted');
+  for (const nothing of [rec({ run: '' }), rec({ run: undefined }), rec({ verdict: 'UNKNOWN' }), rec({ verdict: 'MAYBE' }), rec({ verdict: '' }), rec({ verdict: 42 }), rec({ verdict: undefined }), rec({ control: 'c/CTL2' }), rec({ by: '' }), rec({ x: 'fixture' }), rec({ sha: 'other' })]) assert.equal(ex([nothing]), null, 'a record that counts for nothing counted: ' + JSON.stringify(nothing));
+  for (const bad of [{ established: 'x' }, { established: undefined }, { records: 'x' }]) assert.throws(() => executed({ id: 'c/CTL1', records: [rec()], revision: 'abc', established: est, ...bad }), 'bad input did not throw');
   assert.notEqual(ex([rec({ x: 'fixture' })]), false, 'executed never answers false');
 }
