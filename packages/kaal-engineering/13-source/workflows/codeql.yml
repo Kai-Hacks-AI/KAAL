@@ -1,0 +1,95 @@
+# CodeQL security analysis for every pull request into main and kaal/*,
+# every push to them, and weekly. Default setup only covers main, so the
+# collectors need this advanced workflow. Merge enforcement (required
+# checks and the code scanning rule) lives in the rulesets.
+name: CodeQL
+
+on:
+  push:
+    branches: [main, "kaal/**"]
+  pull_request:
+    branches: [main, "kaal/**"]
+  merge_group:
+    types: [checks_requested]
+  schedule:
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+# The configurations the gate expects, written once: the matrix of `analyze` must name the same ones (engineering/F93).
+# The two thresholds are the legacy rulesets' values, unchanged (security alerts high_or_higher, analysis alerts errors).
+env:
+  CODEQL_EXPECTED: "/language:actions /language:javascript-typescript"
+  CODEQL_SECURITY_ALERTS_THRESHOLD: high_or_higher
+  CODEQL_ALERTS_THRESHOLD: errors
+
+jobs:
+  analyze:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [actions, javascript-typescript]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          category: /language:${{ matrix.language }}
+
+  verify-analysis:
+    name: verify CodeQL analysis
+    needs: analyze
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Read the findings
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CODEQL_ANALYZE_RESULT: ${{ needs.analyze.result }}
+        run: node engineering/release-management/05-src/codeql-gate/judge-codeql-analysis.mjs --out "$RUNNER_TEMP/findings.json"
+      - name: Judge the findings
+        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"
+
+  verify-findings:
+    name: verify CodeQL findings
+    needs: analyze
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Read the findings
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CODEQL_ANALYZE_RESULT: ${{ needs.analyze.result }}
+        run: node engineering/release-management/05-src/codeql-gate/judge-codeql-findings.mjs --out "$RUNNER_TEMP/findings.json"
+      - name: Judge the findings
+        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"

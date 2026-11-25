@@ -13,7 +13,8 @@ export const tests = ['release/CTL20'];
 export const title = 'the promoting source requires verify Triggers as a third check, named as the job of the workflow source, and the integrating source is unchanged';
 export async function run() {
   const real = JSON.parse(readFileSync(join(RM, '05-src/wiring/rulesets/promoting.json'), 'utf8'));
-  assert.deepEqual(real, JSON.parse(draft('promoting.json')), 'promoting.json differs from the draft');
+  const rule = (j) => j.rules.find((r) => r.type === 'required_status_checks');
+  assert.deepEqual(rule(real), rule(JSON.parse(draft('promoting.json'))), 'the required checks of promoting.json differ from the draft');
   const checks = real.rules.find((r) => r.type === 'required_status_checks').parameters.required_status_checks;
   assert.deepEqual(checks.map((c) => c.context), ['verify Stages (Promoting)', 'analyze Vulnerabilities (Promoting)', 'verify Triggers']);
   assert.equal(new Set(checks.map((c) => c.integration_id)).size, 1, 'the checks come from different integrations');

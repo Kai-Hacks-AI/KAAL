@@ -1,0 +1,12 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
+@@ -42,8 +42,7 @@
+     try { return JSON.parse(text); } catch { throw Object.assign(new Error(p), { reason: 'malformed-input' }); }
+   };
+   let r;
+-  try { r = judgeMode({ mode: a.mode, findings: read(a.findings) ?? null, baseline: read(a.baseline), previous: read(a.previous) }); }
+-  catch (e) { r = { mode: a.mode, verdict: 'UNKNOWN', blocked: true, reason: e.reason ?? 'could-not-judge', file: e.message }; }
++  r = judgeMode({ mode: a.mode, findings: read(a.findings) ?? null, baseline: read(a.baseline), previous: read(a.previous) });
+   console.log(JSON.stringify(r, null, 2));
+   process.exit(r.verdict === 'UNKNOWN' ? 2 : r.blocked ? 1 : 0);
+ }

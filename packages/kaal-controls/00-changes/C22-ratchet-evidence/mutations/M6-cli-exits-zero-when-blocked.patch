@@ -1,0 +1,9 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
+@@ -45,5 +45,5 @@
+   try { r = judgeMode({ mode: a.mode, findings: read(a.findings) ?? null, baseline: read(a.baseline), previous: read(a.previous) }); }
+   catch (e) { r = { mode: a.mode, verdict: 'UNKNOWN', blocked: true, reason: e.reason ?? 'could-not-judge', file: e.message }; }
+   console.log(JSON.stringify(r, null, 2));
+-  process.exit(r.verdict === 'UNKNOWN' ? 2 : r.blocked ? 1 : 0);
++  process.exit(r.verdict === 'UNKNOWN' ? 2 : 0);
+ }
