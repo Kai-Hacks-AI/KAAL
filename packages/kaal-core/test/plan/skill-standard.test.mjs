@@ -1,6 +1,7 @@
 // core/C52 planned outer tests: the Skill standard. Immutable to DO and CHECK.
 // Each title names the contracts it checks (plan/skill-standard/*.md). They
-// check the stated criterion: levels, data in a warning, findings, exit codes.
+// check the stated criterion: levels, data in a warning, findings, exit codes,
+// the ratchet's outcomes.
 // None reads the wording of a Definition or of a warning message.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -24,8 +25,9 @@ async function skill() {
 const words = (n, eol = "\n") => Array.from({ length: n }, (_, i) => `w${i}`).join(" ").concat(eol);
 
 /** A Skill directory with the given files, returned with its path. */
-function make(files) {
-  const dir = mkdtempSync(join(tmpdir(), "kaal-skill-std-"));
+function make(files, name = "kaal-x") {
+  const dir = join(mkdtempSync(join(tmpdir(), "kaal-skill-std-")), name);
+  mkdirSync(dir, { recursive: true });
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(join(dir, path, ".."), { recursive: true });
     writeFileSync(join(dir, path), text);
@@ -36,36 +38,50 @@ function make(files) {
 const check = (dir, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, ...flags], { encoding: "utf8" });
 
 describe("Skill standard (core/C52)", () => {
-  it("core/T103 [core/F93, core/A49]: the size levels change exactly at 200, 400 and 600 words, and the count is the same with CRLF", async () => {
+  it("core/T103 [core/F93, core/F98, core/A49]: the size levels change exactly at 200, 400 and 600 words of the body, the frontmatter is not counted, and the count is the same with CRLF", async () => {
     const { judgeSize } = await skill();
-    const level = (n, text = words(n)) => judgeSize(text).level;
-    assert.deepEqual([0, 1, 200].map((n) => level(n)), ["ok", "ok", "ok"]);
-    assert.deepEqual([201, 400].map((n) => level(n)), ["soft", "soft"]);
-    assert.deepEqual([401, 600].map((n) => level(n)), ["medium", "medium"]);
-    assert.deepEqual([601, 2000].map((n) => level(n)), ["hard", "hard"]);
+    const level = (n) => judgeSize(words(n)).level;
+    assert.deepEqual([0, 1, 200].map(level), ["ok", "ok", "ok"]);
+    assert.deepEqual([201, 400].map(level), ["soft", "soft"]);
+    assert.deepEqual([401, 600].map(level), ["medium", "medium"]);
+    assert.deepEqual([601, 2000].map(level), ["hard", "hard"]);
     assert.equal(judgeSize(words(300)).words, 300);
-    const lines = Array.from({ length: 300 }, (_, i) => `line ${i} here`).join("\n"); // 900 words over lines
+    const lines = Array.from({ length: 300 }, (_, i) => `line ${i} here`).join("\n");
     assert.equal(judgeSize(lines).words, judgeSize(lines.replaceAll("\n", "\r\n")).words, "line endings do not change the count");
-    assert.equal(judgeSize("---\nname: x\n---\n" + words(198)).words, judgeSize(words(198)).words + 4, "frontmatter is counted as the file gives it");
+    const front = "---\nname: x\ndescription: a long description with many words that must not count\n---\n";
+    assert.equal(judgeSize(front + words(198)).words, 198, "the frontmatter is not counted");
+    assert.equal(judgeSize(front.replaceAll("\n", "\r\n") + words(198)).words, 198, "nor with CRLF");
+    assert.equal(judgeSize("\ufeff" + front + words(198)).words, 198, "nor behind a byte order mark");
+    assert.equal(judgeSize(front + words(600)).level, "medium", "exactly 600 body words is permitted");
+    assert.equal(judgeSize(front + words(601)).level, "hard");
+    assert.equal(judgeSize(words(50) + "\n---\nnot: frontmatter\n---\n" + words(10)).words, 50 + 10 + 4, "a block that does not start the file is not frontmatter");
+    assert.equal(judgeSize("---\nname: x\n" + words(10)).words, 3 + 10, "an unterminated block counts whole");
   });
 
-  it("core/T104 [core/F94, core/A49, core/N26]: a warning carries rule ids that exist, always the three remedies and never trimming, and only hard blocks", async () => {
+  it("core/T104 [core/F94, core/A49, core/N26]: a warning carries rule ids that exist, the three remedies and never trimming, a response that grows by stage, and only hard blocks", async () => {
     const { judgeSize, standard } = await skill();
     const known = new Set(standard.rules.map((r) => r.id ?? r));
     assert.equal(judgeSize(words(100)).warning, undefined, "ok has no warning");
+    const stages = [];
     for (const [n, level, blocks] of [[250, "soft", false], [450, "medium", false], [650, "hard", true]]) {
       const w = judgeSize(words(n)).warning;
       assert.ok(w, `${level} has a warning`);
       assert.equal(w.level, level);
       assert.equal(w.blocks, blocks, `${level} ${blocks ? "blocks" : "does not block"}`);
-      assert.ok(w.rules.length > 0 && w.rules.every((r) => known.has(r)), "every rule id exists in the standard");
-      assert.ok(w.rules.includes("size"), "the size rule is always named");
+      assert.ok(w.rules.every((r) => known.has(r)), "every rule id exists in the standard");
+      for (const rule of ["size", "router", "detail", "lane"]) assert.ok(w.rules.includes(rule), `${rule} is restated at every stage`);
       for (const remedy of ["review-router", "consolidate", "move-to-references"]) assert.ok(w.remedy.includes(remedy), `${remedy} is a remedy`);
-      assert.ok(!w.remedy.some((r) => /trim|shorten|fewer/.test(r)), "trimming words is never a remedy");
+      assert.ok(![...w.remedy, ...w.required].some((r) => /trim|shorten|fewer/.test(r)), "trimming words is never asked for");
+      assert.ok(w.required.length > 0);
+      stages.push(w);
+    }
+    for (const [lower, higher] of [[0, 1], [1, 2]]) {
+      assert.ok(stages[lower].required.every((a) => stages[higher].required.includes(a)), "a higher stage keeps what the lower one required");
+      assert.ok(stages[higher].required.length > stages[lower].required.length, "and requires more");
     }
   });
 
-  it("core/T105 [core/F95, core/A50]: a Skill needs one top-level entry, and nothing but SKILL.md, references/, scripts/ and assets/ sits at the top", async () => {
+  it("core/T105 [core/F95, core/N27, core/A50]: a Skill needs SKILL.md and nothing else, and nothing but SKILL.md, references/, scripts/ and assets/ sits at the top", async () => {
     const { judgeLayout } = await skill();
     assert.deepEqual(judgeLayout(["SKILL.md"]), []);
     assert.deepEqual(judgeLayout(["SKILL.md", "references/a.md", "references/deep/b.md", "scripts/run.mjs", "assets/x.png"]), [], "anything below the permitted folders is free");
@@ -115,5 +131,35 @@ describe("Skill standard (core/C52)", () => {
     assert.equal(id.name, "Skill Standard");
     assert.deepEqual(id.type, core.foundation().definition, "typed by KAAL Definition");
     assert.ok(!Object.keys(core.foundation()).some((k) => /skill.?standard/i.test(k)), "it is no foundational Node: the Kernel and every foundational id stay as they are");
+  });
+
+  it("core/T108 [core/F97, core/A52, core/N26]: against a baseline, a hard Skill is known at its recorded words, grew above them, new without an entry and stale below them; with no baseline it blocks; an unreadable baseline is unknown", async () => {
+    await skill();
+    const made = [];
+    const skillDir = (n, name = "kaal-x") => { const d = make({ "SKILL.md": words(n) }, name); made.push(d); return d; };
+    const baseline = (obj) => { const d = mkdtempSync(join(tmpdir(), "kaal-skill-baseline-")); made.push(d); const f = join(d, "baseline.json"); writeFileSync(f, typeof obj === "string" ? obj : JSON.stringify(obj)); return f; };
+    const run = (dir, file, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, "--baseline", file, "--json", ...flags], { encoding: "utf8" });
+    try {
+      const at = baseline({ "kaal-x": 650 });
+      assert.equal(run(skillDir(650), at).status, 0, "known: equal to its recorded words");
+      assert.equal(JSON.parse(run(skillDir(650), at).stdout).ratchet, "known");
+      const grew = run(skillDir(651), at);
+      assert.equal(grew.status, 1, "grew: above its recorded words");
+      assert.equal(JSON.parse(grew.stdout).ratchet, "grew");
+      const stale = run(skillDir(640), at);
+      assert.equal(stale.status, 1, "stale: below its recorded words, until the entry is lowered");
+      assert.equal(JSON.parse(stale.stdout).ratchet, "stale");
+      assert.equal(run(skillDir(640), baseline({ "kaal-x": 640 })).status, 0, "lowered, it is known again");
+      assert.equal(run(skillDir(500), at).status, 1, "no longer hard, the entry is stale and must go");
+      assert.equal(run(skillDir(500), baseline({})).status, 0, "removed, it passes");
+      const fresh = run(skillDir(650, "kaal-y"), at);
+      assert.equal(fresh.status, 1, "new: no entry");
+      assert.equal(JSON.parse(fresh.stdout).ratchet, "new");
+      assert.equal(check(skillDir(650)).status, 1, "no baseline: hard blocks");
+      assert.equal(run(skillDir(650), baseline("not json")).status, 2, "an unreadable baseline is unknown");
+      assert.equal(run(skillDir(650), join(tmpdir(), "kaal-no-such-baseline.json")).status, 2, "a missing baseline is unknown");
+    } finally {
+      for (const d of made) rmSync(d, { recursive: true, force: true });
+    }
   });
 });

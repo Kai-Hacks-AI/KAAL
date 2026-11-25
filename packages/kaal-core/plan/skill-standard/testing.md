@@ -4,12 +4,15 @@ The planned outer tests live in `packages/kaal-core/test/plan/skill-standard.tes
 
 | Test | Checks | Loop |
 | --- | --- | --- |
-| core/T103: the size levels change exactly at 200, 400 and 600 words, and the count is the same with CRLF | core/F93, core/A49 | Requirements |
-| core/T104: a warning carries rule ids that exist, always the three remedies and never trimming, and only `hard` blocks | core/F94, core/A49, core/N26 | Requirements |
-| core/T105: a Skill needs one top-level entry, and nothing but `SKILL.md`, `references/`, `scripts/` and `assets/` sits at the top | core/F95, core/A50 | Requirements |
+| core/T103: the size levels change exactly at 200, 400 and 600 words of the body, the frontmatter is not counted, and the count is the same with CRLF | core/F93, core/F98, core/A49 | Requirements |
+| core/T104: a warning carries rule ids that exist (always size, router, detail and lane), the three remedies and never trimming, a required response that grows by stage, and only `hard` blocks | core/F94, core/A49, core/N26 | Requirements |
+| core/T105: a Skill needs `SKILL.md` and nothing else, and nothing but `SKILL.md`, `references/`, `scripts/` and `assets/` sits at the top | core/F95, core/N27, core/A50 | Requirements |
 | core/T106: `kaal skill check` exits 1 on `hard` or a layout finding, 0 on the other levels and 2 when it cannot judge, prints the verdict as data with `--json`, and judges the same files alike wherever they come from | core/F96, core/A51, core/N25 | Architecture |
 | core/T107: the payload carries a `Skill Standard` Definition typed by `KAAL Definition`, and the foundational Nodes are unchanged | core/F92, core/A48 | Requirements |
+| core/T108: against a baseline, a hard Skill is known at its recorded words, grew above them, new without an entry and stale below them, with no baseline it blocks, and an unreadable baseline is unknown | core/F97, core/A52, core/N26 | Requirements |
+
+The clarity and concision of a frontmatter, and the review of the DO against agentskills.io, are judgements. No Test Case judges them.
 
 ## RED evidence
 
-Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/skill-standard.test.mjs`, outside Core's `npm test` until the DO. At `core/C52` all five are RED, blocked before behavioural assertion: Core has no `kaal-core/skill` entry point, no `kaal skill` verb and no `Skill Standard` Node.
+Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/skill-standard.test.mjs`, outside Core's `npm test` until the DO. At `core/C52` all six are RED, blocked before behavioural assertion: Core has no `kaal-core/skill` entry point, no `kaal skill` verb and no `Skill Standard` Node.
