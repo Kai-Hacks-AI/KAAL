@@ -31,7 +31,7 @@ function fixture({ contexts, records = [] }) {
   return d;
 }
 const R = 'r1';
-const rec = (c, outcome, revision = R, run = '1') => ({ case: c, run, revision, outcome });
+const rec = (c, outcome, revision = R, run = '1', complete = true) => ({ case: c, run, revision, outcome, complete });
 const check = (d, ...more) => spawnSync(process.execPath, [script, '--places', join(d, 'places.json'), '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
 const lines = (r) => r.stdout.split('\n').filter(Boolean);
 
@@ -43,6 +43,9 @@ export async function run() {
   assert.equal(state(one, [rec('x/T1', 'RED')]), 'confirmed x/D1');
   assert.equal(state(one, [rec('x/T1', 'GREEN')]), 'answered x/D1', 'a derived state, nothing is stored on the Defect');
   assert.equal(state(one, [{ ...rec('x/T1', 'GREEN'), covers: ['nowhere/'] }]), 'answered x/D1', 'no coverage metadata is read: complete GREEN evidence answers');
+  assert.equal(state(one, [rec('x/T1', 'GREEN', R, '1', false)]), 'unknown x/D1', 'a GREEN the runner did not establish as complete is unknown, not inferred from the record received');
+  assert.equal(state(one, [{ case: 'x/T1', run: '1', revision: R, outcome: 'GREEN' }]), 'unknown x/D1', 'a GREEN with no completeness statement is unknown');
+  assert.equal(state(one, [rec('x/T1', 'RED', R, '1', false)]), 'confirmed x/D1', 'a RED confirms the Defect whether or not the run is complete');
   assert.equal(state(one, [rec('x/T1', 'UNKNOWN')]), 'unknown x/D1');
   for (const outcome of ['skipped', 'error', 'timeout', 'incomplete']) assert.equal(state(one, [rec('x/T1', outcome)]), 'unknown x/D1', `${outcome} is neither RED nor GREEN`);
   assert.equal(state(one, []), 'unknown x/D1', 'no record is unknown');
@@ -51,6 +54,7 @@ export async function run() {
   const two = ctx({ 'x/T1': 'x/D1', 'x/T2': 'x/D1' });
   assert.equal(state(two, [rec('x/T1', 'GREEN'), rec('x/T2', 'RED')]), 'confirmed x/D1', 'any applicable RED Case confirms it');
   assert.equal(state(two, [rec('x/T1', 'GREEN'), rec('x/T2', 'GREEN')]), 'answered x/D1', 'answered only when every Case is GREEN');
+  assert.equal(state(two, [rec('x/T1', 'GREEN'), rec('x/T2', 'GREEN', R, '1', false)]), 'unknown x/D1', 'one incomplete run among the runs handed over keeps it unknown');
   assert.equal(state(two, [rec('x/T1', 'GREEN')]), 'unknown x/D1', 'a Case with no record leaves it unknown');
   assert.equal(state(two, [rec('x/T1', 'GREEN'), rec('x/T2', 'UNKNOWN')]), 'unknown x/D1');
   assert.equal(state(one, [rec('x/T1', 'GREEN', R, '1'), rec('x/T1', 'RED', R, '2')]), 'confirmed x/D1', 'one RED run at the revision shows the condition');

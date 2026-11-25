@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // known-defects: derive each Defect's state from the Test Cases that point at it, as Controls derive a status from the Cases of a control.
 // A Defect holds no state. Edges run from a Case to a Defect (the Case's first line `// Case <id> tests: <defect id>`).
-// A record is { case, run, revision, outcome }, outcome GREEN, RED or UNKNOWN as a Case runner reports it. The runner is Testing's; nothing here runs a Case.
+// A record is { case, run, revision, outcome, complete }, outcome GREEN, RED or UNKNOWN as a Case runner reports it, and `complete` the runner's own
+// statement that the run observed everything that should count. A GREEN without `complete: true` is UNKNOWN. The runner is Testing's; nothing here runs a Case.
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -11,7 +12,7 @@ const OUTCOMES = new Set(['GREEN', 'RED', 'UNKNOWN']);
 /** What one Case shows at `revision`: RED if any applicable run is RED, GREEN if every applicable run is GREEN, otherwise UNKNOWN. */
 function caseOutcome(id, records, revision) {
   const mine = records.filter((r) => r.case === id && r.revision === revision);
-  const o = mine.map((r) => (OUTCOMES.has(r.outcome) ? r.outcome : 'UNKNOWN'));
+  const o = mine.map((r) => (!OUTCOMES.has(r.outcome) || (r.outcome === 'GREEN' && r.complete !== true) ? 'UNKNOWN' : r.outcome));
   return o.includes('RED') ? 'RED' : o.length && o.every((x) => x === 'GREEN') ? 'GREEN' : 'UNKNOWN';
 }
 
