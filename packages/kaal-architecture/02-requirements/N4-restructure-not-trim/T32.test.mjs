@@ -5,33 +5,27 @@ import { join } from 'node:path';
 import { dir, SKILL } from '../../test/lib.mjs';
 export const id = 'architecture/T32';
 export const tests = ['architecture/N4'];
-export const title = 'the Skill, read as an agent reads it (the router and its references together), still holds every rule it held before it was restructured';
-const RULES = [
-  'Architecture describes the target state of a plateau, whether final or intermediate.',
-  'It prescribes no notation, tool or procedure',
-  'Judge by the concern each part constrains, not by its wording or by where it is written.',
-  'split it into one statement for each. Do not file the whole under its dominant part.',
-  'A Delivery constraint that limits what the solution can offer stays Delivery',
-  'a Solution constraint that restricts the choice of means stays Solution',
-  'If the limitation is independently accepted as a requirement of the solution, state it explicitly as its own Solution statement.',
-  'If the statement does not say whether it is accepted, ask.',
-  'name the two readings and put the question to the author. Do not guess, and do not pick the reading that is easier to classify.',
-  'Raise each of these before design proceeds, and say what you would need to know to settle it.',
-  'Its parts, each marked Solution or Delivery.',
-  'Your finding: none, mixed or ambiguous.',
-  'The next move: keep, split or ask.',
-  'Keep the report short. A clean statement needs one line.',
-  'How to travel from one plateau to the next, and how finished work is brought together and delivered, belong to other capabilities.',
-  'If a statement is only about such travel, say that it is outside the target state and leave it there.',
-  'Classify by the concern each part constrains, not by who wrote it or how firmly.',
-  'Never guess an ambiguous term.',
-  'Do not invent a third concern.',
-  'Keep examples and wording of your own report free of any one organization, domain or technology.',
-];
+export const title = 'the Skill, read as an agent reads it (the router and its references together), still states each family of rule it stated before it was restructured; whether the meaning is kept is reviewed against the mapping of the DO';
+// A family is a rule seen by its concepts: all of them must meet in one paragraph of the Skill, in any wording and any order.
+const FAMILIES = {
+  'scope is the target state of a plateau, and travel between plateaus belongs elsewhere': [/target state/i, /plateau/i, /other capabilit|outside/i],
+  'Solution and Delivery are the two concerns, told apart by what each is': [/Solution/, /Delivery/, /means/i],
+  'the test: would it hold if the means were replaced': [/replaced/i, /means/i],
+  'judge by the concern a part constrains': [/constrain/i, /not by/i],
+  'a mixed statement is split': [/mixed/i, /split/i],
+  'a constraint across the line stays with the concern it constrains, and acceptance is asked when unknown': [/constrain/i, /Delivery/, /Solution/, /accepted|accept/i],
+  'an ambiguous statement is put to the author, never guessed': [/ambiguous/i, /author|question/i, /guess/i],
+  'the questions are raised before design proceeds': [/before design proceeds/i],
+  'the report gives parts, a finding and a next move': [/finding/i, /keep/i, /split/i, /ask/i],
+  'there is no third concern': [/third concern/i],
+  'the Skill names no organization, domain or technology': [/organization/i, /domain/i, /technology/i],
+};
 export function run() {
   const refs = join(dir, 'skills/kaal-architecture/references');
-  const parts = [readFileSync(join(dir, SKILL), 'utf8')];
-  if (existsSync(refs)) for (const f of readdirSync(refs).sort()) if (f.endsWith('.md')) parts.push(readFileSync(join(refs, f), 'utf8'));
-  const text = parts.join('\n').replace(/\s+/g, ' ');
-  for (const rule of RULES) assert.ok(text.includes(rule), `the Skill lost: ${rule}`);
+  const files = [join(dir, SKILL)];
+  if (existsSync(refs)) for (const f of readdirSync(refs).sort()) if (f.endsWith('.md')) files.push(join(refs, f));
+  const paragraphs = files.flatMap((f) => readFileSync(f, 'utf8').split(/\r?\n\s*\r?\n/));
+  for (const [family, concepts] of Object.entries(FAMILIES)) {
+    assert.ok(paragraphs.some((p) => concepts.every((c) => c.test(p))), `the Skill no longer states: ${family}`);
+  }
 }

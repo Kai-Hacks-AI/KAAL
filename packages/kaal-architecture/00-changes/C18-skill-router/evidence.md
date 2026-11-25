@@ -5,8 +5,8 @@ The state of the Test Cases of this PLAN, in the tree of this PLAN. No job execu
 | Case | Tests | In this PLAN |
 | --- | --- | --- |
 | T30 | F19 | RED: the router body has 545 words, more than 200 |
-| T31 | F20 | RED: the Skill directory holds more than SKILL.md and references, and there is no references folder |
-| T32 | N4 | GREEN: all twenty rules are in the present Skill, and stay green after the DO |
+| T31 | F20 | RED: there is no references folder |
+| T32 | N4 | GREEN: all eleven families of rule are stated in the present Skill, and stay green after the DO |
 
 The earlier Cases are unchanged and green.
 
