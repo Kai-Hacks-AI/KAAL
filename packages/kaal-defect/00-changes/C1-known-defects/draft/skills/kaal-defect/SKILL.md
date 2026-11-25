@@ -25,7 +25,7 @@ Derive it from records `{case, run, revision, outcome, covers}` that a Case runn
 - `unknown`: otherwise, including no Case at all
 
 Several Cases that point at one Defect are different manifestations or conditions of the same undesirable condition. They are not several Defects and not several places to fix. Each Case's own outcome is kept beside the derived state.
-`UNKNOWN` is never read as `RED` or as `GREEN`. The state is derived each time and never written on the Defect. It is evidence, not permission to merge: what it allows is the policy of the gate that consumes it. It does not select a CARE treatment (Contain, Accept, Ratchet, Eliminate) or authorize a release. A validated Finding stays a Finding; it may prompt an Intent or the investigation of a suspected Defect, which a Test Case with reproducible evidence, manual or automated, verifies. CARE comes after, for a verified Defect; Eliminate runs by a hotfix or by a fix through a normal Change.
+`UNKNOWN` is never read as `RED` or as `GREEN`. The state is derived each time and never written on the Defect. It is evidence, not permission to merge: what it allows is the policy of the gate that consumes it. It does not select a CARE treatment (Contain, Accept, Ratchet, Eliminate) or authorize a release. A validated Finding stays a Finding; it may prompt an Intent, a backlog item (not proof of a Defect) or the investigation of a suspected Defect, none automatic, and a Test Case with reproducible evidence, manual or automated, verifies. CARE comes after, for a verified Defect; Eliminate runs by a hotfix or by a fix through a normal Change.
 
 ## Inventory
 
