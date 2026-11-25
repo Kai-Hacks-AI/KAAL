@@ -16,13 +16,15 @@ The PLAN of defect/C1 observes its RED against `main` at `fa07abe`. It cites not
 | T1213 | F3 | RED: the script is absent |
 | T1214 | N1 | RED: package.json is absent |
 | T1215 | F4 | RED: the script is absent |
+| T1216 | F1 | RED: the script is absent |
+| T1217 | F3 | RED: the script is absent |
 
-6 RED-observed, 0 error, 0 green. Every Test Case fails on its own assertion.
+8 RED-observed, 0 error, 0 green. Every Test Case fails on its own assertion.
 
 
 ## Can each Test Case pass
 
-In a throwaway root outside the repository, holding `draft/package.json` and `draft/skills/kaal-defect/` as the package, all six were green.
+In a throwaway root outside the repository, holding `draft/package.json` and `draft/skills/kaal-defect/` as the package, all eight were green.
 
 ## What this shows and does not show
 
