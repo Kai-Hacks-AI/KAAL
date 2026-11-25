@@ -9,10 +9,11 @@ The planned outer tests live in `packages/kaal-core/test/plan/skill-standard.tes
 | core/T105: a Skill needs `SKILL.md` and nothing else, and nothing but `SKILL.md`, `references/`, `scripts/` and `assets/` sits at the top | core/F95, core/N27, core/A50 | Requirements |
 | core/T106: `kaal skill check` exits 1 on `hard` or a layout finding, 0 on the other levels and 2 when it cannot judge, prints the verdict as data with `--json`, and judges the same files alike wherever they come from | core/F96, core/A51, core/N25 | Architecture |
 | core/T107: the payload carries a `Skill Standard` Definition typed by `KAAL Definition`, and the foundational Nodes are unchanged | core/F92, core/A48 | Requirements |
-| core/T108: against a baseline, a hard Skill is known at its recorded words, grew above them, new without an entry and stale below them, with no baseline it blocks, and an unreadable baseline is unknown | core/F97, core/A52, core/N26 | Requirements |
+| core/T108: against a baseline keyed by canonical name and owner, a hard Skill is known at its recorded words, grew above them, new without an entry and stale below them, with no baseline it blocks, and an unreadable or ownerless baseline is unknown | core/F97, core/A52, core/N26 | Requirements |
+| core/T109: a deployed instance is judged under its canonical's name: a copy identical to its canonical passes as it does, a copy that differs blocks and names the differing paths, a declared variant is held to the entry as a ceiling and is never stale, a variant above it or without an entry blocks, and `--variant` alone is unknown | core/F99, core/A53, core/N26 | Requirements |
 
 The clarity and concision of a frontmatter, and the review of the DO against agentskills.io, are judgements. No Test Case judges them.
 
 ## RED evidence
 
-Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/skill-standard.test.mjs`, outside Core's `npm test` until the DO. At `core/C52` all six are RED, blocked before behavioural assertion: Core has no `kaal-core/skill` entry point, no `kaal skill` verb and no `Skill Standard` Node.
+Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/skill-standard.test.mjs`, outside Core's `npm test` until the DO. At `core/C52` all seven are RED, blocked before behavioural assertion: Core has no `kaal-core/skill` entry point, no `kaal skill` verb and no `Skill Standard` Node.

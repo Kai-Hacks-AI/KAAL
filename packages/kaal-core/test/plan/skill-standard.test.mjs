@@ -1,7 +1,7 @@
 // core/C52 planned outer tests: the Skill standard. Immutable to DO and CHECK.
 // Each title names the contracts it checks (plan/skill-standard/*.md). They
 // check the stated criterion: levels, data in a warning, findings, exit codes,
-// the ratchet's outcomes.
+// the ratchet's outcomes and the instances of a Skill.
 // None reads the wording of a Definition or of a warning message.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -133,14 +133,15 @@ describe("Skill standard (core/C52)", () => {
     assert.ok(!Object.keys(core.foundation()).some((k) => /skill.?standard/i.test(k)), "it is no foundational Node: the Kernel and every foundational id stay as they are");
   });
 
-  it("core/T108 [core/F97, core/A52, core/N26]: against a baseline, a hard Skill is known at its recorded words, grew above them, new without an entry and stale below them; with no baseline it blocks; an unreadable baseline is unknown", async () => {
+  it("core/T108 [core/F97, core/A52, core/N26]: against a baseline keyed by canonical name and owner, a hard Skill is known at its recorded words, grew above them, new without an entry and stale below them; with no baseline it blocks; an unreadable or ownerless baseline is unknown", async () => {
     await skill();
     const made = [];
     const skillDir = (n, name = "kaal-x") => { const d = make({ "SKILL.md": words(n) }, name); made.push(d); return d; };
     const baseline = (obj) => { const d = mkdtempSync(join(tmpdir(), "kaal-skill-baseline-")); made.push(d); const f = join(d, "baseline.json"); writeFileSync(f, typeof obj === "string" ? obj : JSON.stringify(obj)); return f; };
     const run = (dir, file, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, "--baseline", file, "--json", ...flags], { encoding: "utf8" });
     try {
-      const at = baseline({ "kaal-x": 650 });
+      const e = (words) => ({ owner: "x", words });
+      const at = baseline({ "kaal-x": e(650) });
       assert.equal(run(skillDir(650), at).status, 0, "known: equal to its recorded words");
       assert.equal(JSON.parse(run(skillDir(650), at).stdout).ratchet, "known");
       const grew = run(skillDir(651), at);
@@ -149,7 +150,7 @@ describe("Skill standard (core/C52)", () => {
       const stale = run(skillDir(640), at);
       assert.equal(stale.status, 1, "stale: below its recorded words, until the entry is lowered");
       assert.equal(JSON.parse(stale.stdout).ratchet, "stale");
-      assert.equal(run(skillDir(640), baseline({ "kaal-x": 640 })).status, 0, "lowered, it is known again");
+      assert.equal(run(skillDir(640), baseline({ "kaal-x": e(640) })).status, 0, "lowered, it is known again");
       assert.equal(run(skillDir(500), at).status, 1, "no longer hard, the entry is stale and must go");
       assert.equal(run(skillDir(500), baseline({})).status, 0, "removed, it passes");
       const fresh = run(skillDir(650, "kaal-y"), at);
@@ -157,7 +158,48 @@ describe("Skill standard (core/C52)", () => {
       assert.equal(JSON.parse(fresh.stdout).ratchet, "new");
       assert.equal(check(skillDir(650)).status, 1, "no baseline: hard blocks");
       assert.equal(run(skillDir(650), baseline("not json")).status, 2, "an unreadable baseline is unknown");
+      assert.equal(run(skillDir(650), baseline({ "kaal-x": { words: 650 } })).status, 2, "an entry without its owner is unreadable");
+      assert.equal(run(skillDir(650), baseline({ "kaal-x": 650 })).status, 2, "a bare number is not an entry");
       assert.equal(run(skillDir(650), join(tmpdir(), "kaal-no-such-baseline.json")).status, 2, "a missing baseline is unknown");
+    } finally {
+      for (const d of made) rmSync(d, { recursive: true, force: true });
+    }
+  });
+
+  it("core/T109 [core/F99, core/A53, core/N26]: a deployed instance is judged under its canonical's name: an identical copy passes as it does, a differing copy blocks and names the paths, a declared variant is held to the entry as a ceiling and is never stale, above it or without an entry it blocks, and --variant alone is unknown", async () => {
+    await skill();
+    const made = [];
+    const mk = (files, name = "kaal-x") => { const d = make(files, name); made.push(d); return d; };
+    const baseline = (obj) => { const d = mkdtempSync(join(tmpdir(), "kaal-skill-baseline-")); made.push(d); const f = join(d, "baseline.json"); writeFileSync(f, JSON.stringify(obj)); return f; };
+    const at = baseline({ "kaal-x": { owner: "x", words: 650 } });
+    const run = (dir, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, "--baseline", at, "--json", ...flags], { encoding: "utf8" });
+    try {
+      const canonical = mk({ "SKILL.md": words(650), "references/a.md": "a\n" });
+      const copy = mk({ "SKILL.md": words(650), "references/a.md": "a\n" });
+      const same = run(copy, "--of", canonical);
+      assert.equal(same.status, 0, "an identical copy has the canonical's verdict, known at its entry");
+      assert.equal(JSON.parse(same.stdout).instance, "identical");
+      const drift = mk({ "SKILL.md": words(650), "references/a.md": "changed\n" });
+      const differs = run(drift, "--of", canonical);
+      assert.equal(differs.status, 1, "a copy that differs blocks, however few words it has");
+      const out = JSON.parse(differs.stdout);
+      assert.equal(out.instance, "differs");
+      assert.deepEqual(out.differs, ["references/a.md"], "the differing paths are data");
+      const crlf = mk({ "SKILL.md": words(650, "\r\n"), "references/a.md": "a\n" });
+      assert.equal(JSON.parse(run(crlf, "--of", canonical).stdout).instance, "differs", "exact bytes: line endings count");
+      const smaller = mk({ "SKILL.md": words(300) });
+      const variant = run(smaller, "--of", canonical, "--variant");
+      assert.equal(variant.status, 0, "a declared variant below the canonical's allowance passes, and its entry is not stale for it");
+      assert.notEqual(JSON.parse(variant.stdout).ratchet, "stale");
+      assert.equal(run(mk({ "SKILL.md": words(650) }), "--of", canonical, "--variant").status, 0, "a variant at the ceiling is known");
+      const over = run(mk({ "SKILL.md": words(651) }), "--of", canonical, "--variant");
+      assert.equal(over.status, 1, "a variant above the canonical's allowance blocks");
+      assert.equal(JSON.parse(over.stdout).ratchet, "grew");
+      const nobase = spawnSync(process.execPath, [CLI, "skill", "check", mk({ "SKILL.md": words(650) }), "--of", canonical, "--variant", "--baseline", baseline({}), "--json"], { encoding: "utf8" });
+      assert.equal(nobase.status, 1, "a hard variant whose canonical has no entry is new and blocks");
+      assert.equal(JSON.parse(nobase.stdout).ratchet, "new");
+      assert.equal(run(copy, "--variant").status, 2, "--variant without --of cannot be judged");
+      assert.equal(run(copy, "--of", join(tmpdir(), "kaal-no-such-canonical")).status, 2, "a missing canonical cannot be judged");
     } finally {
       for (const d of made) rmSync(d, { recursive: true, force: true });
     }
