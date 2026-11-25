@@ -1,15 +1,46 @@
 name: Experiment required workflow
 # Disposable experiment (defect): is a workflow required by an organization ruleset enforced for this public repository?
+# Phase D: judges content (a changed .github file must equal the stand-in main) and probes what the token may write.
 # Not wired anywhere; delete this branch when the experiment ends.
-# Phase C (follow-up): passes again; also runs in merge groups.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
   merge_group:
-permissions: {}
+permissions:
+  contents: read
+  pull-requests: write
 jobs:
   experiment:
     name: Experiment required workflow
     runs-on: ubuntu-latest
     steps:
-      - run: echo "required workflow ran (phase C); this is an experiment, not an attestation"
+      - name: judge, a changed gate must equal the stand-in main
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -eu
+          bad=0
+          gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[]|select(.filename|startswith(".github/"))|[.filename,.sha]|@tsv' > changed.tsv
+          while IFS=$'\t' read -r f sha; do
+            [ -z "$f" ] && continue
+            want=$(gh api "repos/$REPO/contents/$f?ref=claude/exp-reqwf-main" --jq .sha 2>/dev/null || echo none)
+            if [ "$sha" = "$want" ]; then echo "ok $f equals the stand-in main"; else echo "VIOLATION $f differs from the stand-in main"; bad=1; fi
+          done < changed.tsv
+          echo "judged $(wc -l < changed.tsv) changed .github file(s)"
+          exit $bad
+      - name: merge group
+        if: github.event_name == 'merge_group'
+        run: echo "required workflow ran in a merge group (ref ${{ github.ref }})"
+      - name: probe what the token may write
+        if: always() && github.event_name == 'pull_request'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh api -X POST "repos/$REPO/issues/$PR/comments" -f body="probe comment from the required workflow" >/dev/null && echo "PROBE COMMENT: allowed" || echo "PROBE COMMENT: refused"
+          gh api -X POST "repos/$REPO/pulls/$PR/reviews" -f event=APPROVE -f body="probe approve from the required workflow" >/dev/null && echo "PROBE APPROVE: allowed" || echo "PROBE APPROVE: refused"
