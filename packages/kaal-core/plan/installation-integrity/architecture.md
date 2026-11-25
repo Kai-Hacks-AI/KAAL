@@ -2,10 +2,19 @@
 
 Each element names, in brackets, the Requirements it answers. The assessment behind it is in the project files, `core/c52-installation-integrity-assessment.md`.
 
-- **core/A53** [core/F100, core/F101, core/F102, core/F103, core/N28, core/N29]: One pure module, provisionally the entry point `kaal-core/integrity`, with `verifyInstallation({ entity, version, source, expected, observed })` returning `{ entity, version, source, status, missing, unexpected, modified, reason }` and `exitStatus(result, { enforce })`. The entry point and the names are provisional and the Cases in `testing.md` are written against them. The module holds no entity, no inventory and no path of any capability, and imports only what Core already depends on.
+- **core/A53** [core/F100, core/F101, core/F102, core/F103, core/F108, core/F109, core/N28, core/N29]: One pure module, provisionally the entry point `kaal-core/integrity`, with `verifyInstallation({ entity, version, comparison, evidence, observed, ownership, selected })` returning `{ entity, version, comparison, establisher, sources, status, missing, unexpected, modified, reason, differs }` and `exitStatus(result, { enforce })`. `evidence` is `{ establisher, sources }` as `core/F101` states, with `variants` (each `{ suppliedBy: { owner, path }, sources }`) for the owner's other sets, `ownership` the declaration `{ owner, paths }`, and `selected` the set a location is verified against, the base set unless a variant is named. The entry point and the shapes are provisional, the contracts are not, and the Cases in `testing.md` are written against them. The module holds no entity, no inventory and no path of any capability, and imports only what Core already depends on.
 - **core/A54** [core/F106, core/F107]: The expected set of a selected version is the content its Installation Contract's assets name in that version's published package. The contract already carries the entity's name, version and assets, and the record carries each installed file's SHA-256 and version. Whether this suffices is decision D1.
 - **core/A55** [core/N28, core/F107]: Dependency direction. A capability supplies identity, version and expected assets as data and imports nothing of Core, as an Installation Contract already requires. Core owns the format and the pure verdict and depends on Hosting and Foundation, as it does today. Hosting reads the installed location, as Core's realization does. A control (Release or Controls) supplies the expected set from the selected source and decides detective or preventive. The Skill standard in `core/C52` consumes the verdict and is no part of it.
 - **core/A56** [core/F104]: A control reads `exitStatus` and decides what a finding blocks. Core reports and never decides (`core/N26` of `core/C52` is the same rule).
+
+## Closed product decisions (CPO review of ac8ae7d)
+
+| Question | Decision | Contract |
+| --- | --- | --- |
+| Who establishes entity, version and source identity, and completeness? | The establisher: the control that runs from the protected base or default branch with direct access to the registry and Git, receiving the candidate and the installation as data. It states the manifest, the digests and a tree digest. Core cross-checks them against each other and against the claimed entity and version. | core/I37, core/F101, core/F108 |
+| What if the evidence is unavailable, incomplete, inconsistent, or the artifact and its tag disagree? | The verdict is `unknown` with a reason, never `aligned` and never a difference against one of the sources. | core/F108 to core/F110 |
+| How are owner variants authenticated? | By the ownership declaration, supplied as evidence from the base branch: the variant must come from a path the declaration gives the entity's owner. What the set says about itself counts for nothing. | core/F105 |
+| Does Core stay pure and independent? | Yes. Core never fetches, never trusts a label, and names no entity. | core/N28, core/N29 |
 
 ## What is reused
 
@@ -18,7 +27,9 @@ Each element names, in brackets, the Requirements it answers. The assessment beh
 | Registration | Which entities are registered, by kind | `kaal-core/registration` |
 | Hosting | All reading of files | `kaal-hosting` |
 
-## Options and open decisions
+## Technical decisions, the CTO's
+
+D1 to D6 are the CTO's. The product contracts above hold whichever options are chosen; the recommendations are mine.
 
 | | Decision | Options | Recommendation |
 | --- | --- | --- | --- |
