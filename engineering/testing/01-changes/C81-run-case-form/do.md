@@ -12,3 +12,4 @@
 - `T402` to `T407`: 6 of 6 GREEN in place (RED on the PLAN tree).
 - `kaal-testing` `npm test`: 115 pass, 2 fail, the same 2 as on `main` (`T388` and `T369` need Node 24).
 - The 15 fixtures of `testing/C63` give the same `execution.complete`, counts and problems before and after, apart from the intended change to nothing.
+- `packages/kaal-testing/evidence.kaal.json`: the pinned hash of `test/boundary.test.mjs` follows its new bytes (`engineering/contracts/measure.test.mjs` read it as stale).
