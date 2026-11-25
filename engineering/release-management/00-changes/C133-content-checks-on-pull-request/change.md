@@ -24,6 +24,27 @@ The outcomes are independent. Outcome 2 alone is not enough on a plain `pull_req
 5. **Gate design, for the later DOs.** Each gate is a workflow on plain `pull_request` that judges content only. `sync-review` keeps `verify Sync` without a token and the two writers (`approve Sync`, `review Sync`) reading its verdict as data; on a same-repository branch the `pull_request` token may write, and a fork pull request stays blocked as before. Each WIRE removes one name from the CTL20 baseline in its own pull request, so the ratchet ends at empty.
 6. **Case links.** Each DO's Case carries `// Case <id> tests: release/D15` (D16 and D17 in turn), so the Defects close by their Cases.
 
+### Revision after the required-workflow experiment (25 November)
+
+Defect ran an organisation ruleset with a required workflow on disposable branches of this public repository. Results, recorded here as the evidence the PLAN asked for:
+
+1. A required workflow attached by the ruleset runs on a pull request into a targeted branch, and its content is the ruleset's, not the pull request's: a pull request that edited the workflow file still ran the ruleset's version.
+2. A failing required workflow blocks the merge on a plain pull request (the merge was refused with "Repository rule violations found: Required workflows ... failed").
+3. Branch patterns match one segment: `x/**` covers `x/a` and not `x/a/b`, so the targets need a second pattern for deeper names (`hotfix/*/**` and the like).
+4. The merge queue is not available for a wildcard target, so collectors have none, and the queue of `main` was not exercised by this experiment.
+5. The bypass list is empty (the Owner's confirmation); the API does not show it to the token used.
+6. Not tested: fork pull requests.
+
+What it means for the two outcomes. **Trusted judge execution (outcome 2)** can now be structural: the gates D15 to D17 become required workflows of the ruleset, whose definition a pull request cannot edit, so they need neither `pull_request_target` nor a path rule. The workflow source stays in engineering and is wired to the ref the ruleset names, which is a WIRE with the Owner's go; changing the ruleset itself is the Owner's. **Delivery-path isolation (outcome 1)** stays open: a required workflow protects only the workflows it runs, not `.githooks`, `.kaal`, `.agents` or `.claude`; the declared-set rule (wire controls plan) remains the cover for those and is separate evidence.
+
+Decisions that follow (the approval of this revision does not authorize a DO or a WIRE):
+
+1. Route A is carried by required workflows for outcome 2. CODEOWNERS stays out as the CPO ruled.
+2. The targets are the lanes where a pull request can edit a gate: `kaal/**`, `hotfix/**`, `wire/**` with a second pattern per lane for names deeper than one segment, checked by a violation on a deep name. The pattern list is part of the evidence.
+3. Still to be shown before any converted gate is wired: the same violation blocked on `hotfix` and `wire` pattern branches and on a SYNC that carries a changed gate; the permissions a required workflow runs with allow `approve Sync` and `review Sync` to write to the pull request (else those two stay as they are, outside this Change); and the merge group of `main`, where a required workflow's behavior on `merge_group` is tested or the gate is shown to run there by its own trigger.
+4. Fork pull requests stay blocked and untested; no Change claims them.
+5. Who changes the ruleset: the Owner, by the ruleset update procedure, with the workflow source changing only through engineering and a WIRE.
+
 ### Evidence the PLAN asks for
 
 - Outcome 1: per property, the rule as configured, and the violation introduced on a disposable branch and shown rejected, for each lane (a capability pull request, a hotfix, a SYNC carrying a WIRE, a merge-queue entry).
