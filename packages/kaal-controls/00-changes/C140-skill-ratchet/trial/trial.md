@@ -33,25 +33,20 @@ Judge each answer on its own words, 0 to 3 per criterion: 0 absent or wrong, 1 s
 ## Judging
 
 - A session other than the subject judges, with the rubric and the answers only. Where the three agents can judge each other's answers, use that.
-- The judge is told the criteria and nothing about the arms. It will probably still tell them apart; record that in `limits`.
+- The judge is told the criteria and nothing about the arms. It will probably still tell them apart; the record says so.
 
 ## Record
 
-`results.json`:
+The trial content above (prompts, rubric, pass bar) is controls'. How a run is recorded is Research's: one **rehearsal record per agent**, in the form the kaal-research Skill teaches (its harness, its technique and version, its protocol, design, evidence, runs, claims and limits), under `02-learnings/rehearsals/` of this package. The records of the second and third agent say that they challenge the first and whether they replicate it, as the Research Skill describes. Antigravity's automated parallel runs are a technique Research owns; the record names the technique and version that Research's Skill gives it.
+
+Each record holds both arms (`blank` and `skill`) and carries the scores as its evidence of role `scores`: a file `scores.json`, which is rubric content and so controls', one entry per run:
 
 ```json
-{
-  "skill": { "revision": "<git revision of the Skill that was installed>" },
-  "judge": "<who or what judged>",
-  "runs": [
-    { "agent": "claude", "arm": "skill", "prompt": "P1", "opened": true, "scores": { "R2": 2, "R3": 3, "R4": 2, "R5": 3, "R6": 3 } }
-  ],
-  "limits": "<one sentence: what this trial cannot show>"
-}
+{ "runs": [ { "arm": "skill", "prompt": "P1", "opened": true, "scores": { "R2": 2, "R3": 3, "R4": 2, "R5": 3, "R6": 3 } } ] }
 ```
 
-A `scores` object holds only the criteria that apply to its prompt.
+A `scores` object holds only the criteria that apply to its prompt. The record's claims stay at the scope its design supports: with blinding likely to fail, a claim of effect is not made, and the `Limits` section says so.
 
 ## Pass
 
-For each agent, the `skill` arm passes when every run opened `SKILL.md`, its mean on R2, R3, R4 and R5 is at least 2, its mean on R6 is 3, and on no criterion is its mean below the `blank` arm's mean. The Skill passes the trial when all three agents pass. The Owner decides whether that is enough; the Owner has said that working on all three is sufficient, although the research was limited.
+For each agent's record, the `skill` arm passes when every run opened `SKILL.md`, its mean on R2, R3, R4 and R5 is at least 2, its mean on R6 is 3, and on no criterion is its mean below the `blank` arm's mean. The Skill passes the trial when all three agents pass. The Owner decides whether that is enough; the Owner has said that working on all three is sufficient, although the research was limited.

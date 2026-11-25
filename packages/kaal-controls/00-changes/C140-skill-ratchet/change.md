@@ -11,7 +11,7 @@ Not authorized by this PLAN, and not before core/C52 is merged into main and thi
 
 1. Restructure the ratchet text within the Skill standard Core ratified: findability, the contrast, the worked example, the declaration fields only in `declaring-controls.md`, baseline, history and retirement.
 2. Cases T1506 and T1507 GREEN; the package suite GREEN.
-3. Kai runs `trial/trial.md` on the three agents and records `trial/results.json`. T1508 GREEN is the acceptance of the trial.
+3. Kai runs `trial/trial.md` on the three agents. Each agent's run is recorded as a Research rehearsal record under `02-learnings/rehearsals/`, with the scores as its evidence. T1508 GREEN is the acceptance of the trial.
 
 ## ACT
 
@@ -23,5 +23,5 @@ A retro entry in the collector.
 - Number of runs. Recommendation: three runs per arm per agent, with and without the Skill, so the trial finishes in one automatic pass. The research was limited and the trial says so.
 - Judge. Recommendation: a session other than the subject's; where the three agents can judge each other's answers, use that. Blinding will probably fail as in E1; the record states it.
 - The pass bar (in `trial.md`): the Skill arm opens `SKILL.md` in every run, reaches 2 or more on contrast, example, baseline and history, and fail-closed unknown, scores 3 on clarity, and is not below its own agent's blank arm on any criterion. Recommendation: accept it. The bar is a judgment of the Owner, not a Case.
-- Research owns the technique of research; controls owns the judged trial of its own Skill. Recommendation: ask research to read `trial.md` for technique before the DO, not for its content.
+- Research owns the research protocol and the record contract (research/C2, #2467); controls owns the experiment content: the question, prompts, rubric, acceptance criteria and conclusions. The CPO asked to reuse C2 and not introduce a parallel record. Done: the records are Research's rehearsal records, one per agent, and only the rubric scores are ours. Recommendation: coordinate with Research on the technique name for the automated runs and on the evidence format before the DO; the DO follows C2 as ratified.
 - Ids C140, I18, G106, F201, F202, A201, T1506 to T1508 are taken by hand; on a clash the newer pull request renumbers.
