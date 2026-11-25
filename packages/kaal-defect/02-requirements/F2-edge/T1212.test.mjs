@@ -31,7 +31,7 @@ function fixture({ contexts, records = [] }) {
   return d;
 }
 const R = 'r1';
-const rec = (c, outcome, revision = R, run = '1') => ({ case: c, run, revision, outcome });
+const rec = (c, outcome, revision = R, run = '1', complete = true) => ({ case: c, run, revision, outcome, complete });
 const check = (d, ...more) => spawnSync(process.execPath, [script, '--places', join(d, 'places.json'), '--records', join(d, 'records.json'), '--revision', R, ...more], { encoding: 'utf8' });
 const lines = (r) => r.stdout.split('\n').filter(Boolean);
 

@@ -18,7 +18,7 @@ A Defect describes the underlying undesirable condition, not merely the observed
 
 ## State
 
-Derive it from records `{case, run, revision, outcome}` that a Case runner made (see kaal-testing), where outcome is `GREEN`, `RED` or `UNKNOWN`. Only records of the revision judged count; another revision is stale. A missing record, or any outcome other than `GREEN` or `RED` (skipped, errored, timed out, incomplete), is `UNKNOWN`.
+Derive it from records `{case, run, revision, outcome, complete}` that a Case runner made (see kaal-testing), where outcome is `GREEN`, `RED` or `UNKNOWN`. `complete` is the runner's own statement that the run observed everything that should count (see kaal-testing); a `GREEN` without `complete: true` is `UNKNOWN`, since complete evidence is established by the runner and never inferred from the records received. Only records of the revision judged count; another revision is stale. The records handed over for the revision are the runs that count. A missing record, or any outcome other than `GREEN` or `RED` (skipped, errored, timed out, incomplete), is `UNKNOWN`.
 
 - `confirmed`: some applicable Case is `RED`, even if every other Case is `UNKNOWN`; one RED Case shows the Defect exists
 - `answered`: it has Cases, every applicable Case is `GREEN` with complete evidence
