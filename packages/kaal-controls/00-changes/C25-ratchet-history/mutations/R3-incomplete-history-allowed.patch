@@ -1,10 +1,11 @@
 --- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
 +++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
-@@ -75,6 +75,6 @@
+@@ -95,7 +95,7 @@
    if (base.baseline.length !== 0) return fail('retired-early');
    if (!isList(head.history) || !sameJson(head.history, base.history)) return fail('history-removed');
    const last = base.history[base.history.length - 1];
 -  if (!last || last.to !== 0) return fail('history-incomplete');
 +  // mutated: incomplete history allowed
+   // Keeping history is not proof of progress: the kept history must itself be a sound chain.
+   if (!soundHistory(base.history)) return fail('history-invalid');
    return { verdict: 'PASS' };
- }

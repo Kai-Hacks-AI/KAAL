@@ -1,4 +1,4 @@
-ratchet.mjs b46d779e46d31a479518a9f8f34aeefa2a47b370 on parent 4de31bdf
+ratchet.mjs 671d7fe5715869a8e1d6e948675fd3e96fea836f on parent 48cccf01
 baseline (no mutation)
   controls/T1120 GREEN
   controls/T1123 GREEN
@@ -38,3 +38,6 @@ R2-history-removal-allowed
 R3-incomplete-history-allowed
   controls/T1120 GREEN
   controls/T1123 RED: history-incomplete did not fail
+R4-unsound-history-allowed
+  controls/T1120 GREEN
+  controls/T1123 RED: history-invalid did not fail

@@ -69,6 +69,26 @@ export function judgeProgress({ base, head, change, window } = {}) {
   return { verdict: 'PASS' };
 }
 
+// A history is sound when every line is whole and the lines chain: a line has a time, a Change, sizes and the names that left;
+// each line starts at the size the one before ended at (the first may start from nothing known), shrinks by exactly the names
+// it lists, and is not earlier than the one before. Pure: it sees only the lines, so it cannot know a line is true. That a
+// line is true is judged once, when it is added, by `judgeProgress` against the base's own history; this check only refuses
+// a history that cannot have been built that way, such as a fabricated final line.
+const count = (n) => Number.isInteger(n) && n >= 0;
+function soundHistory(history) {
+  let previous = null, time = -Infinity;
+  for (const line of history) {
+    if (line === null || typeof line !== 'object') return false;
+    const at = Date.parse(line.at);
+    if (typeof line.at !== 'string' || Number.isNaN(at) || at < time) return false;
+    if (typeof line.change !== 'string' || !line.change || !count(line.to) || !names(line.removed)) return false;
+    if (previous === null && line.from === null) { if (line.removed.length !== 0) return false; }
+    else if (!count(line.from) || (previous !== null && line.from !== previous) || line.from - line.to !== line.removed.length) return false;
+    previous = line.to; time = at;
+  }
+  return true;
+}
+
 // The verdict on ending a ratchet: the baseline is empty, and the history of the completed ratchet is kept, ending in 0.
 export function judgeRetirement({ base, head } = {}) {
   if (!base || !head || !isList(base.baseline) || !isList(base.history)) return { verdict: 'UNKNOWN', reason: 'could-not-judge' };
@@ -76,5 +96,7 @@ export function judgeRetirement({ base, head } = {}) {
   if (!isList(head.history) || !sameJson(head.history, base.history)) return fail('history-removed');
   const last = base.history[base.history.length - 1];
   if (!last || last.to !== 0) return fail('history-incomplete');
+  // Keeping history is not proof of progress: the kept history must itself be a sound chain.
+  if (!soundHistory(base.history)) return fail('history-invalid');
   return { verdict: 'PASS' };
 }
