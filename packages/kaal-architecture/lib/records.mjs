@@ -1,7 +1,8 @@
 // Mechanics of Architecture records (architecture/F14 to F16). Pure: it reads no file. The caller supplies the text of
 // the files it can observe, so the observation boundary is explicit (F15) and the package needs no dependency (N2).
+// A record places a correction by addressing a Requirement (F, N) or a Defect (D) in the same field (F17): nothing else is added (N3).
 
-const REF = /^([a-z][a-z0-9-]*)\/([FN])(\d+)$/;
+const REF = /^([a-z][a-z0-9-]*)\/([FND])(\d+)$/;
 const AID = /^([a-z][a-z0-9-]*)\/A(\d+)$/;
 
 function frontmatter(text) {
@@ -40,7 +41,7 @@ export function readRecord(path, text) {
 }
 
 // F15: a verdict for each reference inside the observation boundary. `observed` maps each observed capability
-// namespace to the Requirement ids (F or N) found in it. Returns the findings only: resolved references give none.
+// namespace to the Requirement ids (F or N) and Defect ids (D) found in it. Returns the findings only: resolved references give none.
 export function checkAddresses(records, observed) {
   const findings = [];
   for (const r of records) {
@@ -61,4 +62,10 @@ export function nextId(namespace, ids) {
   let max = 0;
   for (const id of ids) { const m = AID.exec(id); if (m && m[1] === namespace) max = Math.max(max, Number(m[2])); }
   return `${namespace}/A${max + 1}`;
+}
+
+// F18: the records that address an id, in the order handed in. Derived, never stored: a Defect carries no pointer. An id that no record
+// addresses is unplaced, and no place is assumed for it. A Defect and its corrections are many to many, so the answer may hold several records.
+export function addressing(id, records) {
+  return records.filter((r) => Array.isArray(r.addresses) && r.addresses.includes(id)).map((r) => r.id);
 }
