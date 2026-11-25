@@ -1,0 +1,7 @@
+[
+  {
+    "route": "act",
+    "folders": ["02-learnings/retros/"],
+    "files": ["00-changes/*/act.md", "plan/*/act.md"]
+  }
+]

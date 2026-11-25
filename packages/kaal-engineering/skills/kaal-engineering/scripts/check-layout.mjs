@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Judges a capability folder against the layout template (references/package-layout.json).
+// Checks a capability folder against the layout template (references/package-layout.json): in or out of the specification, flagging what is missing (marked required) and what is too much (not named).
 // judgeLayout is pure: it reads a template and the tracked file paths of the folder, relative to the folder, and touches nothing.
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -15,13 +15,21 @@ export function judgeLayout(template, paths) {
   const top = new Set(paths.map((p) => p.split('/')[0]).filter((n, i) => paths[i].includes('/')));
   const known = new Map(template.folders.map((f) => [f.name, f]));
   for (const name of [...top].sort()) if (NUMBERED.test(name) && !known.has(name)) findings.push(`${name} is a numbered folder the layout does not have`);
-  if (!template.folders.some((f) => NUMBERED.test(f.name) && top.has(f.name))) findings.push("the folder holds none of the layout's folders");
+  // Outside the specification: every tracked file at the root and every folder that the template does not name.
+  const rootNames = (template.root ?? []).map((r) => r.name);
+  const rootFile = (n) => rootNames.some((r) => r === n || (r.startsWith('*') && n.endsWith(r.slice(1))));
+  const topFiles = paths.filter((p) => !p.includes('/'));
+  for (const n of [...new Set(topFiles)].sort()) if (!rootFile(n)) findings.push(`${n} is a file the layout does not have`);
+  for (const name of [...top].sort()) if (!NUMBERED.test(name) && !known.has(name)) findings.push(`${name} is a folder the layout does not have`);
+  // Inside the specification but missing: what the template marks required.
+  for (const r of template.root ?? []) if (r.required && !topFiles.includes(r.name)) findings.push(`${r.name} is missing`);
+  for (const f of template.folders) if (f.required && !top.has(f.name)) findings.push(`${f.name} is missing`);
   for (const f of template.folders) {
     if (!top.has(f.name)) continue;
     const under = paths.filter((p) => p.startsWith(`${f.name}/`)).map((p) => p.slice(f.name.length + 1));
     if (f.name === 'dist') findings.push('dist is committed');
     if (f.verifiedBy && !under.some((p) => p.startsWith(`${f.verifiedBy}/`))) findings.push(`${f.name} holds no ${f.verifiedBy}`);
-    if (f.name === '13-source') {
+    if (f.closed) {
       for (const child of new Set(under.filter((p) => p.includes('/')).map((p) => p.split('/')[0]))) if (!f.children.includes(child)) findings.push(`${f.name} holds ${child}, which the layout does not have`);
     }
   }

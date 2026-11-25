@@ -1,0 +1,31 @@
+{
+ "r1": {
+  "result": "malformed",
+  "problems": [
+   {
+    "section": "front",
+    "rule": "verdict-overstates"
+   }
+  ]
+ },
+ "r2": {
+  "result": "well-formed",
+  "problems": []
+ },
+ "r3": {
+  "result": "well-formed",
+  "problems": []
+ },
+ "r4": {
+  "result": "well-formed",
+  "problems": []
+ },
+ "r5": {
+  "result": "well-formed",
+  "problems": []
+ },
+ "r6": {
+  "result": "well-formed",
+  "problems": []
+ }
+}
