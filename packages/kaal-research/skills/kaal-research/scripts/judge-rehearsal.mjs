@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { parse } from './parse.mjs';
 const ID = /^[a-z][a-z0-9-]*\/RH[1-9]\d*$/;
+const TECH = /^[a-z][a-z0-9]*(-[a-z0-9]+)*@[1-9]\d*$/;
+const OUTCOMES = ['replicates', 'differs', 'inconclusive'];
 const VERDICTS = ['favourable', 'unfavourable', 'inconclusive'];
 const REQUIRED_ROLES = ['prompt', 'answers', 'scores'];
 const EXPOSURE = ['none', 'opened', 'delivered', 'unchecked'];
@@ -20,7 +22,15 @@ export function judgeRehearsal(text, files = []) {
   if (!VERDICTS.includes(front.verdict)) bad('front', 'verdict');
   if (!front.question) bad('front', 'question');
   if (!(front['verdict-about'] in RANK)) bad('front', 'verdict-about');
+  if (!TECH.test(front.technique || '')) bad('front', 'technique');
+  if (front.challenges !== undefined) {
+    if (!ID.test(front.challenges)) bad('front', 'challenges');
+    else if (front.challenges === front.id) bad('front', 'challenges-self');
+    if (!OUTCOMES.includes(front.outcome)) bad('front', 'outcome');
+    if (!front['differs-in']) bad('front', 'differs-in');
+  } else if (front.outcome !== undefined || front['differs-in'] !== undefined) bad('front', 'outcome-without-challenge');
   const D = S.Design?.fields ?? {};
+  if (!D.harness) bad('Design', 'harness');
   const arms = list(D.arms);
   if (!arms.length) bad('Design', 'arms');
   const untreated = arms.includes(D.untreated) ? D.untreated : null;
@@ -42,6 +52,15 @@ export function judgeRehearsal(text, files = []) {
     const f = files.find((x) => x.path === e.path);
     if (!f) bad('Evidence', 'evidence-missing', e.path);
     else if (f.sha256 !== e.sha256) bad('Evidence', 'evidence-changed', e.path);
+  }
+  const P = S.Protocol?.fields;
+  if (!P) bad('Protocol', 'missing');
+  else {
+    for (const k of ['materials', 'run', 'score', 'confirms', 'refutes']) if (!P[k]) bad('Protocol', k);
+    const mats = list(P.materials);
+    for (const m of mats) if (!ev.some((e) => e.path === m)) bad('Protocol', 'materials-not-evidence', m);
+    const prompt = ev.find((e) => e.role === 'prompt');
+    if (P.materials && (!prompt || !mats.includes(prompt.path))) bad('Protocol', 'materials-prompt');
   }
   const runs = S.Runs?.entries ?? [];
   const byId = new Map();
