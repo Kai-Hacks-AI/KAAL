@@ -1,15 +1,17 @@
 # C17 evidence
 
-The RED of this PLAN, in the tree of this PLAN. No job executes the Cases yet.
+The Cases of this Change, in the tree of the DO. No job executes the Cases yet.
 
-| Case | Tests | In this PLAN |
-| --- | --- | --- |
-| T27 | F17 | RED: `checkAddresses` reports a resolved Defect id as INVALID |
-| T28 | F18 | RED: `addressing` is not exported by `lib/records.mjs` |
-| T29 | N3 | RED: the same, and the exports are not yet the expected ones |
+| Case | Tests | PLAN | DO |
+| --- | --- | --- | --- |
+| T27 | F17 | RED: `checkAddresses` reported a resolved Defect id as INVALID | GREEN |
+| T28 | F18 | RED: `addressing` was not exported by `lib/records.mjs` | GREEN |
+| T29 | N3 | RED: the same, and the exports were not the expected ones | GREEN |
+
+The package suite is green: 44 of 44 tests of `packages/kaal-architecture`.
 
 ## Reproduce
 
 ```
-node red.mjs $(find packages/kaal-architecture/00-changes/C17-defect-placement -name 'T*.red.mjs' | sort -V)
+node --test $(find packages/kaal-architecture -name '*.test.mjs' | sort)
 ```
