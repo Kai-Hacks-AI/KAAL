@@ -1,5 +1,5 @@
 name: verify Workflow names
-# release/CTL36. A check on plain pull_request and merge_group: no token, no secret. It runs the judge of the base and reads the change only as Git data.
+# release/CTL36. A check on plain pull_request and merge_group: no token, no secret. It runs the judge of the default branch and reads the base and the change only as Git data.
 on:
   pull_request:
     branches: ['**']
@@ -16,24 +16,33 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
     steps:
-      - name: Check out the base, the trusted judge
+      - name: Check out the default branch, the trusted judge
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
-          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
-      - name: Fetch the proposed head as Git data
+      - name: Fetch the base and the proposed head as Git data
         run: |
+          git fetch --no-tags origin "$BASE_SHA"
           if [ -n "$MERGE_GROUP_HEAD_REF" ]; then
             git fetch --no-tags origin "+${MERGE_GROUP_HEAD_REF}:refs/remotes/pull/head"
           else
             git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
           fi
           git worktree add --detach "$RUNNER_TEMP/head" refs/remotes/pull/head
+      - name: Take the accepted baseline
+        run: |
+          B=engineering/release-management/04-controls/CTL36-verify-workflow-names/baseline.json
+          if git show "$BASE_SHA:$B" > "$RUNNER_TEMP/previous.json" 2>/dev/null; then
+            echo "The accepted baseline is the base commit's."
+          else
+            echo "The base holds no baseline, so the accepted baseline is the default branch's."
+            cp "$B" "$RUNNER_TEMP/previous.json" || { echo "UNKNOWN: the default branch holds no baseline"; exit 2; }
+          fi
       - name: Judge the names
         run: |
           J=engineering/release-management/05-src/workflow-names/judge-workflow-names.mjs
-          test -f "$J" || { echo "UNKNOWN: the judge is absent on the base"; exit 2; }
+          test -f "$J" || { echo "UNKNOWN: the judge is absent on the default branch"; exit 2; }
           node "$J" --head "$RUNNER_TEMP/head" --out "$RUNNER_TEMP/findings.json"
       - name: Judge the findings against the accepted baseline
-        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode ratchet --findings "$RUNNER_TEMP/findings.json" --baseline "$RUNNER_TEMP/head/engineering/release-management/04-controls/CTL36-verify-workflow-names/baseline.json" --previous engineering/release-management/04-controls/CTL36-verify-workflow-names/baseline.json
+        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode ratchet --findings "$RUNNER_TEMP/findings.json" --baseline "$RUNNER_TEMP/head/engineering/release-management/04-controls/CTL36-verify-workflow-names/baseline.json" --previous "$RUNNER_TEMP/previous.json"
