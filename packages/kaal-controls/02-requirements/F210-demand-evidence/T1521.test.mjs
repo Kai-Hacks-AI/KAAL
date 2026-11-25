@@ -14,7 +14,7 @@ const t = (kind, o = {}) => ({ control: 'c/CTL1', kind, revision: 's', ...o });
 const auth = (kind, o = {}) => ({ control: 'c/CTL1', kind, revision: 's', ...o });
 export async function run() {
   const { findEvidenceDue } = await load('demand-evidence.mjs');
-  const f = (o = {}) => findEvidenceDue({ discovery: { revision: 's', complete: true }, transitions: [t('enforcement')], facts: { 'c/CTL1': all }, authorizations: [auth('enforcement')], revision: 's', ...o });
+  const f = (o = {}) => findEvidenceDue({ mode: 'detective', discovery: { revision: 's', complete: true }, transitions: [t('enforcement')], facts: { 'c/CTL1': all }, authorizations: [auth('enforcement')], revision: 's', ...o });
   const D = (kind, fact) => `evidence-due:${kind}:${fact}:c/CTL1`;
   assert.deepEqual(f(), [], 'a complete, authorized enforcement was not clean');
   assert.deepEqual(f({ transitions: [t('activation')], authorizations: [auth('activation')], facts: { 'c/CTL1': { ...all, installed: false, running: false, testedOperational: false } } }), [], 'activation was asked for what only exists after a WIRE');
@@ -44,15 +44,30 @@ export async function run() {
   };
   for (const [what, o] of Object.entries(bad)) assert.throws(() => f(o), `${what} gave a result instead of unknown`);
   assert.deepEqual(f({ transitions: [] }), [], 'a complete discovery of no transitions was not clean');
-  // through the adapter: a confirmed finding can be baselined, unknown never passes even with an allowance
+  // activation is never asked for, nor made unknown by, a post-installation fact
+  const unknownPost = { ...all, installed: null, running: undefined, testedOperational: null };
+  assert.deepEqual(f({ transitions: [t('activation')], authorizations: [auth('activation')], facts: { 'c/CTL1': unknownPost } }), [], 'activation was made unknown or due by a post-installation fact');
+  // through the adapter: no allowance can permit an unauthorized or unready transition, and unknown never passes
   const { runControl } = await load('adapter.mjs');
-  const old = [D('enforcement', 'running')];
-  const go = (o) => runControl({ id: 'controls/CTL5', mode: 'ratchet', check: () => f(o), input: {}, baseline: old, previous: old, boundary: { x: 'real', run: 'r', sha: 's' } });
-  assert.equal((await go({ facts: { 'c/CTL1': { ...all, running: false } } })).verdict, 'PASS', 'a baselined confirmed finding was not allowed');
-  assert.equal((await go({ facts: { 'c/CTL1': { ...all, installed: false } } })).verdict, 'FAIL', 'a new confirmed finding passed the ratchet');
+  const everyName = [D('enforcement', 'running'), D('enforcement', 'authorized'), D('enforcement', 'installed'), D('activation', 'authorized'), D('activation', 'testedPre'), D('activation', 'implemented'), D('enforcement', 'testedOperational')];
+  const go = (mode, o) => runControl({ id: 'controls/CTL5', mode, check: () => f({ mode, ...o }), input: {}, baseline: everyName, previous: everyName, boundary: { x: 'real', run: 'r', sha: 's' } });
+  const unready = { facts: { 'c/CTL1': { ...all, running: false } } };
+  const unauth = { authorizations: [] };
+  for (const [what, o] of Object.entries({ 'an unready transition': unready, 'an unauthorized transition': unauth, 'a transition both unready and unauthorized': { ...unready, ...unauth } })) {
+    const r = await go('ratchet', o);
+    assert.equal(r.verdict, 'UNKNOWN', `an allowance permitted ${what}`);
+    assert.equal(r.blocked, true, `an allowance did not block ${what}`);
+    assert.notEqual(r.verdict, 'PASS');
+    const p = await go('preventive', o);
+    assert.equal(p.verdict, 'FAIL', `a baseline was consulted for ${what} in preventive mode`);
+    assert.equal((await go('detective', o)).verdict, 'REPORT', `${what} was not reported in detective mode`);
+  }
+  assert.equal((await go('ratchet', {})).verdict, 'UNKNOWN', 'ratchet mode was accepted for a control that has nothing to baseline');
+  assert.equal((await go('preventive', {})).verdict, 'PASS', 'a ready and authorized transition did not pass');
   for (const [what, o] of Object.entries(bad)) {
-    const r = await go(o);
-    assert.equal(r.verdict, 'UNKNOWN', `${what} passed or was filtered by an allowance`);
-    assert.equal(r.blocked, true);
+    for (const mode of ['detective', 'preventive']) {
+      const r = await go(mode, o);
+      assert.equal(r.verdict, 'UNKNOWN', `${what} passed in ${mode} mode`);
+    }
   }
 }
