@@ -30,6 +30,13 @@ export async function run() {
     [{ path: ROOT + 'B3.md', status: 'T', mode: '120000' }, 'mode'],
     [{ path: ROOT + 'B3.md', status: 'A', mode: '160000' }, 'mode'],
     [{ path: ROOT + 'B3.md', status: 'A', mode: '100755' }, 'mode'],
+    [{ path: ROOT + 'B3.md', status: 'C', mode: '100644' }, 'status'],
+    [{ path: ROOT + 'B3.md', status: 'X', mode: '100644' }, 'status'],
+    [{ path: ROOT + 'B3.md', status: 'a', mode: '100644' }, 'status'],
+    [{ path: ROOT + 'B3.md', status: 'AM', mode: '100644' }, 'status'],
+    [{ path: ROOT + 'B3.md', mode: '100644' }, 'status'],
+    [{ path: ROOT + 'B3.md', status: null, mode: '100644' }, 'status'],
+    [{ path: ROOT + 'B3.md', status: 1, mode: '100644' }, 'status'],
   ];
   for (const [entry, code] of bad) {
     const r = qualify([add(ROOT + 'B1.md'), entry], { roots, existing: [] });
