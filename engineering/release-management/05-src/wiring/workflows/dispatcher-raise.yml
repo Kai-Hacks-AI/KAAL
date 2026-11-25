@@ -1,6 +1,8 @@
 # The event raise of the Dispatcher (release/C93, release/I52). When the final step of work merges into an integration branch, the PROMOTION of
 # that branch is raised as a draft. It reads the event as data: no pull_request_target, no checkout of the pull request, and the event reaches
-# the script only through env. Live only when the variable KAAL_DISPATCH_RAISE is exactly `on`; otherwise a dry run.
+# the script only through env. A collector (kaal/**) is decided from its tree (release/C116): the default branch is checked out and run (the judges), the
+# collector at the merge revision is checked out beside it as data only (no credentials kept, nothing of it installed or run), and the job that holds the token reads
+# neither. Live only when the variable KAAL_DISPATCH_RAISE is exactly `on`; otherwise a dry run.
 name: Dispatcher raise
 
 on:
@@ -37,6 +39,16 @@ jobs:
         with:
           node-version: 24
 
+      # The collector's tree, as data: the judges above read it, nothing in it is run. Two commits deep, so that the merge's own changes can be read.
+      - name: Check out the collector at the merge revision, as data
+        if: ${{ startsWith(github.event.pull_request.base.ref, 'kaal/') }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          path: collector
+          fetch-depth: 2
+          persist-credentials: false
+
       - name: Classify the merge
         id: final
         env:
@@ -45,6 +57,9 @@ jobs:
           KAAL_PR_BASE: ${{ github.event.pull_request.base.ref }}
           KAAL_PR_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
           KAAL_PR_BODY: ${{ github.event.pull_request.body }}
+          KAAL_PR_NUMBER: ${{ github.event.pull_request.number }}
+          KAAL_MAIN_DIR: .
+          KAAL_COLLECTOR_DIR: collector
         run: node engineering/release-management/05-src/promotion-raise/dispatch.mjs final
 
   raise:

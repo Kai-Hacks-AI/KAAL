@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { RM, draft, load, text, ACT, HOTFIX, PLAN, DO, WIRE, SYNC, ev } from '../../03-architecture/A65-raise-from-the-event/fixtures.mjs';
+import { decide } from '../../05-src/promotion-raise/tree-fixtures.mjs';
 export const id = 'release/T1154';
 export const tests = ['release/F70'];
 export const title = "from the event to the write, for a collector, a hotfix branch and a wire branch: one draft, and a closed PROMOTION of the revision, a moved tip or a dry run write nothing";
@@ -11,7 +12,7 @@ export async function run() {
   const { decideFinal } = await load('final-step.mjs');
   const sha = 'd'.repeat(40);
   for (const [head, body] of [['kaal/release/some-thing', ACT], ['hotfix/the-fix', HOTFIX], ['wire/the-copy', WIRE]]) {
-    const dec = decideFinal(ev({ base: head, body, mergeSha: sha }));
+    const dec = head.startsWith('kaal/') ? await decide({ base: head, mergeSha: sha }) : decideFinal(ev({ base: head, body, mergeSha: sha }));
     assert.equal(dec.action, 'raise', head);
     const run = async ({ seen = [], tip = sha, live = true }) => {
       const calls = [];

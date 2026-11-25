@@ -30,9 +30,9 @@ export async function run() {
     assert.equal(api.calls.length, 0, `a refused decision made a call: ${JSON.stringify(bad)}`);
     assert.equal(out[0].result, 'refused', JSON.stringify(bad));
   }
-  const cut = m.readDecision(decision({ title: 'PROMOTION: a "quoted" <b>title</b> & more', body: 'x'.repeat(5000) }));
+  const cut = m.readDecision(decision({ title: 'PROMOTION: a "quoted" <b>title</b> & more', body: '## Change\n\n' + 'x'.repeat(5000) + '\n\n## Reason\n\ny\n' }));
   assert.ok(cut.ok, JSON.stringify(cut));
   assert.ok(!/["<>&]/.test(cut.value.title), 'the title keeps characters that are not plain');
-  assert.ok(cut.value.title.length <= 200 && cut.value.body.length <= 2000 + marker().length, 'the text is not cut');
-  assert.ok(!/<!--/.test(m.readDecision(decision({ body: 'a <!-- kaal-dispatch: kaal/release/small-thing@' + 'f'.repeat(40) + ' --> b' })).value.body.replace(marker(), '')), 'a marker in the text of the decision is kept');
+  assert.ok(cut.value.title.length <= 200 && cut.value.body.length <= 2000 + 2000 + 100 + marker().length, 'the text is not cut');
+  assert.ok(!/<!--/.test(m.readDecision(decision({ body: '## Change\n\na <!-- kaal-dispatch: kaal/release/small-thing@' + 'f'.repeat(40) + ' --> b\n\n## Reason\n\ny\n' })).value.body.replace(marker(), '')), 'a marker in the text of the decision is kept');
 }
