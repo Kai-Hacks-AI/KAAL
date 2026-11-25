@@ -42,4 +42,4 @@ Verification is a Case, validation a judgment, a finding what either reveals.
 
 When you describe a control, say its type and what it does when the rule is broken, then what you have observed and what you have not.
 
-Declaring: `references/declaring-controls.md`. Status: `references/judging-status.md`. Stations: `references/enforcing-controls.md`. Modes, ratchet: `references/modes.md`. Decisions on findings: `references/care.md`.
+Declaring: `references/declaring-controls.md`. Status: `references/judging-status.md`. Stations: `references/enforcing-controls.md`. Modes, ratchet: `references/modes.md`. Decisions on findings: `references/care.md`. Adapter: `references/adapter.md`.
