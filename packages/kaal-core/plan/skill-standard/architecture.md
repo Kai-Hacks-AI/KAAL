@@ -30,7 +30,7 @@ Every Skill has at least a soft warning, and seven would block on day one. Layou
 | Owner | Asked |
 | --- | --- |
 | Release | WIRE governance and the delivery set for agent-facing deployment. |
-| Engineering | The Skill-only transport, and agreement on the layout. |
+| Engineering | The Skill-only transport, and agreement on the layout. **Confirmed (25 Nov):** the layout agrees with its package layout, which puts the Skill under `13-source` and builds `dist` from it, so the standard applies to the Skill directory itself. It agrees to the Skill-only transport on two conditions, which this PLAN adopts: (a) `kaal skill check` runs on the directory as delivered (the built `dist` copy, not the source tree), so one contract serves both paths; (b) the WIRE copies the Skill directory unchanged and nothing outside it. Each WIRE still needs the Owner's go. |
 | Hosting | How npm content is exposed in `.kaal/`. |
 | The owners of #1703 (Intent), #2113 (Defect), #2146 (Architecture), #1698 (Graph) and #1717 (Requirements) | That their Skill generation meets the standard, once it is merged. |
 | Controls | Only the mechanism that runs `kaal skill check`. |
