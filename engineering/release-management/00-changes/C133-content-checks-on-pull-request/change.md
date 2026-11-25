@@ -19,9 +19,9 @@ The outcomes are independent. Outcome 2 alone is not enough on a plain `pull_req
 
 1. **CODEOWNERS is not an acceptable fallback by itself.** It is an approval boundary, not an isolation boundary: it relies on a person judging each proposed change correctly. It may be added as a second line, never as the proof of outcome 1.
 2. **The CTO proves outcome 1 first.** Before any DO, the CTO demonstrates, on the rules GitHub offers this repository (a path rule in a ruleset, its availability for a public repository in an organisation, its bypass actors, its reach over `kaal/**`, `hotfix/**`, `wire/**`, the merge queue and merge group), an enforceable and independent boundary with properties 1 to 4, using a deliberately introduced violation per property that is shown blocked. The live state read on 24 November: nine rulesets, none with a path rule; `20 - integrating` requires one approval with code-owner review off; only `old promotion` on main requires code-owner review. So today the boundary does not exist.
-3. **If GitHub's rules cannot give it, this PLAN is returned.** The alternative architecture is then proposed to the CPO; CODEOWNERS judgment does not stand in for it.
+3. **If GitHub's rules cannot give it at repo level, the organisation required workflow is the recorded fallback; if neither can, this PLAN is returned.** The alternative architecture is then proposed to the CPO; CODEOWNERS judgment does not stand in for it.
 4. **Order, not authority.** The proposed order stays D15 `sync-review`, D16 `change-isolation`, D17 Branching (`lineage-synchronization`), with D13 and D14 untouched and the relay and handler of D14 kept. The approval of this PLAN does not authorize a DO. A separate decision after the CTO's proof of outcome 1 does, and a WIRE of a converted gate waits for that proof and for Kai's go.
-5. **Gate design, for the later DOs.** Each gate is a workflow on plain `pull_request` that judges content only. `sync-review` keeps `verify Sync` without a token and the two writers (`approve Sync`, `review Sync`) reading its verdict as data; on a same-repository branch the `pull_request` token may write, and a fork pull request stays blocked as before. Each WIRE removes one name from the CTL20 baseline in its own pull request, so the ratchet ends at empty.
+5. **Gate design, for the later DOs (superseded in part by the route chosen in the ladder below: a gate is a relay and handler pair whose handler judges, not a plain `pull_request` workflow; the rest of this item stands).** Each gate judges content only. `sync-review` keeps `verify Sync` without a token and the two writers (`approve Sync`, `review Sync`) reading its verdict as data; on a same-repository branch the `pull_request` token may write, and a fork pull request stays blocked as before. Each WIRE removes one name from the CTL20 baseline in its own pull request, so the ratchet ends at empty.
 6. **Case links.** Each DO's Case carries `// Case <id> tests: release/D15` (D16 and D17 in turn), so the Defects close by their Cases.
 
 ### Revision after the required-workflow experiment (25 November)
@@ -79,9 +79,32 @@ Decisions (the approval of this revision does not authorize a DO or a WIRE):
 4. Forks stay blocked and untested.
 5. Who changes what: the handler and relay sources only through engineering and a WIRE; the ruleset files likewise through engineering and a WIRE installed on the Owner's go, and the live rulesets only by the Owner.
 
+### Two trust boundaries the route must close (CPO review at 63d9bac)
+
+The files-first design and the lowest sufficient hosting level stand, conditional on equivalent protection. Two boundaries are resolved here as requirements, with the demonstration each needs. The CTO owns the technical solution; the PLAN fixes what must be true and shown, not the mechanism.
+
+**1. Relay integrity.** The relay's payload, including the pull request number, is candidate-controlled and is never trusted.
+
+- The handler takes the identity of what it judges only from the authoritative trigger: the `workflow_run` event's own head repository, head branch and head SHA, resolved through the API to the pull request that really has that head, and for a merge group from the `merge_group` event's own head SHA and base. A number in the artifact may be read as a hint and is discarded unless it equals the resolved one.
+- The verdict and the required check are bound to the exact candidate revision: the check is created on that head SHA, the verdict records the revision it judged, and a verdict for another revision, or for a revision that is no longer the head, counts for nothing.
+- Demonstrations, each a violation shown rejected (to be shown by the CTO before any gate is converted): a relay whose payload names another pull request (misdirected); a payload naming a number that does not exist or belongs to another repository (spoofed); a relay run for an older head replayed after a push (stale verdict), which must not satisfy the required check on the new head; a merge group commit judged on its own SHA, not on a pull request's.
+
+**2. WIRE authority.** A `wire/*` branch name and content equality with the source are shape, not authorization. Anyone who can push a `wire/*` branch can produce a WIRE-shaped pull request.
+
+- Delivery changes need an authorization that is established independently of the pull request: the Owner's approval of that pull request at its head, enforced by a boundary the pull request cannot edit (a required review by the Owner on the lane, or the equivalent the CTO shows holds), together with the content judge. The branch name and the content judge only classify; they never authorize.
+- Demonstrations, each shown rejected: a WIRE-shaped pull request (right branch name, content equal to the source) opened without the Owner's approval is not mergeable; the same pull request with content that differs from the source is rejected whoever approved; an approval given on an earlier head does not carry to a later one; a capability pull request that renames itself `wire/*` is judged as a WIRE and stopped for the same reasons.
+- CODEOWNERS stays out as the proof (earlier ruling); a code-owner or required-review rule may be the mechanism only if it is shown to bind this lane independently of the pull request.
+
+**Separate proofs, kept apart.** Trusted execution (outcome 2) and delivery isolation (outcome 1) each keep their own demonstration. Neither proves the other, and neither is satisfied by the two boundaries above alone.
+
+**Fallback kept.** If the repo-level route cannot satisfy both boundaries and both outcomes, the organisation required workflow stays the recorded fallback, and the PLAN is re-submitted with the experiment evidence (a PR cannot edit it, it names its own triggering revision, and a bot approval counts toward approval-counting rules, which is itself a WIRE authority risk to check before any use).
+
+**Reconciled wording.** Where the experiment section and the decisions above speak of a required workflow, they describe the fallback and the evidence for it, not the selected route. The selected route is the repo-level relay and handler with a required check, under the two boundaries above.
+
 ### Evidence the PLAN asks for
 
 - Outcome 1: per property, the rule as configured, and the violation introduced on a disposable branch and shown rejected, for each lane (a capability pull request, a hotfix, a SYNC carrying a WIRE, a merge-queue entry).
+- The two boundaries: each demonstration above, as a violation shown rejected, before any gate is converted or WIRE is requested.
 - Outcome 2 (with each DO, as plain `.test.mjs` Cases): the converted workflow does not name `pull_request_target`; it checks out nothing from the pull request and runs no candidate code; its verdict equals the old source's for the same pairs; a pull request that edits the gate cannot change the verdict of the base's judge; the CTL20 baseline lost exactly the converted workflow's name.
 
 ### Questions for the CPO
