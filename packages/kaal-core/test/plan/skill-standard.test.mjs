@@ -172,98 +172,135 @@ describe("Skill standard (core/C52)", () => {
     const mk = (files, name = "kaal-x") => { const d = make(files, name); made.push(d); return d; };
     const json = (obj) => { const d = mkdtempSync(join(tmpdir(), "kaal-skill-json-")); made.push(d); const f = join(d, "f.json"); writeFileSync(f, JSON.stringify(obj)); return f; };
     const at = json({ "kaal-x": { owner: "x", words: 650 } });
-    const run = (dir, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, "--baseline", at, "--json", ...flags], { encoding: "utf8" });
+    const run = (dir, ...flags) => spawnSync(process.execPath, [CLI, "skill", "check", dir, ...(flags.includes("--baseline") ? [] : ["--baseline", at]), "--json", ...flags], { encoding: "utf8" });
     return { mk, json, run, done: () => { for (const d of made) rmSync(d, { recursive: true, force: true }); } };
   };
 
-  it("core/T109 [core/F99, core/F100, core/A53, core/A54]: a deployed instance is judged under its canonical's name as a ceiling and never stale; an identical copy passes, a differing copy blocks and names the paths; a variant passes only when the owner's declaration lists it, is unauthorized when another owner declared it and undeclared when its id is missing, an instance never declares itself, and a missing option is unknown", async () => {
+  const out = (r) => JSON.parse(r.stdout);
+
+  it("core/T109 [core/F99, core/F100, core/F103, core/A53]: a deployed or Engineering copy is aligned when identical to its source and a differs finding naming the paths otherwise, a finding that exits 0 and exits 1 only with --enforce alignment; a variant is declared only when the owner's declaration lists it, unauthorized when another owner declared it and undeclared when its id is missing; an instance never declares itself; a missing option is unknown", async () => {
     await skill();
     const { mk, json, run, done } = instances();
     try {
-      const canonical = mk({ "SKILL.md": words(650), "references/a.md": "a\n" });
-      const same = run(mk({ "SKILL.md": words(650), "references/a.md": "a\n" }), "--of", canonical);
-      assert.equal(same.status, 0, "an identical copy has the canonical's verdict");
-      assert.equal(JSON.parse(same.stdout).instance, "identical");
-      const differs = run(mk({ "SKILL.md": words(650), "references/a.md": "changed\n" }), "--of", canonical);
-      assert.equal(differs.status, 1, "a copy that differs blocks");
-      assert.deepEqual(JSON.parse(differs.stdout).differs, ["references/a.md"], "the differing paths are data");
-      assert.equal(JSON.parse(run(mk({ "SKILL.md": words(650, "\r\n"), "references/a.md": "a\n" }), "--of", canonical).stdout).instance, "differs", "exact bytes: line endings count");
+      const source = mk({ "SKILL.md": words(300), "references/a.md": "a\n" });
+      const copy = (files, ...flags) => run(mk(files), "--as", "deployed", "--from", "engineering", "--of", source, "--version", "1.1.0", "--source", "engineering@abc", ...flags);
+      const same = copy({ "SKILL.md": words(300), "references/a.md": "a\n" });
+      assert.equal(same.status, 0);
+      assert.equal(out(same).alignment.status, "aligned");
+      const drift = { "SKILL.md": words(300), "references/a.md": "changed\n" };
+      const differs = copy(drift);
+      assert.equal(differs.status, 0, "a discrepancy is a finding, not a veto");
+      assert.equal(out(differs).alignment.status, "differs");
+      assert.deepEqual(out(differs).alignment.differs, ["references/a.md"], "the differing paths are data");
+      assert.equal(copy(drift, "--enforce", "alignment").status, 1, "preventive only when enforced");
+      assert.equal(out(copy({ "SKILL.md": words(300, "\r\n"), "references/a.md": "a\n" })).alignment.status, "differs", "exact bytes: line endings count");
 
       const declared = json({ "kaal-x": { owner: "x", variants: { external: { transformation: "External wording" } } } });
       const other = json({ "kaal-x": { owner: "y", variants: { external: { transformation: "External wording" } } } });
-      const variant = (words_, ...flags) => run(mk({ "SKILL.md": words(words_) }), "--of", canonical, "--as", "variant", ...flags);
-      const ok = variant(300, "--owner", "x", "--declared", declared, "--id", "external");
-      assert.equal(ok.status, 0, "an owner-declared variant below the canonical's allowance passes, and its entry is not stale for it");
-      assert.notEqual(JSON.parse(ok.stdout).ratchet, "stale");
-      assert.equal(variant(650, "--owner", "x", "--declared", declared, "--id", "external").status, 0, "a declared variant at the ceiling is known");
-      const over = variant(651, "--owner", "x", "--declared", declared, "--id", "external");
-      assert.equal(over.status, 1, "a declared variant above the canonical's allowance blocks");
-      assert.equal(JSON.parse(over.stdout).ratchet, "grew");
-      const foreign = variant(300, "--owner", "x", "--declared", other, "--id", "external");
-      assert.equal(foreign.status, 1, "a declaration by another capability is not the owner's");
-      assert.equal(JSON.parse(foreign.stdout).variant, "unauthorized");
-      const missing = variant(300, "--owner", "x", "--declared", declared, "--id", "elsewhere");
-      assert.equal(missing.status, 1, "an id the owner did not declare blocks");
-      assert.equal(JSON.parse(missing.stdout).variant, "undeclared");
-      const selfDeclared = run(mk({ "SKILL.md": words(300), "variant.json": "{}" }), "--of", canonical, "--as", "variant", "--owner", "x", "--declared", declared, "--id", "external");
-      assert.equal(selfDeclared.status, 1, "a file in the instance is a layout finding, never a declaration");
-      assert.equal(variant(300, "--owner", "x", "--id", "external").status, 2, "no declaration: cannot be judged");
-      assert.equal(variant(300, "--declared", declared, "--id", "external").status, 2, "no owner: cannot be judged");
-      assert.equal(run(canonical, "--as", "variant", "--owner", "x", "--declared", declared, "--id", "external").status, 2, "a variant of nothing: cannot be judged");
-      assert.equal(run(canonical, "--of", join(tmpdir(), "kaal-no-such-canonical")).status, 2, "a missing reference cannot be judged");
+      const variant = (d, id = "external", ...flags) => copy(drift, "--owner", "x", "--declared", d, "--id", id, "--enforce", "alignment", ...flags);
+      const ok = variant(declared);
+      assert.equal(ok.status, 0, "an owner-declared variant is no finding, even when enforced");
+      assert.equal(out(ok).alignment.variant, "declared");
+      const foreign = variant(other);
+      assert.equal(out(foreign).alignment.variant, "unauthorized", "a declaration by another capability is not the owner's");
+      assert.equal(foreign.status, 1, "and a finding, which exits 1 when enforced");
+      assert.equal(out(variant(declared, "elsewhere")).alignment.variant, "undeclared", "an id the owner did not declare");
+      const self = copy({ "SKILL.md": words(300), "variant.json": "{}" }, "--owner", "x", "--declared", declared, "--id", "external");
+      assert.equal(self.status, 1, "a file in the instance is a layout finding of the standard, never a declaration");
+      assert.equal(copy(drift, "--owner", "x", "--id", "external").status, 2, "no declaration: cannot be judged");
+      assert.equal(copy(drift, "--declared", declared).status, 2, "no owner: cannot be judged");
+      assert.equal(run(mk({ "SKILL.md": words(300) }), "--as", "deployed", "--of", source, "--version", "1", "--source", "e").status, 2, "no source kind: cannot be judged");
+      assert.equal(run(mk({ "SKILL.md": words(300) }), "--as", "deployed", "--from", "engineering").status, 2, "no source: cannot be judged");
+      assert.equal(run(mk({ "SKILL.md": words(300) }), "--as", "deployed", "--from", "engineering", "--of", join(tmpdir(), "kaal-no-such-source"), "--version", "1", "--source", "e").status, 2, "a missing source cannot be judged");
+      const over = copy({ "SKILL.md": words(651) });
+      assert.equal(over.status, 1, "an instance from Engineering is held to the canonical's entry as a ceiling");
+      assert.equal(out(over).ratchet, "grew");
     } finally { done(); }
   });
 
-  it("core/T110 [core/F101, core/A54, core/I33]: content under .kaal/ is installed content: it must equal the published artifact of the given version exactly (an altered file blocks and is named), is compared with that version and not another, cannot be judged without the artifact or its version or under another role, and is still held to the standard", async () => {
+  it("core/T110 [core/F101, core/A54]: content under .kaal/ is installed content: it is compared with the npmjs artifact of the given version and that artifact with its Git tag, each as aligned or differs with the paths and the version, a finding exiting 0 (1 with --enforce alignment); it cannot be judged without the artifact or its version or under another role", async () => {
     await skill();
     const { mk, run, done } = instances();
     const root = mkdtempSync(join(tmpdir(), "kaal-skill-installed-"));
     const installed = (files) => { const d = join(root, ".kaal", "kaal-x"); rmSync(d, { recursive: true, force: true }); mkdirSync(d, { recursive: true }); for (const [path, text] of Object.entries(files)) { mkdirSync(join(d, path, ".."), { recursive: true }); writeFileSync(join(d, path), text); } return d; };
+    const v1 = { "SKILL.md": words(300), "references/a.md": "one\n" };
     try {
-      const v1 = mk({ "SKILL.md": words(300), "references/a.md": "one\n" });
-      const v2 = mk({ "SKILL.md": words(300), "references/a.md": "two\n" });
-      const dir = installed({ "SKILL.md": words(300), "references/a.md": "one\n" });
-      const good = run(dir, "--as", "installed", "--of", v1, "--version", "1.0.0");
-      assert.equal(good.status, 0, "installed content equal to its published version passes");
-      assert.equal(JSON.parse(good.stdout).provenance.version, "1.0.0", "the result names the version compared");
-      const wrongVersion = run(dir, "--as", "installed", "--of", v2, "--version", "2.0.0");
-      assert.equal(wrongVersion.status, 1, "compared with another published version, it is altered: like with like");
-      assert.deepEqual(JSON.parse(wrongVersion.stdout).differs, ["references/a.md"]);
-      const altered = installed({ "SKILL.md": words(300), "references/a.md": "one\n", "references/extra.md": "local\n" });
-      const bad = run(altered, "--as", "installed", "--of", v1, "--version", "1.0.0");
-      assert.equal(bad.status, 1, "a file the published artifact does not have is an alteration");
-      assert.equal(JSON.parse(bad.stdout).instance, "altered");
-      assert.deepEqual(JSON.parse(bad.stdout).differs, ["references/extra.md"]);
-      installed({ "SKILL.md": words(300), "references/a.md": "one\n" });
-      assert.equal(run(dir).status, 2, "installed content with no published artifact cannot be judged, never clean");
-      assert.equal(run(dir, "--as", "installed", "--of", v1).status, 2, "no version: cannot be judged");
-      assert.equal(run(dir, "--of", v1, "--version", "1.0.0").status, 0, "under .kaal/ the role is installed without being named");
-      assert.equal(run(dir, "--as", "development", "--of", v1, "--version", "1.0.0", "--source", "engineering@1.1.0").status, 2, ".kaal/ is never a development version");
-      const big = mk({ "SKILL.md": words(700) }); const bigInstalled = installed({ "SKILL.md": words(700) });
-      const over = run(bigInstalled, "--as", "installed", "--of", big, "--version", "0.9.0");
-      assert.equal(over.status, 1, "an installed published version above the allowance still blocks: no allowance of its own");
-      assert.equal(JSON.parse(over.stdout).ratchet, "grew");
+      const artifact = mk(v1); const v2 = mk({ ...v1, "references/a.md": "two\n" });
+      const tagged = mk(v1); const retagged = mk({ ...v1, "references/a.md": "tag\n" });
+      const dir = installed(v1);
+      const good = run(dir, "--as", "installed", "--of", artifact, "--version", "1.0.0", "--tag", "v1.0.0", "--tag-of", tagged);
+      assert.equal(good.status, 0);
+      assert.equal(out(good).alignment.status, "aligned");
+      assert.equal(out(good).alignment.reference.version, "1.0.0", "the result names the version compared");
+      assert.equal(out(good).alignment.tag.status, "aligned");
+      assert.equal(out(good).alignment.tag.name, "v1.0.0");
+      const bad = run(dir, "--as", "installed", "--of", artifact, "--version", "1.0.0", "--tag", "v1.0.0", "--tag-of", retagged);
+      assert.equal(out(bad).alignment.tag.status, "differs", "the artifact is checked against its tag");
+      assert.deepEqual(out(bad).alignment.tag.differs, ["references/a.md"]);
+      assert.equal(bad.status, 0, "a finding, not a veto");
+      const wrong = run(dir, "--as", "installed", "--of", v2, "--version", "2.0.0");
+      assert.equal(out(wrong).alignment.status, "differs", "compared with another version it is not that version");
+      assert.deepEqual(out(wrong).alignment.differs, ["references/a.md"]);
+      const altered = installed({ ...v1, "references/extra.md": "local\n" });
+      const found = run(altered, "--as", "installed", "--of", artifact, "--version", "1.0.0");
+      assert.equal(found.status, 0, "untraceable content is a detective finding for now");
+      assert.deepEqual(out(found).alignment.differs, ["references/extra.md"]);
+      assert.equal(run(altered, "--as", "installed", "--of", artifact, "--version", "1.0.0", "--enforce", "alignment").status, 1, "and a veto once the Owner makes it preventive");
+      installed(v1);
+      assert.equal(run(dir, "--of", artifact, "--version", "1.0.0").status, 0, "under .kaal/ the role is installed without being named");
+      assert.equal(run(dir).status, 2, "no artifact: cannot be judged, never clean");
+      assert.equal(run(dir, "--of", artifact).status, 2, "no version: cannot be judged");
+      assert.equal(run(dir, "--as", "engineering", "--of", artifact, "--version", "1.0.0", "--source", "engineering@abc").status, 2, ".kaal/ is never Engineering");
     } finally { done(); rmSync(root, { recursive: true, force: true }); }
   });
 
-  it("core/T111 [core/F102, core/A53, core/I34]: a development version is judged as a canonical in full, its differences from the published version are reported as data naming both sources and never block by themselves, and it cannot be judged without them", async () => {
+  it("core/T111 [core/F102, core/A53]: Engineering's copy is compared with the current owning package and both sources and versions are named, never with a published version unless that is the source given", async () => {
     await skill();
     const { mk, run, done } = instances();
     try {
-      const published = mk({ "SKILL.md": words(300), "references/a.md": "one\n" });
-      const dev = mk({ "SKILL.md": words(650), "references/a.md": "two\n" });
-      const r = run(dev, "--as", "development", "--of", published, "--version", "1.0.0", "--source", "engineering@1.1.0");
+      const pkg = mk({ "SKILL.md": words(300), "references/a.md": "pkg\n" });
+      const eng = mk({ "SKILL.md": words(300), "references/a.md": "eng\n" });
+      const r = run(eng, "--as", "engineering", "--of", pkg, "--version", "1.1.0", "--source", "engineering@abc");
       assert.equal(r.status, 0, "a difference alone is no violation");
-      const out = JSON.parse(r.stdout);
-      assert.deepEqual(out.compared, { development: "engineering@1.1.0", published: "1.0.0" }, "both sides are named");
-      assert.deepEqual(out.differs, ["SKILL.md", "references/a.md"], "the differences are reported as data");
-      const grew = run(mk({ "SKILL.md": words(651) }), "--as", "development", "--of", published, "--version", "1.0.0", "--source", "engineering@1.1.0");
-      assert.equal(grew.status, 1, "a development version is no waiver of the ratchet");
-      assert.equal(JSON.parse(grew.stdout).ratchet, "grew");
-      const stale = run(mk({ "SKILL.md": words(640) }), "--as", "development", "--of", published, "--version", "1.0.0", "--source", "engineering@1.1.0");
-      assert.equal(JSON.parse(stale.stdout).ratchet, "stale", "judged as a canonical: the entry is retired when it shrinks");
-      assert.equal(run(dev, "--as", "development", "--of", published, "--source", "engineering@1.1.0").status, 2, "no published version: cannot be judged");
-      assert.equal(run(dev, "--as", "development", "--of", published, "--version", "1.0.0").status, 2, "no development source: cannot be judged");
+      const a = out(r).alignment;
+      assert.equal(a.status, "differs");
+      assert.equal(a.source, "engineering@abc", "the development source is named");
+      assert.equal(a.reference.version, "1.1.0", "and the package version it is compared with");
+      assert.deepEqual(a.differs, ["references/a.md"], "the differences are data");
+      assert.equal(run(eng, "--as", "engineering", "--of", pkg, "--source", "engineering@abc").status, 2, "no package version: cannot be judged");
+      assert.equal(run(eng, "--as", "engineering", "--of", pkg, "--version", "1.1.0").status, 2, "no source: cannot be judged");
+      assert.equal(run(eng, "--as", "engineering").status, 2, "no package: cannot be judged");
+      assert.equal(run(eng, "--of", pkg, "--version", "1.1.0", "--source", "x").status, 2, "alignment options without a role cannot be judged");
     } finally { done(); }
+  });
+
+  it("core/T112 [core/F104, core/A54, core/I35]: conformance follows the lifecycle: the package and an Engineering copy are held to the ratchet (the package stale included), installed content and a deployment from .kaal/ are reported as published and never block, and a shrinking allowance changes only the development verdict", async () => {
+    await skill();
+    const { mk, json, run, done } = instances();
+    const root = mkdtempSync(join(tmpdir(), "kaal-skill-lifecycle-"));
+    const installed = (files) => { const d = join(root, ".kaal", "kaal-x"); rmSync(d, { recursive: true, force: true }); mkdirSync(d, { recursive: true }); for (const [path, text] of Object.entries(files)) { mkdirSync(join(d, path, ".."), { recursive: true }); writeFileSync(join(d, path), text); } return d; };
+    try {
+      const big = { "SKILL.md": words(700), "junk/x.md": "x\n" };
+      const artifact = mk(big);
+      const dir = installed(big);
+      const published = run(dir, "--as", "installed", "--of", artifact, "--version", "1.0.0");
+      assert.equal(published.status, 0, "a legitimately published version is not a violation");
+      assert.equal(out(published).conformance, "published");
+      assert.equal(out(published).level, "hard", "its level is reported");
+      assert.ok(out(published).findings.length > 0, "and so is its layout, which does not block");
+      assert.equal(out(published).ratchet, undefined, "the ratchet does not read it");
+      const shrunk = json({ "kaal-x": { owner: "x", words: 640 } });
+      assert.equal(run(dir, "--baseline", shrunk, "--as", "installed", "--of", artifact, "--version", "1.0.0").status, 0, "a shrinking allowance does not invalidate a published version");
+      const fromKaal = run(mk(big), "--as", "deployed", "--from", "kaal", "--of", artifact, "--version", "1.0.0", "--source", "kaal");
+      assert.equal(fromKaal.status, 0, "a deployment from .kaal/ is as published");
+      assert.equal(out(fromKaal).conformance, "published");
+      const fromEng = run(mk(big), "--as", "deployed", "--from", "engineering", "--of", artifact, "--version", "1.1.0", "--source", "engineering@abc");
+      assert.equal(fromEng.status, 1, "a deployment from Engineering is of the development lifecycle");
+      assert.equal(out(fromEng).conformance, "development");
+      assert.equal(run(mk(big), "--as", "engineering", "--of", artifact, "--version", "1.1.0", "--source", "engineering@abc").status, 1, "an Engineering copy is held to the ratchet");
+      const pkg = mk({ "SKILL.md": words(650) });
+      assert.equal(run(pkg, "--baseline", shrunk).status, 1, "the package at N+1 is held to the shrunk allowance");
+      assert.equal(out(run(mk({ "SKILL.md": words(630) }), "--baseline", shrunk)).ratchet, "stale", "and judged as the canonical, stale included");
+    } finally { done(); rmSync(root, { recursive: true, force: true }); }
   });
 });
