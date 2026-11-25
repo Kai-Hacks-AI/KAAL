@@ -1,0 +1,11 @@
+name: Experiment required workflow
+# PR2 copy: tries to neutralise the required workflow from inside the PR (never triggers on pull_request).
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  experiment:
+    name: Experiment required workflow
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "edited copy"
