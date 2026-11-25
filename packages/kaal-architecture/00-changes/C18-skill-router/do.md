@@ -21,7 +21,7 @@
 | Scope: travel between plateaus and delivery belong to other capabilities | `references/scope.md` |
 | Rules: classify by the concern constrained, never guess, no third concern, no organization, domain or technology | `references/scope.md` unchanged |
 
-No sentence of the previous Skill was reworded. The router is new text that restates the opening in fewer words.
+Every sentence of the previous Skill is in a reference unchanged, with two exceptions that the reviewer should check. The opening paragraph is split: its first and last sentences open `references/scope.md` (joined with the first sentence of the previous Scope section, which they replace), and its two middle sentences (the two concerns kept apart, and what the Skill covers) are restated in the router. The router is otherwise new text that restates the opening in fewer words.
 
 ## Refactor
 
