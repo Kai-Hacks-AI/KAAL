@@ -6,17 +6,17 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 const scripts = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
 const load = async (name) => { const f = join(scripts, name); assert.ok(existsSync(f), `scripts/${name} is absent`); return import(pathToFileURL(f).href); };
-const ctl = (id, over = {}) => ({ id, status: 'designed', stations: [], path: `p/${id}.md`, mode: 'off', evidence: 'UNKNOWN', ...over });
-const rec = (control, over = {}) => ({ control, x: 'real', run: 'r', sha: 's', verdict: 'PASS', by: 'adapter', ...over });
+const claim = (o = {}) => ({ defined: true, implemented: true, running: true, tested: true, ...o });
+const facts = (o = {}) => ({ defined: true, implemented: true, running: true, tested: true, ...o });
 export const id = 'controls/T1519';
 export const tests = ['controls/F208'];
-export const title = 'verify Record names a control whose record lags its evidence and one that overclaims it, whichever way it is wrong';
+export const title = 'verify Record names each declared claim that lags or overclaims its own fact, compares the four facts independently, and treats a missing proof as unknown';
 export async function run() {
   const { findDisagreeing } = await load('verify-record.mjs');
-  const controls = [ctl('c/CTL1'), ctl('c/CTL2', { status: 'running' }), ctl('c/CTL3', { status: 'running' }), ctl('c/CTL4', { status: 'implemented' }), ctl('c/CTL5', { status: 'designed', evidence: 'PASS' })];
-  const records = [rec('c/CTL1'), rec('c/CTL3'), rec('c/CTL5'), rec('c/CTL4', { verdict: 'UNKNOWN' })];
-  assert.deepEqual(findDisagreeing({ controls, records }), ['overclaims:c/CTL2', 'record-lags:c/CTL1', 'record-lags:c/CTL5'], 'a lag or an overclaim was missed, or an agreeing control was named');
-  assert.deepEqual(findDisagreeing({ controls: [ctl('c/CTL1', { status: 'running' })], records: [rec('c/CTL1')] }), []);
-  assert.deepEqual(findDisagreeing({ controls: [ctl('c/CTL1')], records: [] }), [], 'a designed control with no run was named');
-  for (const bad of [{ controls: null }, { records: 'x' }]) assert.throws(() => findDisagreeing({ controls, records, ...bad }), 'bad input did not throw');
+  const f = (controls, fs) => findDisagreeing({ controls, facts: fs });
+  assert.deepEqual(f([{ id: 'c/CTL1', claimed: claim({ running: false }) }, { id: 'c/CTL2', claimed: claim() }], { 'c/CTL1': facts(), 'c/CTL2': facts({ implemented: false }) }), ['implemented:overclaims:c/CTL2', 'running:lags:c/CTL1'], 'a lag or an overclaim was missed, or an agreeing control was named');
+  assert.deepEqual(f([{ id: 'c/CTL1', claimed: claim({ running: false, tested: true }) }], { 'c/CTL1': facts({ running: true, tested: true }) }), ['running:lags:c/CTL1'], 'a passing tested settled a running that lags');
+  assert.deepEqual(f([{ id: 'c/CTL1', claimed: claim() }], { 'c/CTL1': { defined: true, implemented: null, running: undefined, tested: true } }), [], 'a missing proof was taken as absence');
+  assert.deepEqual(f([{ id: 'c/CTL1', claimed: claim() }], { 'c/CTL1': facts() }), []);
+  for (const bad of [{ controls: null }, { facts: 'x' }, { facts: {} }, { controls: [{ id: 'c/CTL1', claimed: { running: 'yes' } }] }]) assert.throws(() => findDisagreeing({ controls: [{ id: 'c/CTL1', claimed: claim() }], facts: { 'c/CTL1': facts() }, ...bad }), 'bad or incomplete input did not throw: ' + JSON.stringify(bad));
 }
