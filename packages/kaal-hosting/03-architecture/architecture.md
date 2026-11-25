@@ -39,6 +39,7 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 | bin | `kaal-hosting-boundary` | `dist/skills/kaal-hosting/scripts/boundary-cli.mjs` | delivered |
 | files | `dist` |  | delivered |
 | bin | `kaal-hosting-revision` | `dist/skills/kaal-hosting/scripts/revision-cli.mjs` | delivered |
+| bin | `kaal-hosting-pulls` | `dist/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs` | delivered |
 <!-- /kaal-hosting:interface -->
 
 ## The conformance suite
@@ -83,3 +84,11 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 ## Reading a revision's files
 
 - **hosting/A38** [hosting/F80, hosting/F81, hosting/F82, hosting/F83, hosting/N12]: `revision` and `readRevision` live in `05-src/skills/kaal-hosting/scripts/revision.ts`, re-exported from `index.ts` (the main entry), and are the one implementation. Git is started through `startPlan`, the one decision of how a command starts, but through a start that keeps output as bytes, because `execute` returns text and a file's bytes are not text; that start is internal to `revision.ts` and is not exported. Three starts do all the work: `rev-parse --verify --quiet --end-of-options <ref>^{commit}`, `--literal-pathspecs ls-tree -r -z --full-tree <commit> -- <under>` (so `under` is read as literal names, whatever Git would make of its syntax), and one `cat-file --batch`. The command is `05-src/skills/kaal-hosting/scripts/revision-cli.mjs`, built beside `boundary-cli.mjs` (a byte-for-byte copy under `dist/skills/kaal-hosting/scripts/`), declared in `bin`, and a thin layer: it parses arguments and prints the line of hosting/F83. `HostingError` gains `REVISION_NOT_FOUND`, `REVISION_UNREADABLE` and `REVISION_ENTRY`. Only reading is in Hosting's scope here: nothing writes, fetches or checks out, and topology queries, GitHub and materializing a revision into a directory are left out.
+
+## Reading the open pull requests of a repository
+
+- **hosting/A39** [hosting/F85, hosting/F86, hosting/F87, hosting/F88, hosting/F89, hosting/N13]: `readPullRequests` lives in `05-src/skills/kaal-hosting/scripts/github/pull-requests.ts`, re-exported from `index.ts` (the main entry), and is the one implementation. Beside it are one small module per transport: `gh-graphql.ts` (the whole record in one GraphQL call), `gh-rest.ts` (the pull list and each pull's merge state, reviews and checks over REST) and `cloud-threads.ts` (the review-thread route of a cloud session, for `threads` only), and `gh.ts`, the one seam for the binary (`options.gh`, by default `gh` through `execute`) with the classification of a failure and its repeats. The selection step in `pull-requests.ts` tries GraphQL, moves to REST only when GraphQL says it is refused here, and holds no route, query or environment test; what no transport answers is `unknown`. The command is `scripts/github/pull-requests-cli.mjs`, built beside `revision-cli.mjs`, declared in `bin`, and a thin layer over `pull-requests-command.ts`. `HostingError` gains `PULLS_UNREADABLE`. Only reading is in Hosting's scope here: nothing is written to GitHub, and branches, tags, comparisons and package files are left out.
+
+## Listing without what the caller leaves out
+
+- **hosting/A40** [hosting/F90, hosting/F91, hosting/F92, hosting/N10]: the options of `list` are read once at its top (`leaving`, a `TypeError` before anything is read) and passed into the shared `walk`, which decides on each entry before it reads a directory or follows a link; `read` passes none, so its behaviour is unchanged. `ListOptions` is exported from `index.ts`. The Skill's operation guide names the options and says to use them instead of reading a directory with `node:fs`.

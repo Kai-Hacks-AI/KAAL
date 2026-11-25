@@ -74,3 +74,7 @@ The result is evidence, not a verdict. A finding is a question put to the owner 
 ## Read a revision's files
 
 To read the files of a Git revision, such as the base a check must be judged against, use `readRevision(root, ref, { under })` or the command `kaal-hosting-revision --root <dir> --ref <ref> [--under <path>]...` instead of `read` (which reads a directory) or an ad hoc `git`. Both read the committed bytes, never the working tree, and keep "no such revision" (`REVISION_NOT_FOUND`) apart from "could not be read" (`REVISION_UNREADABLE`). The command prints facts (the commit and each file's path, size and SHA-256) and exits 0 or 2; whether this is the right revision is your judgment, not its output.
+
+## Read the open pull requests of a repository
+
+To read the open pull requests of a repository, with their reviews, review threads and checks, use `readPullRequests(repository, { gh })` or the command `kaal-hosting-pulls --repository <owner/name>` instead of calling `gh` yourself. Hosting chooses the route and the binary the environment can reach, and the answer has one shape everywhere. A fact that could not be read is `{ unknown: true, reason }`: treat it as not observed, never as none. A failure in transit rejects with `PULLS_UNREADABLE`; it is not a missing fact. The command prints one `kaal-hosting-pulls {…}` line, exit 0 when read and 2 when not.
