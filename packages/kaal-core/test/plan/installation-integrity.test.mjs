@@ -29,7 +29,7 @@ const tree = (digests) => sha(Object.keys(digests).sort().map((p) => `${p}\0${di
 /** An observed inventory (core/F111): the scope the observer enumerated, the files found in it, and the tree digest it states. "." is the whole location. */
 const observe = (files, scope = ["."], extra = {}) => {
   const digests = set(files);
-  return { scope, files: digests, treeDigest: tree(digests), ...extra };
+  return { scope, files: digests, treeDigest: tree(digests), complete: true, ...extra };
 };
 
 const entity = { kind: "capability", name: "x" };
@@ -194,7 +194,8 @@ describe("Installation integrity (core/C53)", () => {
     const reason = (r) => [r.status, r.reason];
     assert.equal(judge(observe(files, ["dir/"])).status, "aligned", "a complete inventory of its scope is judged");
     assert.deepEqual(reason(judge({ files: set(files), treeDigest: tree(set(files)) })), ["unknown", "inventory"], "no scope: nobody said what was enumerated");
-    assert.deepEqual(reason(judge(observe(files, []))), ["unknown", "inventory"], "an empty scope enumerates nothing");
+    assert.deepEqual(reason(judge(observe(files, [], {}))), ["unknown", "inventory"], "an empty scope enumerates nothing");
+    for (const complete of [undefined, null, "yes", 1]) assert.deepEqual(reason(judge(observe(files, ["dir/"], { complete }))), ["unknown", "inventory"], `completeness is stated affirmatively, never inferred from silence: ${String(complete)}`);
     assert.deepEqual(reason(judge(observe(files, ["dir/"], { complete: false }))), ["unknown", "inventory"], "an observer that says it did not finish");
     const tampered = observe(files, ["dir/"]); tampered.files["dir/a.md"] = sha("other");
     assert.deepEqual(reason(judge(tampered)), ["unknown", "inventory"], "a digest changed after the tree digest was stated");
@@ -222,7 +223,10 @@ describe("Installation integrity (core/C53)", () => {
     const expected = m.expectedSet({ contract: tiny, read, list });
     assert.deepEqual(expected, set({ ".kaal/AGENTS.md": "agents", ".kaal/KAAL-KERNEL.md": "kernel", ".kaal/dir/one.md": "1", ".kaal/dir/sub/two.md": "2" }), "file and directory assets by target; the surface-gated asset is not Core's");
     assert.deepEqual(m.observationScope({ contract: tiny }), [".kaal/AGENTS.md", ".kaal/KAAL-KERNEL.md", ".kaal/dir/"], "a file asset is its own path, a directory asset is everything under it");
-    const r = m.verifyInstallation({ entity: { kind: "capability", name: "core" }, version: contract.version, comparison: "installed", evidence: { establisher, sources: ["artifact", "tag"].map((k) => ({ ...source(k, {}), manifest: { kind: "capability", name: "core", version: contract.version, assets: Object.keys(expected) }, files: expected, treeDigest: tree(expected) })) }, observed: { scope: m.observationScope({ contract: tiny }), files: expected, treeDigest: tree(expected) } });
+    assert.equal(m.expectedSet({ contract: tiny, read, list: () => undefined }), null, "a directory whose enumeration is unavailable makes the expected set unavailable, never empty");
+    assert.equal(m.expectedSet({ contract: tiny, read: (p) => (p === "payload/AGENTS.md" ? undefined : read(p)), list }), null, "a source that cannot be read makes it unavailable");
+    assert.deepEqual(m.expectedSet({ contract: tiny, read, list: (p) => (p === "payload/dir" ? [] : undefined) }), set({ ".kaal/AGENTS.md": "agents", ".kaal/KAAL-KERNEL.md": "kernel" }), "a directory enumerated and found empty is verified empty");
+    const r = m.verifyInstallation({ entity: { kind: "capability", name: "core" }, version: contract.version, comparison: "installed", evidence: { establisher, sources: ["artifact", "tag"].map((k) => ({ ...source(k, {}), manifest: { kind: "capability", name: "core", version: contract.version, assets: Object.keys(expected) }, files: expected, treeDigest: tree(expected) })) }, observed: { scope: m.observationScope({ contract: tiny }), files: expected, treeDigest: tree(expected), complete: true } });
     assert.equal(r.status, "aligned", "what the contract says is what is verified, with no list in Core of any entity");
   });
 });
