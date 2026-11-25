@@ -41,7 +41,7 @@ export async function run() {
   const r = check(tree);
   assert.equal(r.status, 0);
   for (const id of ['x/D1', 'x/D2', 'y/D1']) assert.ok(lines(r).includes(`unknown ${id}`), `${id} is found from its record alone, in whatever context holds it`);
-  assert.ok(!/\bknown\b/.test(r.stdout), 'no marker of membership: a record is the acceptance');
+  assert.ok(!/\bknown\b/.test(r.stdout), 'no marker of membership: a record is what makes a Defect recorded');
   // A stray list of ids beside the records decides nothing.
   writeFileSync(join(tree, 'a/b/anywhere', 'known.json'), JSON.stringify(['x/D9']));
   assert.ok(!lines(check(tree)).some((l) => l.includes('x/D9')), 'an id that has no record is no Defect');

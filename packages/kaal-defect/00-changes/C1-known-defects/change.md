@@ -48,7 +48,7 @@ The reach is also what a consumer such as Engineering's ratchet reads to know wh
 
 ## The inventory: the record is authoritative
 
-An accepted Defect is a record in the context where it was born, and the record is authoritative. The mechanic discovers the Defect records at the places the caller hands over (Engineering's layout) and derives the inventory from them. It keeps no register and no membership list: a list of ids would be a second source of truth and a second acceptance decision. An accepted Defect persists unresolved across Changes and releases until its derived state is `answered`. The package knows no folder name or number, and ships no Defect.
+A recorded Defect is a record in the context where it was born, and the record is authoritative. The mechanic discovers the Defect records at the places the caller hands over (Engineering's layout) and derives the inventory from them. It keeps no register and no membership list: a list of ids would be a second source of truth and a second decision on what is recorded. A recorded Defect persists unresolved across Changes and releases until its derived state is `answered`. The package knows no folder name or number, and ships no Defect.
 
 Three dimensions stay separate:
 
@@ -74,6 +74,7 @@ Each handover is a plain value, so kaal-defect imports neither Review, Testing n
 - **Unresolved inventory.** The Defect records that are not answered, grouped by the context of the Architecture element that addresses them, or by the holding context while none does. It is an input to planning, not an automatic order to fix and not a release veto.
 - **The fix.** The fix is a Change plus whatever else is needed; Defect holds none of it and only reports whether the Cases are then GREEN.
 - **Evidence, not policy.** The script prints states and fails only on unreadable input. Whether an unresolved or confirmed Defect may be tolerated is the consumer or integration gate's policy.
+- **Finding to Defect, treatment elsewhere.** Every validated Finding creates a Defect and the Test Case that proves it, whatever CARE treatment is later chosen (Contain, Accept, Ratchet, Eliminate). Accept is an explicit treatment, not a prerequisite for recording. Eliminate has two routes, a hotfix or a fix through a normal Change. Defect derives and reports evidence; it selects no treatment and authorizes no release.
 
 ## Reuse of Testing's mechanics (checked, not claimed)
 
