@@ -39,12 +39,11 @@ describe("KAAL-repo-free Skill (core/C150)", () => {
     assert.deepEqual(rules(found("Change C142 added it")), ["change-id"]);
     assert.deepEqual(rules(found("fixed in #2552")), ["change-id"]);
     assert.deepEqual(rules(found("the PLAN station")), ["station"]);
-    assert.deepEqual(rules(found("raise a pull request")), ["pull-request"]);
     assert.deepEqual(rules(found("set KAAL_RELEASE_HOLD_ACT")), ["flag"]);
     const hit = judgeRepoFree([{ path: "references/a.md", text: "ok\nok\nsee C7" }])[0];
     assert.equal(hit.path, "references/a.md");
     assert.equal(hit.line, 3);
-    for (const product of ["install kaal-core", "run kaal skill check dir", "the .kaal/ folder", "the .agents/skills folder", "a Skill, a Control, an Intent", "ACTION UNDO Cargo C", "a version 1.2.3 and issue-free"]) {
+    for (const product of ["install kaal-core", "run kaal skill check dir", "the .kaal/ folder", "the .agents/skills folder", "a Skill, a Control, an Intent", "ACTION UNDO Cargo C", "a version 1.2.3 and issue-free", "a request to pull the data"]) {
       assert.deepEqual(found(product), [], `${product} is product or an ordinary word`);
     }
   });
@@ -78,10 +77,19 @@ describe("KAAL-repo-free Skill (core/C150)", () => {
   it("core/T123 [core/F115, core/A59]: the standard exports repoRules with the ids of the requirement and a Definition that names the distinction", async () => {
     const { standard } = await skill();
     const ids = (standard.repoRules ?? []).map((r) => r.id ?? r).sort();
-    assert.deepEqual(ids, ["change-id", "flag", "path", "pull-request", "station"]);
+    assert.deepEqual(ids, ["change-id", "flag", "hosting", "path", "station"]);
     const payload = new URL("../../payload/core/Skill-Standard.md", import.meta.url);
     const { readFileSync } = await import("node:fs");
     const text = readFileSync(payload, "utf8");
     assert.ok(/repo/i.test(text) && /product/i.test(text), "the Definition states the repo-and-product distinction");
+  });
+
+  it("core/T124 [core/F116, core/A57]: Git and GitHub vocabulary is the hosting rule, a finding by default, never one when the caller allows hosting, and not a repo rule", async () => {
+    const { judgeRepoFree } = await skill();
+    const files = [{ path: "SKILL.md", text: "Open a Pull Request, then join the merge queue." }];
+    assert.deepEqual(rules(judgeRepoFree(files)), ["hosting", "hosting"]);
+    assert.deepEqual(judgeRepoFree(files, { allow: ["hosting"] }), [], "a Git or GitHub adapter may use it");
+    const mixed = [{ path: "SKILL.md", text: "pull request in packages/kaal-core/x" }];
+    assert.deepEqual(rules(judgeRepoFree(mixed, { allow: ["hosting"] })), ["path"], "allowing hosting never allows the repo");
   });
 });

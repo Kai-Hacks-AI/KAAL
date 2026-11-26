@@ -8,9 +8,10 @@ The planned outer tests live in `packages/kaal-core/test/plan/repo-free.test.mjs
 | core/T121: the check is pure: same files give the same findings, in file and line order, and quoting the repo in a code fence is still a finding | core/N30, core/A57 | Requirements |
 | core/T122: `kaal skill check` lists repo findings as data, blocks with exit 1 only under `--lifecycle published`, and exits 2 on an unreadable directory | core/F114, core/A58 | Requirements |
 | core/T123: the standard exports `repoRules` with the ids of F112 and its Definition states the repo-and-product distinction | core/F115, core/A59 | Requirements |
+| core/T124: Git and GitHub vocabulary is the `hosting` rule: a finding by default, never one when the caller allows `hosting`, and never a repo finding | core/F116, core/A57 | Requirements |
 
 Whether a Skill reads well without the repository is a review's judgement. No Test Case judges it.
 
 ## RED evidence
 
-Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/repo-free.test.mjs`, outside Core's `npm test` until the DO. At `core/C150` all four are RED, blocked before behavioural assertion: `kaal-core/skill` exports no `judgeRepoFree`.
+Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/repo-free.test.mjs`, outside Core's `npm test` until the DO. At `core/C150` all five are RED, blocked before behavioural assertion: `kaal-core/skill` exports no `judgeRepoFree`.
