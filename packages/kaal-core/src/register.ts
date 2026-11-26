@@ -5,14 +5,14 @@ import { evaluate } from "./engine.js";
 import { claimsForm, compareRefs, KaalError, readNode, type Ref } from "./node.js";
 import { foundation, type Files } from "./payload.js";
 
-export type Kind = "capability" | "agent" | "skill" | "extension";
+export type Kind = "capability" | "agent" | "skill" | "exchange";
 
 /** The four CASE kinds, one row each: where a contribution of the kind is registered, and how it is named. */
 const KINDS: Record<Kind, { dir: string; article: string }> = {
   capability: { dir: "capabilities", article: "a" },
   agent: { dir: "agents", article: "an" },
   skill: { dir: "skills", article: "a" },
-  extension: { dir: "extensions", article: "an" },
+  exchange: { dir: "exchanges", article: "an" },
 };
 const NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -49,7 +49,7 @@ export interface Registration {
  * Hosting publishes: under Hosting's lock, every check runs on the Engine as
  * it is and as it would be with the contribution, before anything is
  * written, and any failure refuses the whole contribution and writes nothing.
- * Hosting then publishes the contribution as `<capabilities|agents|skills|extensions>/<name>/`
+ * Hosting then publishes the contribution as `<capabilities|agents|skills|exchanges>/<name>/`
  * all or nothing, refusing paths that are not portable to every supported
  * host (case or Unicode collisions, names Windows cannot hold).
  *
@@ -58,13 +58,13 @@ export interface Registration {
  * Node in Form at a relative `.md` path; every Node declares a type that
  * resolves, by id with the name checked, against the Engine and the
  * contribution together; at least one Node is typed by Core's own Node of this
- * kind (KAAL Capability, KAAL Agent, KAAL Skill or KAAL Extension), and none by
+ * kind (KAAL Capability, KAAL Agent, KAAL Skill or KAAL Exchange), and none by
  * the other three; and the Engine itself verifies as a whole (see `verify`).
  * Registering the identical contribution again is a no-op; a name already
  * registered for the kind with other content is refused.
  */
 export async function register(dir: string, kind: Kind, name: string, contribution: Record<string, string | Uint8Array>): Promise<Registration> {
-  if (!isKind(kind)) throw new KaalError(`${kind} is not a kind: capability, agent, skill or extension`);
+  if (!isKind(kind)) throw new KaalError(`${kind} is not a kind: capability, agent, skill or exchange`);
   if (!NAME.test(name)) throw new KaalError(`${name} is not a contribution name: lowercase letters, digits and single hyphens`);
   const files = toFiles(contribution);
   const paths = Object.keys(files).sort();
@@ -126,8 +126,8 @@ export function registerSkill(dir: string, name: string, contribution: Record<st
   return register(dir, "skill", name, contribution);
 }
 
-export function registerExtension(dir: string, name: string, contribution: Record<string, string | Uint8Array>): Promise<Registration> {
-  return register(dir, "extension", name, contribution);
+export function registerExchange(dir: string, name: string, contribution: Record<string, string | Uint8Array>): Promise<Registration> {
+  return register(dir, "exchange", name, contribution);
 }
 
 /** Read a contribution from a source directory: every file, keyed by `/`-separated relative path. */
@@ -140,28 +140,28 @@ export interface Catalog {
   capabilities: Ref[];
   agents: Ref[];
   skills: Ref[];
-  extensions: Ref[];
+  exchanges: Ref[];
 }
 
 /**
- * The Capabilities, Agents, Skills and Extensions an Engine holds: its
+ * The Capabilities, Agents, Skills and Exchanges an Engine holds: its
  * admitted Nodes typed, by name and id, by Core's KAAL Capability, KAAL Agent,
- * KAAL Skill and KAAL Extension Nodes. Found by type alone; no registry, path
+ * KAAL Skill and KAAL Exchange Nodes. Found by type alone; no registry, path
  * or layout is consulted.
  */
 export async function catalog(dir: string): Promise<Catalog> {
   const admitted = new Admitted(evaluate(await read(dir)).nodes);
   const refs = (kind: Kind): Ref[] => admitted.typed(anchor(kind)).sort(compareRefs);
-  return { capabilities: refs("capability"), agents: refs("agent"), skills: refs("skill"), extensions: refs("extension") };
+  return { capabilities: refs("capability"), agents: refs("agent"), skills: refs("skill"), exchanges: refs("exchange") };
 }
 
 export interface Capabilities {
   skills: Ref[];
-  extensions: Ref[];
+  exchanges: Ref[];
 }
 
-/** @deprecated Use `catalog`, which also lists Capabilities and Agents. The Skills and Extensions an Engine holds. */
+/** @deprecated Use `catalog`, which also lists Capabilities and Agents. The Skills and Exchanges an Engine holds. */
 export async function capabilities(dir: string): Promise<Capabilities> {
-  const { skills, extensions } = await catalog(dir);
-  return { skills, extensions };
+  const { skills, exchanges } = await catalog(dir);
+  return { skills, exchanges };
 }
