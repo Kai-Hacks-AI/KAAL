@@ -1,0 +1,3 @@
+# C123 baseline
+
+The baseline is `main` with `controls-act.yml` installed (WIRE #2263, detective, all four flags unset). `changedPaths` in `05-src/phase/run-controls-act.mjs` reads `git diff --name-only --no-renames HEAD^1 HEAD` over the merge result; the check fetches that merge result at depth 2 and the judge reads the paths as the pull request's own. Of 10 runs since the WIRE, 8 were "not an ACT" and the 2 SYNC runs with a path of the route act (#2279, #2280) gave limit Act FAIL and, on #2279, demand and verify UNKNOWN. Earlier SYNCs (#2272, #2273, #2276) passed only because what they brought lay outside the route act (release thread, 21 Nov).

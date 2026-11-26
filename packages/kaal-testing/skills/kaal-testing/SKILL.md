@@ -1,6 +1,6 @@
 ---
 name: kaal-testing
-description: Design a capability's tests in three loops (architecture conformance, acceptance of the delivered capability, implementation test-first) and report what they show as calibrated findings. Use when planning, writing or reviewing tests, deciding what a test must prove, or reporting test results, failures, defects or coverage.
+description: Design and evaluate tests across composable dimensions (Concern/Claim and Evidence method/boundary), verify test sensitivity and input breadth via Behavioural RED, Targeted Mutation Verification, and Seeded Property & Adversarial Testing, and report calibrated findings without overclaiming. Use when planning, writing, or reviewing tests, deciding what a test must prove, checking test sensitivity or property/invariant coverage, or reporting test results, failures, defects, or coverage.
 license: MIT
 ---
 
@@ -27,19 +27,26 @@ Testing serves verification: it establishes objectively whether a defined criter
 
 For every claim state why, and any unresolved question.
 
-## The three loops
+## Testing loops
 
-**Architecture conformance.** The capability declares its boundaries as its own data, such as the host modules it may use directly. Check them with the most exact mechanism available, and demonstrate three cases:
+Compose testing across two dimensions rather than a fixed triad:
 
-- **permitted**: the delivered code inside its declaration yields no violation;
-- **prohibited**: an injected breach of the declaration must fail the check, with its location;
-- **undecidable**: a construct the check cannot decide must surface for validation, never pass silently and never count as a violation.
+- **Concern / Claim:** what expectation is evaluated and who owns it — from implementation internals (`src`) up through architecture, requirements, intent, and any higher concern composed on top. Trace every check back to its owning claim.
+- **Evidence method / boundary:** what observation or judgment establishes that claim, preserving distinct assurance boundaries:
+  - **Architecture conformance:** declare boundaries as data (such as allowed host modules). Check mechanically where possible and demonstrate three cases: **permitted** (clean code inside declaration passes), **prohibited** (an injected breach fails with its location), and **undecidable** (constructs the check cannot decide surface for validation, never pass silently and never count as a violation). Record each judged validation item, make unjudged items fail, and record uncheckable reviews (such as duplicated responsibility) as validation, not a passing test.
+  - **Capability acceptance:** exercise the capability as delivered, installed fresh on each supported host, through its public interface only, including promised failures (such as refused input leaving state unchanged).
+  - **Implementation:** write the smallest test that fails for the right reason, make it pass, then refactor with tests green. Test behaviour, not structure, and do not introduce functionality without a justified obligation.
+  - **Judgment:** validation when soundness or fitness cannot be settled by an oracle.
 
-Record each judged validation item with its judgment, and make an unjudged one fail, so the list stays exact. Review what no mechanism can see, such as a responsibility duplicated in other words, and record that review as validation, not as a passing test.
+**Qualified evidence reuse.** Reuse an observation where its execution conditions and provenance satisfy each supported claim. Keep each inference explicit; do not duplicate runs solely to duplicate labels, and do not reuse evidence where a claim requires an independent execution (for example, a fresh consumer installation versus a workspace run). No concern or method substitutes for another.
 
-**Capability acceptance.** Exercise the capability as it is delivered, installed fresh, on each host it supports, through its public interface only. Include the failures its contract promises to handle, such as a refused input leaving state unchanged.
+**Behavioural RED.** Before implementing, run the loop's tests against an inert stub (or unfixed target) with valid shape returning neutral values while preserving unrelated valid exports and behaviours when testing a focused claim. The run must fail on a behavioural assertion. A missing module, syntax error, or setup failure is **blocked** (`unknown`), never RED evidence.
 
-**Implementation.** Write the smallest test that fails for the right reason, make it pass, then refactor with every test green. Test behaviour, not structure.
+**Targeted Mutation Verification.** After turning GREEN, challenge tests with targeted mutations tied to authoritative claims and concrete witness inputs. A mutant is **killed** only when the intended behavioural assertion detects the introduced violation — never merely an unrelated error or a broad stub masked by an unrelated check. Classify each challenge as `killed`, `survived`, `invalid`, or `unresolved`, keeping unrelated execution errors separate.
+
+**Seeded property and adversarial testing.** Use when testing pure, algebraic, parser, or validator contracts where hand-picked examples leave input combinations untested (permutations, correspondence or conservation laws, idempotence, non-mutation, or hostile shapes). Keep triggers distinct: Behavioural RED checks before implementation that a test fails on its assertion rather than setup; Targeted Mutation Verification checks after GREEN whether assertions reject selected clause violations; seeded property testing checks input breadth across generated and adversarial cases. Assert real structural, algebraic, or crash-free-refusal laws rather than vacuous setups or copies of production logic. Before running each property, classify it as an **authoritative invariant** (failure can establish a contract breach) or an **exploratory hypothesis** (failure raises an `unknown` question rather than automatically claiming a defect). Always drive generation from an explicit deterministic seed (never unseeded randomness) and shrink failures into minimal reproducible counterexamples. Reproduction does not establish contractual authority: an exploratory counterexample remains an `unknown` contract question. After establishing authority and checking consumers, hand genuine contract breaches to the responsible owner for a Defect and a parked RED Case rather than breaking the normal suite or silently patching source under test; add only passing fixed-seed checks and passing regression cases to the normal executed suite, keeping heavy fuzz loops out of routine runs.
+
+**Uncovered behaviour.** When a mutation exposes behaviour not covered by existing tests, establish its contractual basis, necessity, and consumer dependencies before proposing tests, a contract clarification, or removal (check known consumers, and note that finding none locally does not prove no external consumer relies on a public interface). Do not remove behaviour solely because no existing test requires it. Report findings strictly using the four existing kinds in [references/findings.md](references/findings.md) (`unknown` when authority or necessity is unresolved, `architectural concern` when responsibility placement or duplication is suspected, and `potential defect` only for a plausible expectation violation), leaving defect creation, lifecycle, and closure to whoever owns defects, review, and architecture.
 
 ## Running acceptance
 
@@ -50,6 +57,10 @@ Keep a capability's acceptance scenarios in its own workspace, under `test/accep
 To measure which delivered code a capability's own tests execute, use the `kaal-testing` package's `cover` from `kaal-testing/coverage`. Pass the workspace and the files it delivers. Report a delivered file never executed by name. Report a coverage figure as executed code within that run, never as correctness.
 
 To relate coverage to ownership, use `report` from `kaal-testing/report`. A delivered file counts toward an owner only by its exact tracked path. A built file has no tracked identity, so leave it unreconciled rather than mapping it to a source. Report non-blank text lines and executed lines side by side, never as one ratio.
+
+## Expected failures
+
+When a register of expected failures is given, run with `kaal-testing run --expect <register.json> <test files>` and report what the `expectations` part lists, next to the observed counts and never in place of them: the expected failures that held, the entries that no longer hold (their owner removes them), the unconfirmed and absent entries with their provisional reasons, and any RED nobody expected. Hand the list on as it stands, complete or not.
 
 ## Reporting
 
