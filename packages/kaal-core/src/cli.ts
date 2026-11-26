@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { Admitted } from "./admitted.js";
-import { readFile } from "@kaihacksai/kaal-hosting";
+import { kind, read, readFile } from "@kaihacksai/kaal-hosting";
 import { bootstrap, exportPayload, verify } from "./bootstrap.js";
 import { loadEngine } from "./engine.js";
 import { CORE_VERSION, ENGINE, initEngine, remove, upgrade, versions, type Applied } from "./lifecycle.js";
 import { FormError, KaalError, readNode } from "./node.js";
 import { catalog, isKind, readContribution, register } from "./register.js";
+import { judgeSkill, readBaseline, type Baseline, type Instance, type Lifecycle, type Verdict } from "./skill.js";
 
 const USAGE = `usage: kaal <command> [--engine <dir>]
 
@@ -18,6 +19,8 @@ const USAGE = `usage: kaal <command> [--engine <dir>]
   register <capability|agent|skill|extension> <name> <source-dir>
                                            register a contribution, atomically
   export <out-dir>                         write the foundational Core payload into an empty directory
+  skill check <dir> [--json] [--baseline <file>] [--instance | --variant <id>] [--lifecycle development|published]
+                                           judge a Skill directory against the Skill standard: exit 0, 1 (blocks) or 2 (cannot judge)
   version                                  print the kaal-core that runs and the version the Engine's record holds
   upgrade                                  bring ./.kaal to this kaal-core's Installation Contract
   remove                                   remove Core's installation from ./.kaal, keeping what is not Core's
@@ -26,8 +29,77 @@ const USAGE = `usage: kaal <command> [--engine <dir>]
 current directory, under any name. Without it, the Engine is ./.kaal. Only
 ./.kaal has a record, so upgrade and remove act on it alone.`;
 
+/** The text a person reads for a verdict: no path, so the same files give the same report wherever they sit. */
+function render(v: Verdict): string {
+  const lines = [`${v.skill}: ${v.level} (${v.words} words), ${v.conformance}${v.ratchet ? `, ${v.ratchet}` : ""}${v.blocks ? ", blocks" : ""}`];
+  if (v.warning) lines.push(`  ${v.warning.level}: review the router, consolidate, move detail to references (${v.warning.required.join(", ")})`);
+  for (const f of v.findings) lines.push(`  ${f.rule}: ${f.path}`);
+  return lines.join("\n");
+}
+
+/** `kaal skill check`: the one place that reads a Skill directory, through Hosting (core/F96, core/A51). Exit 2 is "cannot judge", never clean. */
+async function skillCheck(args: string[]): Promise<number> {
+  const unknown = (why: string): number => {
+    console.error(`kaal: cannot judge: ${why}`);
+    return 2;
+  };
+  const rest = [...args];
+  const flag = (name: string): boolean => {
+    const i = rest.indexOf(name);
+    if (i < 0) return false;
+    rest.splice(i, 1);
+    return true;
+  };
+  const value = (name: string): string | undefined | null => {
+    const i = rest.indexOf(name);
+    if (i < 0) return undefined;
+    const v = rest[i + 1];
+    if (v === undefined || v.startsWith("--")) return null;
+    rest.splice(i, 2);
+    return v;
+  };
+  const json = flag("--json");
+  const copy = flag("--instance");
+  const variant = value("--variant");
+  const file = value("--baseline");
+  const lifecycle = value("--lifecycle");
+  if (variant === null || file === null || lifecycle === null) return unknown("an option needs its value");
+  if (copy && variant !== undefined) return unknown("--instance and --variant cannot be given together");
+  if (lifecycle !== undefined && lifecycle !== "development" && lifecycle !== "published") return unknown(`unknown lifecycle ${lifecycle}`);
+  const [dir, ...extra] = rest;
+  if (!dir || dir.startsWith("--") || extra.length > 0) return unknown(`usage: kaal skill check <dir> [options]`);
+  let baseline: Baseline | undefined;
+  if (file !== undefined && lifecycle !== "published") {
+    try {
+      baseline = readBaseline((await readFile(file)).toString("utf8"));
+    } catch (e) {
+      return unknown(`the baseline cannot be read: ${(e as Error).message}`);
+    }
+  }
+  let files: Record<string, Buffer>;
+  try {
+    const at = await kind(resolve(dir));
+    if (at !== "directory") return unknown(`${dir} is not a directory (${at})`);
+    files = await read(resolve(dir));
+  } catch (e) {
+    return unknown(`${dir} cannot be read: ${(e as Error).message}`);
+  }
+  const instance: Instance = copy ? { kind: "copy" } : variant !== undefined ? { kind: "variant", id: variant } : { kind: "skill" };
+  const verdict = judgeSkill({
+    name: basename(resolve(dir)),
+    skillMd: files["SKILL.md"]?.toString("utf8"),
+    paths: Object.keys(files).sort(),
+    baseline,
+    instance,
+    lifecycle: (lifecycle ?? "development") as Lifecycle,
+  });
+  console.log(json ? JSON.stringify(verdict, null, 2) : render(verdict));
+  return verdict.blocks ? 1 : 0;
+}
+
 async function main(argv: string[]): Promise<number> {
   const args = [...argv];
+  if (args[0] === "skill" && args[1] === "check") return skillCheck(args.slice(2));
   let engine = resolve(".kaal");
   const at = args.indexOf("--engine");
   if (at >= 0) {

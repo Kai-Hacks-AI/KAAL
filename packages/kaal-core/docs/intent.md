@@ -9,7 +9,7 @@ KAAL is a way to manage a repository with Markdown files that both people and ag
 kaal-core is the smallest working KAAL. It carries:
 
 - the Kernel, `KAAL-KERNEL.md`, which brings the first Nodes into being;
-- the foundational Nodes: `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Installation Contract` and `Agent Realization`;
+- the foundational Nodes: `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Skill Standard`, `Installation Contract` and `Agent Realization`;
 - the code that bootstraps an Engine (a directory of Nodes, `./.kaal/` by default), admits Nodes by identity and type, registers contributions, validates frontmatter, checks installation contracts, realizes Skills for agents, and assembles registrations.
 
 CASE names four parallel kinds: Capabilities, Agents, Skills and Extensions. Core owns the machinery around them. It owns no discipline's meaning: what a Requirement, a Test Case or an Architecture element means belongs to the capability that defines it.
