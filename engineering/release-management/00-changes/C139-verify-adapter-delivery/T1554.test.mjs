@@ -14,7 +14,7 @@ export async function run() {
   assert.ok(existsSync(RUNNER), 'the runner is absent');
   const dir = mkdtempSync(join(tmpdir(), 'adapter-'));
   const put = (rel, text) => { mkdirSync(join(dir, rel, '..'), { recursive: true }); writeFileSync(join(dir, rel), text); };
-  const map = (rows, notControls = []) => put('map.json', JSON.stringify({ rows, notControls }));
+  const map = (rows, notControls = []) => put('map.json', JSON.stringify({ inventory: ['.github/workflows'], rows, notControls }));
   const A = '.github/workflows/a.yml';
   const BUILD = { path: '.github/workflows/build.yml', reason: 'checks out, builds and publishes; runs no judge' };
   put('pr/e/adapted.mjs', "import { runControl } from './adapter.mjs';\nawait runControl({ id: 'x/CTL1' });\n");
