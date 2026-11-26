@@ -190,6 +190,10 @@ export interface Verdict {
   readonly findings: readonly LayoutFinding[];
   /** Repo references found in the Skill's text files; they block only a published Skill (core/F114). */
   readonly repoFree: readonly RepoFinding[];
+  /** Whether the Skill's text files were given to the repo-free check. Without them a published verdict is never clean and blocks (core/N31). */
+  readonly inspected: boolean;
+  /** Files given to the check, and the paths of those skipped as binary (core/F114). */
+  readonly skipped?: readonly string[];
   readonly ratchet?: Ratchet;
   readonly blocks: boolean;
 }
@@ -203,6 +207,8 @@ export interface Request {
   readonly lifecycle?: Lifecycle;
   /** The text files of the Skill, for the repo-free check. */
   readonly files?: readonly { readonly path: string; readonly text: string }[];
+  /** Paths of files in the Skill's text folders that are binary and were not read. */
+  readonly skipped?: readonly string[];
   /** What the adopter allows, such as `hosting` for a Git or GitHub adapter (core/F119). */
   readonly allow?: readonly string[];
 }
@@ -217,12 +223,13 @@ function ratchet(level: Level, words: number, recorded: number | undefined, inst
 }
 
 /** The verdict for one Skill directory: size, layout, the ratchet when the lifecycle is development (core/F96, core/F97, core/F99). */
-export function judgeSkill({ name, skillMd, paths, baseline, instance = { kind: "skill" }, lifecycle = "development", files = [], allow }: Request): Verdict {
+export function judgeSkill({ name, skillMd, paths, baseline, instance = { kind: "skill" }, lifecycle = "development", files, skipped, allow }: Request): Verdict {
   const size = judgeSize(skillMd ?? "");
   const findings = judgeLayout(paths);
-  const repoFree = judgeRepoFree(files, { allow });
-  const verdict = { skill: name, conformance: lifecycle, words: size.words, level: size.level, ...(size.warning ? { warning: size.warning } : {}), findings, repoFree };
-  if (lifecycle === "published") return { ...verdict, blocks: repoFree.length > 0 };
+  const repoFree = judgeRepoFree(files ?? [], { allow });
+  const inspected = files !== undefined;
+  const verdict = { skill: name, conformance: lifecycle, words: size.words, level: size.level, ...(size.warning ? { warning: size.warning } : {}), findings, repoFree, inspected, ...(skipped && skipped.length > 0 ? { skipped } : {}) };
+  if (lifecycle === "published") return { ...verdict, blocks: repoFree.length > 0 || !inspected };
   let outcome: Ratchet | undefined;
   if (baseline) {
     const entry = Object.hasOwn(baseline, name) ? baseline[name] : undefined;

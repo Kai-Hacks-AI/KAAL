@@ -1,7 +1,7 @@
 {
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "5713cf97a4299d970e3b0f7631d5f98c4e8f67a5964d1a56c4d7fcc852062d32",
+    "README.md": "662ac6d87416694c2516e55ebc58304f805e383b1f596f92f50076eea9293e47",
     "dist/admitted.d.ts": "52ea0be2c29db7fa0cba81d22ab754621d8aa6d6e6350851493dc11ffe6752e3",
     "dist/admitted.js": "7c08d1fd903b40e4945083975f2fd2210573778068c6467eb23ee4f5eb4a5697",
     "dist/agent.d.ts": "edce5bc81865c424780e2f91b38c478771efbc6b4140a93b997c37401a6de6bc",
@@ -9,7 +9,7 @@
     "dist/bootstrap.d.ts": "ebe88738b2c60677c129e7b9bdde097331c4b6c30b8b20df399b2e476f2426ae",
     "dist/bootstrap.js": "466ebac2450c1961517c5a37a76335ac9fb3ee813aa3d38787c9f160ae582c39",
     "dist/cli.d.ts": "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012",
-    "dist/cli.js": "c91b42f7bc30679bdd028022139acad8eb3cf6f1dbbacdb9b77546d135fe5427",
+    "dist/cli.js": "5cf23807f4d073f31552cfc4beefca2110594b0df87fdf8f88c7f63ef7c9b790",
     "dist/conformance.d.ts": "76fa97ba257cded80d2a8ff7eeda2a481953e0be13b96b4d098c8d4489600160",
     "dist/conformance.js": "8290376a17f61acf108d073daa8c63e4e70b8bf07ff19f22c5fb59567195951c",
     "dist/engine.d.ts": "589b5ac011e9d90bd983cc5f670b68339a63f7575c817dc9235b5246c913791d",
@@ -39,8 +39,8 @@
     "dist/register.js": "6fb44144bf212725071e0a46be9994a35842107e6dae69d0257ac483adb6ad22",
     "dist/registration.d.ts": "de8b0e2be5578306a7a3980b3761323a73b796c18d6990a5ff278843a62d0ad0",
     "dist/registration.js": "cb922c8bccec92255d94719e8067fdcbc69f82048537af071881d0f882e273d8",
-    "dist/skill.d.ts": "2a7e2e21d76ffc1c8c6c0ca510a03873ea6a1bad5b86312835753b9c69dbd5f3",
-    "dist/skill.js": "646ce7a4a3f3948a50b8e6535e59ba75925966de8baa11e9e31577cad8c8dd9c",
+    "dist/skill.d.ts": "9e69f5f2c23b071bb20d6ded3dcbbd16a149cf533cd48e0684d73cafe76f2256",
+    "dist/skill.js": "62a08f25cc1a3366cec1a1f6a93168080b5095beb0c0bac965e4b172f56304ce",
     "docs/architecture.md": "f15b20fda519be39ad842017da1e6d2d9bf83317c069ec75f1810fb3c18e0441",
     "docs/intent.md": "73a02625b8fbc3c9f5c0787f7597e8cf61b6ebf62a3b2d055f0d9eabe3680e8e",
     "docs/limitations.md": "72935cde7ba6dd54e4253b05132c172460612bc08b04ea32d4ac549be389aa90",

@@ -88,6 +88,7 @@ async function skillCheck(args: string[]): Promise<number> {
     return unknown(`${dir} cannot be read: ${(e as Error).message}`);
   }
   const instance: Instance = copy ? { kind: "copy" } : variant !== undefined ? { kind: "variant", id: variant } : { kind: "skill" };
+  const scanned = Object.entries(files).filter(([path]) => path === "SKILL.md" || /^(references|scripts|assets)\//.test(path));
   const verdict = judgeSkill({
     name: basename(resolve(dir)),
     skillMd: files["SKILL.md"]?.toString("utf8"),
@@ -95,9 +96,8 @@ async function skillCheck(args: string[]): Promise<number> {
     baseline,
     instance,
     lifecycle: (lifecycle ?? "development") as Lifecycle,
-    files: Object.entries(files)
-      .filter(([path, bytes]) => (path === "SKILL.md" || /^(references|scripts|assets)\//.test(path)) && !bytes.includes(0))
-      .map(([path, bytes]) => ({ path, text: bytes.toString("utf8") })),
+    files: scanned.filter(([, bytes]) => !bytes.includes(0)).map(([path, bytes]) => ({ path, text: bytes.toString("utf8") })),
+    skipped: scanned.filter(([, bytes]) => bytes.includes(0)).map(([path]) => path),
     allow: allow === undefined ? [] : [allow],
   });
   console.log(json ? JSON.stringify(verdict, null, 2) : render(verdict));

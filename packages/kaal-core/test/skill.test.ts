@@ -29,8 +29,8 @@ describe("Skill standard (core/C52)", () => {
     assert.equal(skill(610, { baseline, instance: { kind: "variant", id: "external" } }).ratchet, "stale");
     assert.equal(skill(610, { baseline, instance: { kind: "variant", id: "constructor" } }).ratchet, "new", "a name on the object prototype is no variant");
   });
-  it("published never blocks and carries no ratchet", () => {
-    const v = skill(700, { lifecycle: "published", baseline: { "kaal-x": { owner: "x", words: 650 } } });
+  it("published never blocks on size or layout and carries no ratchet", () => {
+    const v = skill(700, { lifecycle: "published", files: [], baseline: { "kaal-x": { owner: "x", words: 650 } } });
     assert.equal(v.blocks, false);
     assert.equal(v.ratchet, undefined);
     assert.equal(v.level, "hard");
@@ -52,6 +52,11 @@ describe("Skill standard (core/C52)", () => {
     assert.equal(skill(10, { files }).repoFree.length, 1);
     assert.equal(skill(10, { files, lifecycle: "published" }).blocks, true);
     assert.equal(skill(10, { files: [{ path: "SKILL.md", text: "a pull request" }], lifecycle: "published", allow: ["hosting"] }).blocks, false);
-    assert.equal(skill(700, { lifecycle: "published" }).blocks, false, "size still never blocks a published Skill");
+    assert.equal(skill(700, { lifecycle: "published", files: [] }).blocks, false, "size still never blocks a published Skill");
+    const uninspected = skill(10, { lifecycle: "published" });
+    assert.equal(uninspected.inspected, false);
+    assert.equal(uninspected.blocks, true, "a published Skill whose text was not given is never clean");
+    assert.equal(skill(10, { files: [] }).inspected, true);
+    assert.equal(skill(10).blocks, false, "development only reports");
   });
 });
