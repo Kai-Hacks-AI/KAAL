@@ -52,4 +52,19 @@ export async function run() {
   map([{ control: 'x/CTL1', delivered: A, entry: 'e/adapted.mjs' }], [BUILD, { path: A, reason: 'not a control' }]);
   r = go('on');
   assert.match(r.stdout, /^UNKNOWN: /m, 'an unjustified exclusion is UNKNOWN'); assert.doesNotMatch(r.stdout, /^PASS: /m); assert.equal(r.status, 1);
+
+  // Several mapped entries in one delivered workflow are legitimate when each is established on its own.
+  put('pr/e/adapted2.mjs', "import { runControl } from './adapter.mjs';\nawait runControl({ id: 'x/CTL4' });\n");
+  put('pr/.github/workflows/a.yml', 'name: a\njobs:\n  j:\n    steps:\n      - run: node e/adapted.mjs\n      - run: node e/adapted2.mjs\n      - run: node e/plain.mjs\n');
+  map([{ control: 'x/CTL1', delivered: A, entry: 'e/adapted.mjs' }, { control: 'x/CTL4', delivered: A, entry: 'e/adapted2.mjs' }], [BUILD]);
+  r = go('on');
+  assert.match(r.stdout, /^PASS: /m, 'two entries invoked by one workflow, each established, pass'); assert.equal(r.status, 0);
+  // Identity is kept per control: the unestablished one is named, the established one is not.
+  map([{ control: 'x/CTL1', delivered: A, entry: 'e/adapted.mjs' }, { control: 'x/CTL2', delivered: A, entry: 'e/plain.mjs' }], [BUILD]);
+  r = go('on');
+  assert.match(r.stdout, /^UNKNOWN: /m); assert.match(r.stdout, /x\/CTL2/); assert.doesNotMatch(r.stdout, /x\/CTL1/, 'the verdict of one control never stands for or names another'); assert.equal(r.status, 1);
+  // One entry claimed by two controls has no single identity and is UNKNOWN.
+  map([{ control: 'x/CTL1', delivered: A, entry: 'e/adapted.mjs' }, { control: 'x/CTL5', delivered: A, entry: 'e/adapted.mjs' }], [BUILD]);
+  r = go('on');
+  assert.match(r.stdout, /^UNKNOWN: /m, 'an entry claimed by two controls is ambiguous'); assert.doesNotMatch(r.stdout, /^PASS: /m); assert.equal(r.status, 1);
 }
