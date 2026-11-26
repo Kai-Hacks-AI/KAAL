@@ -19,14 +19,14 @@
 **Two Apps, one per authority.** The Inspector App signs checks and holds `checks: write` only. The Dispatcher App raises the PROMOTION (draft pull requests) and holds `pull_requests: write` (it already mints its token from `KAAL_DISPATCHER_APP_ID` and `KAAL_DISPATCHER_KEY`). They are not merged, for three reasons:
 - **Least privilege.** The key that signs the checks the rulesets trust must not be able to write pull requests, and the key that writes pull requests must not be able to post a trusted check.
 - **Judge and sign stay apart.** The Inspector's judge job holds no secret and its sign job alone holds the key; adding pull-request write to that key would put a second authority behind the one a ruleset pins.
-- **An approver is not the author.** The approval automation (`approve Sync`, `review Sync`) needs an identity that approves, and an App must never approve what it raised itself. It is a third role with its own key and `pull_requests: write` for reviews, decided in its own PLAN; it is not the Dispatcher and not the Inspector. This PLAN only records that it depends on an App.
+- **An approver is not the author.** The approval automation (`approve Sync`, `review Sync`) needs an identity that approves, and an App must never approve what it raised itself. It is a third App, **KAAL Approver** (the Owner's name, "for now"), with its own key and `pull_requests: write` for reviews; it is not the Dispatcher and not the Inspector. Its manifest and workflow are its own PLAN; this PLAN records the name, the split and that it depends on an App.
 
 ## What the Owner does by hand (separate from anything the Changes install)
 
 1. Create the Inspector App from `05-src/inspector/app.json` and install it on the repository only.
 2. Store its private key as the secret `INSPECTOR_PRIVATE_KEY` of the sign job's environment.
 3. Create and install the Dispatcher App (manifest `/mnt/project-files/release/app-manifest.json`, permission `pull_requests: write`, `metadata: read`) and store `KAAL_DISPATCHER_APP_ID` and `KAAL_DISPATCHER_KEY`.
-4. The approver App, when its PLAN is approved, with the same two steps.
+4. The KAAL Approver App, when its PLAN is approved, with the same two steps.
 5. **Upload a logo for each App** when creating it (the Owner: a KAAL App has its own logo). Each App has its own logo, so the three are told apart in the check list and the audit log. GitHub takes it as an upload in the App's settings; what I know of its requirements is a square image (PNG, JPG or GIF) of at least 200 by 200 pixels, and the Owner confirms the current limits at the upload. The DO supplies the asset as a source: an SVG master and a PNG export per App under `05-src/inspector/` (and the same for the Dispatcher and the approver), drawn by the Owner or the CPO, not generated here. The App cannot be called finished without it.
 6. Say when each exists. The release workflows are installed by a WIRE on the Owner's go, and pinning a check to the Inspector in a ruleset is a later Change on the Owner's go.
 
