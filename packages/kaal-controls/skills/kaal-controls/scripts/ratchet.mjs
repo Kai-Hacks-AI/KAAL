@@ -69,6 +69,30 @@ export function judgeProgress({ base, head, change, window } = {}) {
   return { verdict: 'PASS' };
 }
 
+// The verdict on the first line of a ratchet, its adoption. Pure, with the inputs of `judgeProgress`, except that the base's baseline is one of
+// three things that are never confused: `null` when the base authoritatively has no baseline (absent), a list when it has one (an empty list is
+// present, at zero), and anything else, which is unknown. Only an absent baseline permits an initial allowance of any size; one that exists can
+// only be adopted as a subset of itself. The adopter establishes absence from the base revision's own data, never from what the pull request claims.
+export function judgeAdoption({ base, head, change, window } = {}) {
+  const unknown = () => ({ verdict: 'UNKNOWN', reason: 'could-not-judge' });
+  if (!base || !head || !change || !window) return unknown();
+  if (!(base.baseline === null || names(base.baseline)) || !names(head.baseline) || !isList(base.history) || !isList(head.history)) return unknown();
+  if (typeof change.id !== 'string' || !change.id || typeof change.exists !== 'boolean') return unknown();
+  const from = Date.parse(window.from), to = Date.parse(window.to);
+  if (Number.isNaN(from) || Number.isNaN(to)) return unknown();
+  if (base.history.length !== 0) return fail('already-adopted');
+  if (head.history.length !== 1) return fail('line-mismatch');
+  const [line] = head.history;
+  if (!line || line.from !== null || line.to !== head.baseline.length || !isList(line.removed) || line.removed.length !== 0) return fail('line-mismatch');
+  const at = Date.parse(line.at);
+  if (Number.isNaN(at)) return unknown();
+  if (base.baseline !== null && head.baseline.some((f) => !base.baseline.includes(f))) return fail('baseline-grew');
+  if (line.change !== change.id) return fail('change-mismatch');
+  if (change.exists !== true) return fail('change-unknown');
+  if (at < from || at > to) return fail('time-out-of-window');
+  return { verdict: 'PASS' };
+}
+
 // A history is sound when every line is whole and the lines chain: a line has a time, a Change, sizes and the names that left;
 // each line starts at the size the one before ended at (the first may start from nothing known), shrinks by exactly the names
 // it lists, and is not earlier than the one before. Pure: it sees only the lines, so it cannot know a line is true. That a
