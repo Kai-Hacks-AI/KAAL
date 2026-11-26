@@ -12,9 +12,17 @@ Owner decision of 26 Nov 2026 (Kai): a published Skill package must be free of t
 
 Engineering owns the repository's layout and delivery, so it is the owner of the vocabulary this check forbids, not of the check. A check owned by Engineering would sit outside the package that ships to consumers and would need the Skill standard to be read from Core anyway. Core already judges a Skill directory, its lifecycle and its ratchet, from files only. The repo vocabulary is a rule table inside the standard, so Engineering can review it without owning the mechanism. Kai may move the ownership.
 
+## What the check proves and what it does not
+
+CPO review and Owner agreement, 26 Nov: product quality validation and hard verification are two things. Hard verification is Testing's: this check verifies named, repository-specific patterns and nothing more. It supports the claim that a Skill is setup-agnostic (Controls' requirement N8) and does not prove it. Whether a consumer can use the Skill without KAAL's development repository is a product quality question, and Review validates it, reading the Skill as a consumer would. The check therefore does not ban the product's own PDCA vocabulary: PLAN, DO and ACT are product semantics and are legitimate words in a Skill. It flags only repository delivery instructions, such as a collector branch, a station's pull request or a path inside the repository. Where context decides, the finding is Review's, not this check's.
+
+## Owners
+
+Core owns the Skill quality standard and the mechanism that judges it. Engineering owns the repository vocabulary: the entries of the rule table are its data, and a change to them needs its review.
+
 ## Hosting vocabulary
 
-Kai, 26 Nov: "pull request" is a generic Git term, not a KAAL-repo reference. It is fair in a Git or GitHub adapter and not in a capability such as Controls. The check therefore does not treat it as a repo reference. It has its own `hosting` rule, flagged in every Skill except one a caller declares to belong to a Git or GitHub adapter.
+Kai, 26 Nov: "pull request" is a generic Git term, not a KAAL-repo reference. It is fair in a Git or GitHub adapter and not in a capability such as Controls. The check therefore does not treat it as a repo reference. It has its own `hosting` rule, flagged in every Skill except one the adopter has established to be a Git or GitHub adapter. A Skill never claims that for itself.
 
 ## Not in this Change
 
