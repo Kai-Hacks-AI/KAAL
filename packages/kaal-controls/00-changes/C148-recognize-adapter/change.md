@@ -23,6 +23,7 @@ Release owns the delivery map, the station, the flag `KAAL_CONTROLS_VERIFY_ADAPT
 - No recognition from strings, comments, unused or unreachable calls, or an unrelated adapter module.
 - Absence of a recognizable pattern is unknown, never nonconformance; only `adapted: false`, established by other evidence, is a finding.
 - F206 is amended to read a recognition as observed without a finding.
+- A recognized integration of the same revision never overrides a confirmed `adapted: false`: the finding stays. Structural and runtime evidence stay apart, and contradictory runtime observations stay unknown, with or without a recognition (F206 items 7 and 8, Case T1553).
 
 ## Left open (for the CPO, with a recommendation)
 

@@ -38,6 +38,13 @@ export async function run() {
   const controls = [{ id: 'c/CTL1', status: 'designed', stations: ['S:detective'], path: 'p', mode: 'off', evidence: 'UNKNOWN', adapted: true }];
   assert.deepEqual(findUnadapted({ controls, delivered: [], observed: [rec(yes)], revision: 's' }), [], 'a recognized integration was named or not read as observed');
   assert.deepEqual(findUnadapted({ controls, delivered: [], observed: [{ control: 'c/CTL1', revision: 's', adapted: false }], revision: 's' }), ['unadapted:c/CTL1'], 'a confirmed nonconformance was lost');
+  const fnd = (observed) => findUnadapted({ controls, delivered: [], observed, revision: 's' });
+  const run = (adapted) => ({ control: 'c/CTL1', revision: 's', adapted });
+  assert.deepEqual(fnd([rec(yes), run(false)]), ['unadapted:c/CTL1'], 'a recognized integration hid a confirmed nonconformance');
+  assert.deepEqual(fnd([run(false), rec(yes)]), ['unadapted:c/CTL1'], 'the order of a recognition and a confirmed nonconformance changed the finding');
+  assert.deepEqual(fnd([rec(yes), run(true)]), [], 'a recognition with a confirmed run was named');
+  assert.throws(() => fnd([rec(yes), run(true), run(false)]), 'a recognition settled contradictory runtime observations');
+  assert.throws(() => fnd([run(true), run(false)]), 'contradictory runtime observations were not unknown');
   assert.throws(() => findUnadapted({ controls, delivered: [], observed: [], revision: 's' }), 'a control with no recognition and no other evidence was not unknown');
   assert.throws(() => findUnadapted({ controls, delivered: [], observed: [{ control: 'c/CTL1', revision: 'other', integration: 'recognized' }], revision: 's' }), 'a recognition of another revision was read');
   assert.throws(() => findUnadapted({ controls, delivered: [], observed: [{ control: 'c/CTL1', revision: 's', integration: 'yes' }], revision: 's' }), 'a recognition with another value was read');
