@@ -62,3 +62,33 @@ test('verify Adapter refuses a recognition of another revision or of another val
   assert.throws(() => find([{ control: 'c/CTL1', revision: 's', integration: 'yes' }]));
   assert.throws(() => find([{ control: 'c/CTL1', revision: 's', integration: 'recognized', adapted: 'x' }]));
 });
+
+test('a name that is declared again is not the imported binding', () => {
+  const shadows = {
+    'a function parameter': `${head}function go(runControl) { return runControl({}); }`,
+    'an arrow parameter in parentheses': `${head}const go = (a, runControl) => runControl(a);`,
+    'a single arrow parameter': `${head}const go = runControl => runControl({});`,
+    'a method parameter': `${head}class A { go(runControl) { return runControl({}); } }`,
+    'a const': `${head}const runControl = () => 1;\nrunControl({});`,
+    'a let': `${head}let runControl = fake;\nrunControl({});`,
+    'a var': `${head}var runControl = fake;\nrunControl({});`,
+    'a further declarator': `${head}const a = 1, runControl = fake;\nrunControl({});`,
+    'a destructured name': `${head}const { runControl } = fake;\nrunControl({});`,
+    'a renamed destructured name': `${head}const { x: runControl } = fake;\nrunControl({});`,
+    'an array pattern': `${head}const [runControl] = fakes;\nrunControl({});`,
+    'a function declaration': `${head}function runControl() {}\nrunControl({});`,
+    'a class declaration': `${head}class runControl {}\nnew runControl({}); runControl({});`,
+    'a catch parameter': `${head}try { x(); } catch (runControl) { runControl({}); }`,
+    'a for loop variable': `${head}for (const runControl of fakes) { runControl({}); }`,
+  };
+  for (const [what, text] of Object.entries(shadows)) assert.throws(() => rec(text), /does not show/, what);
+  const aliased = "import { runControl as go } from '../lib/adapter.mjs';\nfunction f(runControl) { return runControl(1); }\nawait go({});";
+  assert.equal(rec(aliased).integration, 'recognized', 'a declaration of another name than the imported one blocked the recognition');
+});
+test('a call that only uses the name in an expression is still recognized', () => {
+  assert.equal(rec(`${head}const r = await runControl({ id: 1 });\nif (r.verdict) { done(r); }`).integration, 'recognized');
+  assert.equal(rec(`${head}export const run = async (input) => runControl(input);`).integration, 'recognized');
+  assert.equal(rec(`${head}const out = [1].map((x) => runControl(x));`).integration, 'recognized');
+  assert.equal(rec(`${head}try { await runControl({}); } catch (e) { fail(e); }`).integration, 'recognized');
+  assert.equal(rec(`${head}for (const c of controls) { await runControl(c); }`).integration, 'recognized');
+});

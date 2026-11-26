@@ -11,9 +11,9 @@ Not authorized by this PLAN. Then `scripts/recognize-adapter.mjs` and the matchi
 
 ## DO record
 
-`scripts/recognize-adapter.mjs` is added and `scripts/verify-adapter.mjs` reads a recognition as observed. T1553 is GREEN and T1517 stays GREEN. The unit tests are `test/recognize-adapter.test.mjs`; the package suite runs 89 tests, all passing, when run with a glob. This collector's `test` line is not changed, so that main merges clean; the glob arrives with controls/C143 and then runs this test file.
+`scripts/recognize-adapter.mjs` is added and `scripts/verify-adapter.mjs` reads a recognition as observed. T1553 is GREEN and T1517 stays GREEN. The unit tests are `test/recognize-adapter.test.mjs`; the package suite runs 91 tests, all passing, when run with a glob. This collector's `test` line is not changed, so that main merges clean; the glob arrives with controls/C143 and then runs this test file.
 
-The recognition is structure: comments and literals are masked first, so nothing inside them is read; the import must resolve exactly to the adapter path; a branch that a constant condition keeps from running is removed. It is not execution, and a call that is reachable but never executed is still recognized. An entry that does not show the integration throws.
+The recognition is structure: comments and literals are masked first, so nothing inside them is read; the import must resolve exactly to the adapter path; a branch that a constant condition keeps from running is removed. The call must be of the imported binding: a name that is declared again anywhere in the entry (a parameter, a variable, a function or class, a catch parameter or a destructured name) may be another value, and the entry is then not recognized. The declaration is read on tokens, and what looks like a declaration of the name counts, so a doubtful entry is refused. It is not execution, and a call that is reachable but never executed is still recognized. An entry that does not show the integration throws.
 
 ## ACT
 

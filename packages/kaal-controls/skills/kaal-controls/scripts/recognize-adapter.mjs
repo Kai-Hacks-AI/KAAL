@@ -54,6 +54,47 @@ function withoutDeadBranches(code) {
   return result + code.slice(last);
 }
 
+// Whether `name` is declared again in `code` (the import is already removed): a variable, a function or class, a parameter, a catch
+// parameter or a destructured name. Such a name may not be the imported binding, so the entry is not recognized. It is read on tokens,
+// and anything that looks like a declaration of the name counts, so a doubtful entry is refused rather than recognized.
+const tokenize = (code) => code.match(/[A-Za-z_$][\w$]*|\d[\w.]*|=>|\.\.\.|[^\s\w$]/g) || [];
+const DECLARING = new Set(['const', 'let', 'var']);
+const NOT_PARAMETERS = new Set(['if', 'while', 'for', 'switch', 'with']);
+const isWord = (t) => t !== undefined && /^[A-Za-z_$]/.test(t);
+
+function isRedeclared(code, name) {
+  const t = tokenize(code);
+  for (let i = 0; i < t.length; i += 1) {
+    if (t[i] !== name || t[i - 1] === '.') continue;
+    const prev = t[i - 1];
+    if (prev === 'function' || prev === 'class' || DECLARING.has(prev) || (prev === '*' && t[i - 2] === 'function')) return true;
+    if (t[i + 1] === '=>') return true;
+    // a binding list or a destructuring pattern that follows const, let or var
+    let j = i - 1;
+    while (j >= 0 && (isWord(t[j]) && !DECLARING.has(t[j]) && t[j] !== 'await' ? true : [',', ':', '{', '}', '[', ']', '...'].includes(t[j]))) j -= 1;
+    if (j >= 0 && DECLARING.has(t[j])) return true;
+    // a further declarator of a declaration statement, or a catch or function parameter
+    let k = i - 1;
+    while (k >= 0 && t[k] !== ';') k -= 1;
+    if (t.slice(k + 1, i).some((x) => DECLARING.has(x)) && t[i + 1] === '=') return true;
+    let depth = 0;
+    let open = -1;
+    for (let m = i - 1; m >= 0; m -= 1) {
+      if (t[m] === ')') depth += 1;
+      else if (t[m] === '(') { if (depth === 0) { open = m; break; } depth -= 1; }
+      else if (t[m] === ';' || t[m] === '{' || t[m] === '}') { if (depth === 0) break; }
+    }
+    if (open !== -1) {
+      let close = open + 1;
+      for (let d = 1; close < t.length; close += 1) { if (t[close] === '(') d += 1; else if (t[close] === ')' && (d -= 1) === 0) break; }
+      const owner = t[open - 1];
+      if (owner === 'catch') return true;
+      if (!NOT_PARAMETERS.has(owner) && (t[close + 1] === '=>' || t[close + 1] === '{')) return true;
+    }
+  }
+  return false;
+}
+
 // Whether `name` is called in `code`: a whole identifier, not a property of another value, followed by an opening parenthesis.
 function isCalled(code, name) {
   const word = /[\w$]/;
@@ -86,7 +127,7 @@ export function recognizeIntegration({ control, entry, adapter, revision } = {})
   }
   const live = withoutDeadBranches(code.replace(imports, ' '));
   for (const name of binding) {
-    if (isCalled(live, name)) return { control, revision, integration: 'recognized' };
+    if (!isRedeclared(live, name) && isCalled(live, name)) return { control, revision, integration: 'recognized' };
   }
   throw new Error(`recognizeIntegration: the entry of ${control} does not show an integration with the adapter`);
 }
