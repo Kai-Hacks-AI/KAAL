@@ -13,6 +13,10 @@ Not authorized by this PLAN. On its merge into the collector, and with the colle
 2. One sentence in `references/modes.md` that the adoption line is judged too (the Skill structure is the restructure's).
 3. Case T1530 GREEN; the package suite GREEN. Mutation patches as in C25 for each weakening.
 
+## DO record
+
+`judgeAdoption` is in `scripts/ratchet.mjs`; `judgeProgress`, `judgeRetirement` and the Skill's SKILL.md are unchanged, and `references/modes.md` has one sentence on the adoption line. `mutations/` keeps thirteen weakenings of `judgeAdoption` (A1 to A13) as exact patches with a runner, as in C25, including the existing empty baseline taken as absent (A7) and an unstated baseline taken as absent (A12). `mutations/run-at-do-head.txt` is the run on the DO: the baseline is GREEN on T1530 and each weakening, loaded alone, is RED. A12 is RED because the weakened function throws, not by a reason; that is still caught. The record cannot name its own revision; re-run `sh mutations/run.sh <repo root>` at the DO's head and compare with it.
+
 ## ACT
 
 A retro entry in the collector.
