@@ -10,7 +10,7 @@ export async function run() {
   const real = readFileSync(REAL, 'utf8');
   assert.equal(real.replace(/^<!-- KAAL-PR-template: [A-Z]+ -->\n/, ''), `${draft()}\n`, 'the template differs from its draft');
   const current = readFileSync(CURRENT, 'utf8');
-  assert.ok(real.startsWith(current.trimEnd()), 'the template does not start with the current template');
+  assert.ok(real.replace(/^<!-- KAAL-PR-template: [A-Z]+ -->\n/, '').startsWith(current.trimEnd()), 'the template does not start with the current template');
   assert.deepEqual(chapters(real), [...chapters(current), 'HOW TO WORK'], 'the chapters are not the current ones plus HOW TO WORK');
   assert.ok(!/## HOW TO WORK/.test(current), 'the current template was changed');
 }
