@@ -27,3 +27,12 @@ ACT, PROMOTION, then the detective WIRE of the file, which needs the Owner's go,
 
 ## Not in this Change
 No WIRE, ruleset change, required check or flag. The old workflow stays until its swap.
+
+## Design: split and overlap
+Split: yes, by rule, as the checker states them: (1) `.github` travels alone, with the transition ledger as part of that same rule; (2) the delivery-mixed detective rule; (3) Core travels alone and verified synchronization, from C153's description. Rules 1 and 3 are path-level and independent, so two controls. The ledger is not its own control; it only narrows rule 1.
+Covered by controls on main:
+- delivery-mixed: verify Delivery (CTL23) is that rule and already runs inside Change Isolation. In the replacement it stays CTL23, not copied. Drop from this Change.
+- verified synchronization: verify Sync (CTL7) judges the same structure. Drop the duplicate, keep only the resolutions input that CTL7 does not produce, to be confirmed in DO.
+- isolate Changes (CTL33) judges collectors, not pull requests into main, so it does not cover rules 1 or 3.
+Kept: `.github` alone (with the ledger) and Core alone.
+Open: the migration of the entry onto the adapter path keeps one entry now; the split into two entries is made in DO if the Owner agrees.
