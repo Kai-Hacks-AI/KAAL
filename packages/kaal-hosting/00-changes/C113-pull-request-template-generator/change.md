@@ -10,7 +10,8 @@ Pull request templates and the body builder are written by hand in two places. E
 2. **A generator, Hosting's, as the GitHub adapter.** `renderTemplate(declaration)` returns the text of one template, and `renderBody(declaration, chapters)` returns a pull request body: the chapters in the declared order, each under `## <name>`, a missing or an unknown chapter refused with a named error. Both are pure and deterministic: the same declaration gives the same bytes, with LF line ends, on every host. The GitHub parts are Hosting's alone: the `<!-- ... -->` comment form for `intro` and `guidance`, the `KAAL-PR-template: <TYPE>` declaration line (the line release/C138 reads), and the file name `<type in lower case>.md`.
 3. **A check, not a writer.** `checkTemplates(declarations, directory)` compares the committed templates in `directory` with the render and names each type whose file is missing, differs, or has no declaration. Hosting never writes `.github`: delivery stays Engineering first, then a WIRE, with Kai's go for the WIRE.
 4. **The caller names the declarations.** The generator discovers nothing. Its caller (Release's wiring, a Case) passes the declaration files. Where a capability keeps its file is Engineering's layout decision; one file per capability at `13-source/pull-request-types/<capability>.json`, the target layout, as Engineering confirmed.
-5. **DEFAULT is not a type.** The generator renders no fallback template and refuses a declaration named `DEFAULT` (Owner and CPO, via release/C138).
+5. **The agent path, one renderer.** `raisePullRequest({ type, chapters, head, base, title, draft? }, declarations, { token })` renders the body with `renderBody` and opens the pull request through GitHub's API, the same transport Hosting reads open pull requests through, and a CLI `kaal-hosting-pull-request` calls it with the chapters as a JSON file. It refuses before any call what `renderBody` refuses, and a title carrying a Change id (Kai's semantics rule is Release's check, not Hosting's). It never merges, enables auto-merge or approves: raising is all it does. The token is the caller's, never read from a file or logged. A human path (the rendered template) and an agent path (this) therefore show one set of chapters.
+6. **DEFAULT is not a type.** The generator renders no fallback template and refuses a declaration named `DEFAULT` (Owner and CPO, via release/C138).
 
 ## Because
 
@@ -20,13 +21,15 @@ One truth for each type, written once by its owner. Release's API body builder r
 
 1. Regression: Hosting's existing Cases (T1 to T302) stay GREEN. The generator is new code; nothing existing changes.
 2. Accept list: none.
-3. Feature Cases, RED on `main` today (drafts T303 to T309, `.red.mjs`):
+3. Feature Cases, RED on `main` today (drafts T303 to T311, `.red.mjs`):
    - hosting/T303: `renderTemplate` of a declaration gives the `KAAL-PR-template: <TYPE>` line first, the intro, then each chapter as `## <name>` followed by its guidance as a comment, byte for byte, with LF.
    - hosting/T304: the same declaration renders the same bytes twice, and with CRLF in the declaration's text.
    - hosting/T305: `renderBody` puts the given chapter texts under the declared headings in order; a missing chapter, an unknown chapter and an empty chapter list are each refused with a named error.
    - hosting/T306: a declaration that is not valid (a non-upper-case type, a chapter without a name, a repeated chapter name, a field outside the format) is refused before anything renders; `DEFAULT` is refused.
    - hosting/T307: `checkTemplates` names a missing file, a differing file and a file with no declaration, and passes when all match.
    - hosting/T308: the format holds no GitHub word: a declaration with a file name, comment syntax or recognition field is refused.
+   - hosting/T310: `raisePullRequest` sends one request whose body equals `renderBody` of the same input, with the given head, base, title and draft flag, and sends nothing when the chapters are refused (checked against a recorded local stand-in for the API, never the live host).
+   - hosting/T311: `raisePullRequest` and its CLI never merge, approve or enable auto-merge, and never print or store the token; the CLI exits non-zero with the named error when the chapters are refused.
    - hosting/T309: Hosting's shipped `docs/` name no Change, no `engineering/` path and no `plan/` path (T218 still holds), and the generator imports no `node:fs`.
 
 ## Questions, settled by the reading below unless said otherwise
@@ -37,11 +40,11 @@ One truth for each type, written once by its owner. Release's API body builder r
 
 ## Not in this Change
 
-Any DO. Writing or installing a template (a WIRE, Kai's go); the content of any type; a second host; the verifier (Release); Engineering's definition file; version, publication or pin moves.
+Any DO. Writing or installing a template (a WIRE, Kai's go); the content of any type; a second host; the verifier (Release); merging, approving or auto-merging a raised pull request; Engineering's definition file; version, publication or pin moves.
 
 ## DO
 
-Not authorized by this PLAN. On the merged PLAN, in the collector: the format and its validator, `renderTemplate`, `renderBody`, `checkTemplates`, T303 to T309 as delivered Cases, the ids allocated in `04-test/package-check/testing.md`, the element texts of `interface.md`, the README and Skill entry, and Hosting's suites on all three hosts.
+Not authorized by this PLAN. On the merged PLAN, in the collector: the format and its validator, `renderTemplate`, `renderBody`, `checkTemplates`, T303 to T311 as delivered Cases, the ids allocated in `04-test/package-check/testing.md`, the element texts of `interface.md`, the README and Skill entry, and Hosting's suites on all three hosts.
 
 ## ACT
 
