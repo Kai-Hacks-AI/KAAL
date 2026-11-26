@@ -49,7 +49,7 @@ export const PERMISSIONS = { metadata: "read", contents: "read", pull_requests: 
  * GitHub actually returns. Every knob is a way GitHub, or a bad adoption, can differ from the declaration.
  * `publicKey` verifies every App JWT; a request without a good JWT or a bootstrap/installation token is 401.
  */
-export function appWorld({ verify, declaration = DISPATCHER, declarations, installPermissions = PERMISSIONS, appId = "12345", installAppId = Number(appId), slug = "kaal-dispatcher", grant, expiresAt = SOON, tree, truncated = false, defaultBranch = "main" }) {
+export function appWorld({ verify, declaration = DISPATCHER, declarations, installPermissions = PERMISSIONS, appId = "12345", installAppId = Number(appId), slug = "kaal-dispatcher", grant, expiresAt = SOON, tree, truncated = false, defaultBranch = "main", fallback }) {
   const entries = tree ?? (declarations ?? [{ path: PATH, declaration }]).map((d) => ({ path: d.path, type: "blob", sha: "e".repeat(40), declaration: d.declaration }));
   let minted = 0;
   return standIn((r) => {
@@ -69,7 +69,7 @@ export function appWorld({ verify, declaration = DISPATCHER, declarations, insta
     if (r.method === "GET" && r.path === `/repos/o/r/git/trees/${SHA}`) return { status: 200, json: { truncated, tree: entries.map(({ path, type, sha }) => ({ path, type, sha })) } };
     const hit = entries.find((e) => r.path === `/repos/o/r/contents/${e.path}` && r.query.ref === SHA);
     if (r.method === "GET" && hit) return { status: 200, json: { encoding: "base64", content: Buffer.from(typeof hit.declaration === "string" ? hit.declaration : JSON.stringify(hit.declaration)).toString("base64") } };
-    return { status: 404, json: { message: "Not Found" } };
+    return fallback ? fallback(r) : { status: 404, json: { message: "Not Found" } };
   });
 }
 
@@ -84,10 +84,21 @@ export function keys() {
   return { privateKey: pair.privateKey, verify };
 }
 
-/** Mint through the public door against the stand-in; the grant is whatever `mintToken` returns. */
+/**
+ * Mint through the public door against the stand-in; the grant is whatever `mintToken` returns. A grant is bound to the
+ * transport it was minted against, so a Case that then uses the grant (reads, raise) gives `world.fallback` its own routes
+ * and uses the returned `api` (the same fetch and origin) for them; `api.requests` then holds the mint's calls first and
+ * `api.mark()` returns how many there were.
+ */
 export async function mint(abilities, world = {}, extra = {}) {
   const { privateKey, verify } = keys();
   const api = appWorld({ verify, ...world });
+  api.mark = () => api.requests.length;
   const grant = await hosting.mintToken({ app: "dispatcher", appId: "12345", privateKey, repo: "o/r", abilities, ...extra }, { fetch: api.fetch, api: api.api, now: () => NOW });
+  const used = api.requests.length;
+  api.mark = () => used;
   return { grant, api };
 }
+
+/** A grant minted on a world whose other routes are `route`; use the returned `api` (same fetch, same origin) for the calls the grant is then used for. */
+export const granted = (abilities, route, world = {}, extra = {}) => mint(abilities, { ...world, fallback: route }, extra);

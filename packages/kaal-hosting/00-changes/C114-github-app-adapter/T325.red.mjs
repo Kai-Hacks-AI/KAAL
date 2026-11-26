@@ -2,11 +2,10 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
-import { mint, standIn } from "./fixtures.mjs";
+import { granted } from "./fixtures.mjs";
 
 it("hosting/T325: only a grant minted by Hosting is accepted, with the abilities GitHub really granted, until it expires", async () => {
-  const { grant } = await mint(["read-contents"]);
-  const api = standIn(() => ({ status: 200, json: { object: { sha: "c".repeat(40) } } }));
+  const { grant, api } = await granted(["read-contents"], () => ({ status: 200, json: { object: { sha: "c".repeat(40) } } }));
   const use = (g, extra = {}) => hosting.readRef("o/r", "main", { grant: g, fetch: api.fetch, api: api.api, ...extra });
   assert.equal(await use(grant), "c".repeat(40));
   const sent = api.requests.length;
