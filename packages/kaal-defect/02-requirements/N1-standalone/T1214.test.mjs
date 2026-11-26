@@ -5,11 +5,13 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readdirSync as lsDir } from 'node:fs';
+import { dirname as parentOf } from 'node:path';
 const root = fileURLToPath(import.meta.url).split('/packages/')[0];
 const pkg = join(root, 'packages/kaal-defect');
 const skillFile = join(pkg, 'skills/kaal-defect/SKILL.md');
 const script = join(pkg, 'skills/kaal-defect/scripts/known-defects.mjs');
-const skill = () => { assert.ok(existsSync(skillFile), 'the Skill packages/kaal-defect/skills/kaal-defect/SKILL.md is absent'); return readFileSync(skillFile, 'utf8'); };
+const skill = () => { assert.ok(existsSync(skillFile), 'the Skill packages/kaal-defect/skills/kaal-defect/SKILL.md is absent'); const refs = join(parentOf(skillFile), 'references'); return [skillFile, ...(existsSync(refs) ? lsDir(refs).sort().map((f) => join(refs, f)) : [])].map((f) => readFileSync(f, 'utf8')).join('\n'); }; // the Skill is SKILL.md and its references/
 export const id = 'defect/T1214';
 export const tests = ['defect/N1'];
 
