@@ -1,4 +1,4 @@
-judge-ratchet.mjs ad85044f39134f733672f64121ed0cc758d4e458 on parent fadbbb5
+judge-ratchet.mjs b8cd4371971189d0ac7ca52d373e115eabd13c3f on parent 8005e43
 baseline (no mutation)
   controls/T1554 GREEN
 M1-shortcut-before-validation
@@ -15,3 +15,5 @@ M6-history-line-shape-unchecked
   controls/T1554 RED: not UNKNOWN: {"verdict":"PASS","step":"unchanged"}
 M7-unchanged-ignores-history
   controls/T1554 RED: step of {"verdict":"PASS","step":"unchanged"}
+M8-window-contents-unchecked
+  controls/T1554 RED: not UNKNOWN: {"verdict":"PASS","step":"unchanged"}

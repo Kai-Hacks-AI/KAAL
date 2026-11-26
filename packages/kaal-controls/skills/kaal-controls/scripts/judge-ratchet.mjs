@@ -7,6 +7,8 @@ import { judgeAdoption, judgeProgress, judgeRetirement } from './ratchet.mjs';
 const unknown = () => ({ verdict: 'UNKNOWN', reason: 'could-not-judge' });
 const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f) && new Set(x).size === x.length;
 const text = (x) => x === null || typeof x === 'string';
+const time = (x) => typeof x === 'string' && !Number.isNaN(Date.parse(x));
+const span = (w) => w !== null && typeof w === 'object' && !Array.isArray(w) && time(w.from) && time(w.to);
 
 // One side: the baseline as a list (null when the file is absent) and the history as whole JSON lines (a missing file is an empty one).
 // Anything unreadable gives null, which is never the same as absent.
@@ -24,7 +26,7 @@ function read(side) {
 export function judgeRatchetStep({ base, head, carried, window } = {}) {
   // 1. Validation, before any shortcut: the same unreadable text on both sides is unknown, never unchanged.
   const b = read(base), h = read(head);
-  if (!b || !h || !window || !Array.isArray(carried)) return unknown();
+  if (!b || !h || !span(window) || !Array.isArray(carried)) return unknown();
   // 2. Nothing changed, or no ratchet on either side: nothing to judge and no Change is needed.
   if (b.raw.baseline === h.raw.baseline && b.raw.history === h.raw.history) return { verdict: 'PASS', step: 'unchanged' };
   if (h.baseline === null && b.baseline === null) return { verdict: 'PASS', step: 'unchanged' };

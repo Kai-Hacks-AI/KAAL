@@ -56,6 +56,13 @@ export async function run() {
   same({ baseline: L(['a']), history: '1\n' });
   same({ baseline: undefined, history: null });
   same({ baseline: null, history: 5 });
+  // the window is validated with the rest, before any shortcut: its contents must be times, also when nothing changed
+  const same2 = (x, w) => bad(j(x, x, [], w));
+  for (const w of [{}, { from: '2026-11-25T08:00Z' }, { to: '2026-11-25T12:00Z' }, { from: 'noon', to: 'later' }, { from: '2026-11-25T08:00Z', to: 5 }, { from: null, to: null }, 'now', 5, []]) {
+    same2(files(['a'], { ...adoption, to: 1 }), w);
+    same2(files(null), w);
+    bad(j(files(['a', 'b', 'c'], adoption), files(['a', 'b'], adoption, shrink), carried('rel/C140'), w));
+  }
   bad(judgeRatchetStep({ carried: carried('x'), window }));
   bad(judgeRatchetStep());
 }

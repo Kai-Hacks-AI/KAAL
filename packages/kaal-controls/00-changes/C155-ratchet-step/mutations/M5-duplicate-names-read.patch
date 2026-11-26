@@ -7,5 +7,5 @@
 -const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f) && new Set(x).size === x.length;
 +const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f);
  const text = (x) => x === null || typeof x === 'string';
- 
- // One side: the baseline as a list (null when the file is absent) and the history as whole JSON lines (a missing file is an empty one).
+ const time = (x) => typeof x === 'string' && !Number.isNaN(Date.parse(x));
+ const span = (w) => w !== null && typeof w === 'object' && !Array.isArray(w) && time(w.from) && time(w.to);

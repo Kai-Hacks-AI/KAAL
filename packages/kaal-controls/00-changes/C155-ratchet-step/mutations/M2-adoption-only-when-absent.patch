@@ -1,6 +1,6 @@
 --- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
 +++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
-@@ -32,6 +32,6 @@
+@@ -34,6 +34,6 @@
    if (h.baseline === null) return { ...judgeRetirement({ base: { baseline: b.baseline, history: b.history }, head: { history: h.history } }), step: 'retirement' };
    if (carried.length !== 1) return unknown();
    const input = { base: { baseline: b.baseline, history: b.history }, head: { baseline: h.baseline, history: h.history }, change: carried[0], window };
