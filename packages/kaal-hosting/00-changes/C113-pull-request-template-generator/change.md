@@ -37,17 +37,29 @@ Raising a pull request follows everything agreed for its type, and the template 
 
 1. Regression: Hosting's existing Cases (T1 to T302) stay GREEN. The generator is new code; nothing existing changes.
 2. Accept list: none.
-3. Feature Cases, RED on `main` today (drafts T303 to T312, `.red.mjs`):
-   - hosting/T303: `renderTemplate` of a declaration gives the `KAAL-PR-template: <TYPE>` line first, the intro, then each chapter as `## <name>` followed by its guidance as a comment, byte for byte, with LF.
-   - hosting/T304: the same declaration renders the same bytes twice, and with CRLF in the declaration's text.
-   - hosting/T305: `renderBody` puts the given chapter texts under the declared headings in order; a missing chapter, an unknown chapter and an empty chapter list are each refused with a named error.
-   - hosting/T306: a declaration that is not valid (a non-upper-case type, a chapter without a name, a repeated chapter name, a field outside the format) is refused before anything renders; `DEFAULT` is refused.
-   - hosting/T307: `checkTemplates` names a missing file, a differing file and a file with no declaration, and passes when all match.
-   - hosting/T308: the format holds no GitHub word: a declaration with a file name, comment syntax or recognition field is refused.
-   - hosting/T310: `raisePullRequest` sends one request whose body equals `renderBody` of the same input, with the given head, base and title and the declared draft flag, and sends nothing when the chapters are refused or the head or base is outside the declared `raise` rules (checked against a recorded local stand-in for the API, never the live host).
-   - hosting/T311: `autoMerge` comes only from the declaration: a type declaring `none` (or nothing) is raised without auto-merge, a type declaring a method gets exactly that method, and the API and the CLI accept no merge or draft choice from the caller. Neither merges or approves, a refusal of a later step (auto-merge, draft state) is reported with the steps already done and nothing merged directly, the token is never printed or stored, and the CLI exits non-zero with the named error when a raise is refused (checked against a local stand-in for the API).
-   - hosting/T312: `raisePullRequest` refuses, before any call, each breach in the table: an unlisted type or `DEFAULT`, a head or base outside `raise`, a changed path outside the type's write areas, and a title that meets a declared `title` rule; the error names the rule and the owner's source.
-   - hosting/T309: Hosting's shipped `docs/` name no Change, no `engineering/` path and no `plan/` path (T218 still holds), and the generator imports no `node:fs`.
+3. Feature Cases, RED on `main` today. They are executable drafts in this folder (`T303` to `T316`, `.red.mjs`, with `fixtures.mjs` and a local stand-in for GitHub's API; nothing reaches the network). Each fails on `main` for the missing behaviour (`renderTemplate is not a function`, no CLI file), and the DO turns them into delivered Cases **unchanged**: a Case that has to change returns to a PLAN.
+   - hosting/T303: `renderTemplate` gives exact bytes: the `KAAL-PR-template: <TYPE>` line, the intro comment, each chapter as `## <name>` with its guidance as a comment, one line end at the end; with and without an intro.
+   - hosting/T304: the same declaration renders the same bytes; CRLF in the declaration comes out as LF.
+   - hosting/T305: `renderBody` gives exact bytes in the declared order whatever the key order; texts are trimmed and LF.
+   - hosting/T306: `renderBody` refuses a missing, an unknown and an empty chapter, and a declaration without chapters, with `MISSING_CHAPTER`, `UNKNOWN_CHAPTER` and `INVALID_DECLARATION`, naming the chapter.
+   - hosting/T307: eleven invalid declarations (lower-case type, `DEFAULT`, nameless or repeated chapter, an unknown field, guidance holding `-->`, a file name, comment syntax or recognition field, an auto-merge value outside the set, a title rule that is not a pattern) are refused by both renderers with `INVALID_DECLARATION`.
+   - hosting/T308: `checkTemplates` on a real temporary directory passes when all match and names a missing, a differing and an undeclared file.
+   - hosting/T309: the generator modules import no `node:fs`, `node:child_process` or `node:http`, and are shipped.
+   - hosting/T310: `raisePullRequest` sends exactly `POST /repos/o/r/pulls` (title, head, base, the `renderBody` text, the declared draft flag) and then, because the owner declared it, `POST /graphql` `enablePullRequestAutoMerge` with the opened pull request's node id and the declared method (`SQUASH`, and `MERGE` for SYNC); the result lists the steps done.
+   - hosting/T311: `none` or no `autoMerge` sends no second request; a caller-supplied `autoMerge`, `mergeMethod` or `draft` is refused (`caller-merge-choice`, `caller-draft-choice`) before any call; under every declared method no request merges, reviews or approves.
+   - hosting/T312: an unlisted type, `DEFAULT`, a head or base outside `raise`, a title that meets a `forbid` rule and invalid chapters are each refused with `RAISE_REFUSED`, the rule and the owner, and nothing is sent.
+   - hosting/T313: write boundaries: a changed path outside the type's write areas is refused and named; a path inside, and no changed path, pass; a type with no declared areas fails closed; `*` is one whole segment.
+   - hosting/T314: partial failures: a refused first step ends there (`STEP_FAILED`, no step done, one request); a refusal of the second step (HTTP 403, a GraphQL error in a 200, a network error) reports `steps: ["open"]`, `failed: "auto-merge"` and the number and URL of the pull request that exists, with no retry, no merge, no close and no delete, and no token in the message.
+   - hosting/T315: no token is refused before any call; the token is sent only in the `Authorization` header, never in a body, an error or any console output.
+   - hosting/T316: the CLI `kaal-hosting-pull-request` raises from JSON files and the `GITHUB_TOKEN` variable (and `KAAL_GITHUB_API` for a stand-in), prints the pull request URL, exits non-zero on any refusal naming the rule, sends nothing on a refusal, and rejects `--auto-merge`, `--merge-method`, `--draft` and `--merge`.
+
+## The interface the Cases fix
+
+All from `@kaihacksai/kaal-hosting`; the CLI is `scripts/pull-request-cli.mjs`, bin `kaal-hosting-pull-request`.
+
+- `renderTemplate(declaration): string`, `renderBody(declaration, chapters): string`, `checkTemplates(declarations, directory): Promise<{ ok, problems: { file, problem: "missing" | "differs" | "undeclared" }[] }>`.
+- `raisePullRequest({ repo, type, chapters, head, base, title }, declarations, { token, typeList, writeAreas, changedPaths, fetch?, api? }): Promise<{ number, url, steps }>`. `typeList` is Engineering's list as `{ types: [{ type, owner }], invalid: [...] }`; `writeAreas` is `{ <TYPE>: [path patterns] }` (`*` one segment, `**` any depth). The caller adapts Engineering's files to these shapes.
+- Errors carry a `code`: `INVALID_DECLARATION`, `MISSING_CHAPTER`, `UNKNOWN_CHAPTER`, `RAISE_REFUSED` (with `rule` and `owner`) and `STEP_FAILED` (with `steps`, `failed`, and `number` and `url` once the pull request exists).
 
 ## Questions, settled by the reading below unless said otherwise
 
@@ -61,7 +73,7 @@ Any DO. Writing or installing a template (a WIRE, Kai's go); the content of any 
 
 ## DO
 
-Not authorized by this PLAN. On the merged PLAN, in the collector: the format and its validator, `renderTemplate`, `renderBody`, `checkTemplates`, T303 to T312 as delivered Cases, the ids allocated in `04-test/package-check/testing.md`, the element texts of `interface.md`, the README and Skill entry, and Hosting's suites on all three hosts.
+Not authorized by this PLAN. On the merged PLAN, in the collector: the format and its validator, `renderTemplate`, `renderBody`, `checkTemplates`, T303 to T316 as delivered Cases, the ids allocated in `04-test/package-check/testing.md`, the element texts of `interface.md`, the README and Skill entry, and Hosting's suites on all three hosts.
 
 ## ACT
 
