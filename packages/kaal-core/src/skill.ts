@@ -190,8 +190,10 @@ export interface Verdict {
   readonly findings: readonly LayoutFinding[];
   /** Repo references found in the Skill's text files; they block only a published Skill (core/F114). */
   readonly repoFree: readonly RepoFinding[];
-  /** Whether the Skill's text files were given to the repo-free check. Without them a published verdict is never clean and blocks (core/N31). */
+  /** Whether every applicable file (`SKILL.md` and what sits under `references/`, `scripts/` and `assets/`) was either read or justifiably skipped as binary. A published verdict that did not is never clean and blocks (core/N31). */
   readonly inspected: boolean;
+  /** The applicable paths that were neither read nor skipped, when the inspection is incomplete. */
+  readonly uninspected?: readonly string[];
   /** Files given to the check, and the paths of those skipped as binary (core/F114). */
   readonly skipped?: readonly string[];
   readonly ratchet?: Ratchet;
@@ -227,8 +229,11 @@ export function judgeSkill({ name, skillMd, paths, baseline, instance = { kind: 
   const size = judgeSize(skillMd ?? "");
   const findings = judgeLayout(paths);
   const repoFree = judgeRepoFree(files ?? [], { allow });
-  const inspected = files !== undefined;
-  const verdict = { skill: name, conformance: lifecycle, words: size.words, level: size.level, ...(size.warning ? { warning: size.warning } : {}), findings, repoFree, inspected, ...(skipped && skipped.length > 0 ? { skipped } : {}) };
+  const applicable = paths.filter((p) => p === standard.entry || standard.folders.some((f) => p.startsWith(`${f}/`)));
+  const covered = new Set([...(files ?? []).map((f) => f.path), ...(skipped ?? [])]);
+  const uninspected = applicable.filter((p) => !covered.has(p));
+  const inspected = files !== undefined && uninspected.length === 0;
+  const verdict = { skill: name, conformance: lifecycle, words: size.words, level: size.level, ...(size.warning ? { warning: size.warning } : {}), findings, repoFree, inspected, ...(uninspected.length > 0 ? { uninspected } : {}), ...(skipped && skipped.length > 0 ? { skipped } : {}) };
   if (lifecycle === "published") return { ...verdict, blocks: repoFree.length > 0 || !inspected };
   let outcome: Ratchet | undefined;
   if (baseline) {
