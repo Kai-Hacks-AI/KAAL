@@ -1,0 +1,32 @@
+name: verify Adapter
+# release/C139, controls/CTL1. A detective check on plain pull_request: no token, no secret, no pull_request_target. Source only; a WIRE installs it, on the Owner's go.
+# It runs the judge of the default branch and reads the merge result of the pull request only as data in the folder `pr`, never run, built or installed.
+# The flag is the variable KAAL_CONTROLS_VERIFY_ADAPTER: exactly `on` makes a FAIL or an UNKNOWN fail the job (advisory); anything else leaves the same verdict written and the job green (detective).
+on:
+  pull_request:
+    branches: ['**']
+permissions:
+  contents: read
+jobs:
+  verify-adapter:
+    name: verify Adapter
+    runs-on: ubuntu-latest
+    env:
+      KAAL_FLAG: ${{ vars.KAAL_CONTROLS_VERIFY_ADAPTER }}
+      KAAL_PR: ${{ github.event.pull_request.number }}
+      KAAL_MERGE_SHA: ${{ github.sha }}
+      KAAL_RUN_ID: ${{ github.run_id }}
+    steps:
+      - name: Check out the default branch, the trusted judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Check out the merge result as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          path: pr
+          persist-credentials: false
+      - name: Judge
+        run: node engineering/release-management/05-src/adapter/run-verify-adapter.mjs --map engineering/release-management/05-src/adapter/delivery-map.json --pr pr
