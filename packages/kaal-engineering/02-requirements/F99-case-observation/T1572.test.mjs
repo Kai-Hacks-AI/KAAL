@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { load } from './fixture.mjs';
 export const id = 'engineering/T1572';
 export const tests = ['engineering/F99'];
-export const title = 'the job uploads artifact case-observation holding observation.json, even when the run is red';
+export const title = 'run-cases uploads artifact run-report; observe-cases uploads artifact observation holding observation.json, even when the run is red';
 export async function run() {
   const y = load();
-  const up = y.match(/upload-artifact@[\s\S]*?(?=\n\s*- |\n\S|$)/);
-  assert.ok(up, 'it uploads an artifact');
-  assert.ok(/name:\s*case-observation\b/.test(up[0]), 'artifact name case-observation');
-  assert.ok(/observation\.json/.test(y), 'the file is observation.json');
-  const stepStart = y.lastIndexOf('\n', y.indexOf(up[0])); void stepStart;
-  assert.ok(/if:\s*always\(\)/.test(y), 'upload runs always');
+  const ups = y.match(/upload-artifact@[\s\S]*?(?=\n\s*- |\n\S|$)/g) ?? [];
+  assert.equal(ups.length, 2, 'two uploads');
+  assert.ok(ups.some((u) => /name:\s*run-report\b/.test(u)), 'artifact run-report');
+  const obs = ups.find((u) => /name:\s*observation\b/.test(u));
+  assert.ok(obs && /observation\.json/.test(obs), 'artifact observation holds observation.json');
+  assert.ok(/if:\s*always\(\)/.test(y), 'the observation upload runs always');
 }
