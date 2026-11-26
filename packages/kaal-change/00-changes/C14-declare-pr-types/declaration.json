@@ -32,7 +32,7 @@
     },
     {
       "type": "HOTFIX",
-      "intro": "A HOTFIX. Exactly four chapters in this order and nothing else: no extra headings, remarks, test results, check status or execution logs. The Change, the Cases, the diff and the checks hold everything else; discussion is kept outside this body. Change envelope: the evidence is in the repository files of the Change(s) named below, at the revision under review.",
+      "intro": "A HOTFIX. Exactly four chapters in this order and nothing else: no extra headings, remarks, test results, check status or execution logs. The Change, the Cases, the diff and the checks hold everything else; discussion is kept outside this body.",
       "chapters": [
         { "name": "Change", "guidance": "One line, `<id> <name>`: the stable id and the name of the Change. An identity, not a description; the Defect says what is broken." },
         { "name": "Defect", "guidance": "The Defect, by its identity `<capability>/D<n>`; a ticket number or URL is not that identity. What is broken, and which state is defective: production (the package and its published version), main, or a collector. They are different states; name the one you mean and claim no production impact that does not exist." },
