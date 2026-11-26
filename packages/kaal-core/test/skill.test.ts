@@ -41,4 +41,11 @@ describe("Skill standard (core/C52)", () => {
     assert.throws(() => readBaseline('{"a":{"owner":"x","words":-1}}'));
     assert.deepEqual(readBaseline('{"a":{"owner":"x","words":1,"variants":{"v":2}}}'), { a: { owner: "x", words: 1, variants: { v: 2 } } });
   });
+
+  it("a license file is part of the layout only as a top-level file named LICENSE with at most one suffix (core/C151)", () => {
+    const found = (...paths: string[]) => judgeLayout(["SKILL.md", ...paths]).map((f) => f.path);
+    assert.deepEqual(found("LICENSE", "LICENSE.md", "LICENSE.txt"), []);
+    assert.deepEqual(found("LICENSE.tar.gz", "LICENSE.", "licence", "sub/LICENSE").sort(), ["LICENSE.", "LICENSE.tar.gz", "licence", "sub"]);
+    assert.deepEqual(found("references/LICENSE"), [], "below a permitted folder anything goes");
+  });
 });

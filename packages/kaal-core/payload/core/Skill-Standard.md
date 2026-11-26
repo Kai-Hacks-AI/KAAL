@@ -15,7 +15,11 @@ The Agent Skills standard (agentskills.io) is the floor. Only `SKILL.md` is requ
 
 ## Layout
 
-At the top of a Skill folder there is `SKILL.md`, and optionally `references/`, `scripts/` and `assets/`. Nothing else sits there. Below those folders the Skill is free.
+At the top of a Skill folder there is `SKILL.md`, a `LICENSE` file, and optionally `references/`, `scripts/` and `assets/`. Nothing else sits there. Below those folders the Skill is free.
+
+## License
+
+Every Skill bundles a license file at its top, `LICENSE` or `LICENSE` with a suffix such as `.md` or `.txt`. By default it is the license of the package the Skill ships in. This is KAAL's own requirement and stricter than the external standard, where agentskills.io makes `license` optional. Core's check allows the file in the layout and neither requires it nor compares it with the package. Presence and alignment are enforced separately, by the adopter that holds both the Skill and its package.
 
 ## The router
 
