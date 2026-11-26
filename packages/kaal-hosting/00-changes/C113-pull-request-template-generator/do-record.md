@@ -9,9 +9,9 @@
 ## Test Case ids
 The drafts T303–T317 became `04-test/package-check/pull-request-templates.test.mjs` (T303–T309), `pull-request-raise.test.mjs` (T310–T317) and `pull-request-fixtures.mjs`, with their bodies and assertions unchanged. Two things changed in how they run, not in what they claim: the imports are merged per file and point at `./pull-request-fixtures.mjs`, and T316 starts the command asynchronously (a synchronous start blocked the process that serves its stand-in for the API, so it could never answer). The drafts and `fixtures.mjs` are removed from this folder. Ids T303–T317 are free on main and every remote branch (checked 26 November 2026).
 
-## Amendment after the CPO's review of this DO
+## Reconciled to the merged PLAN amendment
 
-Two gaps in revision-bound authority, closed here with two added Cases (T327 and T328; T318 to T326 belong to the provisional hosting/C114): the comparison's rename or copy is judged by its source (`previous_filename`) as well as its destination, and a source that is missing is unknown and refuses; and the opened pull request's base revision is checked as well as its head, and a changed base gets no auto-merge. T303 to T317 are unchanged. F97 names both. Both Cases fail on the DO without the change and pass with it.
+The CPO's review of this DO found two gaps in revision-bound authority; the PLAN amendment (T327 and T328, merged in the collector) added the Cases, and this DO implements exactly them. The drafts T327 and T328 became the delivered Cases in `pull-request-raise.test.mjs`, with assertions unchanged from the amendment's drafts; only the fixture stand-in gained what they need (a compare entry may be an object with `previous_filename`, and the opened pull request names its base revision). F97 states both. T303 to T317 are unchanged.
 
 ## Evidence
 - T327 and T328 pass, and both fail on the DO before the amendment.
