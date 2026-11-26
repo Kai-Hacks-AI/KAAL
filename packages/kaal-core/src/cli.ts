@@ -34,6 +34,7 @@ function render(v: Verdict): string {
   const lines = [`${v.skill}: ${v.level} (${v.words} words), ${v.conformance}${v.ratchet ? `, ${v.ratchet}` : ""}${v.blocks ? ", blocks" : ""}`];
   if (v.warning) lines.push(`  ${v.warning.level}: review the router, consolidate, move detail to references (${v.warning.required.join(", ")})`);
   for (const f of v.findings) lines.push(`  ${f.rule}: ${f.path}`);
+  for (const f of v.repoFree) lines.push(`  repo ${f.rule}: ${f.path}:${f.line}: ${f.text}`);
   return lines.join("\n");
 }
 
@@ -63,9 +64,11 @@ async function skillCheck(args: string[]): Promise<number> {
   const variant = value("--variant");
   const file = value("--baseline");
   const lifecycle = value("--lifecycle");
-  if (variant === null || file === null || lifecycle === null) return unknown("an option needs its value");
+  const allow = value("--allow");
+  if (variant === null || file === null || lifecycle === null || allow === null) return unknown("an option needs its value");
   if (copy && variant !== undefined) return unknown("--instance and --variant cannot be given together");
   if (lifecycle !== undefined && lifecycle !== "development" && lifecycle !== "published") return unknown(`unknown lifecycle ${lifecycle}`);
+  if (allow !== undefined && allow !== "hosting") return unknown(`unknown allowance ${allow}`);
   const [dir, ...extra] = rest;
   if (!dir || dir.startsWith("--") || extra.length > 0) return unknown(`usage: kaal skill check <dir> [options]`);
   let baseline: Baseline | undefined;
@@ -85,6 +88,7 @@ async function skillCheck(args: string[]): Promise<number> {
     return unknown(`${dir} cannot be read: ${(e as Error).message}`);
   }
   const instance: Instance = copy ? { kind: "copy" } : variant !== undefined ? { kind: "variant", id: variant } : { kind: "skill" };
+  const scanned = Object.entries(files).filter(([path]) => path === "SKILL.md" || /^(references|scripts|assets)\//.test(path));
   const verdict = judgeSkill({
     name: basename(resolve(dir)),
     skillMd: files["SKILL.md"]?.toString("utf8"),
@@ -92,6 +96,9 @@ async function skillCheck(args: string[]): Promise<number> {
     baseline,
     instance,
     lifecycle: (lifecycle ?? "development") as Lifecycle,
+    files: scanned.filter(([, bytes]) => !bytes.includes(0)).map(([path, bytes]) => ({ path, text: bytes.toString("utf8") })),
+    skipped: scanned.filter(([, bytes]) => bytes.includes(0)).map(([path]) => path),
+    allow: allow === undefined ? [] : [allow],
   });
   console.log(json ? JSON.stringify(verdict, null, 2) : render(verdict));
   return verdict.blocks ? 1 : 0;

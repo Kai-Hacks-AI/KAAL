@@ -2,6 +2,19 @@
 // thresholds, so the Definition carries none of them. Core reads no registry, names no capability and
 // gives the same result for the same input (core/N25, core/A48 to core/A52).
 
+/** A repo rule of the repo-free check (core/A57). */
+export interface RepoRule {
+  readonly id: "path" | "change-id" | "delivery" | "flag" | "hosting";
+  readonly about: string;
+}
+/** A repo reference found in one line of one file (core/F112). */
+export interface RepoFinding {
+  readonly rule: RepoRule["id"];
+  readonly path: string;
+  readonly line: number;
+  readonly text: string;
+}
+
 /** A rule the standard states (core/A48). */
 export interface Rule {
   readonly id: "entry" | "layout" | "router" | "detail" | "lane" | "size";
@@ -17,6 +30,14 @@ export const standard = {
   folders: ["references", "scripts", "assets"],
   /** A body is `soft` above the first threshold, `medium` above the second and `hard` above the third (core/F93). */
   thresholds: { soft: 200, medium: 400, hard: 600 },
+  /** The repository vocabulary a published Skill must not use (core/F112, core/F116). It names patterns and judges no meaning. */
+  repoRules: [
+    { id: "path", about: "a path inside the KAAL repository" },
+    { id: "change-id", about: "a Change, issue or pull request number of the repository" },
+    { id: "delivery", about: "a repository delivery instruction: a station joined to a pull request or branch, or a collector or Change branch" },
+    { id: "flag", about: "a repository control flag" },
+    { id: "hosting", about: "Git and GitHub vocabulary, allowed only in a Git or GitHub adapter named by the adopter" },
+  ] as readonly RepoRule[],
   rules: [
     { id: "entry", about: "a Skill has a top-level SKILL.md" },
     { id: "layout", about: "only SKILL.md, references/, scripts/ and assets/ sit at the top" },
@@ -82,6 +103,32 @@ export function judgeSize(text: string): SizeVerdict {
   };
 }
 
+/** The patterns of the repo rules, in rule order. The product's own words (PLAN, DO, ACT as words, `kaal-core`, `.kaal/`) match none of them. */
+const repoPatterns: readonly (readonly [RepoRule["id"], RegExp])[] = [
+  ["path", /(?<![\w.])(?:packages\/[a-z0-9][a-z0-9-]*\/|\.githooks\/)|(?<![\w])\.github\//g],
+  ["change-id", /\b(?:[a-z]+\/)?C\d+\b|(?<![\w&#])#\d+\b/g],
+  ["delivery", /\b(?:PLAN|DO|ACT|WIRE)[ -]+(?:pull[ -]requests?|PRs?|branch(?:es)?|collectors?|merges?)\b|(?<![\w.\/-])(?:kaal|claude)\/[a-z0-9][a-z0-9-]*(?:\/[a-z0-9._-]+)*/g],
+  ["flag", /\bKAAL_[A-Z0-9]+_[A-Z0-9_]+\b/g],
+  ["hosting", /\b(?:pull requests?|merge (?:queue|group)s?|branch protections?|rulesets?)\b/gi],
+];
+
+/** The repo references in the given text files (core/F112, core/F116, core/N30): pure, in file and line order. `allow` is the adopter's, never read from the files (core/F119). */
+export function judgeRepoFree(files: readonly { readonly path: string; readonly text: string }[], { allow = [] }: { readonly allow?: readonly string[] } = {}): RepoFinding[] {
+  const out: RepoFinding[] = [];
+  for (const { path, text } of files) {
+    text.split(/\r?\n/).forEach((line, i) => {
+      const found: { rule: RepoRule["id"]; at: number; text: string }[] = [];
+      for (const [rule, pattern] of repoPatterns) {
+        if (rule === "hosting" && allow.includes("hosting")) continue;
+        for (const m of line.matchAll(pattern)) found.push({ rule, at: m.index ?? 0, text: m[0] });
+      }
+      found.sort((a, b) => a.at - b.at);
+      for (const f of found) out.push({ rule: f.rule, path, line: i + 1, text: f.text });
+    });
+  }
+  return out;
+}
+
 export interface LayoutFinding {
   readonly rule: "entry" | "layout";
   readonly path: string;
@@ -141,6 +188,14 @@ export interface Verdict {
   readonly level: Level;
   readonly warning?: Warning;
   readonly findings: readonly LayoutFinding[];
+  /** Repo references found in the Skill's text files; they block only a published Skill (core/F114). */
+  readonly repoFree: readonly RepoFinding[];
+  /** Whether every applicable file (`SKILL.md` and what sits under `references/`, `scripts/` and `assets/`) was either read or justifiably skipped as binary. A published verdict that did not is never clean and blocks (core/N31). */
+  readonly inspected: boolean;
+  /** The applicable paths that were neither read nor skipped, when the inspection is incomplete. */
+  readonly uninspected?: readonly string[];
+  /** Files given to the check, and the paths of those skipped as binary (core/F114). */
+  readonly skipped?: readonly string[];
   readonly ratchet?: Ratchet;
   readonly blocks: boolean;
 }
@@ -152,6 +207,12 @@ export interface Request {
   readonly baseline?: Baseline;
   readonly instance?: Instance;
   readonly lifecycle?: Lifecycle;
+  /** The text files of the Skill, for the repo-free check. */
+  readonly files?: readonly { readonly path: string; readonly text: string }[];
+  /** Paths of files in the Skill's text folders that are binary and were not read. */
+  readonly skipped?: readonly string[];
+  /** What the adopter allows, such as `hosting` for a Git or GitHub adapter (core/F119). */
+  readonly allow?: readonly string[];
 }
 
 /** `skill-size` against a recorded allowance: the comparison for this one rule (core/A52). */
@@ -164,11 +225,16 @@ function ratchet(level: Level, words: number, recorded: number | undefined, inst
 }
 
 /** The verdict for one Skill directory: size, layout, the ratchet when the lifecycle is development (core/F96, core/F97, core/F99). */
-export function judgeSkill({ name, skillMd, paths, baseline, instance = { kind: "skill" }, lifecycle = "development" }: Request): Verdict {
+export function judgeSkill({ name, skillMd, paths, baseline, instance = { kind: "skill" }, lifecycle = "development", files, skipped, allow }: Request): Verdict {
   const size = judgeSize(skillMd ?? "");
   const findings = judgeLayout(paths);
-  const verdict = { skill: name, conformance: lifecycle, words: size.words, level: size.level, ...(size.warning ? { warning: size.warning } : {}), findings };
-  if (lifecycle === "published") return { ...verdict, blocks: false };
+  const repoFree = judgeRepoFree(files ?? [], { allow });
+  const applicable = paths.filter((p) => p === standard.entry || standard.folders.some((f) => p.startsWith(`${f}/`)));
+  const covered = new Set([...(files ?? []).map((f) => f.path), ...(skipped ?? [])]);
+  const uninspected = applicable.filter((p) => !covered.has(p));
+  const inspected = files !== undefined && uninspected.length === 0;
+  const verdict = { skill: name, conformance: lifecycle, words: size.words, level: size.level, ...(size.warning ? { warning: size.warning } : {}), findings, repoFree, inspected, ...(uninspected.length > 0 ? { uninspected } : {}), ...(skipped && skipped.length > 0 ? { skipped } : {}) };
+  if (lifecycle === "published") return { ...verdict, blocks: repoFree.length > 0 || !inspected };
   let outcome: Ratchet | undefined;
   if (baseline) {
     const entry = Object.hasOwn(baseline, name) ? baseline[name] : undefined;
