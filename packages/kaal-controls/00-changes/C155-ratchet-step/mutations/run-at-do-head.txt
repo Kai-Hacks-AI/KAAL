@@ -1,0 +1,17 @@
+judge-ratchet.mjs ad85044f39134f733672f64121ed0cc758d4e458 on parent fadbbb5
+baseline (no mutation)
+  controls/T1554 GREEN
+M1-shortcut-before-validation
+  controls/T1554 RED: not UNKNOWN: {"verdict":"PASS","step":"unchanged"}
+M2-adoption-only-when-absent
+  controls/T1554 RED: adoption: {"verdict":"FAIL","reason":"history-without-change","step":"progress"}
+M3-carried-count-unchecked
+  controls/T1554 RED: not UNKNOWN: {"verdict":"PASS","step":"progress"}
+M4-retirement-not-routed
+  controls/T1554 RED: retirement: {"verdict":"UNKNOWN","reason":"could-not-judge"}
+M5-duplicate-names-read
+  controls/T1554 RED: not UNKNOWN: {"verdict":"PASS","step":"unchanged"}
+M6-history-line-shape-unchecked
+  controls/T1554 RED: not UNKNOWN: {"verdict":"PASS","step":"unchanged"}
+M7-unchanged-ignores-history
+  controls/T1554 RED: step of {"verdict":"PASS","step":"unchanged"}

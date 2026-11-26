@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
+@@ -5,7 +5,7 @@
+ import { judgeAdoption, judgeProgress, judgeRetirement } from './ratchet.mjs';
+ 
+ const unknown = () => ({ verdict: 'UNKNOWN', reason: 'could-not-judge' });
+-const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f) && new Set(x).size === x.length;
++const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f);
+ const text = (x) => x === null || typeof x === 'string';
+ 
+ // One side: the baseline as a list (null when the file is absent) and the history as whole JSON lines (a missing file is an empty one).

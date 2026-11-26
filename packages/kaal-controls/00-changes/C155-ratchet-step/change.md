@@ -13,6 +13,10 @@ Not authorized by this PLAN. On its merge into the collector, and with the colle
 2. One sentence in `references/modes.md` that a wiring passes the files and the carried Changes to this judge and does not choose a step itself (the Skill structure is the restructure's).
 3. Case T1554 GREEN; the package suite GREEN, with the new Case counted. Mutation patches as in C25 and C147 for each weakening of the choice of the step and of the order of judgement.
 
+## DO record
+
+`scripts/judge-ratchet.mjs` is added with `judgeRatchetStep`, pure, and `references/modes.md` has one sentence on it; `scripts/ratchet.mjs` and every other script are unchanged. T1554 is GREEN and the package suite (115 tests, with T1554 counted) is GREEN. `mutations/` keeps seven weakenings as exact patches with a runner, as in C25 and C147: the shortcut before validation (M1), adoption only from an absent baseline so that adoption with shrink reads as progress (M2), the carried count unchecked (M3), retirement not routed (M4), duplicate names read (M5), the shape of a history line unchecked (M6) and an unchanged that ignores the history (M7). `mutations/run-at-do-head.txt` is the run on the DO: the baseline is GREEN on T1554 and each weakening, loaded alone, is RED. The record cannot name its own revision; re-run `sh mutations/run.sh <repo root>` at the DO's head and compare with it.
+
 ## ACT
 
 A retro entry in the collector.
