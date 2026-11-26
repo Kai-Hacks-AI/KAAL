@@ -29,7 +29,7 @@ The package's `exports` lists these entry points, and nothing else resolves (cor
 | `kaal-core/agent` | `agent.ts` | `declaration`, `realize` |
 | `kaal-core/realization` | `realization.ts` | `realizeIn`, `record` |
 | `kaal-core/conformance` | `conformance.ts` | `installationConformance` |
-| `kaal-core/skill` | `skill.ts` | `judgeSize`, `judgeLayout`, `judgeSkill`, `readBaseline`, `standard` |
+| `kaal-core/skill` | `skill.ts` | `judgeSize`, `judgeLayout`, `judgeRepoFree`, `judgeSkill`, `readBaseline`, `standard` |
 | `kaal-core/registration` | `registration.ts` | `assemble`, `REGISTRATION_TYPE`, `REGISTRATION_SCHEMA` |
 
 The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no entry point exports `upgrade` or `remove`.

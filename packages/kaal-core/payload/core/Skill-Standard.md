@@ -17,6 +17,10 @@ The Agent Skills standard (agentskills.io) is the floor. Only `SKILL.md` is requ
 
 At the top of a Skill folder there is `SKILL.md`, and optionally `references/`, `scripts/` and `assets/`. Nothing else sits there. Below those folders the Skill is free.
 
+## Free of the repo
+
+A published Skill is free of the KAAL repo: it names no path inside the repository, no Change, issue or pull request number, no repository delivery instruction (a station joined to a pull request or branch, a collector or Change branch) and no control flag. The KAAL product is welcome. Its packages, commands and Definitions, and the words PLAN, DO and ACT, are the product's own vocabulary. Git and GitHub terms such as pull request, merge queue and ruleset belong to a Git or GitHub adapter, as the adopter establishes it, never as a claim of the Skill. Core's check finds only these named patterns and does not prove the Skill independent of the repository. Whether a consumer can use it without the development repository is Review's judgement.
+
 ## The router
 
 `SKILL.md` is a router: crisp, clear and concise. It tells the Agent when the Skill applies and where each kind of detail lives, and it keeps the Agent on the lane the Skill owns.

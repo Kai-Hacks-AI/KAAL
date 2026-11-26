@@ -1,7 +1,7 @@
 // core/C52 Code tests for the Skill standard, beyond the planned core/T103 to core/T109.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { judgeLayout, judgeSize, judgeSkill, readBaseline, standard } from "../dist/skill.js";
+import { judgeLayout, judgeRepoFree, judgeSize, judgeSkill, readBaseline, standard } from "../dist/skill.js";
 
 const words = (n: number) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
 const skill = (n: number, extra: Partial<Parameters<typeof judgeSkill>[0]> = {}) => judgeSkill({ name: "kaal-x", skillMd: words(n), paths: ["SKILL.md"], ...extra });
@@ -40,5 +40,18 @@ describe("Skill standard (core/C52)", () => {
     assert.throws(() => readBaseline('{"a":{"owner":"","words":1}}'));
     assert.throws(() => readBaseline('{"a":{"owner":"x","words":-1}}'));
     assert.deepEqual(readBaseline('{"a":{"owner":"x","words":1,"variants":{"v":2}}}'), { a: { owner: "x", words: 1, variants: { v: 2 } } });
+  });
+
+  it("the repo-free check numbers lines through CRLF and finds one match per occurrence in column order (core/C150)", () => {
+    const found = judgeRepoFree([{ path: "SKILL.md", text: "a C1 and C2\r\nb packages/kaal-x/y" }]);
+    assert.deepEqual(found.map((f) => [f.rule, f.line, f.text]), [["change-id", 1, "C1"], ["change-id", 1, "C2"], ["path", 2, "packages/kaal-x/"]]);
+  });
+  it("a published Skill blocks on a repo reference and a development one reports it (core/C150)", () => {
+    const files = [{ path: "SKILL.md", text: "see C12" }];
+    assert.equal(skill(10, { files }).blocks, false);
+    assert.equal(skill(10, { files }).repoFree.length, 1);
+    assert.equal(skill(10, { files, lifecycle: "published" }).blocks, true);
+    assert.equal(skill(10, { files: [{ path: "SKILL.md", text: "a pull request" }], lifecycle: "published", allow: ["hosting"] }).blocks, false);
+    assert.equal(skill(700, { lifecycle: "published" }).blocks, false, "size still never blocks a published Skill");
   });
 });
