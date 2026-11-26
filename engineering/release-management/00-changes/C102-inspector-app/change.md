@@ -27,7 +27,8 @@
 2. Store its private key as the secret `INSPECTOR_PRIVATE_KEY` of the sign job's environment.
 3. Create and install the Dispatcher App (manifest `/mnt/project-files/release/app-manifest.json`, permission `pull_requests: write`, `metadata: read`) and store `KAAL_DISPATCHER_APP_ID` and `KAAL_DISPATCHER_KEY`.
 4. The approver App, when its PLAN is approved, with the same two steps.
-5. Say when each exists. The release workflows are installed by a WIRE on the Owner's go, and pinning a check to the Inspector in a ruleset is a later Change on the Owner's go.
+5. **Upload a logo for each App** when creating it (the Owner: a KAAL App has its own logo). Each App has its own logo, so the three are told apart in the check list and the audit log. GitHub takes it as an upload in the App's settings; what I know of its requirements is a square image (PNG, JPG or GIF) of at least 200 by 200 pixels, and the Owner confirms the current limits at the upload. The DO supplies the asset as a source: an SVG master and a PNG export per App under `05-src/inspector/` (and the same for the Dispatcher and the approver), drawn by the Owner or the CPO, not generated here. The App cannot be called finished without it.
+6. Say when each exists. The release workflows are installed by a WIRE on the Owner's go, and pinning a check to the Inspector in a ruleset is a later Change on the Owner's go.
 
 ## Installation, timing and risks
 
