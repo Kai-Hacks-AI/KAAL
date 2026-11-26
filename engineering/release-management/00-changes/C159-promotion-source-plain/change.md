@@ -27,7 +27,7 @@ Add the source, the two entries and the two control records. The DO renames the 
 ACT, PROMOTION, then a detective WIRE of the file, which needs the Owner's go and evidence before any enforcement swap (release/C153).
 
 ## Left open (with a recommendation)
-- Engineering dependency (CTO): `lineage.ts` exports one `promotionSource(facts)` verdict that joins origin and head evidence. The two entries need the two parts as pure functions, or the entries compose it with facts that isolate each part. Recommendation: Engineering exports `promotionOrigin` and `headEvidence` over the same facts in its own Change, with `promotionSource` calling them so nothing changes for the old workflow. The DO waits on it.
+- Engineering dependency (CTO), answered in a plan: Engineering PLAN #2701 (engineering C41) exports `promotionOrigin(facts)` (the origin verdict plus the delivery stock, with today's messages) and `notGreen(head, checks)` (the reasons a head is not green on its exact commit), and composes `promotionSource` from the two with unchanged verdicts. The two entries import them. This DO waits for C41 to be approved and merged, then its DO.
 - Whether a fork pull request gets `checks: read` on plain `pull_request`. Recommendation: the check says UNKNOWN when the checks cannot be read; the evidence shows how often. This repository takes no fork pull requests today.
 
 ## Not in this Change
