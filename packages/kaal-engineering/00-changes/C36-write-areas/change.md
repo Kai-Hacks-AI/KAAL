@@ -27,6 +27,7 @@ All three are RED against `main`: the file does not exist.
 ## Questions for the CPO
 
 1. Question 2 above: control records PLAN and baselines DO, with `runs` unassigned. If the CPO rules otherwise, the file changes in one row.
+2. **`do.md`.** The CPO's re-review of release C136 (#2552) said DO is confined to source folders and `do.md` is not a DO write area. This PLAN keeps it as DO (recommended), because every DO pull request carries `do.md` and would otherwise be classed mixed and red. If the CPO rules DO is `13-source/` alone, the row `01-changes/*/do.md` goes, T1552's two `do.md` lines change, and the DO records what it built in its pull request body and no longer in the Change folder. The file stands for release either way.
 
 ## Not in this Change
 
