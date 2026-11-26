@@ -15,7 +15,7 @@ export function resolve(areas, path) {
   let best;
   for (const row of areas.areas) {
     const r = row.path.split('/');
-    if (r.length <= norm.length && r.every((s, i) => seg(norm[i], s)) && (!best || r.length > best.len)) best = { len: r.length, phase: row.phase };
+    if (r.length <= norm.length && r.every((s, i) => seg(norm[i], s)) && (!best || r.length > best.len)) best = { len: r.length, phase: row.phase ?? (row.delegatedTo ? `delegated:${row.delegatedTo}` : row.transition ? `transition:${row.transition}` : undefined) };
   }
   return best?.phase;
 }
