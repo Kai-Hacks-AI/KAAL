@@ -25,7 +25,7 @@ it("hosting/T321: refuses before any call what the caller cannot decide; names t
     ["an ability beyond the declaration on the default branch", { abilities: ["read-contents", "read-checks"] }, {}, "APP_TOKEN_REFUSED"],
     ["an approving ability the App does not declare", { abilities: ["approve-pull-requests"] }, {}, "APP_TOKEN_REFUSED"],
     ["no declaration for the app on the default branch", {}, { declarations: [] }, "APP_DECLARATION_MISSING"],
-    ["two declarations of the same app", {}, { declarations: ["a", "b"].map((o) => ({ path: `packages/kaal-${o}/13-source/github-apps/dispatcher.json`, declaration: { app: "dispatcher", name: "D", owner: `kaal-${o}`, purpose: "p", abilities: ["read-contents"] } })) }, "APP_DECLARATION_AMBIGUOUS"],
+    ["two declarations of the same app", {}, { declarations: ["a", "b"].map((o) => ({ path: `packages/kaal-${o}/13-source/github-apps/dispatcher.json`, declaration: { app: "dispatcher", name: "D", owner: `kaal-${o}`, purpose: "p", appId: o === "a" ? "1" : "2", abilities: ["read-contents"] } })) }, "APP_DECLARATION_AMBIGUOUS"],
     ["a declaration that is not valid", {}, { declarations: [{ path: "packages/kaal-release/13-source/github-apps/dispatcher.json", declaration: "{not json" }] }, "INVALID_APP_DECLARATION"],
     ["a declaration whose app is another name than its file", {}, { declarations: [{ path: "packages/kaal-release/13-source/github-apps/dispatcher.json", declaration: { app: "other", name: "D", owner: "kaal-release", purpose: "p", abilities: ["read-contents"] } }] }, "INVALID_APP_DECLARATION"],
     ["a truncated tree", {}, { truncated: true }, "APP_DECLARATION_MISSING"],

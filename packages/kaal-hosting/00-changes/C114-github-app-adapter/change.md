@@ -58,6 +58,10 @@ Release's existing `app-manifest.json` is `{ metadata: read, pull_requests: writ
    - hosting/T323: `checkLogo` accepts a square PNG of at least 200 by 200 and names a wrong signature, a non-square image, a smaller one and an empty file; it reads only the bytes it is given.
    - hosting/T324: the adapter modules import no `node:fs`, `node:child_process` or `node:http`, never read an environment variable or a file for a key or token, and Hosting's shipped `docs/` name no Change.
 
+## Amendment (four defects in the drafts and one in the fixtures, found at the DO)
+
+The drafts were run, for the first time as Cases, against the adapter, and four of them cannot pass as written, none because of what they claim: T318's example Apps held neither `read-contents` (which item 1 requires of every App) nor a way to be read, so they now hold it, with its permission in the expected output; T320 decoded the JWT from a header that still began `Bearer `; T321's two declarations of one App had no `appId`, so they were invalid before they were ambiguous; T330's first assertion minted on a world with no route for the ref, so the read it expected to succeed returned nothing. The fixtures' authentication gate did not accept the grant's own token, so every read through a grant was refused before it began. No claim of any Case changes. The DO delivers the Cases as amended here.
+
 ## The interface the Cases fix
 
 All from `@kaihacksai/kaal-hosting`; the modules are `scripts/github/app-manifest`, `app-token`, `app-reads` and `app-logo`.

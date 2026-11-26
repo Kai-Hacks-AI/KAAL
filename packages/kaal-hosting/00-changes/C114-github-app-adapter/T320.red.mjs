@@ -23,8 +23,8 @@ it("hosting/T320: mintToken reads the declaration itself from the default branch
   assert.equal(grant.expiresAt, SOON);
   assert.ok(Object.isFrozen(grant), "a grant cannot be edited");
   for (const k of Object.keys(grant)) assert.notEqual(k, "token", "the token is not a property of the grant");
-  const claims = JSON.parse(b64(api.requests[0].headers.authorization.split(".")[1]).toString());
-  assert.equal(JSON.parse(b64(api.requests[0].headers.authorization.split(".")[0]).toString()).alg, "RS256");
+  const claims = JSON.parse(b64(api.requests[0].headers.authorization.replace(/^Bearer /, "").split(".")[1]).toString());
+  assert.equal(JSON.parse(b64(api.requests[0].headers.authorization.replace(/^Bearer /, "").split(".")[0]).toString()).alg, "RS256");
   assert.equal(String(claims.iss), "12345");
   assert.ok(claims.iat <= NOW / 1000 && claims.exp > NOW / 1000 && claims.exp - claims.iat <= 600);
   assert.equal(DISPATCHER.app, "dispatcher");
