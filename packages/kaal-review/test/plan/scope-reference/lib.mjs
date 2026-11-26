@@ -27,10 +27,12 @@ export function tree(files) {
 }
 
 /** A Review item file. `validates` is the scope and `against` the optional reference; an undefined list is left out. */
-export function item(id, { validates, against } = {}) {
+export function item(id, o = {}) {
+  const { validates, against } = o;
+  const criteria = 'criteria' in o ? o.criteria : ['it is so'];
   const list = (k, a) => (a ? [`${k}: [${a.join(', ')}]`] : []);
   return ['---', `id: ${id}`, ...list('validates', validates), ...list('against', against), '---', `# ${id}`, '',
-    '## Question', '', 'Is it so?', '', '## Criteria', '', '- it is so', '', '## Expected evidence', '', '- the thing', ''].join('\n');
+    '## Question', '', 'Is it so?', '', ...(criteria === undefined ? [] : ['## Criteria', '', ...criteria.map((c) => `- ${c}`), '']), '## Expected evidence', '', '- the thing', ''].join('\n');
 }
 
 export const kinds = (nav) => nav.findings.map((f) => f.kind).sort();

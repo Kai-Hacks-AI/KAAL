@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { item, kinds, load, tree } from './lib.mjs';
 export const id = 'review/T1555';
 export const tests = ['review/F37'];
-export const title = 'the references of an item are listed and the items are found by a reference of any kind, an item without a reference is valid and listed with none, and an empty or malformed reference is a named finding while the item stays listed';
+export const title = 'the references of an item are listed and the items are found by a reference of any kind, an item with Criteria and no reference is valid, an item with a reference and no Criteria and an item with neither are not valid, and an empty or malformed reference is a named finding while the item stays listed';
 export async function run() {
   const { navigate } = await load();
   const root = tree({
@@ -25,6 +25,18 @@ export async function run() {
   assert.equal(Object.hasOwn(n.judgedAgainst, 'x/A1'), false, 'what is only examined is not a reference');
   assert.equal(Object.hasOwn(n.judgedAgainst, 'ns/V3'), false);
   assert.deepEqual(n.validatedBy['x/F1'], ['ns/V4'], 'the scope side is unchanged by the reference side');
+
+  const thin = tree({
+    'v/V1.md': item('ns/V1', { validates: ['x/F1'], against: ['x/I1'], criteria: undefined }),
+    'v/V2.md': item('ns/V2', { validates: ['x/F1'], criteria: undefined }),
+    'v/V3.md': item('ns/V3', { validates: ['x/F1'], against: [], criteria: [] }),
+    'v/V4.md': item('ns/V4', { validates: ['x/F1'] }),
+  });
+  const t = await navigate(thin, {});
+  assert.deepEqual(t.items.map((i) => i.id), ['ns/V4'], 'only the item with Criteria is valid: an external reference does not replace criteria, and neither alone is not a review');
+  assert.deepEqual(kinds(t), ['item-incomplete', 'item-incomplete', 'item-incomplete'], 'each item without Criteria is named, with or without a reference');
+  assert.ok(t.findings.every((f) => /reference|Criteria/.test(f.detail)), 'the finding says what the item lacks');
+  assert.equal(Object.hasOwn(t.judgedAgainst, 'x/I1'), false, 'an item that is not valid is not found by its reference');
 
   const proto = tree({ 'v/V1.md': item('ns/V1', { validates: ['x/F1'], against: ['__proto__', 'constructor'] }) });
   const p = await navigate(proto, {});
