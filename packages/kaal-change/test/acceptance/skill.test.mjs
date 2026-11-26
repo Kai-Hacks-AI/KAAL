@@ -59,6 +59,8 @@ test('change/T54 [change/F46, change/F48]: a clean consumer admits the packaged 
   const result = JSON.parse(verified.trim().split('\n').at(-1).slice('kaal-change-verification '.length));
   assert.equal(result.result, 'verified');
   assert.equal(result.provenance.version, '0.0.1');
-  assert.equal(result.cases.length, 10);
+  const declared = JSON.parse((await readFile(join(installed, 'test/verify.json'))).toString('utf8')).cases;
+  assert.ok(declared.length > 0, 'the package declares no Cases');
+  assert.deepEqual(result.cases.map(c => c.name).sort(), [...declared].sort());
   assert.ok(result.cases.every(c => c.outcome === 'pass'));
 });
