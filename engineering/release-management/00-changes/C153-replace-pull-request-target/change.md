@@ -18,6 +18,13 @@ From 2 December 2026 the four required checks below stop reporting. Each needs a
 - **Check 4 (Promotion Source) waits on three things:** the Inspector App, the host adapter that supplies trustworthy bytes of the source and the preimage from `main` (Hosting), and the CTO's trust-boundary proof. By the ownership cut proposed to the Owner, Release owns the Promotion Source control and Hosting owns the adapter; this is not settled until the Owner rules.
 - **Status, read at this time:** release/C133 (required workflows run from the ruleset's ref) has its revised PLAN (#2494) merged into `kaal/release/delivery-ruleset-gates` and authorizes no DO, WIRE, ruleset change or flag. release/C102 (the Inspector App) is a PLAN under CPO review on `kaal/release/inspector-app`. None of the three Apps exists yet and the Inspector's trust-boundary proof is outstanding, so nothing here may assume them by 2 December.
 
+## Who owns which App (the Owner's ruling)
+
+- **KAAL Inspector** (signs checks) and **KAAL Approver** (approves) are owned by **review**. C102 is handed over to the review thread.
+- **KAAL Dispatcher** (raises pull requests) stays with **release**. It raises PROMOTIONs today and may later dispatch other pull request types, so release does not hard-wire it to PROMOTION only.
+- **Hosting** owns the GitHub App adapter for all three: manifests, token minting, API calls and the logo slots. Release and review consume it and do not carry their own App plumbing.
+- This Change depends on the Approver (owned by review) for `approve Sync` and `review Sync`, and on the Inspector for check 4; Release asks, Review delivers.
+
 ## Per check, the same steps
 
 DO the replacement behind its flag, detective, as its own Change; read the run evidence; the Owner's go; WIRE installs it; the ruleset swaps the required context on the Owner's go; the old workflow is deleted and the ratchet falls by one. Nothing is required before its evidence exists. If a check has none by 2 December, the Owner decides on dropping it, and a drop is its own listed step.
