@@ -26,6 +26,10 @@ Not authorized by this PLAN. On its merge into the collector, and with the colle
 
 No change of the control record of verify Adapter (controls/CTL1) belongs here: its strategy, baseline and type change in the Change that adopts the baseline, on the Owner's go.
 
+## DO record
+
+`scripts/adapter-ratchet.mjs` is added with `runAdapterRatchet`, pure, composing `findUnadapted`, the usable-inventory rule and `runControl` in ratchet mode, and `references/adapter.md` has one paragraph on it. The check of the entry list is not repeated, because `findUnadapted` refuses a malformed one (a weakening there would survive, so it is not built twice). No other script and no control record changed. T1556 is GREEN and the package suite is GREEN with T1556 counted. `mutations/` keeps six weakenings as exact patches with a runner, as in C25 and C155: the inventory completeness unchecked (M1), its revision (M2) and its scope (M3) unchecked, the mode not ratchet (M4), an unusable inventory filtered instead of unknown (M5) and the base's previous baseline ignored (M6). `mutations/run-at-do-head.txt` is the run on the DO: the baseline is GREEN on T1556 and each weakening, loaded alone, is RED. The record cannot name its own revision; re-run `sh mutations/run.sh <repo root>` at the DO's head and compare with it.
+
 ## ACT
 
 A retro entry in the collector.
