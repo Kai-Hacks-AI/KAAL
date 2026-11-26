@@ -6,6 +6,7 @@ export const DISPATCHER = {
   name: "KAAL Dispatcher",
   owner: "kaal-release",
   purpose: "Raises pull requests to the next station.",
+  appId: "12345",
   abilities: ["read-contents", "read-pull-requests", "raise-pull-requests"],
   logo: "13-source/github-apps/dispatcher.png",
 };
@@ -48,7 +49,7 @@ export const PERMISSIONS = { metadata: "read", contents: "read", pull_requests: 
  * GitHub actually returns. Every knob is a way GitHub, or a bad adoption, can differ from the declaration.
  * `publicKey` verifies every App JWT; a request without a good JWT or a bootstrap/installation token is 401.
  */
-export function appWorld({ verify, declaration = DISPATCHER, declarations, installPermissions = PERMISSIONS, grant, expiresAt = SOON, tree, truncated = false, defaultBranch = "main" }) {
+export function appWorld({ verify, declaration = DISPATCHER, declarations, installPermissions = PERMISSIONS, appId = "12345", installAppId = Number(appId), slug = "kaal-dispatcher", grant, expiresAt = SOON, tree, truncated = false, defaultBranch = "main" }) {
   const entries = tree ?? (declarations ?? [{ path: PATH, declaration }]).map((d) => ({ path: d.path, type: "blob", sha: "e".repeat(40), declaration: d.declaration }));
   let minted = 0;
   return standIn((r) => {
@@ -56,7 +57,8 @@ export function appWorld({ verify, declaration = DISPATCHER, declarations, insta
     const isJwt = auth.split(".").length === 3;
     if (isJwt && !verify(auth)) return { status: 401, json: { message: "Bad credentials" } };
     if (!isJwt && !auth.startsWith("ghs_BOOT")) return { status: 401, json: { message: "Bad credentials" } };
-    if (r.method === "GET" && r.path === "/repos/o/r/installation") return { status: 200, json: { id: 99, permissions: installPermissions, repository_selection: "selected" } };
+    if (r.method === "GET" && r.path === "/app") return { status: 200, json: { id: Number(appId), slug: slug, name: "KAAL App" } };
+    if (r.method === "GET" && r.path === "/repos/o/r/installation") return { status: 200, json: { id: 99, app_id: installAppId, permissions: installPermissions, repository_selection: "selected" } };
     if (r.method === "POST" && r.path === "/app/installations/99/access_tokens") {
       minted += 1;
       const asked = r.body.permissions;
