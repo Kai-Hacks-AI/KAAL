@@ -28,7 +28,8 @@ All Case expectations are written in this PLAN, parked as `.red.mjs` (red until 
   - **T164 (A40)**, the template reader Case: now the declaration reader's malformed, duplicate, foreign and chapterless findings, and no recognition by text; `readTemplates` is no longer exported.
   - **T185 (A40)**: DEFAULT was registered when a default file declared it; it is never registered and is a finding with its own reason.
   - **T186 (F17)**: a `DEFAULT:` title was judged by the DEFAULT chapters; it is a finding naming an invalid route, with or without a registry entry; a TYPE nobody declared is not judged and is never a pass.
-  - **T182 (F19)**, **T183 (F18)**, **T174 (F18)**, **T175 (A41)**: DEFAULT is not a TYPE and the fallback holds no declaration. The requirement texts F19 and F18 and the architecture A40 are amended in this PLAN to match.
+  - **T174 (F18)** and **T175 (A41)**: the fallback template holds no declaration (DEFAULT is not a TYPE); parked, the DO edits the fallback source.
+  - **T182 (F19)**, **T183 (F18)** and **T187 (G52, C20)**: documentation Cases, amended with the texts they read, so they are GREEN now. F19, F18, F17 section 2 and A40 are amended in this PLAN: DEFAULT is not a TYPE and is never in the registry, the fallback holds no declaration, and the reader replaces `readTemplates`.
 - **Left as they are, and why:** T161 and T191 pass `DEFAULT` only as a word of a title or as an extra registry key and expect FAIL, which stays true; T640, T650, T660 and T830 (amended earlier to ignore an optional declaration line) are harmless and no longer needed once the sources are not touched.
 
 ## Dependencies
@@ -37,7 +38,7 @@ The DO starts when Hosting's declaration form (C113's DO) and Engineering's `pul
 
 ## FAR
 
-1. **Regression.** Moving the reader changes what T164 and its neighbours pin; they are amended in this PLAN (above), not in the DO. T164, T174, T175, T182, T183, T185 and T186 are RED parked until the DO.
+1. **Regression.** Moving the reader changes what T164 and its neighbours pin; they are amended in this PLAN (above), not in the DO. T164, T174, T175, T185 and T186 are RED parked until the DO.
 2. **Accept list.** None.
 3. **Feature.** T1540 and T1541.
 
