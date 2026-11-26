@@ -18,6 +18,7 @@ it("hosting/T319: renderAppManifest refuses every invalid declaration with INVAL
     "no name": [{ ...DISPATCHER, name: undefined }, /name/],
     "an empty name": [{ ...DISPATCHER, name: "  " }, /name/],
     "no owner": [{ ...DISPATCHER, owner: undefined }, /owner/],
+    "an App that cannot read contents (its declaration could not be read at the base revision)": [{ ...DISPATCHER, abilities: ["raise-pull-requests"] }, /read-contents/],
     "no abilities": [{ ...DISPATCHER, abilities: [] }, /abilities/],
     "a repeated ability": [{ ...DISPATCHER, abilities: ["read-contents", "read-contents"] }, /read-contents/],
     "a field outside the format": [{ ...DISPATCHER, colour: "red" }, /colour/],
