@@ -69,12 +69,12 @@ export function world({ refs = { "claude/work": HEAD, "kaal/hosting/gen": BASE, 
     const p = decodeURIComponent(req.path);
     let m;
     if (req.method === "GET" && (m = p.match(/^\/repos\/o\/r\/commits\/(.+)$/))) return refs[m[1]] ? { status: 200, json: { sha: refs[m[1]] } } : { status: 404, json: { message: "Not Found" } };
-    if (req.method === "GET" && (m = p.match(/^\/repos\/o\/r\/compare\/(\w+)\.\.\.(\w+)$/))) return { status: 200, json: { files: changed.map((filename) => ({ filename, status: "modified" })) } };
+    if (req.method === "GET" && (m = p.match(/^\/repos\/o\/r\/compare\/(\w+)\.\.\.(\w+)$/))) return { status: 200, json: { files: changed.map((c) => (typeof c === "string" ? { filename: c, status: "modified" } : c)) } };
     if (req.method === "GET" && (m = p.match(/^\/repos\/o\/r\/contents\/(.+)$/))) {
       const text = files[req.query.ref]?.[m[1]];
       return text === undefined ? { status: 404, json: { message: "Not Found" } } : { status: 200, json: { encoding: "base64", content: Buffer.from(text).toString("base64") } };
     }
-    if (req.method === "POST" && p.endsWith("/pulls")) return { status: 201, json: { number: 7, html_url: "https://github.com/o/r/pull/7", node_id: "PR_node7", head: { sha: refs[req.body.head] ?? HEAD } } };
+    if (req.method === "POST" && p.endsWith("/pulls")) return { status: 201, json: { number: 7, html_url: "https://github.com/o/r/pull/7", node_id: "PR_node7", head: { sha: refs[req.body.head] ?? HEAD }, base: { sha: refs[req.body.base] ?? BASE } } };
     if (p.endsWith("/graphql")) return { status: 200, json: { data: { enablePullRequestAutoMerge: { pullRequest: { number: 7 } } } } };
     return { status: 404, json: { message: "unexpected" } };
   };
