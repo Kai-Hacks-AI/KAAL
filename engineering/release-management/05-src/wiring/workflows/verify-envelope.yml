@@ -1,0 +1,43 @@
+# release/CTL11, release/C137. A detective check of the envelope of a pull request: title, route, chapters, HOW TO WORK table, Driven-by identity. It judges the envelope, never whether what is written is true.
+# Plain pull_request: no token, no secret, no pull_request_target, nothing installed, nothing of the pull request run. The judge is the default branch's. The rules are the templates of the BASE commit.
+# The pull request is read only as data: its event payload and its commits as Git data through refs/pull/<n>/head. A candidate that edits this workflow or the judge changes nothing here, the default branch's copy judges.
+# Detective: the job reports its verdict and passes. Advisory: only when the variable KAAL_RELEASE_VERIFY_ENVELOPE is exactly `on`, a FAIL or an UNKNOWN makes the job red, and the check is still
+# not required by any ruleset. Preventive (requiring a check) is a ruleset change by the Owner, never this file or a variable.
+name: verify Envelope
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  verify-envelope:
+    name: verify Envelope
+    runs-on: ubuntu-latest
+    env:
+      KAAL_FLAG: ${{ vars.KAAL_RELEASE_VERIFY_ENVELOPE }}
+      KAAL_PR: ${{ github.event.pull_request.number }}
+      KAAL_MERGE_SHA: ${{ github.sha }}
+      KAAL_RUN_ID: ${{ github.run_id }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Check out the default branch, the judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Bring the base as a folder and the commits of the pull request as a log, as data
+        run: |
+          git fetch --no-tags origin "$BASE_SHA" "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
+          git worktree add --detach ../base "$BASE_SHA"
+          git log --format='%H%x1f%B%x1e' "$BASE_SHA..refs/remotes/pull/head" > ../envelope-log.txt
+      - name: Judge
+        run: |
+          J=engineering/release-management/05-src/plan-body/run-verify-envelope.mjs
+          test -f "$J" || { echo "UNKNOWN: the judge is absent on the default branch"; test "$KAAL_FLAG" = on && exit 1; exit 0; }
+          node "$J" --event "$GITHUB_EVENT_PATH" --templates ../base --log ../envelope-log.txt
