@@ -1,5 +1,5 @@
-// hosting/C115 executable drafts (RED on main: the declaration format has no `visible`). The DO turns them into delivered
-// Cases unchanged. Written against the C113 generator; the raise Case (T335) uses C113's stand-in transport.
+// hosting/C115 delivered cases: a declared pull request type can carry visible text (hosting/F104, hosting/F105; hosting/T332 to hosting/T335).
+// They reach Hosting by its name and inject only the transport. The expectations are those the PLAN agreed.
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
@@ -47,11 +47,8 @@ it("hosting/T334: checkTemplates names a template without or with changed visibl
   assert.deepEqual((await hosting.checkTemplates([HOTFIX], dir)).problems, [{ file: "hotfix.md", problem: "differs" }]);
 });
 
-// T335 uses the C113 raise fixtures (`pull-request-fixtures.mjs`: the stand-in for GitHub's API, the owner's declaration read at
-// the base revision). They reach main with C113; the DO moves this Case beside them (`pull-request-raise.test.mjs`) and changes
-// no expectation. Until C113 is on main this draft is RED for the missing field and the missing fixtures.
 it("hosting/T335: the raised body starts with the owner's visible text read at the base revision; a caller-supplied visible is refused before any call", async () => {
-  const { BASE, DO, HEAD, PATHS, HOTFIX, chapters, options, policy, posts, request, world } = await import("../../04-test/package-check/pull-request-fixtures.mjs");
+  const { BASE, DO, HEAD, PATHS, HOTFIX, chapters, options, policy, posts, request, world } = await import("./pull-request-fixtures.mjs");
   const owner = { ...DO, visible: LINE };
   const mk = (declaration, head = policy()) => world({ files: { [BASE]: policy({ [PATHS.declaration("kaal-change")]: JSON.stringify({ types: [declaration, HOTFIX] }) }), [HEAD]: head } });
 

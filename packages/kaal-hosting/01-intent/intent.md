@@ -75,3 +75,7 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Pull request templates and bodies
 
 - **hosting/I21.** The templates and bodies of KAAL's pull requests are rendered by Hosting from the types the owning capabilities declare, and a pull request an agent raises through Hosting follows what those owners declared for its type: its branches, title, write areas, merge method and auto-merge. The capabilities write the content and the rules and none of the GitHub; a caller never chooses the authority a raise is judged by.
+
+## Visible text in a declared type
+
+- **hosting/I23.** A pull request type that must show its reader one fixed line, and not hide it in a comment, declares that line as visible text, and Hosting renders it the same in the template and in every body raised for the type. The line belongs to the owner's declaration; a caller never supplies it.
