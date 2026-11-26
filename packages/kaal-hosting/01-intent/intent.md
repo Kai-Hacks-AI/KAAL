@@ -71,3 +71,7 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Scanning a checkout
 
 - **hosting/I20.** KAAL code that must scan a normal checkout, with its dependency links and its version-control folder, lists it through Hosting alone, saying which names and which directory links to leave out, with the same result on every supported host and no `node:fs` of its own.
+
+## Pull request templates and bodies
+
+- **hosting/I21.** The templates and bodies of KAAL's pull requests are rendered by Hosting from the types the owning capabilities declare, and a pull request an agent raises through Hosting follows what those owners declared for its type: its branches, title, write areas, merge method and auto-merge. The capabilities write the content and the rules and none of the GitHub; a caller never chooses the authority a raise is judged by.
