@@ -61,7 +61,7 @@ LOVE is the test a package meets before it steps up from an internal capability 
 
 Meeting LOVE is a judgment of maturity, not a mandate to publish. A decision to package something never authorizes its release. `LOVE` is a Definition beside `CASE`. Like `CASE`, it types nothing, and adding it changed neither the Kernel's bytes nor any existing id.
 
-These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability` and `KAAL Agent`. kaal-core 0.0.1 is unreleased, so `kaal upgrade` does not adopt such an Engine: it keeps and reports the files it does not recognize, and refuses because the result would not verify. Bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition`, `KAAL Skill` and `KAAL Exchange`, and of every Node typed by them, are unchanged.
+These Nodes change the Kernel's bytes, so an Engine bootstrapped from an earlier kaal-core no longer verifies: its Kernel is not the one Core recognizes and it lacks `KAAL Capability`, `KAAL Agent` and `KAAL Exchange`. kaal-core 0.0.1 is unreleased, so `kaal upgrade` does not adopt such an Engine: it keeps and reports the files it does not recognize, and refuses because the result would not verify. Bootstrap a fresh Engine. The ids of `Node`, `KAAL Definition` and `KAAL Skill`, and of every Node typed by them, are unchanged. `KAAL Exchange` replaces `KAAL Extension` with a new Definition and a new id, and the Kernel, `CASE` and `KAAL Agent` have new ids as well.
 
 A Node is a UTF-8 Markdown file that begins with frontmatter in the Kernel's Form, for example:
 

@@ -1,7 +1,7 @@
 {
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "f80b9a284876a83a4899f40afc43ad543e9d009c02a3ff48de5f4828b3fce6b8",
+    "README.md": "01421c8840a6592df06544f9b6e7b6f153d9bbaf30891b54a4707d60a4f8c3f2",
     "dist/admitted.d.ts": "52ea0be2c29db7fa0cba81d22ab754621d8aa6d6e6350851493dc11ffe6752e3",
     "dist/admitted.js": "7c08d1fd903b40e4945083975f2fd2210573778068c6467eb23ee4f5eb4a5697",
     "dist/agent.d.ts": "edce5bc81865c424780e2f91b38c478771efbc6b4140a93b997c37401a6de6bc",
@@ -39,6 +39,8 @@
     "dist/register.js": "64a5d5eed8b768a1798abe57b1fe10e4b2c38f50905a0ecd6d16a513a2796814",
     "dist/registration.d.ts": "de8b0e2be5578306a7a3980b3761323a73b796c18d6990a5ff278843a62d0ad0",
     "dist/registration.js": "cb922c8bccec92255d94719e8067fdcbc69f82048537af071881d0f882e273d8",
+    "dist/skill.d.ts": "12dd2f202e54c07acb50cbb8ca9632e6775a6f84b2ea89251a8fc7da776d053b",
+    "dist/skill.js": "600eebf198dd0794ea2334e4ec2b2d80604d1e7e177f1422bf42355984d658d9",
     "docs/architecture.md": "544d5d7dfe6bb690a00ae7add1ff193cefa2858519d610b457323a003bf97a18",
     "docs/intent.md": "d3db2e9ffc32f9671c8457c2472acb82ee25f8fae29a17e9ed55199a95c32e41",
     "docs/limitations.md": "72935cde7ba6dd54e4253b05132c172460612bc08b04ea32d4ac549be389aa90",
