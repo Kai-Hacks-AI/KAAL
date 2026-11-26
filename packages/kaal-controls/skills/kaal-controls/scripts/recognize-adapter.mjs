@@ -54,59 +54,30 @@ function withoutDeadBranches(code) {
   return result + code.slice(last);
 }
 
-// Whether `name` is declared again in `code` (the import is already removed): a variable, a function or class, a parameter, a catch
-// parameter or a destructured name. Such a name may not be the imported binding, so the entry is not recognized. It is read on tokens,
-// and anything that looks like a declaration of the name counts, so a doubtful entry is refused rather than recognized.
+// Binding identity is not decided by reading names: no parser is part of the package. The syntax that is supported is narrow, and everything
+// outside it is refused as unknown. Every occurrence of the imported name in the entry (the import itself is removed first) must be a call
+// of it, `name(...)`, in an expression position. Any other occurrence is a possible declaration of the same name, for a parameter, a
+// destructured parameter or variable, a function, a class, a catch parameter or another import, so one such occurrence refuses the entry.
+// A call that is followed by a block is a method definition and refuses it too. The refusal is deliberate: a doubtful entry is unknown.
 const tokenize = (code) => code.match(/[A-Za-z_$][\w$]*|\d[\w.]*|=>|\.\.\.|[^\s\w$]/g) || [];
-const DECLARING = new Set(['const', 'let', 'var']);
-const NOT_PARAMETERS = new Set(['if', 'while', 'for', 'switch', 'with']);
-const isWord = (t) => t !== undefined && /^[A-Za-z_$]/.test(t);
+const CALL_AFTER = new Set(['await', 'return', '=', '=>', '(', ',', ';', '{', '}', '?', ':', '!', '&', '|', 'yield', 'void']);
 
-function isRedeclared(code, name) {
+function callsOnly(code, name) {
   const t = tokenize(code);
+  let calls = 0;
   for (let i = 0; i < t.length; i += 1) {
     if (t[i] !== name || t[i - 1] === '.') continue;
-    const prev = t[i - 1];
-    if (prev === 'function' || prev === 'class' || DECLARING.has(prev) || (prev === '*' && t[i - 2] === 'function')) return true;
-    if (t[i + 1] === '=>') return true;
-    // a binding list or a destructuring pattern that follows const, let or var
-    let j = i - 1;
-    while (j >= 0 && (isWord(t[j]) && !DECLARING.has(t[j]) && t[j] !== 'await' ? true : [',', ':', '{', '}', '[', ']', '...'].includes(t[j]))) j -= 1;
-    if (j >= 0 && DECLARING.has(t[j])) return true;
-    // a further declarator of a declaration statement, or a catch or function parameter
-    let k = i - 1;
-    while (k >= 0 && t[k] !== ';') k -= 1;
-    if (t.slice(k + 1, i).some((x) => DECLARING.has(x)) && t[i + 1] === '=') return true;
+    if (t[i + 1] !== '(' || (i > 0 && !CALL_AFTER.has(t[i - 1]))) return false;
     let depth = 0;
-    let open = -1;
-    for (let m = i - 1; m >= 0; m -= 1) {
-      if (t[m] === ')') depth += 1;
-      else if (t[m] === '(') { if (depth === 0) { open = m; break; } depth -= 1; }
-      else if (t[m] === ';' || t[m] === '{' || t[m] === '}') { if (depth === 0) break; }
+    let close = i + 1;
+    for (; close < t.length; close += 1) {
+      if (t[close] === '(') depth += 1;
+      else if (t[close] === ')' && (depth -= 1) === 0) break;
     }
-    if (open !== -1) {
-      let close = open + 1;
-      for (let d = 1; close < t.length; close += 1) { if (t[close] === '(') d += 1; else if (t[close] === ')' && (d -= 1) === 0) break; }
-      const owner = t[open - 1];
-      if (owner === 'catch') return true;
-      if (!NOT_PARAMETERS.has(owner) && (t[close + 1] === '=>' || t[close + 1] === '{')) return true;
-    }
+    if (close >= t.length || t[close + 1] === '{') return false;
+    calls += 1;
   }
-  return false;
-}
-
-// Whether `name` is called in `code`: a whole identifier, not a property of another value, followed by an opening parenthesis.
-function isCalled(code, name) {
-  const word = /[\w$]/;
-  for (let at = code.indexOf(name); at !== -1; at = code.indexOf(name, at + 1)) {
-    const before = code[at - 1];
-    if (before !== undefined && (word.test(before) || before === '.')) continue;
-    let end = at + name.length;
-    if (code[end] !== undefined && word.test(code[end])) continue;
-    while (code[end] === ' ' || code[end] === '\t' || code[end] === '\n' || code[end] === '\r') end += 1;
-    if (code[end] === '(') return true;
-  }
-  return false;
+  return calls > 0;
 }
 
 export function recognizeIntegration({ control, entry, adapter, revision } = {}) {
@@ -125,9 +96,11 @@ export function recognizeIntegration({ control, entry, adapter, revision } = {})
       if (named) binding.push(named[1] || 'runControl');
     }
   }
-  const live = withoutDeadBranches(code.replace(imports, ' '));
+  // only the import of the adapter is removed; any other import that binds the name stays and refuses the entry
+  const isAdapter = (spec) => spec.startsWith('.') && posix.join(posix.dirname(entry.path), spec) === target;
+  const live = withoutDeadBranches(code.replace(imports, (all, list, index) => (isAdapter(strings[Number(index)]) ? ' ' : all)));
   for (const name of binding) {
-    if (!isRedeclared(live, name) && isCalled(live, name)) return { control, revision, integration: 'recognized' };
+    if (callsOnly(live, name)) return { control, revision, integration: 'recognized' };
   }
   throw new Error(`recognizeIntegration: the entry of ${control} does not show an integration with the adapter`);
 }

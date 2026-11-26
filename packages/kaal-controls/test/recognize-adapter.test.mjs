@@ -80,6 +80,16 @@ test('a name that is declared again is not the imported binding', () => {
     'a class declaration': `${head}class runControl {}\nnew runControl({}); runControl({});`,
     'a catch parameter': `${head}try { x(); } catch (runControl) { runControl({}); }`,
     'a for loop variable': `${head}for (const runControl of fakes) { runControl({}); }`,
+    'a destructured function parameter': `${head}function f({runControl}) { runControl({}); }`,
+    'a destructured parameter with a default': `${head}function f({ runControl = fake } = {}) { return runControl({}); }`,
+    'an array pattern parameter': `${head}function f([runControl]) { return runControl({}); }`,
+    'a destructured arrow parameter': `${head}const g = ({ runControl }) => runControl({});`,
+    'a method definition': `${head}class A { runControl(x) { return x; } }\nnew A().m = () => runControl({});`,
+    'an object method': `${head}const o = { runControl(x) { return x; } };\nrunControl({});`,
+    'a property name': `${head}const o = { runControl: fake };\nrunControl({});`,
+    'a getter': `${head}class A { get runControl() { return 1; } }\nrunControl({});`,
+    'another import of the name': `${head}import { runControl } from './fake.mjs';\nrunControl({});`,
+    'an optional call': `${head}await runControl?.({});`,
   };
   for (const [what, text] of Object.entries(shadows)) assert.throws(() => rec(text), /does not show/, what);
   const aliased = "import { runControl as go } from '../lib/adapter.mjs';\nfunction f(runControl) { return runControl(1); }\nawait go({});";
