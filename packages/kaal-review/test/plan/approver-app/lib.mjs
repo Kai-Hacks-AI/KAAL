@@ -31,11 +31,11 @@ export function declarationText(which) {
 export const HEAD = 'a'.repeat(40);
 export const BASE = 'b'.repeat(40);
 export const MAIN = 'f'.repeat(40);
-export const expected = { head: HEAD, base: BASE, main: MAIN, triggers: ['workflow_run'] };
-/** Evidence that a pure merge of the base has a passing check signed by the Inspector at the head being decided, from main's code on a trusted trigger, with what a Case changes. */
+/** The facts of Hosting's adapter: what is being decided, the revision of main and whether the change is a pure merge of the base, with what a Case changes. */
+export const facts = (more = {}) => ({ source: 'hosting', head: HEAD, base: BASE, main: MAIN, pureMerge: true, ...more });
+/** What the run and the pull request claim: a pull request, a passing check signed by the Inspector at the same head, and execution of the code of main on a trusted trigger without a checkout of the head. */
 export const evidence = (more = {}) => ({
   pr: { head: HEAD, base: BASE, author: 'someone', ...(more.pr ?? {}) },
-  content: { pureMerge: true, ...(more.content ?? {}) },
   check: { name: 'verify Sync', revision: HEAD, conclusion: 'pass', signer: 'inspector', ...(more.check ?? {}) },
   execution: { trigger: 'workflow_run', codeRevision: MAIN, checkedOutHead: false, ...(more.execution ?? {}) },
 });
