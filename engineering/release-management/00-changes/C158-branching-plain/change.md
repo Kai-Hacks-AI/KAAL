@@ -25,3 +25,11 @@ ACT, PROMOTION, then a detective WIRE of the file, which needs the Owner's go an
 
 ## Not in this Change
 No WIRE, ruleset change, required check or flag. The old workflow stays until its swap.
+
+## Design: split and overlap
+Split: yes, three verdicts in `lineage.ts`, each already separately testable: promotion freshness, synchronization validity, auto-merge method. Each becomes its own control with its own result, so one failing does not hide the others. Related lineage verdicts that are not part of this check (landing, establishment, collector, working branch, claim) stay out.
+Covered by controls on main:
+- synchronization validity: verify Sync (CTL7) already reveals a SYNC that is not a pure merge of main at its exact head. Drop the structural part from the replacement; keep only what CTL7 does not say (the named resolutions and the base rule reading), to be confirmed in DO against the CTL7 source.
+- promotion freshness: queue Promotion (CTL32) lands a promotion on the current tip of main, one at a time. It makes freshness true by construction at the queue; the check's tree equality (the merged result equals the validated head) is not stated by CTL32, so keep that one narrowly.
+- auto-merge method: not covered. Keep.
+Dropped: the synchronization structure, if DO confirms CTL7 says the same. Decision per part is the Owner's, since dropping an unreplaced check is an Owner decision.
