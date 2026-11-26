@@ -54,6 +54,20 @@ function withoutDeadBranches(code) {
   return result + code.slice(last);
 }
 
+// Whether `name` is called in `code`: a whole identifier, not a property of another value, followed by an opening parenthesis.
+function isCalled(code, name) {
+  const word = /[\w$]/;
+  for (let at = code.indexOf(name); at !== -1; at = code.indexOf(name, at + 1)) {
+    const before = code[at - 1];
+    if (before !== undefined && (word.test(before) || before === '.')) continue;
+    let end = at + name.length;
+    if (code[end] !== undefined && word.test(code[end])) continue;
+    while (code[end] === ' ' || code[end] === '\t' || code[end] === '\n' || code[end] === '\r') end += 1;
+    if (code[end] === '(') return true;
+  }
+  return false;
+}
+
 export function recognizeIntegration({ control, entry, adapter, revision } = {}) {
   if (!text(control) || !text(adapter) || !text(revision)) throw new Error('recognizeIntegration: control, adapter and revision must be non-empty strings');
   if (!entry || !text(entry.path) || !text(entry.text)) throw new Error('recognizeIntegration: the entry must have a path and text');
@@ -72,7 +86,7 @@ export function recognizeIntegration({ control, entry, adapter, revision } = {})
   }
   const live = withoutDeadBranches(code.replace(imports, ' '));
   for (const name of binding) {
-    if (new RegExp(`(?:^|[^.\\w$])${name.replace(/\$/g, '\\$')}\\s*\\(`).test(live)) return { control, revision, integration: 'recognized' };
+    if (isCalled(live, name)) return { control, revision, integration: 'recognized' };
   }
   throw new Error(`recognizeIntegration: the entry of ${control} does not show an integration with the adapter`);
 }
