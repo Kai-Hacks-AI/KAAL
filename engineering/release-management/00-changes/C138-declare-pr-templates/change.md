@@ -20,10 +20,16 @@
 
 ## Cases
 
-- **T1540** is rewritten (parked `.red.mjs`): release's declaration file holds exactly SYNC, PROMOTION and WIRE, in Hosting's form; WIRE keeps `Source`, `Target`, `Verification` in order; none carries a GitHub word, a comment syntax or a recognition rule; HOW TO WORK is not declared.
-- **A new Case** (id confirmed with the release thread at the DO): the reader returns the registry of the seven TYPEs from the declarations it is given; a TYPE with no declaration is UNKNOWN; DEFAULT is a finding; a template that does not open with `Change` is accepted.
-- **T164** and the other Cases of the reader that pin `readTemplates` and the first-chapter rule are amended in this PLAN, in a follow-up commit once the exact form of Hosting's reader is on the line; the DO changes no Case.
-- T640, T650, T660 and T830 (amended earlier to ignore an optional declaration line) are left as they are: harmless, and no longer needed once the sources are not touched.
+All Case expectations are written in this PLAN, parked as `.red.mjs` (red until the DO builds the reader); the DO changes none.
+
+- **T1541 (new, `T1541.red.mjs` here; the id is confirmed with the release thread at the DO):** the reader returns the registry of all seven TYPEs from the declarations it is given, with the WIRE chapters `Source`, `Target`, `Verification` in order; a TYPE nobody declared is UNKNOWN (one owner missing, one TYPE left out of its owner's file, none at all); DEFAULT is invalid, whether declared, listed as a TYPE or missing from the invalid list; a declaration by a capability that does not own the TYPE, a duplicate, a chapter without a name and a TYPE without chapters are findings and are not registered; a first chapter other than `Change` is accepted; the reader holds no chapter list of its own.
+- **T1540 (rewritten, parked):** release's declaration file holds exactly SYNC, PROMOTION and WIRE in Hosting's form; WIRE keeps its three chapters in order; none carries a GitHub word, a comment syntax or a recognition rule; HOW TO WORK is not declared.
+- **Amended here, parked, by what each pinned:**
+  - **T164 (A40)**, the template reader Case: now the declaration reader's malformed, duplicate, foreign and chapterless findings, and no recognition by text; `readTemplates` is no longer exported.
+  - **T185 (A40)**: DEFAULT was registered when a default file declared it; it is never registered and is a finding with its own reason.
+  - **T186 (F17)**: a `DEFAULT:` title was judged by the DEFAULT chapters; it is a finding naming an invalid route, with or without a registry entry; a TYPE nobody declared is not judged and is never a pass.
+  - **T182 (F19)**, **T183 (F18)**, **T174 (F18)**, **T175 (A41)**: DEFAULT is not a TYPE and the fallback holds no declaration. The requirement texts F19 and F18 and the architecture A40 are amended in this PLAN to match.
+- **Left as they are, and why:** T161 and T191 pass `DEFAULT` only as a word of a title or as an extra registry key and expect FAIL, which stays true; T640, T650, T660 and T830 (amended earlier to ignore an optional declaration line) are harmless and no longer needed once the sources are not touched.
 
 ## Dependencies
 
@@ -31,9 +37,9 @@ The DO starts when Hosting's declaration form (C113's DO) and Engineering's `pul
 
 ## FAR
 
-1. **Regression.** Moving the reader changes what T164 and its neighbours pin; they are amended in this PLAN, not in the DO.
+1. **Regression.** Moving the reader changes what T164 and its neighbours pin; they are amended in this PLAN (above), not in the DO. T164, T174, T175, T182, T183, T185 and T186 are RED parked until the DO.
 2. **Accept list.** None.
-3. **Feature.** T1540 and the new reader Case.
+3. **Feature.** T1540 and T1541.
 
 ## Not in this Change
 
