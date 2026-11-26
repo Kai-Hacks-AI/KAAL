@@ -3,7 +3,7 @@
 // A Defect holds no state. Edges run from a Case to a Defect (the Case's first line `// Case <id> tests: <defect id>`).
 // A record is { case, run, revision, outcome, complete }, outcome GREEN, RED or UNKNOWN as a Case runner reports it, and `complete` the runner's own
 // statement that the run observed everything that should count. A GREEN without `complete: true` is UNKNOWN. The runner is Testing's; nothing here runs a Case.
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { list, readFile, kind } from '@kaihacksai/kaal-hosting';
 import { join } from 'node:path';
 
 const DEFECT = /^[a-z][a-z0-9-]*\/D[1-9][0-9]*$/;
@@ -35,42 +35,41 @@ export function judgeDefect(defect, cases, records = [], revision) {
  * A location that is handed over but cannot be discovered (missing, not a folder, unreadable) is not an empty one: it is recorded in `incomplete`
  * as { context, role, path, reason }, and an empty folder that exists is a verified empty answer. A place that hands over no location of a role owns that scope.
  */
-export function readTree(places) {
+export async function readTree(places, host = { list, readFile, kind }) {
   const defects = new Map(); // id -> { context }
   const addressedBy = new Map(); // defect id -> [contexts of the Architecture elements that address it]
   const pointing = new Map(); // defect id -> [case ids]
   const incomplete = []; // locations handed over that could not be discovered
-  const available = (context, role, dir) => {
-    try { if (statSync(dir).isDirectory()) return true; incomplete.push({ context, role, path: dir, reason: 'not a folder' }); } catch (e) { incomplete.push({ context, role, path: dir, reason: e.code === 'ENOENT' ? 'missing' : (e.code ?? 'unreadable') }); }
-    return false;
-  };
-  const attempt = (context, role, dir, read) => { if (available(context, role, dir)) try { read(); } catch (e) { incomplete.push({ context, role, path: dir, reason: e.code ?? 'unreadable' }); } };
-  const walk = (d, each) => {
-    for (const n of readdirSync(d)) {
-      const p = join(d, n);
-      if (statSync(p).isDirectory()) { if (n !== 'node_modules' && n !== '.git') walk(p, each); continue; }
-      each(p, n);
+  // Every file under a folder, read as text through Hosting alone (`host` is that seam). A folder that is missing, is not a folder or cannot be listed
+  // is recorded as incomplete discovery; only an existing folder with no file is empty.
+  const files = async (context, role, dir, test) => {
+    const out = [];
+    let entries;
+    try {
+      const k = await host.kind(dir);
+      if (k !== 'directory') { incomplete.push({ context, role, path: dir, reason: k === 'missing' ? 'missing' : 'not a folder' }); return out; }
+      entries = await host.list(dir, { skip: ['node_modules', '.git'], links: 'skip' });
+    } catch (e) { incomplete.push({ context, role, path: dir, reason: e.code ?? 'unreadable' }); return out; }
+    // A file that cannot be read is incomplete discovery of that file alone: every file read before and after it is kept.
+    for (const e of entries) if (e.kind === 'file' && test(e.path)) {
+      try { out.push([e.path, (await host.readFile(join(dir, e.path))).toString('utf8')]); } catch (err) { incomplete.push({ context, role, path: join(dir, e.path), reason: err.code ?? 'unreadable' }); }
     }
+    return out;
   };
-  const caseHeader = (p, n) => {
-    if (!/^T\d+\.(red|test)\.mjs$/.test(n)) return;
-    const h = /^\/\/ Case (\S+) tests: (.*)$/.exec(readFileSync(p, 'utf8').split('\n')[0]);
-    if (h) for (const t of h[2].split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) (pointing.get(t) ?? pointing.set(t, []).get(t)).push(h[1]);
-  };
+  const base = (p) => p.slice(p.lastIndexOf('/') + 1);
   for (const { context, defects: dir, architecture = [], cases = [] } of places) {
-    if (dir) attempt(context, 'defects', dir, () => {
-      for (const n of readdirSync(dir)) {
-        if (!n.endsWith('.md')) continue;
-        const t = readFileSync(join(dir, n), 'utf8'); const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
-        if (id) defects.set(id, { context });
-      }
-    });
-    for (const a of architecture) attempt(context, 'architecture', a, () => walk(a, (p, n) => {
-      if (!n.endsWith('.md')) return;
-      const list = readFileSync(p, 'utf8').match(/^addresses:\s*\[(.*)\]\s*$/m)?.[1] ?? ''; // the Architecture —addresses→ Defect relationship
-      for (const id of list.split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) { const l = addressedBy.get(id) ?? addressedBy.set(id, []).get(id); if (!l.includes(context)) l.push(context); }
-    }));
-    for (const c of cases) attempt(context, 'cases', c, () => walk(c, caseHeader));
+    for (const [, t] of dir ? await files(context, 'defects', dir, (p) => p.endsWith('.md')) : []) {
+      const id = t.match(/^id:\s*(\S+)\s*$/m)?.[1];
+      if (id && DEFECT.test(id)) defects.set(id, { context });
+    }
+    for (const a of architecture) for (const [, t] of await files(context, 'architecture', a, (p) => p.endsWith('.md'))) {
+      const l = t.match(/^addresses:\s*\[(.*)\]\s*$/m)?.[1] ?? ''; // the Architecture —addresses→ Defect relationship
+      for (const id of l.split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) { const c = addressedBy.get(id) ?? addressedBy.set(id, []).get(id); if (!c.includes(context)) c.push(context); }
+    }
+    for (const c of cases) for (const [, t] of await files(context, 'cases', c, (p) => /^T\d+\.(red|test)\.mjs$/.test(base(p)))) {
+      const h = /^\/\/ Case (\S+) tests: (.*)$/.exec(t.split('\n')[0]);
+      if (h) for (const d of h[2].split(',').map((x) => x.trim()).filter((x) => DEFECT.test(x))) (pointing.get(d) ?? pointing.set(d, []).get(d)).push(h[1]);
+    }
   }
   return { defects, addressedBy, pointing, incomplete };
 }
@@ -116,10 +115,11 @@ export function toFix(tree, records, revision) {
 
 if (process.argv[1] && process.argv[1].endsWith('known-defects.mjs')) {
   const a = process.argv.slice(2); const opt = (k) => a[a.indexOf(k) + 1];
-  const tree = readTree(JSON.parse(readFileSync(opt('--places'), 'utf8')));
-  const records = a.includes('--records') ? JSON.parse(readFileSync(opt('--records'), 'utf8')) : [];
+  const json = async (k) => JSON.parse((await readFile(opt(k))).toString('utf8'));
+  const tree = await readTree(await json('--places'));
+  const records = a.includes('--records') ? await json('--records') : [];
   const revision = opt('--revision');
   if (a.includes('--list')) { for (const [o, ds] of Object.entries(toFix(tree, records, revision))) console.log(`${o}: ${ds.join(', ')}`); for (const l of incompleteLines(tree)) console.log(l); }
   else for (const l of report(tree, records, revision)) console.log(l);
-  if (tree.incomplete.length) process.exitCode = 2; // incomplete discovery is no complete answer, and an empty output with exit 0 is a verified empty one
+  if (tree.incomplete.length) process.exitCode = 2; // incomplete discovery is no complete answer; empty output with exit 0 is a verified empty one
 }
