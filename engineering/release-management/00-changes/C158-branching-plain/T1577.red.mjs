@@ -16,7 +16,7 @@ export async function run() {
   const name = /^name:\s*(.+?)\s*$/m.exec(text)?.[1];
   assert.equal(name, "Branching on pull_request", 'the workflow name');
   const others = readdirSync(join(repo, '.github/workflows')).concat(readdirSync(join(repo, 'engineering/release-management/05-src/wiring/workflows')).filter((f) => f !== 'branching-plain.yml'));
-  assert.ok(!others.some((f) => [join(repo, '.github/workflows', f), join(repo, 'engineering/release-management/05-src/wiring/workflows', f)].some((p) => existsSync(p) && new RegExp('^name:\\s*' + name.replace(/[()]/g, '\\$&') + '\\s*$', 'm').test(readFileSync(p, 'utf8')))), 'the workflow name is not unique');
+  assert.ok(!others.some((f) => [join(repo, '.github/workflows', f), join(repo, 'engineering/release-management/05-src/wiring/workflows', f)].some((p) => existsSync(p) && new RegExp('^name:\\s*' + name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&') + '\\s*$', 'm').test(readFileSync(p, 'utf8')))), 'the workflow name is not unique');
   assert.match(text, /^    name: Branching \\(plain pull_request\\)$/m, 'the detective job name');
   assert.doesNotMatch(text, /^    name: Branching$/m, 'it must not take the required context before the swap');
   assert.doesNotMatch(text, /kaal-guard/, 'it must not run kaal-guard');
