@@ -1,0 +1,3 @@
+# C153 baseline
+
+The baseline is `main`. Five workflows use `pull_request_target`: `change-isolation.yml` (`Change Isolation`), `lineage-synchronization.yml` (`Branching`), `promotion-source.yml` (`Promotion Source`), `merge-group-admission.yml` (`Change Isolation (review)`) and `sync-review.yml` (`verify Sync`, `approve Sync`, `review Sync`). The old rulesets, as recorded in release/C34 `baseline-old.json` (captured 16 Nov 2026), require the first four by their check names; `verify Sync` is not among the required contexts. The live rulesets are read again before any swap, because the record is of 16 Nov. `verify Triggers` (release/CTL19) is the ratchet and holds the count.
