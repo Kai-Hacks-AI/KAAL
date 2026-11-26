@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "about": "The pull request types this consumer uses, who owns each one's content, and the routes each may be raised on. A route is eligibility, never the type itself: the type is established from content and Git evidence. Chapters and text are the owners' declarations, made through Hosting. Areas are in write-areas.json.",
+  "types": [
+    {"type": "PLAN", "owner": "kaal-change", "base": ["kaal/*/*"]},
+    {"type": "DO", "owner": "kaal-change", "base": ["kaal/*/*"]},
+    {"type": "ACT", "owner": "kaal-change", "base": ["kaal/*/*"]},
+    {"type": "SYNC", "owner": "kaal-release", "base": ["kaal/*/*", "hotfix/*", "wire/*"]},
+    {"type": "PROMOTION", "owner": "kaal-release", "base": ["main"], "head": ["kaal/*/*", "hotfix/*"]},
+    {"type": "HOTFIX", "owner": "kaal-change", "base": ["hotfix/*"], "notHead": ["hotfix/*"]},
+    {"type": "WIRE", "owner": "kaal-release", "base": ["main"], "head": ["wire/*"]}
+  ],
+  "invalid": ["DEFAULT"]
+}
