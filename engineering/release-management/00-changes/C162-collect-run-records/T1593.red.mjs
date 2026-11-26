@@ -15,8 +15,9 @@ export async function run() {
   const REV = 'a'.repeat(40);
   const record = { control: 'release/CTL1', x: 'real', run: '100', sha: REV, verdict: 'pass', by: 'adapter', mode: 'off', applied: false, flag: { name: 'KAAL_RELEASE_X', value: 'off', state: 'off' } };
   const line = (r) => `kaal-control ${JSON.stringify(r)}`;
-  const run = (more = {}) => ({ run: '100', sha: REV, workflow: 'verify-workflow-names.yml', event: 'push', conclusion: 'success', lines: [line(record)], ...more });
-  const input = (more = {}) => ({ revision: REV, runs: [run()], map: { rows: [] }, entries: {}, ...more });
+  const run = (more = {}) => ({ run: '100', sha: REV, workflow: '.github/workflows/verify-workflow-names.yml', event: 'push', conclusion: 'success', lines: [line(record)], ...more });
+  const MAP = { rows: [{ control: 'release/CTL1', delivered: '.github/workflows/verify-workflow-names.yml', entry: 'e/1.mjs' }, { control: 'release/CTL2', delivered: '.github/workflows/other.yml', entry: 'e/2.mjs' }] };
+  const input = (more = {}) => ({ revision: REV, runs: [run()], map: MAP, entries: {}, ...more });
   const ok = await collect(input());
   assert.deepEqual(ok.records.map((r) => r.record), [record], 'a valid line is collected as printed');
   assert.equal(ok.records[0].run, '100', 'a record is tied to its run');

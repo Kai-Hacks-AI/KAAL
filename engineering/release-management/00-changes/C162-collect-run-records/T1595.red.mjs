@@ -15,8 +15,9 @@ export async function run() {
   const REV = 'a'.repeat(40);
   const record = { control: 'release/CTL1', x: 'real', run: '100', sha: REV, verdict: 'pass', by: 'adapter' };
   const line = (r) => `kaal-control ${JSON.stringify(r)}`;
-  const run = (more = {}) => ({ run: '100', sha: REV, workflow: 'verify-workflow-names.yml', event: 'push', conclusion: 'success', lines: [line(record)], ...more });
-  const input = (more = {}) => ({ revision: REV, runs: [run()], map: { rows: [] }, entries: {}, ...more });
+  const run = (more = {}) => ({ run: '100', sha: REV, workflow: '.github/workflows/verify-workflow-names.yml', event: 'push', conclusion: 'success', lines: [line(record)], ...more });
+  const MAP = { rows: [{ control: 'release/CTL1', delivered: '.github/workflows/verify-workflow-names.yml', entry: 'e/1.mjs' }, { control: 'release/CTL2', delivered: '.github/workflows/other.yml', entry: 'e/2.mjs' }] };
+  const input = (more = {}) => ({ revision: REV, runs: [run()], map: MAP, entries: {}, ...more });
   const out = await collect(input());
   for (const k of ['revision', 'records', 'established', 'rejected', 'map', 'entries']) assert.ok(k in out, `the answer lacks ${k}`);
   assert.ok(!['verdict', 'implemented', 'running', 'tested'].some((k) => k in out), 'the collector states no fact or verdict');
