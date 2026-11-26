@@ -24,6 +24,14 @@ Two new jobs, and `hold-act` passes the file:
 
 Splitting running from observing keeps the Case code, which may be hostile, away from the step that writes the evidence. A Case that overwrites the report file inside `run Cases` is the residual risk (below), and it is shown, not assumed away.
 
+### The installation boundary (amendment, at the CPO's review of the DO)
+
+The ACT workflow of release/C122 holds a governance boundary that release/T1344 pins: its judge jobs install nothing. This PLAN is amended to say how the two producer jobs stand against it, instead of leaving the DO to narrow the Case on its own.
+
+1. **Producer jobs may install trusted Testing, and only that.** `run Cases` and `observe Cases` may install the dependencies of the default branch (`npm ci --ignore-scripts`, then the build of Core and Hosting) in the checkout of the default branch, because Testing's runner and `observe` cannot run without them. Nothing is installed from, or inside, the merge result, and no lifecycle script runs.
+2. **Judge jobs keep the no-installation rule.** `hold Act`, `demand Act`, `verify Act`, `limit Act` and `isolate Changes` install nothing, as release/T1344 has pinned them since C122. T1344 is amended to read its properties over the judge jobs, saying so in its own text; T1532 pins the producer jobs (the installation comes only from the default branch checkout; nothing runs from the merge result).
+3. **The boundary is the job, not the workflow.** A job that judges installs nothing; a job that produces may install trusted code. A third kind of job needs its own decision.
+
 ### Residual risks, each named
 
 1. **The run report is produced where candidate code runs.** A pull request can add a Case that tampers with the report path. `observe Cases` therefore reads the report as untrusted data: it checks that every Case the catalog names appears exactly once, that ids match the catalog of the tree it reads, and that the report's own revision equals the merge SHA. A forged report that passes these checks and still lies about a verdict is not excluded by files; it is why `hold Act` stays advisory and is not required until the CTO shows otherwise.

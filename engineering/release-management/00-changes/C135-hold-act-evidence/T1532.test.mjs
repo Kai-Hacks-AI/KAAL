@@ -24,6 +24,10 @@ export async function run() {
   assert.doesNotMatch(runC, /node pr\/|working-directory: pr|npm [a-z]* .*pr\//, 'run Cases does not run Testing or the judge from the merge result');
   assert.match(runC, /upload-artifact[\s\S]*name: run-report\n\s+path: run-report\.json/, 'run Cases uploads the run report and nothing else');
   assert.ok((runC.match(/upload-artifact/g) ?? []).length === 1, 'one upload');
+  for (const [name, j] of [['run Cases', runC], ['observe Cases', observe]]) {
+    for (const m of j.matchAll(/npm [^\n]*/g)) assert.match(m[0], /^npm (ci --ignore-scripts|run build -w kaal-core -w @kaihacksai\/kaal-hosting)$/, `${name}: the only installation is trusted Testing's, without lifecycle scripts`);
+    assert.doesNotMatch(j, /--prefix|working-directory|cd pr|npm [^\n]* pr\b/, `${name}: nothing is installed in or from the merge result`);
+  }
   assert.match(observe, /needs: run-cases/, 'observe Cases waits for the run');
   assert.doesNotMatch(observe, /node pr\/|working-directory: pr|cd pr|npm [a-z]* .*pr\/|\.\/pr\//, 'observe Cases runs nothing from the merge result');
   assert.match(observe, /--revision "\$OBSERVED_REVISION" --expect-revision "\$OBSERVED_REVISION"/, 'both revisions are the SHA of the merge result');
