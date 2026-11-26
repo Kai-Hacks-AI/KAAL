@@ -28,7 +28,7 @@ Add the source, the three entries and the three control records. The DO renames 
 ACT, PROMOTION, then a detective WIRE of the file, which needs the Owner's go and evidence before any enforcement swap (release/C153).
 
 ## Left open (with a recommendation)
-- Engineering dependency (CTO): `lineage.ts` already exports the pure verdicts `promotionFreshness`, `synchronization` and `autoMerge` over facts. What the entries need is that they can be imported from an `.mjs` entry. Recommendation: Engineering confirms or exports it in its own Change; until then the DO waits.
+- Engineering dependency (CTO), answered: `lineage.ts` exports the pure verdicts `promotionFreshness`, `synchronization` and `autoMerge`, and Engineering confirmed an `.mjs` entry can import them (Node 22 and 24, no side effect from the import). No Engineering Change is needed. The facts are read by `readFreshness`, `readSync` and `readExpected` in the same file.
 - The base rules are read with the workflow token. Recommendation: unchanged, `contents: read` only, and a response that cannot be read is UNKNOWN.
 
 ## Not in this Change
