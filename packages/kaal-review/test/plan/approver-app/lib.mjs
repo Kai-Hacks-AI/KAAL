@@ -19,7 +19,7 @@ export async function load(file, names) {
   return m;
 }
 export const loadApps = () => load(APPS, ['readDeclaration', 'judgeApps']);
-export const loadApproval = () => load(APPROVAL, ['judgeApproval']);
+export const loadApproval = () => load(APPROVAL, ['judgeApproval', 'makeJudgeApproval']);
 
 /** The text of a declaration in the delivered package. */
 export function declarationText(which) {
@@ -31,12 +31,26 @@ export function declarationText(which) {
 export const HEAD = 'a'.repeat(40);
 export const BASE = 'b'.repeat(40);
 export const MAIN = 'f'.repeat(40);
-/** The facts of Hosting's adapter: what is being decided, the revision of main and whether the change is a pure merge of the base, with what a Case changes. */
-export const facts = (more = {}) => ({ source: 'hosting', head: HEAD, base: BASE, main: MAIN, pureMerge: true, ...more });
-/** What the run and the pull request claim: a pull request, a passing check signed by the Inspector at the same head, and execution of the code of main on a trusted trigger without a checkout of the head. */
+
+/**
+ * A registry of a Case's own that stands for Hosting's: it registers the facts it mints in a private WeakMap and answers their origin, and answers
+ * null for anything else, so a copy, a value rebuilt by hand and a JSON round trip are not recognised. Attribution is never a field of the data.
+ */
+const registered = new WeakMap();
+export const factOrigin = (fact) => (fact !== null && typeof fact === 'object' ? registered.get(fact) ?? null : null);
+/** The facts Hosting produced for the Approver: what is being decided, the revision of main, whether the change is a pure merge, its author and the signed check, with what a Case changes. */
+export function facts(more = {}, origin = { repository: 'r', read: 'readPullRequestFacts', app: 'approver' }) {
+  const f = Object.freeze({
+    head: HEAD, base: BASE, main: MAIN, pureMerge: true, author: 'someone',
+    check: more.check === null ? null : Object.freeze({ name: 'verify Sync', revision: HEAD, conclusion: 'pass', signer: 'inspector', ...(more.check ?? {}) }),
+    ...Object.fromEntries(Object.entries(more).filter(([k]) => k !== 'check')),
+  });
+  if (origin) registered.set(f, origin);
+  return f;
+}
+/** What the run claims: the head and base it means to decide on, and execution of the code of main on a trusted trigger without a checkout of the head. */
 export const evidence = (more = {}) => ({
-  pr: { head: HEAD, base: BASE, author: 'someone', ...(more.pr ?? {}) },
-  check: { name: 'verify Sync', revision: HEAD, conclusion: 'pass', signer: 'inspector', ...(more.check ?? {}) },
+  pr: { head: HEAD, base: BASE, ...(more.pr ?? {}) },
   execution: { trigger: 'workflow_run', codeRevision: MAIN, checkedOutHead: false, ...(more.execution ?? {}) },
 });
 export const kinds = (answer) => answer.findings.map((f) => f.kind).sort();
