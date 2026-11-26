@@ -14,6 +14,21 @@
 - UNKNOWN never passes: a verdict that is missing or unreadable is posted as a failure.
 - The Cases derive their positives from the real sources and make their negatives by hand: a manifest with an extra permission, a workflow whose judge job names a secret, a workflow whose sign job checks out the head all must be refused by the same judgement.
 
+## One App or two (the Owner's ruling: an App, no human raise and no bot account)
+
+**Two Apps, one per authority.** The Inspector App signs checks and holds `checks: write` only. The Dispatcher App raises the PROMOTION (draft pull requests) and holds `pull_requests: write` (it already mints its token from `KAAL_DISPATCHER_APP_ID` and `KAAL_DISPATCHER_KEY`). They are not merged, for three reasons:
+- **Least privilege.** The key that signs the checks the rulesets trust must not be able to write pull requests, and the key that writes pull requests must not be able to post a trusted check.
+- **Judge and sign stay apart.** The Inspector's judge job holds no secret and its sign job alone holds the key; adding pull-request write to that key would put a second authority behind the one a ruleset pins.
+- **An approver is not the author.** The approval automation (`approve Sync`, `review Sync`) needs an identity that approves, and an App must never approve what it raised itself. It is a third role with its own key and `pull_requests: write` for reviews, decided in its own PLAN; it is not the Dispatcher and not the Inspector. This PLAN only records that it depends on an App.
+
+## What the Owner does by hand (separate from anything the Changes install)
+
+1. Create the Inspector App from `05-src/inspector/app.json` and install it on the repository only.
+2. Store its private key as the secret `INSPECTOR_PRIVATE_KEY` of the sign job's environment.
+3. Create and install the Dispatcher App (manifest `/mnt/project-files/release/app-manifest.json`, permission `pull_requests: write`, `metadata: read`) and store `KAAL_DISPATCHER_APP_ID` and `KAAL_DISPATCHER_KEY`.
+4. The approver App, when its PLAN is approved, with the same two steps.
+5. Say when each exists. The release workflows are installed by a WIRE on the Owner's go, and pinning a check to the Inspector in a ruleset is a later Change on the Owner's go.
+
 ## Installation, timing and risks
 
 - **Creating the App is the Owner's, by hand**, from `app.json`, once this Change has merged and its ACT is on `main`. The key is stored as a secret of the sign job's environment by the Owner; nothing records how.
