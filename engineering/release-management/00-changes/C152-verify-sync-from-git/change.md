@@ -36,3 +36,14 @@ No WIRE, flag, required check or ruleset. The `Reason` body requirement of a SYN
 The parked Case built its octopus with a side line that the collector already held, so git dropped the redundant parent and the head was a plain two-parent merge, a valid SYNC by this PLAN's own rule. The Case now uses a second side line that is not merged yet and asserts the head has three parents, so it pins what it says: an ambiguous shape is `unknown`. No expectation of the PLAN changes.
 
 T757 (release/C58) pinned the title condition of the three jobs (`startsWith(...title, 'SYNC:')` three times). It is amended here, parked: no job reads the title, and the base condition stays. The DO satisfies it without changing it. The other Cases of the sync review (T754 to T759, T791 to T793, T851 to T855, T936) hold as they are, and the DO runs them.
+
+### Amendment: the product contract of a SYNC (CPO, #2641)
+
+A SYNC is judged against the result it is for: **the target is in the state it would have reached had its own work started from current main.** The work of the target is preserved, the current main is incorporated, and nothing else changes. Git ancestry and the parents of the head identify the revisions and supply evidence; they do not by themselves define or prove a valid SYNC. A comparison of the folders of main and the target is no test either, because the work of the target is legitimate.
+
+What this PLAN already decides and now states as the contract:
+- **Applicability** (`appliesFromGit`) says only whether the head is an attempt at a SYNC. It never says the attempt is good.
+- **Validity** is the semantic result: the tree of the head is git's merge of the target and main, so the work of the target is kept, the work of main is brought in, and there is no third change. A change neither side made, a dropped change of either side, or a conflict resolved by hand is not that result and does not pass. A conflict is surfaced as a finding (`merge-conflicts`), never passed on a human's word and never decided by the control. A fact that cannot be read is UNKNOWN.
+- A stale attempt stays a SYNC attempt and is not valid; applicability and validity stay two answers.
+
+T1559 (new, parked): over real throwaway repositories with real file contents, (1) the work of the target is preserved, (2) the work of main is incorporated and both edits of a shared file are kept, (3) an unrelated file added in the merge, an unrelated edit, a dropped change of the target and a dropped change of main are each a SYNC attempt that fails, with the same merge shape each time, (4) a conflict resolved by hand fails with `merge-conflicts`, an unreadable object is neither not-sync nor a pass, and a stale attempt is `sync` with `valid: false`. The DO satisfies it without changing it. No expectation of T1556 or T757 changes, and no source, WIRE, flag, required check or ruleset change.
