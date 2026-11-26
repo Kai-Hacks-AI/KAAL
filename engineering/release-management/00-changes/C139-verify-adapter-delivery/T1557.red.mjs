@@ -80,6 +80,6 @@ export async function run() {
     // an exclusion without a path, or without a reason, is not taken
     unknown(go({ ...good, notControls: [{ reason: 'r' }] }), /notControls|unjustified|malformed/, 'an exclusion without a path');
     // the established control is not named when the map is the problem
-    unknown(go(without('inventory')), /^(?!.*x\/CTL1)/m, 'the problem is the map, not a control');
+    assert.doesNotMatch(go(without('inventory')).stdout, /x\/CTL1/, 'the problem is the map, not a control');
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
