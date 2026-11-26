@@ -1,0 +1,29 @@
+---
+id: controls/RT9
+format: 4L
+reflects: [controls/C144]
+---
+Account of: I am the controls thread. I wrote the PLAN and the DO of C144 (verify Record) and this retro of my own collector. This is my account only: I have not asked the CPO or Testing what they lacked.
+
+## Liked
+- subject: the unknown list kept beside the findings, as one answer
+  keeps: `assessRecord` returns `{findings, unknown}` and `findDisagreeing` throws `UnknownEvidence` with both, so the confirmed discrepancies stay in the adapter's log beside UNKNOWN (F203 item 3a) and need no second call.
+
+## Learned
+- subject: a stale or missing entry makes all four facts of its control unknown, not one
+  source: T1519 asserts it; the DO treats an entry of another revision as absent, so no fact of it can lag or overclaim.
+- subject: `assessRecord` repeats the comparison of `compareClaims` (C141)
+  source: the CTO observed it in review. The two differ: `compareClaims` throws on a fact that is not a boolean and names `<fact>:overclaims` for one control, while `assessRecord` makes such a fact unknown and names `<fact>:<direction>:<id>` across controls. I have not merged them; a shared comparison is an open question for the owner.
+
+## Lacked
+- subject: knowing, when I wrote the PLAN, which of the two comparisons the C141 library already carried
+  decision-point: writing F208 after F204, where I stated the comparison again beside the library.
+  cost: a duplicated comparison that review had to find.
+  findable: yes
+  address: controls/F208
+
+## Longed For
+- subject: a way to see, before review, that two checks state the same rule
+  worked-anyway: the CTO's review found it.
+
+Decisions: none made, the owner decides.
