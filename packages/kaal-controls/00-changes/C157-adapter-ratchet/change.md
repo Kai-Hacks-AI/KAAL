@@ -2,8 +2,8 @@
 
 ## PLAN
 
-1. Record the intent I29 and the design questions below. Nothing else: no Requirement, no Case, no script, no record change.
-2. The Requirement and the Cases follow in a revision of this PLAN, as the decisions below say what the ratchet is made of.
+1. Record the intent I29, the Requirement F215, the architecture A212 and the Case T1556 (plain `.test.mjs`, never renamed). The Case is RED on the collector, because `scripts/adapter-ratchet.mjs` is absent, and was run GREEN against a throwaway implementation that is not committed.
+2. No script, Skill word, record or workflow changes in the PLAN, and the decisions below say what the ratchet is made of.
 
 ## The shape (Kai's framing)
 
@@ -15,6 +15,20 @@ verify Adapter (controls/CTL1, C142) is a detective control whose finding is `un
 4. when it is empty the strategy ends and the control is plain preventive, the end state of the forced library.
 
 A rejection at declaration is then mostly redundant: the delivered controls are what the ratchet judges.
+
+## DO
+
+Not authorized by this PLAN. On its merge into the collector, and with the collector synced with main:
+
+1. `scripts/adapter-ratchet.mjs` with `runAdapterRatchet`, composing `findUnadapted`, the usable-inventory rule of F207 and `runControl` in ratchet mode.
+2. One sentence in the reference that owns the evidence contracts, saying the delivered map is a complete inventory and unknown is never an allowance (the Skill structure is the restructure's).
+3. Case T1556 GREEN; the package suite GREEN, with the new Case counted. Mutation patches as in C25 and C155 for each weakening.
+
+No change of the control record of verify Adapter (controls/CTL1) belongs here: its strategy, baseline and type change in the Change that adopts the baseline, on the Owner's go.
+
+## ACT
+
+A retro entry in the collector.
 
 ## Decided (CTO call, taking the recommendations)
 
@@ -29,4 +43,4 @@ None of these changes the product scope. Blocking, the adoption and every WIRE s
 
 ## Not here
 
-Release's map completeness, baseline file, workflow, flag and report are release's separate PLAN. No WIRE, enforcement or ruleset is authorized by this Change.
+Release's map completeness, baseline file, workflow, flag and report are release's separate PLAN. No DO, baseline adoption, WIRE or enforcement is authorized by this PLAN. No WIRE, enforcement or ruleset is authorized by this Change.
