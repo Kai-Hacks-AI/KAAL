@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 export const SCHEMA = 'kaal-testing/run-report@1';
 export const DEFAULT_TIMEOUT_MS = 300000;
+// A child starts on this bootstrap, which imports the Case file and registers its `run()` as a test (testing/F174).
+const BOOTSTRAP = join(dirname(fileURLToPath(import.meta.url)), 'run-case.mjs');
 const REPORTER = join(dirname(fileURLToPath(import.meta.url)), 'run-reporter.mjs');
 const slash = (p) => p.split(sep).join('/');
 
@@ -14,7 +16,7 @@ const slash = (p) => p.split(sep).join('/');
  * the events of nesting n+1 directly before an event of nesting n are its children. Pure.
  * Returns `silent: true` when there was no event at all, which only the caller (who knows the exit status) can read.
  */
-export function reconstruct(events, file) {
+export function reconstruct(events, file, entry = file) {
   const problems = [];
   const nodes = [];
   let pending = [];
@@ -31,7 +33,7 @@ export function reconstruct(events, file) {
 
   // The file's own result: the last event, at nesting 0, line 1 column 1, named after the file, with no tests under it.
   const last = nodes.at(-1);
-  const fileResult = last && last.nesting === 0 && last.kind === 'test' && last.line === 1 && last.column === 1 && last.children.length === 0 && (last.name === file || last.name === basename(file)) ? last : null;
+  const fileResult = last && last.nesting === 0 && last.kind === 'test' && last.line === 1 && last.column === 1 && last.children.length === 0 && (last.name === file || last.name === basename(file) || last.name === entry) ? last : null;
 
   const tests = [];
   const visit = (node, path) => {
@@ -123,9 +125,9 @@ export async function runCases({ files, root, timeoutMs = DEFAULT_TIMEOUT_MS, st
     for (const file of unique) {
       const destination = join(dir, 'stream.ndjson');
       const started = Date.now();
-      const run = executeSync(process.execPath, ['--test', `--test-reporter=${REPORTER}`, `--test-reporter-destination=${destination}`, file], {
+      const run = executeSync(process.execPath, ['--test', `--test-reporter=${REPORTER}`, `--test-reporter-destination=${destination}`, BOOTSTRAP], {
         cwd: root,
-        env: isolatedEnvironment(dir, environment),
+        env: { ...isolatedEnvironment(dir, environment), KAAL_TESTING_CASE: resolve(root, file) },
         timeout: timeoutMs,
       });
       // Hosting's timeout ends the child, but the status then is not always null (node --test answers the signal and exits with its own code), so the clock is read too.
@@ -137,7 +139,7 @@ export async function runCases({ files, root, timeoutMs = DEFAULT_TIMEOUT_MS, st
       for (const line of raw.split('\n').filter(Boolean)) {
         try { events.push(JSON.parse(line)); } catch { garbled = true; }
       }
-      const rebuilt = reconstruct(events, file);
+      const rebuilt = reconstruct(events, file, BOOTSTRAP);
       if (garbled) rebuilt.problems.push({ file, kind: 'unrecognised-output', detail: 'a reporter line is not JSON' });
       if (stopped) {
         // Stopped from outside: whatever was reported is partial.
