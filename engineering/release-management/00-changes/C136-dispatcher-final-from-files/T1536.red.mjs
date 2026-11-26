@@ -26,15 +26,21 @@ export async function run() {
     const r = spawnSync(process.execPath, [script, 'final'], { encoding: 'utf8', env: { ...process.env, KAAL_REPO: 'o/r', KAAL_PR_MERGED: 'true', KAAL_PR_BASE: 'kaal/x/y', KAAL_PR_MERGE_SHA: 'a'.repeat(40), KAAL_PR_BODY: 'free text', KAAL_PR_TITLE: 'whatever', KAAL_BEFORE_DIR: w.before, KAAL_COLLECTOR_DIR: w.after, KAAL_MAIN_DIR: w.main, KAAL_CONTAINED_DIR: w.contained } });
     const line = r.stdout.split('\n').find((l) => l.startsWith('{')) ?? '{}';
     let d = {}; try { d = JSON.parse(line); } catch { /* none */ }
-    return { code: r.status, inflow: d.inflow };
+    return { code: r.status, inflow: d.inflow, said: `${r.stdout}\n${r.stderr}` };
   };
   try {
     assert.equal(inflow(world('plan', ['engineering/x/00-changes/C2-new/change.md'])).inflow, 'PLAN');
+    // A Case keeps its identity and path across phases: its file is PLAN work in either form, and the Dispatcher knows no rename.
+    assert.equal(inflow(world('case', ['engineering/x/00-changes/C2-new/T9.test.mjs'])).inflow, 'PLAN');
+    assert.equal(inflow(world('caseRed', ['engineering/x/00-changes/C2-new/T9.red.mjs'])).inflow, 'PLAN');
     assert.equal(inflow(world('do', ['engineering/x/05-src/thing.mjs'])).inflow, 'DO');
     const act = inflow(world('act', ['engineering/x/02-learnings/retros/RT1.md']));
     assert.equal(act.inflow, 'ACT'); assert.equal(act.code, 0);
     const sync = inflow(world('sync', [], ['engineering/y/05-src/arrived.mjs']));
     assert.equal(sync.inflow, 'SYNC'); assert.equal(sync.code, 0);
+    // No catch-all: a path no route names is reported, with the path, and is red.
+    const stray = inflow(world('stray', ['engineering/x/04-controls/CTL1-thing/CTL1.md']));
+    assert.equal(stray.inflow, 'unclassifiable'); assert.notEqual(stray.code, 0, 'a path in no route is red'); assert.match(stray.said, /04-controls\/CTL1-thing\/CTL1\.md/, 'the report names the path');
     const mixed = inflow(world('mixed', ['engineering/x/02-learnings/retros/RT1.md', 'engineering/x/05-src/thing.mjs']));
     assert.equal(mixed.inflow, 'mixed'); assert.notEqual(mixed.code, 0, 'a merge the files cannot place is red');
   } finally { rmSync(tmp, { recursive: true, force: true }); }
