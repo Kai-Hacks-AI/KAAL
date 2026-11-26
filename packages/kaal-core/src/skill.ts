@@ -19,7 +19,7 @@ export const standard = {
   thresholds: { soft: 200, medium: 400, hard: 600 },
   rules: [
     { id: "entry", about: "a Skill has a top-level SKILL.md" },
-    { id: "layout", about: "only SKILL.md, references/, scripts/ and assets/ sit at the top" },
+    { id: "layout", about: "only SKILL.md, references/, scripts/, assets/ and a LICENSE file sit at the top" },
     { id: "router", about: "SKILL.md is a router: it points, it does not hold the whole discipline" },
     { id: "detail", about: "detail needed only sometimes lives in references or scripts" },
     { id: "lane", about: "a Skill covers its own capability's lane and names the others" },
@@ -87,6 +87,9 @@ export interface LayoutFinding {
   readonly path: string;
 }
 
+/** A Skill's bundled license file: `LICENSE`, or `LICENSE` and one suffix, at the top as a file (core/F117). */
+const license = /^LICENSE(?:\.[^/.]+)?$/;
+
 /** The layout findings for the relative paths of a Skill directory's files (core/F95). */
 export function judgeLayout(paths: readonly string[]): LayoutFinding[] {
   const findings: LayoutFinding[] = [];
@@ -95,7 +98,7 @@ export function judgeLayout(paths: readonly string[]): LayoutFinding[] {
   for (const path of paths) {
     const slash = path.indexOf("/");
     const top = slash < 0 ? path : path.slice(0, slash);
-    const permitted = slash < 0 ? path === standard.entry : (standard.folders as readonly string[]).includes(top);
+    const permitted = slash < 0 ? path === standard.entry || license.test(path) : (standard.folders as readonly string[]).includes(top);
     if (!permitted) stray.add(top);
   }
   for (const path of [...stray].sort()) findings.push({ rule: "layout", path });
