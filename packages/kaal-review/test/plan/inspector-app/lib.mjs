@@ -17,6 +17,13 @@ export async function load() {
   return m;
 }
 
+/** The provenance judgements of the delivered package, loaded the same way: RED by assertion when they are not delivered. */
+export async function loadProvenance() {
+  const m = await load();
+  for (const name of ['judgeSelfModification', 'checkEvidence']) assert.equal(typeof m[name], 'function', `judge-app.mjs exports no ${name} function`);
+  return m;
+}
+
 /** The text of the declaration of the Inspector in the delivered package. */
 export function declarationText() {
   assert.ok(existsSync(DECLARATION), 'missing: 13-source/github-apps/inspector.json (the declaration is not delivered yet)');

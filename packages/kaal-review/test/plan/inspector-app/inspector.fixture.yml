@@ -14,6 +14,7 @@ jobs:
       contents: read
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
     steps:
@@ -30,8 +31,9 @@ jobs:
           else
             git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head"
           fi
+          test "$(git rev-parse refs/remotes/pull/head)" = "$HEAD_SHA"
       - name: Judge the controls registered at the station
-        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge.mjs --base "$BASE_SHA" --head refs/remotes/pull/head --out verdicts.json
+        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge.mjs --base "$BASE_SHA" --head "$HEAD_SHA" --run "$GITHUB_RUN_ID" --out verdicts.json
       - name: Keep the verdicts as data
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -45,6 +47,7 @@ jobs:
       contents: read
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
     steps:
       - name: Check out the base, never the change
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -58,4 +61,4 @@ jobs:
       - name: Post one check per control
         env:
           INSPECTOR_PRIVATE_KEY: ${{ secrets.INSPECTOR_PRIVATE_KEY }}
-        run: node packages/kaal-controls/skills/kaal-controls/scripts/sign.mjs --verdicts verdicts.json
+        run: node packages/kaal-controls/skills/kaal-controls/scripts/sign.mjs --verdicts verdicts.json --revision "$HEAD_SHA" --run "$GITHUB_RUN_ID"

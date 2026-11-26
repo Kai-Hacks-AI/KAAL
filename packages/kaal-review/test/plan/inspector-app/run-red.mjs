@@ -1,4 +1,4 @@
-// The temporary PLAN runner of review/C6: runs T1535 to T1537 and reports each as GREEN or RED. It stays outside `scripts.test` until the DO
+// The temporary PLAN runner of review/C6: runs T1535 to T1538 and reports each as GREEN or RED. It stays outside `scripts.test` until the DO
 // adds `inspector-app.test.mjs` and removes this file. A Case that cannot even load is reported as an error, never as RED.
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
