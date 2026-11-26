@@ -1,4 +1,5 @@
 {
+  "inventory": [".github/workflows", ".githooks"],
   "adapter": "packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs",
   "rows": [
     { "control": "release/CTL1", "delivered": ".github/workflows/engineering.yml", "entry": "engineering/release-management/05-src/stages/judge.mjs" },
