@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -76,7 +76,7 @@
+ export function judgeAdoption({ base, head, change, window } = {}) {
+   const unknown = () => ({ verdict: 'UNKNOWN', reason: 'could-not-judge' });
+   if (!base || !head || !change || !window) return unknown();
+-  if (!(base.baseline === null || names(base.baseline)) || !names(head.baseline) || !isList(base.history) || !isList(head.history)) return unknown();
++  if (!names(base.baseline) || !names(head.baseline) || !isList(base.history) || !isList(head.history)) return unknown();
+   if (typeof change.id !== 'string' || !change.id || typeof change.exists !== 'boolean') return unknown();
+   const from = Date.parse(window.from), to = Date.parse(window.to);
+   if (Number.isNaN(from) || Number.isNaN(to)) return unknown();
