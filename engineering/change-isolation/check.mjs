@@ -1,12 +1,10 @@
 #!/usr/bin/env node
-// Change Isolation: two repository engineering controls, decided from changed paths alone.
+// Change Isolation: one repository engineering control, decided from changed paths alone.
 //
-//   1. Core travels alone. A change touching Core contains only Core and the
-//      supporting files listed in CORE_SUPPORT.
-//   2. .github travels alone. A change touching .github/ contains nothing outside it.
+//   1. .github travels alone. A change touching .github/ contains nothing outside it.
 //
-//   3. A transition ledger entry held by the target can admit one exact multi-owner change (see
-//      "Transition ledger" below). With no ledger, or no matching entry, rules 1 and 2 are unchanged.
+//   2. A transition ledger entry held by the target can admit one exact multi-owner change (see
+//      "Transition ledger" below). With no ledger, or no matching entry, rule 1 is unchanged.
 //
 // Usage: check.mjs [--ledger <file> --git <base> <head>] < paths
 // Reads the change's repository-relative paths from stdin, NUL- or newline-separated. The caller
@@ -18,15 +16,14 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-/** Paths that are Core: the package and the Engine files deployed from its payload. */
-const CORE = [/^packages\/kaal-core\//, /^\.kaal\/(AGENTS\.md|KAAL-KERNEL\.md|core\/)/];
-
-/** Paths that may travel with Core and nothing else besides. */
-const CORE_SUPPORT = [
-  /^package\.json$/, // root workspace metadata
-  /^package-lock\.json$/, // root lockfile
-  /^engineering\/acceptance\/embed\.test\.mjs$/, // Core's own acceptance evidence
-];
+/**
+ * The delivery reader, when it is reachable. The wrapper scripts run this file as a lone copy, where the reader is not beside it: the
+ * detective rule below then cannot be checked, and nothing else of the checker depends on it.
+ */
+let delivery = null, declaration;
+for (const [reader, json] of [["../release-management/05-src/delivery/locations.mjs", undefined], ["./kaal-delivery-locations.mjs", "./kaal-delivery-locations.json"]]) {
+  try { delivery = await import(reader); declaration = json && fileURLToPath(new URL(json, import.meta.url)); break; } catch { /* try the next */ }
+}
 
 const GITHUB = /^\.github\//;
 
@@ -35,7 +32,7 @@ const any = (patterns, path) => patterns.some((p) => p.test(path));
 /** Raised when the checker cannot judge: a malformed ledger or missing facts. The CLI exits 2. */
 export class CannotJudge extends Error { constructor(m) { super(m); this.name = "CannotJudge"; } }
 
-// Transition ledger. One entry admits one exact change that Core-travels-alone would otherwise refuse,
+// Transition ledger. One entry admits one exact change that the isolation rule would otherwise refuse,
 // for example a package identity or version transition that spans owners. The ledger is held by the
 // target branch and is supplied by the caller from the target's tip, never from the candidate, so a
 // candidate cannot authorize itself. An entry commits to the complete path set and to the exact Git
@@ -229,15 +226,23 @@ export function check(paths, { ledger = [], facts, carried, attested } = {}) {
     if (off.length === 0) admitted = true;
     else violations.push(...off);
   }
-  if (!admitted && paths.some((p) => any(CORE, p))) {
-    for (const p of paths) {
-      if (!any(CORE, p) && !any(CORE_SUPPORT, p)) violations.push(`core travels alone: ${p} is not Core or its supporting files`);
-    }
-  }
   if (paths.some((p) => GITHUB.test(p))) {
     for (const p of paths) if (!GITHUB.test(p)) violations.push(`.github travels alone: ${p} is outside .github/`);
   }
   return violations;
+}
+
+/**
+ * Delivery travels apart from solution (release/F73). A change that touches a delivery location, a declared root or a declared root file,
+ * contains only delivery paths; several delivery locations may share one change. The locations are read from the declaration of the delivery
+ * architecture. This rule is detective: the checker reports it and gates nothing, so `check` and the exit code are unchanged.
+ * @returns {string[]} one line per path that is not delivery, when the change touches delivery
+ */
+export function deliveryMixed(paths, { read = delivery && (() => delivery.readLocations(declaration)) } = {}) {
+  let locations;
+  try { if (typeof read !== "function" || !delivery) throw new Error("the delivery reader is not reachable from the checker"); locations = read(); } catch (e) { throw new CannotJudge(`the delivery declaration cannot be read: ${e.message}`); }
+  if (!paths.some((p) => delivery.isDelivery(p, locations))) return [];
+  return paths.filter((p) => !delivery.isDelivery(p, locations)).map((p) => `delivery travels apart from solution: ${p} is not a delivery path`);
 }
 
 /**
@@ -322,5 +327,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const v of violations) console.error(v);
   if (violations.length) process.exit(1);
   console.log(`ok: ${paths.length} changed paths conform`);
+  // Reported only when the gate itself passes, after its result: a refused change already says what is wrong with it.
+  try { for (const v of deliveryMixed(paths)) console.log(`detective (not gating): ${v}`); } catch (e) {
+    if (!(e instanceof CannotJudge)) throw e;
+    console.log(`detective (not gating): cannot check: ${e.message}`);
+  }
   if (deferred && carriedEntry) console.log(`attestation deferred: ledger-entry: ${carriedEntry.id} sha256:${attestedFact.digest} (the review check judges it)`);
 }

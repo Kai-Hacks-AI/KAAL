@@ -12,5 +12,5 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["05-src/skills/kaal-hosting/scripts/*.ts"]
+  "include": ["05-src/skills/kaal-hosting/scripts/*.ts", "05-src/skills/kaal-hosting/scripts/github/*.ts"]
 }

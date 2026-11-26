@@ -1,0 +1,29 @@
+{
+  "name": "21 - hotfixing",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "exclude": [],
+      "include": [
+        "refs/heads/hotfix/**"
+      ]
+    }
+  },
+  "bypass_actors": [],
+  "rules": [
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": false,
+        "do_not_enforce_on_create": true,
+        "required_status_checks": [
+          {
+            "context": "verify Stages (Hotfixing)",
+            "integration_id": 15368
+          }
+        ]
+      }
+    }
+  ]
+}

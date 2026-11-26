@@ -1,5 +1,5 @@
 {
-  "name": "kaal-controls",
+  "name": "@kaihacksai/kaal-controls",
   "version": "0.0.1",
   "private": true,
   "description": "KAAL Controls: the semantics of directive, preventive, detective and corrective controls.",
@@ -12,6 +12,6 @@
     "node": ">=24"
   },
   "scripts": {
-    "test": "node --test test/cases.test.mjs"
+    "test": "node --test test/*.test.mjs"
   }
 }

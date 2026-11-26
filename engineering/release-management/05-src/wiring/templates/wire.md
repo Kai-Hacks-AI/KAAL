@@ -8,7 +8,7 @@
 
 ## Target
 
-<!-- The operational destination, by path: `.githooks/` or `.github/`. -->
+<!-- The operational destination, by path, under one of the wirable delivery locations declared in `engineering/release-management/03-architecture/A67-delivery-locations/delivery-locations.json`. -->
 
 ## Verification
 

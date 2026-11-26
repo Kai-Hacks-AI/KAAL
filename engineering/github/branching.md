@@ -11,7 +11,7 @@ Whatever can be decided deterministically is decided once, in [`lineage.ts`](lin
 - `kaal/hotfix` is the collector for urgent corrections of existing capabilities (see [Hotfix](#hotfix)).
 - Every other branch, such as `claude/*`, is a working branch. It carries a PR Intent: one bounded Change, and is deleted after that Change's pull request merges. Working branches are not protected, and their authors may rebase them.
 
-`main` and `kaal/*` are protected. They change only through pull requests, after their required checks pass, they are up to date with their target, and review is complete. They accept no direct push or force-push, and nothing bypasses this. `main` is never deleted, and a collector is deleted only as [Promote](#promote) says. Only a `kaal/*` branch of this repository may open a pull request into `main`.
+`main` and `kaal/*` are protected. They change only through pull requests, after their required checks pass, they are up to date with their target, and review is complete. They accept no direct push or force-push, and nothing bypasses this. `main` is never deleted, and a collector is deleted only as [Promote](#promote) says. Only a `kaal/<capability>/*`, `hotfix/*` or `wire/*` branch of this repository may open a pull request into `main`, and only when every check its own rulesets require is green on its exact head (see [Promote](#promote)).
 
 Each flow lands with one merge method:
 
@@ -21,7 +21,7 @@ Each flow lands with one merge method:
 | [Synchronize](#synchronize) | working branch holding a merge of `main` → `kaal/<capability>` | merge commit |
 | [Promote](#promote) | `kaal/<capability>` → `main` | squash |
 
-GitHub allows all three methods on `kaal/*` and cannot tie one to a pull request, so the Branching check names the method for each one (see [Telling a synchronization from a Change](#telling-a-synchronization-from-a-change)).
+GitHub allows all three methods on `kaal/*` and cannot tie one to a pull request, so the Branching check names the method for each one when auto-merge is enabled, and says nothing about it while auto-merge is off (see [Telling a synchronization from a Change](#telling-a-synchronization-from-a-change)). What landed is audited after the fact by `branching-audit.yml`.
 
 ## Flows
 
@@ -70,7 +70,7 @@ Reasoning: the collector keeps building on what has been promoted without losing
 
 ### Promote
 
-A collector promotes into `main` through a pull request from its `kaal/*` branch, landed by squash. The promotion must be fresh: its head contains `main`'s tip, and merging it gives `main` exactly the state validated on its head. A collector that is not fresh is [synchronized](#synchronize), and the promotion is judged again on its new head.
+A collector promotes into `main` through a pull request from its `kaal/*` branch, landed by squash. It is admitted only when every status check its own rulesets require has succeeded on its exact head: a collector after PLAN with RED Cases is development, not ready. `hotfix/*` and `wire/*` branches are admitted by the same rule. The promotion must be fresh: its head contains `main`'s tip, and merging it gives `main` exactly the state validated on its head. A collector that is not fresh is [synchronized](#synchronize), and the promotion is judged again on its new head.
 
 A squash promotion records the collector's state in `main` without making the collector an ancestor of `main`. So after it lands, the collector is deleted, and the next work on its capability starts from a collector [established](#establish) again at `main`'s tip.
 

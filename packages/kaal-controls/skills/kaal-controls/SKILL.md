@@ -6,11 +6,11 @@ license: MIT
 
 # Working with controls
 
-A control is a measure taken so that an unwanted outcome does not happen, is noticed, or is put right. This Skill covers what the four types are for, how they work together, and how far a claim about one may go. It prescribes no tool, no naming and no procedure.
+A control is a measure taken so that an unwanted outcome does not happen, is noticed, or is put right. This Skill covers what the four types are for, how they combine, and how far a claim may go. It prescribes no tool, naming or procedure.
 
 ## The four types
 
-Tell the type by what the control does when its rule is broken. Do not tell it by its name, by the tool that runs it, or by how firmly it is worded.
+Tell the type by what the control does when its rule is broken. Not by its name, its tool, or how firmly it is worded.
 
 - **Directive** states the behavior that is required. The rule can be broken and nothing happens to the rule. A policy, a guideline or an instruction is directive.
 - **Preventive** stops a prohibited action from taking effect. It does this for a named actor or interface, inside a named boundary where it is enforced.
@@ -21,7 +21,7 @@ The type is a matter of design. It does not change with what you have seen the c
 
 ## How they work together
 
-They cooperate. A directive says what is wanted, a detective control shows when it is not met, a preventive control stops the action it governs, and a corrective control restores what was lost. Keep them independent while they do:
+A directive says what is wanted, a detective control shows when it is not met, a preventive control stops the action it governs, and a corrective control restores what was lost. Keep them independent while they do:
 
 - One being present is no evidence of another. A written rule is not a check, a clean report is not a block, and a block is not a repair.
 - A gate that requires a detective control's result joins the two. The detective control still only reveals. The gate prevents only the action it governs, and only where it is enforced.
@@ -38,6 +38,8 @@ A claim is no stronger than what has been observed.
 - A preventive claim names the action, the actor or interface, and the boundary. Anything outside it, such as another route or someone who can override it, is not covered. Never say an action is impossible.
 - A report that finds nothing shows only that nothing was found in what it examined. What you could not observe stays unknown.
 
-What verification, validation and a finding are is Testing's. Follow the `kaal-testing` Skill for them.
+Verification is a Case, validation a judgment, a finding what either reveals.
 
 When you describe a control, say its type and what it does when the rule is broken, then what you have observed and what you have not.
+
+Declaring: `references/declaring-controls.md`. Status: `references/judging-status.md`. Stations: `references/enforcing-controls.md`. Modes, ratchet: `references/modes.md`. Decisions on findings: `references/care.md`. Adapter: `references/adapter.md`.
