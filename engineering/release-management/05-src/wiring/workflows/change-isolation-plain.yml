@@ -1,0 +1,51 @@
+# Change Isolation (engineering/change-isolation) on plain pull_request, the detective replacement of the pull_request_target workflow (release/C153, check 1).
+# The rule and its verdict live only in the checker, engineering/change-isolation/check.mjs, run through engineering/github/change-isolation.sh as the target branch holds it, read from Git.
+# Only the trigger and how the proposed head arrives differ from the old workflow: plain pull_request, no token beyond contents: read, no secret, no pull_request_target.
+# The default branch is checked out as the trusted judge. The candidate is fetched as Git data from refs/pull/<n>/head (release/C90) and is never checked out, built, installed or run.
+# Detective: its own job name, so it replaces no required context. At the swap it takes the name `Change Isolation`, and the old workflow is retired.
+name: KAAL
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  change-isolation-plain:
+    name: Change Isolation (plain pull_request)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the default branch, the trusted judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Fetch the proposed head as Git data and read the target's current tip
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch --no-tags origin "+refs/pull/${PR_NUMBER}/head:refs/remotes/pull/head" || {
+            echo "::error title=Change Isolation: cannot judge::the proposed head cannot be read"; exit 2; }
+          HEAD=$(git rev-parse --verify "refs/remotes/pull/head^{commit}") || exit 2
+          BASE=$(git rev-parse --verify "origin/$BASE_REF^{commit}") || {
+            echo "::error title=Change Isolation: cannot judge::the target $BASE_REF cannot be read"; exit 2; }
+          echo "HEAD=$HEAD" >> "$GITHUB_ENV"
+          echo "BASE=$BASE" >> "$GITHUB_ENV"
+
+      - name: Judge the complete change against the target
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_ATTESTATION: deferred
+        run: npx --no kaal-guard run --check Change-Isolation --github --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
