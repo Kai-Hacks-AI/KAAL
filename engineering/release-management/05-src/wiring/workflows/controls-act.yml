@@ -76,11 +76,11 @@ jobs:
           name: run-report
       - name: Observe the Cases at the revision of the merge result
         env:
-          KAAL_MERGE_SHA: ${{ github.sha }}
-          KAAL_RUN_ID: ${{ github.run_id }}
+          OBSERVED_REVISION: ${{ github.sha }}
+          OBSERVED_RUN: ${{ github.run_id }}
         run: |
           node engineering/release-management/05-src/phase/list-carried-cases.mjs --main . --pr pr > cases.txt
-          node packages/kaal-testing/bin/kaal-testing.mjs observe --root "$GITHUB_WORKSPACE/pr" --report run-report.json --revision "$KAAL_MERGE_SHA" --expect-revision "$KAAL_MERGE_SHA" --run-id "$KAAL_RUN_ID" --produced-by observe-cases --observed observed.json --evidence evidence.json
+          node packages/kaal-testing/bin/kaal-testing.mjs observe --root "$GITHUB_WORKSPACE/pr" --report run-report.json --revision "$OBSERVED_REVISION" --expect-revision "$OBSERVED_REVISION" --run-id "$OBSERVED_RUN" --produced-by observe-cases --observed observed.json --evidence evidence.json
           node engineering/release-management/05-src/phase/assemble-observation.mjs --observed observed.json --evidence evidence.json --report run-report.json --cases cases.txt --out observation.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -127,11 +127,9 @@ jobs:
           name: observation
       - name: Judge
         run: |
-          if [ -s observation.json ]; then
-            node engineering/release-management/05-src/phase/run-controls-act.mjs hold --main . --pr pr --before before --contained contained --evidence observation.json
-          else
-            node engineering/release-management/05-src/phase/run-controls-act.mjs hold --main . --pr pr --before before --contained contained
-          fi
+          evidence=""
+          if [ -s observation.json ]; then evidence="--evidence observation.json"; fi
+          node engineering/release-management/05-src/phase/run-controls-act.mjs hold --main . --pr pr --before before --contained contained $evidence
 
   demand-act:
     name: demand Act
