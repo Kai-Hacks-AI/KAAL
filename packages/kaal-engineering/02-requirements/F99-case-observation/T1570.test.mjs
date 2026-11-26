@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { load } from './fixture.mjs';
 export const id = 'engineering/T1570';
 export const tests = ['engineering/F99'];
-export const title = 'the producing job is reusable, read-only, without secrets, and reads the pull request only as data, installing only the default branch's tool';
+export const title = 'the producing job is reusable, read-only, without secrets, and reads the pull request only as data, installing only the default-branch tool';
 export async function run() {
   const y = load();
   assert.ok(/^on:\s*\n\s+workflow_call:/m.test(y), 'it must be workflow_call');
