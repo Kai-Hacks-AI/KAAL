@@ -46,6 +46,8 @@ export async function run() {
     'no revision': { revision: '' },
   })) assert.throws(() => due(['running:lags:c/CTL1'], o), `${what} gave a result`);
   assert.deepEqual(due(['running:lags:c/CTL3'], { unknown: ['running:c/CTL3'] }), [], 'unknown evidence of a control another capability owns was asked of this pull request');
+  // ownership is established before an unrelated control is excluded
+  for (const [what, u] of Object.entries({ 'a control with no owner': ['running:c/CTL9'], 'a name with an unknown fact': ['speed:c/CTL3'], 'a name with no control': ['running'], 'a name that is not text': [7] })) assert.throws(() => due(['running:lags:c/CTL3'], { unknown: u }), `unknown evidence of ${what} was ignored`);
   for (const bad of ['running-c/CTL1', 'running:maybe:c/CTL1', 'speed:lags:c/CTL1', 7]) assert.throws(() => due([bad]), 'a malformed discrepancy gave a result: ' + bad);
   // through the adapter: a confirmed due can be baselined, unknown never passes
   const { runControl } = await load('adapter.mjs');

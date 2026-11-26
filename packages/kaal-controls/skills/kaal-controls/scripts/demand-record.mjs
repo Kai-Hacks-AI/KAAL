@@ -25,10 +25,13 @@ export function findRecordDue({ discrepancies, unknown, owners, pr, timing, obse
     if (!text(owners[control])) throw new Error(`findRecordDue: ${control} has no owner`);
     return owners[control] === pr.capability;
   };
+  // Ownership is established before an unrelated control is excluded: an unknown of a control with no owner is unknown, never ignored.
   const unknownOwned = unknown.filter((u) => {
     if (!text(u)) throw new Error('findRecordDue: an unknown name is malformed');
-    const control = u.split(':').slice(1).join(':');
-    return text(owners[control]) && owners[control] === pr.capability;
+    const [fact, ...rest] = u.split(':');
+    const control = rest.join(':');
+    if (!FACTS.includes(fact) || !text(control)) throw new Error(`findRecordDue: an unknown name is malformed: ${u}`);
+    return mine(control);
   });
   if (unknownOwned.length > 0) throw new Error(`findRecordDue: unknown evidence of an owned control: ${unknownOwned.sort().join(', ')}`);
   const due = new Set();

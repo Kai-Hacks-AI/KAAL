@@ -19,3 +19,9 @@ test('a control id containing a colon is kept whole', () => {
 test('an observation with an unknown testing kind throws', () => {
   assert.throws(() => findRecordDue({ ...base, discrepancies: ['running:lags:a'], observed: [{ ...base.observed[0], testing: 'maybe' }] }));
 });
+test('unknown evidence of a control with no owner throws, never ignored', () => {
+  assert.throws(() => findRecordDue({ ...base, unknown: ['running:nobody'] }));
+});
+test('an unknown name with an unknown fact throws', () => {
+  assert.throws(() => findRecordDue({ ...base, unknown: ['speed:a'] }));
+});
