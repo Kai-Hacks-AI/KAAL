@@ -25,9 +25,11 @@ The instance judges what the pull request says about itself, so its subject is t
 
 It does not make the check required, does not set the flag, does not install the workflow (a WIRE, byte-equal to the source, with the Owner's go), and does not build the pre-push hook instance, which is its own Change. It does not judge whether what the body says is true.
 
-## What the DO leaves on CTL11
+## What the DO leaves on CTL11 (corrected)
 
-`status` moves to `implemented` only when the runner and workflow source are on the collector and their Cases are green; `running` needs the WIRE and observed runs, and `evidence` stays as declared until those exist. A missing proof stays UNKNOWN, it is never read as positive.
+The first PLAN said the DO moves CTL11 to `implemented`. That is corrected here, as a PLAN correction and not a silent departure of the DO: **the DO leaves CTL11 `designed`.** Two reasons. T880 and T881 pin `status: designed` and the draft of release/C68, and a status is a fact with its own proof (Defined, Implemented, Running and Tested are independent facts, each proved on its own revision), so the Case that proves "implemented" is not written in this Change and must not be bent to fit one. And CTL19, also built as a workflow source, stays `designed` the same way. The status moves in its own small Change, which owns the proof (the runner and the source on the collector, their Cases green at a revision) and amends T880 and T881 through its own PLAN, never through a DO. `running` needs the WIRE and observed runs, and `evidence` stays as declared until those exist. A missing proof stays UNKNOWN, it is never read as positive.
+
+The renames of T1537 and T1538 from `.red.mjs` to `.test.mjs`, and the new T1539, follow the lifecycle that exists today. They are not endorsed as the model: the common PDCA lifecycle (a Case keeps one identity across phases, the phase decides how its RED is read) is a coordinated follow-up owned with Process, Testing and Release, as release/C136 records, and is not retrofitted here.
 
 ## Cases
 
