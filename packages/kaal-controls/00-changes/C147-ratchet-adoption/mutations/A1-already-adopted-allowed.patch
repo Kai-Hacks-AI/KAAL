@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -80,7 +80,7 @@
+   if (typeof change.id !== 'string' || !change.id || typeof change.exists !== 'boolean') return unknown();
+   const from = Date.parse(window.from), to = Date.parse(window.to);
+   if (Number.isNaN(from) || Number.isNaN(to)) return unknown();
+-  if (base.history.length !== 0) return fail('already-adopted');
++  
+   if (head.history.length !== 1) return fail('line-mismatch');
+   const [line] = head.history;
+   if (!line || line.from !== null || line.to !== head.baseline.length || !isList(line.removed) || line.removed.length !== 0) return fail('line-mismatch');
