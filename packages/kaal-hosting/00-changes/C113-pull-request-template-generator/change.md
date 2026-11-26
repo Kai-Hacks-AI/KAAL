@@ -31,7 +31,7 @@ One truth for each type, written once by its owner. Release's API body builder r
 
 ## Questions, settled by the reading below unless said otherwise
 
-- **One file or one per capability.** Settled by the revised C37: Engineering's file lists the seven types and names the owners (`kaal-change` for PLAN, DO, ACT, HOTFIX; `kaal-release` for SYNC, PROMOTION, WIRE) and holds no chapter or recognition. Each owner declares its own types in its own package, in the form this Change defines.
+- **One file or one per capability.** Settled by the revised C37: Engineering's file lists the seven types and names the owners (`kaal-change` for PLAN, DO, ACT, HOTFIX; `kaal-release` for SYNC, PROMOTION, WIRE) and holds the recognition and no chapter. Each owner declares its own types in its own package, in the form this Change defines.
 - **Chapters of PLAN and DO.** They have no source. Whoever owns them (Change, release or Engineering) writes the first declaration; Hosting does not decide their content.
 - **The body builder's other home.** Release's API body builder becomes a caller of `renderBody` in Release's own Change.
 
