@@ -6,16 +6,15 @@ Pull request templates and the body builder are written by hand in two places. E
 
 ## To
 
-1. **A declaration, owned by the capability that owns the type.** A capability declares each of its pull request types in one JSON file of its own package. A type is: `type` (an upper-case name), `chapters` (in order; each `{ name, guidance }`, the `guidance` being the text that tells the author what the chapter holds), and an optional `intro` (the text above the first chapter), and `recognition` (rows of `base` and `head` branch patterns, `*` for one segment, saying which pull requests are of the type). The declaration is KAAL data. It holds no GitHub word, no file name and no comment syntax. Engineering's `pull-request-types.json` (C37) lists the types a consumer uses and names each type's content owner; it holds no chapter and no recognition, and the owners declare those here. Hosting owns the format of this file, which is the interface the content owners use.
+1. **A declaration, owned by the capability that owns the type.** A capability declares each of its pull request types in one JSON file of its own package. A type is: `type` (an upper-case name), `chapters` (in order; each `{ name, guidance }`, the `guidance` being the text that tells the author what the chapter holds), and an optional `intro` (the text above the first chapter). The declaration is KAAL data. It holds no GitHub word, no file name, no comment syntax and no recognition rule. Engineering's `pull-request-types.json` (C37) lists the types a consumer uses, names each type's content owner and holds the recognition (the KAAL branch convention); it holds no chapter, and the owners declare those here. Hosting owns the format of this file, which is the interface the content owners use.
 2. **A generator, Hosting's, as the GitHub adapter.** `renderTemplate(declaration)` returns the text of one template, and `renderBody(declaration, chapters)` returns a pull request body: the chapters in the declared order, each under `## <name>`, a missing or an unknown chapter refused with a named error. Both are pure and deterministic: the same declaration gives the same bytes, with LF line ends, on every host. The GitHub parts are Hosting's alone: the `<!-- ... -->` comment form for `intro` and `guidance`, the `KAAL-PR-template: <TYPE>` declaration line (the line release/C138 reads), and the file name `<type in lower case>.md`.
-3. **Recognition as data.** `recognise(declarations, { base, head })` returns the one declared type of a pull request, or `invalid` when none matches or several do, so Release's judge and the Dispatcher read the same rows the templates come from. A branch pattern is a name pattern, not a GitHub fact.
-4. **A check, not a writer.** `checkTemplates(declarations, directory)` compares the committed templates in `directory` with the render and names each type whose file is missing, differs, or has no declaration. Hosting never writes `.github`: delivery stays Engineering first, then a WIRE, with Kai's go for the WIRE.
-5. **The caller names the declarations.** The generator discovers nothing. Its caller (Release's wiring, a Case) passes the declaration files. Where a capability keeps its file is Engineering's layout decision; this PLAN proposes `05-src/pull-request-types/<capability>.json` and Engineering confirms in C37.
-6. **DEFAULT is not a type.** The generator renders no fallback template and refuses a declaration named `DEFAULT` (Owner and CPO, via release/C138).
+3. **A check, not a writer.** `checkTemplates(declarations, directory)` compares the committed templates in `directory` with the render and names each type whose file is missing, differs, or has no declaration. Hosting never writes `.github`: delivery stays Engineering first, then a WIRE, with Kai's go for the WIRE.
+4. **The caller names the declarations.** The generator discovers nothing. Its caller (Release's wiring, a Case) passes the declaration files. Where a capability keeps its file is Engineering's layout decision; one file per capability at `13-source/pull-request-types/<capability>.json`, the target layout, as Engineering confirmed.
+5. **DEFAULT is not a type.** The generator renders no fallback template and refuses a declaration named `DEFAULT` (Owner and CPO, via release/C138).
 
 ## Because
 
-One truth for each type, written once by its owner. Release's `verify Envelope` and the API body builder read the same declaration the templates are rendered from, so they cannot disagree, and a second host would add its own renderer without touching any declaration.
+One truth for each type, written once by its owner. Release's API body builder reads the same declaration the templates are rendered from, so they cannot disagree, and a second host would add its own renderer without touching any declaration.
 
 ## FAR (because of Features we have to Accept Regression)
 
@@ -27,7 +26,7 @@ One truth for each type, written once by its owner. Release's `verify Envelope` 
    - hosting/T305: `renderBody` puts the given chapter texts under the declared headings in order; a missing chapter, an unknown chapter and an empty chapter list are each refused with a named error.
    - hosting/T306: a declaration that is not valid (a non-upper-case type, a chapter without a name, a repeated chapter name, a field outside the format) is refused before anything renders; `DEFAULT` is refused.
    - hosting/T307: `checkTemplates` names a missing file, a differing file and a file with no declaration, and passes when all match.
-   - hosting/T308: the format holds no GitHub word: a declaration with a file name or comment syntax is refused; `recognise` returns the one matching type, and `invalid` for no match, for several matches and for a pull request that would only fall back to DEFAULT.
+   - hosting/T308: the format holds no GitHub word: a declaration with a file name, comment syntax or recognition field is refused.
    - hosting/T309: Hosting's shipped `docs/` name no Change, no `engineering/` path and no `plan/` path (T218 still holds), and the generator imports no `node:fs`.
 
 ## Questions, settled by the reading below unless said otherwise
