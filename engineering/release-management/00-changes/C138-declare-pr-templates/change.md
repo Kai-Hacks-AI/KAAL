@@ -17,9 +17,16 @@ The registry of `verify Envelope` is read from the templates, and no template de
 
 ## FAR
 
-1. **Regression.** The template Cases (T43, T50, T91, T98, T130, T150, T281, T282) stay green; each reads one template and a declaration comment must not break them. Where one pins the whole text, the DO amends it and says so in `do.md`.
+1. **Regression.** I ran the Cases runner against sources with the declarations in place: four Cases fail, T640 (ACT), T650 (SYNC), T660 (PROMOTION) and T830 (HOTFIX), because each pins the source text equal to the draft of its own old Change, and the declaration line is not in that draft. Their expectation has to change, so the change is made **in this PLAN**, not in the DO: each of the four now takes an optional declaration line off the front before it compares the text to its draft (one line, `release/C138`). They pass today and after the DO, and T1540 is what demands the declaration. The DO changes no Case.
 2. **Accept list.** None.
 3. **Feature.** T1540.
+
+## Who owns what
+
+- **Write areas.** PLAN, DO and ACT write areas are mutually exclusive. The DO is confined to source folders, with their implementation unit tests, and works RED to GREEN to refactor against the Cases of the PLAN unchanged. It never changes a PLAN document, an ACT document or an agreed Case; a Case that has to change returns to a PLAN, as it did for the four above.
+- **The contract is Engineering's.** Engineering owns this PDCA and write-boundary contract today. This Change redefines none of it and does not copy it into Release; the list in release/C136 is to be read as a request to Engineering, not as a Release rule.
+- **Templates are not lifecycle authority.** A template declares the TYPE and the chapters of an envelope. It does not say which phase writes what, and nothing in the declaration is read as such.
+- **WIRE and DEFAULT.** Six TYPEs are declared, as agreed with the Owner. The WIRE keeps its own `Source`, `Target`, `Verification` chapters for a separate judge adaptation, and DEFAULT stays unsupported for now.
 
 ## Not in this Change
 

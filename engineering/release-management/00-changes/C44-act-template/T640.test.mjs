@@ -8,7 +8,7 @@ export const title = 'the ACT template of release-management is equal to its dra
 export async function run() {
   assert.ok(existsSync(REAL), 'act.md is absent from 05-src/wiring/templates');
   const real = readFileSync(REAL, 'utf8');
-  assert.equal(real, `${draft()}\n`, 'the template differs from its draft');
+  assert.equal(real.replace(/^<!-- KAAL-PR-template: [A-Z]+ -->\n/, ''), `${draft()}\n`, 'the template differs from its draft');
   const current = chapters(readFileSync(CURRENT, 'utf8'));
   assert.deepEqual(chapters(real), [...current, 'HOW TO WORK'], 'the chapters are not the current ones plus HOW TO WORK');
   assert.ok(!/## HOW TO WORK/.test(readFileSync(CURRENT, 'utf8')), 'the current template was changed');
