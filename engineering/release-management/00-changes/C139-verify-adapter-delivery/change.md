@@ -8,10 +8,12 @@ Kai asked for small, meaningful controls that follow the change protocol: detect
 
 One data file, `05-src/adapter/delivery-map.json`, owned by release. A row is `{ "control": "<capability>/CTL<n>", "delivered": "<installed file>", "entry": "<script>" }`: the **delivered** file (a workflow under `.github/workflows` or a hook under `.githooks`) and the **entry**, the script that delivered file runs when the control runs. The map only claims. It is not evidence, and it does not say whether the entry runs through the adapter.
 
-**Two independent facts, kept apart (structural and operational).**
+**Structural and operational evidence, kept apart.**
 
-- *Operational: the delivered file really invokes the entry.* The runner reads the delivered file at the merge result and requires that its commands (`run:` steps, hook lines) invoke the mapped entry path. A compliant script that is merely named in the map but not invoked by the delivered file gives UNKNOWN for that control: never PASS, never a finding. A file that invokes several mapped entries, or an entry claimed by two controls, is ambiguous and also UNKNOWN.
-- *Structural: the entry integrates the adapter.* That is `recognizeIntegration({control, entry: {path, text}, adapter, revision})` of controls/F212 (`scripts/recognize-adapter.mjs`), which returns `{control, revision, integration: 'recognized'}` or throws, and never says `adapted`. `adapter` is the path of the adapter module in the same root as the entry path, and the runner passes it. A recognition is structure and not execution, and gives no finding. **The absence of a recognizable pattern is not confirmed nonconformance:** it is unknown. Only `adapted: false` from other evidence, not from structure, is a finding (controls/F206 as amended), and release has no such evidence, so it never makes one. This PLAN follows the revised C148 and does not restate it.
+- *Structural: the delivered file names the entry, and the entry integrates the adapter.* A static read of the delivered file at the merge result shows that its commands (`run:` steps, hook lines) invoke the mapped entry path. That is structure, not operation: it says what the file would run, not that it ran. The entry's integration is `recognizeIntegration({control, entry: {path, text}, adapter, revision})` of controls/F212 (`scripts/recognize-adapter.mjs`), which returns `{control, revision, integration: 'recognized'}` or throws, and never says `adapted`. `adapter` is the path of the adapter module in the same root as the entry path, and the runner passes it. A recognition is structure and not execution, and gives no finding. A mapped entry the delivered file does not invoke gives UNKNOWN for that control.
+- *Operational: the entry ran through the adapter.* Only execution evidence is operational (a record of a run, which the adapter supplies). This Change reads none, so it never claims an operational fact. Everything it observes is structural, and its verdict says so.
+- **The absence of a recognizable pattern is not confirmed nonconformance:** it is unknown. Only `adapted: false` from other evidence is a finding (controls/F206 as amended), and release has no such evidence, so it never makes one. This PLAN follows the revised C148 and does not restate it.
+- **Identity is kept per control.** A delivered file may legitimately invoke several mapped entries; each row is established on its own, by its own `{control, delivered, entry}`, and the verdict of one never stands for another. Only an entry claimed by two controls is ambiguous, because its identity is not one, and it is UNKNOWN.
 
 **The inventory is checked against the delivered files, independently of the map.** Every file under `.github/workflows` and `.githooks` is claimed by a row or listed under `notControls`. A `notControls` exclusion is not taken on its word either: it must carry a reason and the runner checks it from the file, an exclusion standing only if the delivered file invokes no script of the repository's judges (a file that checks out, builds or publishes). An exclusion for a file that does invoke a script, a delivered file nobody claims, an unreadable file, or an inventory it cannot settle is UNKNOWN, never PASS.
 
@@ -28,7 +30,7 @@ One data file, `05-src/adapter/delivery-map.json`, owned by release. A row is `{
 
 ## What the first run will say
 
-Release's control entries do not integrate the adapter today, so the first advisory runs say UNKNOWN naming each delivered release control with no recognizable integration. That list is the evidence, advisory only, not a FAIL: a FAIL needs `adapted: false` from other evidence, and none exists. Baselining and migrating the entries are their own Changes, only on the Owner's go. Baselining it as a ratchet and migrating the entries to the adapter are their own Changes, after the evidence is read, and only on the Owner's go.
+Release's control entries do not integrate the adapter today, so the first advisory runs say UNKNOWN naming each delivered release control with no recognizable integration. That list is the evidence, advisory only, not a FAIL: a FAIL needs `adapted: false` from other evidence, and none exists. UNKNOWN is never ratchetable: no control that reads UNKNOWN is baselined, and this Change implies no baseline for it. Migrating the entries to the adapter is its own Change, after the evidence is read, and only on the Owner's go.
 
 ## The workflow source
 
@@ -40,7 +42,7 @@ The DO needs `recognize-adapter.mjs` of controls/C148 on the same line: release'
 
 ## Not in this Change
 
-No WIRE, flag, required check or ruleset change. No migration of an entry to the adapter and no ratchet baseline. No change to controls' scripts. The parked Cases keep the one mechanism the lanes have today, as a carrier and not a model, as in release/C136; the lifecycle of an expected RED belongs to Engineering.
+No WIRE, flag, required check or ruleset change. No migration of an entry to the adapter, and no ratchet baseline of an UNKNOWN. No change to controls' scripts. The parked Cases keep the one mechanism the lanes have today, as a carrier and not a model, as in release/C136; the lifecycle of an expected RED belongs to Engineering.
 
 ## Cases
 
