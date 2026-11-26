@@ -223,6 +223,12 @@ realize({ skills: [{ name, files }], providers: ["claude-code"], record, present
 
 A Skill a Capability's contract delivers is that Capability's at its canonical location: pass it in `contracted`, with whether the Capability's record registers it already, and Core's own record keeps only the provider deployments, beside the Engine files of Core's own installation (see Lifecycle).
 
+`kaal-core/integrity` judges an installation against what it should be, for any entity and without naming one. `verifyInstallation({ entity, version, comparison, evidence, observed, ownership, selected })` takes the expected set as evidence from an establisher (the manifest, every asset's SHA-256 and a tree digest, which Core recomputes) and the observed inventory with the scope its observer enumerated. It returns `aligned`, `differs` with the `missing`, `unexpected` and `modified` assets by content identity, or `unknown` with a reason: missing, incomplete, disagreeing or self-authored evidence is never `aligned` and never a false difference. `exitStatus(result, { enforce })` is 0 for aligned, 0 for a difference unless enforced (1), and 2 for unknown. `expectedSet` and `observationScope` derive the expected set and the scope from an Installation Contract. The module is pure: it fetches and reads nothing, and the entry point and shapes are provisional until the technical decisions D1 to D6 of core/C53 close.
+
+```js
+import { verifyInstallation, exitStatus } from "kaal-core/integrity";
+```
+
 `kaal-core/realization` applies a plan through Hosting. `realizeIn(root, { skills, contracts })` reads the declaration, the present files and every record, registers what Core writes in each contract's record, keeps Core's own record at `.kaal/state/core/installation.json`, and applies it all in one guarded reconciliation: if anything changed since it was read, nothing changes. Where a deployment changes between a file and a directory, Core's unmodified files in the way are removed and the new ones written in that same reconciliation, which Hosting applies in one step. Core coordinates and takes over nothing: once a Capability's record registers any file of its Skill, Core leaves that canonical location to the Capability's own lifecycle, and it uses the sources it is given without judging their provenance against the catalogue.
 
 ```js
