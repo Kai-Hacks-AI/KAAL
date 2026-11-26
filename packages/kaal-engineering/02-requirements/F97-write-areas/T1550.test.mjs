@@ -12,7 +12,7 @@ export async function run() {
     if (!f.children) paths.push(`${f.name}/x.md`);
     for (const c of f.children ?? []) paths.push(`${f.name}/${c}/x.md`);
   }
-  for (const r of layout.root) paths.push(r.name.replace('*', 'x'));
+  for (const r of layout.root) paths.push(r.name.replaceAll('*', 'x'));
   for (const p of paths) {
     const phase = resolve(areas, p);
     if ([...unassigned].some((u) => p.startsWith(`${u}/`))) assert.equal(phase, undefined, `${p} must be unassigned`);
