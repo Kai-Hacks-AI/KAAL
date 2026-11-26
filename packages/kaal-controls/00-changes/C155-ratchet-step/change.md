@@ -13,6 +13,10 @@ Not authorized by this PLAN. On its merge into the collector, and with the colle
 2. One sentence in `references/modes.md` that a wiring passes the files and the carried Changes to this judge and does not choose a step itself (the Skill structure is the restructure's).
 3. Case T1554 GREEN; the package suite GREEN, with the new Case counted. Mutation patches as in C25 and C147 for each weakening of the choice of the step and of the order of judgement.
 
+## DO record
+
+`scripts/judge-ratchet.mjs` is added with `judgeRatchetStep`, pure, and `references/modes.md` has one sentence on it; `scripts/ratchet.mjs` and every other script are unchanged. T1554 is GREEN and the package suite (115 tests, with T1554 counted) is GREEN. `mutations/` keeps eight weakenings as exact patches with a runner, as in C25 and C147: the shortcut before validation (M1), adoption only from an absent baseline so that adoption with shrink reads as progress (M2), the carried count unchecked (M3), retirement not routed (M4), duplicate names read (M5), the shape of a history line unchecked (M6) and an unchanged that ignores the history (M7) and a window whose contents are not read as times (M8). `mutations/run-at-do-head.txt` is the run on the DO: the baseline is GREEN on T1554 and each weakening, loaded alone, is RED. The record cannot name its own revision; re-run `sh mutations/run.sh <repo root>` at the DO's head and compare with it.
+
 ## ACT
 
 A retro entry in the collector.
@@ -36,3 +40,7 @@ Release owns the wiring: reading the baseline and history files at the base and 
 - A single adoption line over an existing baseline whose head baseline is a subset of it is accepted by controls/F211 item 3 (adopted as a subset of itself), already decided in C147. It is one step with one line, so it is not the combined case. Recommendation: keep F211, and reject only a head with a further line.
 - Whether the history file is found by convention beside the baseline or declared in the control record. Recommendation: the adopter finds both and passes the texts; the judge does not look for them.
 - Ids C155, I27, G114, F213, A210 and T1554 are taken by hand; on a clash the newer change renumbers.
+
+## Corrected at the CPO review of the DO
+
+The first DO checked only that a window was present, so identical valid files with an empty or malformed window returned an unchanged PASS. F213 item 2 already requires validation before any shortcut, so no PLAN amendment: T1554 was extended first (RED on that DO, for the window `{}`, a missing or non-time `from` or `to`, a string, a number and a list, on the identical files, on the files with no baseline, and on a shrink), then the validation was fixed (GREEN), and M8 was added.
