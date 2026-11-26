@@ -7,7 +7,7 @@ export const tests = ["release/C35"];
 export const title = "Publishing exists in Engineering as a tag ruleset source with one rule and no check";
 export async function run() {
   const r = source("Publishing");
-  assert.equal(r.name, "40 - publishing"); // named by its stage number (release/C106)
+  assert.equal(r.name, "publishing");
   assert.equal(r.target, "tag");
   assert.deepEqual(r.conditions.ref_name.include, ["refs/tags/trial-*@*"]);
   assert.deepEqual(r.bypass_actors, []);

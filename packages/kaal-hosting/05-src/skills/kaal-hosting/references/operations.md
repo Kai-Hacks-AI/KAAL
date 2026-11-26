@@ -7,7 +7,7 @@ Read the installed Hosting contract for exact inputs, errors and limits. These e
 | Need | Existing operation | Boundary to retain |
 | --- | --- | --- |
 | Read a tree's file bytes | `read(dir)` | Missing tree is empty; directory links are refused, not traversed. |
-| List a tree's paths and kinds | `list(dir)` | Files and directories, empty directories included, in one order on every host; no bytes read; a directory link is refused like `read`. Use it, not `read`, when only names matter. `list(dir, { skip: ["node_modules", ".git"], links: "skip" })` leaves out those names at any depth, unread, and the links to directories, so a normal checkout can be scanned without `node:fs`. |
+| List a tree's paths and kinds | `list(dir)` | Files and directories, empty directories included, in one order on every host; no bytes read; a directory link is refused like `read`. Use it, not `read`, when only names matter. |
 | Work in a throwaway directory | `scratch(use)` | `use` gets a fresh absolute path; the whole tree is removed when `use` settles. A removal failure is `SCRATCH_LEFTOVER`; `use`'s own error is never replaced. |
 | Read one file | `readFile(path)` | Missing is an error, not empty bytes. |
 | Inspect a path's kind | `kind(path)` | Preserve directory/file/missing/other and inspection errors. |

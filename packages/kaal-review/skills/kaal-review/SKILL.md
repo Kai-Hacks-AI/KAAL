@@ -27,7 +27,3 @@ End a review by naming what a human should look at themselves: the decisions the
 - A review grants no authority. Never approve, merge or decide because a review found nothing. Who may approve, merge or decide is not set by having reviewed.
 - Do not weaken a check, or the evidence asked for, so that work passes review.
 - Report what you observed and the evidence for it. A finding with no evidence is a guess; say so.
-
-## Predefined questions
-
-When a claim needs judgement and the question should be written down before anyone appraises it, see `references/review-items.md`: items, results kept apart, and a script that reads them.

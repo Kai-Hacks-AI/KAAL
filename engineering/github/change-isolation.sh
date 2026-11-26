@@ -47,8 +47,6 @@ fi
 git show "$BASE:packages/kaal-foundation/05-src/skills/kaal-foundation/scripts/sha256.mjs" > "$T/kaal-foundation-sha256.mjs" 2>/dev/null \
   || git show "$BASE:packages/kaal-foundation/lib/sha256.mjs" > "$T/kaal-foundation-sha256.mjs" 2>/dev/null \
   || rm -f "$T/kaal-foundation-sha256.mjs"
-git show "$BASE:engineering/release-management/05-src/delivery/locations.mjs" > "$T/kaal-delivery-locations.mjs" 2>/dev/null || rm -f "$T/kaal-delivery-locations.mjs"
-git show "$BASE:engineering/release-management/03-architecture/A67-delivery-locations/delivery-locations.json" > "$T/kaal-delivery-locations.json" 2>/dev/null || rm -f "$T/kaal-delivery-locations.json"
 if [ -z "$CHANGE" ]; then
   echo "Synchronization: judging its explicit resolutions only."
   node "$T/check.mjs" < "$T/resolved"

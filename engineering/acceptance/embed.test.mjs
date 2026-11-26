@@ -409,7 +409,7 @@ describe("Engine location", () => {
 });
 
 describe("this repository's own Engine", () => {
-  const engine = join(REPO, "engineering", "core");
+  const engine = join(REPO, ".kaal");
 
   it("is a real Engine deployed by kaal init, verified by the packaged kaal", async () => {
     assert.match(await run(kaal, ["verify", "--engine", engine], host), /^ok: /);
@@ -422,6 +422,7 @@ describe("this repository's own Engine", () => {
     const named = [...root.matchAll(/`([^`]+)`|\]\(([^)]+)\)/g)].map((m) => resolve(REPO, m[1] ?? m[2]));
     assert.ok(named.includes(engine), "names the Engine directory");
     assert.ok(named.includes(join(engine, "AGENTS.md")), "names the Engine's AGENTS.md as the entry point");
+    assert.equal(readFileSync(join(engine, "AGENTS.md"), "utf8"), packagedAgents());
     // A pointer, not a second authority: it repeats none of the Engine's own notes.
     for (const line of packagedAgents().split("\n").filter((l) => l.startsWith("- "))) assert.ok(!root.includes(line), `repeats: ${line}`);
   });

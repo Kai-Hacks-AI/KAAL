@@ -21,7 +21,7 @@ Each flow lands with one merge method:
 | [Synchronize](#synchronize) | working branch holding a merge of `main` → `kaal/<capability>` | merge commit |
 | [Promote](#promote) | `kaal/<capability>` → `main` | squash |
 
-GitHub allows all three methods on `kaal/*` and cannot tie one to a pull request, so the Branching check names the method for each one when auto-merge is enabled, and says nothing about it while auto-merge is off (see [Telling a synchronization from a Change](#telling-a-synchronization-from-a-change)). What landed is audited after the fact by `branching-audit.yml`.
+GitHub allows all three methods on `kaal/*` and cannot tie one to a pull request, so the Branching check names the method for each one (see [Telling a synchronization from a Change](#telling-a-synchronization-from-a-change)).
 
 ## Flows
 

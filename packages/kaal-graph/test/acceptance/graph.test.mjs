@@ -6,7 +6,7 @@
 // Skill Node, and Graph's identity of every Node in this repository is
 // Core's, byte for byte, refusals included.
 import assert from "node:assert/strict";
-import { mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { before, describe, it } from "node:test";
@@ -72,14 +72,11 @@ describe("identity", () => {
       import * as graph from "kaal-graph";
       const genesis = readFileSync(new URL("./payload/core/Node.md", import.meta.resolve("kaal-core/package.json")));
       const root = graph.identifyRoot(genesis);
-      const typed = JSON.parse(readFileSync(process.argv[1], "utf8")).map((p) => readFileSync(p)).filter((b) => { try { return graph.identify(b).type; } catch { return false; } });
+      const typed = JSON.parse(process.argv[1]).map((p) => readFileSync(p)).filter((b) => { try { return graph.identify(b).type; } catch { return false; } });
       const refused = typed.filter((b) => { try { graph.identifyRoot(b); return false; } catch (e) { return e instanceof graph.FormError; } }).length;
       const ordinary = (() => { try { graph.identify(genesis); return "read"; } catch (e) { return e instanceof graph.FormError && e.message.startsWith("untyped: ") ? "untyped" : e.message; } })();
       console.log(JSON.stringify({ root, ordinary, foundation: core.foundation().node, typed: typed.length, refused }));`;
-    // The list goes by file: one command line ends at 32767 characters on Windows, and a list of every claimant in argv outgrows it as the repository grows.
-    const list = join(work, "claimants.json");
-    writeFileSync(list, JSON.stringify(claimants().map((p) => join(REPO, p))));
-    const r = JSON.parse(await run(process.execPath, ["--input-type=module", "-e", script, list], host));
+    const r = JSON.parse(await run(process.execPath, ["--input-type=module", "-e", script, JSON.stringify(claimants().map((p) => join(REPO, p)))], host));
     assert.equal(r.ordinary, "untyped", "identify() refuses the root: it reads only ordinary Nodes");
     assert.deepEqual({ name: r.root.name, id: r.root.id }, r.foundation, "the root Graph reads is the Node Core's foundation names");
     assert.ok(r.typed >= 10);

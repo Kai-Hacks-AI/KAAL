@@ -1,3 +1,0 @@
-# C120 baseline
-
-The baseline is `main`. `05-src/stages/judge.mjs` compares a branch ruleset's `name` with `name.toLowerCase()` of its stage and the Publishing ruleset's with the literal `publishing`; `stages.json` declares no ruleset name. The check runs the default branch's judge (`engineering.yml`, "the trusted judge") against the head commit's sources and declaration, so a pull request that changes both the names and what the judge expects fails until the judge is on `main`. The approved PLAN of release/C106 (#2138) put the judge and the rename in one DO; its first DO (#2222) failed `verify Stages (Integrating)` and `verify Stages (Wiring)` for that reason ("Integrating: the ruleset is named 20 - integrating").

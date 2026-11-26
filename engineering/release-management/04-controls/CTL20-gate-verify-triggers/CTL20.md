@@ -6,10 +6,6 @@ type: preventive
 status: designed
 has: [release/I50]
 evidence: [fixture:2, real:2, provoked:1:fail]
-strategy: ratchet
-baseline-source: engineering/release-management/04-controls/CTL20-gate-verify-triggers/baseline.json
-owner: release management
-exit: The accepted baseline is empty, so the filter is removed and the control is a plain preventive control that fails on any use.
 ---
 # release/CTL20 gate verify Triggers
 

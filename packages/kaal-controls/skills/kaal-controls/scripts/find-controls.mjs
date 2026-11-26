@@ -31,26 +31,11 @@ function idList(value) {
 
 const STATIONS = ['Developing', 'Collecting', 'Integrating', 'Hotfixing', 'Wiring', 'Promoting', 'Publishing'];
 const MODES = ['detective', 'preventive'];
-const RATCHET = ['baseline-source', 'owner', 'exit'];
 const STATUSES = ['designed', 'implemented', 'running', 'tested'];
 const KIND = /^[a-z][a-z0-9-]*$/;
 const REF = 'references/declaring-controls.md';
-// The baseline file of a ratchet: the files read include it, matched by the path `baseline-source` names. It is a JSON list of unique names.
-function baselineProblem(src, files) {
-  if (!/\.json$/.test(src) || /\s/.test(src)) return 'baseline-source is not the path of a JSON file';
-  const file = files.find((f) => f.path === src || f.path.endsWith('/' + src));
-  if (!file) return 'the baseline file is not among the files read';
-  let list;
-  try { list = JSON.parse(file.text); } catch { return 'the baseline file is not JSON'; }
-  if (!Array.isArray(list) || !list.every((x) => typeof x === 'string' && x) || new Set(list).size !== list.length) return 'the baseline file is not a list of unique names';
-  return null;
-}
 const recovery = (field) => field === 'evidence' ? `Write evidence as [<x>:<runs>, ...], the kinds of X the Cases of the control run against, each once, runs a whole number from 1, and at least one entry written <x>:<runs>:fail, an X that is a real failure. See ${REF}.`
-  : field === 'stations' ? `Write stations as [<Station>:<mode>, ...] with each station once. Stations: ${STATIONS.join(', ')}. Modes: ${MODES.join(', ')}. A ratchet is no mode: a preventive control declares \`strategy: ratchet\` with ${RATCHET.join(', ')}. See ${REF}.`
-  : field === 'strategy' ? `Write \`strategy: ratchet\` only on a preventive control, with ${RATCHET.join(', ')}, or remove the line. See references/modes.md.`
-  : field === 'baseline-source' ? `Name the path of the baseline file, a JSON list of unique finding names that the files read include, for example \`baseline-source: <folder>/baseline.json\`. The accepted baseline is read from the base, never from the change under review. See references/modes.md.`
-  : RATCHET.includes(field) && field !== 'exit' ? `Add a \`${field}:\` line to a ratchet control, or remove it if the control is no ratchet (\`strategy: ratchet\`). See references/modes.md.`
-  : field === 'exit' ? `Add an \`exit:\` line of one sentence saying what the control becomes when its baseline is empty. See references/modes.md.`
+  : field === 'stations' ? `Write stations as [<Station>:<mode>, ...] with each station once. Stations: ${STATIONS.join(', ')}. Modes: ${MODES.join(', ')}. See ${REF}.`
   : field === 'status' ? `Add or correct the \`status:\` line as one of ${STATUSES.join(', ')}, as the evidence supports. See ${REF}.`
   : field === 'id' ? `Give the control an id of its own. See ${REF}.`
   : FIELDS.includes(field) ? `Add or correct the \`${field}:\` line. See ${REF}.`
@@ -76,7 +61,7 @@ export function findControls(files) {
     if (fields.type && !TYPES.includes(fields.type)) bad.push(['type', `type is not one of ${TYPES.join(', ')}`]);
     if (fields.status && !STATUSES.includes(fields.status)) bad.push(['status', `status is not one of ${STATUSES.join(', ')}`]);
     if (fields.has && !has?.length) bad.push(['has', 'has lists no Intent']);
-    for (const k of Object.keys(fields).filter((k) => !FIELDS.includes(k) && k !== 'stations' && k !== 'evidence' && k !== 'strategy' && !RATCHET.includes(k))) bad.push([k, `${k} is not a field of a control`]);
+    for (const k of Object.keys(fields).filter((k) => !FIELDS.includes(k) && k !== 'stations' && k !== 'evidence')) bad.push([k, `${k} is not a field of a control`]);
     let stations = [];
     if (fields.stations !== undefined) {
       const list = idList(fields.stations);
@@ -85,15 +70,6 @@ export function findControls(files) {
       if (ok) stations = parsed.map(([station, mode]) => ({ station, mode }));
       else bad.push(['stations', 'stations is not a list of <Station>:<mode>, each station once']);
     }
-    if (fields.strategy !== undefined) {
-      if (fields.strategy !== 'ratchet') bad.push(['strategy', 'strategy is not ratchet']);
-      else if (fields.type !== 'preventive') bad.push(['strategy', 'a ratchet is a strategy of a preventive control']);
-      if (fields.strategy === 'ratchet') {
-        for (const k of RATCHET) if (!fields[k]) bad.push([k, k === 'exit' ? 'a ratchet has no exit' : `a ratchet has no ${k}`]);
-        const why = fields['baseline-source'] && baselineProblem(fields['baseline-source'], files);
-        if (why) bad.push(['baseline-source', why]);
-      }
-    } else for (const k of RATCHET) if (fields[k] !== undefined) bad.push([k, `${k} is declared without strategy: ratchet`]);
     let evidence = [];
     if (fields.evidence !== undefined) {
       const list = idList(fields.evidence);
@@ -116,7 +92,7 @@ function gather(dir, found = []) {
     if (name === 'node_modules' || name === '.git') continue;
     const path = join(dir, name);
     if (statSync(path).isDirectory()) gather(path, found);
-    else if (/\.(md|mjs|json)$/.test(name) && name !== 'package-lock.json') found.push({ path, text: readFileSync(path, 'utf8') });
+    else if (/\.(md|mjs)$/.test(name)) found.push({ path, text: readFileSync(path, 'utf8') });
   }
   return found;
 }

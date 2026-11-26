@@ -7,7 +7,7 @@ export const title = 'the Skill has one assessment section, with the outcomes Ve
 export function run() {
   const { headings, section } = skillParts();
   assert.ok(section, `the Skill has no section "${HEADING}"`);
-  assert.ok(headings.indexOf(HEADING) === headings.indexOf('Before writing a test') + 1 && headings.indexOf(HEADING) < headings.indexOf('Testing loops'), 'the section stands after "Before writing a test" and before "Testing loops"');
+  assert.ok(headings.indexOf(HEADING) === headings.indexOf('Before writing a test') + 1 && headings.indexOf(HEADING) < headings.indexOf('The three loops'), 'the section stands after "Before writing a test" and before "The three loops"');
   const at = ['**Verify.**', '**Challenge.**', '**Point at judgement.**'].map((m) => section.indexOf(m));
   assert.ok(at.every((i) => i >= 0) && at[0] < at[1] && at[1] < at[2], 'the three outcomes are labelled and in order: Verify, Challenge, Point at judgement');
   for (const o of OWNERS) assert.ok(section.includes(o), `the section names the owner ${o}`);

@@ -6,7 +6,7 @@
 #
 # Facts from Guard: GUARD_HEAD, the candidate commit; GUARD_BASE_REF, the target branch. From KAAL's
 # job: KAAL_DEFAULT, the default branch; KAAL_HEAD_REF, the source branch; KAAL_AUTO_MERGE, the
-# auto-merge method the pull request has when the run judges (empty when auto-merge is off: the method is then not judged), and optionally KAAL_RULES, the trusted rules/branches/<target> response:
+# auto-merge method, if any, and optionally KAAL_RULES, the trusted rules/branches/<target> response:
 # under a merge queue GitHub reports the method as "merge" whatever was asked, so the queue's configured
 # method decides (absent, the reported method stands). The job's checkout holds the remote branches.
 # Judges the proposed result (freshness into the default branch, synchronization into a collector),
@@ -34,14 +34,8 @@ case $RC in
   *) cat "$T/verdict"; exit 2 ;;
 esac
 FIRST=$RC
-# Auto-merge off: nothing to judge until it is enabled (release/D12). The method is judged only when the pull request has one.
-if [ -z "${KAAL_AUTO_MERGE:-}" ]; then
-  echo "Merge method: auto-merge is off, nothing to judge until it is enabled"
-  [ "$FIRST" = 3 ] && exit 3
-  exit 0
-fi
 RC=0; node "$LINEAGE" auto-merge "$DEFAULT" "$BASE_REF" "refs/remotes/origin/$DEFAULT" \
-  "refs/remotes/origin/$BASE_REF" "$HEAD" "$KAAL_AUTO_MERGE" ${KAAL_RULES:+"$KAAL_RULES"} > "$T/method" 2>&1 || RC=$?
+  "refs/remotes/origin/$BASE_REF" "$HEAD" "${KAAL_AUTO_MERGE:-none}" ${KAAL_RULES:+"$KAAL_RULES"} > "$T/method" 2>&1 || RC=$?
 [ -n "$GITHUB_STEP_SUMMARY" ] && cat "$T/method" >> "$GITHUB_STEP_SUMMARY"
 case $RC in
   0) cat "$T/method" ;;

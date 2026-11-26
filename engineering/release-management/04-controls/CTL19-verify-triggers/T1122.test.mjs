@@ -14,9 +14,7 @@ export const id = 'release/T1122';
 export const tests = ['release/CTL19'];
 export const title = 'the real tree against itself passes, a comment does not count and every form of the trigger does';
 export async function run() {
-  const { judge: raw, uses, readTree } = await load();
-  const { honest } = await import(new URL('../../00-changes/C131-triggers-baseline-file/fixtures.mjs', import.meta.url).href);
-  const judge = (x) => raw(honest(x));
+  const { judge, uses, readTree } = await load();
   const tree = readTree(join(repo, '.github/workflows'));
   assert.ok(Object.keys(tree).length > 0, 'no workflow was read');
   const same = judge({ base: tree, head: tree });

@@ -1,6 +1,6 @@
 # Stations and the registry
 
-A station is a point where work passes and controls can judge it: Developing, Collecting, Integrating, Hotfixing, Wiring, Promoting or Publishing. A control declares where it is meant to judge with `stations: [<Station>:<mode>]`, for example `stations: [Integrating:preventive]`. The mode says what the control does there: `detective` reports a broken rule, and `preventive` stops the work. A ratchet is no mode: it is a temporary strategy of a preventive control, declared on the control (`strategy: ratchet`, see `references/modes.md`). A control may differ in mode from its type at another station. A control with no `stations` line is valid and is registered nowhere.
+A station is a point where work passes and controls can judge it: Developing, Collecting, Integrating, Hotfixing, Wiring, Promoting or Publishing. A control declares where it is meant to judge with `stations: [<Station>:<mode>]`, for example `stations: [Integrating:preventive]`. The mode says what the control does there: `detective` reports a broken rule, `preventive` stops the work. A control may differ in mode from its type at another station. A control with no `stations` line is valid and is registered nowhere.
 
 ## The registry
 

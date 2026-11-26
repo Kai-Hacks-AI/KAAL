@@ -1,5 +1,5 @@
 {
-  "name": "40 - publishing",
+  "name": "publishing",
   "target": "tag",
   "enforcement": "active",
   "conditions": {

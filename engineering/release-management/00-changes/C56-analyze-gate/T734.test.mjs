@@ -13,7 +13,7 @@ export async function run() {
   }
   const text = readFileSync(join(RM, '05-src/wiring/rulesets/controls.md'), 'utf8');
   const rows = text.split('\n').filter((l) => l.trim().startsWith('|'));
-  const promoting = rows.find((l) => /^\|\s*30 - promoting\s*\|/.test(l));
+  const promoting = rows.find((l) => /^\|\s*promoting\s*\|/.test(l));
   assert.ok(promoting?.includes('analyze Vulnerabilities (Promoting)') && promoting.includes('release/CTL5'), 'the promoting row does not list the check and release/CTL5');
   const integrating = rows.find((l) => l.includes('analyze Vulnerabilities') && l.includes('Integrating') && l.includes('detective'));
   assert.ok(integrating, 'the Integrating check is not listed as detective');

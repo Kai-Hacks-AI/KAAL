@@ -95,18 +95,12 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
-/** What `list` leaves out: the names to skip at any depth, and what to do with a link to a directory. */
-interface Leave {
-  skip: Set<string>;
-  links: "refuse" | "skip";
-}
-
 /**
  * Every file under `root`, and every directory, by relative path. A link to a
  * file reads as that file; a link to a directory is refused, since Hosting
  * neither reads nor writes through one.
  */
-async function walk(root: string, rel: string, files: Files, dirs: string[] = [], listing?: Listed[], leave?: Leave): Promise<void> {
+async function walk(root: string, rel: string, files: Files, dirs: string[] = [], listing?: Listed[]): Promise<void> {
   let entries: Dirent[];
   try {
     entries = await readdir(rel ? join(root, rel) : root);
@@ -115,13 +109,11 @@ async function walk(root: string, rel: string, files: Files, dirs: string[] = []
     throw e;
   }
   for (const entry of entries) {
-    // A skipped name is neither listed nor entered nor read, whatever it is.
-    if (leave?.skip.has(entry.name)) continue;
     const path = rel ? `${rel}/${entry.name}` : entry.name;
     if (entry.isDirectory()) {
       dirs.push(path);
       listing?.push({ path, kind: "directory" });
-      await walk(root, path, files, dirs, listing, leave);
+      await walk(root, path, files, dirs, listing);
       continue;
     }
     let target: Stats;
@@ -131,10 +123,7 @@ async function walk(root: string, rel: string, files: Files, dirs: string[] = []
       if (missing(e)) continue;
       throw e;
     }
-    if (target.isDirectory()) {
-      if (leave?.links === "skip") continue;
-      throw new HostingError(`${path} is a link to a directory; Hosting does not follow one`, "INVALID_PATH");
-    }
+    if (target.isDirectory()) throw new HostingError(`${path} is a link to a directory; Hosting does not follow one`, "INVALID_PATH");
     // Defined, not assigned: a file named `__proto__` is a file like any other.
     if (target.isFile() && listing) {
       listing.push({ path, kind: "file" });
@@ -160,14 +149,6 @@ export interface Listed {
   kind: "file" | "directory";
 }
 
-/** What `list` can be told to leave out. With none given it lists as it always has. */
-export interface ListOptions {
-  /** Entry names, files or directories, at any depth: each is neither listed nor entered nor read. A whole-name match; a name holding `/` never matches. */
-  skip?: string[];
-  /** A link to a directory: `"refuse"` (the default) is `INVALID_PATH`; `"skip"` neither lists, enters nor refuses it. A link to a file is a file either way. */
-  links?: "refuse" | "skip";
-}
-
 /**
  * List a directory tree: every file and every directory, empty ones included,
  * by `/`-separated relative path in UTF-16 order, a directory before what it
@@ -176,14 +157,8 @@ export interface ListOptions {
  * to a file lists as a file. Names and kinds only: no file is opened, so no
  * bytes are read, and no lock is taken. A missing directory lists as empty; a
  * path that is not a directory (a file, a pipe, a socket) is refused with `NOT_DIRECTORY`.
- *
- * `options.skip` leaves out the entries of those names at any depth, and
- * `options.links: "skip"` leaves out the links to directories instead of
- * refusing them; with no options the result is exactly the one above. An option
- * of another shape is a `TypeError`, thrown before anything is read.
  */
-export async function list(dir: string, options?: ListOptions): Promise<Listed[]> {
-  const leave = leaving(options);
+export async function list(dir: string): Promise<Listed[]> {
   const root = resolve(dir);
   try {
     if (!(await stat(root)).isDirectory()) throw new HostingError(`${dir} is not a directory`, "NOT_DIRECTORY");
@@ -192,19 +167,9 @@ export async function list(dir: string, options?: ListOptions): Promise<Listed[]
     if (!absent(e)) throw e;
   }
   const listing: Listed[] = [];
-  await walk(root, "", {}, [], listing, leave);
+  await walk(root, "", {}, [], listing);
   // UTF-16 order of the whole relative path, not of each name: `.` sorts before `/`, so `a.txt` precedes `a/z`. A directory still precedes what it holds, since a path is a prefix of its descendants'.
   return listing.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
-}
-
-/** The options of `list` as what `walk` leaves out; an option of another shape is a `TypeError`. */
-function leaving(options: ListOptions | undefined): Leave | undefined {
-  if (options === undefined) return undefined;
-  if (typeof options !== "object" || options === null || Array.isArray(options)) throw new TypeError("list options must be an object");
-  const { skip = [], links = "refuse" } = options;
-  if (!Array.isArray(skip) || skip.some((name) => typeof name !== "string")) throw new TypeError("list option skip must be a list of names");
-  if (links !== "refuse" && links !== "skip") throw new TypeError('list option links must be "refuse" or "skip"');
-  return { skip: new Set(skip), links };
 }
 
 /** Attach a cleanup failure to the error that is thrown in its place, as `leftover`; an error that cannot carry it is still the one thrown. */

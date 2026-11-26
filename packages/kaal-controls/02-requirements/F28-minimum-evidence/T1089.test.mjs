@@ -12,7 +12,7 @@ const item = (o = {}) => { const f = { id: 'demo/CTL1', title: 'approve Sync', d
 const MIN = '[fixture:3, merge:2, provoked:1:fail]';
 const CASE = '// Case demo/T1 tests: demo/CTL1\n';
 const ctl = (findControls, o = {}) => findControls([{ path: 'x/CTL1.md', text: item({ status: 'tested', ...o }) }, { path: 'x/T1.test.mjs', text: CASE }]).controls[0];
-const rec = (x, run, outcome = 'GREEN', c = 'demo/T1', base) => ({ case: c, by: 'runner', x, run, outcome, ...(base ? { base } : {}) });
+const rec = (x, run, outcome = 'GREEN', c = 'demo/T1', base) => ({ case: c, x, run, outcome, ...(base ? { base } : {}) });
 const enough = () => [rec('fixture', 1), rec('fixture', 2), rec('fixture', 3), rec('merge', 'a'), rec('merge', 'b'), rec('provoked', 'x', 'GREEN', 'demo/T1', { run: 'x0', outcome: 'RED' })];
 
 export const id = 'controls/T1089';

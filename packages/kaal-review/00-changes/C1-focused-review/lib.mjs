@@ -1,6 +1,6 @@
 // Shared by the Cases of this Change. Review knows no subject: every Case runs over each application under applications/,
 // whose own subject.json names its focus, its reference and its actual, what is inspected and the questions to answer.
-// At least one application is required. The focuses promotion, capability and finding are defined here; any other focus carries its own.
+// At least one application is required. The focuses promotion and capability are defined here; any other focus carries its own.
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -8,20 +8,13 @@ import { fileURLToPath } from 'node:url';
 export const dir = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const A = join(dir, '00-changes/C1-focused-review/applications');
 const rd = (p, what) => { assert.ok(existsSync(p), `${what} is absent`); return readFileSync(p, 'utf8'); };
-export const FOCI = { promotion: ['what the promotion promised to change', 'what changed'], capability: ['the Intent of the capability', 'what the capability delivers'], finding: ['what the work under review declared it would do', 'what the finding says is wrong'] };
-// The optional field `subject` names the element a review validates, by the id the element states: one non-empty id without whitespace.
-// Review does not resolve the id, does not know the kind of element and does not check that the element exists.
-export function checkSubject(value, name = 'subject.json') {
-  assert.equal(typeof value, 'string', `${name}: subject is not a string`);
-  assert.match(value, /^\S+$/, `${name}: subject is not one non-empty id without whitespace`);
-  return value;
-}
-export function applications(root = A) {
-  assert.ok(existsSync(root), 'no application exists');
-  const apps = readdirSync(root).filter((n) => statSync(join(root, n)).isDirectory());
+export const FOCI = { promotion: ['what the promotion promised to change', 'what changed'], capability: ['the Intent of the capability', 'what the capability delivers'] };
+export function applications() {
+  assert.ok(existsSync(A), 'no application exists');
+  const apps = readdirSync(A).filter((n) => statSync(join(A, n)).isDirectory());
   assert.ok(apps.length > 0, 'no application exists');
   return apps.map((name) => {
-    const d = join(root, name);
+    const d = join(A, name);
     const subject = JSON.parse(rd(join(d, 'subject.json'), `${name}: subject.json`));
     const f = subject.focus;
     assert.ok(f, `${name}: subject.json states no focus`);
@@ -30,7 +23,6 @@ export function applications(root = A) {
       assert.ok(x && x.label && x.reads && Array.isArray(x.items) && x.items.length > 0, `${name}: the ${side} is not given as a label, what is read and its items`);
     }
     if (!(f in FOCI)) assert.ok(subject.reference.provided && subject.actual.provided, `${name}: the focus ${f} is not defined by Review, so its reference and actual must be provided`);
-    if ('subject' in subject) checkSubject(subject.subject, name);
     assert.ok(Array.isArray(subject.inspected) && subject.inspected.length > 0, `${name}: subject.json lists nothing inspected`);
     assert.ok(Array.isArray(subject.questions) && subject.questions.length > 0, `${name}: subject.json lists no questions`);
     return { name, d, subject, review: () => rd(join(d, 'review.md'), `${name}: the review record`) };

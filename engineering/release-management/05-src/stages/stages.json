@@ -28,7 +28,6 @@
     },
     {
       "name": "Integrating",
-      "ruleset": "20 - integrating",
       "kind": "ruleset",
       "targets": [
         "kaal/**",
@@ -38,7 +37,6 @@
       "parts": [
         {
           "name": "Collecting",
-          "ruleset": "23 - collecting",
           "target": "kaal/**",
           "rules": [
             {
@@ -60,7 +58,6 @@
         },
         {
           "name": "Hotfixing",
-          "ruleset": "21 - hotfixing",
           "target": "hotfix/**",
           "rules": [
             {
@@ -82,7 +79,6 @@
         },
         {
           "name": "Wiring",
-          "ruleset": "22 - wiring",
           "target": "wire/**",
           "rules": [
             {
@@ -143,7 +139,6 @@
     },
     {
       "name": "Promoting",
-      "ruleset": "30 - promoting",
       "kind": "ruleset",
       "target": "~DEFAULT_BRANCH",
       "rules": [
@@ -171,19 +166,6 @@
               "control": "release/CTL20"
             }
           ]
-        },
-        {
-          "type": "merge_queue",
-          "control": "release/CTL32",
-          "parameters": {
-            "merge_method": "SQUASH",
-            "max_entries_to_build": 1,
-            "min_entries_to_merge": 1,
-            "max_entries_to_merge": 1,
-            "min_entries_to_merge_wait_minutes": 0,
-            "grouping_strategy": "ALLGREEN",
-            "check_response_timeout_minutes": 60
-          }
         }
       ],
       "also": [
@@ -192,7 +174,6 @@
     },
     {
       "name": "Publishing",
-      "ruleset": "40 - publishing",
       "kind": "tag",
       "target": "trial-*@*",
       "rule": "update"

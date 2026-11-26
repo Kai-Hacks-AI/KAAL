@@ -13,7 +13,7 @@
       "evidence": [
         {
           "file": "packages/kaal-testing/test/boundary.test.mjs",
-          "sha256": "597c78f16e4c67e0509f6668dc96e3c344af7e38ba8cf4fac2bf31912d4d8e7b",
+          "sha256": "a8de2c63609d05af22d1e6617fa40d7bf611934ac31c668db7e86caef7550696",
           "test": [
             "Testing's Hosting boundary",
             "permitted: the delivered JavaScript imports no undeclared host module, and reaches the host otherwise only through kaal-hosting"

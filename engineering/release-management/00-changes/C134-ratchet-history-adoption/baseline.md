@@ -1,3 +1,0 @@
-# C134 baseline
-
-The baseline is `main` after controls C25 (#2469). `ratchet.mjs` holds `judgeProgress` and `judgeRetirement`. CTL20 has `baseline.json` with five `pull_request_target` workflows (`change-isolation`, `lineage-synchronization`, `merge-group-admission`, `promotion-source`, `sync-review`); CTL36 has `baseline.json` with five generic-name workflows (`branching-audit`, `change-isolation`, `ci`, `lineage-synchronization`, `promotion-source`, each `:generic-name`). Neither has a history file. Both judges (`verify-triggers.mjs`, C131 and C132; the workflow-names judge, engineering C35) compare the base's and the head's baseline and do not read a history.
