@@ -6,7 +6,7 @@ export const DISPATCHER = {
   name: "KAAL Dispatcher",
   owner: "kaal-release",
   purpose: "Raises pull requests to the next station.",
-  abilities: ["read-contents", "read-pull-requests", "write-pull-requests"],
+  abilities: ["read-contents", "read-pull-requests", "raise-pull-requests"],
   logo: "13-source/github-apps/dispatcher.png",
 };
 

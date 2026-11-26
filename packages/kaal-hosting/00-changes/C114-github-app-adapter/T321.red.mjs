@@ -12,6 +12,7 @@ const ok = (r) => (r.method === "GET" ? { status: 200, json: { id: 99 } } : { st
 it("hosting/T321: refuses before any call what the declaration does not allow; names the failures; leaks nothing", async () => {
   for (const [why, input] of [
     ["an ability beyond the declaration", { ...base, abilities: ["read-contents", "read-checks"] }],
+    ["an approving ability for an App that does not declare it", { ...base, abilities: ["approve-pull-requests"] }],
     ["no abilities", { ...base, abilities: [] }],
     ["no key", { ...base, privateKey: "" }],
     ["no App id", { ...base, appId: "" }],

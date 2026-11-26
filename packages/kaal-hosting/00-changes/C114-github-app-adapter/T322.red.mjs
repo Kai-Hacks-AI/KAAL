@@ -4,7 +4,7 @@ import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
 import { standIn } from "./fixtures.mjs";
 
-const auth = { token: "ghs_T" };
+const auth = { token: "ghs_T", abilities: ["read-contents", "read-pull-requests"] };
 const refs = (from, to) => Array.from({ length: to - from }, (_, i) => ({ ref: `refs/heads/kaal/c/b${from + i}`, object: { sha: "a".repeat(40) } }));
 
 it("hosting/T322: listBranches, compareRevisions, listPullRequests and readRef send the documented GET requests, page to a short page and return only facts", async () => {
@@ -34,6 +34,13 @@ it("hosting/T322: listBranches, compareRevisions, listPullRequests and readRef s
     await assert.rejects(call(), (e) => e.code === "INVALID_READ");
   }
   assert.equal(api.requests.length, before, "refused before any call");
+  // Each call is gated by the ability the token was minted with, since GitHub will not: the read-only ability set cannot call what it was not given.
+  const none = standIn(() => ({ status: 200, json: [] }));
+  for (const [call, held] of [[(o) => hosting.listBranches("o/r", "kaal/", o), ["read-pull-requests"]], [(o) => hosting.compareRevisions("o/r", "main", "kaal/c/b0", o), ["read-pull-requests"]], [(o) => hosting.readRef("o/r", "kaal/c/b0", o), []], [(o) => hosting.listPullRequests("o/r", { state: "open" }, o), ["read-contents"]]]) {
+    await assert.rejects(call({ token: "ghs_T", abilities: held, fetch: none.fetch, api: none.api }), (e) => e.code === "ABILITY_REFUSED");
+  }
+  assert.equal(none.requests.length, 0, "refused before any call");
+  await assert.rejects(hosting.readRef("o/r", "kaal/c/b0", { token: "ghs_T", fetch: none.fetch, api: none.api }), (e) => e.code === "ABILITY_REFUSED", "a call without the token's abilities is refused");
   const failing = standIn(() => ({ status: 502, json: {} }));
   await assert.rejects(hosting.readRef("o/r", "kaal/c/b0", { ...auth, fetch: failing.fetch, api: failing.api }), (e) => e.code === "READ_FAILED" && /502/.test(e.message));
   assert.equal(failing.requests.length, 1, "no retry");

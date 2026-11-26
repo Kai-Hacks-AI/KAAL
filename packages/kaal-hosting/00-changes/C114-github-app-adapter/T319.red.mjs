@@ -7,6 +7,8 @@ import { DISPATCHER } from "./fixtures.mjs";
 it("hosting/T319: renderAppManifest refuses every invalid declaration with INVALID_APP_DECLARATION, naming the field", () => {
   const bad = {
     "an ability outside the vocabulary": [{ ...DISPATCHER, abilities: ["read-contents", "read-everything"] }, /read-everything/],
+    "write-pull-requests, which is not an ability (raising and approving are separate)": [{ ...DISPATCHER, abilities: ["write-pull-requests"] }, /write-pull-requests/],
+    "an App that may raise and approve": [{ ...DISPATCHER, abilities: ["raise-pull-requests", "approve-pull-requests"] }, /raise-pull-requests.*approve-pull-requests|approve-pull-requests.*raise-pull-requests/],
     "an ability that writes contents": [{ ...DISPATCHER, abilities: ["write-contents"] }, /write-contents/],
     "an ability that writes workflows": [{ ...DISPATCHER, abilities: ["write-workflows"] }, /write-workflows/],
     "an administration ability": [{ ...DISPATCHER, abilities: ["administration"] }, /administration/],

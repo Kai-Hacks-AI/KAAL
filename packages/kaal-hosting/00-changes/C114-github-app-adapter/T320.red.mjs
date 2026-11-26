@@ -19,8 +19,8 @@ it("hosting/T320: mintToken finds the installation, signs RS256, and asks for ex
     if (r.method === "POST" && r.path === "/app/installations/99/access_tokens") return { status: 201, json: { token: "ghs_INSTALLATION_TOKEN", expires_at: "2026-11-26T15:00:00Z", permissions: {} } };
     return { status: 404, json: {} };
   });
-  const result = await hosting.mintToken({ declaration: DISPATCHER, appId: "12345", privateKey, repo: "o/r", abilities: ["read-contents", "write-pull-requests"] }, { fetch: api.fetch, api: api.api, now: () => NOW });
-  assert.deepEqual(result, { token: "ghs_INSTALLATION_TOKEN", expiresAt: "2026-11-26T15:00:00Z" });
+  const result = await hosting.mintToken({ declaration: DISPATCHER, appId: "12345", privateKey, repo: "o/r", abilities: ["read-contents", "raise-pull-requests"] }, { fetch: api.fetch, api: api.api, now: () => NOW });
+  assert.deepEqual(result, { token: "ghs_INSTALLATION_TOKEN", expiresAt: "2026-11-26T15:00:00Z", abilities: ["read-contents", "raise-pull-requests"] });
   assert.deepEqual(api.requests.map((r) => `${r.method} ${r.path}`), ["GET /repos/o/r/installation", "POST /app/installations/99/access_tokens"]);
   const claims = JSON.parse(b64(api.requests[0].headers.authorization.split(".")[1]).toString());
   assert.equal(JSON.parse(b64(api.requests[0].headers.authorization.split(".")[0]).toString()).alg, "RS256");
