@@ -36,7 +36,19 @@ export async function run() {
 
   git('checkout', '-q', '-b', 'syncing', 'collector');
   git('-c', 'user.name=t', '-c', 'user.email=t@t', 'merge', '-q', '--no-ff', '-m', 'whatever the title', 'main');
-  assert.equal((await runIt(tip('HEAD'), { baseTipRef: 'collector' })).applies, 'sync', 'a merge of main into the collector is a SYNC');
+  const good = await runIt(tip('HEAD'), { baseTipRef: 'collector' });
+  assert.equal(good.applies, 'sync', 'a merge of main into the collector is a SYNC'); assert.equal(good.valid, true);
+  // Stale base: the SYNC was prepared against an older collector tip, then the collector advanced.
+  const prepared = tip('HEAD');
+  git('checkout', '-q', 'collector');
+  commit('late', 'collector advances after the SYNC was prepared');
+  const stale = await runIt(prepared, { baseTipRef: 'collector' });
+  assert.equal(stale.applies, 'sync', 'a SYNC against an older tip stays a SYNC when the collector advances');
+  assert.equal(stale.valid, false, 'a stale base is judged invalid, not passed'); assert.match(String(stale.reason), /stale base/);
+  // Ambiguous shape: an octopus merge is unknown.
+  git('checkout', '-q', '-b', 'octo', 'collector');
+  git('-c', 'user.name=t', '-c', 'user.email=t@t', 'merge', '-q', '--no-ff', '-m', 'octopus', 'main', 'side');
+  assert.equal((await runIt(tip('HEAD'))).applies, 'unknown', 'an ambiguous shape is unknown, never not-sync');
 
   assert.equal((await runIt('0'.repeat(40))).applies, 'unknown', 'an absent head is unknown');
 }
