@@ -1,3 +1,4 @@
+<!-- KAAL-PR-template: ACT -->
 <!-- An ACT pull request. Exactly three chapters in this order and nothing else: no extra headings, retrospective text, test output or status reports. The files of the Change hold the detail; discussion goes into comments. -->
 
 ## Change
