@@ -1,11 +1,11 @@
-// Case release/T1538 tests: release/CTL11
+// Case release/T1538 tests: release/C137
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const id = 'release/T1538';
-export const tests = ['release/CTL11'];
+export const tests = ['release/C137'];
 export const title = 'the workflow source of verify Envelope is a plain pull_request judge of the default branch, behind its flag, with no token and no installation';
 export async function run() {
   const file = join(repo, 'engineering/release-management/05-src/wiring/workflows/verify-envelope.yml');

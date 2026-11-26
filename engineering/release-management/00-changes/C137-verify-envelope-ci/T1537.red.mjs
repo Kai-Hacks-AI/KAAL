@@ -1,11 +1,11 @@
-// Case release/T1537 tests: release/CTL11
+// Case release/T1537 tests: release/C137
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 export const id = 'release/T1537';
-export const tests = ['release/CTL11'];
+export const tests = ['release/C137'];
 export const title = 'the runner of verify Envelope makes facts from an event and a log, and the flag decides the exit only when it is exactly on';
 export async function run() {
   const file = join(repo, 'engineering/release-management/05-src/plan-body/run-verify-envelope.mjs');
