@@ -7,7 +7,7 @@ import { mint, standIn } from "./fixtures.mjs";
 const HEAD = "a".repeat(40);
 const review = (login, type, state, commit = HEAD) => ({ state, commit_id: commit, user: { login, type }, body: "ignored" });
 
-it("hosting/T331: only an APPROVED review on the head by the bot of the Approver's own grant counts; listReviews gives facts only", async () => {
+it("hosting/T331: listReviews gives authenticated facts and the grant's verified identity; Hosting judges no approval", async () => {
   const world = { appId: "67890", slug: "kaal-approver", declarations: [{ path: "packages/kaal-review/13-source/github-apps/approver.json", declaration: { app: "approver", name: "KAAL Approver", owner: "kaal-review", purpose: "p", appId: "67890", abilities: ["read-contents", "read-pull-requests", "approve-pull-requests"] } }] };
   const { grant } = await mint(["read-contents", "read-pull-requests"], world, { app: "approver", appId: "67890" });
   const identity = hosting.grantIdentity(grant);
@@ -16,9 +16,8 @@ it("hosting/T331: only an APPROVED review on the head by the bot of the Approver
   const reviews = await hosting.listReviews("o/r", 7, { grant, fetch: api.fetch, api: api.api });
   assert.deepEqual(reviews[0], { state: "APPROVED", commit: HEAD, by: { login: "kaal-approver[bot]", type: "Bot" } });
   assert.deepEqual(Object.keys(reviews[0]).sort(), ["by", "commit", "state"]);
-  assert.equal(hosting.countApprovals(reviews, identity, HEAD), 1, "only the Approver's own bot on the head counts");
-  assert.equal(hosting.countApprovals(reviews, { appId: "12345", login: "kaal-dispatcher[bot]" }, HEAD), 1, "the identity decides: another App counts only for itself");
-  assert.equal(hosting.countApprovals(reviews, identity, "c".repeat(40)), 0, "an older head counts for nothing");
-  assert.equal(hosting.countApprovals([], identity, HEAD), 0);
+  assert.equal(reviews.length, 6, "every review is a fact, none is judged");
+  assert.deepEqual(reviews.map((r) => r.by.login), ["kaal-approver[bot]", "kaal-dispatcher[bot]", "kaal-approver[bot]", "kaal-approver", "kaal-approver[bot]", "kaal-approver[bot]"]);
+  assert.equal(hosting.countApprovals, undefined, "approval is judged by Review, not exported by Hosting");
   assert.ok(api.requests.every((r) => r.method === "GET"));
 });
