@@ -10,9 +10,12 @@ export async function run() {
   const { checkPredecessor } = await lib('check-predecessor');
   const a = record('release/C1');
   const edge = (extra = '') => rec('change/C2', record('change/C2', succeeds(entry('release/C1', pinOf(a), extra || undefined))));
-  const run1 = (f) => checkPredecessor({ pinOf, main: [], carried: [], elsewhere: [], ...f });
+  const run1 = (f) => checkPredecessor({ pinOf, main: [], carried: [], elsewhere: [], delivered: [], ...f });
   assert.equal((await run1({ main: [rec('release/C1', a)], carried: [edge()] })).kind, 'pass', 'on main at its pin');
-  assert.equal((await run1({ carried: [rec('release/C1', a), edge()] })).kind, 'pass', 'carried together with it');
+  assert.equal((await run1({ carried: [rec('release/C1', a), edge()], delivered: ['release/C1'] })).kind, 'pass', 'carried together with it and delivered');
+  const undelivered = await run1({ carried: [rec('release/C1', a), edge()], delivered: [] });
+  assert.equal(undelivered.kind, 'fail', 'matching record bytes are not delivery');
+  assert.deepEqual(undelivered.findings.map((f) => [f.kind, f.change, f.predecessor]), [['undelivered', 'change/C2', 'release/C1']]);
   assert.equal((await run1({ carried: [rec('change/C2', record('change/C2'))] })).kind, 'pass', 'no declared prerequisite');
   const absent = await run1({ carried: [edge()] });
   assert.equal(absent.kind, 'fail');

@@ -5,7 +5,7 @@ import { pinOf, record, entry, succeeds, lib } from './fixtures.mjs';
 export const id = 'change/T1566';
 export const tests = ['change/G19'];
 export const closes = ['change/G19'];
-export const title = 'identify Conflict is UNKNOWN when a claim or a record cannot be read, and only a valid edge between the two Changes orders a shared path';
+export const title = 'identify Conflict is UNKNOWN when a claim or a record cannot be read, and only a valid edge orders a shared path and only a stated resolution resolves it';
 export async function run() {
   const { identifyConflict } = await lib('identify-conflict');
   const a = record('release/C1');
@@ -20,5 +20,7 @@ export async function run() {
   const stale = record('change/C2', succeeds(entry('release/C1', pinOf(a + 'older\n'))));
   const r = await identifyConflict({ pinOf, changes: [change('release/C1', a, ['a.md']), change('change/C2', stale, ['a.md'])] });
   assert.equal(r.kind, 'fail', 'a stale edge does not order a conflict');
+  assert.equal(r.findings[0].ordered, false);
+  assert.equal((await identifyConflict({ pinOf, changes: [change('x/C1', free('x/C1'), ['a.md'])], resolved: 'x' })).kind, 'unknown', 'a resolution fact that cannot be read');
 }
 test(id, () => run());

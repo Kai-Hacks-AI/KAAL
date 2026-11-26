@@ -8,8 +8,8 @@ export const closes = ['change/G19'];
 export const title = 'check Predecessor is UNKNOWN on an unreadable fact, never a pass, and says that no declared prerequisite is not a claim that none exists';
 export async function run() {
   const { checkPredecessor } = await lib('check-predecessor');
-  const ok = { pinOf, main: [], carried: [rec('change/C2', record('change/C2'))], elsewhere: [] };
-  for (const bad of [{ pinOf: undefined }, { main: null }, { carried: 'x' }, { carried: [{ identity: 'change/C2' }] }]) {
+  const ok = { pinOf, main: [], carried: [rec('change/C2', record('change/C2'))], elsewhere: [], delivered: [] };
+  for (const bad of [{ pinOf: undefined }, { main: null }, { carried: 'x' }, { carried: [{ identity: 'change/C2' }] }, { delivered: null }]) {
     const r = await checkPredecessor({ ...ok, ...bad });
     assert.equal(r.kind, 'unknown', JSON.stringify(Object.keys(bad)));
     assert.ok(r.findings.length > 0, 'it names what it cannot read');
