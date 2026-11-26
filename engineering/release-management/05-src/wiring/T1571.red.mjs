@@ -120,8 +120,9 @@ export function run() {
     assert.equal(n.KAAL_ATTESTATION, 'deferred');
     assert.equal(n.BASE_REF, 'main');
     assert.equal(n.KAAL_DEFAULT, 'main');
-    assert.equal(n.cmd, p.cmd, 'the guard command differs');
-    assert.match(n.cmd, /--check Change-Isolation /);
+    // release/C160: the command runs the delivered entry through the adapter, not kaal-guard, and carries the same three facts as the old command
+    assert.match(n.cmd, /^node engineering\/release-management\/05-src\/change-isolation\/judge-github-alone\.mjs --head /, 'the command does not run the .github alone entry');
+    assert.equal(n.cmd.split(' --head ')[1], p.cmd.split(' --head ')[1], 'the facts the command carries differ');
   } finally { b.done(); }
 
   // every property of the existing checker, judged by the same script from the facts of each workflow: the same verdict whichever way the head arrives
