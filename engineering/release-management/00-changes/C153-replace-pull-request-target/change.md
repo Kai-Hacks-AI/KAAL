@@ -11,7 +11,12 @@ From 2 December 2026 the four required checks below stop reporting. Each needs a
 3. **Change Isolation (review)** (`merge-group-admission.yml`). Replacement: the same judge as 1 on the merge group, plain `merge_group`. Needs: check 1 proven, then the same judge wired for the queue event.
 4. **Promotion Source** (`promotion-source.yml`). Replacement: a promotion source judged from the pull request as Git data, with the host adapter supplying trustworthy bytes (the one item the CPO and CTO hold). Last, because it guards `main` and needs the CTO's trust-boundary proof before DO.
 
-`verify Sync`, `approve Sync` and `review Sync` also use the trigger but are not required checks: C152 moves `verify Sync` to plain `pull_request`; `approve` and `review` need a separate design for a token that a plain `pull_request` run does not have (Owner decision).
+## Dependencies on the Inspector (the owner-agreed trusted relay)
+
+- **Checks 1 to 3 have no Inspector dependency.** They decide from files and git content on plain `pull_request` or `merge_group`, need no token, and go first.
+- **`approve Sync` and `review Sync` wait on the Inspector.** They hold a token that a plain `pull_request` run does not have. Release's design for that token is the Inspector: an unprivileged run produces data, and a trusted default-branch `workflow_run` job reads it as data and holds the token. `verify Sync` itself moves to plain `pull_request` in release/C152 and does not wait.
+- **Check 4 (Promotion Source) waits on three things:** the Inspector, the host adapter that supplies trustworthy bytes of the source and the preimage from `main` (Hosting), and the CTO's trust-boundary proof. By the ownership cut proposed to the Owner, Release owns the Promotion Source control and Hosting owns the adapter; this is not settled until the Owner rules.
+- **Status of release/C133, read at this time:** its revised PLAN (#2494) is merged into `kaal/release/delivery-ruleset-gates`; it records that a required workflow runs from the ruleset's ref and not from the pull request, and it authorizes no DO, WIRE, ruleset change or flag. The Inspector's own collector is `kaal/release/inspector-app`. Neither is on `main`, and the Inspector's trust-boundary proof is outstanding, so nothing here may assume it exists by 2 December.
 
 ## Per check, the same steps
 
