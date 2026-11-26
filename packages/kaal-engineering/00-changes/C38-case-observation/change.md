@@ -10,27 +10,28 @@
 | `applicableCases` (release) | Release | which Cases apply to the carried Changes | decides applicability |
 | **the producing job** | **nobody** | none exists | this Change |
 
-## Decisions (the approval of this pull request is the go for the DO)
+## Decisions (the approval of this pull request is the go for the DO; amended 26 Nov on Kai's go to replan)
 
-1. **One workflow source, Engineering's:** `13-source/workflows/observe-cases.yml`, a reusable workflow (`on: workflow_call`), beside `codeql.yml` and `verify-workflow-names.yml`. It runs on the pull request's own CI, so it is evidence, not enforcement, and the observation says `producedBy: pull-request` (testing F161). It adds no `workflow_run` and no `pull_request_target`.
-2. **When and where:** as a job of release's `controls-act.yml`, on a pull request into `kaal/**`, before `hold-act`. Release's file gets an `observe` job that `uses:` this source and a `needs: observe` on `hold-act`; that edit is Release's, in its own Change. The artifact travels inside one workflow, as Testing's plan asks.
-3. **Trust:** plain `pull_request`, `permissions: contents: read`, no secret, no token kept (`persist-credentials: false`). The tool (`kaal-testing`) and the judge are checked out from the default branch. The merge result is checked out under `pr` and used as data: only its Case files are run, nothing is installed from it. The tool is installed from the default branch only: `npm ci --ignore-scripts`, then Core and Hosting built, as release C135 decided (Testing, 26 Nov). **The record is evidence of the pull request's own CI, not proof:** a local reusable workflow resolves at the merge result, so a pull request can edit this producer. That is acceptable only because the record says `producedBy: pull-request` and hold Act is advisory (Release).
-4. **The call:** `kaal-testing observe-at --root pr --revision <merge sha> --expect-revision <merge sha> --run-id <run id> --produced-by pull-request --out <dir> <files>` over the listed Case files, one step. It writes `<dir>/observation.json` (`kaal-testing/observation@1`: `{schema, observed, evidence}` plus `evidence.execution` and `evidence.integrity`); RED and UNKNOWN exit 0, invalid input exits 2 (Testing). Testing's separate run and observe-from-report steps are not used here.
-5. **The list of Case files** comes from Release, the owner of which Cases apply: its `05-src/phase/list-carried-cases.mjs` lists the Cases of the carried Changes, run from the default branch. Engineering builds no lister and imports nothing from Release; Testing runs only what it is given.
-6. **The path hold Act reads:** the job uploads artifact `case-observation` holding `observation.json`; `hold-act` downloads it and passes `--evidence <download dir>/observation.json` (Release's edit, in its own Change; the file is `observation.json`, not `evidence.json`). A missing artifact is a missing file, which hold Act already reads as UNKNOWN.
-7. **What it does not decide:** a verdict (Release's), what a Case means (Testing's), the edit to `controls-act.yml` and the WIRE (Release, on Kai's go).
+Release's C135 already holds the producer inline in its `controls-act.yml` (two jobs, `run Cases` and `observe Cases`), and its WIRE (#2648) installs that temporarily. Testing's C82 now offers `kaal-testing observe-at --report`, which does the integrity checks that release's assembler does. This amendment puts `observe-at` inside C135's split and gives the KAAL workflow integration to Engineering.
+
+1. **One workflow source, Engineering's:** `13-source/workflows/observe-cases.yml`, a reusable workflow (`on: workflow_call`), beside `codeql.yml` and `verify-workflow-names.yml`. It has two jobs, as C135 split them, so the step that runs candidate code is never the step that writes the evidence. The record is evidence of the pull request's own CI, not proof: a local reusable workflow resolves at the merge result, so a pull request can edit this producer, which is acceptable only because the record says `producedBy: pull-request` and hold Act is advisory (Release).
+2. **`run-cases`:** checks out the default branch (Testing and the lister) and the merge result under `pr`, installs from the default branch only (`npm ci --ignore-scripts`, then Core and Hosting built, as C135 decided), lists the carried Case files with release's `list-carried-cases.mjs`, runs them with `kaal-testing run --root pr`, and uploads only the run report (artifact `run-report`).
+3. **`observe-cases`:** `needs: run-cases`; runs no candidate code. It checks out the default branch and the merge result as data, downloads the report, lists the same files and runs `kaal-testing observe-at --report run-report.json --root pr --revision <merge sha> --expect-revision <merge sha> --run-id <run id> --produced-by pull-request --out <dir> <files>`. It uploads artifact `observation` holding `observation.json` (`kaal-testing/observation@1`), the name and file release's `hold-act` already reads. Release's assembler is no longer needed.
+4. **Trust:** plain `pull_request`, `permissions: contents: read`, no secret, no token kept, no `pull_request_target`, no `workflow_run`.
+5. **The edit to `controls-act.yml`** is Release's, in its own Change: it calls this source with `uses:` and drops its own two producer jobs, and `hold-act` keeps its `needs:` and `--evidence`. Until then C135's inline jobs stand as the temporary install. The job names are `run-cases` and `observe-cases`; the lister is called as `list-carried-cases.mjs --main . --pr pr` from the default branch checkout (Release confirmed the artifact name, the `needs:` wiring and that its own Change comes after this PROMOTION).
+6. **What it does not decide:** a verdict (Release's), what a Case means (Testing's), any WIRE (on Kai's separate go).
 
 ## What this Change pins (Cases, plain `.test.mjs`)
 
 - T1570: `observe-cases.yml` is `workflow_call` only, has `permissions: contents: read` and no secret, names no `pull_request_target` or `workflow_run`, checks out the default branch and the merge result under `pr` with `persist-credentials: false`, and installs only with `npm ci --ignore-scripts` outside `pr`.
-- T1571: its call is `kaal-testing observe-at` with `--root`, `--revision`, `--expect-revision`, `--run-id`, `--produced-by pull-request` and `--out`, in one step.
-- T1572: it uploads artifact `case-observation` with `if: always()`, and the file hold Act reads is `observation.json`.
+- T1571: it has the two jobs `run-cases` and `observe-cases`; `observe-cases` has `needs: run-cases`; only `run-cases` runs `kaal-testing run`; only `observe-cases` runs `observe-at --report`, with `--root`, `--revision`, `--expect-revision`, `--run-id` and `--produced-by pull-request`, and runs no `kaal-testing run`.
+- T1572: `run-cases` uploads artifact `run-report`; `observe-cases` uploads artifact `observation` holding `observation.json`, with `if: always()`.
 
 All three are RED against `main`: the file does not exist.
 
 ## Questions
 
-None open: Testing and Release answered (26 Nov). The Case files come from release's lister; the file is `observation.json`.
+Release: do the artifact name `observation` and the `needs:` wiring fit? Testing's `observe-at --report` is merged into its collector (C82, #2647), not on main yet.
 
 ## Not in this Change
 
