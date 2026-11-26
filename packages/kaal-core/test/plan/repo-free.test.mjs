@@ -66,11 +66,13 @@ describe("KAAL-repo-free Skill (core/C150)", () => {
     const dir = make({ "SKILL.md": "---\nname: kaal-x\ndescription: x\n---\nSee packages/kaal-core/x and C5.\n", "references/r.md": "ok\n" });
     const dev = check(dir);
     assert.equal(dev.status, 0, "development reports and does not block");
+    assert.equal(JSON.parse(dev.stdout).blocks, false);
     const out = JSON.parse(dev.stdout);
     assert.ok(out.repoFree.length >= 2, "findings are listed as data");
     const pub = check(dir, "--lifecycle", "published");
     assert.equal(pub.status, 1);
-    assert.equal(JSON.parse(pub.stdout).conformance, "fail");
+    assert.equal(JSON.parse(pub.stdout).blocks, true, "the verdict blocks");
+    assert.equal(JSON.parse(pub.stdout).conformance, "published", "and still reports its lifecycle (core/F99)");
     const clean = make({ "SKILL.md": "---\nname: kaal-x\ndescription: x\n---\nUse kaal-core and kaal skill check.\n" });
     assert.equal(check(clean, "--lifecycle", "published").status, 0);
     assert.equal(check(join(clean, "missing"), "--lifecycle", "published").status, 2);
