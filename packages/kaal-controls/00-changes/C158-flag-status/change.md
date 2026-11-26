@@ -14,6 +14,10 @@ Not authorized by this PLAN. On its merge into the collector, and with the colle
 2. `scripts/judge-running.mjs` with `judgeRunning`, pure.
 3. One paragraph in `references/adapter.md`. T1572, T1573 and T1510 GREEN; the package suite GREEN. Mutation patches for each weakening, as in C25, C155 and C157.
 
+## DO record
+
+`scripts/adapter.mjs` takes `boundary.flag`, runs a control switched off as `mode: off` and carries the flag on the log and the record, and the proof rule of `executed` is now `provenRuns`, which `executed` and `judgeRunning` both use (REPORT counts, UNKNOWN does not). `scripts/judge-running.mjs` is added with `judgeRunning`, pure. `references/adapter.md` has the flag folded into the mode item (the adapter still does five things) and one sentence on the judge. T1572, T1573, T1511 and T1510 are GREEN and the package suite (116 tests) is GREEN. `mutations/` keeps eleven weakenings as exact patches with a runner, as in C25, C155 and C157: the flag read case-insensitively (M1), a switched-off control run as preventive (M2), an unknown flag read as off (M3), an unset flag read as unknown (M4), a record without the flag (M5), REPORT not execution evidence (M6), no record read as false (M7), a switched-off run read as applied (M8), a mode that contradicts its flag ignored (M9), an unknown flag hidden when another run is off (M10) and an unreal X counted (M11). `mutations/run-at-do-head.txt` is the run on the DO: the baseline is GREEN and each weakening, loaded alone, is RED on at least one Case. The record cannot name its own revision; re-run `sh mutations/run.sh <repo root>` at the DO's head and compare with it. Nothing is wired and no control record changed.
+
 ## ACT
 
 A retro entry in the collector.

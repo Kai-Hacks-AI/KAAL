@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
+@@ -14,7 +14,7 @@
+   return {
+     id,
+     running: counted.length > 0 ? true : null,
+-    applied: counted.length === 0 ? null : each.includes(true) ? true : each.includes(null) ? null : false,
++    applied: counted.length === 0 ? null : each.includes(true) ? true : false,
+     modes: [...new Set(counted.map((r) => r.mode).filter((m) => RAN.includes(m)))].sort(),
+     runs: counted.length,
+   };

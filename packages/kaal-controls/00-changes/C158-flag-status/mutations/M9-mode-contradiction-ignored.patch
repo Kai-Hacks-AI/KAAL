@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
+@@ -6,7 +6,7 @@
+ const APPLIED = ['detective', 'preventive', 'ratchet'];
+ 
+ // Whether one counted record shows the control applied: true (flag on, a mode that ran), false (switched off, mode off), or null when it is not told or contradicts itself.
+-const applied = (r) => (r.flag?.state === 'on' && APPLIED.includes(r.mode) ? true : r.flag?.state === 'off' && r.mode === 'off' ? false : null);
++const applied = (r) => (r.flag?.state === 'on' ? true : r.flag?.state === 'off' && r.mode === 'off' ? false : null);
+ 
+ export function judgeRunning({ id, records, revision, established } = {}) {
+   const counted = provenRuns({ id, records, revision, established });
