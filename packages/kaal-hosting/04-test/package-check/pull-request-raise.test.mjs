@@ -226,3 +226,43 @@ it("hosting/T317: caller-supplied authority is refused before any call; the head
     assert.deepEqual(posts(w.requests), [], `${why}: nothing was written`);
   }
 });
+
+it("hosting/T327: a rename or a copy is judged by its source as well as its destination, and a source GitHub does not name is unknown", async () => {
+  const dest = "packages/a/13-source/new.ts";
+  const edit = (f) => hosting.raisePullRequest(request, options(world({ changed: [f] }))).then(() => null, (e) => e);
+  // A rename out of a path the type may not write is refused and names the source.
+  let e = await edit({ filename: dest, status: "renamed", previous_filename: "packages/a/10-intent/intent.md" });
+  assert.equal(e?.rule, "write-areas");
+  assert.match(e.message, /10-intent\/intent\.md/);
+  e = await edit({ filename: dest, status: "copied", previous_filename: ".github/workflows/x.yml" });
+  assert.equal(e?.rule, "write-areas");
+  assert.match(e.message, /\.github/);
+  // A rename whose source is missing (or not text) is unknown, whatever its destination.
+  for (const f of [{ filename: dest, status: "renamed" }, { filename: dest, status: "copied", previous_filename: "" }, { filename: dest, status: "modified", previous_filename: 7 }]) {
+    const w = world({ changed: [f] });
+    e = await hosting.raisePullRequest(request, options(w)).then(() => null, (x) => x);
+    assert.equal(e?.code, "RAISE_REFUSED", JSON.stringify(f));
+    assert.equal(e.rule, "revision", JSON.stringify(f));
+    assert.deepEqual(posts(w.requests), [], "nothing was written");
+  }
+  // A rename inside the allowed area, both paths judged, goes on.
+  const ok = world({ changed: [{ filename: dest, status: "renamed", previous_filename: "packages/a/13-source/old.ts" }] });
+  await hosting.raisePullRequest(request, options(ok));
+  assert.deepEqual(posts(ok.requests).slice(0, 1), ["POST /repos/o/r/pulls"]);
+});
+
+it("hosting/T328: a pull request that opened against another base than the one whose policy was read gets no auto-merge", async () => {
+  const opened = (base) => world({ script: (r) => (r.method === "POST" && r.path.endsWith("/pulls") ? { status: 201, json: { number: 7, html_url: "https://github.com/o/r/pull/7", node_id: "PR_node7", head: { sha: HEAD }, base } } : undefined) });
+  for (const [why, base] of [["a moved base", { sha: "9".repeat(40) }], ["no base sha", {}], ["no base", undefined]]) {
+    const w = opened(base);
+    const e = await raise(w);
+    assert.equal(e?.code, "STEP_FAILED", why);
+    assert.equal(e.failed, "revision", why);
+    assert.deepEqual(e.steps, ["open"], why);
+    assert.equal(e.number, 7, why);
+    assert.deepEqual(posts(w.requests), ["POST /repos/o/r/pulls"], `${why}: no auto-merge, no close`);
+  }
+  const same = opened({ sha: BASE });
+  assert.equal(await raise(same), null);
+  assert.deepEqual(posts(same.requests), ["POST /repos/o/r/pulls", "POST /graphql"], "the base that was read: the declared auto-merge follows");
+});

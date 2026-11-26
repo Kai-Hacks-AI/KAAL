@@ -84,8 +84,10 @@ export async function raisePullRequest(request: RaiseRequest, options: RaiseOpti
   const headSha = await revision(head, "head");
   const baseSha = await revision(base, "base");
   const compared = await read(`/repos/${repo}/compare/${baseSha}...${headSha}`, "revision", undefined, "the comparison of the revisions");
-  const changed: unknown = Array.isArray(compared.files) ? compared.files.map((f: Json) => f?.filename) : undefined;
-  if (!Array.isArray(changed) || changed.some((p) => typeof p !== "string")) return refused("revision", "the comparison did not list its files");
+  // A rename or a copy touches two paths: the destination and the source it came from. Both are judged; a source GitHub does not name is unknown.
+  const paths = (f: Json): unknown[] => (f?.status === "renamed" || f?.status === "copied" || f?.previous_filename !== undefined ? [f?.filename, f?.previous_filename] : [f?.filename]);
+  const changed: unknown = Array.isArray(compared.files) ? compared.files.flatMap(paths) : undefined;
+  if (!Array.isArray(changed) || changed.some((p) => typeof p !== "string" || p === "")) return refused("revision", "the comparison did not list every path it changes, a rename's source among them");
   if (changed.length >= CUT) return refused("revision", `the comparison lists ${changed.length} files, where GitHub cuts the list: the changed paths are unknown`);
 
   // 3. The owners' policy, at the base revision.
@@ -131,6 +133,8 @@ export async function raisePullRequest(request: RaiseRequest, options: RaiseOpti
   steps.push("open");
   const exists = { number: opened.number as number, url: opened.html_url as string };
   if (opened.head?.sha !== headSha) throw new PullRequestError(`the pull request opened on ${String(opened.head?.sha)}, not on the revision ${headSha} that was checked; nothing more is done`, "STEP_FAILED", { steps: [...steps], failed: "revision", ...exists });
+  // The policy was read at the base revision; a base that moved since is a different base, and the checks above no longer speak for it.
+  if (opened.base?.sha !== baseSha) throw new PullRequestError(`the pull request opened against ${String(opened.base?.sha)}, not the base revision ${baseSha} whose policy was read; nothing more is done`, "STEP_FAILED", { steps: [...steps], failed: "revision", ...exists });
   const method = rules.autoMerge ?? "none";
   if (method !== "none") {
     const failure = (why: string) => new PullRequestError(`enabling auto-merge failed: ${why}`, "STEP_FAILED", { steps: [...steps], failed: "auto-merge", ...exists });
