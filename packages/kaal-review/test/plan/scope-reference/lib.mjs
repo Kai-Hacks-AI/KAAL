@@ -26,9 +26,10 @@ export function tree(files) {
   return root;
 }
 
-/** A Review item file. `validates` is the scope and `against` the optional reference; an undefined list is left out. */
+/** A Review item file. `validates` is the scope, `against` the reference (an outside one by default) and `criteria` the criteria; an undefined value is left out. */
 export function item(id, o = {}) {
-  const { validates, against } = o;
+  const { validates } = o;
+  const against = 'against' in o ? o.against : ['x/R1'];
   const criteria = 'criteria' in o ? o.criteria : ['it is so'];
   const list = (k, a) => (a ? [`${k}: [${a.join(', ')}]`] : []);
   return ['---', `id: ${id}`, ...list('validates', validates), ...list('against', against), '---', `# ${id}`, '',
