@@ -9,6 +9,12 @@
 
 Not authorized by this PLAN. Then `scripts/recognize-adapter.mjs` and the matching read in `scripts/verify-adapter.mjs`, the Case GREEN, the package suite GREEN.
 
+## DO record
+
+`scripts/recognize-adapter.mjs` is added and `scripts/verify-adapter.mjs` reads a recognition as observed. T1553 is GREEN and T1517 stays GREEN. The unit tests are `test/recognize-adapter.test.mjs`; the package suite runs 89 tests, all passing, when run with a glob. This collector's `test` line is not changed, so that main merges clean; the glob arrives with controls/C143 and then runs this test file.
+
+The recognition is structure: comments and literals are masked first, so nothing inside them is read; the import must resolve exactly to the adapter path; a branch that a constant condition keeps from running is removed. It is not execution, and a call that is reachable but never executed is still recognized. An entry that does not show the integration throws.
+
 ## ACT
 
 A retro entry in the collector.
