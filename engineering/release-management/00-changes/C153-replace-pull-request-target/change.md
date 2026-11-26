@@ -2,11 +2,11 @@
 
 ## Reason
 
-From 2 December 2026 the four required checks below stop reporting. Each needs a replacement that decides from files and git content on plain `pull_request`, with evidence before any ruleset is touched.
+From 2 December 2026 the four required checks below stop reporting. Each needs a replacement that decides from files and git content on plain `pull_request`, with its evidence gathered before enforcement and before any ruleset is touched.
 
 ## The four checks, in order, and what each needs
 
-1. **Change Isolation** (`change-isolation.yml`). Replacement: `isolate Changes` of controls ACT, advisory and live since 25 Nov (`KAAL_RELEASE_ISOLATE_CHANGES`). Needs: run evidence read, a statement that it covers what the old check judged, then the swap. First, because it already runs.
+1. **Change Isolation** (`change-isolation.yml`). Replacement: `isolate Changes` of controls ACT, advisory and live since 25 Nov (`KAAL_RELEASE_ISOLATE_CHANGES`). Needs: a statement that it covers what the old check judged, its run evidence read, then the Owner's go for the swap (it already runs, so no new detective installation). First, because it already runs.
 2. **Branching** (`lineage-synchronization.yml`). Replacement: its promotion-freshness verdict retires into the merge queue (release/I63, CTL32, the `promoting` ruleset's queue rule), and the lineage part is judged from git by verify Sync (release/C152) and the Dispatcher (release/C136). Needs: the queue rule loaded by the Owner, C152 and C136 DOs on the line, evidence.
 3. **Change Isolation (review)** (`merge-group-admission.yml`). Replacement: the same judge as 1 on the merge group, plain `merge_group`. Needs: check 1 proven, then the same judge wired for the queue event.
 4. **Promotion Source** (`promotion-source.yml`). Replacement: a promotion source judged from the pull request as Git data, with the host adapter supplying trustworthy bytes (the one item the CPO and CTO hold). Last, because it guards `main` and needs the CTO's trust-boundary proof before DO.
@@ -27,7 +27,15 @@ From 2 December 2026 the four required checks below stop reporting. Each needs a
 
 ## Per check, the same steps
 
-DO the replacement behind its flag, detective, as its own Change; read the run evidence; the Owner's go; WIRE installs it; the ruleset swaps the required context on the Owner's go; the old workflow is deleted and the ratchet falls by one. Nothing is required before its evidence exists. If a check has none by 2 December, the Owner decides on dropping it, and a drop is its own listed step.
+The CPO's sequence, per check:
+
+1. Implement and test the replacement before installing it (its own Change: DO behind its flag, detective, with its Cases).
+2. The Owner-authorized detective WIRE installs it. No flag live as a requirement, nothing required.
+3. Gather operational evidence from its real runs. Evidence comes after the detective installation, not before it.
+4. Evidence is read, then the Owner authorizes enforcement and the ruleset swap of the required context.
+5. Retire the old workflow; the ratchet falls by one.
+
+Evidence is required before enforcement, never before the detective installation. Dropping a check is the fallback only: if a check has no evidence by 2 December, the Owner decides on dropping it, and a drop is an explicit Owner decision per check and its own listed step.
 
 ## Not in this Change
 
