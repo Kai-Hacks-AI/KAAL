@@ -9,7 +9,7 @@ A pure entry `05-src/evidence/collect-run-records.mjs` exporting `collect({ revi
 - `runs`: the workflow runs of `main` that Hosting reports, each `{ run, sha, workflow, event, conclusion, lines }`, where `lines` are the lines the run printed.
 - `map` and `entries`: the delivery map and the text of the delivered entries on `main` at the revision, as data.
 Its answer is `{ revision, records, established, rejected, map, entries }`, the input the controls judge takes:
-- `records`: every line of a run at the revision that parses as a control record (the shape of controls/F203 with whatever fields Controls adds), kept as printed, each tied to the run it came from.
+- `records`: every line of a run at the revision that parses as a control record, kept as printed, each tied to the run it came from. The record is Controls' (controls/C158, #2714): `{control, x, run, sha, verdict, by: 'adapter'}` plus `mode` (off, detective, preventive or ratchet), `applied` (true, false for off, null for unknown) and `flag` (`{name, value, state}`, state on, off or UNKNOWN). The collector carries every field unchanged and decides nothing from them.
 - `established`: the runs Hosting reports as existing at the revision, as `{ control, run, sha }` for each record, derived only from the run's own data (its id, its sha, its workflow), never from what the record claims about itself.
 - `rejected`: every line that looked like a record and did not parse, and every run of another revision, each with its reason. Nothing is dropped silently and nothing is guessed.
 It reads no file, no API and no environment, never judges a verdict, and states no fact of Implemented, Running or Tested.
@@ -30,15 +30,16 @@ All red until the DO.
 Add the entry. The DO renames the parked Cases unchanged. Each Case is green with the package suite. The runner that reads the runs through Hosting and calls the controls judge, and any workflow, are later Changes.
 
 ## Order
-Depends on Controls for the judge and the record shape: the judgement of Implemented and Running from records, the new fields of `runControl` (the flag name and value, and a `mode: off` run) and the way a record is printed. This PLAN states what it needs; the Cases follow Controls' PLAN by a small amendment here, never by changing an expectation in the DO. Independent of release/C157 to C161.
+Depends on Controls' PLAN controls/C158 (#2714, collector `kaal/controls/flag-status`) for the judge `judgeRunning` and the record fields (`mode`, `applied`, `flag`). The Cases below already use them; if Controls amends the shape, the Cases follow by a small amendment here, never by changing an expectation in the DO. Independent of release/C157 to C161.
 
 ## After it
 ACT, PROMOTION. Then a Change that runs the collector over the runs of `main` and calls Controls' judge, and one that wires it as a job, which needs the Owner's go. Enforcement of verify Record is a separate Owner decision.
 
 ## Left open (with a recommendation)
-- How a record is printed (a line prefix, the job summary, an artifact) and which fields it carries. Recommendation: Controls states them in its PLAN; Release collects whatever that shape says and rejects the rest.
+- How a record is printed (Controls' library builds the objects and prints nothing; printing is Release's). Decision here: each entry prints exactly one line per run, `kaal-control <JSON of the record>`, to the job log and the job summary, and the collector reads only lines with that prefix. The entries print it in their own Changes (C154 shape); this Change defines the line and reads it.
 - `mode: off` runs: decided by the CTO. An executed run with the flag off proves Running, and the mode is reported beside it so it never reads as applied. That rule is Controls' judge's. The collector only carries the fields (the mode, the flag name and value) with each record and decides nothing from them.
-- Hosting supplies the runs and the delivery data (its facts); a request to Hosting for the shape of `runs` comes after Controls' record shape is stated.
+- The judge (`judgeRunning({id, records, revision, established})`, per control, returns `{id, running, applied, modes, runs}`) takes the raw records and the runs the collector established. `map` and `entries` are for the later Implemented judge, which takes them as the F207 inventory `{revision, scope, complete, entries}`; the collector passes them raw now and shapes them when that judge is planned.
+- Hosting supplies the runs and the delivery data (its facts); a request to Hosting for the shape of `runs` follows.
 
 ## Not in this Change
 No judgement of any fact, no workflow, WIRE, flag, required check or ruleset change. No claim about Tested.

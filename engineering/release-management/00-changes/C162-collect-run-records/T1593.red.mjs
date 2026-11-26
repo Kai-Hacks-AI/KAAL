@@ -13,13 +13,14 @@ export async function run() {
   const { collect } = await import(pathToFileURL(ENTRY).href);
   assert.equal(typeof collect, 'function', 'the entry exports no collect');
   const REV = 'a'.repeat(40);
-  const record = { control: 'release/CTL1', x: 'real', run: '100', sha: REV, verdict: 'pass', by: 'adapter' };
+  const record = { control: 'release/CTL1', x: 'real', run: '100', sha: REV, verdict: 'pass', by: 'adapter', mode: 'off', applied: false, flag: { name: 'KAAL_RELEASE_X', value: 'off', state: 'off' } };
   const line = (r) => `kaal-control ${JSON.stringify(r)}`;
   const run = (more = {}) => ({ run: '100', sha: REV, workflow: 'verify-workflow-names.yml', event: 'push', conclusion: 'success', lines: [line(record)], ...more });
   const input = (more = {}) => ({ revision: REV, runs: [run()], map: { rows: [] }, entries: {}, ...more });
   const ok = await collect(input());
   assert.deepEqual(ok.records.map((r) => r.record), [record], 'a valid line is collected as printed');
   assert.equal(ok.records[0].run, '100', 'a record is tied to its run');
+  assert.deepEqual(ok.records[0].record.flag, record.flag, 'the flag and the mode are carried unchanged');
   const bad = await collect(input({ runs: [run({ lines: ['kaal-control {not json'] }), run({ run: '101', sha: 'b'.repeat(40) })] }));
   assert.equal(bad.records.length, 0, 'a malformed line and another revision are not collected');
   assert.equal(bad.rejected.length, 2, 'each is rejected, none dropped silently');
