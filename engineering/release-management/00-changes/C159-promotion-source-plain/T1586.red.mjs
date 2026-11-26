@@ -1,4 +1,4 @@
-// Case release/T1586 tests: release/C159. The head evidence entry of the Promotion Source replacement passes only for all-green required checks at the head, and never passes absent check evidence. Behaviour, not structure.
+// Case release/T1586 tests: release/C159. The head evidence entry of the Promotion Source replacement passes only for all-green required checks at the head, and reports absent check evidence as UNKNOWN. Behaviour, not structure.
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -7,7 +7,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const ENTRY = join(repo, 'engineering/release-management/05-src/promotion-source/judge-head-evidence.mjs');
 export const id = 'release/T1586';
 export const tests = ['release/C159'];
-export const title = 'the head evidence entry of the Promotion Source replacement passes only for all-green required checks and never passes absent evidence';
+export const title = 'the head evidence entry of the Promotion Source replacement passes only for all-green required checks and reports absent evidence as UNKNOWN';
 export async function run() {
   assert.ok(existsSync(ENTRY), 'the entry judge-head-evidence.mjs is absent');
   const { check } = await import(pathToFileURL(ENTRY).href);
@@ -20,5 +20,5 @@ export async function run() {
   assert.equal(await kind({ checks: checks([run1('success')]) }), 'pass', 'all green passes');
   assert.equal(await kind({ checks: checks([run1('failure')]) }), 'fail', 'a red required check fails');
   assert.equal(await kind({ checks: checks([run1(null, 'in_progress')]) }), 'fail', 'a pending required check fails');
-  assert.notEqual(await kind({}), 'pass', 'absent check evidence is not a pass');
+  assert.equal(await kind({}), 'unknown', 'absent check evidence is UNKNOWN, never a pass and never a fail');
 }

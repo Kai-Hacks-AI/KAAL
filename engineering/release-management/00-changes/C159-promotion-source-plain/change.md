@@ -17,7 +17,7 @@ Two control records, `release/CTL40` (Promotion Source: origin) and `release/CTL
 - T1579: the source `05-src/wiring/workflows/promotion-source-plain.yml` exists, is plain `pull_request`, has the workflow name `Promotion Source on pull_request`, unique, the two detective job names, `checks: read` only in the head evidence job, and runs the two entries, not `kaal-guard`.
 - T1580: each of the two entries imports the adapter by the real relative specifier and `recognizeIntegration` recognizes it, with its own control id. Structure only.
 - T1585: the origin entry gives the verdicts above for its fact sets: a `kaal/*`, a `hotfix/*` and a `wire/*` head of this repository pass; a fork head, a `feature/*` head and an other branch fail; a base that is not the default branch is not applicable. Behaviour, not structure.
-- T1586: the head evidence entry passes only for all-green required checks at the head; a red or pending required check fails; absent check evidence is not a pass (UNKNOWN). Behaviour, not structure.
+- T1586: the head evidence entry passes only for all-green required checks at the head; a red or pending required check fails; absent check evidence is UNKNOWN, asserted as such (not any non-pass). Behaviour, not structure.
 All red until the DO.
 
 ## DO
