@@ -62,7 +62,7 @@ export async function raisePullRequest(request: RaiseRequest, options: RaiseOpti
 
   const api = (options.api ?? "https://api.github.com").replace(/\/$/, "");
   const doFetch = options.fetch ?? globalThis.fetch;
-  const headers = { authorization: `Bearer ${options.token}`, accept: "application/vnd.github+json", "user-agent": "kaal-hosting", "x-github-api-version": "2022-11-28" };
+  const headers = { authorization: `Bearer ${options.token}`, accept: "application/vnd.github+json", "user-agent": "KAAL Hosting", "x-github-api-version": "2022-11-28" };
   const call = async (method: "GET" | "POST", path: string, body?: unknown): Promise<{ status: number; json: Json }> => {
     const response = await doFetch(`${api}${path}`, { method, headers: body === undefined ? headers : { ...headers, "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
     let json: Json = null;
