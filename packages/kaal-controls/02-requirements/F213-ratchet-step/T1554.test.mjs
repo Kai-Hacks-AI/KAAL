@@ -36,6 +36,9 @@ export async function run() {
   is(j(files(['a', 'b', 'c'], adoption), files(['a', 'b'], adoption, { ...shrink, at: '2026-11-25T13:00Z' }), carried('rel/C140')), 'FAIL', 'progress', 'time-out-of-window');
   is(j(files(null), files(['a', 'b', 'c'], { ...adoption, to: 2 }), carried('rel/C134')), 'FAIL', 'adoption', 'line-mismatch');
   is(j(files(['a'], { ...adoption, to: 1 }), files(['a'], { ...adoption, to: 1 }, shrink), carried('rel/C140')), 'FAIL', 'progress', 'history-without-change');
+  // adoption and shrink are two steps: a base with a baseline and no history that gets an adoption line and a shrink line at once is an adoption, and it is rejected
+  is(j(files(['a', 'b', 'c']), files(['a', 'b'], adoption, shrink), carried('rel/C140')), 'FAIL', 'adoption', 'line-mismatch');
+  is(j(files(['a', 'b', 'c']), files(['a', 'b'], { ...adoption, to: 3 }, shrink), carried('rel/C134')), 'FAIL', 'adoption', 'line-mismatch');
   // absent is not empty: a file the caller could not read is not "no file" (null), it is unreadable
   const bad = (x) => { assert.equal(x.verdict, 'UNKNOWN', `not UNKNOWN: ${JSON.stringify(x)}`); };
   bad(j(files(['a', 'b', 'c'], adoption), { baseline: '[not json', history: L(shrink) }, carried('rel/C140')));
@@ -45,6 +48,14 @@ export async function run() {
   bad(j(files(['a', 'b', 'c'], adoption), files(['a', 'b'], adoption, shrink), []));
   bad(j(files(['a', 'b', 'c'], adoption), files(['a', 'b'], adoption, shrink), [...carried('rel/C140'), ...carried('rel/C141')]));
   bad(j(files(['a', 'b', 'c'], adoption), files(['a', 'b'], adoption, shrink), carried('rel/C140'), null));
+  // validation comes before the shortcut for unchanged: the same unreadable text on both sides is unknown, never an unchanged pass
+  const same = (x) => bad(j(x, x, []));
+  same({ baseline: '[not json', history: null });
+  same({ baseline: L(['a', 'a']), history: null });
+  same({ baseline: L(['a']), history: '{"at":' });
+  same({ baseline: L(['a']), history: '1\n' });
+  same({ baseline: undefined, history: null });
+  same({ baseline: null, history: 5 });
   bad(judgeRatchetStep({ carried: carried('x'), window }));
   bad(judgeRatchetStep());
 }
