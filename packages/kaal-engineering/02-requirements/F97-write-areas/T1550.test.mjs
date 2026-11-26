@@ -16,6 +16,6 @@ export async function run() {
   for (const p of paths) {
     const phase = resolve(areas, p);
     if ([...unassigned].some((u) => p.startsWith(`${u}/`))) assert.equal(phase, undefined, `${p} must be unassigned`);
-    else assert.ok(['PLAN', 'DO', 'CHECK', 'ACT'].includes(phase), `${p} has no phase`);
+    else assert.ok(['PLAN', 'DO', 'ACT'].includes(phase), `${p} has no phase`);
   }
 }

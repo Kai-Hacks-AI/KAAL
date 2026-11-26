@@ -8,7 +8,7 @@ export async function run() {
   const areas = load();
   const seen = new Map();
   for (const { path, phase } of areas.areas) {
-    assert.ok(['PLAN', 'DO', 'CHECK', 'ACT'].includes(phase), `${path} has the phase ${phase}`);
+    assert.ok(['PLAN', 'DO', 'ACT'].includes(phase), `${path} has the phase ${phase}`);
     assert.ok(!seen.has(path), `${path} appears twice`);
     seen.set(path, phase);
   }
