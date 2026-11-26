@@ -44,6 +44,10 @@ Intent, requirements, architecture and defects each say what verifies that they 
 
 A Review item (`V<n>.md`) validates a subject by judgement. It sits beside the subject it validates, as a Case sits beside the subject it verifies: in a folder `review-items` inside the folder that holds the subject (`10-intent`, `11-requirements`, `12-architecture`, `13-source`, `14-operations` or `15-defects`). The folder is optional, never required, and never the verifier of its folder. What a Review item is, and who reads it, belongs to kaal-review.
 
+## Write areas
+
+`write-areas.json`, beside `package-layout.json`, says which phase writes which path of a capability root: PLAN, DO or ACT. DO is source only (`13-source` and the package root files). A path belongs to the phase of the longest row it lies under, and a path no row names belongs to no phase and is reported, never guessed. Two kinds of row carry no phase: `01-changes`, delegated to kaal-change, and a control's `baseline.json`, an allowance transition owned by Controls. The file states where a path may be written, never whether the write is authorized. It also lists the pull request types and the areas each may carry. Legacy folder names resolve through a short alias list.
+
 ## Rules
 
 - The numbers only order the folders for people.
