@@ -64,6 +64,7 @@ describe("kaal-testing", () => {
       "lib/inventory.mjs",
       "lib/observe.mjs",
       "lib/report.mjs",
+      "lib/run-case.mjs",
       "lib/run-reporter.mjs",
       "lib/run.mjs",
       "package.json",
