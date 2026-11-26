@@ -37,7 +37,7 @@ ACT, PROMOTION. Then a Change that runs the collector over the runs of `main` an
 
 ## Left open (with a recommendation)
 - How a record is printed (a line prefix, the job summary, an artifact) and which fields it carries. Recommendation: Controls states them in its PLAN; Release collects whatever that shape says and rejects the rest.
-- Whether `mode: off` runs are passed on. Recommendation: yes, as records with their mode; whether they count is the judge's.
+- `mode: off` runs: decided by the CTO. An executed run with the flag off proves Running, and the mode is reported beside it so it never reads as applied. That rule is Controls' judge's. The collector only carries the fields (the mode, the flag name and value) with each record and decides nothing from them.
 - Hosting supplies the runs and the delivery data (its facts); a request to Hosting for the shape of `runs` comes after Controls' record shape is stated.
 
 ## Not in this Change
