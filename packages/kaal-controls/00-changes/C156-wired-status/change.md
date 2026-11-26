@@ -25,11 +25,11 @@ Release owns the runner and the report: discovering what is installed in the del
 
 - Three statuses and UNKNOWN, as the CTO asked: `wired`, `code-only`, `wired-unproven`, and UNKNOWN as the throw that the adapter turns into UNKNOWN for the whole report.
 - It is a report, not a finding: `code-only` waits for the Owner's go and is not nonconformance, so nothing here can be baselined or blocks.
+- **Design decision (CTO):** running proven for a control that is not observed installed makes the judge throw, so the whole report is UNKNOWN. An incomplete installed inventory is the likely cause, and a wrong status is worse than UNKNOWN. T1555 pins it.
 - The four DIRT facts stay independent. This judge reads two of them (installed and running) as given and never infers one from the other; it refuses evidence that contradicts itself instead (running proven for a control not observed installed).
 - The inventories take the shape of controls/F207, so one discovery can serve both judges.
 
 ## Left open (for the CPO, with a recommendation)
 
-- Whether a running proof for a control not observed installed should throw, as here, or give `wired-unproven`-like doubt. Recommendation: throw; an incomplete installed inventory is the likely cause, and a wrong status is worse than UNKNOWN.
 - Whether the declared list is all declared controls or only the implemented ones. Recommendation: the adopter chooses and says so, since implemented is verify Record's fact.
 - Ids C156, I28, G115, F214, A211 and T1555 are taken by hand; on a clash the newer change renumbers.
