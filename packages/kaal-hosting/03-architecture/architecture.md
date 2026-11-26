@@ -92,3 +92,9 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 ## Listing without what the caller leaves out
 
 - **hosting/A40** [hosting/F90, hosting/F91, hosting/F92, hosting/N10]: the options of `list` are read once at its top (`leaving`, a `TypeError` before anything is read) and passed into the shared `walk`, which decides on each entry before it reads a directory or follows a link; `read` passes none, so its behaviour is unchanged. `ListOptions` is exported from `index.ts`. The Skill's operation guide names the options and says to use them instead of reading a directory with `node:fs`.
+
+## The GitHub App adapter
+
+- **hosting/A43** [hosting/F98, hosting/F100, hosting/F103]: `app-declaration.ts` holds the vocabulary, the mapping to GitHub's permissions and the validator; `app-manifest.ts` renders the manifest and `app-logo.ts` checks a logo. All are in `05-src/skills/kaal-hosting/scripts/github/`, re-exported from `index.ts`, and import nothing of the file system, the processes or the network.
+- **hosting/A44** [hosting/F99, hosting/F102, hosting/F103]: `grant.ts` is the one place a grant's token, abilities, identity, repository and transport are held, in a table keyed by the frozen handle that is returned, and the one place a grant is used (`useGrant`). `app-token.ts` mints it: JWT, installation, a contents-only bootstrap token to read the declaration from the default branch, the identity and installation checks, then the narrowed token and its checks. Only `grantAbilities` and `grantIdentity` are exported to read a grant.
+- **hosting/A45** [hosting/F101, hosting/F102]: `app-reads.ts` holds the five reads. Each validates its options and arguments, then asks `useGrant` for the token, and sends only GET requests through the `fetch` and origin the grant was minted against. The modules are named by the Cases.

@@ -1,8 +1,38 @@
-// hosting/T319 draft (hosting/C114): invalid App declarations are refused.
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
-import { DISPATCHER } from "./fixtures.mjs";
+import { DISPATCHER } from "./app-fixtures.mjs";
+
+// hosting/T318 (hosting/C114): the App manifest, exact bytes.
+
+it("hosting/T318: renderAppManifest gives exact, deterministic bytes with abilities mapped to permissions and metadata always read", () => {
+  const expected = [
+    "{",
+    '  "name": "KAAL Dispatcher",',
+    '  "url": "https://github.com",',
+    '  "public": false,',
+    '  "hook_attributes": {',
+    '    "url": "https://example.invalid",',
+    '    "active": false',
+    "  },",
+    '  "default_events": [],',
+    '  "default_permissions": {',
+    '    "contents": "read",',
+    '    "metadata": "read",',
+    '    "pull_requests": "write"',
+    "  }",
+    "}",
+    "",
+  ].join("\n");
+  assert.equal(hosting.renderAppManifest(DISPATCHER), expected);
+  assert.equal(hosting.renderAppManifest(structuredClone(DISPATCHER)), expected);
+  const reader = hosting.renderAppManifest({ ...DISPATCHER, abilities: ["read-contents", "read-pull-requests", "read-checks"] });
+  assert.deepEqual(JSON.parse(reader).default_permissions, { checks: "read", contents: "read", metadata: "read", pull_requests: "read" });
+  const writer = hosting.renderAppManifest({ ...DISPATCHER, abilities: ["read-contents", "post-checks", "raise-pull-requests"] });
+  assert.deepEqual(JSON.parse(writer).default_permissions, { checks: "write", contents: "read", metadata: "read", pull_requests: "write" });
+});
+
+// hosting/T319 (hosting/C114): invalid App declarations are refused.
 
 it("hosting/T319: renderAppManifest refuses every invalid declaration with INVALID_APP_DECLARATION, naming the field", () => {
   const bad = {

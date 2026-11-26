@@ -1,8 +1,9 @@
-// hosting/T323 draft (hosting/C114): the logo slot is checkable.
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
-import { png } from "./fixtures.mjs";
+import { png } from "./app-fixtures.mjs";
+
+// hosting/T323 (hosting/C114): the logo slot is checkable.
 
 it("hosting/T323: checkLogo accepts a square PNG of at least 200 by 200 and names what is wrong otherwise", () => {
   assert.deepEqual(hosting.checkLogo(png(200, 200)), { ok: true, width: 200, height: 200 });

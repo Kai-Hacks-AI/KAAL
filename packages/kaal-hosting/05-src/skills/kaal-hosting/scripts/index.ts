@@ -1021,3 +1021,15 @@ export type { RevisionOptions } from "./revision.js";
 
 export { readPullRequests } from "./github/pull-requests.js";
 export type { Check, Gh, GhResult, PullRequest, PullRequestsOptions, Review, Unknown } from "./github/pull-requests.js";
+
+export { renderAppManifest } from "./github/app-manifest.js";
+export { checkLogo } from "./github/app-logo.js";
+export type { LogoCheck } from "./github/app-logo.js";
+export { AppAdapterError } from "./github/app-error.js";
+export type { AppErrorCode } from "./github/app-error.js";
+export { grantAbilities, grantIdentity } from "./github/grant.js";
+export type { Grant } from "./github/grant.js";
+export { mintToken } from "./github/app-token.js";
+export type { MintOptions, MintRequest } from "./github/app-token.js";
+export { compareRevisions, listBranches, listPullRequests, listReviews, readRef } from "./github/app-reads.js";
+export type { Compared, PullRequestFact, ReadOptions, ReviewFact } from "./github/app-reads.js";
