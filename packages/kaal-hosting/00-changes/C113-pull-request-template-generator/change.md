@@ -61,6 +61,15 @@ Raising a pull request follows everything agreed for its type, and the template 
    - hosting/T316: the CLI raises from the chapters file and `GITHUB_TOKEN`, prints the URL, exits non-zero on any refusal naming the rule, writes nothing on a refusal, and rejects `--auto-merge`, `--merge-method`, `--draft`, `--merge`, `--declarations`, `--types`, `--write-areas`, `--changed` and `--policy`.
    - hosting/T317: production authority is not caller-selected. Caller-supplied declarations, type list, write areas, changed paths (empty or forged), policy, merge method, auto-merge and draft are refused before any call, not even a read. A permissive policy and declaration committed on the head are never read (no read at the head revision) and the base's rules decide, including the merge method. Every unknown refuses with nothing written: a missing or non-JSON policy file, a declaration without the type, an unresolved head or base, a failed compare, a compare cut off at 300 files.
 
+## Amendment (CPO review of the DO, two gaps in revision-bound authority)
+
+Two holes in what the raise treats as the checked revision, found in the review of the DO and closed by two added Cases, executable drafts `T327` and `T328` in this folder (T303 to T317 are unchanged):
+
+- hosting/T327: the comparison names a changed file by `filename` and, for a rename or a copy, by `previous_filename` too. The write-area judgement covers **both**: a rename out of a path the type may not write is refused and names the path it came from; a rename or copy whose source is missing, empty or not text is unknown and refuses with `RAISE_REFUSED` (rule `revision`) and writes nothing; a rename inside an allowed area, both paths judged, goes on.
+- hosting/T328: after the pull request is opened, its base revision must equal the base revision whose policy was read, as the head must equal the head that was checked. A base that moved, or one the answer does not name, ends the raise with `STEP_FAILED` (`failed: "revision"`, `steps: ["open"]`, the number of the pull request that exists) and enables no auto-merge, no close, no retry; the same base lets the declared auto-merge follow.
+
+F97 states both. The ids T327 and T328 are used because the provisional hosting/C114 holds T318 to T326. Nothing else in this PLAN changes.
+
 ## The interface the Cases fix
 
 All from `@kaihacksai/kaal-hosting`; the CLI is `scripts/pull-request-cli.mjs`, bin `kaal-hosting-pull-request`.
@@ -82,7 +91,7 @@ Any DO. Writing or installing a template (a WIRE, Kai's go); the content of any 
 
 ## DO
 
-Not authorized by this PLAN. On the merged PLAN, in the collector: the format and its validator, `renderTemplate`, `renderBody`, `checkTemplates`, T303 to T317 as delivered Cases, the ids allocated in `04-test/package-check/testing.md`, the element texts of `interface.md`, the README and Skill entry, and Hosting's suites on all three hosts.
+Not authorized by this PLAN. On the merged PLAN, in the collector: the format and its validator, `renderTemplate`, `renderBody`, `checkTemplates`, T303 to T317, T327 and T328 as delivered Cases, the ids allocated in `04-test/package-check/testing.md`, the element texts of `interface.md`, the README and Skill entry, and Hosting's suites on all three hosts.
 
 ## ACT
 
