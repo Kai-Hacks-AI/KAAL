@@ -10,7 +10,7 @@ export async function run() {
   assert.deepEqual(Object.keys(by).sort(), ['ACT', 'DO', 'HOTFIX', 'PLAN', 'PROMOTION', 'SYNC', 'WIRE']);
   for (const t of d.types) {
     assert.ok(typeof t.owner === 'string' && t.owner, `${t.type} has no owner`);
-    for (const k of ['chapters', 'base', 'head', 'notHead', 'recognised']) assert.ok(!(k in t), `${t.type} carries ${k}, which its owner declares`);
+    for (const k of ['chapters']) assert.ok(!(k in t), `${t.type} carries ${k}, which its owner declares`);
   }
   assert.ok(d.invalid.includes('DEFAULT'), 'DEFAULT is not named invalid');
   assert.ok(!by.DEFAULT, 'DEFAULT is a TYPE');

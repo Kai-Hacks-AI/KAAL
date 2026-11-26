@@ -7,3 +7,5 @@ export const definitionPath = join(refs, 'pull-request-types.json');
 export const areasPath = join(refs, 'write-areas.json');
 export const load = () => { if (!existsSync(definitionPath)) throw new Error('pull-request-types.json does not exist'); return JSON.parse(readFileSync(definitionPath, 'utf8')); };
 export const loadAreas = () => JSON.parse(readFileSync(areasPath, 'utf8'));
+// A branch matches a pattern when it has the same segments; `*` stands for any characters of one segment.
+export const matches = (branch, pattern) => new RegExp(`^${pattern.split('*').map((x) => x.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*')}$`).test(branch);
