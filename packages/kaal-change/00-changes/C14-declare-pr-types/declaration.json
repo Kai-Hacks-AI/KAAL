@@ -39,7 +39,7 @@
         { "name": "Urgency", "guidance": "Why this cannot follow the ordinary Change path, and the consequence of waiting. A ticket number or a priority label is not an answer." },
         { "name": "Approach", "guidance": "Why this is the fastest safe path from the RED Case to GREEN, not a broader improvement or a refactoring: the choice and what it trades off, not the implementation. If production is affected, say what else from main a new published version would carry." }
       ],
-      "raise": { "head": ["hotfix/*"], "base": ["main"], "draft": false, "title": { "forbid": ["\\b[a-z]*/?C[0-9]+\\b"] } }
+      "raise": { "draft": false, "title": { "forbid": ["\\b[a-z]*/?C[0-9]+\\b"] } }
     }
   ]
 }
