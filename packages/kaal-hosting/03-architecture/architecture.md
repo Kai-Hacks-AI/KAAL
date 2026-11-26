@@ -40,6 +40,7 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 | files | `dist` |  | delivered |
 | bin | `kaal-hosting-revision` | `dist/skills/kaal-hosting/scripts/revision-cli.mjs` | delivered |
 | bin | `kaal-hosting-pulls` | `dist/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs` | delivered |
+| bin | `kaal-hosting-pull-request` | `dist/skills/kaal-hosting/scripts/pull-request-cli.mjs` | delivered |
 <!-- /kaal-hosting:interface -->
 
 ## The conformance suite
@@ -92,3 +93,8 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 ## Listing without what the caller leaves out
 
 - **hosting/A40** [hosting/F90, hosting/F91, hosting/F92, hosting/N10]: the options of `list` are read once at its top (`leaving`, a `TypeError` before anything is read) and passed into the shared `walk`, which decides on each entry before it reads a directory or follows a link; `read` passes none, so its behaviour is unchanged. `ListOptions` is exported from `index.ts`. The Skill's operation guide names the options and says to use them instead of reading a directory with `node:fs`.
+
+## Rendering and raising pull requests
+
+- **hosting/A41** [hosting/F93, hosting/F94, hosting/F95, hosting/F96]: `scripts/github/templates.ts`, re-exported from `index.ts`, holds the declaration validator, `renderTemplate`, `renderBody`, `checkTemplates` and `PullRequestError`. Everything but `checkTemplates` is pure; it reads the directory through Hosting's own `read`. Every GitHub-specific part (the comment form, the declaration line, the file name) is in this module and in no declaration.
+- **hosting/A42** [hosting/F97]: `scripts/github/raise.ts`, re-exported from `index.ts`, holds `raisePullRequest`. It is the only place the owners' policy locations are named (the type list and the write areas under `kaal-engineering`'s references, the declaration at `packages/<owner>/13-source/pull-request-types/<owner>.json`), and it reads them through the API at the base revision, never from the head. A test or a tool injects the transport (`fetch`, `api`), never data. The command `kaal-hosting-pull-request` (`scripts/pull-request-cli.mjs`) is a thin caller that takes the token from `GITHUB_TOKEN` and accepts no merge, draft or policy option.
