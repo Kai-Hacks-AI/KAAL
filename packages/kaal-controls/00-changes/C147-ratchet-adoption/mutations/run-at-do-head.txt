@@ -1,0 +1,29 @@
+ratchet.mjs c6aeb6f149b09690236ca45b32df8b4c3eca6056 on parent 61747f20
+baseline (no mutation)
+  controls/T1530 GREEN
+A1-already-adopted-allowed
+  controls/T1530 RED: already-adopted did not fail
+A10-window-unchecked
+  controls/T1530 RED: time-out-of-window did not fail
+A11-absent-not-accepted
+  controls/T1530 RED: a plain adoption was refused
+A12-unstated-taken-as-absent
+  controls/T1530 RED: Cannot read properties of undefined (reading 'includes')
+A13-unreadable-time-passes
+  controls/T1530 RED: a malformed input was not UNKNOWN
+A2-extra-lines-allowed
+  controls/T1530 RED: line-mismatch did not fail
+A3-from-unchecked
+  controls/T1530 RED: line-mismatch did not fail
+A4-size-unchecked
+  controls/T1530 RED: line-mismatch did not fail
+A5-removed-allowed
+  controls/T1530 RED: line-mismatch did not fail
+A6-growth-over-existing-allowed
+  controls/T1530 RED: baseline-grew did not fail
+A7-existing-empty-taken-as-absent
+  controls/T1530 RED: baseline-grew did not fail
+A8-change-id-unchecked
+  controls/T1530 RED: change-mismatch did not fail
+A9-unknown-change-allowed
+  controls/T1530 RED: change-unknown did not fail
