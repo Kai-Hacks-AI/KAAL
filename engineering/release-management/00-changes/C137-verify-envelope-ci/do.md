@@ -9,7 +9,8 @@
 
 ## Departures from the PLAN
 
-- CTL11 stays `status: designed`. T881 and the draft that T880 compares require it, and CTL19, which is also built as a workflow source, stays `designed` the same way. The status moves with its own proof, as a separate step; this DO claims no proof for it.
+- CTL11 stays `status: designed`, as the corrected PLAN now says (#2565, approved by the CPO): the status moves in its own evidence-backed Change.
+- (Earlier text, kept:) CTL11 stays `status: designed`. T881 and the draft that T880 compares require it, and CTL19, which is also built as a workflow source, stays `designed` the same way. The status moves with its own proof, as a separate step; this DO claims no proof for it.
 
 ## What this does not show
 
