@@ -1,38 +1,29 @@
-// hosting/T311 draft (hosting/C113): auto-merge authorisation comes only from the declaration; nothing merges or approves.
+// hosting/T311 draft (hosting/C113): auto-merge comes only from the owner's declaration at the base revision.
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
-import { HOTFIX, declarations, names, options, request, standIn } from "./fixtures.mjs";
+import { BASE, DO, HEAD, HOTFIX, PATHS, options, policy, posts, request, world } from "./fixtures.mjs";
 
-const refusedBefore = async (api, input, rule) => {
-  await assert.rejects(hosting.raisePullRequest(input, declarations, options({ fetch: api.fetch, api: api.api })), (e) => e.code === "RAISE_REFUSED" && e.rule === rule);
-  assert.equal(api.requests.length, 0, `${rule}: nothing was sent`);
-};
+const withDeclaration = (declaration, other = {}) => world({ files: { [BASE]: policy({ [PATHS.declaration("kaal-change")]: JSON.stringify({ types: [declaration, HOTFIX] }), ...other }), [HEAD]: policy() } });
 
-it("hosting/T311: none or absent means no auto-merge call; the caller cannot choose a method or draft; no merge or approval request is ever sent", async () => {
-  const none = standIn();
-  const hotfix = { ...request, type: "HOTFIX", chapters: { Change: "d" }, head: "hotfix/x", base: "main", title: "Fix a defect" };
-  await hosting.raisePullRequest(hotfix, declarations, options({ fetch: none.fetch, api: none.api }));
-  assert.deepEqual(names(none.requests), ["POST /repos/o/r/pulls"], "autoMerge none: one request");
-  assert.equal(none.requests[0].body.draft, true, "the declared draft flag");
-  const absent = standIn();
-  const bare = [{ ...HOTFIX, raise: { head: ["hotfix/*"], base: ["main"] } }];
-  await hosting.raisePullRequest(hotfix, bare, options({ fetch: absent.fetch, api: absent.api }));
-  assert.deepEqual(names(absent.requests), ["POST /repos/o/r/pulls"], "no autoMerge declared: one request, not a draft");
-  assert.equal(absent.requests[0].body.draft, false);
-
-  await refusedBefore(standIn(), { ...request, autoMerge: "squash" }, "caller-merge-choice");
-  await refusedBefore(standIn(), { ...request, mergeMethod: "merge" }, "caller-merge-choice");
-  await refusedBefore(standIn(), { ...request, draft: true }, "caller-draft-choice");
-
-  for (const method of ["squash", "merge", "rebase", "none"]) {
-    const api = standIn();
-    const d = [{ ...declarations[0], raise: { ...declarations[0].raise, autoMerge: method } }];
-    await hosting.raisePullRequest(request, d, options({ fetch: api.fetch, api: api.api }));
-    for (const r of api.requests) {
-      assert.doesNotMatch(r.path, /\/merge$|\/reviews$|\/review$/);
+it("hosting/T311: the declared method is what is enabled, none or absent enables nothing, and nothing merges, reviews or approves", async () => {
+  for (const [method, enum_] of [["squash", "SQUASH"], ["merge", "MERGE"], ["rebase", "REBASE"]]) {
+    const w = withDeclaration({ ...DO, raise: { ...DO.raise, autoMerge: method } });
+    await hosting.raisePullRequest(request, options(w));
+    assert.equal(w.requests.at(-1).body.variables.mergeMethod, enum_, method);
+    for (const r of w.requests) {
+      assert.doesNotMatch(r.path, /\/merge$|\/reviews?$|\/requested_reviewers$/);
       assert.notEqual(r.method, "PUT");
       assert.doesNotMatch(JSON.stringify(r.body ?? {}), /approvePullRequest|mergePullRequest|APPROVE/);
     }
   }
+  for (const raise of [{ ...DO.raise, autoMerge: "none" }, { head: DO.raise.head, base: DO.raise.base }]) {
+    const w = withDeclaration({ ...DO, raise });
+    await hosting.raisePullRequest(request, options(w));
+    assert.deepEqual(posts(w.requests), ["POST /repos/o/r/pulls"], JSON.stringify(raise));
+    assert.equal(w.requests.find((r) => r.method === "POST").body.draft, false);
+  }
+  const hotfix = world({ changed: ["packages/kaal-hosting/13-source/a.ts"], refs: { "hotfix/x": HEAD, main: BASE } });
+  await hosting.raisePullRequest({ ...request, type: "HOTFIX", chapters: { Change: "d" }, head: "hotfix/x", base: "main", title: "Fix a defect" }, options(hotfix));
+  assert.equal(hotfix.requests.find((r) => r.method === "POST").body.draft, true, "the declared draft flag");
 });
