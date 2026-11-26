@@ -1,4 +1,4 @@
-// The temporary PLAN runner of review/C8: runs T1587 and T1588 and reports each as GREEN or RED. It stays outside `scripts.test` until the DO
+// The temporary PLAN runner of review/C8: runs T1587 to T1589 and reports each as GREEN or RED. It stays outside `scripts.test` until the DO
 // adds `approver-app.test.mjs` and removes this file. A Case that cannot even load is reported as an error, never as RED.
 import { readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
