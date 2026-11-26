@@ -56,7 +56,7 @@ export function appWorld({ verify, declaration = DISPATCHER, declarations, insta
     const auth = r.headers.authorization?.replace(/^Bearer /, "") ?? "";
     const isJwt = auth.split(".").length === 3;
     if (isJwt && !verify(auth)) return { status: 401, json: { message: "Bad credentials" } };
-    if (!isJwt && !auth.startsWith("ghs_BOOT")) return { status: 401, json: { message: "Bad credentials" } };
+    if (!isJwt && !auth.startsWith("ghs_BOOT") && !auth.startsWith("ghs_GRANT")) return { status: 401, json: { message: "Bad credentials" } };
     if (r.method === "GET" && r.path === "/app") return { status: 200, json: { id: Number(appId), slug: slug, name: "KAAL App" } };
     if (r.method === "GET" && r.path === "/repos/o/r/installation") return { status: 200, json: { id: 99, app_id: installAppId, permissions: installPermissions, repository_selection: "selected" } };
     if (r.method === "POST" && r.path === "/app/installations/99/access_tokens") {

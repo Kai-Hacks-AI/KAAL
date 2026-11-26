@@ -25,8 +25,8 @@ it("hosting/T318: renderAppManifest gives exact, deterministic bytes with abilit
   ].join("\n");
   assert.equal(hosting.renderAppManifest(DISPATCHER), expected);
   assert.equal(hosting.renderAppManifest(structuredClone(DISPATCHER)), expected);
-  const reader = hosting.renderAppManifest({ ...DISPATCHER, abilities: ["read-pull-requests", "read-checks"] });
-  assert.deepEqual(JSON.parse(reader).default_permissions, { checks: "read", metadata: "read", pull_requests: "read" });
-  const writer = hosting.renderAppManifest({ ...DISPATCHER, abilities: ["post-checks", "raise-pull-requests"] });
-  assert.deepEqual(JSON.parse(writer).default_permissions, { checks: "write", metadata: "read", pull_requests: "write" });
+  const reader = hosting.renderAppManifest({ ...DISPATCHER, abilities: ["read-contents", "read-pull-requests", "read-checks"] });
+  assert.deepEqual(JSON.parse(reader).default_permissions, { checks: "read", contents: "read", metadata: "read", pull_requests: "read" });
+  const writer = hosting.renderAppManifest({ ...DISPATCHER, abilities: ["read-contents", "post-checks", "raise-pull-requests"] });
+  assert.deepEqual(JSON.parse(writer).default_permissions, { checks: "write", contents: "read", metadata: "read", pull_requests: "write" });
 });
