@@ -25,3 +25,8 @@ ACT, PROMOTION, then a detective WIRE of the file, which needs the Owner's go an
 
 ## Not in this Change
 No WIRE, ruleset change, required check or flag. The old workflow stays until its swap.
+
+## Design: split and overlap
+Split: yes, two verdicts: the head ref origin (a `kaal/*` branch of this repository) and the check runs of the head (green on this exact commit). They read different facts (event refs against the API) and fail for different reasons, so two controls. The check-runs verdict needs `checks: read` and must stay in its own job.
+Covered by controls on main: the origin part only in a weak sense. Verify Stages (CTL1) and the promotion ruleset cover which branches may merge and what checks are required; none reads the head ref origin from the event. The check-runs-of-the-head part is not covered by any control on main.
+Dropped: nothing confirmed. If the ruleset on main already refuses other origins, the origin verdict is a candidate to drop; UNKNOWN until the live ruleset is read, which is the Owner's evidence.
