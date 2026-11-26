@@ -13,7 +13,7 @@ export async function run() {
   const script = join(repo, 'engineering/release-management/05-src/promotion-raise/dispatch.mjs');
   const tmp = mkdtempSync(join(tmpdir(), 't1536-'));
   const put = (tree, rel, text = 'x\n') => { mkdirSync(join(tree, rel, '..'), { recursive: true }); writeFileSync(join(tree, rel), text); };
-  const base = (tree) => { put(tree, 'engineering/x/00-changes/C1-old/C1.md', '---\nid: x/C1\ntitle: t\n---\n'); put(tree, 'engineering/x/00-changes/C2-new/C2.md', '---\nid: x/C2\ntitle: t\n---\n'); };
+  const base = (tree) => { put(tree, 'engineering/t/01-changes/C1-old/C1.md', '---\nid: t/C1\ntitle: t\n---\n'); put(tree, 'engineering/x/00-changes/C1-old/C1.md', '---\nid: x/C1\ntitle: t\n---\n'); put(tree, 'engineering/x/00-changes/C2-new/C2.md', '---\nid: x/C2\ntitle: t\n---\n'); };
   // before: the collector before the merge; after: the merge result; contained: main as the result holds it.
   const world = (name, change, fromMain = []) => {
     const before = join(tmp, name, 'before'), after = join(tmp, name, 'after'), contained = join(tmp, name, 'contained'), main = join(tmp, name, 'main');
@@ -38,6 +38,10 @@ export async function run() {
     assert.equal(act.inflow, 'ACT'); assert.equal(act.code, 0);
     const sync = inflow(world('sync', [], ['engineering/y/05-src/arrived.mjs']));
     assert.equal(sync.inflow, 'SYNC'); assert.equal(sync.code, 0);
+    // The newest numbering is read as it stands: source, intent and retros of a root on the layout.
+    assert.equal(inflow(world('tdo', ['engineering/t/13-source/thing.mjs'])).inflow, 'DO');
+    assert.equal(inflow(world('tplan', ['engineering/t/10-intent/I1-why/I1.md'])).inflow, 'PLAN');
+    assert.equal(inflow(world('tact', ['engineering/t/02-learnings/retros/RT1.md'])).inflow, 'ACT');
     // No catch-all: a path no route names is reported, with the path, and is red.
     const stray = inflow(world('stray', ['engineering/x/04-controls/CTL1-thing/CTL1.md']));
     assert.equal(stray.inflow, 'unclassifiable'); assert.notEqual(stray.code, 0, 'a path in no route is red'); assert.match(stray.said, /04-controls\/CTL1-thing\/CTL1\.md/, 'the report names the path');
