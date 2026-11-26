@@ -1,4 +1,4 @@
-// Case release/T757 tests: release/C58
+// Case release/T757 tests: release/C58. Amended in release/C152: no job reads the title; the jobs run for a base under an integration lane and verify Sync decides from Git whether the head is a SYNC.
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -8,7 +8,7 @@ const RM = join(repo, 'engineering/release-management');
 const WORKFLOW = join(RM, '05-src/wiring/workflows/sync-review.yml');
 export const id = 'release/T757';
 export const tests = ['release/C58'];
-export const title = 'the workflow source runs the three controls only for a SYNC into an integration branch, judges from the default branch, writes only to the pull request, and approves only when switched on';
+export const title = 'the workflow source runs the three controls for a pull request into an integration branch whatever its title, judges from the default branch, writes only to the pull request, and approves only when switched on';
 export async function run() {
   assert.ok(existsSync(WORKFLOW), 'the workflow source is absent');
   const y = readFileSync(WORKFLOW, 'utf8');
@@ -17,7 +17,7 @@ export async function run() {
   assert.ok(!/^ {2}(push|pull_request|schedule|workflow_dispatch|merge_group|workflow_run):/m.test(code), 'another trigger is present');
   assert.match(code, /^permissions: \{\}$/m, 'permissions are not empty at the top');
   for (const name of ['verify Sync', 'approve Sync', 'review Sync']) assert.ok(code.includes(`name: ${name}`), `the job ${name} is absent`);
-  assert.equal([...code.matchAll(/startsWith\(github\.event\.pull_request\.title, 'SYNC:'\)/g)].length, 3, 'a job does not run only for a SYNC');
+  assert.doesNotMatch(code, /pull_request\.title/, 'a job still reads the title of the pull request');
   for (const lane of ['kaal/', 'hotfix/', 'wire/']) assert.ok(code.includes(`startsWith(github.event.pull_request.base.ref, '${lane}')`), `the ${lane} base is not named`);
   assert.equal([...code.matchAll(/needs: verify$/gm)].length, 1, 'approve does not need verify'); // release/C60: review also waits for approve
   assert.ok(code.includes('needs: [verify, approve]'), 'review does not need verify and approve');

@@ -46,8 +46,12 @@ export async function run() {
   assert.equal(stale.applies, 'sync', 'a SYNC against an older tip stays a SYNC when the collector advances');
   assert.equal(stale.valid, false, 'a stale base is judged invalid, not passed'); assert.match(String(stale.reason), /stale base/);
   // Ambiguous shape: an octopus merge is unknown.
+  // A real octopus: the second side line is not yet in the collector, or git would drop the redundant parent and leave a plain two-parent merge.
+  git('checkout', '-q', '-b', 'side2', 'collector~1');
+  commit('s2', 'a second collector line, not merged yet');
   git('checkout', '-q', '-b', 'octo', 'collector');
-  git('-c', 'user.name=t', '-c', 'user.email=t@t', 'merge', '-q', '--no-ff', '-m', 'octopus', 'main', 'side');
+  git('-c', 'user.name=t', '-c', 'user.email=t@t', 'merge', '-q', '--no-ff', '-m', 'octopus', 'main', 'side2');
+  assert.equal(git('rev-list', '--parents', '-n', '1', 'HEAD').split(' ').length - 1, 3, 'the octopus has three parents');
   assert.equal((await runIt(tip('HEAD'))).applies, 'unknown', 'an ambiguous shape is unknown, never not-sync');
 
   assert.equal((await runIt('0'.repeat(40))).applies, 'unknown', 'an absent head is unknown');
