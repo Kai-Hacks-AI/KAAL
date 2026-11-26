@@ -35,20 +35,25 @@ export function judgeDefect(defect, cases, records = [], revision) {
  * A location that is handed over but cannot be discovered (missing, not a folder, unreadable) is not an empty one: it is recorded in `incomplete`
  * as { context, role, path, reason }, and an empty folder that exists is a verified empty answer. A place that hands over no location of a role owns that scope.
  */
-export async function readTree(places) {
+export async function readTree(places, host = { list, readFile, kind }) {
   const defects = new Map(); // id -> { context }
   const addressedBy = new Map(); // defect id -> [contexts of the Architecture elements that address it]
   const pointing = new Map(); // defect id -> [case ids]
   const incomplete = []; // locations handed over that could not be discovered
-  // Every file under a folder, read as text through Hosting alone. A folder that is missing, is not a folder or cannot be read is recorded as
-  // incomplete discovery and yields nothing; only an existing folder with no file is empty.
+  // Every file under a folder, read as text through Hosting alone (`host` is that seam). A folder that is missing, is not a folder or cannot be listed
+  // is recorded as incomplete discovery; only an existing folder with no file is empty.
   const files = async (context, role, dir, test) => {
     const out = [];
+    let entries;
     try {
-      const k = await kind(dir);
+      const k = await host.kind(dir);
       if (k !== 'directory') { incomplete.push({ context, role, path: dir, reason: k === 'missing' ? 'missing' : 'not a folder' }); return out; }
-      for (const e of await list(dir, { skip: ['node_modules', '.git'], links: 'skip' })) if (e.kind === 'file' && test(e.path)) out.push([e.path, (await readFile(join(dir, e.path))).toString('utf8')]);
-    } catch (e) { incomplete.push({ context, role, path: dir, reason: e.code ?? 'unreadable' }); return []; }
+      entries = await host.list(dir, { skip: ['node_modules', '.git'], links: 'skip' });
+    } catch (e) { incomplete.push({ context, role, path: dir, reason: e.code ?? 'unreadable' }); return out; }
+    // A file that cannot be read is incomplete discovery of that file alone: every file read before and after it is kept.
+    for (const e of entries) if (e.kind === 'file' && test(e.path)) {
+      try { out.push([e.path, (await host.readFile(join(dir, e.path))).toString('utf8')]); } catch (err) { incomplete.push({ context, role, path: join(dir, e.path), reason: err.code ?? 'unreadable' }); }
+    }
     return out;
   };
   const base = (p) => p.slice(p.lastIndexOf('/') + 1);
