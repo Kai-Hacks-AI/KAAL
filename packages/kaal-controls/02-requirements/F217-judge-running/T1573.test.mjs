@@ -25,6 +25,11 @@ export async function run() {
   r = await go(); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: true, modes: ['preventive'], runs: 1 });
   // a run that was switched off executed: it is running, and the mode and applied say it was not applied
   r = await go({ records: [rec({ mode: 'off', applied: false, flag: off })] }); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: false, modes: ['off'], runs: 1 });
+  // running describes execution, not outcome: a run that reported findings counts, switched off or not, and the Tested fact is not touched
+  for (const verdict of ['PASS', 'FAIL', 'REPORT']) {
+    r = await go({ records: [rec({ mode: 'off', applied: false, flag: off, verdict })] }); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: false, modes: ['off'], runs: 1 }, `off, ${verdict}`);
+    r = await go({ records: [rec({ mode: 'detective', verdict })] }); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: true, modes: ['detective'], runs: 1 }, `detective, ${verdict}`);
+  }
   // one applied run among switched-off ones applies; all unknown flags leave it unknown
   r = await go({ records: [rec({ mode: 'off', applied: false, flag: off, run: 'r0' }), rec()], established: [est('r0'), est()] }); assert.equal(r.running, true); assert.equal(r.applied, true); assert.equal(r.runs, 2); assert.deepEqual(r.modes, ['off', 'preventive']);
   r = await go({ records: [rec({ mode: 'off', applied: false, flag: off, run: 'r0' }), rec({ flag: { name: 'KAAL_X_Y', value: null, state: 'UNKNOWN' }, applied: null })], established: [est('r0'), est()] }); assert.equal(r.running, true); assert.equal(r.applied, null); assert.equal(r.runs, 2); assert.deepEqual(r.modes, ['off', 'preventive']);
@@ -43,11 +48,12 @@ export async function run() {
     ['not a real X', rec({ x: 'demo' }), [est()]],
     ['not by the adapter', rec({ by: 'hand' }), [est()]],
     ['no verdict', rec({ verdict: undefined }), [est()]],
-    ['a verdict that is not PASS or FAIL', rec({ verdict: 'UNKNOWN' }), [est()]],
+    ['a verdict that could not be judged', rec({ verdict: 'UNKNOWN' }), [est()]],
+    ['an unknown kind of verdict', rec({ verdict: 'MAYBE' }), [est()]],
     ['no run', rec({ run: '' }), [est('')]],
   ]) { r = await go({ records: [record], established }); assert.deepEqual(r, { id: 'x/CTL1', running: null, applied: null, modes: [], runs: 0 }, why); never(r); }
   // the rule that decides which records count is the one of executed, written once: both agree on every set above
-  for (const records of [[rec()], [rec({ sha: 'sX' })], [rec({ x: 'demo' })], [rec({ mode: 'off', applied: false, flag: off })], []]) {
+  for (const records of [[rec()], [rec({ sha: 'sX' })], [rec({ x: 'demo' })], [rec({ mode: 'off', applied: false, flag: off })], [rec({ verdict: 'REPORT' })], [rec({ verdict: 'UNKNOWN' })], []]) {
     for (const established of [[est()], []]) assert.equal(executed({ id: 'x/CTL1', records, revision: 's1', established }) === true, (await go({ records, established })).runs > 0);
   }
   // it cannot read bad input and says so

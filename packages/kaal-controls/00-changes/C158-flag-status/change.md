@@ -3,7 +3,7 @@
 ## PLAN
 
 1. Record the intent I30, the Requirements F216 and F217, the architecture A213 and the Cases T1572 and T1573 (plain `.test.mjs`, never renamed). Both are RED on the collector, because the adapter knows no flag and `scripts/judge-running.mjs` is absent. They were run GREEN against a throwaway implementation that is not committed.
-2. Amend controls/F203 items 4 and 5 by a sentence each, and Case T1510 to the new shape of the log and the record (the two added fields only). T1510 is RED on the collector until the DO.
+2. Amend controls/F203 items 4 and 5 by a sentence each, and Case T1510 to the new shape of the log and the record (the added fields only). Amend controls/F204 item 5 and Case T1511: a record counts as execution evidence with a verdict `PASS`, `FAIL` or `REPORT`, and `UNKNOWN` still counts for nothing. T1510 and T1511 are RED on the collector until the DO.
 3. No script, Skill word, record or workflow changes in the PLAN.
 
 ## DO
@@ -26,7 +26,7 @@ The flag is handed in `boundary.flag = {name, value}` and recorded as `flag: {na
 
 1. **The library is told, never reads.** No environment, repository variable or file. Missing flag facts are `UNKNOWN`, and unknown never stands for on or off. The mode asked still runs when the flag is unknown, so adopting this changes no verdict.
 2. **A switched-off control runs.** It is judged as a detective would (never blocked) and recorded with `mode: off`, so silence never stands for a status. A check that throws is still `UNKNOWN`.
-3. **Running is a fact about execution.** An executed run with the flag off proves Running. The modes and `applied` are told beside it, so "running, off" never reads as applied. No record is `null`, never `false`.
+3. **Running is a fact about execution, not outcome.** An executed run with the flag off proves Running. The verdicts that count are the three that a judged run gives: `PASS`, `FAIL` and `REPORT` (which a detective run, or a run switched off by its flag, gives when it finds something). `UNKNOWN` is a run that could not be judged and counts for nothing. Tested is a separate fact and is not touched. The rule of `executed` already refused `REPORT` by omission, so a detective control that found something was never counted; this fixes it in one place. The modes and `applied` are told beside it, so "running, off" never reads as applied. No record is `null`, never `false`.
 4. **The judge is the library's.** `judgeRunning` sits beside verify Record, which compares a claim with a fact. Release, as the adopter, supplies the raw records and the runs it established, as for `executed`. The Implemented fact from the delivery map is not part of this Change.
 5. **The convention stays the adopter's.** The name `KAAL_<CAP>_<CONTROL>` and "only `on` is live" are KAAL's; the library only compares the value with `on`.
 
