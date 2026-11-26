@@ -1,0 +1,45 @@
+{
+  "types": [
+    {
+      "type": "PLAN",
+      "intro": "A PLAN. Exactly four chapters in this order and nothing else: no extra headings, remarks, test output or status reports. The files of the Change hold the detail; discussion is kept outside this body.",
+      "chapters": [
+        { "name": "Change", "guidance": "One line, `<id> <name>: <short description>`: the stable id, the name and what the Change is about. Do not repeat From, To or Because here." },
+        { "name": "From", "guidance": "A, the current state, briefly." },
+        { "name": "To", "guidance": "B, the target state, briefly." },
+        { "name": "Because", "guidance": "X, the value delivered, briefly. The value, not who asked for it." }
+      ],
+      "raise": { "autoMerge": "squash", "draft": false, "title": { "forbid": ["\\b[a-z]*/?C[0-9]+\\b"] } }
+    },
+    {
+      "type": "DO",
+      "intro": "A DO. Exactly three chapters in this order and nothing else: no extra headings, remarks, test results, check status or execution logs. The Change, the Cases, the diff and the checks hold the evidence; discussion is kept outside this body.",
+      "chapters": [
+        { "name": "Change", "guidance": "One line, `<id> <name>: <short description>`: the stable id, the name and the scope of this DO." },
+        { "name": "Implement", "guidance": "The behavior or functionality this DO intends to deliver, briefly." },
+        { "name": "Refactor", "guidance": "The improvement intended while behavior stays as it is, briefly. If no refactoring is planned, say so." }
+      ],
+      "raise": { "autoMerge": "squash", "draft": false, "title": { "forbid": ["\\b[a-z]*/?C[0-9]+\\b"] } }
+    },
+    {
+      "type": "ACT",
+      "intro": "An ACT. Exactly two chapters in this order and nothing else: no extra headings, retrospective text, test output or status reports. The files of the Change hold the detail; discussion is kept outside this body.",
+      "chapters": [
+        { "name": "Change", "guidance": "One line, `<id> <name>: <short description>`: the stable id, the name and what the Change is about." },
+        { "name": "Records", "guidance": "What this ACT adds to the Change, named and not repeated. Today that is the 4L retrospective; it is a hint, not a closed list." }
+      ],
+      "raise": { "autoMerge": "squash", "draft": false, "title": { "forbid": ["\\b[a-z]*/?C[0-9]+\\b"] } }
+    },
+    {
+      "type": "HOTFIX",
+      "intro": "A HOTFIX. Exactly four chapters in this order and nothing else: no extra headings, remarks, test results, check status or execution logs. The Change, the Cases, the diff and the checks hold everything else; discussion is kept outside this body. Change envelope: the evidence is in the repository files of the Change(s) named below, at the revision under review.",
+      "chapters": [
+        { "name": "Change", "guidance": "One line, `<id> <name>`: the stable id and the name of the Change. An identity, not a description; the Defect says what is broken." },
+        { "name": "Defect", "guidance": "The Defect, by its identity `<capability>/D<n>`; a ticket number or URL is not that identity. What is broken, and which state is defective: production (the package and its published version), main, or a collector. They are different states; name the one you mean and claim no production impact that does not exist." },
+        { "name": "Urgency", "guidance": "Why this cannot follow the ordinary Change path, and the consequence of waiting. A ticket number or a priority label is not an answer." },
+        { "name": "Approach", "guidance": "Why this is the fastest safe path from the RED Case to GREEN, not a broader improvement or a refactoring: the choice and what it trades off, not the implementation. If production is affected, say what else from main a new published version would carry." }
+      ],
+      "raise": { "head": ["hotfix/*"], "base": ["main"], "draft": false, "title": { "forbid": ["\\b[a-z]*/?C[0-9]+\\b"] } }
+    }
+  ]
+}
