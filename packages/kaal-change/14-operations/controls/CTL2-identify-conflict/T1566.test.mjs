@@ -1,7 +1,7 @@
 // Case change/T1566 tests: change/G19
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { pinOf, record, entry, succeeds, lib } from './fixtures.mjs';
+import { pinOf, record, entry, succeeds, lib } from '../fixtures.mjs';
 export const id = 'change/T1566';
 export const tests = ['change/G19'];
 export const closes = ['change/G19'];
