@@ -17,9 +17,14 @@ Not authorized by this PLAN. On its merge into the collector, and with the colle
 
 A retro entry in the collector.
 
+## Decided by the CPO review (kept here as the record)
+
+- Two functions: `judgeProgress` for a shrink and `judgeAdoption` for the first line.
+- Adoption over an existing baseline is accepted only as a subset of it.
+- An adoption at zero is accepted and is eligible for retirement.
+- Absent is not empty: `null` is an authoritatively absent baseline, a list is a present one (an empty list is present, at zero), and anything else is unknown. Only absent permits an initial allowance; an existing empty baseline cannot grow. Cases T1530 now has a positive absent, a positive present zero, and a negative existing-empty growth.
+
 ## Left open (for the CPO, with a recommendation)
 
-- Two functions or one. Recommendation: two. `judgeProgress` judges a shrink and `judgeAdoption` the first line, each with one property. A caller that does not know which applies reads the base's history: empty means adoption.
-- Whether an adoption may start from a baseline that already exists in the base without history (release's case) or only from none. Recommendation: both, with the head's baseline not exceeding the base's when one exists.
-- Whether a `to: 0` adoption (a ratchet adopted at zero) is accepted. Recommendation: yes; it is the same line, and the ratchet ends at once.
+- Who establishes `null` for the base: the adopter, from the base's files, never from the pull request under review. Recommendation: say so in the DO's reference sentence and leave the discovery to release.
 - Ids C147, I25, G113, F211, A208 and T1530 are taken by hand; release holds T1522. On a clash the newer pull request renumbers.
