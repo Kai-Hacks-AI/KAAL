@@ -5,7 +5,7 @@ The planned outer tests live in `packages/kaal-core/test/plan/skill-license.test
 | Test | Checks | Loop |
 | --- | --- | --- |
 | core/T125: a top-level `LICENSE`, `LICENSE.md` and `LICENSE.txt` are not layout findings, while a directory `LICENSE/`, `license`, `LICENSES` and `LICENSE-notes` still are | core/F117, core/A60 | Requirements |
-| core/T126: the Definition states that a Skill may bundle a license file and that by default it is the package's license | core/F118, core/A61 | Requirements |
+| core/T126: the Definition states that every Skill bundles a license file, that by default it is the package's license, that agentskills.io makes it optional, and that Core's check does not enforce presence | core/F118, core/A61 | Requirements |
 
 ## Follow-up for each capability
 

@@ -19,9 +19,12 @@ describe("Skill license (core/C151)", () => {
     }
   });
 
-  it("core/T126 [core/F118, core/A61]: the Definition states that a Skill may bundle a license file and that by default it is the package's license", () => {
+  it("core/T126 [core/F118, core/A61]: the Definition states that every Skill bundles a license file, by default the package's, that agentskills.io makes it optional, and that Core's check does not enforce presence", () => {
     const text = readFileSync(new URL("../../payload/core/Skill-Standard.md", import.meta.url), "utf8");
     assert.ok(/LICENSE/.test(text), "the Definition names the license file");
     assert.ok(/default/i.test(text) && /package/i.test(text), "and states the default");
+    assert.ok(/every Skill/i.test(text), "the requirement is for every Skill, not a permission");
+    assert.ok(/agentskills\.io/i.test(text) && /optional/i.test(text), "the external standard makes it optional");
+    assert.ok(/(presence|require)/i.test(text) && /adopter/i.test(text), "enforcing presence is the adopter's work");
   });
 });
