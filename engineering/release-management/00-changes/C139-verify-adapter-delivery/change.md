@@ -15,6 +15,8 @@ One data file, `05-src/adapter/delivery-map.json`, owned by release. A row is `{
 - **The absence of a recognizable pattern is not confirmed nonconformance:** it is unknown. Only `adapted: false` from other evidence is a finding (controls/F206 as amended), and release has no such evidence, so it never makes one. This PLAN follows the revised C148 and does not restate it.
 - **Identity is kept per control.** A delivered file may legitimately invoke several mapped entries; each row is established on its own, by its own `{control, delivered, entry}`, and the verdict of one never stands for another. Only an entry claimed by two controls is ambiguous, because its identity is not one, and it is UNKNOWN.
 
+**Evidence completeness (CPO, #2628).** The map declares the delivered directories it inventories (`inventory`, a non-empty list of paths), its `rows` (non-empty, each with `control`, `delivered` and `entry`) and its `notControls` (a list, possibly empty). A map that is absent, not JSON, not an object, or lacks or malforms any of them is UNKNOWN naming the map and the missing part, never a PASS. A declared directory that is missing, not a directory, a dangling link or unreadable is UNKNOWN naming the location: an inventory that cannot be inspected is not an empty one. Only a directory that exists, is readable and holds no file is verified empty. A pull request folder that cannot be read is UNKNOWN too. Each of these is UNKNOWN and nothing else: never a FAIL, never a PASS and never `adapted: false`, and the verdict names the map or the location, not a control. The Cases are T1557 (new, parked) and T1554 (its map fixtures declare `inventory`); the DO satisfies them without changing them.
+
 **The inventory is checked against the delivered files, independently of the map.** Every file under `.github/workflows` and `.githooks` is claimed by a row or listed under `notControls`. A `notControls` exclusion is not taken on its word either: it must carry a reason and the runner checks it from the file, an exclusion standing only if the delivered file invokes no script of the repository's judges (a file that checks out, builds or publishes). An exclusion for a file that does invoke a script, a delivered file nobody claims, an unreadable file, or an inventory it cannot settle is UNKNOWN, never PASS.
 
 ## The runner
@@ -46,4 +48,4 @@ No WIRE, flag, required check or ruleset change. No migration of an entry to the
 
 ## Cases
 
-T1554 (runner) and T1555 (workflow source) are parked `.red.mjs`. T1554 now carries the two negative Cases the CPO asked for: a mapped entry that the delivered file does not invoke, and an exclusion that is not justified, both UNKNOWN.
+T1554 (runner), T1555 (workflow source) and T1557 (evidence-completeness boundaries) are parked `.red.mjs`. T1554 now carries the two negative Cases the CPO asked for: a mapped entry that the delivered file does not invoke, and an exclusion that is not justified, both UNKNOWN.
