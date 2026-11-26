@@ -18,7 +18,8 @@ Three control records, `release/CTL37` (Branching: promotion freshness), `releas
 - T1577: the source `05-src/wiring/workflows/branching-plain.yml` exists, is plain `pull_request`, has the workflow name `Branching on pull_request`, unique, the three detective job names, and runs the three entries, not `kaal-guard`. Red until the DO.
 - T1578: each of the three entries imports the adapter by the real relative specifier and `recognizeIntegration` recognizes it, with its own control id. Structure only. Red until the DO.
 - T1583: the auto-merge entry gives the same verdict as `autoMerge` of `lineage.ts` for the four fact sets above (right method PASS; disabled FAIL; other method FAIL; no method FAIL). Behaviour, not structure.
-- T1584: the freshness entry and the synchronization entry each answer a missing fact set with something other than PASS. UNKNOWN is never permission.
+- T1584: the freshness entry passes a fresh promotion and fails each way one is not fresh (the head lacks the default tip, the merge conflicts, the merge yields an unvalidated tree), and does not pass a missing fact set. Positive and negative, so an always-refusing entry fails it.
+- T1589: the synchronization entry passes a valid synchronization, fails each way one is not valid (off the lineage tip, no progress, merged state not on the default branch, a merge that differs outside the conflicts, an ordinary Change that carries default history), says not applicable for an ordinary Change, and does not pass a missing fact set. Positive and negative.
 All red until the DO.
 
 ## DO
