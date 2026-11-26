@@ -2,7 +2,7 @@
 
 ## PLAN
 
-1. Add the intent I26, the Requirement F212, the architecture A209 and the Case T1540 (plain `.test.mjs`, never renamed). The Case is RED on the collector.
+1. Add the intent I26, the Requirement F212, the architecture A209 and the Case T1553 (plain `.test.mjs`, never renamed). The Case is RED on the collector.
 2. No script, Skill word or workflow changes in the PLAN.
 
 ## DO
@@ -21,4 +21,4 @@ Release owns the delivery map, the station, the flag `KAAL_CONTROLS_VERIFY_ADAPT
 
 - Static reading of the entry (the import of `runControl` from the adapter module and its call) is a first form. Recommendation: accept it as the detective form; a stronger proof, a run record of the entry, belongs to the adapter's own evidence (controls/F203) and to a later Change.
 - A control whose entry builds the call dynamically is unknown, not false. Recommendation: unknown is correct and keeps the check honest.
-- Ids C148, I26, F212, A209 and T1540 are taken by hand; on a clash the newer pull request renumbers.
+- Ids C148, I26, F212, A209 and T1553 are taken by hand (T1540 was release's, so the Case was renumbered); on a clash the newer pull request renumbers.

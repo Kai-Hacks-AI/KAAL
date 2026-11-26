@@ -1,4 +1,4 @@
-// Case controls/T1540 tests: controls/F212
+// Case controls/T1553 tests: controls/F212
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -6,7 +6,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 const scripts = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
 const load = async (name) => { const f = join(scripts, name); assert.ok(existsSync(f), `scripts/${name} is absent`); return import(pathToFileURL(f).href); };
-export const id = 'controls/T1540';
+export const id = 'controls/T1553';
 export const tests = ['controls/F212'];
 export const title = 'the delivered entry shows whether a control runs through the adapter, and anything it does not show is unknown';
 export async function run() {
