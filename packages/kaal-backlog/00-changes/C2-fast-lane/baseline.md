@@ -1,0 +1,5 @@
+# C2 baseline
+
+The baseline is the collector `kaal/backlog/item` after #1734, 50 commits behind `main`. It holds backlog/C1: the item shape (F1), indefinite validity (F2), derived state (F3), purity (N1) and the Cases T490 to T494 as `.red.mjs`. Its DO has not happened: there is no `lib/check.mjs` and no `package.json`.
+
+`main` admits only `kaal/<capability>/*`, `hotfix/*` and `wire/*` heads (Delivery Admission, `engineering/github/lineage.ts`). Rulesets are by target (20 integrating, 21 hotfixing, 22 wiring, 23 collecting, 30 promoting, 40 publishing). `main` takes a squash through a merge queue of one entry, with `verify Stages (Promoting)`, `analyze Vulnerabilities (Promoting)` and `verify Triggers`. Controls are items `<capability>/CTL<n>` found by the kaal-controls finder. Delivery tooling reaches the repository only through WIRE. PR templates for PLAN, DO, ACT, SYNC, PROMOTION, HOTFIX and WIRE exist; none for BACKLOG. Agents raise PRs by API, which never applies a template (engineering/release/B2).

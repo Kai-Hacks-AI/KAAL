@@ -1,0 +1,43 @@
+ratchet.mjs 671d7fe5715869a8e1d6e948675fd3e96fea836f on parent 48cccf01
+baseline (no mutation)
+  controls/T1120 GREEN
+  controls/T1123 GREEN
+P1-growth-allowed
+  controls/T1120 RED: wrong reason: line-mismatch for baseline-grew
+  controls/T1123 GREEN
+P2-history-rewrite-allowed
+  controls/T1120 RED: history-rewritten did not fail
+  controls/T1123 GREEN
+P3-line-without-change-allowed
+  controls/T1120 RED: history-without-change did not fail
+  controls/T1123 GREEN
+P4-missing-line-allowed
+  controls/T1120 RED: history-missing did not fail
+  controls/T1123 GREEN
+P5-line-values-unchecked
+  controls/T1120 RED: line-mismatch did not fail
+  controls/T1123 GREEN
+P6-change-id-unchecked
+  controls/T1120 RED: change-mismatch did not fail
+  controls/T1123 GREEN
+P7-unknown-change-allowed
+  controls/T1120 RED: change-unknown did not fail
+  controls/T1123 GREEN
+P8-time-order-unchecked
+  controls/T1120 RED: time-before-previous did not fail
+  controls/T1123 GREEN
+P9-window-unchecked
+  controls/T1120 RED: time-out-of-window did not fail
+  controls/T1123 GREEN
+R1-early-retirement-allowed
+  controls/T1120 GREEN
+  controls/T1123 RED: retired-early did not fail
+R2-history-removal-allowed
+  controls/T1120 GREEN
+  controls/T1123 RED: history-removed did not fail
+R3-incomplete-history-allowed
+  controls/T1120 GREEN
+  controls/T1123 RED: history-incomplete did not fail
+R4-unsound-history-allowed
+  controls/T1120 GREEN
+  controls/T1123 RED: history-invalid did not fail

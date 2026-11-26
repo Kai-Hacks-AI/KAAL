@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -64,7 +64,7 @@
+   const at = Date.parse(line.at);
+   const last = base.history.length ? Date.parse(base.history[base.history.length - 1].at) : -Infinity;
+   if (Number.isNaN(last)) return unknown();
+-  if (Number.isNaN(at) || at < last) return fail('time-before-previous');
++  // mutated: order not checked
+   if (at < from || at > to) return fail('time-out-of-window');
+   return { verdict: 'PASS' };
+ }
