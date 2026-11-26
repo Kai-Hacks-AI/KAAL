@@ -30,3 +30,7 @@ T1556 (parked RED): over a real throwaway git repository, a merge of main into t
 ### Not in this Change
 
 No WIRE, flag, required check or ruleset. The `Reason` body requirement of a SYNC is not decided from git and does not belong to this control: it moves to verify Envelope (release/CTL11), which reads bodies against the declared template, and verify Sync stops reading the body for it when that is installed. No change to it in this Change. The parked form is the carrier the lanes have today, not a model (release/C136).
+
+### Amendment: T1556's octopus
+
+The parked Case built its octopus with a side line that the collector already held, so git dropped the redundant parent and the head was a plain two-parent merge, a valid SYNC by this PLAN's own rule. The Case now uses a second side line that is not merged yet and asserts the head has three parents, so it pins what it says: an ambiguous shape is `unknown`. No expectation of the PLAN changes.
