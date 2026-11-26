@@ -26,7 +26,7 @@ kaal-change and release/C138 can hand the whole of every type to Hosting without
    - hosting/T332: `renderTemplate` with `visible` gives exact bytes: declaration line, `intro` comment, the visible text as plain lines, then the chapters; and `renderBody` begins with the same visible text and then the chapters. A declaration without `visible` is byte-for-byte what C113 gave.
    - hosting/T333: the validator refuses `visible` that is empty, not a string, holds `<!--` or `-->`, or has a line starting with `#`, with `INVALID_DECLARATION` naming `visible`; CRLF comes out as LF.
    - hosting/T334: `checkTemplates` names a template without the visible text, or with it changed, as `differs`.
-   - hosting/T335: `raisePullRequest` puts the owner's `visible` first in the body it opens, read from the declaration at the base revision; a request that carries `visible` is refused before any call.
+   - hosting/T335: `raisePullRequest` puts the owner's `visible` first in the body it opens, read from the declaration at the base revision (a different text on the head is never read); a request or option that carries `visible` is `RAISE_REFUSED` (rule `caller-authority`) before any call, not even a read; a declaration without `visible` raises the C113 body byte for byte. Executable in `visible.red.mjs`, against the C113 raise fixtures (the DO moves it beside them).
 
 ## Not in this Change
 

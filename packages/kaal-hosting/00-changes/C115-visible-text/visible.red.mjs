@@ -47,6 +47,40 @@ it("hosting/T334: checkTemplates names a template without or with changed visibl
   assert.deepEqual((await hosting.checkTemplates([HOTFIX], dir)).problems, [{ file: "hotfix.md", problem: "differs" }]);
 });
 
-// T335 reuses the C113 raise fixtures (stand-in GitHub, owner declaration at the base revision); its draft is added
-// beside them by the DO, unchanged in expectation: the opened body starts with the owner's `visible`, and a request
-// that carries `visible` is RAISE_REFUSED (rule `caller-authority`) before any call.
+// T335 uses the C113 raise fixtures (`pull-request-fixtures.mjs`: the stand-in for GitHub's API, the owner's declaration read at
+// the base revision). They reach main with C113; the DO moves this Case beside them (`pull-request-raise.test.mjs`) and changes
+// no expectation. Until C113 is on main this draft is RED for the missing field and the missing fixtures.
+it("hosting/T335: the raised body starts with the owner's visible text read at the base revision; a caller-supplied visible is refused before any call", async () => {
+  const { BASE, DO, HEAD, PATHS, HOTFIX, chapters, options, policy, posts, request, world } = await import("../../04-test/package-check/pull-request-fixtures.mjs");
+  const owner = { ...DO, visible: LINE };
+  const mk = (declaration, head = policy()) => world({ files: { [BASE]: policy({ [PATHS.declaration("kaal-change")]: JSON.stringify({ types: [declaration, HOTFIX] }) }), [HEAD]: head } });
+
+  // 1. The opened body is the render of the owner's declaration, visible text first.
+  const w = mk(owner);
+  await hosting.raisePullRequest(request, options(w));
+  const [open] = w.requests.filter((r) => r.method === "POST");
+  assert.equal(open.body.body, hosting.renderBody(owner, chapters));
+  assert.equal(open.body.body.startsWith(`${LINE}\n\n## Change\n`), true);
+  assert.deepEqual(posts(w.requests), ["POST /repos/o/r/pulls", "POST /graphql"]);
+
+  // 2. Only the base revision decides: a different visible text on the head is never read.
+  const hostile = mk(owner, policy({ [PATHS.declaration("kaal-change")]: JSON.stringify({ types: [{ ...DO, visible: "forged" }, HOTFIX] }) }));
+  await hosting.raisePullRequest(request, options(hostile));
+  assert.equal(hostile.requests.find((r) => r.method === "POST").body.body.startsWith(LINE), true);
+  assert.equal(hostile.requests.find((r) => r.method === "POST").body.body.includes("forged"), false);
+
+  // 3. A caller-supplied visible, in the request or in the options, is refused as caller authority before any call, not even a read.
+  for (const [input, extra] of [[{ ...request, visible: "mine" }, {}], [request, { visible: "mine" }]]) {
+    const refused = mk(owner);
+    await assert.rejects(hosting.raisePullRequest(input, options(refused, extra)), (e) => e.code === "RAISE_REFUSED" && e.rule === "caller-authority");
+    assert.equal(refused.requests.length, 0);
+  }
+
+  // 4. A declaration without visible text raises the body C113 raised, byte for byte.
+  const plain = mk(DO);
+  await hosting.raisePullRequest(request, options(plain));
+  assert.equal(plain.requests.find((r) => r.method === "POST").body.body, hosting.renderBody(DO, chapters));
+});
+
+// After hosting/C114's second DO the raise takes a grant instead of a bare token; that DO amends this Case's authority set-up
+// (as it does T310 to T317) in its own PLAN amendment, with no change to what T335 expects.
