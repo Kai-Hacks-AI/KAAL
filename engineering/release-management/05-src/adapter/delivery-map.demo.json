@@ -1,0 +1,8 @@
+{
+  "inventory": [".github/workflows"],
+  "adapter": "packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs",
+  "rows": [
+    { "control": "release/CTL36", "delivered": ".github/workflows/verify-workflow-names.yml", "entry": "engineering/release-management/05-src/workflow-names/judge-workflow-names.mjs" }
+  ],
+  "notControls": []
+}
