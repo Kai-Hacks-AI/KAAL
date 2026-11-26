@@ -121,7 +121,7 @@ export function run() {
     assert.equal(n.BASE_REF, 'main');
     assert.equal(n.KAAL_DEFAULT, 'main');
     // release/C160: the command runs the delivered entry through the adapter, not kaal-guard, and carries the same three facts as the old command
-    assert.match(n.cmd, /^node engineering\/release-management\/05-src\/change-isolation\/judge-change-isolation\.mjs --head /, 'the command does not run the entry');
+    assert.match(n.cmd, /^node engineering\/release-management\/05-src\/change-isolation\/judge-github-alone\.mjs --head /, 'the command does not run the .github alone entry');
     assert.equal(n.cmd.split(' --head ')[1], p.cmd.split(' --head ')[1], 'the facts the command carries differ');
   } finally { b.done(); }
 
