@@ -23,3 +23,8 @@ ACT, PROMOTION, then a detective WIRE of the file, which needs the Owner's go an
 
 ## Not in this Change
 No WIRE, ruleset change, required check or flag. The old workflow stays until its swap.
+
+## Design: split and overlap
+Split: none. The check has no verdict of its own; the pull request side only admits, and the judgment sits on the merge group side (`merge-group-review.yml`). One job, one control: admit.
+Covered by controls on main: nothing of the judgment. The merge queue itself is CTL32 (queue Promotion), which this admission does not duplicate: CTL32 lands promotions, this reports a required name on `pull_request`.
+Dropped: nothing. Left to decide in DO: whether the admission needs a control at all or is a `notControls` row, since it runs no script (UNKNOWN until the delivery map is read in DO).
