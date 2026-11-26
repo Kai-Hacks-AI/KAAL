@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs
+@@ -38,7 +38,7 @@
+   const read = (p) => {
+     if (!p) return undefined;
+     let text;
+-    try { text = readFileSync(p, 'utf8'); } catch { throw Object.assign(new Error(p), { reason: 'unreadable-input' }); }
++    text = readFileSync(p, 'utf8');
+     try { return JSON.parse(text); } catch { throw Object.assign(new Error(p), { reason: 'malformed-input' }); }
+   };
+   let r;

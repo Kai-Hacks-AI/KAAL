@@ -35,11 +35,14 @@ export function judge(facts) {
   const controls = new Map((facts.controls ?? []).map((c) => [c.id, c]));
   const declaredFor = (name) => (name === "Integrating" ? integrating : name === "Promoting" ? promoting : integrating.parts.find((p) => p.name === name))?.rules;
   const traced = (name, what, control) => { const c = controls.get(control); if (!c) add(name, `${name}: ${what} is traced to ${control ?? "no control"}, which is not a declared control`); else if (!(c.has ?? []).length) add(name, `${name}: ${what} is traced to ${control}, which has no Intent`); };
+  const declaredName = (name) => (name === "Integrating" ? integrating : name === "Promoting" ? promoting : integrating.parts.find((p) => p.name === name))?.ruleset;
   const sorted = (o) => JSON.stringify(Object.fromEntries(Object.entries(o ?? {}).sort(([a], [b]) => (a < b ? -1 : 1))));
   for (const [name, include] of branch) {
     const r = rulesets[name];
     if (!r) { add(name, `${name}: no ruleset source`); continue; }
-    if (r.name !== name.toLowerCase()) add(name, `${name}: the ruleset is named ${r.name}`);
+    const named = declaredName(name);
+    if (typeof named !== "string" || !named) add(name, `${name}: the stage declares no ruleset name`);
+    else if (r.name !== named) add(name, `${name}: the ruleset is named ${r.name}, not ${named}`);
     if (r.target !== "branch") add(name, `${name}: the target is ${r.target}, not branch`);
     if (!same(r.conditions?.ref_name?.include, include)) add(name, `${name}: the refs are ${JSON.stringify(r.conditions?.ref_name?.include)}, not ${JSON.stringify(include)}`);
     if (!same(r.bypass_actors, [])) add(name, `${name}: the bypass list is not empty`);
@@ -64,7 +67,8 @@ export function judge(facts) {
   const pub = (m) => add("Promoting", `Publishing: ${m}`);
   if (!p) pub("no ruleset source");
   else {
-    if (p.name !== "publishing") pub(`the ruleset is named ${p.name}`);
+    if (typeof publishing.ruleset !== "string" || !publishing.ruleset) pub("the stage declares no ruleset name");
+    else if (p.name !== publishing.ruleset) pub(`the ruleset is named ${p.name}, not ${publishing.ruleset}`);
     if (p.target !== "tag") pub(`the target is ${p.target}, not tag`);
     if (!same(p.conditions?.ref_name?.include, [`refs/tags/${publishing.target}`])) pub("the tag pattern is not the agreed one");
     if (!same(p.bypass_actors, [])) pub("the bypass list is not empty");

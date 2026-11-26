@@ -1,6 +1,6 @@
 name: verify Triggers
 # release/CTL19, required by release/CTL20. A detective check on plain pull_request and merge_group: no token, no secret, no pull_request_target (it is the rule it keeps).
-# It runs the judge of the base and reads the change only as Git data: a pull request through refs/pull/<n>/head, a merge queue entry through its queue branch.
+# It runs the judge of the default branch (release/C132) and reads the base and the change only as Git data: the base by its commit, a pull request through refs/pull/<n>/head, a merge queue entry through its queue branch.
 on:
   pull_request:
     branches: ['**']
@@ -17,14 +17,15 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number }}
       MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
     steps:
-      - name: Check out the base, the trusted judge
+      - name: Check out the default branch, the trusted judge
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Fetch the proposed head as Git data
+      - name: Fetch the base and the proposed head as Git data
         run: |
+          git fetch --no-tags origin "$BASE_SHA"
           if [ -n "$MERGE_GROUP_HEAD_REF" ]; then
             git fetch --no-tags origin "+${MERGE_GROUP_HEAD_REF}:refs/remotes/pull/head"
           else
@@ -33,5 +34,5 @@ jobs:
       - name: Judge
         run: |
           J=engineering/release-management/05-src/triggers/verify-triggers.mjs
-          test -f "$J" || { echo "UNKNOWN: the judge is absent on the base"; exit 2; }
-          node "$J" --base "$BASE_SHA" --head refs/remotes/pull/head
+          test -f "$J" || { echo "UNKNOWN: the judge is absent on the default branch"; exit 2; }
+          node "$J" --base "$BASE_SHA" --head refs/remotes/pull/head --fallback HEAD

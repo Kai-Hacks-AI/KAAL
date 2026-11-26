@@ -1,0 +1,7 @@
+4d283dc29c987fc1a3458db2f4167d0975e3c5e3c00d95da5a4ee517d16b916e  ./SKILL.md
+3c70bcba63d0928a3c7474fb3e60395eed756d9e1efff51103a372cecebb165b  ./references/example-rehearsal.md
+422ea269c7d2c838b982fb99dbe705d81debd9719e3ae8972a722569cabd35de  ./references/rehearsal.md
+32142aac51686c75f07ded22e2e8399d937bbfa98e86504c595b66f175fc5225  ./references/techniques/judged-trial.md
+58905713eff2cb46b1467ffb188857521faf0e6a31ed2e5226781e975e1c36ae  ./scripts/find-rehearsals.mjs
+0a69037cd2668481b6210f285c8b54e686e09171a168313f71f14c085274eb05  ./scripts/judge-rehearsal.mjs
+18a353f3657c2f4b8994e4cc704b95b95c780683b3e0880bd29334904f44a940  ./scripts/parse.mjs
