@@ -21,6 +21,10 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
+      - name: Install Hosting
+        run: npm ci --ignore-scripts -w @kaihacksai/kaal-hosting
+      - name: Build Hosting
+        run: npm run build -w @kaihacksai/kaal-hosting
       - name: Fetch the base and the proposed head as Git data
         run: |
           git fetch --no-tags origin "$BASE_SHA"
@@ -45,4 +49,4 @@ jobs:
           test -f "$J" || { echo "UNKNOWN: the judge is absent on the default branch"; exit 2; }
           node "$J" --head "$RUNNER_TEMP/head" --out "$RUNNER_TEMP/findings.json"
       - name: Judge the findings against the accepted baseline
-        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode ratchet --findings "$RUNNER_TEMP/findings.json" --baseline "$RUNNER_TEMP/head/engineering/release-management/04-controls/CTL36-verify-workflow-names/baseline.json" --previous "$RUNNER_TEMP/previous.json"
+        run: node packages/kaal-engineering/13-source/controls/judge-run.mjs --mode ratchet --findings "$RUNNER_TEMP/findings.json" --baseline "$RUNNER_TEMP/head/engineering/release-management/04-controls/CTL36-verify-workflow-names/baseline.json" --previous "$RUNNER_TEMP/previous.json"
