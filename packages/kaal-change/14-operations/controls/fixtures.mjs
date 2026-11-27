@@ -1,4 +1,4 @@
-// Shared by the parked Cases of change/C16. Not a Case.
+// Shared by the Cases of change/C16. Not a Case.
 import { createHash } from 'node:crypto';
 export const pinOf = (text) => createHash('sha256').update(text, 'utf8').digest('hex');
 export const record = (identity, extra = '') => `---\nid: ${identity}\ntitle: ${identity.split('/')[1]}\n${extra}---\n# ${identity}\n`;

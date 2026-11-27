@@ -21,6 +21,14 @@
       "types": "./lib/succession.d.ts",
       "default": "./lib/succession.mjs"
     },
+    "./check-predecessor": {
+      "types": "./lib/check-predecessor.d.ts",
+      "default": "./lib/check-predecessor.mjs"
+    },
+    "./identify-conflict": {
+      "types": "./lib/identify-conflict.d.ts",
+      "default": "./lib/identify-conflict.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
