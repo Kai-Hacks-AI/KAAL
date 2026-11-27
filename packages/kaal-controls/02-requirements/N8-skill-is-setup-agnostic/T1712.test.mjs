@@ -1,4 +1,4 @@
-// Case controls/T1577 tests: controls/N8
+// Case controls/T1712 tests: controls/N8
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 // package-relative: the package root is the folder above this Case that holds package.json
 let pkg = dirname(fileURLToPath(import.meta.url));
 while (!existsSync(join(pkg, 'package.json'))) pkg = dirname(pkg);
-export const id = 'controls/T1577';
+export const id = 'controls/T1712';
 export const tests = ['controls/N8'];
 export const title = 'the package is ready to be published: public access, a changelog, a README that says what it is, and the licence bundled in the Skill (private is flipped only at Publishing)';
 export async function run() {
