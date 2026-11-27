@@ -1,18 +1,96 @@
 # Evidence of check 3, admission of Change Isolation (review) (release/C157, not a control)
 
-Admission is not verification and has no PASS or FAIL record, so no refused pull request is asked for. Counts follow release/C153, chapter "Amendment: the evidence before enforcement, per control". Read by script from every run of `change-isolation-admission-plain.yml` created from 12:05 UTC (its WIRE) until 17:09 UTC, and every `merge_group` run of `merge-group-review.yml` in the same time.
+Admission is not verification and has no PASS or FAIL record, so no refused pull request is asked for. Counts follow release/C153, chapter "Amendment: the evidence before enforcement, per control". Read by script from every run of `change-isolation-admission-plain.yml` created from 12:05 UTC (its WIRE) until 19:44 UTC, and every `merge_group` run of `merge-group-review.yml` in the same time.
 
 ## Count at the head of this file (numerical thresholds only; the trusted-execution proof is separate, see Open)
 
 | Situation | Required | Counting |
 | --- | --- | --- |
-| Pull request revisions admitted, in agreement with the old check on the same revision | 5 | 96 |
-| Merge-group runs whose Review verdict the admission leaves unchanged | 5 | 11 |
+| Pull request revisions admitted, in agreement with the old check on the same revision | 5 | 174 |
+| Merge-group runs whose Review verdict the admission leaves unchanged | 5 | 16 |
 
 ## Admitted (job `Change Isolation (review, plain pull_request)` success, old check `Change Isolation (review)` success, same revision)
 
 | Branch | Revision (head) | Run | New | Old |
 | --- | --- | --- | --- | --- |
+| claude/project-thread-g6hmfd-sync-flagfile-1 | 6dcb841ed56d5e539e97849aa3baa64e5695dc38 | 46058226799 | success | success |
+| testing/c84-interim | fb10b27f0e0feb9b81c97bd826768fd848638918 | 46057665319 | success | success |
+| claude/project-thread-063rup-flags-act | 98aca0b55df1f9147314a319b987f4ae872a7250 | 46057647519 | success | success |
+| testing/c84-interim | 7ef3423dea2df6ffc105ec133ab7a209066569ec | 46057232803 | success | success |
+| testing/c84-interim | 7ecabd272225899c3641017396996e7a620814e3 | 46057104938 | success | success |
+| claude/project-thread-063rup-flags-do | 35423ee7e6bb91b34c4e55d60b184e6a439c2fcf | 46056861427 | success | success |
+| kaal/testing/mutation-verification | fa6be056ba383741710cacfe855e101a2f995798 | 46055857328 | success | success |
+| claude/project-thread-g6hmfd-sync-mutation-2 | 1fb1fd2bebc3b89fdcf2b43595a7e29a1a966c81 | 46055252668 | success | success |
+| claude/release-c167-plan | 2687ba70020ae673d91753cb306a9c6a7986d9eb | 46055233534 | success | success |
+| claude/project-thread-063rup-flags-plan | 707f4f29bb61586970428e5e19c4b4c56537ad71 | 46055184049 | success | success |
+| claude/release-c167-plan | 41af31b8853fe6aa3201a0b434eb440581f8744a | 46055175891 | success | success |
+| claude/project-thread-063rup-flags-plan | ddafe91eae670e268b96d2016df4043217b6b2f3 | 46055128433 | success | success |
+| claude/release-c167-plan | 9efb58ee75778b8da2215eb3058015d365e35f80 | 46054896549 | success | success |
+| claude/project-thread-063rup-flags-plan | a53c315b5a2d3632d77d39e0486e336019ee1929 | 46054831781 | success | success |
+| claude/release-c167-plan | 1c312ef541f4bc1b403a6832abe297c347f843e3 | 46052963508 | success | success |
+| claude/project-thread-063rup-flags-plan | 955ae0edb6bfb1e59dec416a12ba51c96b4c063f | 46052959443 | success | success |
+| claude/project-thread-063rup-flags-plan | 8a06c4e27af6c3c9d4fabf4fd698ff8911a0df60 | 46052827208 | success | success |
+| testing/c83-strict-do | ec43c1cedc23c07c668198ac4783c92dcaf7304a | 46050540985 | success | success |
+| kaal/controls/neutral-wording | 5823f0f8b6f0c9b8c55d04cba7ccdbee4a865b7b | 46050186853 | success | success |
+| claude/release-c167-plan | ed09e6c650845eae5af159557390d197e0e1cacd | 46049814129 | success | success |
+| claude/project-thread-063rup-flags-plan | 796a20fca072aa68839f63813ef4ee3c07e9c646 | 46049767583 | success | success |
+| claude/release-c167-plan | bb377655ff378046ddf2dc4b825b8c6beeebfcda | 46049737801 | success | success |
+| claude/project-thread-063rup-flags-plan | 0bca300d54bdfbca7e2c0abadd54510ec65c8029 | 46049548600 | success | success |
+| claude/project-thread-g6hmfd-sync-neutral-1 | 6341c103a224f8dd51a6da8b945b6b77d2d86d41 | 46049544249 | success | success |
+| claude/release-c167-plan | ce4c5296c781666fb2de30395493277894d993eb | 46049084039 | success | success |
+| testing/c83-strict-plan | 5dab2c9eb035544da0e5316ddad2507cadadeebe | 46049054416 | success | success |
+| claude/project-thread-063rup-flags-plan | 5d021062931d06cd4c37be71437bdfe50cd4d536 | 46048952463 | success | success |
+| claude/project-thread-063rup-flags-plan | 7c55186575ddb58da67f5869a40045a67e49cfed | 46048938237 | success | success |
+| kaal/release/ledger-counts | d5758a250a4c342221152f0f0bbae5c65c0de5aa | 46048918137 | success | success |
+| kaal/controls/flag-status | 26ae9185972215a5441629e807fa23857b28cc96 | 46047652840 | success | success |
+| claude/release-c167-plan | 3707596b05d3eef7dcf7fad8286b05f247a80783 | 46047417520 | success | success |
+| claude/release-c153-ledger-check4 | bd93526a7ebd11239e8c948a2f24a07c4b5a3a55 | 46047348013 | success | success |
+| claude/project-thread-063rup-flags-plan | 1bf36cea9fce38d4b82027fa702a82eae0fa9a89 | 46047169616 | success | success |
+| claude/project-thread-063rup-flags-plan | 5b9a94a7cffb06db3d7fc2864a0e21f16fa29907 | 46047103105 | success | success |
+| kaal/release/ledger-counts | e15fb77cec19bd3a0f6b23c0f186f0ebb90a1706 | 46046857115 | success | success |
+| claude/project-thread-g6hmfd-sync-flagstatus-1 | 5eadd4aa9cc59d2587eb0b9d5c5a67daf7579b9e | 46046596451 | success | success |
+| kaal/hosting/judged-revision | e6975f1715f2f7651c5af90012cc8acf795534dc | 46046400341 | success | success |
+| kaal/release/ledger-counts | 8e69ef50994d66ab0facaecb473fd160950bd307 | 46046370179 | success | success |
+| claude/release-c167-plan | cac1fd871eef0cac0b43dc296e9a91582e3b6193 | 46046221785 | success | success |
+| kaal/release/inspector-app | 8e6503f47aaee64f8d999fa13da0770101736560 | 46044909015 | success | success |
+| claude/release-c153-ledger-p-rows | f6560143e3cedc8f2fafe16294e8548fe507eb47 | 46044569211 | success | success |
+| claude/project-thread-nurd8a | 52da7e433fcfa85f28d05255a46cdfc2b7e4cec3 | 46044553033 | success | success |
+| wire/c153-check4-head-6 | 3cadd2af5b62b70987f1345436d4814eb1697303 | 46044525849 | success | success |
+| wire/c153-check4-head-5 | b6e95e9b9882c6a5acc3d49795fa0f42640c3bc8 | 46044516670 | success | success |
+| wire/c153-check4-head-4 | 1eabdb96d2bff3213b3b4a107c1cbce55afee8cd | 46044505409 | success | success |
+| wire/workflow-names-judge-run | 849934306cc657418c42068515b507d21f8f133c | 46043740186 | success | success |
+| wire/c153-check4-head-3 | 6837295d762ccf2a448dccee304129f6532e1a2a | 46043671747 | success | success |
+| wire/c153-check4-head-2 | c6742dbebd8805bdce25633715b84019b80a0607 | 46043663325 | success | success |
+| wire/c153-check4-head-1 | 2ab802ee5c5a2b505f7c7a5244ae8255bd0e7d5e | 46043650341 | success | success |
+| probe/c153-check4-origin-3 | 78b7d5213cd7d67c969daba92457438953bc2579 | 46043642062 | success | success |
+| probe/c153-check4-origin-2 | cf782d23f6e059158bcb68d0a3ba4fc9d738118a | 46043629914 | success | success |
+| probe/c153-check4-origin-1 | e5f8cb42d54dc51f186d30a2b358e98f2a21ffc9 | 46043620485 | success | success |
+| probe/c153-check2-ctl38-3 | 54469ae7996511bb70c7cf3f59f3cce42ecb38ae | 46042573267 | success | success |
+| probe/c153-check2-ctl38-2 | 41f5bb74d2de8e22bbdcd93cef97135c171de078 | 46042572225 | success | success |
+| probe/c153-check2-ctl38-1 | c9489246be1f2cd8871ec9c6a96c1ed40c03640e | 46042568928 | success | success |
+| probe/c153-check3-edit-marker | a7d63dc4070137d1efc2f480b8b97041ab226f95 | 46042387708 | success | success |
+| claude/project-thread-nurd8a | 57963d4807f15a0589d674d04f8f64106c86c2fd | 46042292427 | success | success |
+| claude/release-c153-ledger-counts | 38223b41ba7fc9671ad33e1d57a331f734aa1916 | 46041548692 | success | success |
+| probe/c153-check2-ctl39-3 | d862b0c8c4ad96904b72cd199aaab18e763ad4d4 | 46041474442 | success | success |
+| probe/c153-check2-ctl39-2 | 3976ce5262b44c972b54b882b8c5411879a6a118 | 46041471451 | success | success |
+| probe/c153-check2-ctl39-1 | ce5ae44a00ab16e114643ef62bcae52e1adc5bf1 | 46041467896 | success | success |
+| claude/release-c153-ledger-counts | 8ad7230b3cd1ed16610b132a547551cdbcc9931f | 46041213072 | success | success |
+| claude/project-thread-nurd8a | 29678a00aa33ba04b69e5c1297f49065b31c8a96 | 46040957454 | success | success |
+| claude/project-thread-063rup-layers-plan | fdabeb5aceba19b74eb4a8d52b448151ef82f146 | 46040814558 | success | success |
+| claude/project-thread-nurd8a | c5ae334e165572b65fc76aa2dd3f7559c68d006d | 46040790799 | success | success |
+| wire/promotion-source-plain | 3d216e5973b5a6786f2c7ed7d2b9de95737c2cd2 | 46040756946 | success | success |
+| claude/sync-wire-promotion-source | 397b1afb7bdebb08f798034b19df90d32882ad80 | 46040686128 | success | success |
+| testing/c84-act | ddd6fb8aabfdde88ee4bb14512e4a96124489f70 | 46040588752 | success | success |
+| claude/project-thread-063rup-layers-plan | 6640836734ba533686a0ac34eaad10ac7c230be8 | 46040430792 | success | success |
+| claude/project-thread-063rup-layers-plan | fcb93335a36681349c17202e329ad8e2d52b462e | 46040392498 | success | success |
+| claude/project-thread-nurd8a | fef0a85e7a58e8bb8b98eebe88077078bce3ad40 | 46040308106 | success | success |
+| probe/c153-check2-sync-3 | 2e5dac54b7cf5506bd8f556a416e356cbf1d6c8f | 46040187794 | success | success |
+| probe/c153-check2-sync-2 | acdee033fb2b1991d48ca2fe85a1b2ba01e2569c | 46040183284 | success | success |
+| probe/c153-check2-sync-1 | 530e63fd3dd0e3e68b3bcf185bc84733a8e3b5c0 | 46040176794 | success | success |
+| claude/project-thread-063rup-layers-plan | 46e49db68f92e26e70252a8e790b4b615b15c220 | 46040151673 | success | success |
+| probe/c153-check1-mixed-3 | e62b2897d5e8cd3fd5fe06b3f1f5a503fc641566 | 46040130935 | success | success |
+| probe/c153-check1-mixed-2 | 0a8d350a41aa97cfd0ace4342357cd24fbe2abc4 | 46040120967 | success | success |
+| probe/c153-check1-mixed-1 | 53c591d7b56b9e3efb7608ca9e6d88557e66ec6a | 46040117248 | success | success |
 | testing/c84-do | 0d5db321245c2db7b414f143ed6c1f5a0c3bb7b3 | 46039928038 | success | success |
 | claude/release-c153-ledger-counts | 82bcde03b7d2f0262ae182415f40fe85f8e80390 | 46039383818 | success | success |
 | wire/promotion-source-plain | 61e02fccc79d4d44cc841c1abf06a158f3ac4108 | 46038536530 | success | success |
@@ -114,6 +192,11 @@ Admission is not verification and has no PASS or FAIL record, so no refused pull
 
 | Run | Revision | Conclusion | Counting |
 | --- | --- | --- | --- |
+| 46056438210 | f5cb24de4c8e1478a36fc79bc576cebbe0ef7f3a | success | yes |
+| 46054636686 | 004eabcdc1c41a01d69e848622cfb138918f0d85 | success | yes |
+| 46048813355 | adb0082d799c76761e5cba4773a1754f614f9d77 | success | yes |
+| 46045110224 | 82812887aaa16032db44b3844150f873267c9515 | success | yes |
+| 46042470350 | 4eaef50f418040781cf8a4cb873ce3f8f18c3ba2 | success | yes |
 | 46039067485 | bd92bd2010ce5658d4ec37a131a7ae8c21fed641 | success | yes |
 | 46037928392 | 552442ab9547b49447596265a51821f4b5ff84cc | failure | no, cause not read |
 | 46037412362 | 1197557d014546b26e1d48396c6e5425ba1dd6e7 | success | yes |
@@ -127,9 +210,13 @@ Admission is not verification and has no PASS or FAIL record, so no refused pull
 | 45999939077 | 7dceec07b7223fefef4a367732a95d21a81307cb | success | yes |
 | 45995837268 | 2c1b4a9d9b5c2e1c7ced69b1c5b3756ae4ffea2d | success | yes |
 
+## Inspected, admission failed while the old check passed
+
+One run of the admission job failed on a head where the old check `Change Isolation (review)` succeeded: the probe `probe/c153-check3-edit-fail` (head 09aff2a8bb6b89b408e3e678deb58f7e8f60a5fb, run 46042397195), a provoked edit of the admission step for the trusted-execution proof (T3). It is kept apart from the admitted rows, and the proof file says what it shows.
+
 ## Uninspected
 
-The cause of any failed merge-group run (46037928392, first group of #2884) is not read. Runs created after 17:09 UTC.
+The cause of any failed merge-group run (46037928392, first group of #2884) is not read. Runs created after 19:44 UTC.
 
 ## Open
 
