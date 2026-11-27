@@ -2,6 +2,7 @@
 // and the findings of an integrity check on the run report. Pure except `observeAt`, which runs the Cases. It decides no verdict.
 import { collectCases } from './cases.mjs';
 import { observeCases } from './observe.mjs';
+import { checkIdentity } from './identity.mjs';
 import { runCases } from './run.mjs';
 
 export const SCHEMA = 'kaal-testing/observation@1';
@@ -36,7 +37,7 @@ function integrityOf(report, requested) {
  * report: a run report, possibly produced where candidate code ran. requested: the files the caller asked to be run. cases, findings: collectCases(root).
  */
 export function assembleObservation({ report, requested, cases, findings = [], form, revision, expectedRevision, runId, producedBy }) {
-  const integrity = integrityOf(report, requested);
+  const integrity = [...integrityOf(report, requested), ...checkIdentity({ recorded: revision, examined: expectedRevision }).findings];
   const { observed, evidence } = observeCases({ report: integrity.length > 0 ? undefined : report, cases, findings, form, revision, expectedRevision, runId, producedBy });
   if (integrity.length > 0) evidence.catalog.complete = false;
   const ran = Array.isArray(report?.execution?.files) ? report.execution.files : [];
