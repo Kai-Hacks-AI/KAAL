@@ -38,6 +38,12 @@ The aggregators of this Change are the same pattern (a job that needs the entrie
 - T1646: the names of the four required contexts are the ones in the rulesets of the repository, so a rename of a reporter without the ruleset, or the reverse, is seen (a ratchet over the job names against the required-context lists the repository holds).
 All red until the DO.
 
+## Earlier Cases that pin the detective state
+Seven Cases of earlier Changes assert that no job of a plain workflow takes a required context "before the swap", and one of them also pins the detective job name of the admission. They describe the state this Change ends, so the DO updates them, and only these assertions. Everything else in them stays.
+- release/T1575 (C155), T1577 (C158), T1579 (C159), T1581 (C160), T1597 (C163) and release/T1571 (wiring): "no job takes the required context" becomes "the entry jobs keep their own names, and the one aggregator job takes the context" (check 1 `Change Isolation`, check 2 `Branching`, check 4 `Promotion Source`). Their other assertions (trigger, workflow name, the entry names, no kaal-guard) are unchanged.
+- release/T1576 (C157): the job name `Change Isolation (review, plain pull_request)` becomes `Change Isolation (review)`, and "it must not take the required context" is dropped, since taking it is this Change.
+The new expectation is the one T1640 and T1643 state; the old one is the contract of the detective phase, which the swap ends. No Case of this Change is weakened.
+
 ## DO
 Rename the old jobs with the legacy marker and add the three aggregators (and the renamed admission), in the workflow files only, as a WIRE source change; the WIRE itself (the byte-equal copy on main) is the Owner's separate go, taken after the check's flag is `on`.
 
