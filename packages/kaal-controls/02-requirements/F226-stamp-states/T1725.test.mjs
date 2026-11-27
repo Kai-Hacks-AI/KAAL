@@ -16,13 +16,15 @@ export async function run() {
   const r = (verdict, applied, run = 'r') => ({ run, verdict, mode: applied ? 'preventive' : 'off', applied });
   const j = (declared, runs) => { const x = judgeStamp({ declared, runs }); return [x.stamp, x.blocking, x.reasons]; };
   assert.deepEqual(j('STOPPED', []), ['STOPPED', false, []]);
-  assert.deepEqual(j('STOPPED', [r('PASS', true)]), ['STOPPED', false, []]);
+  assert.deepEqual(j('STOPPED', [r('PASS', false)]), ['STOPPED', false, ['ran-while-stopped']]);
+  assert.deepEqual(j('STOPPED', [r('PASS', true)]), ['STOPPED', true, ['blocks-while-stopped', 'ran-while-stopped']], 'a declaration never conceals what ran');
   assert.deepEqual(j('UNKNOWN', []), ['MUTE', null, ['no-flag']]);
   assert.deepEqual(j('UNKNOWN', [r('PASS', false)]), ['MUTE', false, ['no-flag']], 'the adapter ran it switched off: it did not block');
   assert.deepEqual(j('UNKNOWN', [{ run: 'r', verdict: 'FAIL', mode: 'preventive', applied: null }]), ['MUTE', true, ['blocks-without-flag', 'no-flag']], 'a legacy caller blocks without a flag and the stamp says so');
   assert.deepEqual(j('UNKNOWN', [{ run: 'r', verdict: 'FAIL', mode: 'ratchet', applied: null }]), ['MUTE', true, ['blocks-without-flag', 'no-flag']]);
   assert.deepEqual(j('ADVISORY', [{ run: 'r', verdict: 'FAIL', mode: 'preventive', applied: null }]), ['ADVISORY', true, ['blocks-without-flag']], 'the file says advisory and the run blocked');
-  assert.deepEqual(j('STOPPED', [{ run: 'r', verdict: 'FAIL', mode: 'preventive', applied: null }]), ['STOPPED', false, []]);
+  assert.deepEqual(j('STOPPED', [{ run: 'r', verdict: 'FAIL', mode: 'preventive', applied: null }]), ['STOPPED', true, ['blocks-while-stopped', 'blocks-without-flag', 'ran-while-stopped']]);
+  assert.deepEqual(j('ADVISORY', [r('FAIL', true)]), ['ADVISORY', true, ['blocks-while-advisory']], 'an applied run under an advisory file blocked');
   assert.deepEqual(j('ADVISORY', []), ['MUTE', null, ['no-trace']]);
   assert.deepEqual(j('PREVENTING', []), ['MUTE', null, ['no-trace']]);
   assert.deepEqual(j('ADVISORY', [r('PASS', false)]), ['ADVISORY', false, []]);

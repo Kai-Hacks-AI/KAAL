@@ -36,6 +36,10 @@ export async function run() {
   assert.deepEqual(rep.findings, ['no-flag:x/CTL5@pr', 'no-verdict:x/CTL3@pr', 'orphan-flag:x/CTL9@pr', 'unproven-preventing:x/CTL4@pr']);
   const stubOnly = reportFlags({ controls: [{ id: 'x/CTL1', type: 'preventive', places: ['pr'] }], source: { of: () => ({ name: 'S', value: 'advisory' }) }, runs: { 'x/CTL1': { pr: [run('PASS', false)] } } });
   assert.deepEqual(stubOnly.findings, [], 'a source that cannot list gives no orphan finding');
+  const onlyStopped = flagSource(parseFlags(JSON.stringify({ schema: 'kaal-controls/flags@1', flags: [e('x/CTL2', 'pr', 'stopped')] })));
+  const stopped = reportFlags({ controls: [{ id: 'x/CTL2', type: 'preventive', places: ['pr'] }], source: onlyStopped, runs: { 'x/CTL2': { pr: [run('FAIL', true, 'r8')] } } });
+  assert.deepEqual([stopped.rows[0].stamp, stopped.rows[0].blocking], ['STOPPED', true]);
+  assert.deepEqual(stopped.findings, ['blocks-while-stopped:x/CTL2@pr', 'ran-while-stopped:x/CTL2@pr']);
   assert.throws(() => reportFlags({ controls: 'x', source, runs }));
   assert.throws(() => reportFlags({ controls: [{ id: 'x/CTL1', type: 'preventive' }], source, runs }), undefined, 'a control needs its places');
   assert.throws(() => reportFlags({ controls, source: null, runs }));
