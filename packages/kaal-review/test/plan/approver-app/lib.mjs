@@ -38,11 +38,13 @@ export const MAIN = 'f'.repeat(40);
  */
 const registered = new WeakMap();
 export const factOrigin = (fact) => (fact !== null && typeof fact === 'object' ? registered.get(fact) ?? null : null);
-/** The facts Hosting produced for the Approver: what is being decided, the revision of main, whether the change is a pure merge, its author and the signed check, with what a Case changes. */
+/** A commit as Hosting answers it: its revision and its parents. A pure merge is not an answer of Hosting's; the judgement reads it from the parents. */
+export const commit = (sha = HEAD, parents = [BASE, MAIN]) => Object.freeze({ sha, parents: Object.freeze([...parents]) });
+/** The facts Hosting produced for the Approver, in the shape of its `readPullRequestFacts`: the head with its parents, the base branch tip, main, the author and the named check at the head with GitHub's own conclusion (`success`), with what a Case changes. */
 export function facts(more = {}, origin = { repository: 'r', read: 'readPullRequestFacts', app: 'approver' }) {
   const f = Object.freeze({
-    head: HEAD, base: BASE, main: MAIN, pureMerge: true, author: 'someone',
-    check: more.check === null ? null : Object.freeze({ name: 'verify Sync', revision: HEAD, conclusion: 'pass', signer: 'inspector', ...(more.check ?? {}) }),
+    head: commit(), base: Object.freeze({ sha: BASE, ref: 'kaal/review/x' }), main: MAIN, author: 'someone',
+    check: more.check === null ? null : Object.freeze({ name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'inspector', ...(more.check ?? {}) }),
     ...Object.fromEntries(Object.entries(more).filter(([k]) => k !== 'check')),
   });
   if (origin) registered.set(f, origin);
