@@ -54,7 +54,7 @@ it("hosting/T335: the raised body starts with the owner's visible text read at t
 
   // 1. The opened body is the render of the owner's declaration, visible text first.
   const w = mk(owner);
-  await hosting.raisePullRequest(request, options(w));
+  await hosting.raisePullRequest(request, await options(w));
   const [open] = w.requests.filter((r) => r.method === "POST");
   assert.equal(open.body.body, hosting.renderBody(owner, chapters));
   assert.equal(open.body.body.startsWith(`${LINE}\n\n## Change\n`), true);
@@ -62,22 +62,19 @@ it("hosting/T335: the raised body starts with the owner's visible text read at t
 
   // 2. Only the base revision decides: a different visible text on the head is never read.
   const hostile = mk(owner, policy({ [PATHS.declaration("kaal-change")]: JSON.stringify({ types: [{ ...DO, visible: "forged" }, HOTFIX] }) }));
-  await hosting.raisePullRequest(request, options(hostile));
+  await hosting.raisePullRequest(request, await options(hostile));
   assert.equal(hostile.requests.find((r) => r.method === "POST").body.body.startsWith(LINE), true);
   assert.equal(hostile.requests.find((r) => r.method === "POST").body.body.includes("forged"), false);
 
   // 3. A caller-supplied visible, in the request or in the options, is refused as caller authority before any call, not even a read.
   for (const [input, extra] of [[{ ...request, visible: "mine" }, {}], [request, { visible: "mine" }]]) {
     const refused = mk(owner);
-    await assert.rejects(hosting.raisePullRequest(input, options(refused, extra)), (e) => e.code === "RAISE_REFUSED" && e.rule === "caller-authority");
+    await assert.rejects(hosting.raisePullRequest(input, await options(refused, extra)), (e) => e.code === "RAISE_REFUSED" && e.rule === "caller-authority");
     assert.equal(refused.requests.length, 0);
   }
 
   // 4. A declaration without visible text raises the body C113 raised, byte for byte.
   const plain = mk(DO);
-  await hosting.raisePullRequest(request, options(plain));
+  await hosting.raisePullRequest(request, await options(plain));
   assert.equal(plain.requests.find((r) => r.method === "POST").body.body, hosting.renderBody(DO, chapters));
 });
-
-// After hosting/C114's second DO the raise takes a grant instead of a bare token; that DO amends this Case's authority set-up
-// (as it does T310 to T317) in its own PLAN amendment, with no change to what T335 expects.

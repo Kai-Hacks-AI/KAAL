@@ -1,10 +1,8 @@
-// hosting/C114 executable drafts for the second DO (T336 to T340): facts that carry Hosting's attribution, and the pull request
-// facts the Approver judges. RED on main: `factOrigin` and `readPullRequestFacts` do not exist. The second DO turns them
-// into delivered Cases unchanged, beside the other App Cases (`04-test/package-check/app-fixtures.mjs`).
+// hosting/C114 delivered Cases (T336 to T339): facts that carry Hosting's attribution, the pull request facts the Approver judges, and the paging of the check runs.
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
-import { DISPATCHER, SHA, granted } from "../../04-test/package-check/app-fixtures.mjs";
+import { DISPATCHER, SHA, granted } from "./app-fixtures.mjs";
 
 const HEAD = "1".repeat(40);
 const BASE = "2".repeat(40);
