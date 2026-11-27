@@ -4,7 +4,7 @@ A station is a point where work passes and controls can judge it: Developing, Co
 
 ## The registry
 
-The registry of a station is the list of the controls registered at it. Read it from the **base** of a pull request, never from the candidate: a candidate that could add, move or remove a registration could choose what judges it.
+The registry of a station is the list of the controls registered at it. Read it from the **base** of the change under review, never from the candidate: a candidate that could add, move or remove a registration could choose what judges it.
 
 `node scripts/registry.mjs --repo <directory> --base <git ref> --station <Station>` prints the registered controls (`id`, `title`, `mode`, `status`, `path`) from the files of that ref, not from the working tree. It exits 1 when the ref cannot be read. A control with an invalid declaration is not registered: fix it as `references/declaring-controls.md` says.
 

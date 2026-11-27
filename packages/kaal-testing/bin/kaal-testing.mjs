@@ -68,6 +68,29 @@ if (argv[0] === 'observe-at') {
     process.exit(2);
   }
 }
+if (argv[0] === 'mutate') {
+  const o = {};
+  let strict = false;
+  for (let i = 1; i < argv.length; i += 1) {
+    if (argv[i] === '--strict') strict = true;
+    else { o[argv[i].replace(/^--/, '')] = argv[i + 1]; i += 1; }
+  }
+  try {
+    if (!o.spec || !o.out) throw new Error('--spec and --out are required');
+    const { runMutants } = await import('../lib/mutate.mjs');
+    const root = resolve(o.root ?? process.cwd());
+    let spec;
+    try { spec = JSON.parse((await readFile(resolve(o.spec))).toString('utf8')); } catch { throw new Error('invalid input: the spec is not JSON'); }
+    const record = await runMutants({ root, spec, ...(o.timeout ? { timeoutMs: Number(o.timeout) } : {}) });
+    const { mkdirSync, writeFileSync } = await import('node:fs');
+    mkdirSync(resolve(o.out), { recursive: true });
+    writeFileSync(join(resolve(o.out), 'mutation-report.json'), `${JSON.stringify(record, null, 1)}\n`);
+    process.exit(strict && !(record.complete && record.survivors.length === 0 && record.mutants.every((m) => m.outcome === 'killed')) ? 1 : 0);
+  } catch (error) {
+    console.error(`${error.message}\nusage: kaal-testing mutate [--root dir] --spec mutants.json --out dir [--timeout ms] [--strict]`);
+    process.exit(2);
+  }
+}
 if (argv[0] !== 'run') {
   console.error(usage);
   process.exit(2);

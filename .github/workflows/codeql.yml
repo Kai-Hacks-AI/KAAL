@@ -62,13 +62,17 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      - name: Install Hosting
+        run: npm ci --ignore-scripts -w @kaihacksai/kaal-hosting
+      - name: Build Hosting
+        run: npm run build -w @kaihacksai/kaal-hosting
       - name: Read the findings
         env:
           GITHUB_TOKEN: ${{ github.token }}
           CODEQL_ANALYZE_RESULT: ${{ needs.analyze.result }}
         run: node engineering/release-management/05-src/codeql-gate/judge-codeql-analysis.mjs --out "$RUNNER_TEMP/findings.json"
       - name: Judge the findings
-        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"
+        run: node packages/kaal-engineering/13-source/controls/judge-run.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"
 
   verify-findings:
     name: verify CodeQL findings
@@ -86,10 +90,14 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      - name: Install Hosting
+        run: npm ci --ignore-scripts -w @kaihacksai/kaal-hosting
+      - name: Build Hosting
+        run: npm run build -w @kaihacksai/kaal-hosting
       - name: Read the findings
         env:
           GITHUB_TOKEN: ${{ github.token }}
           CODEQL_ANALYZE_RESULT: ${{ needs.analyze.result }}
         run: node engineering/release-management/05-src/codeql-gate/judge-codeql-findings.mjs --out "$RUNNER_TEMP/findings.json"
       - name: Judge the findings
-        run: node packages/kaal-controls/skills/kaal-controls/scripts/judge-mode.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"
+        run: node packages/kaal-engineering/13-source/controls/judge-run.mjs --mode preventive --findings "$RUNNER_TEMP/findings.json"
