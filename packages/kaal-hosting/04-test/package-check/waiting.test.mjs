@@ -1,6 +1,4 @@
-// hosting/C116 executable drafts (T341 to T344): waiting on GitHub. RED on main: none of these functions exists. The DO turns them
-// into delivered Cases unchanged (`04-test/package-check/waiting.test.mjs`). Nothing here reaches GitHub or really waits:
-// the one thing a Case injects is the clock (`sleep`, `now`), as the reads inject their transport.
+// hosting/C116 delivered Cases (T341 to T344): waiting on GitHub. Nothing here reaches GitHub or really waits: the one thing a Case injects is the clock (`sleep`, `now`).
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";

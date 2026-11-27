@@ -1025,3 +1025,5 @@ export type { Declaration, PullRequestErrorCode, TemplateProblem } from "./githu
 export { raisePullRequest } from "./github/raise.js";
 export type { RaiseOptions, RaiseRequest, Raised } from "./github/raise.js";
 export type { Check, Gh, GhResult, PullRequest, PullRequestsOptions, Review, Unknown } from "./github/pull-requests.js";
+export { WaitingError, pollSchedule, refusalOf, retryRead, retryWait } from "./github/waiting.js";
+export type { Refusal, RefusalOptions, RetryOptions, WaitingErrorCode } from "./github/waiting.js";

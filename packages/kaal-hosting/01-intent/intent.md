@@ -64,6 +64,10 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 
 - **hosting/I18.** KAAL code, an agent or a person that needs the files of a Git revision, such as the base a judge reads from, reads them through Hosting alone, from the library or from a command of the Skill, with one meaning on every supported host: the committed bytes, never the working tree, with "there is no such revision" kept apart from "this could not be read", and without checking out, fetching, writing or running anything of the revision. Only reading a revision is Hosting's here: GitHub (pull requests, checks, rulesets) and what a revision's files mean are not.
 
+## Waiting on GitHub
+
+- **hosting/I24.** KAAL code that waits on GitHub (a script that polls a group's checks, a job that reads again after a refusal) decides what a refused read is, how long to wait and when to stop through Hosting alone, not with a schedule, a pattern and a loop of its own. The saving is one meaning: a rate limit, a 429 and a server error are waited out with a growing wait that honours the time GitHub gives, and a refusal that waiting cannot cure (a permission) is not waited for. What the waiting is for, and how long a caller may wait in all, stays the caller's judgement.
+
 ## Reading the open pull requests of a repository
 
 - **hosting/I19.** KAAL code, an agent or a person that needs the open pull requests of a repository with their reviews, review threads and checks reads them through Hosting alone, from the library or from a command of the Skill, with one answer shape in every environment and no knowledge of which route or binary reached GitHub. A fact that could not be read is said to be unknown, never guessed; a failure in transit is a failure, never a fact that GitHub does not give.
