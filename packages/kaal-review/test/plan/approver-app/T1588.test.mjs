@@ -1,6 +1,6 @@
 // Case review/T1588 tests: review/F40. The Approver approves only from facts that Hosting produced for it, including a passing check signed by the Inspector at the same revision.
 import assert from 'node:assert/strict';
-import { BASE, commit, evidence, facts, factOrigin, HEAD, kinds, loadApproval, MAIN } from './lib.mjs';
+import { BASE, commit, RUN, evidence, facts, factOrigin, HEAD, kinds, loadApproval, MAIN } from './lib.mjs';
 export const id = 'review/T1588';
 export const tests = ['review/F40'];
 export const title = 'facts that Hosting produced for the Approver, whose head has exactly the base and main as parents, showing a pure merge read from those parents and not from a field, and a passing check signed by the Inspector at the same revision, are approve, and a moved head or base, a change whose head is not a merge of exactly the base and main (one parent, three parents, a parent that is neither, a repeated parent, a base that lags the parents of the head), a pure-merge field that the facts offer, a check that is missing, not passing, of another revision or signed by another, a pull request of the Approver itself, a fact that Hosting did not produce, a copy of one, a fact another App read and malformed facts or evidence each abstain with their own finding, the kind of a pull request is read from the facts and not from its title, nothing that decides is taken from what the run claims, and nothing but approve or abstain is ever answered';
@@ -30,9 +30,23 @@ export async function run() {
   abstains({}, 'not-pure-merge', 'a pure-merge field that says true while the parents say otherwise', facts({ pureMerge: true, head: commit(HEAD, [BASE]) }));
   assert.equal(judge(evidence(), facts({ pureMerge: false })).decision, 'approve', 'a pure-merge field of the facts is never read, the parents decide');
   abstains({}, 'check-not-pass', 'a failed check', facts({ check: { conclusion: 'failure' } }));
-  abstains({}, 'check-not-pass', 'a check that is not complete', facts({ check: { conclusion: null } }));
+  abstains({}, 'check-not-pass', 'a check that is not complete', facts({ check: { status: 'in_progress', conclusion: null } }));
+  abstains({}, 'check-not-pass', 'a check that says success before it completed', facts({ check: { status: 'queued' } }));
   abstains({}, 'check-not-pass', 'a check with any other conclusion', facts({ check: { conclusion: 'skipped' } }));
   abstains({}, 'check-not-pass', 'a conclusion in a word that GitHub does not use', facts({ check: { conclusion: 'pass' } }));
+  // Every run of the check at the head counts: a rerun never hides an earlier one, and the order of the list decides nothing.
+  const run = (more) => ({ ...RUN, ...more });
+  assert.equal(judge(evidence(), facts({ checks: [run({}), run({})] })).decision, 'approve', 'two runs that both passed are approve');
+  abstains({}, 'check-not-pass', 'a newer failure above an older success', facts({ checks: [run({ conclusion: 'failure' }), run({})] }));
+  abstains({}, 'check-not-pass', 'an older failure under a newer success', facts({ checks: [run({}), run({ conclusion: 'failure' })] }));
+  abstains({}, 'check-not-pass', 'a run still pending above a success', facts({ checks: [run({ status: 'in_progress', conclusion: null }), run({})] }));
+  abstains({}, 'check-other-signer', 'a second run signed by another', facts({ checks: [run({}), run({ signer: 'someone-else' })] }));
+  abstains({}, 'check-other-revision', 'a second run of another revision', facts({ checks: [run({}), run({ revision: 'c'.repeat(40) })] }));
+  abstains({}, 'check-missing', 'an empty list of runs', facts({ checks: [] }));
+  abstains({}, 'check-missing', 'runs of other checks only', facts({ checks: [run({ name: 'verify Delivery' })] }));
+  assert.equal(judge(evidence(), facts({ checks: [run({}), run({ name: 'verify Delivery', conclusion: 'failure' })] })).decision, 'approve', 'a run of another check is not a run of verify Sync');
+  abstains({}, 'check-missing', 'the former single check field is no longer read', facts({ checks: undefined, check: run({}) }));
+  abstains({}, 'check-missing', 'a pure list of runs that is not a list', facts({ checks: run({}) }));
   abstains({}, 'check-other-revision', 'a check of another revision', facts({ check: { revision: 'c'.repeat(40) } }));
   abstains({}, 'check-other-signer', 'a check signed by another', facts({ check: { signer: 'someone-else' } }));
   abstains({}, 'check-missing', 'another check than verify Sync', facts({ check: { name: 'verify Delivery' } }));
@@ -78,7 +92,7 @@ export async function run() {
 
   const claimed = evidence();
   claimed.content = { pureMerge: true };
-  claimed.check = { name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'inspector' };
+  claimed.checks = [{ name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'inspector' }];
   assert.equal(judge(claimed, facts({ head: commit(HEAD, [BASE]) })).decision, 'abstain', 'a pure merge that the run claims and the parents deny abstains');
   assert.equal(judge(claimed, facts({ check: { conclusion: 'failure' } })).decision, 'abstain', 'a check that the run claims and the facts deny abstains');
   assert.equal(judge(claimed, facts({ check: null })).decision, 'abstain', 'a check that only the run claims is not a check');
