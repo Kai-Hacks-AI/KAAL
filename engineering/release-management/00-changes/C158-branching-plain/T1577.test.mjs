@@ -17,7 +17,7 @@ export async function run() {
   assert.equal(name, "Branching on pull_request", 'the workflow name');
   const others = readdirSync(join(repo, '.github/workflows')).concat(readdirSync(join(repo, 'engineering/release-management/05-src/wiring/workflows')).filter((f) => f !== 'branching-plain.yml'));
   assert.ok(!others.some((f) => [join(repo, '.github/workflows', f), join(repo, 'engineering/release-management/05-src/wiring/workflows', f)].some((p) => existsSync(p) && new RegExp('^name:\\s*' + name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&') + '\\s*$', 'm').test(readFileSync(p, 'utf8')))), 'the workflow name is not unique');
-  for (const v of ['freshness', 'synchronization', 'auto-merge']) assert.match(text, new RegExp('^    name: Branching: ' + v + ' \\(plain pull_request\\)$', 'm'), 'the detective job name of ' + v);
+  for (const v of ['freshness', 'synchronization', 'auto-merge']) assert.match(text, new RegExp('^    name: \"Branching: ' + v + ' \\(plain pull_request\\)\"$', 'm'), 'the detective job name of ' + v);
   assert.doesNotMatch(text, /^    name: Branching$/m, 'it must not take the required context before the swap');
   assert.doesNotMatch(text, /kaal-guard/, 'it must not run kaal-guard');
   for (const e of ['freshness', 'synchronization', 'auto-merge']) assert.match(text, new RegExp('node engineering/release-management/05-src/lineage/judge-' + e + '\\.mjs'), 'it must run the entry of ' + e);
