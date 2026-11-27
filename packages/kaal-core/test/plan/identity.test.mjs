@@ -40,8 +40,8 @@ describe("Identity and numbering (core/C164)", () => {
     assert.deepEqual(a.findings, [], "ids that follow the numbering are no finding");
     assert.deepEqual(a.nextFree("core", C), { id: "C163" }, "one more than the highest, whatever order they are held in");
     assert.deepEqual(a.nextFree("release", T), { id: "T4" }, "the gap at T2 is not filled");
-    const none = finder(assemble([...OWNERS, reg("kaal-hosting", "hosting")]));
-    assert.deepEqual(none.nextFree("hosting", C), { id: "C1" }, "a claimed scope that holds none starts at 1");
+    const none = finder(assemble([...OWNERS, reg("kaal-empty", "empty")]));
+    assert.deepEqual(none.nextFree("empty", C), { id: "C1" }, "a claimed scope that holds none starts at 1");
   });
 
   it("core/T135 [core/F126, core/F127, core/A66]: the same id in two scopes is two identities with no finding, nextFree answers each scope on its own, and one id twice in a scope is the collision finding", async () => {
