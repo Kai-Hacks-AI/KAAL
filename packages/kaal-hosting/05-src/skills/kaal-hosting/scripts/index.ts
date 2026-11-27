@@ -1016,10 +1016,8 @@ export async function contribution(): Promise<Files> {
   return { "Hosting.md": await readBytes(fileURLToPath(new URL("../../../kaal/Hosting.md", import.meta.url))) };
 }
 
-export { readCheckout, readRevision, revision } from "./revision.js";
-export type { CheckoutRead, RevisionOptions } from "./revision.js";
-export { contentIdentity, describeRun, RunFactsError } from "./run-facts.js";
-export type { ContentIdentity, ObservedRun, RunFacts, RunFactsCode, RunSource } from "./run-facts.js";
+export { readRevision, revision } from "./revision.js";
+export type { RevisionOptions } from "./revision.js";
 
 export { readPullRequests } from "./github/pull-requests.js";
 export { checkTemplates, PullRequestError, renderBody, renderTemplate } from "./github/templates.js";

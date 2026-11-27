@@ -1,7 +1,8 @@
-// hosting/C118 delivered cases: the content of a run and its provenance, stated as distinct facts (hosting/F113, hosting/A50;
-// hosting/T349 to hosting/T353). They reach Hosting by its name, as a consumer does, and write only to the operating system's
-// temporary directory. Git is used for the fixtures only, in a scratch repository isolated from the user's configuration.
-// Hosting states content and provenance; what was examined, and whether evidence is about it, is for the consumer and for Testing.
+// hosting/C118 executable drafts (T349 to T353): the content of a run and its provenance, stated as distinct facts. RED on `main`:
+// `describeRun`, `contentIdentity`, `readCheckout` and the command `kaal-hosting-run-facts` do not exist. They need no App and no
+// network. The DO turns them into delivered Cases unchanged (`04-test/package-check/run-facts.test.mjs`). Git is used for the
+// fixtures only, in a scratch repository isolated from the user's configuration. Hosting states content and provenance;
+// what was examined, and whether evidence is about it, is for the consumer and for Testing.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
