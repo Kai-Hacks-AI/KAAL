@@ -35,7 +35,7 @@ A retro entry in the collector.
 3. **Flag name.** Stored in the file with the entry (`name`), so the adopter's convention (`KAAL_<CAP>_<CONTROL>`) lives in the adopter's file and not in the library.
 4. **Missing entry.** Passed on as missing, so the run is `UNKNOWN` and the control is Mute with the finding `no-flag`. Never read as off or stopped.
 5. **Second source.** A flag source from Hosting (GitHub variables) is a later decision. The seam is `of(control)`, and nothing in the library names it.
-6. **Placement.** The two scripts are flat in `scripts/` as `judge-running.mjs` is. The layout of C160 and the restructure of C163 move pure files into `scripts/lib/` when they land.
+6. **Placement.** The three scripts are flat in `scripts/` as `judge-running.mjs` is. The layout of C160 and the restructure of C163 move pure files into `scripts/lib/` when they land.
 7. **Runs and last run.** The adopter hands the established runs of a control in a place, oldest first, each with its verdict (none when established without a record, which is how Torn shows). `last` is the newest. The library carries no date.
 8. **Stopped.** The adopter does not run a Stopped control (`toBoundary` gives `null`). Stopped is known from the file and needs no run, so silence of a Stopped control is not Mute. The adapter is not changed.
 9. **Legacy values.** `on` and `off` stay readable so that C158 and its callers work unchanged; the new values are the vocabulary of the file. A later Change may retire the legacy ones.
