@@ -1,0 +1,11 @@
+on parent b289ba6
+baseline (no mutation)
+  controls/T1574 GREEN
+M1-hosting-term-in-script
+  controls/T1574 RED: the Skill names what is not its own:
+M2-hosting-term-in-reference
+  controls/T1574 RED: the Skill names what is not its own:
+M3-change-id-form-in-reference
+  controls/T1574 RED: the Skill names what is not its own:
+M4-spelling-pull-request-snake
+  controls/T1574 RED: the Skill names what is not its own:
