@@ -1,4 +1,4 @@
-// hosting/C114 executable drafts for the second DO (T336 to T338): facts that carry Hosting's attribution, and the pull request
+// hosting/C114 executable drafts for the second DO (T336 to T340): facts that carry Hosting's attribution, and the pull request
 // facts the Approver judges. RED on main: `factOrigin` and `readPullRequestFacts` do not exist. The second DO turns them
 // into delivered Cases unchanged, beside the other App Cases (`04-test/package-check/app-fixtures.mjs`).
 import assert from "node:assert/strict";
@@ -25,7 +25,7 @@ const RUNS = [
 ];
 
 const route = (r) => {
-  if (r.path === "/repos/o/r/pulls/7") return { status: 200, json: { number: 7, user: { login: "claude-bot", type: "Bot" }, head: { ref: "claude/w", sha: HEAD }, base: { ref: "kaal/hosting/gen", sha: BASE }, body: "ignored" } };
+  if (r.path === "/repos/o/r/pulls/7") return { status: 200, json: { number: 7, user: { login: "claude-bot", type: "Bot" }, head: { ref: "claude/w", sha: HEAD }, base: { ref: "kaal/hosting/gen", sha: BASE, repo: { default_branch: "main" } }, body: "ignored" } };
   if (r.path === `/repos/o/r/commits/${HEAD}`) return { status: 200, json: { sha: HEAD, parents: [{ sha: BASE }, { sha: PARENT }], commit: { message: "ignored" } } };
   if (r.path === `/repos/o/r/commits/${HEAD}/check-runs`) {
     assert.equal(r.query.filter, "all", "reruns are asked for, not dropped");
@@ -88,6 +88,12 @@ it("hosting/T337: readPullRequestFacts sends only the documented GET requests an
   // Nothing is selected for the judge: the pending run and the newer failure are listed with the older success, newest first.
   assert.equal(facts.checks.some((c) => c.conclusion === "success"), true);
   assert.equal(facts.checks[0].status, "in_progress");
+  // The default branch is what GitHub's answer names; an answer that names none fails closed and never assumes main.
+  for (const [why, repo] of [["no repository in the base", undefined], ["no default branch", {}], ["an empty default branch", { default_branch: "" }]]) {
+    const w = await granted(ABILITIES, (r) => (r.path === "/repos/o/r/pulls/7" ? { status: 200, json: { ...route(r).json, base: { ref: "kaal/hosting/gen", sha: BASE, repo } } } : route(r)), APPROVER_WORLD, { app: "approver", appId: "67890" });
+    await assert.rejects(hosting.readPullRequestFacts(request, { grant: w.grant, fetch: w.api.fetch, api: w.api.api }), (e) => e.code === "READ_FAILED", why);
+    assert.equal(w.api.requests.slice(w.api.mark()).some((r) => r.path.startsWith("/repos/o/r/commits/main")), false, `${why}: main was not read in its place`);
+  }
   // A check that does not exist at the head is a fact too: an empty list, not a failure and not a guess.
   const { grant: g0, api: a0 } = await granted(ABILITIES, (r) => (r.path.endsWith("/check-runs") ? { status: 200, json: { check_runs: [] } } : route(r)), APPROVER_WORLD, { app: "approver", appId: "67890" });
   assert.deepEqual((await hosting.readPullRequestFacts({ ...request, check: "Change Isolation" }, { grant: g0, fetch: a0.fetch, api: a0.api })).checks, []);
@@ -151,4 +157,18 @@ it("hosting/T339: the check runs of a head are paged to a short page, listed com
   // More pages than the bound is a named failure and never a truncated list.
   const endless = await granted(ABILITIES, (r) => (r.path.endsWith("/check-runs") ? { status: 200, json: { check_runs: Array.from({ length: 100 }, (_, i) => run(i + 1)) } } : route(r)), APPROVER_WORLD, { app: "approver", appId: "67890" });
   await assert.rejects(hosting.readPullRequestFacts(request, { grant: endless.grant, fetch: endless.api.fetch, api: endless.api.api }), (e) => e.code === "READ_FAILED");
+});
+
+it("hosting/T340: no consumer can register a fact: registration is not exported, its module cannot be imported, and its origin is the grant Hosting holds, never a field", async () => {
+  assert.deepEqual(Object.keys(hosting).filter((k) => /attribut|regist|origin/i.test(k)), ["factOrigin"], "the one export about origin only reads");
+  for (const deep of ["facts.js", "grant.js", "app-reads.js"]) {
+    await assert.rejects(import(`@kaihacksai/kaal-hosting/dist/skills/kaal-hosting/scripts/github/${deep}`), (e) => e.code === "ERR_PACKAGE_PATH_NOT_EXPORTED", deep);
+  }
+  // A grant's own fields name its App and repository but carry no authority: a copy that claims another App is not a grant, so it reads and attributes nothing.
+  const { grant, api } = await granted(["read-contents", "read-pull-requests"], () => ({ status: 200, json: [] }));
+  const mark = api.mark();
+  const claim = { ...grant, app: "approver" };
+  await assert.rejects(hosting.listReviews("o/r", 7, { grant: claim, fetch: api.fetch, api: api.api }), (e) => e.code === "GRANT_UNTRUSTED");
+  assert.equal(api.requests.length, mark, "refused before any call");
+  assert.equal(hosting.factOrigin(await hosting.listReviews("o/r", 7, { grant, fetch: api.fetch, api: api.api })).app, "dispatcher", "the origin is the grant's, as Hosting holds it");
 });
