@@ -1,8 +1,8 @@
-// Case change/T1582 tests: change/G20
+// Case change/T1702 tests: change/G20
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-export const id = 'change/T1582';
+export const id = 'change/T1702';
 export const tests = ['change/G20'];
 export const closes = ['change/G20'];
 export const title = 'the Record definition and the Skill reference say that an empty succeeds is an answer and an absent one is not, and the reference stays free of KAAL terms';

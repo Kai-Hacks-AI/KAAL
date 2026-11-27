@@ -1,8 +1,8 @@
-// Case change/T1581 tests: change/G20
+// Case change/T1701 tests: change/G20
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { pinOf, record, rec, lib } from './fixtures.mjs';
-export const id = 'change/T1581';
+export const id = 'change/T1701';
 export const tests = ['change/G20'];
 export const closes = ['change/G20'];
 export const title = 'check Predecessor can require the answer: an undeclared carried Change fails, an explicit none passes and says it was declared, and a require it cannot read is UNKNOWN';

@@ -1,8 +1,8 @@
-// Case change/T1580 tests: change/G20
+// Case change/T1700 tests: change/G20
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { pinOf, record, entry, succeeds, lib, kinds } from './fixtures.mjs';
-export const id = 'change/T1580';
+export const id = 'change/T1700';
 export const tests = ['change/G20'];
 export const closes = ['change/G20'];
 export const title = 'a required record states its predecessors or states none: an absent succeeds is undeclared, an empty list is an answer';
