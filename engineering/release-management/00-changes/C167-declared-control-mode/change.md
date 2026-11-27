@@ -1,44 +1,43 @@
-# release/C167: the mode of a plain pull_request entry is declared in the control's file
+# release/C167: the entries of the replaced checks take their flag from the controls instance
 
 ## Reason
-Release/C153 replaces four required checks, each first as a detective entry. A detective REPORT ends the job green, so requiring a detective job enforces nothing. Going from detective to preventive must be a change of a file that is reviewed and delivered like any other, not a hand edit in a workflow. KAAL lives in files (file level first): a control already declares its stations and their modes in its own record (`stations: [<Station>:<mode>, ...]`, read by the controls library), so the mode of an entry is read from there, through the library, and nowhere else.
+Release/C153 replaces four required checks, each first as a detective entry. A detective REPORT ends the job green, so requiring a detective job enforces nothing. Kai's decisions (27 Nov): the switch from detective to preventive is a flag, the controls library reports where the flags stand, the flags live in a file, and KAAL's controls instance owns that file and its values, not Release and not the package. Release only declares its checks as controls and passes the flag through. Release writes no mode logic.
 
 ## The contract
-The entries of checks 1, 2 and 4 (`judge-*.mjs`, `lib/answer.mjs` and the entry helper of Change Isolation and Promotion Source) stop passing a literal `detective` to the adapter. One shared helper asks the controls library for the declared mode of the entry's own control at the station that its pull request target names, and passes it to `runControl`. The pure checks do not change.
-- Which station: a pull request into the default branch is the `Promoting` station; into `kaal/*` the `Collecting` station; into `hotfix/*` the `Hotfixing` station; into `wire/*` the `Wiring` station. The stations are the ones the controls library already names.
-- Which mode: the declared one. A control that declares no mode for that station, a record that cannot be read, or an unknown station answers `detective` and says so in its log line. A missing declaration never turns an entry preventive (UNKNOWN is never permission, and it never blocks either).
-- Where it is read from: the files of the default branch at its tip, the trusted judge, never from the pull request's own copy of the record. A candidate that edits its own control record changes nothing about its own run.
-- The record line stays as it is (`control`, `x`, `run`, `sha`, `verdict`, `by`); the mode is in the job log.
+What controls delivers (controls/C158 flag-status and controls/C164, not Release's to build): `runControl` takes `boundary.flag {name, value}` and only `on` applies the mode; a missing flag runs UNKNOWN and shows as no-flag; the instance file is `engineering/14-operations/controls/flags.json` (`{schema: "kaal-controls/flags@1", flags: [{control, name, value}]}`), read through `scripts/flags.mjs` (`parseFlags(text)`, `flagSource(entries)`, `source.of(controlId)`); one entry per control, keyed by control id.
+What Release does:
+- The shared entry helper of the replaced checks (`lib/answer.mjs` and the entry of Change Isolation and of Promotion Source) reads the file text at the base of the pull request through Hosting, never the pull request's own copy, calls `source.of(controlId)` of the library and passes the result as `boundary.flag`. It names no mode and decides nothing about what a value means.
+- Release declares its controls, so each has an entry in the instance file to be reviewed: check 1 `release/CTL42` and `release/CTL23`, check 2 `release/CTL37`, `release/CTL38` and `release/CTL39`, check 4 `release/CTL40` and `release/CTL41`. Check 3 (admission) is not a control and has no flag.
+- The first entries, and every flip to `on`, are a reviewed change of the instance file on the Owner's go, one per check. This Change adds no entry and flips nothing: until an entry exists the entries answer UNKNOWN as no-flag and block nothing in detective use.
 
 ## Acceptance expectations
-- An entry whose control declares `preventive` at the station of its target fails (non-zero exit) on a REPORT and passes on a PASS.
-- The same entry with `detective` declared never fails on a REPORT.
-- A missing, unreadable or malformed declaration is `detective`, with the reason in the log line.
-- The declaration is read from the default branch's files, not from the head.
-- Not applicable still writes no record and never blocks.
+- An entry passes the flag of its own control, read from the base's file, as `boundary.flag`.
+- A flag in the head's own copy of the file changes nothing about its own run.
+- A missing file, a missing entry or an unreadable file is passed as no flag; the entry never turns a missing value into `off` or `on`.
+- Not applicable writes no record in any case.
+- No entry names a mode (`detective`, `preventive`, `ratchet`) any more.
 
 ## Cases (parked red, ids by hand; on a clash the newer change renumbers)
-- T1630: the helper returns `preventive` for a control declaring it at the station of a pull request into the default branch, and `detective` for each other situation (not declared, another station, malformed, unreadable).
-- T1631: an entry run under `preventive` exits non-zero on a REPORT of its pure check and zero on a PASS, and under `detective` exits zero on both; run on one fixture per check family (Change Isolation, Branching, Promotion Source).
-- T1632: the declaration is read from the default branch's files: a head that carries an edited record of its own control gets the default branch's mode.
-- T1633: not applicable answers zero and writes no record in every mode.
-- T1634: no entry names `detective` or `preventive` as a literal any more (a ratchet against a literal mode in the entries), so the declaration is the only source.
-All red until the DO.
+- T1630: the helper passes `{name, value}` from the base's `flags.json` for the entry's own control as `boundary.flag`, and passes none when the entry is missing, the file is missing or unreadable.
+- T1631: the entries of checks 1, 2 and 4 pass the helper's flag into `runControl` and nothing else about the mode (one fixture per family).
+- T1632: a head that carries an edited `flags.json` gets the base's value.
+- T1633: not applicable answers zero and writes no record whatever the flag.
+- T1634: no entry names a mode literal (a ratchet against one), so the controls instance is the only source.
+All red until the DO, which waits for controls/C158 and C164 to be on main.
 
 ## DO
-Add the helper over the controls library, change the entries to use it, and keep every declared mode `detective` for now. The DO renames the parked Cases unchanged. Each Case is green with the package suite. The DO changes no declaration: switching a control to `preventive` is its own file change at the swap, with the Owner's go.
+Change the shared entry helper and the entries to pass the flag, nothing more. No entry of the instance file is written by this Change. The DO renames the parked Cases unchanged. Each Case is green with the package suite.
 
 ## After it
-ACT, PROMOTION. Then, per check and each on the Owner's separate go: a one-line change of the control's declared mode (`Promoting:detective` to `Promoting:preventive`, and for lineages `Collecting`), and the ruleset swap by the Owner. The old workflow keeps running unrequired as the detective comparison (release/C153).
+ACT, PROMOTION. Then, per check and each on the Owner's separate go: the check's entries in `flags.json` (a reviewed change of the instance file, then flipped to `on`), and the ruleset swap by the Owner. The old workflow keeps running unrequired as the detective comparison.
 
 ## Left open (with a recommendation)
-- Whether the declaration change at the swap is a PROMOTION of the control file (the record lives in `04-controls`, not under `.github`, so it is not a WIRE). Recommendation: yes, a one-line PROMOTION per control, the Owner's go each.
-- Alignment with controls/C163 (strategy slot, library layers): the helper belongs to the controls library, with the entries as consumers. Recommendation: Release's DO consumes the library function that C163 provides; if it is not on main when the DO starts, the DO carries a small local helper that C163 later replaces, and records that as a defect of order.
-- Check 3 (admission) is not a control and has no mode: it is unaffected.
+- The read of the file at the base goes through Hosting (platform mechanics). Recommendation: the entry's existing Git read of the default branch's tip, the same way the trusted judge reads the checker today.
+- The job names at the swap: checks 1 and 3 take the old context name (a rename in the workflow source), checks 2 and 4 are required by their new job names. A separate PLAN, as they are not flags.
+- GitHub as a second flag source (through Hosting) is for later, the Owner's remark.
 
 ## Not in this Change
-No WIRE, ruleset change, required check or flag. No declaration is switched to `preventive`. The old workflows stay until their swaps.
+No WIRE, ruleset change, required check, flag entry or flip. No mode logic of Release's own. The old workflows stay until their swaps.
 
 ## Design: split and overlap
-Split: none. One helper, not one per check, so a fourth check does not copy it.
-Overlap: it does not duplicate verify Adapter (which confirms an entry uses the adapter) nor the ratchet strategy of a control (which is not a mode). Dropped: the literal mode in each entry.
+Split: none. Nothing here duplicates controls/C158 or C164; this Change only consumes them and declares which controls of Release the flags describe. Dropped: the mode helper of Release that this PLAN first proposed.
