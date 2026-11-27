@@ -131,7 +131,7 @@ describe("the packed kaal-review in a fresh host", () => {
   it("navigates a tree of Review items and results from the host, through the permitted Hosting dependency", async () => {
     const tree = join(work, "items");
     mkdirSync(tree, { recursive: true });
-    writeFileSync(join(tree, "V1.md"), "---\nid: x/V1\nvalidates: [s]\n---\n## Question\n\nIs it so?\n\n## Criteria\n\n- it is so\n\n## Expected evidence\n\n- the document\n");
+    writeFileSync(join(tree, "V1.md"), "---\nid: x/V1\nvalidates: [s]\nagainst: [intrinsic]\n---\n## Question\n\nIs it so?\n\n## Criteria\n\n- it is so\n\n## Expected evidence\n\n- the document\n");
     writeFileSync(join(tree, "RV1.md"), "---\nid: x/RV1\nappraises: x/V1\nrevision: r1\nappraiser: a\nrelation: not-author\nexecution: performed\nconclusion: satisfied\n---\n## Execution\n\nRead it.\n\n## Result\n\nSo.\n");
     const script = "const { navigate } = await import(process.argv[2]); console.log(JSON.stringify(await navigate(process.argv[1], { revision: 'r1' })));";
     const out = JSON.parse(await run(process.execPath, ["--input-type=module", "-e", script, tree, pathToFileURL(join(product, "skills", "kaal-review", "scripts", "navigate.mjs")).href], host));
