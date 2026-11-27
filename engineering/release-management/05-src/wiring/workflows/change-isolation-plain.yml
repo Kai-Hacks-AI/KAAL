@@ -3,7 +3,7 @@
 # Only the trigger and how the proposed head arrives differ from the old workflow: plain pull_request, no token beyond contents: read, no secret, no pull_request_target.
 # The default branch is checked out as the trusted judge. The candidate is fetched as Git data from refs/pull/<n>/head (release/C90) and is never checked out, built, installed or run.
 # Detective: its own job name, so it replaces no required context. At the swap it takes the name `Change Isolation`, and the old workflow is retired.
-name: KAAL
+name: Change Isolation on pull_request
 
 on:
   pull_request:
