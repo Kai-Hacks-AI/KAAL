@@ -60,3 +60,5 @@ The five scripts that read files now have a pure library under `skills/kaal-cont
 Result: T1710, T591 and T479 GREEN; the package suite 116 of 116 GREEN. Mutations, each alone turns T1710 RED: an `fs` import back in a library file; a shim dropped from `files`.
 
 Follow-up Change (later): delete the shims once engineering's hosting-based callers (C45, #2843) are on main. Promotion note: C161 also edits `find-controls.mjs`; expect a conflict to reconcile (the stations input and the library move).
+
+DO finding (Engineering check on the first push): release/T1431 runs the workflow's own steps with only `judge-mode.mjs` and `ratchet.mjs` fetched from another revision, so a `judge-mode.mjs` shim that imports `./lib/judge-mode.mjs` was UNKNOWN there. The `judge-mode.mjs` shim therefore keeps its own copy of `judgeMode` (nine lines, importing only `./ratchet.mjs`) and goes away with the shim; the other shims import the library. Release's Case is not changed. The engineering Cases that run on this tree are GREEN here apart from environment failures (`kaal-core` not built in this sandbox).

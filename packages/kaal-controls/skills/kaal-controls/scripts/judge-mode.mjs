@@ -3,8 +3,19 @@
 // It is not published (package.json files). The library is lib/judge-mode.mjs. Delete this file when its callers read through hosting.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { judgeMode } from './lib/judge-mode.mjs';
-export * from './lib/judge-mode.mjs';
+import { judgeRun } from './ratchet.mjs';
+export { applyBaseline } from './ratchet.mjs';
+// Self-contained on purpose: callers that fetch only this file and ratchet.mjs from another revision (release/T1431) must keep working.
+// This copy of judgeMode is the same as lib/judge-mode.mjs and goes away with the shim.
+const MODES = ['detective', 'preventive', 'ratchet'];
+export function judgeMode({ mode, findings, baseline, previous } = {}) {
+  if (!MODES.includes(mode)) return { mode, verdict: 'UNKNOWN', blocked: true, reason: 'no-mode' };
+  const blocking = mode === 'preventive' || mode === 'ratchet';
+  if (!Array.isArray(findings)) return { mode, verdict: 'UNKNOWN', blocked: blocking, reason: 'could-not-judge' };
+  if (mode === 'detective') return { mode, verdict: findings.length ? 'REPORT' : 'PASS', blocked: false, findings };
+  if (mode === 'preventive') return { mode, verdict: findings.length ? 'FAIL' : 'PASS', blocked: findings.length > 0, findings };
+  return judgeRun({ findings, baseline, previous });
+}
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const a = Object.fromEntries(process.argv.slice(2).reduce((r, x, i, v) => (x.startsWith('--') ? [...r, [x.slice(2), v[i + 1]]] : r), []));
   const read = (p) => {
