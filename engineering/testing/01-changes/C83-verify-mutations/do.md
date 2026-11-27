@@ -17,6 +17,6 @@
 
 No mutant generation, workflow, flag, ruleset, WIRE or required check. The record decides no verdict; whether a survivor is an equivalent mutant or a gap is judged by a reader. This DO branches from `main`; the C82 collector also edits `package.json`, `T160`, `T369`, `testing.test.mjs` and the README, so the second collector to land takes a SYNC.
 
-## Interim state before the SYNC
+## Restored after the SYNC
 
-`main` now holds C82, which changes the same files as this DO (`package.json`, the bin, the README, `T160`, `T369`, `testing.test.mjs`), so a SYNC of `main` into this collector would conflict. To let the SYNC merge clean, a DO commit takes this Change's edits out of those six files and out of `lib/mutate.mjs`. The placed docs `I51`, `F176`, `A62` and the Cases stay. After the SYNC, a second DO puts the same code and edits back on top of `main`, so `T417` to `T419` are RED on the collector in between.
+`main` held C82, which edits the same six files, so a DO took this Change's edits out and a SYNC merged `main` clean. This DO puts `lib/mutate.mjs` and the edits back on top of `main`: the `./mutate` export, the `mutate` command in the bin, `T160` and `T369` listing the export, `testing.test.mjs` listing the packed file, and the README. `T414` to `T419` are GREEN in place again (6 of 6). `kaal-testing` `npm test`: 119 pass, 2 fail, the same 2 as on `main` (`T388` and `T369` need Node 24).
