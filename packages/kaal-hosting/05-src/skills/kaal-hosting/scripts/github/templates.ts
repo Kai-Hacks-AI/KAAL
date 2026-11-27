@@ -29,7 +29,7 @@ export interface Raise {
   title?: { forbid?: string[] };
 }
 export interface Chapter { name: string; guidance: string }
-export interface Declaration { type: string; intro?: string; chapters: Chapter[]; raise?: Raise }
+export interface Declaration { type: string; intro?: string; visible?: string; chapters: Chapter[]; raise?: Raise }
 
 const refuse = (message: string): never => { throw new PullRequestError(message, "INVALID_DECLARATION"); };
 const own = (o: object, k: string) => Object.prototype.hasOwnProperty.call(o, k);
@@ -46,6 +46,13 @@ function text(value: unknown, where: string, required = false): string | undefin
   if (value.includes("-->")) refuse(`${where} holds "-->", which would close the comment it is written in`);
   return value;
 }
+/** The visible text of a type: plain lines the reader sees. It may not open or close a comment, nor start a chapter. */
+function visibleText(value: unknown): void {
+  if (value === undefined) return;
+  if (typeof value !== "string" || value.trim() === "") return refuse("visible is not a non-empty string");
+  if (value.includes("<!--") || value.includes("-->")) refuse("visible holds comment syntax, which would hide it or change what it is written in");
+  if (lf(value).split("\n").some((line) => line.startsWith("#"))) refuse("visible has a line starting with #, which would add a chapter the declaration does not name");
+}
 function patterns(value: unknown, where: string): void {
   if (value === undefined) return;
   if (!Array.isArray(value) || value.length === 0 || value.some((p) => typeof p !== "string" || p === "")) refuse(`${where} is not a list of branch patterns`);
@@ -53,10 +60,11 @@ function patterns(value: unknown, where: string): void {
 
 /** Check a declaration and return it typed; any breach is `INVALID_DECLARATION`, naming the field. */
 export function validateDeclaration(declaration: unknown): Declaration {
-  const d = only(declaration, ["type", "intro", "chapters", "raise"], "the declaration");
+  const d = only(declaration, ["type", "intro", "visible", "chapters", "raise"], "the declaration");
   if (typeof d.type !== "string" || !/^[A-Z][A-Z0-9_]*$/.test(d.type)) refuse("type is not an upper-case name");
   if (d.type === "DEFAULT") refuse("type DEFAULT is the fallback, not a type");
   text(d.intro, "intro");
+  visibleText(d.visible);
   if (!Array.isArray(d.chapters) || d.chapters.length === 0) refuse("chapters is not a non-empty list");
   const names = new Set<string>();
   for (const [i, c] of (d.chapters as unknown[]).entries()) {
@@ -91,6 +99,7 @@ export function renderTemplate(declaration: unknown): string {
   const d = validateDeclaration(declaration);
   const lines = [`<!-- KAAL-PR-template: ${d.type} -->`, ""];
   if (d.intro !== undefined) lines.push(comment(d.intro), "");
+  if (d.visible !== undefined) lines.push(lf(d.visible).trim(), "");
   for (const c of d.chapters) lines.push(`## ${c.name}`, "", comment(c.guidance ?? ""), "");
   return lines.join("\n");
 }
@@ -107,7 +116,8 @@ export function renderBody(declaration: unknown, chapters: unknown): string {
     if (body === "") throw new PullRequestError(`the chapter ${c.name} has no text`, "MISSING_CHAPTER");
     return `## ${c.name}\n\n${body}\n`;
   });
-  return sections.join("\n");
+  const visible = d.visible === undefined ? "" : `${lf(d.visible).trim()}\n\n`;
+  return visible + sections.join("\n");
 }
 
 export interface TemplateProblem { file: string; problem: "missing" | "differs" | "undeclared" }
