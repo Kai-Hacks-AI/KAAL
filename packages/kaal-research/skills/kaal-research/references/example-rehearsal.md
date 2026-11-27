@@ -5,6 +5,7 @@ question: Does a Skill's boundary-precise description let an agent find the Skil
 verdict: favourable
 verdict-about: description
 verdict-rests-on: c1
+technique: judged-trial@1
 ---
 Illustrative: modelled on the exchange-by-description trial of 20 Nov 2026 (core). The evidence files and their digests below are placeholders, so that the example can be checked for form.
 
@@ -15,6 +16,7 @@ n: defect-only=3, both=3, both-neutral-names=3
 fresh-means: headless session in a sandbox project with the Skills deployed; session memory was not excluded and leaked KAAL rules into some answers
 model: sonnet-5-5
 settings: headless defaults
+harness: headless command-line sessions, one sandbox project
 blind: no
 ## Evidence
 - role: prompt
@@ -78,3 +80,9 @@ blind: no
   not-shown: no untreated arm for the description wording, a distractor Skill that was never opened, no confusable peer tried
 ## Limits
 n-shows: three runs per arm show that a difference is visible or not, never a rate
+## Protocol
+materials: evidence/prompt.txt, evidence/answers.md
+run: start a fresh headless session per run in a sandbox with the register and the Skills of that group, give it the prompt, and keep the answer; three sessions per group
+score: read each answer against the results table; the person who scores is named, and says whether the arm was visible
+confirms: the same placements appear again in the same groups
+refutes: the placements differ between the groups, or the answers do not match the table

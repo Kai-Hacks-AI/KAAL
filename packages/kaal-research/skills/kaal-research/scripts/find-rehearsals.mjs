@@ -12,7 +12,7 @@ export function findRehearsals(files) {
     if (!ID.test(f.id || '')) { refused.push({ path, reason: 'id' }); continue; }
     if (!VERDICTS.includes(f.verdict)) { refused.push({ path, reason: 'verdict' }); continue; }
     if (!f.question) { refused.push({ path, reason: 'question' }); continue; }
-    rehearsals.push({ id: f.id, verdict: f.verdict, about: f['verdict-about'], question: f.question, path });
+    rehearsals.push({ id: f.id, verdict: f.verdict, about: f['verdict-about'], question: f.question, technique: f.technique ?? null, challenges: f.challenges ?? null, path });
   }
   return { rehearsals, refused };
 }
