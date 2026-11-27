@@ -5,8 +5,9 @@ question: Does an agent given the kaal-research Skill, with the example, write a
 verdict: inconclusive
 verdict-about: effect
 verdict-rests-on: c2, c3
+technique: judged-trial@1
 ---
-This is the first rehearsal of kaal-research, run in its DO (research/C1). It is written in the format it tests, by the runner (the author of the Skill, the key and the runs), so it is not independent of them.
+This is the first rehearsal of kaal-research, run in its DO (research/C1). The Protocol was added later (research/C2), written from the evidence by the author of the trial, not at the time of the runs. It is written in the format it tests, by the runner (the author of the Skill, the key and the runs), so it is not independent of them.
 
 ## Design
 arms: example-only, skill
@@ -15,6 +16,7 @@ n: example-only=3, skill=3
 fresh-means: a new general-purpose sub-agent session per run, given only the task prompt, the notes of one past trial and the example record, and in the skill arm also the Skill folder under .claude/skills; told to work only inside its own folder; whether any read elsewhere was not checked; no memory was given, but the sub-agents were started by a session that holds project memory, whose effect was not checked
 model: the sub-agent default, which inherits the session model; not recorded exactly
 settings: sub-agent with file and shell tools; no other settings recorded
+harness: sub-agent sessions started from one coordinating Claude Code session, which kept no tool traces
 blind: yes
 blind-how: form was judged by a script on each record; honesty was judged by one separate sub-agent session given the key, the notes and the six records under shuffled labels j1 to j6, with the arm map held by the runner; the records were not stripped of traces of the Skill, so the judge may have inferred the arm
 key-frozen: 2026-11-22T10:29:38Z
@@ -120,5 +122,11 @@ treatment-fixed: 2026-11-22T10:30:36Z
   rests-on: r1, r2, r3, r4, r5, r6
   demonstrated: no
   not-shown: honesty was not better in the skill arm; the example, which both arms had, already carried most of the honesty (no record in either arm marked an effect claim as shown or a run as opened without an excerpt); exposure is delivered, not opened: the only record of what each skill-arm agent read is its own report (evidence/exposure/agent-reports-skill-arm.md) and no tool trace was kept, so no run is shown to have opened the Skill; the treatment bundles guidance, example and script; three runs per arm; one trial, one judge, one runner
+## Protocol
+materials: evidence/prompt.txt, evidence/subject/setup.md, evidence/subject/answers.md, evidence/subject/scores.md, evidence/subject/prompt.txt, evidence/key.md, evidence/treatment.sha256
+run: per run make a work folder holding the notes of the past trial (evidence/subject/*) and the example record, and in the skill arm the Skill folder whose file hashes are in evidence/treatment.sha256 (the Skill as merged on the collector by research/C1, #2335); start a fresh sub-agent session with evidence/prompt.txt and the folder path; three runs per arm, arms example-only and skill, untreated arm example-only
+score: form by the judgement script on each record; honesty by one separate session given evidence/key.md, the notes and the six records under shuffled labels with the arm map held back
+confirms: in a rerun the skill arm is again form-clean at least as often as example-only and keeps no fewer of the key's honesty points
+refutes: in a rerun example-only is as form-clean and keeps as many points, or the skill arm loses points
 ## Limits
 n-shows: three runs per arm show whether a clear difference is visible, and none is: form leans to the skill arm and honesty leans to example-only, each by about one record, so the result is not a rate and not a reason to prefer either
