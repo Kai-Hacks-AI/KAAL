@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
+@@ -60,7 +60,7 @@
+   if (!text(id) || !text(revision)) throw new Error('executed: id and revision must be non-empty strings');
+   if (!Array.isArray(records) || !Array.isArray(established)) throw new Error('executed: records and established must be lists');
+   const proven = (r) => established.some((e) => e && e.control === id && e.run === r.run && e.sha === revision);
+-  const valid = (r) => r && r.control === id && r.x === 'real' && text(r.run) && r.sha === revision && VERDICTS.includes(r.verdict) && r.by === 'adapter';
++  const valid = (r) => r && r.control === id && text(r.run) && r.sha === revision && VERDICTS.includes(r.verdict) && r.by === 'adapter';
+   return records.filter((r) => valid(r) && proven(r));
+ }
+ 
