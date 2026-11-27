@@ -6,41 +6,40 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)).split(/[\\/]engineering[\\/]/)[0]);
 const pkg = process.env.KAAL_TESTING_PKG ? resolve(process.env.KAAL_TESTING_PKG) : join(repo, 'packages/kaal-testing');
-const need = () => assert.ok(existsSync(join(pkg, 'lib/revision.mjs')), 'lib/revision.mjs is absent');
-
-const HEAD = 'd836d936'.padEnd(40, '1'); // the head of a pull request
-const MERGE = 'd4751363'.padEnd(40, '2'); // the test merge commit of a pull_request run (GITHUB_SHA)
+const need = () => assert.ok(existsSync(join(pkg, 'lib/identity.mjs')), 'lib/identity.mjs is absent');
 const kinds = (r) => r.findings.map((f) => f.kind);
 
 export const id = 'testing/T423';
 export const tests = ['testing/F177'];
-export const title = 'testing/F177 checkRevision accepts the judged revision, names the trigger when it was recorded instead, and refuses a short or missing id';
+export const title = 'testing/F177 checkIdentity accepts equal identities of any form, names two different ones, and refuses a missing or blank identity';
 
 export async function run() {
   need();
-  const { checkRevision } = await import(pathToFileURL(join(pkg, 'lib/revision.mjs')).href);
+  const { checkIdentity } = await import(pathToFileURL(join(pkg, 'lib/identity.mjs')).href);
 
-  const same = checkRevision({ recorded: HEAD, judged: HEAD, trigger: MERGE });
-  assert.equal(same.ok, true, 'the recorded id is the judged one');
-  assert.deepEqual(same.findings, []);
-  assert.equal(checkRevision({ recorded: HEAD.toUpperCase(), judged: HEAD }).ok, true, 'letter case does not make two ids differ');
-  assert.equal(checkRevision({ recorded: HEAD, judged: HEAD, trigger: HEAD }).ok, true, 'on a push the three are one id');
-  assert.equal(checkRevision({ recorded: 'a'.repeat(64), judged: 'a'.repeat(64) }).ok, true, 'a 64 character id is a revision');
+  for (const id of ['d836d936'.padEnd(40, '1'), 'sha256:9f2c4a', 'tree:9f2c', 'build-2026.11.27', 'v1.4.0+meta', 'a']) {
+    const r = checkIdentity({ recorded: id, examined: id });
+    assert.equal(r.ok, true, `equal identities are ok whatever they look like: ${id}`);
+    assert.deepEqual(r.findings, []);
+  }
 
-  const d20 = checkRevision({ recorded: MERGE, judged: HEAD, trigger: MERGE });
-  assert.equal(d20.ok, false);
-  assert.deepEqual(kinds(d20), ['recorded-is-trigger'], 'release/D20: the merge commit of the run was recorded as the revision');
-  assert.ok(d20.findings.every((f) => typeof f.detail === 'string' && f.detail.length > 0), 'a finding says what is wrong');
+  const other = checkIdentity({ recorded: 'd4751363'.padEnd(40, '2'), examined: 'd836d936'.padEnd(40, '1') });
+  assert.equal(other.ok, false);
+  assert.deepEqual(kinds(other), ['recorded-not-examined'], 'two different identities are named');
+  assert.ok(other.findings.every((f) => typeof f.detail === 'string' && f.detail.includes('d4751363') && f.detail.includes('d836d936')), 'the finding shows both identities');
 
-  assert.deepEqual(kinds(checkRevision({ recorded: MERGE, judged: HEAD })), ['recorded-not-judged'], 'without a trigger a mismatch is still named');
-  assert.deepEqual(kinds(checkRevision({ recorded: 'e'.repeat(40), judged: HEAD, trigger: MERGE })), ['recorded-not-judged'], 'another id than the trigger is not the trigger');
+  assert.deepEqual(kinds(checkIdentity({ recorded: 'ABC', examined: 'abc' })), ['recorded-not-examined'], 'no change of case: Testing does not know the format');
+  assert.deepEqual(kinds(checkIdentity({ recorded: 'abc ', examined: 'abc' })), ['recorded-not-examined'], 'no trimming either');
 
-  assert.deepEqual(kinds(checkRevision({ recorded: HEAD, judged: 'd836d93' })), ['judged-not-a-revision'], 'an abbreviation is not a revision');
-  assert.deepEqual(kinds(checkRevision({ recorded: 'd836d93', judged: HEAD })), ['recorded-not-a-revision']);
-  assert.deepEqual(kinds(checkRevision({ recorded: 'z'.repeat(40), judged: HEAD })), ['recorded-not-a-revision'], 'not hexadecimal');
-  assert.deepEqual(kinds(checkRevision({})), ['judged-not-a-revision', 'recorded-not-a-revision'], 'nothing given: both are named, the judged one first');
-  assert.equal(checkRevision({ recorded: 'abc', judged: 'abc' }).ok, false, 'two equal abbreviations are not evidence of a revision');
+  assert.deepEqual(kinds(checkIdentity({ recorded: 'abc' })), ['examined-identity-missing']);
+  assert.deepEqual(kinds(checkIdentity({ examined: 'abc' })), ['recorded-identity-missing']);
+  assert.deepEqual(kinds(checkIdentity({})), ['examined-identity-missing', 'recorded-identity-missing'], 'both named, the examined one first');
+  assert.deepEqual(kinds(checkIdentity()), ['examined-identity-missing', 'recorded-identity-missing'], 'no input at all');
+  for (const bad of ['', '   ', '\t\n', 42, null, {}, ['abc']]) {
+    assert.deepEqual(kinds(checkIdentity({ recorded: bad, examined: 'abc' })), ['recorded-identity-missing'], `${JSON.stringify(bad)} is not an identity`);
+  }
+  assert.equal(checkIdentity({ recorded: '  ', examined: '  ' }).ok, false, 'two equal blank strings are not evidence of content');
 
-  const input = Object.freeze({ recorded: MERGE, judged: HEAD, trigger: MERGE });
-  assert.doesNotThrow(() => checkRevision(input), 'a frozen input is not written to');
+  const input = Object.freeze({ recorded: 'x1', examined: 'x2' });
+  assert.doesNotThrow(() => checkIdentity(input), 'a frozen input is not written to');
 }

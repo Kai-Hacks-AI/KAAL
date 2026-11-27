@@ -8,14 +8,12 @@ import { fileURLToPath } from 'node:url';
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)).split(/[\\/]engineering[\\/]/)[0]);
 const pkg = process.env.KAAL_TESTING_PKG ? resolve(process.env.KAAL_TESTING_PKG) : join(repo, 'packages/kaal-testing');
-const need = () => assert.ok(existsSync(join(pkg, 'lib/revision.mjs')), 'lib/revision.mjs is absent');
-const HEAD = 'd836d936'.padEnd(40, '1');
-const MERGE = 'd4751363'.padEnd(40, '2');
+const need = () => assert.ok(existsSync(join(pkg, 'lib/identity.mjs')), 'lib/identity.mjs is absent');
 const call = (args) => spawnSync(process.execPath, [join(pkg, 'bin/kaal-testing.mjs'), 'observe-at', ...args], { encoding: 'utf8' });
 
 export const id = 'testing/T425';
 export const tests = ['testing/F177'];
-export const title = 'testing/F177 the command observe-at takes --trigger-revision, names the trigger when it was recorded, and exits 2 writing nothing for a value that is not a revision';
+export const title = 'testing/F177 the command observe-at takes identities that are not Git ids, names a recorded identity that is not the examined one, and exits 2 writing nothing when one is missing';
 
 export async function run() {
   need();
@@ -24,24 +22,24 @@ export async function run() {
     writeFileSync(join(root, 'T1.test.mjs'), "export const id = 'x/T1';\nexport const tests = ['x/F1'];\nexport async function run() {}\n");
     const common = ['--root', root, '--run-id', 'r1', '--produced-by', 'test'];
 
-    const ok = join(root, 'ok');
-    const good = call([...common, '--revision', HEAD, '--expect-revision', HEAD, '--trigger-revision', MERGE, '--out', ok, 'T1.test.mjs']);
+    const same = join(root, 'same');
+    const good = call([...common, '--revision', 'tree:9f2c', '--expect-revision', 'tree:9f2c', '--out', same, 'T1.test.mjs']);
     assert.equal(good.status, 0, good.stderr);
-    const rec = JSON.parse(readFileSync(join(ok, 'observation.json'), 'utf8'));
-    assert.deepEqual(rec.observed, { 'x/T1': 'GREEN' });
+    const rec = JSON.parse(readFileSync(join(same, 'observation.json'), 'utf8'));
+    assert.deepEqual(rec.observed, { 'x/T1': 'GREEN' }, 'an identity that is not a Git id works');
     assert.deepEqual(rec.evidence.integrity, []);
 
-    const d20 = join(root, 'd20');
-    const bad = call([...common, '--revision', MERGE, '--expect-revision', HEAD, '--trigger-revision', MERGE, '--out', d20, 'T1.test.mjs']);
-    assert.equal(bad.status, 0, 'a record that names the trigger is a result, not an error');
-    const r2 = JSON.parse(readFileSync(join(d20, 'observation.json'), 'utf8'));
+    const diff = join(root, 'diff');
+    const bad = call([...common, '--revision', 'build-2026.11.26', '--expect-revision', 'build-2026.11.27', '--out', diff, 'T1.test.mjs']);
+    assert.equal(bad.status, 0, 'a record of other content is a result, not an error');
+    const r2 = JSON.parse(readFileSync(join(diff, 'observation.json'), 'utf8'));
     assert.deepEqual(r2.observed, { 'x/T1': 'UNKNOWN' });
-    assert.deepEqual(r2.evidence.integrity.map((f) => f.kind), ['recorded-is-trigger']);
+    assert.deepEqual(r2.evidence.integrity.map((f) => f.kind), ['recorded-not-examined']);
 
     const none = join(root, 'none');
     mkdirSync(none);
-    const inv = call([...common, '--revision', HEAD, '--expect-revision', HEAD, '--trigger-revision', 'd4751', '--out', none, 'T1.test.mjs']);
-    assert.equal(inv.status, 2, 'an abbreviation as --trigger-revision is invalid input');
+    assert.equal(call([...common, '--expect-revision', 'tree:9f2c', '--out', none, 'T1.test.mjs']).status, 2, 'a missing --revision is invalid input');
+    assert.equal(call([...common, '--revision', 'tree:9f2c', '--out', none, 'T1.test.mjs']).status, 2, 'a missing --expect-revision is invalid input');
     assert.equal(existsSync(join(none, 'observation.json')), false, 'invalid input writes nothing');
   } finally { rmSync(root, { recursive: true, force: true }); }
 }
