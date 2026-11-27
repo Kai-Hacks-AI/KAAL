@@ -17,13 +17,21 @@ const APPROVER_WORLD = {
 const ABILITIES = ["read-contents", "read-pull-requests", "read-checks"];
 const request = { repo: "o/r", number: 7, check: "Change Isolation" };
 
+// Three runs of one check at the head, deliberately not in order: an older success must not hide a newer failure or a pending run.
+const RUNS = [
+  { id: 11, name: "Change Isolation", head_sha: HEAD, status: "completed", conclusion: "success", started_at: "2026-11-27T05:00:00Z", app: { slug: "kaal-inspector", id: 24680 } },
+  { id: 13, name: "Change Isolation", head_sha: HEAD, status: "in_progress", conclusion: null, started_at: "2026-11-27T05:20:00Z", app: { slug: "kaal-inspector", id: 24680 } },
+  { id: 12, name: "Change Isolation", head_sha: HEAD, status: "completed", conclusion: "failure", started_at: "2026-11-27T05:10:00Z", app: { slug: "kaal-inspector", id: 24680 } },
+];
+
 const route = (r) => {
   if (r.path === "/repos/o/r/pulls/7") return { status: 200, json: { number: 7, user: { login: "claude-bot", type: "Bot" }, head: { ref: "claude/w", sha: HEAD }, base: { ref: "kaal/hosting/gen", sha: BASE }, body: "ignored" } };
   if (r.path === `/repos/o/r/commits/${HEAD}`) return { status: 200, json: { sha: HEAD, parents: [{ sha: BASE }, { sha: PARENT }], commit: { message: "ignored" } } };
-  if (r.path === `/repos/o/r/commits/${HEAD}/check-runs`) return { status: 200, json: { total_count: 2, check_runs: [
-    { name: "Other", head_sha: HEAD, conclusion: "failure", app: { slug: "github-actions", id: 15368 } },
-    { name: "Change Isolation", head_sha: HEAD, conclusion: "success", app: { slug: "kaal-inspector", id: 24680 } },
-  ] } };
+  if (r.path === `/repos/o/r/commits/${HEAD}/check-runs`) {
+    assert.equal(r.query.filter, "all", "reruns are asked for, not dropped");
+    assert.equal(r.query.check_name, "Change Isolation");
+    return { status: 200, json: { total_count: 3, check_runs: RUNS } };
+  }
   return { status: 404, json: { message: "Not Found" } };
 };
 const read = async (extra = {}) => {
@@ -48,7 +56,7 @@ it("hosting/T336: a fact is Hosting's only if Hosting made it; a copy, a clone, 
     ["nothing", undefined],
     ["a string", "approver"],
   ]) assert.equal(hosting.factOrigin(imitation), null, why);
-  assert.equal(Object.isFrozen(facts) && Object.isFrozen(facts.head) && Object.isFrozen(facts.check), true, "the fact cannot be edited");
+  assert.equal(Object.isFrozen(facts) && Object.isFrozen(facts.head) && Object.isFrozen(facts.checks), true, "the fact cannot be edited");
   assert.equal(Object.keys(facts).includes("origin"), false, "attribution is never a field of the data");
   // The five reads of the first DO attribute their facts the same way.
   const { grant, api } = await granted(["read-contents", "read-pull-requests"], (r) => (r.path === "/repos/o/r/pulls" ? { status: 200, json: [] } : { status: 200, json: [{ state: "APPROVED", commit_id: HEAD, user: { login: "x", type: "Bot" } }] }));
@@ -58,7 +66,7 @@ it("hosting/T336: a fact is Hosting's only if Hosting made it; a copy, a clone, 
   void opts;
 });
 
-it("hosting/T337: readPullRequestFacts sends only the documented GET requests and returns head, base, main, author and the named signed check", async () => {
+it("hosting/T337: readPullRequestFacts sends only the documented GET requests and returns head, base, main, author and every run of the named check at the head, none selected", async () => {
   const { facts, api, mark } = await read();
   assert.deepEqual(facts, {
     number: 7,
@@ -66,19 +74,26 @@ it("hosting/T337: readPullRequestFacts sends only the documented GET requests an
     base: { ref: "kaal/hosting/gen", sha: BASE },
     main: SHA,
     author: { login: "claude-bot", type: "Bot" },
-    check: { name: "Change Isolation", revision: HEAD, conclusion: "success", signer: "kaal-inspector" },
+    checks: [
+      { name: "Change Isolation", revision: HEAD, status: "in_progress", conclusion: null, signer: "kaal-inspector" },
+      { name: "Change Isolation", revision: HEAD, status: "completed", conclusion: "failure", signer: "kaal-inspector" },
+      { name: "Change Isolation", revision: HEAD, status: "completed", conclusion: "success", signer: "kaal-inspector" },
+    ],
   });
   const calls = api.requests.slice(mark);
   assert.ok(calls.length > 0 && calls.every((r) => r.method === "GET" && r.headers.authorization === "Bearer ghs_GRANT"), "GET only, the grant's token in the header only");
   assert.deepEqual(calls.map((r) => r.path), ["/repos/o/r/pulls/7", `/repos/o/r/commits/${HEAD}`, "/repos/o/r/commits/main", `/repos/o/r/commits/${HEAD}/check-runs`]);
   const text = JSON.stringify(facts);
   assert.equal(/ignored|approv|merge-ok|verdict|judg/i.test(text), false, "no body, no message and no judgement: Review decides");
-  // A check that does not exist at the head is a fact too: null, not a failure and not a guess.
-  const none = await read({ check: "No Such Check" });
-  assert.equal(none.facts.check, null);
+  // Nothing is selected for the judge: the pending run and the newer failure are listed with the older success, newest first.
+  assert.equal(facts.checks.some((c) => c.conclusion === "success"), true);
+  assert.equal(facts.checks[0].status, "in_progress");
+  // A check that does not exist at the head is a fact too: an empty list, not a failure and not a guess.
+  const { grant: g0, api: a0 } = await granted(ABILITIES, (r) => (r.path.endsWith("/check-runs") ? { status: 200, json: { check_runs: [] } } : route(r)), APPROVER_WORLD, { app: "approver", appId: "67890" });
+  assert.deepEqual((await hosting.readPullRequestFacts({ ...request, check: "Change Isolation" }, { grant: g0, fetch: a0.fetch, api: a0.api })).checks, []);
   // A check run of another revision is never taken for the head's.
-  const stale = await granted(ABILITIES, (r) => (r.path.endsWith("/check-runs") ? { status: 200, json: { check_runs: [{ name: "Change Isolation", head_sha: "9".repeat(40), conclusion: "success", app: { slug: "kaal-inspector" } }] } } : route(r)), APPROVER_WORLD, { app: "approver", appId: "67890" });
-  assert.equal((await hosting.readPullRequestFacts(request, { grant: stale.grant, fetch: stale.api.fetch, api: stale.api.api })).check, null);
+  const stale = await granted(ABILITIES, (r) => (r.path.endsWith("/check-runs") ? { status: 200, json: { check_runs: [{ id: 1, name: "Change Isolation", head_sha: "9".repeat(40), status: "completed", conclusion: "success", app: { slug: "kaal-inspector" } }, ...RUNS] } } : route(r)), APPROVER_WORLD, { app: "approver", appId: "67890" });
+  assert.equal((await hosting.readPullRequestFacts(request, { grant: stale.grant, fetch: stale.api.fetch, api: stale.api.api })).checks.length, 3, "a run of another revision is never listed");
 });
 
 it("hosting/T338: readPullRequestFacts needs read-contents, read-pull-requests and read-checks, takes only its grant, and refuses before any call otherwise", async () => {
