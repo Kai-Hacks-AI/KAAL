@@ -66,3 +66,11 @@ DO finding (Engineering check on the first push): release/T1431 runs the workflo
 ## Promotion order (CTO)
 
 C160 promotes before C161 (controls/C161). C160 defines the library layout under `scripts/lib/`; C161 then merges main once in its collector and resolves four files (`scripts/find-controls.mjs`, `scripts/registry.mjs`, `references/enforcing-controls.md`, N8): the stations input goes into the library functions (`findControls(files, { stations })`, `registryAt(files, station, stations)`), the shims keep `--stations`, N8 keeps both paragraphs. The resolved tree is on branch `claude/project-thread-063rup-c160-c161-integration`: package suite 117 of 117 GREEN, release/T1431 GREEN. KAAL's callers pass KAAL's stations in engineering's Change that adopts the package (C45).
+
+## PLAN amendment 3 (the flag status command of another Change is on main)
+
+The flag status command of controls/C164 reached main after this collector branched, and it reads files like the commands above, so a synchronization would bring a file system import into a published script (T1710 red). The shim rule applies to it the same way, and the Change that brings it must not carry the fix, because a synchronization may differ from main only where the two conflict. So, before the synchronization:
+
+1. `scripts/lib/flag-status-command.mjs` holds its pure function `flagStatusCommand`, and `scripts/flag-status-command.mjs` is a deprecated shim (the command line and the file reading), listed with a `!` entry in `package.json` files so it is not published. Both are written as they will be on main, so that the merge resolves the one conflicting path (the old file against the shim) explicitly.
+2. The comments of the five existing shims drop the Change id, which the Case T1574 of main rejects.
+3. Nothing here runs the function: its imports (`flags.mjs`, `flag-status.mjs`) arrive with the merge. No Case of this collector changes, and the package suite stays GREEN (116 Cases).

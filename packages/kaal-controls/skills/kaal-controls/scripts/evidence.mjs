@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DEPRECATED shim: the command line of the evidence judge, kept at its old path for callers that have not moved to hosting yet (controls/C160).
+// DEPRECATED shim: the command line of the evidence judge, kept at its old path for callers that have not moved to hosting yet.
 // It is not published (package.json files). The library is lib/evidence.mjs. Delete this file when its callers read through hosting.
 //
 //   node evidence.mjs <directory> [--records <file.json|directory>]   prints the verdict of each control that claims tested
