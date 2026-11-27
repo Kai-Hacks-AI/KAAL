@@ -160,7 +160,7 @@ export function readRequired(rules: unknown): RequiredCheck[] {
  * required app), a completed success. A newer run still in progress is not green (it may fail), an earlier
  * success does not stand in for it, and a run on another commit is no evidence.
  */
-function notGreen(head: string | undefined, c: HeadChecks): string[] {
+export function notGreen(head: string | undefined, c: HeadChecks): string[] {
   const required = c.required.filter((r) => r.context !== SELF);
   if (required.length === 0) return ["the head's rulesets require no status check, so nothing shows it passed"];
   const bad: string[] = [];
@@ -176,9 +176,12 @@ function notGreen(head: string | undefined, c: HeadChecks): string[] {
   return bad;
 }
 
-export function promotionSource(f: SourceFacts): Verdict {
+/** Where the head of a pull request into the default branch comes from: its verdict, and its delivery stock when it is admitted. */
+export type Origin = Verdict & { stock: "kaal" | "hotfix" | "wire" | null };
+
+export function promotionOrigin(f: Pick<SourceFacts, "repo" | "defaultBranch" | "baseRef" | "headRepo" | "headRef">): Origin {
   if (f.baseRef !== f.defaultBranch) {
-    return { kind: "not-applicable", message: `Not a promotion: ${f.baseRef} is not ${f.defaultBranch}.` };
+    return { kind: "not-applicable", message: `Not a promotion: ${f.baseRef} is not ${f.defaultBranch}.`, stock: null };
   }
   const stock = f.headRepo === f.repo ? deliveryStock(f.headRef) : null;
   if (stock === null) {
@@ -187,8 +190,16 @@ export function promotionSource(f: SourceFacts): Verdict {
       message:
         `${f.defaultBranch} accepts pull requests only from kaal/<capability>/*, hotfix/* and wire/* branches of ${f.repo}, not from ${f.headRepo}:${f.headRef}. ` +
         `Take this Change into a kaal/* lineage through a pull request, then promote that lineage. See ${GUIDE}#promote`,
+      stock: null,
     };
   }
+  return { kind: "pass", message: `${f.headRef} is a ${stock} branch of ${f.repo}.`, stock };
+}
+
+export function promotionSource(f: SourceFacts): Verdict {
+  const origin = promotionOrigin(f);
+  if (origin.kind !== "pass") return { kind: origin.kind, message: origin.message };
+  const stock = origin.stock as "kaal" | "hotfix" | "wire";
   if (f.checks === undefined) {
     return { kind: "fail", message: `${f.headRef} is a ${stock} branch, but the checks its rulesets require could not be established at its head, so it is not admitted.` };
   }
