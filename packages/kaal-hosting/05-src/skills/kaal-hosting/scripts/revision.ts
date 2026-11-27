@@ -1,6 +1,6 @@
 import spawn from "cross-spawn";
 import { resolve } from "node:path";
-import { HostingError, list, readFile, startPlan, type Files } from "./index.js";
+import { HostingError, kind, list, readFile, startPlan, type Files } from "./index.js";
 import { contentIdentity, type ContentIdentity } from "./run-facts.js";
 
 /** What `readRevision` may be limited to. */
@@ -117,21 +117,21 @@ export interface CheckoutRead {
 /**
  * What a working copy actually holds, and where it comes from: the identity of its files by bytes and paths, the identity of
  * the files of the commit `head` names when that commit is in the repository, and the Git commit and parents. Content is
- * the fact; Git is provenance and an adapter detail, and a directory that is not a Git working copy still has content.
- * Read-only, and nothing is judged. A commit that is not there is `null`; a repository or a file that cannot be read is an error.
+ * the fact; Git is provenance and an adapter detail, and a directory without `.git` still has content.
+ * Read-only, and nothing is judged. A commit that is not there is `null`; a repository or a file that cannot be read is an error, and is never taken for the absence of Git.
  */
 export async function readCheckout(root: string, options: { head?: string } = {}): Promise<CheckoutRead> {
   const listed = await list(root, { skip: [".git"], links: "skip" });
   const files: Files = {};
   for (const entry of listed) if (entry.kind === "file") files[entry.path] = await readFile(resolve(root, entry.path));
+  // A Git working copy is a directory that holds `.git`; one that does not is an ordinary directory and has no Git provenance.
+  // Once `.git` is there, Git must answer: an unreadable repository is an error, never an absent one.
   let git: CheckoutRead["git"] = null;
-  try {
+  if ((await kind(resolve(root, ".git"))) !== "missing") {
     const { commit } = await revision(root, "HEAD");
     const run = await gitRun(root, ["rev-list", "--parents", "-n", "1", "--end-of-options", commit]);
     if (run.status !== 0) throw unreadable(`the parents of ${commit} could not be read`, run);
     git = { commit, parents: run.stdout.toString("utf8").trim().split(/\s+/).slice(1) };
-  } catch (e) {
-    if ((e as { code?: string }).code !== "REVISION_NOT_FOUND" && (e as { code?: string }).code !== "REVISION_UNREADABLE") throw e;
   }
   let headContent: ContentIdentity | null = null;
   if (options.head !== undefined && git !== null) {

@@ -196,12 +196,20 @@ it("hosting/T353: readCheckout and the command kaal-hosting-run-facts state what
     assert.equal(noGit.status, 0, noGit.stderr);
     assert.deepEqual([line(noGit).content, line(noGit).provenance.git, line(noGit).headContent], [identityOf({ "x.txt": Buffer.from("x") }), null, null], "a directory that is not a Git working copy still has content");
 
+    const broken = join(home, "broken");
+    spawnSync(process.execPath, ["-e", `require("fs").mkdirSync(${JSON.stringify(join(broken, ".git"))}, { recursive: true }); require("fs").writeFileSync(${JSON.stringify(join(broken, "x.txt"))}, "x")`]);
+    await assert.rejects(hosting.readCheckout(broken), (e) => e.code === "REVISION_UNREADABLE", "a directory that holds a .git Git cannot read is an error, not a directory without Git");
+    const unreadable = call(env, "--checkout", broken);
+    assert.equal(unreadable.status, 2, "the command says it cannot read the repository, and does not print facts without Git");
+    assert.deepEqual(line(unreadable), { result: "cannot-determine", code: "REVISION_UNREADABLE", reason: line(unreadable).reason });
+    assert.equal((await hosting.readCheckout(plain)).git, null, "while a directory without .git is a directory without Git");
+
     const unknown = call({ ...env, GITHUB_EVENT_NAME: "schedule" });
     assert.equal(unknown.status, 2);
     assert.deepEqual(line(unknown), { result: "cannot-determine", code: "UNSUPPORTED_EVENT", reason: line(unknown).reason });
     const none = call({ GITHUB_EVENT_NAME: "pull_request", GITHUB_SHA: merge });
     assert.equal(none.status, 2, "no event file is a refusal, not a guess");
     assert.equal(line(none).code, "EVENT_UNREADABLE");
-    assert.equal([ok, loose, noGit, unknown, none].some((r) => r.status === 1), false, "the command never exits 1: nothing here can fail a check");
+    assert.equal([ok, loose, noGit, unreadable, unknown, none].some((r) => r.status === 1), false, "the command never exits 1: nothing here can fail a check");
   } finally { rmSync(home, { recursive: true, force: true }); }
 });
