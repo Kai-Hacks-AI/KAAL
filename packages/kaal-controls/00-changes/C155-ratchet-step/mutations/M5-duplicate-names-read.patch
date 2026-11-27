@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
+@@ -5,7 +5,7 @@
+ import { judgeAdoption, judgeProgress, judgeRetirement } from './ratchet.mjs';
+ 
+ const unknown = () => ({ verdict: 'UNKNOWN', reason: 'could-not-judge' });
+-const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f) && new Set(x).size === x.length;
++const names = (x) => Array.isArray(x) && x.every((f) => typeof f === 'string' && f);
+ const text = (x) => x === null || typeof x === 'string';
+ const time = (x) => typeof x === 'string' && !Number.isNaN(Date.parse(x));
+ const span = (w) => w !== null && typeof w === 'object' && !Array.isArray(w) && time(w.from) && time(w.to);

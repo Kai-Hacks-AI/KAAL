@@ -16,11 +16,15 @@
 name: KAAL
 
 on:
-  push:
-    branches: [main, "kaal/**"]
   pull_request:
   merge_group:
     types: [checks_requested]
+
+concurrency:
+  # One run per change: a newer push to a pull request replaces its running run. A merge queue entry
+  # has no pull request number, so its group is its own sha and it is never cancelled (engineering/C42).
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
