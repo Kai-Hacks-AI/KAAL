@@ -12,12 +12,12 @@ Moves the source of the check 1 replacement onto the controls adapter. The insta
 
 ## Departures from the PLAN, recorded
 
-1. **The two job names are quoted.** `Change Isolation: .github alone (plain pull_request)` holds `: `, which a plain YAML scalar cannot. T1581 and T1571 now expect the quoted form. The names are the PLAN's, unchanged.
+1. **The two job names are quoted** (named in the amendment). `Change Isolation: .github alone (plain pull_request)` holds `: `, which a plain YAML scalar cannot. T1581 and T1571 now expect the quoted form. The names are the PLAN's, unchanged.
 2. **T1571's job-name line follows the two names.** It pinned the one job name `Change Isolation (plain pull_request)`, which the PLAN's two-job contract replaces. Its other expectations are unchanged.
-3. **Release/T1575 (C155) is narrowed, not weakened.** It pinned the one job name too. It now asserts that no job takes the required context `Change Isolation` and that the names stay of the plain `pull_request`, which is what the Case was for.
+3. **Release/T1575 (C155) is superseded by the PLAN amendment (#2745)**, in the part that pinned the one job name. It now asserts what it was for: no job takes the required context `Change Isolation`, and the names stay of the plain `pull_request`.
 4. **No delivery map row is written.** The rows for CTL42 and the CTL23 host are written at the WIRE of the file, with its own go, as the PLAN says.
 5. **The record has no mode, applied or flag field yet.** Those arrive with controls/C158 (#2725); the entries take them when the adapter on `main` carries them.
 
-## Known gap, for review
+## The judgment of a verified synchronization is kept
 
-The old script judged a verified synchronization of a collector by its explicit resolutions only, and answered "does not apply" for a head already on the default branch. The entries judge the complete change of every pull request as an ordinary Change, so a SYNC into a collector, which carries main's changes, would report mixed paths in the detective job. The PLAN names Branching (C158) as the owner of synchronization validity. Before the swap that makes the check required, the judgment of a verified synchronization needs its own Change, on the facts of Branching. The detective period shows how often it matters.
+As the PLAN amendment (#2745) says: a verified synchronization of a collector is judged by its explicit resolutions only, a head already on the default branch does not apply, and any other change into a collector is judged whole. The lineage verdict is the default branch's own `engineering/github/lineage.ts`, read from `origin/<default>` and never from the candidate; one that cannot be read is UNKNOWN (exit 2). Release/T1590 pins it with real Git, including a verified synchronization whose resolutions mix `.github` with another path (reported) and an unreadable lineage (UNKNOWN). The entries take the default branch from `KAAL_DEFAULT`, which the workflow step already supplies.
