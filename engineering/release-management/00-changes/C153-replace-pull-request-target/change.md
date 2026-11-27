@@ -39,24 +39,28 @@ Evidence is required before enforcement, never before the detective installation
 
 ## Amendment: the evidence before enforcement, per control
 
-Step 3 and 4 above leave open how much evidence a check needs and where it is kept. This chapter settles both. It adds no step and changes none.
+Steps 3 and 4 above leave open how much evidence a check needs and where it is kept. This chapter settles both. It adds no step and changes none. Four kinds of evidence are kept apart, and each is counted only for what it is.
 
-**What counts as evidence.** A real run (`x: real`) of the delivered job, written as a record through the controls adapter and collected by release/C162 into files, bound to its run and revision. A fixture run, a hand-written record, a record of a verdict that does not apply, and a pull request body are not evidence. The DIRT Running fact (controls/C158, `judgeRunning`) reads the same records, and a missing proof is UNKNOWN, never permission.
+**1. Verification run (V).** A real run (`x: real`) of the delivered job of a control, written as a record through the controls adapter and collected by release/C162, with the verdict PASS or REPORT (FAIL when the control is preventive). It is identified by the control, the run id and the revision judged: the head revision of the pull request. A fixture run, a hand-written record, a pull request body and a run that says the verdict does not apply are not a V. The DIRT Running fact (controls/C158, `judgeRunning`) reads the same records; a missing proof is UNKNOWN, never permission.
 
-**Agreement.** Each replacement must agree with the old check on the same revision of every comparable pull request: the old check green means PASS, red means FAIL. A pull request the old check did not run on is not a disagreement and not evidence. Any disagreement blocks enforcement until the Owner decides it, and the decision is recorded.
+**2. Agreement (A).** A V on a revision on which the old check also ran, with the same verdict: the old check green is PASS, red is FAIL. The old check counts only for the same revision of the same pull request. A V on a revision the old check did not run on is not an A and not a disagreement. A disagreement blocks enforcement until the Owner decides it, and the decision is recorded.
 
-**How many.** At least 5 comparable runs for each situation listed below, and no fewer than 15 comparable runs in all for a check. The situations matter more than the time they take: there is no minimum span.
+**3. Provoked demonstration (P).** A throwaway pull request made on purpose and closed after its run, to show a verdict that real pull requests do not produce. It is a V of the expected FAIL. The old check need not have run on it: when it did, the verdicts are compared as an A; when it did not, the P counts as a demonstration only, never as an A. A provoked run that does not give the expected verdict is a defect of the control, not a miss to be repeated.
 
-| Check | Controls | Situations to be observed |
+**4. Coverage of a situation that does not apply (N).** The run says the verdict does not apply, with the reason, for a situation that must not be judged (a head already on the default branch, an ordinary Change in the synchronization verdict, auto-merge off, a pull request that is not a promotion). It proves that applicability was decided correctly in that situation, once per situation, and nothing else: it is never a V, never an A, and never counts toward any total.
+
+**Counting.** One distinct revision of one pull request counts once for each control and situation, however often it ran. At least 5 comparable runs (A) of each situation that yields a verdict on real pull requests, and no fewer than 15 A in all for the check. At least 3 P for each verdict that is a FAIL, as a demonstration. At least 1 N for each situation that must not be judged. There is no minimum span: the counts matter, not the time they take.
+
+| Check | Controls | Situations (A: agreement; P: provoked; N: not applicable) |
 | --- | --- | --- |
-| 1 Change Isolation | release/CTL42, release/CTL23 | PASS on an ordinary change; PASS on a WIRE (`.github` alone); FAIL on `.github` mixed with another path (provoked); a verified synchronization judged by its own resolutions only; a head already on the default branch (not applicable) |
-| 2 Branching | release/CTL37, release/CTL38, release/CTL39 | CTL37: fresh PASS, stale FAIL (provoked). CTL38: valid synchronization PASS, ordinary Change not applicable, invalid synchronization FAIL (provoked). CTL39: right method PASS, wrong method FAIL (provoked), auto-merge off not applicable |
-| 3 admission | `release/C157` (a `notControls` row, no entry) | admitted PASS and refused FAIL on real pull requests |
-| 4 Promotion Source | release/CTL40, release/CTL41 | valid source PASS; invalid source FAIL (provoked); a pull request that is not a promotion not applicable |
+| 1 Change Isolation | release/CTL42, release/CTL23 | A: PASS on an ordinary change; PASS on a WIRE (`.github` alone); a verified synchronization judged by its own resolutions only. P: FAIL on `.github` mixed with another path. N: a head already on the default branch |
+| 2 Branching | release/CTL37, release/CTL38, release/CTL39 | CTL37 A: fresh PASS; P: stale FAIL. CTL38 A: valid synchronization PASS; P: invalid synchronization FAIL; N: an ordinary Change. CTL39 A: right method PASS; P: wrong method FAIL; N: auto-merge off |
+| 3 admission | release/C157, not a control | Admission evidence below, not V, A, P or N |
+| 4 Promotion Source | release/CTL40, release/CTL41 | A: valid source PASS. P: invalid source FAIL. N: a pull request that is not a promotion |
 
-A provoked failure is a throwaway pull request made on purpose and closed after its run. An outcome that never occurs on real pull requests in the situations above is provoked, not waited for.
+**Check 3 is admission, not verification.** It is not a control: it has an entry-free `notControls` row, it runs no adapter verdict and it supplies no PASS or FAIL record. Its evidence is a demonstration, kept as files and counted by itself: at least 5 admitted pull requests shown admitted, at least 3 pull requests shown refused (provoked is allowed), each bound to its run id and revision; and, for the preservation of the merge-group judgement, at least 5 merge-group runs of the Review check whose verdict is unchanged by the admission (read from the runs, with the revision each judged). The old check is compared on the same revisions where it ran.
 
-**Where it is kept.** In files, never in pull request bodies: one file per check, `00-changes/C153-replace-pull-request-target/evidence/check-<n>.md`, with a table of the runs (run id, revision, pull request, verdict, the old check's verdict on the same revision) and the agreement result. The Owner's decisions (enforcement, the swap, the retirement of the old workflow, and a drop on 2 December) are recorded in this Change's record, one line each. The trusted-execution proof is kept apart and is required as before, not replaced by run evidence.
+**Where it is kept.** In files, never in pull request bodies: one file per check, `00-changes/C153-replace-pull-request-target/evidence/check-<n>.md`, with one table per kind (V and A with the old check's verdict, P, N, and for check 3 the admission and preservation runs), each row giving the control, the run id, the revision, the pull request and the verdict. The Owner's decisions (enforcement, the swap, the retirement of the old workflow, and a drop on 2 December) are recorded in this Change's record, one line each. The trusted-execution proof is kept apart and is required as before, not replaced by run evidence.
 
 ## Not in this Change
 
