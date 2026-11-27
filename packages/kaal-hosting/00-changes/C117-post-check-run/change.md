@@ -44,3 +44,12 @@ The retrospective, in the ACT template's chapters, after the DO.
 ## Amendment
 
 The Inspector fixture in the T345 to T348 drafts holds the four abilities approved for the Inspector in Review's declaration (`read-contents`, `read-pull-requests`, `read-checks`, `post-checks`), not three. No expectation of any Case changes: `postCheckRun` still needs only `post-checks` (and `read-contents`), and the installation permission `checks: write` already covers the added read. The DO delivers the drafts as amended.
+
+## Amendment 2
+
+Two contract gaps found at the promotion review, both of the implementation against this PLAN, closed by two Cases (no existing Case changes):
+
+1. **The external id is verified, not echoed.** Chapter 5 says the returned fact is what GitHub made. `externalId` is part of that fact, so it is reported only as GitHub returned it: when the caller gave one, GitHub's `external_id` must be that text, otherwise `CHECK_MISMATCH` (another one, none, an empty or a non-text one); when the caller gave none, none is reported, and GitHub's empty, null or absent id is accepted as "none" while any text it invented is `CHECK_MISMATCH`. hosting/T354.
+2. **A key outside the check is refused whatever its value.** Chapter 1 says any other key is `INVALID_CHECK`. A key whose value is `undefined` (or `null`, `false`, `0` or an empty string) is still a key; only the listed keys may be present, and `externalId: undefined` means none. The same holds for an option key. hosting/T355.
+
+Ids T354 and T355 are free on `main` and every remote branch at this amendment. The DO delivers the two drafts unchanged (header comment aside), with the implementation changes, F112 and A49 reworded to say so, and the allocation row.
