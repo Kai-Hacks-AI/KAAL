@@ -1,6 +1,6 @@
 --- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
 +++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
-@@ -14,7 +14,7 @@
+@@ -23,7 +23,7 @@
    return {
      id,
      running: counted.length > 0 ? true : null,

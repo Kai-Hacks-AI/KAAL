@@ -1,6 +1,6 @@
 --- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
 +++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
-@@ -13,7 +13,7 @@
+@@ -22,7 +22,7 @@
    const each = counted.map(applied);
    return {
      id,

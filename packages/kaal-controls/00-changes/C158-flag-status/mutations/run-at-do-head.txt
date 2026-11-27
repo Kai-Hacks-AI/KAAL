@@ -1,4 +1,4 @@
-adapter.mjs c4d105abf1eb8bb89f82700af3e63dad8c9d0ed3 judge-running.mjs 0a7301112ba8706970de5298bcb7da2775aa03bb on parent 93fb2df
+adapter.mjs c4d105abf1eb8bb89f82700af3e63dad8c9d0ed3 judge-running.mjs 0a7301112ba8706970de5298bcb7da2775aa03bb on parent e846131
 baseline (no mutation)
   controls/T1572 GREEN
   controls/T1573 GREEN
@@ -64,5 +64,8 @@ M8-off-read-as-applied
   controls/T1573 GREEN
   controls/T1511 GREEN
   controls/T1510 GREEN
-1 out of 1 hunk FAILED -- saving rejects to file packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs.rej
-patch /tmp/claude-0/-home-user/6b550795-11c9-5ebe-9f95-a9b385c19716/scratchpad/kaal/packages/kaal-controls/00-changes/C158-flag-status/mutations/M9-mode-contradiction-ignored.patch did not apply
+M9-mode-contradiction-ignored
+  controls/T1572 GREEN
+  controls/T1573 RED: Expected values to be strictly deep-equal:
+  controls/T1511 GREEN
+  controls/T1510 GREEN
