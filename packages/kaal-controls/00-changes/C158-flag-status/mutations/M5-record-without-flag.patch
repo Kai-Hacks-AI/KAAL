@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
+@@ -32,7 +32,7 @@
+   const ran = off ? 'off' : requested;
+   const applied = flag.state === 'on' ? true : off ? false : null;
+   const log = { control: id, mode: ran, verdict, findings: names(findings) ? findings.length : null, run: b.run ?? null, sha: b.sha ?? null, flag, ...(confirmed ? { confirmed: confirmed.length } : {}) };
+-  const record = text(b.x) && text(b.run) && text(b.sha) && text(id) ? { control: id, x: b.x, run: b.run, sha: b.sha, verdict, by: 'adapter', mode: ran, applied, flag } : null;
++  const record = text(b.x) && text(b.run) && text(b.sha) && text(id) ? { control: id, x: b.x, run: b.run, sha: b.sha, verdict, by: 'adapter', mode: ran, applied } : null;
+   return { ...judged, id, mode: ran, ...(off ? { requested } : {}), applied, verdict, blocked, log, record, ...(confirmed ? { confirmed } : {}) };
+ }
+ 

@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
+@@ -11,7 +11,7 @@
+ // The flag is told to the adapter by the adopter, never read: exactly `on` applies the mode, any other value runs the control switched off,
+ // and a flag that is missing or malformed is unknown. A switched-off control still executes, so its run is recorded.
+ function readFlag(f) {
+-  const known = isObject(f) && text(f.name) && (f.value === null || typeof f.value === 'string');
++  const known = isObject(f) && text(f.name) && typeof f.value === 'string';
+   return { name: known ? f.name : null, value: known ? f.value : null, state: !known ? 'UNKNOWN' : f.value === 'on' ? 'on' : 'off' };
+ }
+ 
