@@ -5,6 +5,7 @@ Release/C168 gave each replaced check an aggregator job that takes the context n
 
 ## The contract
 - **Expected entries are named.** Each aggregator holds, in its own text, the list of the entries it expects (check 1: `github-alone`, `delivery`; check 2: `freshness`, `synchronization`, `auto-merge`; check 4: `origin`, `head-evidence`), apart from the list of results it receives.
+- **The reported set equals the expected set, exactly.** The aggregator fails when the entries that reported are not the expected entries: an absent one, and also an unexpected one, even when every expected entry succeeded. A result of an entry nobody listed is a changed workflow the expected list has not caught up with, so it fails and names the entry.
 - **Evidence of success for each.** The aggregator passes only when, for every expected entry, a result is present and equals `success`. An entry whose result is absent, empty, or anything but `success` (failure, skipped, cancelled, an unknown word) fails the aggregator, and the message names the entry.
 - **An empty result set fails.** With no result at all the aggregator fails; it never passes because there was nothing to check.
 - **The lists agree.** The expected list equals the `needs` list of the same job, so a job added to `needs` and not to the expected list (or the reverse) is seen by a Case, not by an incident.
@@ -15,7 +16,7 @@ Release/C168 gave each replaced check an aggregator job that takes the context n
 - T1661: with no result at all, each aggregator fails.
 - T1662: with a partial result set (one expected entry absent), each aggregator fails and names the missing entry.
 - T1663: a result other than `success` for any expected entry (failure, skipped, cancelled, an unknown word) fails the aggregator; all expected entries `success` passes it.
-- T1664: an extra result of an entry that is not expected does not make an aggregator pass when an expected one is missing (the count of results is not the evidence).
+- T1664: the reported set equals the expected set exactly. An extra result of an entry that is not expected fails the aggregator both when an expected entry is missing and when every expected entry succeeded (the count of results is not the evidence, and an unexpected entry is not ignored).
 All red until the DO. T1643 of C168 stays as it is and stays green.
 
 ## DO
