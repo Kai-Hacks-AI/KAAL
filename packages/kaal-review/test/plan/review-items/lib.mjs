@@ -30,9 +30,10 @@ const list = (a) => `[${a.join(', ')}]`;
 /** A Review item file. Pass a chapter as undefined to leave it out. */
 export function item(id, o = {}) {
   const { validates } = o;
+  const against = 'against' in o ? o.against : ['x/R1'];
   const pick = (k, d) => (k in o ? o[k] : d);
   const question = pick('question', 'Is it so?'), criteria = pick('criteria', ['it is so']), evidence = pick('evidence', ['the document']);
-  const front = ['---', `id: ${id}`, ...(validates ? [`validates: ${list(validates)}`] : []), '---', `# ${id}`, ''];
+  const front = ['---', `id: ${id}`, ...(validates ? [`validates: ${list(validates)}`] : []), ...(against ? [`against: ${list(against)}`] : []), '---', `# ${id}`, ''];
   const ch = (name, v) => (v === undefined ? [] : [`## ${name}`, '', ...(Array.isArray(v) ? v.map((x) => `- ${x}`) : [v]), '']);
   return [...front, ...ch('Question', question), ...ch('Criteria', criteria), ...ch('Expected evidence', evidence)].join('\n');
 }
