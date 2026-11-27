@@ -20,3 +20,7 @@ No mutant generation, workflow, flag, ruleset, WIRE or required check. The recor
 ## Restored after the SYNC
 
 `main` held C82, which edits the same six files, so a DO took this Change's edits out and a SYNC merged `main` clean. This DO puts `lib/mutate.mjs` and the edits back on top of `main`: the `./mutate` export, the `mutate` command in the bin, `T160` and `T369` listing the export, `testing.test.mjs` listing the packed file, and the README. `T414` to `T419` are GREEN in place again (6 of 6). `kaal-testing` `npm test`: 119 pass, 2 fail, the same 2 as on `main` (`T388` and `T369` need Node 24).
+
+## Strict (amendment, PLAN #2929)
+
+`mutate --strict` is placed: the bin reads the flag, writes the same record, then exits 1 unless the baseline is ok and every mutant is killed; the default stays 0 and an invalid spec stays 2. `F176`, `A62` and the README say so. `T426` is GREEN in place, `T414` to `T419` stay GREEN.
