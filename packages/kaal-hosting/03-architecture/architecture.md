@@ -41,6 +41,7 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 | bin | `kaal-hosting-revision` | `dist/skills/kaal-hosting/scripts/revision-cli.mjs` | delivered |
 | bin | `kaal-hosting-pulls` | `dist/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs` | delivered |
 | bin | `kaal-hosting-pull-request` | `dist/skills/kaal-hosting/scripts/pull-request-cli.mjs` | delivered |
+| bin | `kaal-hosting-run-facts` | `dist/skills/kaal-hosting/scripts/run-facts-cli.mjs` | delivered |
 <!-- /kaal-hosting:interface -->
 
 ## The conformance suite
@@ -109,3 +110,7 @@ Architecture places Hosting's functions, gives each one positive ownership, and 
 ## Visible text in a declared type
 
 - **hosting/A46** [hosting/F104, hosting/F105]: `scripts/github/templates.ts` holds the `visible` field: its validator (`visibleText`) and its two renderings, in `renderTemplate` and `renderBody`. `raise.ts` renders the body through `renderBody` from the declaration it read at the base revision and lists `visible` among the authority a caller may not supply. No other module knows the field.
+
+## The content and provenance of a run
+
+- **hosting/A50** [hosting/F113]: `scripts/run-facts.ts` holds `contentIdentity`, `describeRun` and `RunFactsError`, re-exported from `index.ts`; both functions are pure and the module imports only `digest` from Hosting, no `node:fs`, no `node:child_process` and no environment variable. `readCheckout` is in `scripts/revision.ts` beside `revision` and `readRevision`, and is the only place that reads the working copy and its Git; Git is read there as provenance and as the source of the head's content, and nothing else in the module knows Git. The command `run-facts-cli.mjs` is the only reader of `GITHUB_EVENT_NAME`, `GITHUB_EVENT_PATH` and `GITHUB_SHA`.

@@ -18,6 +18,7 @@ The main entry `.` also exports the operations `list` and `scratch`, which hosti
 | bin | `kaal-hosting-revision` | `dist/skills/kaal-hosting/scripts/revision-cli.mjs` | delivered |
 | bin | `kaal-hosting-pulls` | `dist/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs` | delivered |
 | bin | `kaal-hosting-pull-request` | `dist/skills/kaal-hosting/scripts/pull-request-cli.mjs` | delivered |
+| bin | `kaal-hosting-run-facts` | `dist/skills/kaal-hosting/scripts/run-facts-cli.mjs` | delivered |
 | files | `dist` |  | delivered |
 <!-- /kaal-hosting:interface -->
 
