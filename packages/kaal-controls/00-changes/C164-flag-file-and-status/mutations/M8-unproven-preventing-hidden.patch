@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs
+@@ -38,7 +38,7 @@ export function judgeStamp({ declared, runs } = {}) {
+   if (declared === 'PREVENTING') {
+     blocking = observed === 'OK' ? last.verdict !== 'PASS' : true;
+     if (last && last.verdict === 'REPORT') reasons.push('unexpected-verdict-while-preventing');
+-    if (!runs.some((r) => r.verdict !== null && r.verdict !== 'UNKNOWN' && r.applied === false)) reasons.push('unproven-preventing');
++    if (!runs.some((r) => r.verdict !== null && r.verdict !== 'UNKNOWN' && r.applied === false)) 0;
+     if (blocked === false && blocking) reasons.push('not-blocked-while-preventing');
+     if (blocked === true && !blocking) reasons.push('blocked-unexpectedly');
+   } else if (blocked === true) reasons.push('blocked-while-advisory');
