@@ -21,10 +21,10 @@ export async function run() {
   const r = await identifyConflict({ pinOf, changes: [change('release/C1', a, ['a.md']), change('change/C2', stale, ['a.md'])] });
   assert.equal(r.kind, 'fail', 'a stale edge does not order a conflict');
   assert.equal(r.findings[0].ordered, false);
-  // A cycle orders nothing: each Change declares the other, so no one lands first and a stated resolution is no resolution.
-  const cyc = { 'x/C1': record('x/C1', succeeds(entry('y/C2', 'b'.repeat(64)))), 'y/C2': record('y/C2', succeeds(entry('x/C1', 'a'.repeat(64)))) };
-  const asserted = (text) => ({ [cyc['x/C1']]: 'a'.repeat(64), [cyc['y/C2']]: 'b'.repeat(64) })[text];
-  const cyclic = await identifyConflict({ pinOf: asserted, changes: [change('x/C1', cyc['x/C1'], ['a.md']), change('y/C2', cyc['y/C2'], ['a.md'])], resolved: [{ path: 'a.md', before: 'x/C1', after: 'y/C2' }, { path: 'a.md', before: 'y/C2', after: 'x/C1' }] });
+  // A cycle orders nothing: x succeeds y, y succeeds z and z succeeds x, so no one lands first and a stated resolution is no resolution.
+  const cyc = { 'x/C1': record('x/C1', succeeds(entry('y/C2', 'b'.repeat(64)))), 'y/C2': record('y/C2', succeeds(entry('z/C3', 'c'.repeat(64)))), 'z/C3': record('z/C3', succeeds(entry('x/C1', 'a'.repeat(64)))) };
+  const asserted = (text) => ({ [cyc['x/C1']]: 'a'.repeat(64), [cyc['y/C2']]: 'b'.repeat(64), [cyc['z/C3']]: 'c'.repeat(64) })[text];
+  const cyclic = await identifyConflict({ pinOf: asserted, changes: [change('x/C1', cyc['x/C1'], ['a.md']), change('y/C2', cyc['y/C2'], ['a.md']), change('z/C3', cyc['z/C3'], [])], resolved: [{ path: 'a.md', before: 'y/C2', after: 'x/C1' }] });
   assert.equal(cyclic.kind, 'fail', 'a cyclic edge orders nothing and resolves nothing');
   assert.deepEqual(cyclic.findings.map((f) => [f.kind, f.ordered, f.resolved]), [['conflict', false, false]]);
   assert.equal((await identifyConflict({ pinOf, changes: [change('x/C1', free('x/C1'), ['a.md'])], resolved: 'x' })).kind, 'unknown', 'a resolution fact that cannot be read');
