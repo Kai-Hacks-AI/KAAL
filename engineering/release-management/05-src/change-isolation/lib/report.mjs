@@ -56,8 +56,9 @@ export async function cli({ check, label, argv = process.argv.slice(2), env = pr
   const base = at(argv, '--base');
   const found = head && base ? changedPaths({ base, head, baseRef: at(argv, '--base-ref'), defaultBranch: env.KAAL_DEFAULT, cwd }) : null;
   if (found?.applies === false) { out(`${label}: does not apply (the head is already on the default branch)`); return 0; }
-  const known = env.GITHUB_RUN_ID && env.GITHUB_SHA;
-  const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(env.GITHUB_SHA) } : undefined;
+  // The record names the head judged (release/C165), never GITHUB_SHA, which on pull_request is the test merge commit of the run.
+  const known = env.GITHUB_RUN_ID && head;
+  const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(head) } : undefined;
   const answer = await check({ paths: found?.paths, boundary });
   out(`${label}: ${answer.verdict}${!found ? ' (the changed paths cannot be read)' : found.synchronization ? ` (a verified synchronization: ${found.paths.length} paths of its own)` : ` (${found.paths.length} changed paths)`}`);
   for (const f of answer.findings) out(`  ${f}`);
