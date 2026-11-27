@@ -6,7 +6,7 @@ export const tests = ['review/F33'];
 export const title = 'a set of declarations in which only the Approver approves and none raises and approves is in, and an Inspector that approves, a Dispatcher that approves, an App that raises and approves and a declaration without abilities are each out with their own finding';
 export async function run() {
   const { judgeApps } = await load();
-  const inspector = declaration('inspector', ['post-checks', 'read-contents', 'read-pull-requests']);
+  const inspector = declaration('inspector', ['post-checks', 'read-checks', 'read-contents', 'read-pull-requests']);
   const dispatcher = declaration('dispatcher', ['raise-pull-requests', 'read-contents']);
   const approver = declaration('approver', ['approve-pull-requests', 'read-pull-requests']);
   assert.deepEqual(judgeApps([inspector, dispatcher, approver]), { verdict: 'in', findings: [] });
