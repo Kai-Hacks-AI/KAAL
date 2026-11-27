@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/ratchet.mjs
+@@ -38,7 +38,7 @@
+ const sorted = (x) => [...x].sort();
+ const fail = (reason) => ({ verdict: 'FAIL', reason });
+ 
+-// The verdict of one change under review on the history. Pure: the caller passes the base's and the head's baseline and history
++// The verdict of one pull request on the history. Pure: the caller passes the base's and the head's baseline and history
+ // (as Git data, the base's never from the change under review), the Change it carries, and the time window
+ // the request ran in. A missing or malformed input is UNKNOWN, never a pass.
+ export function judgeProgress({ base, head, change, window } = {}) {

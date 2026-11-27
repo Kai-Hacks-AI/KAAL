@@ -14,6 +14,10 @@ Not authorized by this PLAN. On its merge into the collector, and with the colle
 2. Comments and reference text only. No identifier, input name, output name, flag or behavior changes.
 3. T1574 GREEN; the package suite GREEN. A mutation, as in C25 and C157: one `pull request` put back into a script comment and one Change id form put back into a reference, each alone turns T1574 RED.
 
+## DO record
+
+Ten places are reworded: "pull request" becomes "change under review" (or "it", where the sentence reads better) in `ratchet.mjs` (three comments), `demand-record.mjs` (two comments), `enforcing-controls.md` and `declaring-controls.md` (the evidence example, which also read "a real merge or pull request"), and the sentence that showed the Change id form now says that a change identifier is not a control id. Comments and reference text only: no identifier, input or output name, flag or behavior changes, and the `pr` input name of `findRecordDue` stays (design question 1). T1574 is GREEN and the package suite (116 tests) is GREEN. `mutations/` keeps four weakenings as exact patches with a runner, as in C25, C155 and C157: a hosting term back in a script comment (M1), in a reference (M2), a Change id form back in a reference (M3) and the snake spelling of the hosting term (M4). `mutations/run-at-do-head.txt` is the run on the DO: the baseline is GREEN and each weakening, loaded alone, is RED, and the runner stops if a patch does not apply. The record cannot name its own revision; re-run `sh mutations/run.sh <repo root>` at the DO's head and compare with it.
+
 ## ACT
 
 A retro entry in the collector.
