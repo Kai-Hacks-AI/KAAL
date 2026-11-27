@@ -72,7 +72,8 @@ export async function run() {
     git(work, 'add', '-A'); git(work, 'commit', '-q', '-m', 'main'); git(work, 'push', '-q', 'origin', 'HEAD:main');
     const main = git(work, 'rev-parse', 'HEAD');
     git(work, 'checkout', '-q', '-b', 'sync', 'origin/kaal/x');
-    spawnSync('git', ['merge', '--no-ff', '-m', 'sync', main], { cwd: work });
+    spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', 'merge', '--no-ff', '-m', 'sync', main], { cwd: work });
+    assert.ok(git(work, 'rev-parse', '-q', '--verify', 'MERGE_HEAD'), 'the merge stopped on its conflicts, so its resolutions are explicit');
     put('.github/c.yml', 'resolved\n'); put('docs/c.md', 'resolved\n');
     git(work, 'add', '-A'); git(work, 'commit', '-q', '-m', 'sync');
     const sync = git(work, 'rev-parse', 'HEAD');
