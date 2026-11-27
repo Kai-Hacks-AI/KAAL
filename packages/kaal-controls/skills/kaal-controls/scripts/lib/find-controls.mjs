@@ -25,7 +25,6 @@ function idList(value) {
   return m ? m[1].split(',').map((s) => s.trim()).filter(Boolean) : null;
 }
 
-const STATIONS = ['Developing', 'Collecting', 'Integrating', 'Hotfixing', 'Wiring', 'Promoting', 'Publishing'];
 const MODES = ['detective', 'preventive'];
 const RATCHET = ['baseline-source', 'owner', 'exit'];
 const STATUSES = ['designed', 'implemented', 'running', 'tested'];
@@ -41,8 +40,8 @@ function baselineProblem(src, files) {
   if (!Array.isArray(list) || !list.every((x) => typeof x === 'string' && x) || new Set(list).size !== list.length) return 'the baseline file is not a list of unique names';
   return null;
 }
-const recovery = (field) => field === 'evidence' ? `Write evidence as [<x>:<runs>, ...], the kinds of X the Cases of the control run against, each once, runs a whole number from 1, and at least one entry written <x>:<runs>:fail, an X that is a real failure. See ${REF}.`
-  : field === 'stations' ? `Write stations as [<Station>:<mode>, ...] with each station once. Stations: ${STATIONS.join(', ')}. Modes: ${MODES.join(', ')}. A ratchet is no mode: a preventive control declares \`strategy: ratchet\` with ${RATCHET.join(', ')}. See ${REF}.`
+const recovery = (field, stations) => field === 'evidence' ? `Write evidence as [<x>:<runs>, ...], the kinds of X the Cases of the control run against, each once, runs a whole number from 1, and at least one entry written <x>:<runs>:fail, an X that is a real failure. See ${REF}.`
+  : field === 'stations' ? `Write stations as [<Station>:<mode>, ...] with each station once. Stations: ${stations.length ? stations.join(', ') : 'none are defined, so give the finder the stations of your setup'}. Modes: ${MODES.join(', ')}. A ratchet is no mode: a preventive control declares \`strategy: ratchet\` with ${RATCHET.join(', ')}. See ${REF}.`
   : field === 'strategy' ? `Write \`strategy: ratchet\` only on a preventive control, with ${RATCHET.join(', ')}, or remove the line. See references/modes.md.`
   : field === 'baseline-source' ? `Name the path of the baseline file, a JSON list of unique finding names that the files read include, for example \`baseline-source: <folder>/baseline.json\`. The accepted baseline is read from the base, never from the change under review. See references/modes.md.`
   : RATCHET.includes(field) && field !== 'exit' ? `Add a \`${field}:\` line to a ratchet control, or remove it if the control is no ratchet (\`strategy: ratchet\`). See references/modes.md.`
@@ -52,7 +51,9 @@ const recovery = (field) => field === 'evidence' ? `Write evidence as [<x>:<runs
   : FIELDS.includes(field) ? `Add or correct the \`${field}:\` line. See ${REF}.`
   : `Remove the \`${field}:\` line, a control declares only ${FIELDS.join(', ')}. See ${REF}.`;
 
-export function findControls(files) {
+// `stations` is the list of station names of the adopter's setup; a control may declare only those. With none given, no station is valid.
+export function findControls(files, { stations: known = [] } = {}) {
+  if (!Array.isArray(known) || known.some((n) => typeof n !== 'string' || !n.trim())) throw new Error('findControls: stations must be a list of non-empty names');
   const candidates = [];
   const cases = [];
   for (const file of files) {
@@ -77,7 +78,7 @@ export function findControls(files) {
     if (fields.stations !== undefined) {
       const list = idList(fields.stations);
       const parsed = (list ?? []).map((e) => e.split(':').map((x) => x.trim()));
-      const ok = list && parsed.every(([st, m, ...r]) => STATIONS.includes(st) && MODES.includes(m) && !r.length) && new Set(parsed.map((q) => q[0])).size === parsed.length;
+      const ok = list && parsed.every(([st, m, ...r]) => known.includes(st) && MODES.includes(m) && !r.length) && new Set(parsed.map((q) => q[0])).size === parsed.length;
       if (ok) stations = parsed.map(([station, mode]) => ({ station, mode }));
       else bad.push(['stations', 'stations is not a list of <Station>:<mode>, each station once']);
     }
@@ -98,7 +99,7 @@ export function findControls(files) {
       if (ok) evidence = parsed.map(([kind, runs, f]) => ({ kind, runs: Number(runs), fail: f === 'fail' }));
       else bad.push(['evidence', 'evidence is not a list of <x>:<runs>, each x once, with one :fail entry']);
     }
-    const problems = bad.map(([field, reason]) => ({ field, reason, recovery: recovery(field) }));
+    const problems = bad.map(([field, reason]) => ({ field, reason, recovery: recovery(field, known) }));
     const rank = STATUSES.indexOf(fields.status) + 1 || null;
     return { id: fields.id, title: fields.title, description: fields.description, type: fields.type, status: fields.status, rank, stations, evidence, has: has ?? [], path: file.path,
       tests: cases.filter((c) => c.tests.includes(fields.id)).map((c) => ({ id: c.id, path: c.path })), valid: problems.length === 0, problems };

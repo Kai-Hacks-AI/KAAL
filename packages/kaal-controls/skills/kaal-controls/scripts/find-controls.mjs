@@ -20,5 +20,7 @@ function gather(dir, found = []) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  console.log(JSON.stringify(findControls(gather(process.argv[2] ?? '.')), null, 2));
+  const at = process.argv.indexOf('--stations');
+  const stations = at < 0 ? [] : process.argv[at + 1].split(',').map((n) => n.trim()).filter(Boolean);
+  console.log(JSON.stringify(findControls(gather(process.argv.slice(2).filter((x, j, v) => x !== '--stations' && v[j - 1] !== '--stations')[0] ?? '.'), { stations }), null, 2));
 }

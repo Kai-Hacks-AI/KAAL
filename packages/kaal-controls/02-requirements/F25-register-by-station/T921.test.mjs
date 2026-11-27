@@ -26,12 +26,12 @@ export async function run() {
   git(d, 'checkout', '-q', '-b', 'pr');
   put(d, { 'c/CTL1-a/CTL1.md': item({ id: 'demo/CTL1', title: 'verify A' }), 'c/CTL3-c/CTL3.md': item({ id: 'demo/CTL3', title: 'verify C', stations: '[Integrating:preventive]' }) });
   git(d, 'add', '-A'); git(d, 'commit', '-q', '-m', 'pr');
-  const run = (ref, station) => JSON.parse(execFileSync(process.execPath, [f, '--repo', d, '--base', ref, '--station', station], { encoding: 'utf8' }));
+  const run = (ref, station) => JSON.parse(execFileSync(process.execPath, [f, '--repo', d, '--base', ref, '--station', station, '--stations', 'Integrating,Collecting,Wiring'], { encoding: 'utf8' }));
   const at = run(base, 'Integrating');
   assert.deepEqual(at.map((c) => [c.id, c.title, c.mode, c.status]), [['demo/CTL1', 'verify A', 'preventive', 'designed']], 'the registry is not the registry of the base');
   assert.deepEqual(run(base, 'Collecting').map((c) => c.id), ['demo/CTL2']);
   assert.deepEqual(run(base, 'Wiring'), []);
   assert.deepEqual(run('pr', 'Integrating').map((c) => c.id), ['demo/CTL3'], 'a ref other than the base is not read as given');
-  const bad = spawnSync(process.execPath, [f, '--repo', d, '--base', 'no-such-ref', '--station', 'Integrating'], { encoding: 'utf8' });
+  const bad = spawnSync(process.execPath, [f, '--repo', d, '--base', 'no-such-ref', '--station', 'Integrating', '--stations', 'Integrating,Collecting,Wiring'], { encoding: 'utf8' });
   assert.notEqual(bad.status, 0, 'an unreadable base ref gives a registry');
 }

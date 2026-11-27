@@ -11,5 +11,5 @@ export function filesAt(repo, ref) {
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const a = Object.fromEntries(process.argv.slice(2).reduce((r, x, i, v) => (x.startsWith('--') ? [...r, [x.slice(2), v[i + 1]]] : r), []));
-  console.log(JSON.stringify(registryAt(filesAt(a.repo, a.base), a.station), null, 2));
+  console.log(JSON.stringify(registryAt(filesAt(a.repo, a.base), a.station, (a.stations ?? '').split(',').map((n) => n.trim()).filter(Boolean)), null, 2));
 }
