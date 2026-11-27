@@ -1,0 +1,30 @@
+# Skill Standard: Intent
+
+This is `core/C52`, a PLAN Change. It ships no code. A DO turns its planned tests GREEN.
+
+Owner/CPO decisions of 25 Nov 2026, recorded in issue #2452 and in the Owner's review of this PLAN: Core owns the common Skill vocabulary and standard, not the content or inventory of any capability's Skills. Controls provides only the generic machinery that runs a check and owns hardly any of its content. The rule and its content are Core's.
+
+- **core/I27.** Core owns the standard every Skill follows. agentskills.io is the floor and not the ceiling: Core adds stricter conventions that stay compatible with it. The standard is the vocabulary and conventions, a top-level layout in which only `SKILL.md` is mandatory (`references/`, `scripts/` and `assets/` are the other permitted entries), and the rule that `SKILL.md` is a crisp, clear, concise router to the supporting material that is relevant. Less is more: it is reviewed against ambiguity, and ambiguity is minimized. Lower levels of a Skill stay free. The frontmatter is reviewed separately, for clarity, concision and upstream conformance. Core knows no capability and keeps no registry or inventory of Skills.
+- **core/I28.** One Skill contract serves both deployment paths. A published capability goes npm.js, then `.kaal/`, then Skill-only exposure in `.agents/skills/`. A capability still in development goes through Engineering, then a Skill-only WIRE into `.agents/skills/`. The capability keeps ownership of its Skill and Engineering only transports it. WIRE governance applies to agent-facing deployment. A Skill that conforms on one path conforms on the other, and an agent is shown the Skill and nothing else.
+- **core/I29.** The size of a router is judged in stages, by the words of the `SKILL.md` body, frontmatter excluded: above 200 a soft stage (holistic review of the whole router), above 400 a medium stage (active restructuring and consolidation), above 600 a hard stage (blocks, subject to the ratchet in `core/I30`). Exactly 600 is permitted. Each stage requires more than the one before. Each restates the Core rules that apply, reminds agents to stay in their lane, and asks for whole-router review, consolidation and moving detail to references, never only for fewer words.
+- **core/I30.** Hard blocking is active from the start, with a named shrink-only ratchet, `skill-size`, for the Skills that are already oversized. No new Skill may exceed the hard level, and none already over it may grow. The baseline lists Skills by name and owning capability, not by path, so a Skill has one identity and one owner wherever it is deployed. A byte-identical copy has no allowance of its own: it is the Skill. A distinct variant that the owner has declared is named under its Skill and has its own recorded allowance, which only shrinks, so an oversized variant cannot grow up to its Skill's allowance. The baseline is recalculated under the body-only counting rule and never assumed equal to a count made another way.
+- **core/I31.** Conformance follows the delivery lifecycle. The Skill-size standard and the shrink-only ratchet apply to the development lifecycle: the package at N+1, Engineering's copy of it, and the deployments made from Engineering. A legitimately published version N, and the deployments made from `.kaal/`, are as published: their conformance is reported, and a development allowance that shrinks does not invalidate them. Improving N+1 never turns a published N into a violation. Each publication is made from an N+1 that met the standard then. Which lifecycle an instance belongs to is told to the check by the control that runs it, from the verdict of `core/C53`.
+
+## Installation integrity is `core/C53`'s
+
+Whether installed or deployed content is the content it claims to be, from the version it claims, is generic installation integrity and not a property of Skills. The Owner agreed on 25 Nov that it is a prerequisite Change, `core/C53`, which reuses the existing contracts and keeps Core generic and independently installable. `core/C53` owns missing, unexpected and modified assets by content identity, the selected version and source, variants as a different authoritative expected set, and detective-first reporting. This Change consumes it: the Skill check knows the Skill standard and the lifecycle it is told, and no alignment, variant or provenance rule. Earlier revisions of this PLAN (I32 to I34 and F99 to F103) held that content and moved there.
+
+## The boundary with Engineering's layout
+
+Engineering's package layout is the outer frame: it governs a capability package down to its folders, and puts the Skill under the package's `13-source`, from which `dist` is built. Core's Skill standard governs inside a Skill folder, from its `SKILL.md` down. The two meet at the Skill directory and neither reaches into the other. A package's own `13-source/scripts` is not a Skill's `scripts/`. The Owner confirmed this boundary on 25 Nov 2026, and Engineering's earlier folder-structure PLAN of 4 November, which the numbered layout replaced, stops at the package level too.
+
+## What this changes in Core
+
+`core/I14` says Core defines no Skill format, and `core/N13` says Core never parses or rewrites a `SKILL.md`. Engineer Skill owns Agent Skills conformance and `checkSkill`. All of that stands for the file format. `core/C52` narrows the sentence, not the split: Core defines no *file* format, it defines the KAAL *standard* above it. It reads a `SKILL.md` only to find where its frontmatter ends and to count the words after it, and it never rewrites one.
+
+## Not in this Change
+
+- The Skills of any capability, or whether they conform. Each capability's own Change brings its Skill to the standard.
+- WIRE, the Skill-only transport, and what npm content looks like inside `.kaal/`. They belong to Release, Engineering and Hosting.
+- Agent Skills frontmatter conformance, which stays `checkSkill`'s, and the judgement of the frontmatter's clarity and concision, which is a review's.
+- Automated link reachability inside a router. It can follow as its own Change.

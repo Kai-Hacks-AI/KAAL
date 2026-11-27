@@ -77,6 +77,12 @@
       "source": "payload/core/Node.md",
       "target": ".kaal/core/Node.md",
       "kind": "file"
+    },
+    {
+      "name": "core/Skill-Standard.md",
+      "source": "payload/core/Skill-Standard.md",
+      "target": ".kaal/core/Skill-Standard.md",
+      "kind": "file"
     }
   ],
   "catalogue": {
@@ -115,6 +121,9 @@
     ],
     ".kaal/core/Node.md": [
       "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663"
+    ],
+    ".kaal/core/Skill-Standard.md": [
+      "7cddbf1127f28047e7e1d960cd436d21076ef90eedc775631fa421e076c8264e"
     ]
   },
   "record": ".kaal/state/core/installation.json",
