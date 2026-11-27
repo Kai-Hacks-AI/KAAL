@@ -3,7 +3,8 @@
 ## PLAN
 
 1. Add the Case T1712 under controls/N8 (plain `.test.mjs`, package-relative). It reads `package.json`, the README and the file system of the package and fails on: name other than `@kaihacksai/kaal-controls`, licence other than MIT, `publishConfig.access` not `public`, a version that is not plain x.y.z, no `CHANGELOG.md`, no `LICENSE` in the Skill folder, and a README that says "not published". It does not look at `private`. RED on the collector (four problems); run GREEN against an uncommitted throwaway rewrite.
-2. No script, Skill word or record change in the PLAN.
+2. Amend controls/F18 and its Case T591: the package stays private at 0.0.1 with `files` holding only `skills`, and `publishConfig` is `{access: public}` (T591 asserted that there is none). T591 is RED on the collector once the DO adds it, so the amendment is part of this PLAN.
+3. No script, Skill word or record change in the PLAN.
 
 ## DO
 
