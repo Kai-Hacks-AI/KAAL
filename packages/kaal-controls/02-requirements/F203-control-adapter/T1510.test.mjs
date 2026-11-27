@@ -13,8 +13,8 @@ export const title = 'a run leaves one log line and one record, the record only 
 export async function run() {
   const { runControl } = await load();
   const r = await runControl({ id: 'c/CTL1', mode: 'preventive', check: () => ['a'], input: {}, boundary: B });
-  assert.deepEqual(r.log, { control: 'c/CTL1', mode: 'preventive', verdict: 'FAIL', findings: 1, run: 'r1', sha: 'abc' });
-  assert.deepEqual(r.record, { control: 'c/CTL1', x: 'real', run: 'r1', sha: 'abc', verdict: 'FAIL', by: 'adapter' });
+  assert.deepEqual(r.log, { control: 'c/CTL1', mode: 'preventive', verdict: 'FAIL', findings: 1, run: 'r1', sha: 'abc', flag: { name: null, value: null, state: 'UNKNOWN' } });
+  assert.deepEqual(r.record, { control: 'c/CTL1', x: 'real', run: 'r1', sha: 'abc', verdict: 'FAIL', by: 'adapter', mode: 'preventive', applied: null, flag: { name: null, value: null, state: 'UNKNOWN' } });
   for (const part of ['x', 'run', 'sha']) {
     const b = { ...B }; delete b[part];
     const q = await runControl({ id: 'c/CTL1', mode: 'detective', check: () => [], input: {}, boundary: b });
