@@ -23,7 +23,7 @@ The package's `exports` lists these entry points, and nothing else resolves (cor
 
 | Entry point | Module | Exports |
 | --- | --- | --- |
-| `kaal-core` | `index.ts` | `bootstrap`, `verify`, `loadEngine`, `evaluate`, `register`, `registerSkill`, `registerExchange`, `readContribution`, `catalog`, `capabilities` (deprecated), `payload`, `foundation`, `exportPayload`, `KaalError` |
+| `kaal-core` | `index.ts` | `bootstrap`, `verify`, `loadEngine`, `evaluate`, `register`, `registerSkill`, `registerExchange`, `readContribution`, `catalog`, `payload`, `foundation`, `exportPayload`, `KaalError` |
 | `kaal-core/frontmatter` | `frontmatter.ts` | `checkSchema`, `validate`, `isTypeName` |
 | `kaal-core/installation` | `installation.ts` | `installationFormat`, `checkContract`, `checkRecord`, `register` |
 | `kaal-core/agent` | `agent.ts` | `declaration`, `realize` |
@@ -82,3 +82,4 @@ The publisher packs kaal-core and its runtime dependencies, installs the tarball
 - **core/A45** [core/F89, core/F91]: The Definition is `payload/core/KAAL-Exchange.md`. `CASE.md` and the Kernel's Foundation name `KAAL Exchange`, so the Kernel id and the ids of the Definition, `CASE`, `KAAL Agent` and `AGENTS.md` changed. `foundation()` returns `exchange`.
 - **core/A46** [core/F90]: `Kind` is `capability | agent | skill | exchange`, one row each in `register.ts`. `catalog` returns `exchanges`. There is no Extension alias: kaal-core 0.0.1 is unreleased.
 - **core/A47** [core/N24]: One admission rule serves every kind: at least one Node typed by the kind's own Node, none by the other three. An Exchange adds no rule, so Core cannot read its content.
+- **core/A63** [core/F120]: `capabilities`, its `Capabilities` interface and its export are removed from `register.ts` and `index.ts`. The README and this document list `catalog` alone, and Core's own tests call `catalog(dir)`.

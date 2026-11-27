@@ -44,7 +44,7 @@ In the source workspace, `npm test` runs these with the consumer verification. T
 
 For each `core/…` Requirement (see [Requirements](requirements.md)), this table says whether a delivered test checks it, a publisher test does, both do, or no test does. "Delivered" means a delivered test's title names the Requirement. "Publisher" lists the planned outer tests whose titles name it. The build-time Code tests and the bench are not counted. A test naming a Requirement is a claim that it checks it. Whether it checks it fully is a review judgment.
 
-Of 109 Requirements, 18 are checked by a delivered test, 101 by a publisher test, and 6 by no test. 16 are checked by both.
+Of 110 Requirements, 18 are checked by a delivered test, 102 by a publisher test, and 6 by no test. 16 are checked by both.
 
 The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill format and of Types, statements of responsibility), core/N1 and core/N3 (where frontmatter validation applies), core/N5 (a contract adds no runtime dependency) and core/N7 (the Node.js 24 prerequisite, which `package.json` declares and core/T92 checks under core/F86).
 
@@ -159,3 +159,4 @@ The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill 
 | core/F89 | publisher only | core/T98 |
 | core/F90 | publisher only | core/T99 |
 | core/F91 | publisher only | core/T100, core/T102 |
+| core/F120 | publisher only | core/T128 |

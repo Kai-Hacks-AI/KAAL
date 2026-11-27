@@ -5,7 +5,6 @@ import { dirname, join } from "node:path";
 import { describe, it } from "node:test";
 import {
   bootstrap,
-  capabilities,
   catalog,
   evaluate,
   exportPayload,
@@ -403,7 +402,7 @@ describe("bootstrap and verify", () => {
     await registerSkill(dir, "greeting", { "Greeting.md": skill });
     await registerExchange(dir, "clock", { "Clock.md": exchange });
     const before = (await loadEngine(dir)).nodes.map(({ id, name, type }) => ({ id, name, type }));
-    const caps = await capabilities(dir);
+    const caps = await catalog(dir);
     const moves = rearrange(dir);
     assert.ok(moves.length >= 7);
     for (const { from, to } of moves) assert.ok(!existsSync(join(dir, from)) && existsSync(join(dir, to)), `${from} -> ${to}`);
@@ -412,7 +411,7 @@ describe("bootstrap and verify", () => {
     const g = new Graph<EngineNode>(after.nodes);
     assert.deepEqual(g.resolve(f.skill)?.paths, [moves.find((m) => m.from === "core/KAAL-Skill.md")!.to]);
     assert.deepEqual(g.resolve({ name: "Greeting", id: sha256(skill) })?.type, f.skill);
-    assert.deepEqual(await capabilities(dir), caps);
+    assert.deepEqual(await catalog(dir), caps);
     assert.ok((await verify(dir)).ok, (await verify(dir)).problems.join("\n"));
   });
 
@@ -420,7 +419,7 @@ describe("bootstrap and verify", () => {
     const greeting = node("Greeting", f.skill, "Greet people warmly.\n");
     const moved = await engine();
     writeFileSync(join(moved, ".staging-greeting.md"), greeting);
-    assert.deepEqual((await capabilities(moved)).skills, [{ name: "Greeting", id: sha256(greeting) }]);
+    assert.deepEqual((await catalog(moved)).skills, [{ name: "Greeting", id: sha256(greeting) }]);
     const left = await engine();
     mkdirSync(join(left, ".staging-left"));
     writeFileSync(join(left, ".staging-left", "Broken.md"), "---\nname: Broken\n");
@@ -451,7 +450,9 @@ describe("registration", () => {
     assert.deepEqual(s, { ids: [sha256(skill)], written: true });
     const x = await registerExchange(dir, "kaal-clock", { "nested/Clock.md": exchange });
     assert.deepEqual(x, { ids: [sha256(exchange)], written: true });
-    assert.deepEqual(await capabilities(dir), {
+    assert.deepEqual(await catalog(dir), {
+      capabilities: [],
+      agents: [],
       skills: [{ name: "Greeting", id: sha256(skill) }],
       exchanges: [{ name: "Clock", id: sha256(exchange) }],
     });
@@ -471,7 +472,6 @@ describe("registration", () => {
       skills: [{ name: "Greeting", id: sha256(skill) }],
       exchanges: [{ name: "Clock", id: sha256(exchange) }],
     });
-    assert.deepEqual(await capabilities(dir), { skills: [{ name: "Greeting", id: sha256(skill) }], exchanges: [{ name: "Clock", id: sha256(exchange) }] });
     assert.equal(readFileSync(join(dir, "capabilities", "greeting", "Greeting-People.md"), "utf8"), capability);
     assert.equal(readFileSync(join(dir, "agents", "greeter", "Greeter.md"), "utf8"), agent);
     assert.deepEqual(await register(dir, "capability", "greeting", { "Greeting-People.md": capability }), { ids: [sha256(capability)], written: false });
@@ -537,7 +537,7 @@ describe("registration", () => {
     const notes = node("Greeting Notes", f.definition);
     const files = { ".staging-greeting.md": skill, "docs/.staging-v1.md": notes };
     assert.deepEqual(await registerSkill(dir, "greeting", files), { ids: [sha256(skill)], written: true });
-    assert.deepEqual((await capabilities(dir)).skills, [{ name: "Greeting", id: sha256(skill) }]);
+    assert.deepEqual((await catalog(dir)).skills, [{ name: "Greeting", id: sha256(skill) }]);
     assert.ok((await verify(dir)).ok, (await verify(dir)).problems.join("\n"));
   });
 
@@ -545,7 +545,7 @@ describe("registration", () => {
     const dir = await engine();
     rearrange(dir);
     assert.deepEqual((await registerSkill(dir, "greeting", { "Greeting.md": skill })).ids, [sha256(skill)]);
-    assert.deepEqual((await capabilities(dir)).skills, [{ name: "Greeting", id: sha256(skill) }]);
+    assert.deepEqual((await catalog(dir)).skills, [{ name: "Greeting", id: sha256(skill) }]);
   });
 
   it("resolves across contributions by identity, and never acquires what is missing", async () => {

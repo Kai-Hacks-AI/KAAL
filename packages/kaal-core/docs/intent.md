@@ -72,3 +72,4 @@ Every statement in these documents carries a stable identifier. `core/I…` is a
 
 - **core/I25.** CASE names four parallel kinds: Capability, Agent, Skill and Exchange. An Exchange is the element across Capabilities: the handovers between them, who hands what to whom. It replaces the Extension.
 - **core/I26.** Core defines the Exchange kind and registers and discovers it, as for the other three. It reads nothing of an Exchange's content. Engineering applies the kind for cross-capability work.
+- **core/I43.** Core offers one way to list what an Engine holds, `catalog`, and no second spelling of a part of it. kaal-core 0.0.1 is unpublished, so no consumer has to migrate.
