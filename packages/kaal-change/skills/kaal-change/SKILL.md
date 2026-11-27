@@ -29,6 +29,8 @@ In Embed mode, use the consumer's existing KAAL context and governed interfaces.
 
 Read the [input and result guide](references/isolation.md) when preparing an executable model or interpreting an assessment. Keep an incomplete manual assessment useful without pretending it is an executable model.
 
+When a Change depends on another Change, read the [dependency guide](references/succession.md) before stating it.
+
 ## Script
 
 From the installed skill directory, run the contained example with Node 24 or later:

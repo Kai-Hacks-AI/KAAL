@@ -17,6 +17,10 @@
     "./delivery": "./lib/delivery.mjs",
     "./lifecycle": "./lib/lifecycle.mjs",
     "./record": "./lib/record.mjs",
+    "./succession": {
+      "types": "./lib/succession.d.ts",
+      "default": "./lib/succession.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
