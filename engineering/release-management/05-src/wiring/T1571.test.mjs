@@ -92,7 +92,7 @@ export function run() {
   assert.doesNotMatch(w, /ref: \$\{\{ github\.event\.pull_request\.head/, 'the head must never be checked out');
   assert.doesNotMatch(w, /github\.head_ref/);
   assert.match(w, /persist-credentials: false/);
-  assert.match(w, /name: Change Isolation \(plain pull_request\)/, 'detective: its own job name');
+  assert.match(w, /name: "Change Isolation: \.github alone \(plain pull_request\)"/, 'detective: its own job name');
   assert.doesNotMatch(w, /^\s+name: Change Isolation$/m, 'it must not take the required context before the swap');
 
   // the head is the one the event was raised for: a match is judged, a mismatch and an unreadable ref are refused, not passed
