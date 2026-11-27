@@ -12,7 +12,8 @@ Targeted Mutation Verification (Testing's Skill) is run by hand: a Change keeps 
    - `T417` (`testing/F176`): over a fixture with two Cases and seven mutants, a mutant that flips an operator is `killed` with `killedBy`, a mutant of code no Case checks is `survived` and its id is in `survivors`, a mutant whose `find` is absent, or occurs twice, or equals `replace` is `invalid`, a mutant that makes the Case fail to import is `unresolved` and never killed, a mutant that never ends is `unresolved` with a timeout problem, `counts` add up, and `complete` is false.
    - `T418` (`testing/F176`): when every mutant is killed or survived and the baseline is `ok`, `complete` is true; a baseline that is RED, incomplete or has a file without a test makes every mutant `invalid` with the reason and the record not complete; `root` is byte for byte the same after a run; a mutant is run in a scratch copy, so a mutant that writes into its tree cannot change `root`.
    - `T419` (`testing/F176`): the command writes `mutation-report.json` and exits `0` when a mutant survived, exits `2` and writes nothing for a wrong schema, a duplicate id, a file outside `root`, an empty list or a missing `--spec` or `--out`.
-3. Evidence: `T414` to `T419` RED on this tree, `T414` to `T416` GREEN on a throwaway DO with the drafts placed, `T417` to `T419` GREEN with a throwaway prototype of the runner.
+3. Amendment (Kai's follow-up on controls C158: the mutation runner should fail when patches do not apply or a weakening does not turn a Case RED): `kaal-testing mutate --strict`, after the PLAN was approved and the DO merged. `--strict` writes the record as before and then exits `1` unless every mutant was `killed` and the baseline is `ok`. The default exit stays `0`; the record does not change; an invalid spec is still `2`. `F176` and `A62` say so (drafts amended), and Case `testing/T426` is added. Mutants stay all expected to be killed: no per-mutant expectation, because an equivalent mutant is a mutant the caller should not put in the list, and a caller that wants one can read `survivors`.
+4. Evidence: `T414` to `T419` RED on this tree, `T414` to `T416` GREEN on a throwaway DO with the drafts placed, `T417` to `T419` GREEN with a throwaway prototype of the runner.
 
 ## Boundary with the other capabilities
 
@@ -33,4 +34,4 @@ No mutant generation from operators, no wiring, no flag, ruleset or required che
 
 ## Ids
 
-Change `testing/C83`, Intent `testing/I51`, Requirement `testing/F176`, Architecture `testing/A62`, Cases `testing/T414` to `testing/T419`. Ids are taken by hand; on a clash the newer PR renumbers.
+Change `testing/C83`, Intent `testing/I51`, Requirement `testing/F176`, Architecture `testing/A62`, Cases `testing/T414` to `testing/T419`, and `testing/T426` for the amendment (`T420` to `T425` are Change `testing/C84`). Ids are taken by hand; on a clash the newer PR renumbers.
