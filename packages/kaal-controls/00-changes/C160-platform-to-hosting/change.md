@@ -48,3 +48,7 @@ The DO, run on the collector, turns two older Cases RED that the first amendment
 - A8 and T479: the finder is the library `scripts/lib/find-controls.mjs` and imports nothing at all. The command line entry is the deprecated shim at the old path, which imports it.
 
 Nothing else about either Case changes.
+
+### PLAN amendment 2, reconciled with C162
+
+F18 and T591 now state both contracts: `files` is `skills` plus the `!` shim entries (this Change), and `publishConfig` is `{access: public}` (C162, #2841). Neither amendment drops the other. T591 needs both package.json changes to be GREEN; the C160 DO carries the identical `publishConfig` line so the collector stays GREEN on its own, and git merges the identical line cleanly at promotion.
