@@ -10,8 +10,8 @@ Counts follow release/C153, chapter "Amendment: the evidence before enforcement,
 | CTL38 synchronization | PASS | A | 5 | 5 |
 | CTL39 auto-merge | PASS | A | 5 | 21 |
 | CTL37 freshness | FAIL (behind the target) | P | 3 | 3 (probes #2816 to #2818) |
-| CTL38 synchronization | FAIL | P | 3 | 0 |
-| CTL39 auto-merge | FAIL | P | 3 | 0 |
+| CTL38 synchronization | FAIL | P | 3 | 3 (probes #2899 to #2901) |
+| CTL39 auto-merge | FAIL | P | 3 | 3 (probes #2899 to #2901) |
 | All entries | A | 15 | 36 |
 
 ## Counting A (PASS only, record names the head, old check agrees)
@@ -70,6 +70,12 @@ A natural failure on which the old check and the new entry agree. It is a verdic
 | #2816 (probe) | 53c591d7b56b9e3efb7608ca9e6d88557e66ec6a | CTL37 freshness | REPORT | failure |
 | #2817 (probe) | 0a8d350a41aa97cfd0ace4342357cd24fbe2abc4 | CTL37 freshness | REPORT | failure |
 | #2818 (probe) | e62b2897d5e8cd3fd5fe06b3f1f5a503fc641566 | CTL37 freshness | REPORT | failure |
+| #2899 (probe) | c9489246be1f2cd8871ec9c6a96c1ed40c03640e | CTL38 synchronization | REPORT | failure |
+| #2900 (probe) | 41f5bb74d2de8e22bbdcd93cef97135c171de078 | CTL38 synchronization | REPORT | failure |
+| #2901 (probe) | 54469ae7996511bb70c7cf3f59f3cce42ecb38ae | CTL38 synchronization | REPORT | failure |
+| #2899 (probe, auto-merge enabled with squash) | c9489246be1f2cd8871ec9c6a96c1ed40c03640e | CTL39 auto-merge | REPORT | failure |
+| #2900 (probe, auto-merge enabled with squash) | 41f5bb74d2de8e22bbdcd93cef97135c171de078 | CTL39 auto-merge | REPORT | failure |
+| #2901 (probe, auto-merge enabled with squash) | 54469ae7996511bb70c7cf3f59f3cce42ecb38ae | CTL39 auto-merge | REPORT | failure |
 
 ## Not counting (all entries not applicable, no record)
 
@@ -83,8 +89,8 @@ The synchronization probes #2891 to #2893 (an ordinary change carrying a merge o
 
 ## Uninspected
 
-Runs created after 17:09 UTC.
+Runs created after 17:09 UTC, except the probe runs listed above, which were read at their heads. The probes #2899 to #2901 branch from main into the collector (a main commit the collector lacks); the auto-merge REPORT came from enabling auto-merge, with squash, on a head whose synchronization verdict fails (the flow names no method). Draft probes with auto-merge off wrote no CTL39 record, and the old check judged nothing either: not applicable, counted nowhere. Auto-merge was disabled again on all three after reading and none merged.
 
 ## Open
 
-CTL38 and CTL39 each need 3 provoked FAIL demonstrations. The count is the CPO's to accept.
+All three provoked FAIL situations now stand at 3 of 3. The count is the CPO's to accept.
