@@ -24,3 +24,7 @@ A retro entry in the collector.
 1. **Input shape.** Recommend `findControls({files, stations})` with `stations` a list of non-empty names. Rejected: reading it from a file in the Skill, which names a layout (N8).
 2. **Callers.** Release's collectors and engineering's check call the finder today. Recommend they pass the list in the same Changes that adopt the new package, so the finder never runs with KAAL's list built in. Until then the DO keeps them green by passing the list in the Cases only.
 3. **Order.** After C160 (platform work to hosting): both touch `find-controls.mjs`.
+
+## PLAN amendment (a Case that required a KAAL station word)
+
+The Case controls/T928 (under controls/A12) requires the word `Integrating` in `references/enforcing-controls.md`. That is a KAAL station name, which T1711 forbids in the Skill, so the two Cases cannot both pass. T928 now requires the neutral example `Merging` instead, so the reference's own example station is the word it must say. Nothing else about T928 changes. The DO uses `Merging` in the references as the PLAN said.

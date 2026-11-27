@@ -25,6 +25,6 @@ export async function run() {
   const ref = join(sk, 'references/enforcing-controls.md');
   assert.ok(existsSync(ref), 'the enforcing reference is absent');
   const r = readFileSync(ref, 'utf8');
-  for (const w of ['stations', 'registry', 'Integrating', 'base', 'preventive', 'detective']) assert.ok(r.includes(w), `the reference does not say ${w}`);
+  for (const w of ['stations', 'registry', 'Merging', 'base', 'preventive', 'detective']) assert.ok(r.includes(w), `the reference does not say ${w}`);
   assert.ok(!/Kai-Hacks|engineering\//.test(r), 'the reference knows the repository');
 }
