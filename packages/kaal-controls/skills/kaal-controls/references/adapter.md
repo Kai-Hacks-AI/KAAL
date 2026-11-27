@@ -23,3 +23,5 @@ Defined, implemented, running and tested are four independent facts, not stages 
 ## What the adapter shows
 
 The adapter shows execution only. `executed` answers true or null, never false. A committed record is a claim, not proof of its own authenticity, so it counts only when it is valid and complete (this control, a real run, a run, this revision, verdict `PASS` or `FAIL`, by the adapter) and the adopter has independently established that this control, run and revision exist. The adopter verifies the run itself, not that a workflow exists. The other three facts are proved by their own checks.
+
+`runAdapterRatchet` in `scripts/adapter-ratchet.mjs` runs verify Adapter as a ratchet over the delivered controls. The delivered map must be a complete inventory for this revision and scope, and one that is not is unknown and blocked: unknown is never an allowance, so a control cannot hide by being absent from the map.
