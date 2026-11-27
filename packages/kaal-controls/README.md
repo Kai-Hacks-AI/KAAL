@@ -1,13 +1,22 @@
 # @kaihacksai/kaal-controls
 
-KAAL Controls: the semantics of directive, preventive, detective and corrective controls. This first slice is a candidate Agent Skill and the scenarios that show an agent using it. It is not published, not deployed where agents discover skills, and not part of the workspaces.
+A Skill for working with controls: directive, preventive, detective and corrective. It says what each type is for, how they combine without one standing for another, and how far a claim about a control may go ("enforced", "prevented", "protected") given what has actually been observed.
 
 ```
-skills/kaal-controls/SKILL.md   the candidate Agent Skill
-00-changes/ 01-intent/ 02-requirements/ 03-architecture/   the Change that introduces it, traced Intent to Cases
+skills/kaal-controls/SKILL.md      the Agent Skill
+skills/kaal-controls/references/   what to declare, how to enforce, how the adapter runs a check
+skills/kaal-controls/scripts/      the functions that find, check and judge controls
 ```
 
-What it teaches: what each of the four types is for, how they cooperate while staying independent, and how far a claim about a control may go. Testing owns verification, validation and findings, and the Skill cites it.
+The package works in any setup. It depends on no other Skill. Where your files live, which stations your work passes and which switches you use come in as input.
+
+## Install
+
+```
+npm install @kaihacksai/kaal-controls
+```
+
+Requires Node 24 or later.
 
 ## License
 

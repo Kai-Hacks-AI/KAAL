@@ -26,3 +26,7 @@ A retro entry in the collector.
 1. **`private: true`.** Recommend it stays until Publishing flips it on Kai's go. With it set, `npm publish` refuses by itself, which is a second lock besides the go. T1712 does not look at it for that reason.
 2. **Package files.** `files` is `["skills"]`, so the package `LICENSE`, README and CHANGELOG are added by npm itself; the bundled Skill LICENSE keeps the Skill licensed when copied alone. Recommend no change to `files`.
 3. **Order.** After C160 and C161, so the README layout block and the changelog describe the scrubbed package.
+
+## DO record
+
+`package.json` gains `publishConfig: {access: public}` (`private: true` and version 0.0.1 stay). `CHANGELOG.md` has the 0.0.1 entry written for a consumer. `skills/kaal-controls/LICENSE` is the MIT text, byte-equal to the package `LICENSE`. The README says what the package is and how to install it, with no "not published", and names only what ships. T1712 is GREEN and the package suite (116 tests) is GREEN, with T591 as amended. Mutations, each alone: `publishConfig` removed turns T1712 RED, and the bundled `LICENSE` removed turns T1712 RED. Publishing runs `npm pack --dry-run` on a clean checkout; that is its step.
