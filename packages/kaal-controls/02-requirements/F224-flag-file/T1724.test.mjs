@@ -16,20 +16,32 @@ export async function run() {
   const src = flagSource(parseFlags(JSON.stringify({ schema: 'kaal-controls/flags@1', flags: [
     { control: 'x/CTL1', place: 'p', name: 'F1', value: 'preventing' }, { control: 'x/CTL2', place: 'p', name: 'F2', value: 'advisory' },
     { control: 'x/CTL4', place: 'p', name: 'F4', value: 'stopped' }, { control: 'x/CTL5', place: 'p', name: 'F5', value: 'on' }, { control: 'x/CTL6', place: 'p', name: 'F6', value: 'maybe' }] })));
-  const flag = (c) => { const f = src.of(c, 'p'); return f ? toBoundary(f.name, f.value) : undefined; };
+  const flag = (c) => { const f = src.of(c, 'p'); return toBoundary(f ? f.name : `F_${c}`, f ? f.value : undefined); };
   assert.deepEqual(flag('x/CTL1'), { name: 'F1', value: 'on' });
   assert.deepEqual(flag('x/CTL2'), { name: 'F2', value: 'off' });
   assert.deepEqual(flag('x/CTL5'), { name: 'F5', value: 'on' }, 'the legacy on is preventing');
   assert.equal(flag('x/CTL4'), null, 'stopped means the adopter does not run the control');
-  assert.equal(toBoundary('F6', 'maybe'), undefined, 'a value that is not understood is not off');
-  assert.equal(toBoundary('F7', null), undefined);
-  assert.equal(flag('x/CTL3'), undefined);
-  const run = (c) => runControl({ id: c, mode: 'preventive', check: () => ['a'], boundary: { x: 'real', run: '1', sha: 'tree:a', flag: flag(c) } });
-  const on = await run('x/CTL1'), off = await run('x/CTL2'), none = await run('x/CTL3'), odd = await run('x/CTL6');
+  assert.deepEqual(toBoundary('F6', 'maybe'), { name: 'F6', value: null }, 'a value that is not understood is passed as not set');
+  assert.deepEqual(toBoundary('F7', null), { name: 'F7', value: null });
+  assert.deepEqual(flag('x/CTL3'), { name: 'F_x/CTL3', value: null }, 'a missing entry is passed as not set, never as absent');
+  assert.throws(() => toBoundary('', 'on'));
+  assert.throws(() => toBoundary(undefined, 'on'));
+  const run = (c, boundary) => runControl({ id: c, mode: 'preventive', check: () => ['a'], boundary: { x: 'real', run: '1', sha: 'tree:a', ...boundary } });
+  const on = await run('x/CTL1', { flag: flag('x/CTL1') }), off = await run('x/CTL2', { flag: flag('x/CTL2') });
+  const none = await run('x/CTL3', { flag: flag('x/CTL3') }), odd = await run('x/CTL6', { flag: flag('x/CTL6') });
   assert.deepEqual([on.mode, on.applied, on.verdict, on.blocked], ['preventive', true, 'FAIL', true]);
   assert.deepEqual([off.mode, off.applied, off.blocked], ['off', false, false]);
-  assert.deepEqual([none.mode, none.applied, none.blocked], ['preventive', null, true]);
-  assert.deepEqual([odd.applied, odd.log.flag.state], [null, 'UNKNOWN']);
+  assert.deepEqual([none.mode, none.applied, none.blocked, none.verdict], ['off', false, false, 'REPORT'], 'an unknown flag never authorizes enforcement and the control still runs');
+  assert.deepEqual([odd.mode, odd.applied, odd.blocked], ['off', false, false]);
+  // a legacy caller passes no flag at all: the adapter still runs it as asked, and STAMP says so
+  const { judgeStamp } = await load('stamp.mjs');
+  const legacy = await run('x/CTL7', {});
+  assert.deepEqual([legacy.mode, legacy.applied, legacy.blocked], ['preventive', null, true]);
+  const asRun = (r) => ({ run: r.record.run, verdict: r.verdict, mode: r.record.mode, applied: r.record.applied });
+  const a = judgeStamp({ declared: 'UNKNOWN', runs: [asRun(legacy)] });
+  assert.deepEqual([a.stamp, a.blocking, a.reasons], ['MUTE', true, ['blocks-without-flag', 'no-flag']], 'the report shows that it blocks');
+  const b = judgeStamp({ declared: 'UNKNOWN', runs: [asRun(none)] });
+  assert.deepEqual([b.stamp, b.blocking, b.reasons], ['MUTE', false, ['no-flag']], 'a flag-aware caller with no entry reports, does not block, and is Mute');
   const stub = { of: () => ({ name: 'S', value: 'advisory' }) };
   assert.equal(stub.of('c', 'p').value, 'advisory', 'any source with of() serves');
   const text = readFileSync(join(S, 'flags.mjs'), 'utf8') + readFileSync(join(S, 'stamp.mjs'), 'utf8');

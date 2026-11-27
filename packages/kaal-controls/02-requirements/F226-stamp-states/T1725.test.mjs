@@ -18,7 +18,11 @@ export async function run() {
   assert.deepEqual(j('STOPPED', []), ['STOPPED', false, []]);
   assert.deepEqual(j('STOPPED', [r('PASS', true)]), ['STOPPED', false, []]);
   assert.deepEqual(j('UNKNOWN', []), ['MUTE', null, ['no-flag']]);
-  assert.deepEqual(j('UNKNOWN', [r('PASS', true)]), ['MUTE', null, ['no-flag']]);
+  assert.deepEqual(j('UNKNOWN', [r('PASS', false)]), ['MUTE', false, ['no-flag']], 'the adapter ran it switched off: it did not block');
+  assert.deepEqual(j('UNKNOWN', [{ run: 'r', verdict: 'FAIL', mode: 'preventive', applied: null }]), ['MUTE', true, ['blocks-without-flag', 'no-flag']], 'a legacy caller blocks without a flag and the stamp says so');
+  assert.deepEqual(j('UNKNOWN', [{ run: 'r', verdict: 'FAIL', mode: 'ratchet', applied: null }]), ['MUTE', true, ['blocks-without-flag', 'no-flag']]);
+  assert.deepEqual(j('ADVISORY', [{ run: 'r', verdict: 'FAIL', mode: 'preventive', applied: null }]), ['ADVISORY', true, ['blocks-without-flag']], 'the file says advisory and the run blocked');
+  assert.deepEqual(j('STOPPED', [{ run: 'r', verdict: 'FAIL', mode: 'preventive', applied: null }]), ['STOPPED', false, []]);
   assert.deepEqual(j('ADVISORY', []), ['MUTE', null, ['no-trace']]);
   assert.deepEqual(j('PREVENTING', []), ['MUTE', null, ['no-trace']]);
   assert.deepEqual(j('ADVISORY', [r('PASS', false)]), ['ADVISORY', false, []]);
