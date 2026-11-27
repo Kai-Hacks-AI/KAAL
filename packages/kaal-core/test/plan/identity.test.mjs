@@ -119,18 +119,45 @@ describe("Identity and numbering (core/C164)", () => {
     assert.equal(unresolved[0].source.id, "T2", "the one that stated the old identifier");
   });
 
-  it("core/T140 [core/F131, core/A68]: an instance with no guid is reported as unadopted and is no finding, and adoptGuid gives the same guid for the same namespace and identifier on every call and a different one for another", async () => {
+  it("core/T140 [core/F131, core/A68]: an instance with no guid is reported as unadopted and is no finding, and adoptGuid gives the same guid on every call, the pinned UUID version 5 values for the fixed namespace, and a different one for every other pair of namespace and identifier, and refuses an empty namespace and one that contains a slash", async () => {
     const mod = await registration();
-    assert.equal(typeof mod.adoptGuid, "function", "blocked before behavioural assertion: kaal-core/registration exports no adoptGuid");
+    if (typeof mod.adoptGuid !== "function") assert.fail("blocked before behavioural assertion: kaal-core/registration exports no adoptGuid");
     const a = await assembly([...OWNERS, reg("kaal-core", "core", {}, [{ id: "C150", kind: C }, inst("C151", C, "g-adopted")])]);
     assert.deepEqual(a.findings, [], "an unadopted instance is judged as it is today and is no finding");
     assert.ok(a.unadopted.some((x) => x.scope === "core" && x.id === "C150"), "it is reported as unadopted");
     assert.ok(!a.unadopted.some((x) => x.id === "C151"), "an adopted one is not");
-    const one = mod.adoptGuid("core", "C150");
-    assert.equal(typeof one, "string");
-    assert.ok(one.length > 0);
-    assert.equal(mod.adoptGuid("core", "C150"), one, "the same input gives the same guid on every call");
-    assert.notEqual(mod.adoptGuid("core", "C151"), one, "another identifier gives another guid");
-    assert.notEqual(mod.adoptGuid("release", "C150"), one, "another namespace gives another guid");
+    // Name-based UUID version 5 (RFC 9562) of "<namespace>/<id>" under f921a66e-44ed-5bfb-9b19-61545c92442a.
+    const PINNED = [
+      ["core", "C150", "723c1542-0e29-59b3-8db9-0ec72249dc6a"],
+      ["core", "C151", "6c2a3187-a778-522a-aa8f-c7a552e27699"],
+      ["release", "C150", "0e0ac5bd-cdf1-55d6-adae-74047657e1c1"],
+      ["core", "T1", "213dc298-7bf9-54f9-bceb-084644cbf252"],
+    ];
+    for (const [ns, id, want] of PINNED) {
+      assert.equal(mod.adoptGuid(ns, id), want, `${ns}/${id}`);
+      assert.equal(mod.adoptGuid(ns, id), want, "the same input gives the same guid on every call");
+    }
+    const namespaces = ["core", "release", "change", "testing", "a", "ab"];
+    const ids = ["C1", "C11", "T1", "1", "a", "b/c", "C1/", "1C"];
+    const seen = new Map();
+    for (const ns of namespaces) for (const id of ids) {
+      const g = mod.adoptGuid(ns, id);
+      assert.ok(!seen.has(g), `${ns}/${id} and ${seen.get(g)} must not give one guid`);
+      seen.set(g, `${ns}/${id}`);
+    }
+    for (const bad of ["", "a/b", "/", "core/"]) assert.throws(() => mod.adoptGuid(bad, "C1"), `namespace "${bad}" is refused`);
+  });
+
+  it("core/T141 [core/F132, core/A68]: newGuid gives a UUID version 4, and two calls never give the same one", async () => {
+    const mod = await registration();
+    if (typeof mod.newGuid !== "function") assert.fail("blocked before behavioural assertion: kaal-core/registration exports no newGuid");
+    const V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+    const made = new Set();
+    for (let n = 0; n < 200; n++) {
+      const g = mod.newGuid();
+      assert.match(g, V4);
+      made.add(g);
+    }
+    assert.equal(made.size, 200, "no two calls give the same guid");
   });
 });

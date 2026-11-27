@@ -12,8 +12,9 @@ They use `assemble` and `adoptGuid` from `kaal-core/registration`, with registra
 | core/T137: a renumbering, the same `guid` with another identifier, is judged as a proposal and is no finding by itself, and two proposals that take one identifier with different `guid`s each fail against a union holding the other, whatever the order the claims were given in | core/F127, core/F129, core/N33, core/A67 | Requirements |
 | core/T138: one `guid` stated by two instances is a `guid-claimed-twice` finding naming both | core/F126, core/A66 | Requirements |
 | core/T139: a trace that states a `guid` still resolves after its target is renumbered, and a trace that states a namespace and an identifier is unresolved after it, with nothing guessed | core/F130, core/A68 | Requirements |
-| core/T140: an instance with no `guid` is reported as unadopted and is no finding, and `adoptGuid` gives the same `guid` for the same namespace and identifier on every call and a different one for another | core/F131, core/A68 | Requirements |
+| core/T140: an instance with no `guid` is reported as unadopted and is no finding, and `adoptGuid` gives the same `guid` on every call, the pinned UUID version 5 values for the fixed namespace, and a different one for every other pair of namespace and identifier, and refuses an empty namespace and one that contains `/` | core/F131, core/A68 | Requirements |
+| core/T141: `newGuid` gives a UUID version 4, and two calls never give the same one | core/F132, core/A68 | Requirements |
 
 ## RED evidence
 
-Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/identity.test.mjs`, outside Core's `npm test` until the DO. At `core/C164` all seven are RED, blocked before behavioural assertion, because an assembly offers no `nextID` or `checkID` and `kaal-core/registration` exports no `adoptGuid`.
+Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/identity.test.mjs`, outside Core's `npm test` until the DO. At `core/C164` all eight are RED, blocked before behavioural assertion, because an assembly offers no `nextID` or `checkID` and `kaal-core/registration` exports no `adoptGuid` or `newGuid`.
