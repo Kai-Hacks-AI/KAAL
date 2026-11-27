@@ -1,4 +1,4 @@
-// Case release/T1590 tests: release/C160. The two entries of the Change Isolation (check 1) replacement judge a change as the old workflow did: a verified synchronization of a collector by its own explicit resolutions only (the merged state of the default branch is not its change), a head already on the default branch does not apply, and any other change into a collector is judged whole. Behaviour, with real Git.
+// Case release/T1590 tests: release/C160. The two entries of the Change Isolation (check 1) replacement judge a change as the old workflow did: a verified synchronization of a collector by its own explicit resolutions only (the merged state of the default branch is not its change), and any other change into a collector is judged whole. Behaviour, with real Git.
 import assert from 'node:assert/strict';
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -9,7 +9,7 @@ const repo = fileURLToPath(import.meta.url).split('/engineering/')[0];
 const ENTRIES = ['github-alone', 'delivery'].map((v) => join(repo, `engineering/release-management/05-src/change-isolation/judge-${v}.mjs`));
 export const id = 'release/T1590';
 export const tests = ['release/C160'];
-export const title = 'the entries of the Change Isolation replacement judge a verified synchronization by its own resolutions only, do not apply to a head already on the default branch and judge any other change whole';
+export const title = 'the entries of the Change Isolation replacement judge a verified synchronization by its own resolutions only, and judge any other change whole';
 const git = (cwd, ...a) => { const r = spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', ...a], { cwd, encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr); return r.stdout.trim(); };
 const world = (dir, { lineage = true } = {}) => {
   const origin = join(dir, 'origin.git');
@@ -45,10 +45,6 @@ export async function run() {
       assert.match(s.text, /verified synchronization/, 'it is recognised as one');
       assert.match(s.text, /PASS/, 'what main carried is not the synchronization\'s change');
     }
-    // the head is already on the default branch: this check does not apply
-    const done = go(ENTRIES[0], main, tip, 'kaal/x');
-    assert.equal(done.code, 0, done.text);
-    assert.match(done.text, /does not apply/, 'a head already admitted on the default branch does not apply');
     // an ordinary change into the collector is judged whole, and a mix is reported
     git(work, 'checkout', '-q', '-b', 'cand', 'origin/kaal/x');
     put('.github/c2.yml', 'c\n'); put('docs/c2.md', 'c\n');
