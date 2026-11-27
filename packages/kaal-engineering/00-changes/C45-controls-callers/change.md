@@ -42,3 +42,13 @@ T1620 to T1623 are RED until the DO writes the sources. T1624 is a guard and is 
 ## Not in this Change
 
 A WIRE, a ruleset change, and any edit to the controls Skill (Controls C160 does that after these callers are on main).
+
+## Amendment: the Cases of F93 and F95
+
+The first DO changed the two workflow sources, and two existing Cases pin them: T1412 of F93 and T1417 of F95. The PLAN did not name them, because the lane that found the callers did not run every Case of the capability, so they went RED and hold Act on the ACT named them. This amendment, in its own PR before any further DO, changes what they expect and nothing else:
+
+- T1412: each gate job installs Hosting (`npm ci --ignore-scripts -w @kaihacksai/kaal-hosting`) and builds it first, then runs its judge, then `judge-run` in preventive mode in place of `judge-mode`.
+- T1417: Hosting is installed and built before the judge, and `judge-run` in ratchet mode replaces `judge-mode`, with the same baseline arguments.
+- F93 and F95 say the same in words.
+
+Every other Case of the capability is GREEN with these two; removing the build step from `codeql.yml` turns T1412 RED. This authorizes no WIRE, flag or ruleset.
