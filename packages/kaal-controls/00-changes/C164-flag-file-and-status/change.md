@@ -34,6 +34,9 @@ A retro entry in the collector.
 6. **Placement.** The two scripts are flat in `scripts/` as `judge-running.mjs` is. The layout of C160 and the restructure of C163 move pure files into `scripts/lib/` when they land.
 7. **Last run.** `last` is the last counted record in the order the adopter lists its records (newest last), because `judgeRunning` carries no date.
 
+8. **Room for an escalation ratchet (pending the Owner's answer).** A rule that a flag may be `on` only when the control is wired and its evidence counts are met, and that `on` to `off` is only an explicit de-escalation, would judge changes of this file. The file format leaves room for it: an entry is an object, so fields (a history line, a reason) can be added in a later version of the schema, and `parseFlags` refuses an unknown schema rather than guessing. Nothing of it is built or decided here.
+9. **Collector.** This Change has its own collector `kaal/controls/flag-file`, branched from the tip of `kaal/controls/flag-status` because the DO and Case T1724 use C158's flag in the run. It is synced with main after C158 is promoted, and it never holds C158 back.
+
 ## Not here
 
 No DO, WIRE, flag, workflow, required check, ruleset or publish. The first real `flags.json` and every flip are separate Owner decisions.
