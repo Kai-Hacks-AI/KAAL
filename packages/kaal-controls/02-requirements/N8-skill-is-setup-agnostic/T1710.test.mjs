@@ -1,4 +1,4 @@
-// Case controls/T1575 tests: controls/N8
+// Case controls/T1710 tests: controls/N8
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 // package-relative: the package root is the folder above this Case that holds package.json
 let pkg = dirname(fileURLToPath(import.meta.url));
 while (!existsSync(join(pkg, 'package.json'))) pkg = dirname(pkg);
-export const id = 'controls/T1575';
+export const id = 'controls/T1710';
 export const tests = ['controls/N8'];
 export const title = 'the Skill scripts do no platform work: no file system, process, operating-system or line-ending code of their own';
 const files = (dir) => readdirSync(dir).flatMap((f) => { const p = join(dir, f); return statSync(p).isDirectory() ? files(p) : [p]; });
