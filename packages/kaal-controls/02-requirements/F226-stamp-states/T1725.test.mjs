@@ -8,7 +8,7 @@ const S = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
 const load = async (rel) => { const f = join(S, rel); assert.ok(existsSync(f), `scripts/${rel} is absent`); return import(pathToFileURL(f).href); };
 export const id = 'controls/T1725';
 export const tests = ['controls/F226'];
-export const title = 'judgeStamp keeps the declared decision, the observed signal and the blocking evidence apart: Torn and Mute block under Preventing and only report under Advisory, a Stopped control expects no run, an unknown decision is not a state and an unknown result is judged by the known decision, and every mismatch is named';
+export const title = 'judgeStamp keeps the declared decision, the observed signal and the blocking evidence apart: Torn, Mute and any verdict but a pass block under Preventing and only report under Advisory, a Stopped control expects no run, an unknown decision is not a state and an unknown result is judged by the known decision, and every mismatch is named';
 export async function run() {
   const { flagState, judgeStamp } = await load('stamp.mjs');
   for (const [v, s] of [['preventing', 'PREVENTING'], ['on', 'PREVENTING'], ['advisory', 'ADVISORY'], ['off', 'ADVISORY'], ['stopped', 'STOPPED'],
@@ -33,7 +33,8 @@ export async function run() {
   const proof = r('PASS', false, false, 'r0');
   assert.deepEqual(j('PREVENTING', [proof, r('PASS', true, false)]), ['PREVENTING', 'OK', false, false, []]);
   assert.deepEqual(j('PREVENTING', [proof, r('FAIL', true, true)]), ['PREVENTING', 'OK', true, true, []]);
-  assert.deepEqual(j('PREVENTING', [proof, r('REPORT', true, false)]), ['PREVENTING', 'OK', false, false, []]);
+  assert.deepEqual(j('PREVENTING', [proof, r('REPORT', true, true)]), ['PREVENTING', 'OK', true, true, ['unexpected-verdict-while-preventing']], 'Preventing permits a pass only: a report is an anomaly and blocks');
+  assert.deepEqual(j('PREVENTING', [proof, r('REPORT', true, false)]), ['PREVENTING', 'OK', true, false, ['not-blocked-while-preventing', 'unexpected-verdict-while-preventing']]);
   assert.deepEqual(j('PREVENTING', [proof, r('UNKNOWN', true, true)]), ['TORN', 'TORN', true, true, ['no-verdict']]);
   assert.deepEqual(j('PREVENTING', [proof, r(null, true, null)]), ['TORN', 'TORN', true, null, ['no-verdict']]);
   assert.deepEqual(j('PREVENTING', []), ['MUTE', 'MUTE', true, null, ['no-trace', 'unproven-preventing']]);
