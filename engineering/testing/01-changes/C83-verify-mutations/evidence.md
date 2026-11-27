@@ -18,6 +18,7 @@ Targeted Mutation Verification is a section of Testing's Skill (killed, survived
 | `testing/T417` | `testing/F176` | RED: `lib/mutate.mjs is absent` |
 | `testing/T418` | `testing/F176` | RED: `lib/mutate.mjs is absent` |
 | `testing/T419` | `testing/F176` | RED: `lib/mutate.mjs is absent` |
+| `testing/T426` | `testing/F176` | RED on the collector tree with the DO merged: `a weakening that no Case catches fails under --strict` (`0 !== 1`), because the command has no `--strict` yet |
 
 6 RED by assertion, 0 GREEN, 0 import or syntax errors. `collectCases('engineering/testing')` lists them with `parked: false` and no finding.
 
