@@ -2,7 +2,7 @@
 
 Each element names, in brackets, the Requirements it answers.
 
-- **core/A64** [core/F121]: A "Setup independence" section in `payload/core/Installation-Contract.md`, beside the runtime a contract states. It states the property, the two shared packages, and the three judgements (declared, demonstrated, accepted) in those words. Its bytes change the Definition's digest, so the DO updates the pinned ids visibly.
+- **core/A64** [core/F121]: A Definition of its own, `payload/core/Setup-Independence.md`, typed by `KAAL Definition`. It states the property, the two shared packages, and the three judgements (declared, demonstrated, accepted) in those words. The Installation Contract Definition is not touched, so its id, and every contract that names it as its `format`, stay valid. The Definition's digest and Core's pinned lists change visibly in the DO.
 - **core/A65** [core/F122, core/F123, core/F124, core/N32]: `judgeSetupIndependence` in `src/installation.ts`, exported from `kaal-core/installation` with the contract's other checks. It takes the parsed `package.json`, never a path, so it reads no file and Core stays host-free. It returns `{ declared, demonstrated, acceptable, findings }`, where `demonstrated` is always `"unknown"`, and each finding is `{ field, name, accepted }` in a stable order by field then package. The two shared names are constants of the Definition, not a parameter.
 
 ## Design questions
@@ -17,6 +17,7 @@ Each element names, in brackets, the Requirements it answers.
 
 | Option | What changes | Cost |
 | --- | --- | --- |
-| **A. Installation Contract Definition plus one pure judge** (recommended) | One section and one function beside `checkContract`. | None to existing Contracts: a Contract names no dependencies today. |
+| **A. A Definition of its own plus one pure judge** (recommended, the Owner's decision) | One new Definition and one function beside `checkContract`. | None to existing Contracts: the Installation Contract's bytes and id stay. |
+| A0. A section in the Installation Contract Definition (the first version of this PLAN) | The same words, inside that Definition. | Its id changes, and `packages/kaal-guard/contract.json`, a published contract, pins the old id as its `format`, so Core's own check would reject it. |
 | B. A section in the Skill standard | The rule beside the Skill's shape. | A Skill is a folder inside a package, and the package is the unit that installs. Wrong unit. |
 | C. A rule in installation integrity (core/C53) | The rule beside content alignment. | That change compares installed assets to expected ones. Independence is what a package needs, not whether its files are intact. |
