@@ -1,0 +1,9 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter-ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter-ratchet.mjs
+@@ -14,5 +14,5 @@
+     if (!usable(delivered, revision, scope)) throw new Error('runAdapterRatchet: the delivered inventory is not usable');
+     return findUnadapted({ controls, delivered: delivered.entries, observed, revision });
+   };
+-  return runControl({ id: 'controls/CTL1', mode: 'ratchet', check, baseline, previous, boundary });
++  return runControl({ id: 'controls/CTL1', mode: 'ratchet', check, baseline, previous: baseline, boundary });
+ }
