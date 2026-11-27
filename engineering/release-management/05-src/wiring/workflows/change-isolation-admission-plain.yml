@@ -1,0 +1,28 @@
+# The plain pull_request admission of the required check `Change Isolation (review)` (release/C157, release/C153 check 3).
+#
+# Same admission as merge-group-admission.yml, on plain pull_request instead of pull_request_target: it only gives the pull request head a
+# context so the pull request can ENTER the merge queue. It is an admission to the queue, not an attestation and not permission to merge:
+# it reads nothing and judges nothing. The merge group's own run of merge-group-review.yml judges the pull request at merge time and is
+# unchanged. It holds no permission at all (`{}` here and on the job), no checkout, no secret and no step that reads or runs anything of the
+# pull request. It is not a control (it judges nothing), so it is a notControls row of the delivery map.
+#
+# Detective for now: its job name is its own, so no ruleset requires it until the Owner swaps it for the old context.
+name: Change Isolation admission on pull_request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions: {}
+
+jobs:
+  admission:
+    name: Change Isolation (review, plain pull_request)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Admit to the merge queue only
+        run: |
+          echo "Admission to the merge queue only. This is not an attestation and carries no authorization."
+          echo "The merge group's own run of Change Isolation (review) judges the pull request at merge time."
