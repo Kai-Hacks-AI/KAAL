@@ -13,7 +13,6 @@ export const report = (r) => ({ kind: KIND[r.verdict] ?? 'unknown', verdict: r.v
 const git = (cwd, ...args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
 
 // The paths to judge for a head, as the old workflow judged them (engineering/github/change-isolation.sh), or why there are none:
-//   { applies: false }   the head is already on the default branch: a synchronization already admitted, which this check does not judge;
 //   { paths }            the complete change of the head against the target's tip, both sides of every rename, or, for a verified synchronization of a collector, its own explicit
 //                        resolutions only (none when it has none: nothing of its own to judge);
 //   null                 Git or the lineage verdict cannot say, which is UNKNOWN.
@@ -21,9 +20,6 @@ const git = (cwd, ...args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
 export function changedPaths({ base, head, baseRef, defaultBranch, cwd }) {
   if (!base || !head) return null;
   if (defaultBranch) {
-    const admitted = git(cwd, 'merge-base', '--is-ancestor', head, `origin/${defaultBranch}`);
-    if (admitted.status === 0) return { applies: false };
-    if (admitted.status !== 1) return null;
   }
   let range = `${base}...${head}`;
   if (baseRef?.startsWith('kaal/')) {
@@ -55,9 +51,9 @@ export async function cli({ check, label, argv = process.argv.slice(2), env = pr
   const head = at(argv, '--head');
   const base = at(argv, '--base');
   const found = head && base ? changedPaths({ base, head, baseRef: at(argv, '--base-ref'), defaultBranch: env.KAAL_DEFAULT, cwd }) : null;
-  if (found?.applies === false) { out(`${label}: does not apply (the head is already on the default branch)`); return 0; }
-  const known = env.GITHUB_RUN_ID && env.GITHUB_SHA;
-  const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(env.GITHUB_SHA) } : undefined;
+  // The record names the head judged (release/C165), never GITHUB_SHA, which on pull_request is the test merge commit of the run.
+  const known = env.GITHUB_RUN_ID && head;
+  const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(head) } : undefined;
   const answer = await check({ paths: found?.paths, boundary });
   out(`${label}: ${answer.verdict}${!found ? ' (the changed paths cannot be read)' : found.synchronization ? ` (a verified synchronization: ${found.paths.length} paths of its own)` : ` (${found.paths.length} changed paths)`}`);
   for (const f of answer.findings) out(`  ${f}`);
