@@ -35,3 +35,6 @@ Account of: I am the change thread. I planned and delivered change/C15, how a Ch
 
 ## Longed For
 - subject: evidence that a consumer reads the new statements in practice
+  worked-anyway: both controls are judged over fixtures only, and the CPO approved them as detective with no wiring. Release's small PLAN that runs them at PROMOTION, and a first real run on a real promotion, would show whether a consumer reads the statements as intended.
+
+Decisions: none made, the owner decides.
