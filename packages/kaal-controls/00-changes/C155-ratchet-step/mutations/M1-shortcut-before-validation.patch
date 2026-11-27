@@ -1,0 +1,10 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
+@@ -25,6 +25,7 @@
+ 
+ export function judgeRatchetStep({ base, head, carried, window } = {}) {
+   // 1. Validation, before any shortcut: the same unreadable text on both sides is unknown, never unchanged.
++  if (base && head && base.baseline === head.baseline && base.history === head.history) return { verdict: 'PASS', step: 'unchanged' };
+   const b = read(base), h = read(head);
+   if (!b || !h || !span(window) || !Array.isArray(carried)) return unknown();
+   // 2. Nothing changed, or no ratchet on either side: nothing to judge and no Change is needed.
