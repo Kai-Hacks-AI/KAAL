@@ -1,0 +1,15 @@
+adapter-ratchet.mjs 571f9aa19c25bb3a8e466a55f811df3cea571a5c on parent 45ec2b7
+baseline (no mutation)
+  controls/T1556 GREEN
+M1-complete-unchecked
+  controls/T1556 RED: not complete: {"mode":"ratchet","findings":["unadapted:B","unadapted:C"],"known":["unada
+M2-revision-unchecked
+  controls/T1556 RED: stale revision: {"mode":"ratchet","findings":["unadapted:B","unadapted:C"],"known":["una
+M3-scope-unchecked
+  controls/T1556 RED: another scope: {"mode":"ratchet","findings":["unadapted:B","unadapted:C"],"known":["unad
+M4-not-ratchet-mode
+  controls/T1556 RED: Expected values to be strictly equal:
+M5-unusable-inventory-filtered
+  controls/T1556 RED: not complete: {"mode":"ratchet","findings":[],"known":[],"new":[],"stale":["unadapted:B"
+M6-previous-ignored
+  controls/T1556 RED: Expected values to be strictly equal:
