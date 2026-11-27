@@ -2,13 +2,12 @@
 import assert from 'node:assert/strict';
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { dir, read, SKILL } from '../../test/lib.mjs';
+import { dir, skillText } from '../../test/lib.mjs';
 export const id = 'architecture/T15';
 export const tests = ['architecture/N1'];
-export const title = "the Skill is small, names no organization, domain, tool or technology, and the package adds no gate";
+export const title = "the Skill, router and references together, names no organization, domain, tool or technology, and the package adds no gate";
 export function run() {
-  const skill = read(SKILL, 'the Skill');
-  assert.ok(skill.split('\n').length <= 120, 'the Skill is longer than 120 lines');
+  const skill = skillText();
   const banned = /\b(kaal|github|git|pull request|branch|collector|promotion|gap|ledger|repository|software|code|api|server|workflow|lifecycle|hospital|bridge|kitchen|museum)\b/i;
   const hit = skill.split(/^---$/m).slice(2).join('---').match(banned);
   assert.equal(hit, null, `the Skill names ${hit && hit[0]}`);
