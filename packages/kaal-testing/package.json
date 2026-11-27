@@ -17,7 +17,8 @@
     "./expectations": "./lib/expectations.mjs",
     "./cases": "./lib/cases.mjs",
     "./observe": "./lib/observe.mjs",
-    "./observation": "./lib/observation.mjs"
+    "./observation": "./lib/observation.mjs",
+    "./mutate": "./lib/mutate.mjs"
   },
   "files": [
     "bin",
