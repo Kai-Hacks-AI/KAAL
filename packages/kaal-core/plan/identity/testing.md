@@ -2,16 +2,18 @@
 
 The planned outer tests live in `packages/kaal-core/test/plan/identity.test.mjs`. Each title names the contracts it checks. They are immutable to DO and CHECK. The DO turns them GREEN and adds them to Core's `npm test`.
 
-They use `assemble` from `kaal-core/registration` with registrations given as their frontmatter content, as `registration.test.mjs` does. The kinds and prefixes are fixtures: Core prescribes none.
+They use `assemble` and `adoptGuid` from `kaal-core/registration`, with registrations given as their frontmatter content, as `registration.test.mjs` does. The kinds, prefixes and technical identities are fixtures: Core prescribes none.
 
 | Test | Checks | Loop |
 | --- | --- | --- |
-| core/T134: a kind with `numbered` and a holder whose ids follow it assemble with no finding, and `nextFree` returns one more than the highest held, the prefix and 1 when none is held, and never fills a gap | core/F125, core/F127, core/A66, core/A67 | Requirements |
-| core/T135: the same id in two scopes is two identities with no finding, `nextFree` answers each scope on its own, and one id twice in a scope is the collision finding | core/F126, core/F127, core/A66 | Requirements |
-| core/T136: an id of a numbered kind that is not the prefix and a positive decimal without a leading zero is an `unnumbered-id` finding naming scope, id and kind, and `nextFree` returns null for that scope and kind and says why | core/F126, core/F127, core/N33, core/A66 | Requirements |
-| core/T137: `nextFree` returns null with a reason for a scope no registration claims, a kind not defined and a kind that is not numbered, never a first number | core/F127, core/N33, core/A67 | Requirements |
-| core/T138: `nextFree` depends only on the registrations given, so the same registrations in any order give the same answer, and a number held only in a registration added to the union is no longer offered | core/F128, core/A67 | Requirements |
+| core/T134: a kind with `numbered` and instances whose ids follow it assemble with no finding, and `nextID` proposes one more than the highest held, the prefix and 1 when none is held, never fills a gap, and gives the same proposal to two callers | core/F125, core/F128, core/A66, core/A67 | Requirements |
+| core/T135: the same identifier in two namespaces is two things with no finding, `nextID` answers each namespace on its own, and `checkID` on a claim of another `guid` for a held identifier names the holder as `id-taken` | core/F126, core/F127, core/F128, core/A67 | Requirements |
+| core/T136: `checkID` returns `unnumbered-id` for an identifier that is not the prefix and a positive decimal without a leading zero and `unclaimed-namespace` for a namespace nobody claims, and `nextID` returns null with a reason where the namespace holds an unnumbered identifier, is unclaimed, or the kind is undefined or not numbered | core/F127, core/F128, core/N33, core/A67 | Requirements |
+| core/T137: a renumbering, the same `guid` with another identifier, is judged as a proposal and is no finding by itself, and two proposals that take one identifier with different `guid`s each fail against a union holding the other, whatever the order the claims were given in | core/F127, core/F129, core/N33, core/A67 | Requirements |
+| core/T138: one `guid` stated by two instances is a `guid-claimed-twice` finding naming both | core/F126, core/A66 | Requirements |
+| core/T139: a trace that states a `guid` still resolves after its target is renumbered, and a trace that states a namespace and an identifier is unresolved after it, with nothing guessed | core/F130, core/A68 | Requirements |
+| core/T140: an instance with no `guid` is reported as unadopted and is no finding, and `adoptGuid` gives the same `guid` for the same namespace and identifier on every call and a different one for another | core/F131, core/A68 | Requirements |
 
 ## RED evidence
 
-Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/identity.test.mjs`, outside Core's `npm test` until the DO. At `core/C164` all five are RED, blocked before behavioural assertion, because an assembly offers no `nextFree` and a kind states no `numbered`.
+Run with `npm run build -w kaal-core && node --test packages/kaal-core/test/plan/identity.test.mjs`, outside Core's `npm test` until the DO. At `core/C164` all seven are RED, blocked before behavioural assertion, because an assembly offers no `nextID` or `checkID` and `kaal-core/registration` exports no `adoptGuid`.
