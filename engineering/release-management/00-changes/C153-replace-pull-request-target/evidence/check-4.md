@@ -1,21 +1,29 @@
 # Evidence of check 4, Promotion Source (release/CTL40 origin, release/CTL41 head evidence)
 
-Counts follow release/C153, chapter "Amendment: the evidence before enforcement, per control". Read by script from the job logs of every run of `promotion-source-plain.yml` on a pull request from its WIRE (#2887, on main at 17:39 UTC) until the read, and the old check `Promotion Source` on the same head. The record's `sha` equals the head of the run in every counted row. One distinct revision counts once per control and situation.
+Counts follow release/C153, chapter "Amendment: the evidence before enforcement, per control". Read by script from the job logs of every run of `promotion-source-plain.yml` on a pull request from its WIRE (#2887, on main at 17:39 UTC) until the read at 19:44 UTC, and the old check `Promotion Source` on the same head. The record's `sha` equals the head of the run in every counted row. One distinct revision counts once per control and situation.
 
 ## Count at the head of this file
 
 | Entry | Situation | Kind | Required | Counting |
 | --- | --- | --- | --- | --- |
-| CTL40 origin | PASS (a wire or kaal branch of the repository) | A | 5 | 6 |
-| CTL41 head evidence | PASS | A | 5 | 6 |
+| CTL40 origin | PASS (a wire or kaal branch of the repository) | A | 5 | 10 |
+| CTL41 head evidence | PASS | A | 5 | 10 |
 | CTL40 origin | FAIL (a head that is no kaal, hotfix or wire branch) | P | 3 | 3 |
 | CTL41 head evidence | FAIL (a stock head whose required checks are not all green) | P | 3 | 3 |
-| All entries | A | 15 | 12 |
+| All entries | A | 15 | 20 |
 
 ## Counting A (PASS, record names the head, old check agrees)
 
 | Branch | Pull request | Revision (head) | Run | Entry | Verdict | Old check |
 | --- | --- | --- | --- | --- | --- | --- |
+| kaal/testing/mutation-verification | #2935 | fa6be056ba383741710cacfe855e101a2f995798 | 46055857341 | head evidence | PASS | success |
+| kaal/testing/mutation-verification | #2935 | fa6be056ba383741710cacfe855e101a2f995798 | 46055857341 | origin | PASS | success |
+| kaal/controls/neutral-wording | #2931 | 5823f0f8b6f0c9b8c55d04cba7ccdbee4a865b7b | 46050186991 | head evidence | PASS | success |
+| kaal/controls/neutral-wording | #2931 | 5823f0f8b6f0c9b8c55d04cba7ccdbee4a865b7b | 46050186991 | origin | PASS | success |
+| kaal/controls/flag-status | #2928 | 26ae9185972215a5441629e807fa23857b28cc96 | 46047652973 | origin | PASS | success |
+| kaal/controls/flag-status | #2928 | 26ae9185972215a5441629e807fa23857b28cc96 | 46047652973 | head evidence | PASS | success |
+| wire/workflow-names-judge-run | #2914 | 849934306cc657418c42068515b507d21f8f133c | 46043740117 | origin | PASS | success |
+| wire/workflow-names-judge-run | #2914 | 849934306cc657418c42068515b507d21f8f133c | 46043740117 | head evidence | PASS | success |
 | wire/c153-check4-head-6 | #2917 | 3cadd2af5b62b70987f1345436d4814eb1697303 | 46044615700 | head evidence | PASS | success |
 | wire/c153-check4-head-6 | #2917 | 3cadd2af5b62b70987f1345436d4814eb1697303 | 46044615700 | origin | PASS | success |
 | wire/c153-check4-head-5 | #2916 | b6e95e9b9882c6a5acc3d49795fa0f42640c3bc8 | 46044611635 | origin | PASS | success |
@@ -42,15 +50,26 @@ Counts follow release/C153, chapter "Amendment: the evidence before enforcement,
 
 ## Inspected and not counted
 
-| Branch | Revision (head) | Run | Why |
-| --- | --- | --- | --- |
-| kaal/release/ledger-counts | e15fb77cec19bd3a0f6b23c0f186f0ebb90a1706 | 46046857070 | old check not concluded when read |
-| kaal/hosting/judged-revision | e6975f1715f2f7651c5af90012cc8acf795534dc | 46046400362 | old check not concluded when read |
+| Branch | Pull request | Revision (head) | Run | Entry | Verdict | Old check | Why |
+| --- | --- | --- | --- | --- | --- | --- | --- |
 | kaal/release/ledger-counts | #2923 | 8e69ef50994d66ab0facaecb473fd160950bd307 | 46046370354 | origin | PASS | failure | disagreement |
 | kaal/release/evidence-counts | #2921 | 82bcde03b7d2f0262ae182415f40fe85f8e80390 | 46044912540 | origin | PASS | failure | disagreement |
 | kaal/release/inspector-app | #2920 | 8e6503f47aaee64f8d999fa13da0770101736560 | 46044909514 | origin | PASS | failure | disagreement |
+| kaal/release/ledger-counts | #2923 | d5758a250a4c342221152f0f0bbae5c65c0de5aa | 46048918304 | origin | PASS | failure | disagreement |
+| kaal/release/ledger-counts | #2923 | e15fb77cec19bd3a0f6b23c0f186f0ebb90a1706 | 46046857070 | origin | PASS | failure | disagreement |
+| kaal/hosting/judged-revision | #2924 | e6975f1715f2f7651c5af90012cc8acf795534dc | 46046400362 | origin | PASS | failure | disagreement |
 
 The provoked heads for the origin FAIL (#2908 to #2910) are draft pull requests from a probe branch into main. The provoked heads for the head-evidence FAIL are stray stock branches (`kaal/release/*`) whose required checks are not all green at the head. The head-evidence probes #2911 to #2913 and #2915 to #2917 (a wire branch with a failing Change Isolation) passed, because the judge reads the required checks of the head's own ruleset, so they count as A. All probes were never merged and no auto-merge was enabled on them.
+
+## Natural agreements, not counted as P (the head was not provoked)
+
+Heads whose head-evidence entry answered REPORT while the old check failed (they agree), found by reading, not provoked. They are kept apart from P, which stays at the provoked heads above.
+
+| Branch | Pull request | Revision (head) | Run | Entry | Verdict | Old check |
+| --- | --- | --- | --- | --- | --- | --- |
+| kaal/release/ledger-counts | #2923 | d5758a250a4c342221152f0f0bbae5c65c0de5aa | 46048918304 | head evidence | REPORT | failure |
+| kaal/release/ledger-counts | #2923 | e15fb77cec19bd3a0f6b23c0f186f0ebb90a1706 | 46046857070 | head evidence | REPORT | failure |
+| kaal/hosting/judged-revision | #2924 | e6975f1715f2f7651c5af90012cc8acf795534dc | 46046400362 | head evidence | REPORT | failure |
 
 ## Not applicable (N)
 
@@ -58,7 +77,7 @@ The head-evidence entry answers not-applicable without a record when the origin 
 
 ## Uninspected
 
-Runs created after the read. No run of a `merge_group` event is part of this check.
+Runs created after the read at 19:44 UTC. No run of a `merge_group` event is part of this check.
 
 ## Open
 
