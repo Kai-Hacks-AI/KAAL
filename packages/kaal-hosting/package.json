@@ -15,7 +15,8 @@
     "kaal-hosting-boundary": "dist/skills/kaal-hosting/scripts/boundary-cli.mjs",
     "kaal-hosting-revision": "dist/skills/kaal-hosting/scripts/revision-cli.mjs",
     "kaal-hosting-pulls": "dist/skills/kaal-hosting/scripts/github/pull-requests-cli.mjs",
-    "kaal-hosting-pull-request": "dist/skills/kaal-hosting/scripts/pull-request-cli.mjs"
+    "kaal-hosting-pull-request": "dist/skills/kaal-hosting/scripts/pull-request-cli.mjs",
+    "kaal-hosting-run-facts": "dist/skills/kaal-hosting/scripts/run-facts-cli.mjs"
   },
   "exports": {
     ".": {

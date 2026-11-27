@@ -1,5 +1,7 @@
 import spawn from "cross-spawn";
-import { HostingError, startPlan, type Files } from "./index.js";
+import { resolve } from "node:path";
+import { HostingError, kind, list, readFile, startPlan, type Files } from "./index.js";
+import { contentIdentity, type ContentIdentity } from "./run-facts.js";
 
 /** What `readRevision` may be limited to. */
 export interface RevisionOptions {
@@ -15,7 +17,7 @@ interface Run {
 
 // Git is started as any other command is (`startPlan`), but its output is kept as bytes: a file's bytes are not text.
 // This is not an export; `execute` stays the one text start.
-function git(root: string, args: string[], input?: Buffer): Promise<Run> {
+function gitRun(root: string, args: string[], input?: Buffer): Promise<Run> {
   return new Promise((done, fail) => {
     const plan = startPlan("git", args);
     const child = spawn(plan.command, plan.args, {
@@ -46,7 +48,7 @@ export async function revision(root: string, ref: string): Promise<{ commit: str
   if (typeof ref !== "string" || ref === "" || /[\0\r\n]/.test(ref)) throw new HostingError(`${JSON.stringify(ref)} is not a ref`, "REVISION_NOT_FOUND");
   let run: Run;
   try {
-    run = await git(root, ["rev-parse", "--verify", "--quiet", "--end-of-options", `${ref}^{commit}`]);
+    run = await gitRun(root, ["rev-parse", "--verify", "--quiet", "--end-of-options", `${ref}^{commit}`]);
   } catch (cause) {
     throw unreadable(`git could not be started (${(cause as Error).message})`);
   }
@@ -76,7 +78,7 @@ function under(paths: string[] | undefined): string[] {
 export async function readRevision(root: string, ref: string, options: RevisionOptions = {}): Promise<Files> {
   const limit = under(options.under);
   const { commit } = await revision(root, ref);
-  const listed = await git(root, ["--literal-pathspecs", "ls-tree", "-r", "-z", "--full-tree", commit, "--", ...limit]);
+  const listed = await gitRun(root, ["--literal-pathspecs", "ls-tree", "-r", "-z", "--full-tree", commit, "--", ...limit]);
   if (listed.status !== 0) throw unreadable(`the tree of ${commit} could not be listed`, listed);
   const entries: { path: string; object: string }[] = [];
   for (const record of listed.stdout.toString("utf8").split("\0").filter(Boolean)) {
@@ -88,7 +90,7 @@ export async function readRevision(root: string, ref: string, options: RevisionO
   }
   const files: Files = {};
   if (entries.length === 0) return files;
-  const blobs = await git(root, ["cat-file", "--batch"], Buffer.from(entries.map((e) => `${e.object}\n`).join("")));
+  const blobs = await gitRun(root, ["cat-file", "--batch"], Buffer.from(entries.map((e) => `${e.object}\n`).join("")));
   if (blobs.status !== 0) throw unreadable(`the files of ${commit} could not be read`, blobs);
   let at = 0;
   for (const { path, object } of entries) {
@@ -100,4 +102,44 @@ export async function readRevision(root: string, ref: string, options: RevisionO
     at = eol + 1 + length + 1;
   }
   return files;
+}
+
+/** What `readCheckout` found. */
+export interface CheckoutRead {
+  /** The identity of the files the working copy holds, `.git` and links to directories left out. */
+  content: ContentIdentity;
+  /** The identity of the files of the commit `head` names, or `null` when none was asked or that commit is not in the repository. */
+  headContent: ContentIdentity | null;
+  /** The commit at `HEAD` and its parents, or `null` when `root` is not a Git working copy. */
+  git: { commit: string; parents: string[] } | null;
+}
+
+/**
+ * What a working copy actually holds, and where it comes from: the identity of its files by bytes and paths, the identity of
+ * the files of the commit `head` names when that commit is in the repository, and the Git commit and parents. Content is
+ * the fact; Git is provenance and an adapter detail, and a directory without `.git` still has content.
+ * Read-only, and nothing is judged. A commit that is not there is `null`; a repository or a file that cannot be read is an error, and is never taken for the absence of Git.
+ */
+export async function readCheckout(root: string, options: { head?: string } = {}): Promise<CheckoutRead> {
+  const listed = await list(root, { skip: [".git"], links: "skip" });
+  const files: Files = {};
+  for (const entry of listed) if (entry.kind === "file") files[entry.path] = await readFile(resolve(root, entry.path));
+  // A Git working copy is a directory that holds `.git`; one that does not is an ordinary directory and has no Git provenance.
+  // Once `.git` is there, Git must answer: an unreadable repository is an error, never an absent one.
+  let git: CheckoutRead["git"] = null;
+  if ((await kind(resolve(root, ".git"))) !== "missing") {
+    const { commit } = await revision(root, "HEAD");
+    const run = await gitRun(root, ["rev-list", "--parents", "-n", "1", "--end-of-options", commit]);
+    if (run.status !== 0) throw unreadable(`the parents of ${commit} could not be read`, run);
+    git = { commit, parents: run.stdout.toString("utf8").trim().split(/\s+/).slice(1) };
+  }
+  let headContent: ContentIdentity | null = null;
+  if (options.head !== undefined && git !== null) {
+    try {
+      headContent = contentIdentity(await readRevision(root, options.head));
+    } catch (e) {
+      if ((e as { code?: string }).code !== "REVISION_NOT_FOUND") throw e;
+    }
+  }
+  return { content: contentIdentity(files), headContent, git };
 }
