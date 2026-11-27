@@ -1,6 +1,7 @@
 # verify Sync, approve Sync and review Sync (release/C58), as a source in Engineering: release/CTL7 (detective), release/CTL8
-# (preventive) and release/CTL9 (corrective). A pull request titled `SYNC:` into kaal/*, hotfix/* or wire/* is read at its head.
-# `verify Sync` says whether it is a pure merge of main and is red when it is not. `approve Sync` approves it only when that
+# (preventive) and release/CTL9 (corrective). A pull request into kaal/*, hotfix/* or wire/* is read at its head.
+# The jobs run for a pull request into such a base whatever its title (release/C152): `verify Sync` decides from Git whether the head is a SYNC at all, a merge that brings main in, and
+# `approve Sync` and `review Sync` act only on a verdict that says it applies. `verify Sync` says whether a SYNC is a pure merge of main and is red when it is not. `approve Sync` approves it only when that
 # passes at the current head, never into main, and only when the repository variable KAAL_SYNC_APPROVE is exactly `on`; otherwise
 # it says what it would do. `review Sync` puts every other outcome in front of a person: a label, a request for review and one
 # comment per head. Nothing here merges, pushes or edits a branch or a body.
@@ -24,7 +25,7 @@ permissions: {}
 jobs:
   verify:
     name: verify Sync
-    if: startsWith(github.event.pull_request.title, 'SYNC:') && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/'))
+    if: (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/'))
     runs-on: ubuntu-latest
     permissions: {}
     outputs:
@@ -60,7 +61,7 @@ jobs:
     needs: verify
     outputs:
       approval: ${{ steps.approve.outputs.approval }}
-    if: ${{ always() && startsWith(github.event.pull_request.title, 'SYNC:') && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/')) }}
+    if: ${{ always() && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -91,7 +92,7 @@ jobs:
   review:
     name: review Sync
     needs: [verify, approve]
-    if: ${{ always() && startsWith(github.event.pull_request.title, 'SYNC:') && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/')) }}
+    if: ${{ always() && (startsWith(github.event.pull_request.base.ref, 'kaal/') || startsWith(github.event.pull_request.base.ref, 'hotfix/') || startsWith(github.event.pull_request.base.ref, 'wire/')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

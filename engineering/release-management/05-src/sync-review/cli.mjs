@@ -14,6 +14,7 @@ import { verifySync } from './verify.mjs';
 import { decideApproveNow, classifyRefusal } from './approve.mjs';
 import { decideReview, chooseReviewer, ownersOf, cleanVerdict, LABEL } from './review.mjs';
 import { gatherFacts } from './facts.mjs';
+import { appliesFromGit } from './applies.mjs';
 
 const run = (cmd, args) => {
   const r = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -46,7 +47,8 @@ function readPull(env, deps) {
   const pr = JSON.parse(deps.api([`repos/${env.KAAL_REPO}/pulls/${env.KAAL_PR}`]));
   return { head: pr.head.sha, base: pr.base.ref, title: pr.title ?? '', body: pr.body ?? '', requested: (pr.requested_reviewers ?? []).map((u) => u.login), author: pr.user?.login ?? null };
 }
-const isSync = (pull, base) => pull.title.startsWith('SYNC:') && pull.base === base;
+// release/C152: whether a pull request is a SYNC is the applicability the verdict of verify Sync recorded from Git, never the title.
+const isSync = (pull, base, verdict) => verdict?.applies === true && pull.base === base;
 
 // The base's tip as GitHub says it is now.
 function readBaseTip(env, deps) {
@@ -57,11 +59,29 @@ function readBaseTip(env, deps) {
 // release/C65: the verdict of verify Sync, from the Git objects the job fetched and the event's own head and body. No API call.
 export function verify(env, deps = realDeps()) {
   needed(env, ['KAAL_PR', 'KAAL_BASE', 'KAAL_HEAD', 'KAAL_DEFAULT']);
-  const facts = gatherFacts({
-    git: deps.git, baseRef: env.KAAL_BASE, baseTipRef: 'refs/kaal/base', mainRef: `refs/remotes/origin/${env.KAAL_DEFAULT}`,
-    headSha: env.KAAL_HEAD, currentHead: env.KAAL_HEAD, body: env.KAAL_BODY ?? '',
-  });
-  const verdict = verifySync(facts);
+  const git = deps.git;
+  const mainRef = `refs/remotes/origin/${env.KAAL_DEFAULT}`;
+  // release/C152: applicability from Git first. A head that is not a SYNC has nothing to verify; one that cannot be read is UNKNOWN, never not-sync.
+  const applies = appliesFromGit({ git, baseTipRef: 'refs/kaal/base', mainRef, head: env.KAAL_HEAD });
+  let verdict;
+  if (applies.applies === 'not-sync') {
+    verdict = { control: 'verify Sync', outcome: 'PASS', passes: true, applies: false, reasons: [], analyzed: null };
+    deps.log(`verify Sync: PASS: not a SYNC, nothing to verify (${applies.reason})`);
+    deps.out('verdict', JSON.stringify(verdict));
+    deps.summary(['verify Sync: PASS: not a SYNC, nothing to verify']);
+    return STATUS.PASS;
+  }
+  if (applies.applies !== 'sync') {
+    verdict = { control: 'verify Sync', outcome: 'UNKNOWN', passes: false, applies: null, reasons: [{ code: 'applicability-unknown', detail: applies.reason }], analyzed: null };
+  } else {
+    const facts = gatherFacts({
+      git, baseRef: env.KAAL_BASE, baseTipRef: 'refs/kaal/base', mainRef,
+      headSha: env.KAAL_HEAD, currentHead: env.KAAL_HEAD, body: env.KAAL_BODY ?? '',
+    });
+    verdict = { ...verifySync(facts), applies: true };
+    // A SYNC prepared against an older tip of the base is still a SYNC; it is a finding, never a pass.
+    if (applies.valid === false) verdict = { ...verdict, outcome: 'FAIL', passes: false, reasons: [...verdict.reasons, { code: 'stale-base', detail: applies.reason }] };
+  }
   const text = [`${verdict.control}: ${verdict.outcome}`, ...verdict.reasons.map((r) => `- ${r.code}: ${r.detail}`)];
   deps.log(text.join('\n'));
   deps.out('verdict', JSON.stringify(verdict));
@@ -77,7 +97,7 @@ export function approve(env, deps = realDeps()) {
   if (!pull) { deps.error('approve Sync: cannot judge', 'the pull request cannot be read'); return 2; }
   const reviews = lines(deps.api([`repos/${env.KAAL_REPO}/pulls/${env.KAAL_PR}/reviews`, '--paginate', '--jq', '.[] | tojson']) || '').map((l) => JSON.parse(l));
   const approvedAtHead = reviews.some((r) => r.state === 'APPROVED' && r.commit_id === pull.head);
-  const decision = isSync(pull, env.KAAL_BASE)
+  const decision = isSync(pull, env.KAAL_BASE, verdict)
     ? decideApproveNow({ verdict, live: { head: pull.head, baseTip }, currentHead: pull.head, mode: env.KAAL_SYNC_APPROVE, approvedAtHead })
     : { action: 'skip', because: 'the pull request is no longer a SYNC into the base that was judged' };
   const line = `approve Sync: ${decision.action}: ${decision.because}`;
@@ -105,10 +125,11 @@ export function review(env, deps = realDeps()) {
   let pull;
   try { pull = readPull(env, deps); } catch (e) { deps.log(String(e.message)); }
   if (!pull) { deps.error('review Sync: cannot reach a person', 'the pull request cannot be read, so it cannot be put in front of anyone'); return 2; }
-  if (!isSync(pull, env.KAAL_BASE)) { deps.log('review Sync: skip: the pull request is no longer a SYNC into the base that was judged'); return 0; }
   // release/C65: the verdict is data from verify Sync, read strictly and kept to what it may say; one of another head is not acted on,
   // a run for the newer head does that.
   let verdict = cleanVerdict(parseVerdict(env.KAAL_VERDICT ?? ''));
+  // Only a verdict that says it is not a SYNC leaves nobody to ask. A verdict that is missing, unusable or UNKNOWN about it needs a person, as before: UNKNOWN is never a quiet pass.
+  if (pull.base !== env.KAAL_BASE || verdict?.applies === false) { deps.log('review Sync: skip: the pull request is not a SYNC into the base that was judged'); return 0; }
   if (verdict?.analyzed?.head && verdict.analyzed.head !== pull.head) { deps.log('review Sync: skip: the verdict is of another head than the current one'); return 0; }
   // A pass that judged a base which has since moved is no pass for this head: the SYNC is behind and needs a person.
   if (verdict?.passes) {

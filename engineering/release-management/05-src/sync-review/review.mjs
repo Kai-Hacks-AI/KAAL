@@ -44,6 +44,7 @@ export function cleanVerdict(v) {
     control: 'verify Sync',
     outcome: ['PASS', 'FAIL', 'UNKNOWN'].includes(v.outcome) ? v.outcome : 'UNKNOWN',
     passes: v.passes === true,
+    applies: v.applies === true ? true : v.applies === false ? false : null,
     reasons: (Array.isArray(v.reasons) ? v.reasons : []).slice(0, 20).map((r) => ({ code: plain(r?.code, 40), detail: plain(r?.detail, 200) })),
     analyzed: head ? { head, base: { tip: /^[0-9a-f]{40}$/.test(v.analyzed?.base?.tip ?? '') ? v.analyzed.base.tip : null } } : null,
   };
