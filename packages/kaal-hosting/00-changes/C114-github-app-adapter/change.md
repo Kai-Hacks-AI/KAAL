@@ -78,6 +78,16 @@ One more Case, `T339`, in `facts.red.mjs`; nothing else in this PLAN changes. `r
 
 - hosting/T339: a head with 101 runs of the named check, spread over two pages (100, then 1) and numbered so that every run is distinguishable (`id`), lists exactly those 101 runs, each once, in the exact order newest first, which puts the newest run, held on page 2, first: the Case asserts the complete ordered list of ids, so a lost, a repeated or a misplaced run fails it. It asks for page 1 and page 2 and no page 3. A head whose runs fill exactly 100 lists the 100 in order, asks for page 2, finds it empty and stops. No run lists none and asks once. More pages than the bound is a named `READ_FAILED`, never a truncated list. The request count is pinned.
 
+## Amendment (the CPO's hold on the second DO, #2758: fail closed on the default branch, and no consumer registers a fact)
+
+Two corrections to `readPullRequestFacts` and one added Case, `T340`; the drafts in `facts.red.mjs` carry them, and nothing else in this PLAN changes.
+
+1. **The default branch fails closed.** `main` in the facts is the revision of the branch that the pull request's own answer names as the repository's default (`base.repo.default_branch`). An answer that names none, or an empty one, is `READ_FAILED`, and `main` is not read in its place: Hosting never assumes a branch name. T337's stand-in names the default branch in the pull request's answer (the expected requests and facts are unchanged), and T337 adds the three failures (no repository, no default branch, an empty one), each refused before any read of a branch.
+2. **No consumer registers a fact.** Registration (`attribute`) is not exported from the package, the package's exports map refuses an import of the modules that hold it, and the origin it records is never taken from a field of anything supplied: it is the App and repository Hosting holds privately for the grant (`grantOrigin`, in the table the grant's token is held in). A copy of a grant that claims another App is not a grant and reads nothing.
+   - hosting/T340: the package exports one name about origin, `factOrigin`, which only reads; `facts.js`, `grant.js` and `app-reads.js` cannot be imported from outside (`ERR_PACKAGE_PATH_NOT_EXPORTED`); a spread copy of a grant with another `app` is `GRANT_UNTRUSTED` before any call; and a fact read with the real grant is attributed to the App Hosting holds for it.
+
+The requirements F106 and F107 and the architecture element A47 state both. The DO delivers the amended T337 and T340.
+
 ## The interface the Cases fix
 
 All from `@kaihacksai/kaal-hosting`; the modules are `scripts/github/app-manifest`, `app-token`, `app-reads` and `app-logo`.
