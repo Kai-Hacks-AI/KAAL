@@ -1,4 +1,4 @@
-// Navigation of Review items and results: which items validate a subject, which results appraise an item, and which result applies at a revision.
+// Navigation of Review items and results: which items validate a scope, are judged against a reference, which results appraise an item, and which result applies at a revision.
 // Pure over a tree read as text through Hosting alone (list with skip and links, then readFile). It assumes no layout, no Git and no station,
 // states no coverage and no approval, and never runs or imports what it reads.
 import { list, readFile } from '@kaihacksai/kaal-hosting';
@@ -23,18 +23,22 @@ export function parse(text) {
 }
 const chapter = (body, name) => { const m = body.match(new RegExp(`^## ${name}\\s*$([\\s\\S]*?)(?=^## |(?![\\s\\S]))`, 'm')); return m ? m[1].trim() : null; };
 const bullets = (t) => (t ?? '').split('\n').filter((l) => /^\s*-\s/.test(l)).map((l) => l.replace(/^\s*-\s*/, ''));
+const pathBad = (s) => { if (!s.startsWith('path:')) return false; const p = s.slice(5); return !p || p.startsWith('/') || p.includes('\\') || p.split('/').some((x) => x === '.' || x === '..'); };
 const num = (id) => Number(id.match(/(\d+)$/)?.[1] ?? Infinity);
 export async function navigate(root, { revision } = {}) {
   const findings = [], items = [], results = [];
-  const add = (kind, files, detail) => findings.push({ kind, files, detail });
+  const add = (kind, files, detail, more = {}) => findings.push({ kind, files, detail, ...more });
   const files = await walk(root);
   const found = { item: [], res: [] };
-  for (const f of files) { const t = ITEM.test(f) ? 'item' : RES.test(f) ? 'res' : null; if (!t) continue; const { front, body, malformed } = parse((await readFile(join(root, f))).toString('utf8')); for (const k of ['validates', 'parts']) if (k in front && !Array.isArray(front[k])) malformed.push(`${k}: a list is expected`); for (const k of ['id', 'appraises', 'revision', 'appraiser', 'relation', 'execution', 'conclusion', 'carries']) if (k in front && typeof front[k] !== 'string') malformed.push(`${k}: a single value is expected`); if (malformed.length) { add('malformed-front-matter', [f], malformed.join('; ')); continue; } if (!front.id) { add('no-id', [f], 'the file declares no id'); continue; } found[t].push({ f, front, body }); }
+  for (const f of files) { const t = ITEM.test(f) ? 'item' : RES.test(f) ? 'res' : null; if (!t) continue; const { front, body, malformed } = parse((await readFile(join(root, f))).toString('utf8')); for (const k of ['validates', 'against', 'parts']) if (k in front && !Array.isArray(front[k])) malformed.push(`${k}: a list is expected`); for (const k of ['id', 'appraises', 'revision', 'appraiser', 'relation', 'execution', 'conclusion', 'carries']) if (k in front && typeof front[k] !== 'string') malformed.push(`${k}: a single value is expected`); if (malformed.length) { add('malformed-front-matter', [f], malformed.join('; ')); continue; } if (!front.id) { add('no-id', [f], 'the file declares no id'); continue; } found[t].push({ f, front, body }); }
   const dup = (list) => { const m = new Map(); for (const x of list) m.set(x.front.id, [...(m.get(x.front.id) ?? []), x]); const ok = []; for (const [id, xs] of m) { if (xs.length > 1) add('duplicate-id', xs.map((x) => x.f), `duplicate id: ${id}`); else ok.push(xs[0]); } return ok; };
   for (const { f, front, body } of dup(found.item)) {
     const q = chapter(body, 'Question'), c = bullets(chapter(body, 'Criteria')), e = bullets(chapter(body, 'Expected evidence')), v = front.validates ?? [];
-    if (!v.length || !q || !c.length || !e.length) { add('item-incomplete', [f], 'an item needs validates, a Question, Criteria and Expected evidence'); continue; }
-    items.push({ id: front.id, file: f, validates: v, question: q, criteria: c, evidence: e });
+    const ag = front.against ?? []; if (!v.length || !ag.length || !q || !c.length || !e.length) { const missing = [!v.length && 'scope', !ag.length && 'reference', !c.length && 'criteria', !q && 'question', !e.length && 'evidence'].filter(Boolean); add('item-incomplete', [f], `an item needs a scope, a reference, Criteria, a Question and Expected evidence; missing: ${missing.join(', ')}`, { missing }); continue; }
+    const against = ag;
+    for (const x of c) if ([...v, ...against].includes(x.trim())) add('criterion-restates-reference', [f], `a criterion restates an entry: ${x}`);
+    for (const [k, list] of [['bad-scope-reference', v], ['bad-against-reference', against]]) for (const s of list) if (pathBad(s)) add(k, [f], `a malformed path entry: ${s}`);
+    items.push({ id: front.id, file: f, scope: v, validates: v, against, question: q, criteria: c, evidence: e });
   }
   items.sort((a, b) => num(a.id) - num(b.id));
   const itemIds = new Set(items.map((i) => i.id));
@@ -60,6 +64,9 @@ export async function navigate(root, { revision } = {}) {
   const vb = new Map();
   for (const i of items) for (const s of i.validates) vb.set(s, [...(vb.get(s) ?? []), i.id]);
   const validatedBy = Object.fromEntries([...vb].map(([s, ids]) => [s, ids.sort((a, b) => num(a) - num(b))]));
+  const ab = new Map();
+  for (const i of items) for (const s of i.against) if (!pathBad(s)) ab.set(s, [...(ab.get(s) ?? []), i.id]);
+  const judgedAgainst = Object.fromEntries([...ab].map(([s, ids]) => [s, ids.sort((a, b) => num(a) - num(b))]));
   const cur = new Map(), stl = new Map();
   if (revision) for (const i of items) {
     const mine = results.filter((r) => r.appraises === i.id); const list = [], seen = new Set();
@@ -68,33 +75,48 @@ export async function navigate(root, { revision } = {}) {
     cur.set(i.id, list); stl.set(i.id, mine.filter((r) => !seen.has(r.id)).map((r) => r.id));
   }
   findings.sort((a, b) => a.kind.localeCompare(b.kind) || a.files[0].localeCompare(b.files[0]));
-  return { items, results, validatedBy, current: Object.fromEntries(cur), stale: Object.fromEntries(stl), findings };
+  return { items, results, validatedBy, judgedAgainst, current: Object.fromEntries(cur), stale: Object.fromEntries(stl), findings };
 }
 
 /** The part of an answer about one subject: the items that validate it, their results, and the findings are kept whole. */
 export function about(answer, subject) {
-  const ids = new Set(Object.hasOwn(answer.validatedBy, subject) ? answer.validatedBy[subject] : []);
+  const ids = new Set();
+  if (!pathBad(subject)) for (const [s, list] of Object.entries(answer.validatedBy)) if ((s === subject || (s.startsWith('path:') && s.endsWith('/') && subject.startsWith('path:') && subject.startsWith(s)))) for (const id of list) ids.add(id);
   const own = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => ids.has(k)));
   return {
     items: answer.items.filter((i) => ids.has(i.id)),
     results: answer.results.filter((r) => ids.has(r.appraises)),
-    validatedBy: Object.hasOwn(answer.validatedBy, subject) ? { [subject]: answer.validatedBy[subject] } : {},
+    validatedBy: ids.size ? { [subject]: [...ids].sort((a, b) => num(a) - num(b)) } : {},
     current: own(answer.current),
     stale: own(answer.stale),
     findings: answer.findings,
   };
 }
 
-// The command: navigate [--root dir] [--revision r] [--subject id]. It prints the answer as JSON, exits 0 whenever an answer was produced and gives no verdict.
+/** The part of an answer about one reference: the items that are judged against it, their results, and the findings kept whole. */
+export function judging(answer, reference) {
+  const ids = new Set(Object.hasOwn(answer.judgedAgainst, reference) ? answer.judgedAgainst[reference] : []);
+  const own = (o) => Object.fromEntries(Object.entries(o).filter(([k]) => ids.has(k)));
+  return {
+    items: answer.items.filter((i) => ids.has(i.id)),
+    results: answer.results.filter((r) => ids.has(r.appraises)),
+    judgedAgainst: ids.size ? { [reference]: answer.judgedAgainst[reference] } : {},
+    current: own(answer.current),
+    stale: own(answer.stale),
+    findings: answer.findings,
+  };
+}
+
+// The command: navigate [--root dir] [--revision r] [--subject id | --against reference]. It prints the answer as JSON, exits 0 whenever an answer was produced and gives no verdict.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const args = process.argv.slice(2);
   const opt = (name) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : undefined; };
-  const known = new Set(['--root', '--revision', '--subject']);
+  const known = new Set(['--root', '--revision', '--subject', '--against']);
   const stray = args.filter((a, i) => !known.has(a) && !known.has(args[i - 1]));
-  if (stray.length || ['root', 'revision', 'subject'].some((n) => args.includes(`--${n}`) && opt(n) === undefined)) {
-    console.error('usage: navigate [--root dir] [--revision r] [--subject id]');
+  if (stray.length || (args.includes('--subject') && args.includes('--against')) || ['root', 'revision', 'subject', 'against'].some((n) => args.includes(`--${n}`) && opt(n) === undefined)) {
+    console.error('usage: navigate [--root dir] [--revision r] [--subject id | --against reference]');
     process.exit(2);
   }
   const answer = await navigate(opt('root') ?? process.cwd(), { revision: opt('revision') });
-  console.log(JSON.stringify(opt('subject') === undefined ? answer : about(answer, opt('subject')), null, 2));
+  console.log(JSON.stringify(opt('subject') !== undefined ? about(answer, opt('subject')) : opt('against') !== undefined ? judging(answer, opt('against')) : answer, null, 2));
 }
