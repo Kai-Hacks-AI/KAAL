@@ -8,7 +8,7 @@ const S = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
 const load = async (rel) => { const f = join(S, rel); assert.ok(existsSync(f), `scripts/${rel} is absent`); return import(pathToFileURL(f).href); };
 export const id = 'controls/T1726';
 export const tests = ['controls/F225'];
-export const title = 'reportFlags gives one row for each control and place with the declared decision, the observed signal, the blocking by decision and the evidence of what blocked as separate fields, an unknown flag as a configuration error and not a state, and every mismatch as a finding, with the same configuration giving the pipeline outcome (red for preventive, exit 0 for detective)';
+export const title = 'reportFlags gives one row for each control and place with the declared decision, the observed signal, the blocking by decision and the evidence of what blocked as separate fields, an unknown flag as a configuration error and not a state, and every mismatch as a finding, with the same configuration giving the pipeline outcome (red for both control types)';
 export async function run() {
   const { parseFlags, flagSource, validateFlags, decideOutcome } = await load('flags.mjs');
   const { reportFlags } = await load('flag-status.mjs');
@@ -43,13 +43,13 @@ export async function run() {
   assert.deepEqual(f('x/CTL6@pr'), [null, null, null, null, null, 'unrecognized-flag']);
   assert.deepEqual(f('x/CTL8@pr'), [null, null, null, null, null, 'no-flag'], 'a detective control without a flag stays no-flag');
   assert.deepEqual(rep.findings, ['blocked-without-flag:x/CTL5@pr', 'no-flag:x/CTL8@pr', 'no-verdict:x/CTL3@pr', 'orphan-flag:x/CTL9@pr', 'preventive-without-flag:x/CTL5@pr', 'unproven-preventing:x/CTL4@pr', 'unrecognized-flag:x/CTL6@pr']);
-  // the same configuration gives the same outcome as the report names: preventive without a flag is red, a detective one is a finding with exit 0
+  // the same configuration gives the same outcome as the report names: an unknown decision is red for both control types
   const gate = (list) => decideOutcome({ validation: validateFlags({ controls: list, source }), runs: [] });
   const gp = gate(controls);
   assert.deepEqual([gp.outcome, gp.enforcement, gp.exit], ['CONFIG_FAILED', 'none', 1]);
   assert.ok(gp.reasons.includes('preventive-without-flag:x/CTL5@pr') && gp.reasons.includes('no-flag:x/CTL8@pr') && gp.reasons.includes('unrecognized-flag:x/CTL6@pr'));
   const gd = gate(controls.filter((c) => c.type === 'detective'));
-  assert.deepEqual([gd.outcome, gd.enforcement, gd.exit, gd.reasons], ['CONFIG_FAILED', 'none', 0, ['no-flag:x/CTL8@pr', 'unrecognized-flag:x/CTL6@pr']]);
+  assert.deepEqual([gd.outcome, gd.enforcement, gd.exit, gd.reasons], ['CONFIG_FAILED', 'none', 1, ['no-flag:x/CTL8@pr', 'unrecognized-flag:x/CTL6@pr']]);
   const only = (id, value) => file([e(id, 'pr', value)]);
   const stopped = reportFlags({ controls: [{ id: 'x/CTL2', type: 'preventive', places: ['pr'] }], source: only('x/CTL2', 'stopped'), runs: { 'x/CTL2': { pr: [run('FAIL', true, true, 'r8')] } } });
   assert.deepEqual([stopped.rows[0].stamp, stopped.rows[0].blocking, stopped.rows[0].blocked], ['STOPPED', false, true], 'the decision and the evidence are both shown');

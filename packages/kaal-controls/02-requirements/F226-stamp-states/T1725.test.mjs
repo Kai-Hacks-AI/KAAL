@@ -8,7 +8,7 @@ const S = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
 const load = async (rel) => { const f = join(S, rel); assert.ok(existsSync(f), `scripts/${rel} is absent`); return import(pathToFileURL(f).href); };
 export const id = 'controls/T1725';
 export const tests = ['controls/F226'];
-export const title = 'judgeStamp keeps the declared decision, the observed signal and the blocking evidence apart: Torn and Mute block under Preventing and only report under Advisory, a Stopped control expects no run, an unknown flag is not a state, and every mismatch is named';
+export const title = 'judgeStamp keeps the declared decision, the observed signal and the blocking evidence apart: Torn and Mute block under Preventing and only report under Advisory, a Stopped control expects no run, an unknown decision is not a state and an unknown result is judged by the known decision, and every mismatch is named';
 export async function run() {
   const { flagState, judgeStamp } = await load('stamp.mjs');
   for (const [v, s] of [['preventing', 'PREVENTING'], ['on', 'PREVENTING'], ['advisory', 'ADVISORY'], ['off', 'ADVISORY'], ['stopped', 'STOPPED'],
