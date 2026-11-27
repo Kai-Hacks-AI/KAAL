@@ -32,6 +32,7 @@
     },
     {
       "type": "HOTFIX",
+      "visible": "**Change envelope.** The evidence is in the repository files of the Change(s) named below, at the revision under review.",
       "intro": "A HOTFIX. Exactly four chapters in this order and nothing else: no extra headings, remarks, test results, check status or execution logs. The Change, the Cases, the diff and the checks hold everything else; discussion is kept outside this body.",
       "chapters": [
         { "name": "Change", "guidance": "One line, `<id> <name>`: the stable id and the name of the Change. An identity, not a description; the Defect says what is broken." },
