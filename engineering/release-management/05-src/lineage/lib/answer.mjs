@@ -36,6 +36,10 @@ export async function cli({ label, id, check, applies, read, argv = process.argv
   // The record names the head judged (release/C165), never GITHUB_SHA, which on pull_request is the test merge commit of the run.
   const known = env.GITHUB_RUN_ID && ctx.head;
   const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(ctx.head) } : undefined;
+  // A job that has adopted the flag (release/C167): the declared mode and the flag go to the adapter, and the exit is the library's; one that has not runs as it did.
+  // The flag is validated before applicability (T1633): a broken flag is a fact about the repository and fails every pull request, including one the control does not apply to.
+  const entry = id ? fromEnv({ id, env }) : undefined;
+  if (entry?.stop) { for (const l of entry.lines) out(l); return entry.exit; }
   let facts;
   try {
     if (!ctx.head || !ctx.baseRef || !ctx.defaultBranch) throw new Error('the job supplied no head, target or default branch');
@@ -43,9 +47,6 @@ export async function cli({ label, id, check, applies, read, argv = process.argv
     if (n !== true) { out(`${label}: does not apply (${n})`); return 0; }
     facts = read(ctx);
   } catch (e) { out(`${label}: the facts cannot be read (${e.message})`); facts = undefined; }
-  // A job that has adopted the flag (release/C167): the declared mode and the flag go to the adapter, and the exit is the library's; one that has not runs as it did.
-  const entry = id ? fromEnv({ id, env }) : undefined;
-  if (entry?.stop) { for (const l of entry.lines) out(l); return entry.exit; }
   const a = await check(facts, entry ? { mode: entry.mode, boundary: withFlag(boundary, entry.flag) } : { boundary });
   out(`${label}: ${a.verdict}${a.kind === 'not-applicable' ? ` (not applicable: ${a.message})` : ''}`);
   for (const f of a.findings) out(`  ${f}`);
