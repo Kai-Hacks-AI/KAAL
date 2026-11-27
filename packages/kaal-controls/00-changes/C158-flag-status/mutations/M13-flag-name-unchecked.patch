@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
+@@ -10,7 +10,7 @@
+ const stateOf = (f) => {
+   if (f === null || typeof f !== 'object' || Array.isArray(f)) return null;
+   if (f.state === 'UNKNOWN') return f.name === null && f.value === null ? 'UNKNOWN' : null;
+-  if (typeof f.name !== 'string' || f.name === '' || !(f.value === null || typeof f.value === 'string')) return null;
++  if (!(f.value === null || typeof f.value === 'string')) return null;
+   return f.state === (f.value === 'on' ? 'on' : 'off') ? f.state : null;
+ };
+ 

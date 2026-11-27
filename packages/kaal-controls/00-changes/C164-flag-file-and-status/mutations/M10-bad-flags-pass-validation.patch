@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/flags.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/flags.mjs
+@@ -35,7 +35,7 @@ export function validateFlags({ controls, source } = {}) {
+     for (const p of c.places) {
+       const flag = source.of(c.id, p);
+       const bad = flag === undefined || flag === null ? 'no-flag' : flagState(flag.value) === 'UNKNOWN' ? 'unrecognized-flag' : null;
+-      if (bad) errors.push(`${c.type === 'preventive' ? 'preventive-without-flag' : bad}:${c.id}@${p}`);
++      if (false) errors.push(`${c.type === 'preventive' ? 'preventive-without-flag' : bad}:${c.id}@${p}`);
+     }
+   }
+   errors.sort();
