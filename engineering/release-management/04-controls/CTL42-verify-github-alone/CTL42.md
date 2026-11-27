@@ -5,7 +5,7 @@ description: It reveals whether a change that touches .github contains a path ou
 type: preventive
 status: designed
 has: [release/I50]
-evidence: [fixture:2, real:1, provoked:1:fail]
+evidence: [fixture:2, real:2, provoked:1:fail]
 ---
 # release/CTL42 verify Github alone
 
