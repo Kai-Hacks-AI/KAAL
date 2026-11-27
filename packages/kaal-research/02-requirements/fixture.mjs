@@ -16,6 +16,7 @@ question: Does the guidance lead an agent to place persistence outside the candi
 verdict: favourable
 verdict-about: description
 verdict-rests-on: c1
+technique: judged-trial@1
 ---
 ## Design
 arms: bare, guided
@@ -24,6 +25,7 @@ n: bare=2, guided=2
 fresh-means: new session, no project memory, no project instructions, read-only tools
 model: model-x
 settings: default
+harness: sub-agent sessions of harness-x
 blind: no
 ## Evidence
 ${E.map(([r, c]) => `- role: ${r}\n  path: evidence/${r}.txt\n  sha256: ${sha(c)}`).join('\n')}
@@ -59,6 +61,12 @@ ${E.map(([r, c]) => `- role: ${r}\n  path: evidence/${r}.txt\n  sha256: ${sha(c)
   not-shown: unblinded, and no key was frozen before the guidance was fixed
 ## Limits
 n-shows: two runs per arm show that a difference is visible or not, never a rate
+## Protocol
+materials: evidence/prompt.txt, evidence/scores.txt
+run: start a fresh session per run with the prompt, bare arm without the guidance, guided arm with it; two runs per arm
+score: a session that did not run them reads the answers against the key without seeing the arm
+confirms: the guided arm places the responsibilities correctly in both runs while the bare arm does not
+refutes: the bare arm places them as well as the guided arm
 `;
 export const swap = (from, to, text = GOOD) => { assert.ok(text.includes(from), `fixture lacks: ${from}`); return text.replace(from, to); };
 export const problems = (r) => r.problems.map((p) => `${p.section}:${p.rule}`);
