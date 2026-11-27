@@ -16,8 +16,7 @@
     "./run": "./lib/run.mjs",
     "./expectations": "./lib/expectations.mjs",
     "./cases": "./lib/cases.mjs",
-    "./observe": "./lib/observe.mjs",
-    "./mutate": "./lib/mutate.mjs"
+    "./observe": "./lib/observe.mjs"
   },
   "files": [
     "bin",
