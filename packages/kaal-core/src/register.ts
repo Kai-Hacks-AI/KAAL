@@ -154,14 +154,3 @@ export async function catalog(dir: string): Promise<Catalog> {
   const refs = (kind: Kind): Ref[] => admitted.typed(anchor(kind)).sort(compareRefs);
   return { capabilities: refs("capability"), agents: refs("agent"), skills: refs("skill"), exchanges: refs("exchange") };
 }
-
-export interface Capabilities {
-  skills: Ref[];
-  exchanges: Ref[];
-}
-
-/** @deprecated Use `catalog`, which also lists Capabilities and Agents. The Skills and Exchanges an Engine holds. */
-export async function capabilities(dir: string): Promise<Capabilities> {
-  const { skills, exchanges } = await catalog(dir);
-  return { skills, exchanges };
-}
