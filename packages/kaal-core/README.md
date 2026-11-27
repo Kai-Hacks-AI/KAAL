@@ -170,6 +170,8 @@ An artifact that names no Type the mapping holds is `unknown`, never `valid`. `v
 
 `kaal-core/installation` checks an installation contract: the one installer-neutral JSON document in which a Capability states what an installation of it is, in the format of Core's `Installation Contract` Definition. A contract names that format, its Capability, version, assets, catalogue of published SHA-256s, record, runtime and the Skills it provides; the lifecycle rules are the format's. A Capability conforms by data alone and does not import this module to do so.
 
+`judgeSetupIndependence(manifest, { accepted? })`, also in `kaal-core/installation`, judges a package's declared runtime needs against setup independence: its runtime needs name no KAAL package except Foundation and Hosting. It is pure, takes the parsed `package.json` and reads no file. It returns `declared` (`independent`, `dependent` or `unknown`), `demonstrated` (always `unknown`: Core runs nothing, so an isolated installation is the capability's own evidence), `acceptable` and the `findings`, each naming the field and package. An adopter's `accepted` list marks findings accepted and can make a setup `acceptable`; it never changes `declared`. The property is stated in the `Setup Independence` Definition, which the payload carries beside the Installation Contract, untouched.
+
 ```js
 import { checkContract, installationFormat } from "kaal-core/installation";
 

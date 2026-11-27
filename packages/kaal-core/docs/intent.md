@@ -9,7 +9,7 @@ KAAL is a way to manage a repository with Markdown files that both people and ag
 kaal-core is the smallest working KAAL. It carries:
 
 - the Kernel, `KAAL-KERNEL.md`, which brings the first Nodes into being;
-- the foundational Nodes: `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Installation Contract` and `Agent Realization`;
+- the foundational Nodes: `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Installation Contract`, `Setup Independence` and `Agent Realization`;
 - the code that bootstraps an Engine (a directory of Nodes, `./.kaal/` by default), admits Nodes by identity and type, registers contributions, validates frontmatter, checks installation contracts, realizes Skills for agents, and assembles registrations.
 
 CASE names four parallel kinds: Capabilities, Agents, Skills and Extensions. Core owns the machinery around them. It owns no discipline's meaning: what a Requirement, a Test Case or an Architecture element means belongs to the capability that defines it.
@@ -56,6 +56,11 @@ Every statement in these documents carries a stable identifier. `core/I…` is a
 - **core/I17.** Local and global validation complement each other. Each Capability judges its own kinds and content. Core judges only the assembled graph: who holds what, whether references resolve, and whether each trace is permitted.
 - **core/I18.** Registration is additive and opt-in. An Engine with no registrations behaves as it would without the feature.
 - **core/I21.** A term that several owners define is discoverable and never resolved silently. Assembly reports it as unaligned and merges nothing.
+
+### Setup independence
+
+- **core/I44.** Core states, once and generically, what setup independence is: a product property of a capability package. Its runtime needs name no KAAL package except Foundation and Hosting. The property is the package's own and has one definition. No adopter widens it.
+- **core/I45.** Core keeps three judgements distinct. A package is **declared** independent when its manifest names no other KAAL package. It is **demonstrated** independent when an isolated installation of the packed package runs without one. A setup **accepts** a dependency when its adopter decides that package is acceptable there. An acceptance can make a setup acceptable. It cannot make the package independent.
 
 ### Release
 
