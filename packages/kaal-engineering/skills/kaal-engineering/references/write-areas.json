@@ -1,0 +1,40 @@
+{
+  "areas": [
+    {"path": "00-backlog", "phase": "PLAN"},
+    {"path": "01-changes", "delegatedTo": "kaal-change"},
+    {"path": "02-learnings/research", "phase": "PLAN"},
+    {"path": "02-learnings/rehearsals", "phase": "PLAN"},
+    {"path": "02-learnings/reviews", "phase": "PLAN"},
+    {"path": "02-learnings/retros", "phase": "ACT"},
+    {"path": "10-intent", "phase": "PLAN"},
+    {"path": "11-requirements", "phase": "PLAN"},
+    {"path": "12-architecture", "phase": "PLAN"},
+    {"path": "13-source", "phase": "DO"},
+    {"path": "14-operations/controls", "phase": "PLAN"},
+    {"path": "14-operations/controls/*/baseline.json", "transition": "controls"},
+    {"path": "14-operations/review-items", "phase": "PLAN"},
+    {"path": "15-defects", "phase": "PLAN"},
+    {"path": "AGENTS.md", "phase": "DO"},
+    {"path": "README.md", "phase": "DO"},
+    {"path": "LICENSE", "phase": "DO"},
+    {"path": "package.json", "phase": "DO"},
+    {"path": "*.kaal.json", "phase": "DO"}
+  ],
+  "legacy": {
+    "00-changes": "01-changes",
+    "01-intent": "10-intent",
+    "02-requirements": "11-requirements",
+    "03-architecture": "12-architecture",
+    "04-controls": "14-operations/controls",
+    "05-src": "13-source"
+  },
+  "pullRequests": [
+    {"type": "PLAN", "may": ["PLAN"]},
+    {"type": "DO", "may": ["DO"]},
+    {"type": "ACT", "may": ["ACT"]},
+    {"type": "SYNC", "may": []},
+    {"type": "PROMOTION", "may": ["PLAN", "DO", "ACT"]},
+    {"type": "HOTFIX", "may": ["PLAN", "DO"], "recognised": "branch hotfix/*"},
+    {"type": "WIRE", "may": [], "recognised": "branch wire/*", "elsewhere": "delivery-locations (release A67)"}
+  ]
+}
