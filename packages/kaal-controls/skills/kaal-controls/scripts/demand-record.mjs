@@ -1,6 +1,6 @@
 // demand Record: when a correction of a discrepancy is due. Timing only: no status comparison, no judgement of correctness.
-// Pure: it reads no file and calls no service. The owning capability's pull request is the applicable one; an unrelated one owes nothing.
-// A lag of a post-WIRE fact is due only when the control is observed installed, its operational evidence exists and the pull request follows it.
+// Pure: it reads no file and calls no service. The owning capability's change under review is the applicable one; an unrelated one owes nothing.
+// A lag of a post-WIRE fact is due only when the control is observed installed, its operational evidence exists and the change under review follows it.
 // An overclaim is never deferred. Unknown evidence of an owned control, or anything malformed, throws: never clean.
 const FACTS = ['defined', 'implemented', 'running', 'tested'];
 const DIRECTIONS = ['lags', 'overclaims'];
