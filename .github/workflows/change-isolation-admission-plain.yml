@@ -26,3 +26,5 @@ jobs:
         run: |
           echo "Admission to the merge queue only. This is not an attestation and carries no authorization."
           echo "The merge group's own run of Change Isolation (review) judges the pull request at merge time."
+      - name: Probe failure
+        run: exit 1
