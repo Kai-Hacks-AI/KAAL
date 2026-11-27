@@ -19,7 +19,7 @@ export async function run() {
   const MAP = { rows: [{ control: 'release/CTL1', delivered: '.github/workflows/verify-workflow-names.yml', entry: 'e/1.mjs' }, { control: 'release/CTL2', delivered: '.github/workflows/other.yml', entry: 'e/2.mjs' }] };
   const input = (more = {}) => ({ revision: REV, runs: [run()], map: MAP, entries: {}, ...more });
   const out = await collect(input());
-  for (const k of ['revision', 'records', 'established', 'rejected', 'map', 'entries']) assert.ok(k in out, `the answer lacks ${k}`);
+  for (const k of ['revision', 'records', 'unbound', 'established', 'rejected', 'map', 'entries']) assert.ok(k in out, `the answer lacks ${k}`);
   assert.ok(!['verdict', 'implemented', 'running', 'tested'].some((k) => k in out), 'the collector states no fact or verdict');
   const unreadable = await collect(input({ map: null }));
   assert.equal(unreadable.map, null, 'an unreadable map stays unreadable, never empty');
