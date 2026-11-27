@@ -10,10 +10,14 @@ const KIND = { PASS: 'pass', FAIL: 'fail', REPORT: 'fail', UNKNOWN: 'unknown' };
 export const checking = (verdict, seen) => (facts) => { seen.verdict = verdict(facts); return seen.verdict.kind === 'fail' ? [seen.verdict.message] : []; };
 
 // The answer of an entry: `kind` is pass, fail, not-applicable or unknown; a detective finding is a fail of the rule, however little it gates.
-export const report = (r, seen) => ({
-  kind: r.verdict === 'PASS' && seen.verdict?.kind === 'not-applicable' ? 'not-applicable' : (KIND[r.verdict] ?? 'unknown'),
-  verdict: r.verdict, mode: r.mode, blocked: r.blocked, findings: r.findings ?? [], message: seen.verdict?.message ?? null, record: r.record, log: r.log,
-});
+// A verdict that does not apply is not a verification: the adapter sees no finding and says PASS, so the answer says so itself, as `not-applicable`, and carries no record, because a record is evidence of a verdict and none was given. It can never count as a positive run.
+export const report = (r, seen) => {
+  const applies = seen.verdict?.kind !== 'not-applicable';
+  return {
+    kind: r.verdict === 'PASS' && !applies ? 'not-applicable' : (KIND[r.verdict] ?? 'unknown'),
+    verdict: applies ? r.verdict : 'NOT-APPLICABLE', mode: r.mode, blocked: r.blocked, findings: r.findings ?? [], message: seen.verdict?.message ?? null, record: applies ? r.record : null, log: applies ? r.log : null,
+  };
+};
 
 const git = (cwd, ...args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
 export const rev = (cwd, ref) => {

@@ -8,6 +8,7 @@ Builds the source of the check 2 replacement on the controls adapter. The instal
 - `05-src/lineage/lib/answer.mjs`: the check the adapter runs, the answer and the command line they share. It judges nothing.
 - `05-src/wiring/workflows/branching-plain.yml`: three jobs, one per verdict, on plain `pull_request`. Each supplies the facts the old workflow did (head, base, default branch, head ref, auto-merge method, the base rules for the default branch) and runs its entry, not `kaal-guard`.
 - `04-controls/CTL37-verify-freshness`, `CTL38-verify-synchronization`, `CTL39-verify-auto-merge-method`: the control records, each with Intent release/I50.
+- Case T1596 (new, from the CPO hold on this PR): a verdict that does not apply answers `not-applicable`, carries no record and prints no `kaal-control` line, so it cannot count as positive verification evidence. The wrapper's PASS of the adapter for a verdict with no finding is not carried out.
 - Cases T1577, T1578, T1583, T1584 and T1589 are renamed from `.red.mjs` to `.test.mjs`.
 
 ## Departures from the PLAN, recorded
