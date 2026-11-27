@@ -22,7 +22,7 @@ export async function run() {
   const f = join(S, 'find-controls.mjs');
   assert.ok(existsSync(f), 'the finder is absent');
   const { findControls } = await import(pathToFileURL(f).href);
-  const one = (text) => findControls([{ path: 'x/CTL1.md', text }]).controls[0];
+  const one = (text) => findControls([{ path: 'x/CTL1.md', text }], { stations: STATIONS }).controls[0];
   const ok = one(item({ stations: '[Integrating:preventive, Collecting:detective]' }));
   assert.equal(ok.valid, true, 'a valid stations list fails validation');
   assert.deepEqual(ok.stations, [{ station: 'Integrating', mode: 'preventive' }, { station: 'Collecting', mode: 'detective' }]);
@@ -30,7 +30,7 @@ export async function run() {
   assert.equal(one(item()).valid, true, 'a control without stations is invalid');
   assert.equal(one(item({ stations: '[]' })).valid, true);
   for (const bad of ['[Nowhere:preventive]', '[Integrating:blocking]', '[Integrating]', '[Integrating:preventive, Integrating:detective]', 'Integrating:preventive', '[integrating:preventive]']) {
-    const r = findControls([{ path: 'x/CTL1.md', text: item({ stations: bad }) }]);
+    const r = findControls([{ path: 'x/CTL1.md', text: item({ stations: bad }) }], { stations: STATIONS });
     assert.equal(r.controls.length, 1, `stations ${bad} dropped the control`);
     const c = r.controls[0];
     assert.equal(c.valid, false, `stations ${bad} passed validation`);

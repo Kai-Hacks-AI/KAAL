@@ -28,3 +28,9 @@ A retro entry in the collector.
 ## PLAN amendment (a Case that required a KAAL station word)
 
 The Case controls/T928 (under controls/A12) requires the word `Integrating` in `references/enforcing-controls.md`. That is a KAAL station name, which T1711 forbids in the Skill, so the two Cases cannot both pass. T928 now requires the neutral example `Merging` instead, so the reference's own example station is the word it must say. Nothing else about T928 changes. The DO uses `Merging` in the references as the PLAN said.
+
+## DO
+
+Source: `findControls(files, { stations })` takes the adopter's station names as input and throws on anything but a list of non-empty names; the built-in KAAL list is gone. The CLIs take `--stations a,b,c`. The references use the neutral example `Merging`. The Cases that need stations (T920, T921, T1110, T1118) pass them as input. T1711 GREEN, package suite 116 of 116 GREEN. Mutations: a KAAL station back in the finder, and in a reference, each alone turns T1711 RED.
+
+Handoff: engineering's callers pass KAAL's stations in the Change that adopts the package. Conflict note: C160 and C161 both touch `find-controls.mjs`; expect a conflict at promotion.
