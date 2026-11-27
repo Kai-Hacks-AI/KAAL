@@ -92,7 +92,7 @@ export function run() {
   assert.doesNotMatch(w, /ref: \$\{\{ github\.event\.pull_request\.head/, 'the head must never be checked out');
   assert.doesNotMatch(w, /github\.head_ref/);
   assert.match(w, /persist-credentials: false/);
-  assert.match(w, /name: Change Isolation \(plain pull_request\)/, 'detective: its own job name');
+  assert.match(w, /name: "Change Isolation: \.github alone \(plain pull_request\)"/, 'detective: its own job name');
   assert.doesNotMatch(w, /^\s+name: Change Isolation$/m, 'it must not take the required context before the swap');
 
   // the head is the one the event was raised for: a match is judged, a mismatch and an unreadable ref are refused, not passed
@@ -120,8 +120,9 @@ export function run() {
     assert.equal(n.KAAL_ATTESTATION, 'deferred');
     assert.equal(n.BASE_REF, 'main');
     assert.equal(n.KAAL_DEFAULT, 'main');
-    assert.equal(n.cmd, p.cmd, 'the guard command differs');
-    assert.match(n.cmd, /--check Change-Isolation /);
+    // release/C160: the command runs the delivered entry through the adapter, not kaal-guard, and carries the same three facts as the old command
+    assert.match(n.cmd, /^node engineering\/release-management\/05-src\/change-isolation\/judge-github-alone\.mjs --head /, 'the command does not run the .github alone entry');
+    assert.equal(n.cmd.split(' --head ')[1], p.cmd.split(' --head ')[1], 'the facts the command carries differ');
   } finally { b.done(); }
 
   // every property of the existing checker, judged by the same script from the facts of each workflow: the same verdict whichever way the head arrives
