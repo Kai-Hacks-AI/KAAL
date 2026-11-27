@@ -5,7 +5,7 @@ Authorized by the CPO's approval of the PLAN (#2604), and by the Owner's rule th
 ## Delivered
 
 - `13-source/scripts/judge-app.mjs` holds the judgements of the Inspector: `readDeclaration` reads a declaration as data and finds an ability beyond or short of its authority, `judgeApps` finds an App that decides on what it raised, `judgeWorkflow` judges the separation of the judge and the sign job as text, and `judgeSelfModification` and `checkEvidence` judge the provenance of a signed verdict. It reads data and text only and creates, installs and runs nothing.
-- `13-source/github-apps/inspector.json` is the declaration of the Inspector: its three abilities, and the `appId` that the Owner recorded after creating the App by hand. No installation, key, workflow, `.github` file or WIRE is part of this DO.
+- `13-source/github-apps/inspector.json` is the declaration of the Inspector: its four abilities, and the `appId` that the Owner recorded after creating the App by hand. No installation, key, workflow, `.github` file or WIRE is part of this DO.
 - `test/inspector-app.test.mjs` runs the four Cases (review/T1535 to review/T1538) in `scripts.test`. The temporary `run-red.mjs` is removed.
 
 ## Not done

@@ -3,7 +3,7 @@
 const f = (kind, detail) => ({ kind, detail });
 const verdict = (findings) => ({ verdict: findings.length ? 'out' : 'in', findings });
 /** The abilities each App declares, exactly. An ability is a neutral word of Hosting's closed list. */
-const AUTH = { inspector: ['post-checks', 'read-contents', 'read-pull-requests'] };
+const AUTH = { inspector: ['post-checks', 'read-checks', 'read-contents', 'read-pull-requests'] };
 /** Reads the declaration of an App as data and finds what it holds beyond or short of its authority. */
 export function readDeclaration(text, app = 'inspector') {
   const INSPECTOR = AUTH[app] ?? [];
@@ -32,7 +32,7 @@ export function judgeApps(apps) {
   }
   return verdict(out);
 }
-const KEY = 'INSPECTOR_PRIVATE_KEY';
+const KEY = 'KAAL_APP_INSPECTOR_KEY';
 const jobs = (t) => { const body = t.split(/^jobs:\n/m)[1] ?? ''; const o = {}; const p = body.split(/^  ([A-Za-z0-9_-]+):\n/m); for (let i = 1; i < p.length; i += 2) o[p[i]] = p[i + 1]; return o; };
 /** Judges the text of the workflow of the Inspector for the separation of the judge and the sign job. */
 export function judgeWorkflow(text) {
