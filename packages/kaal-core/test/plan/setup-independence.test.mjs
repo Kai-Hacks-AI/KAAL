@@ -4,7 +4,9 @@
 // wording of the Definition.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import * as core from "kaal-core";
 import * as installation from "kaal-core/installation";
+import { identify } from "kaal-graph";
 
 const FOUNDATION = "@kaihacksai/kaal-foundation";
 const HOSTING = "@kaihacksai/kaal-hosting";
@@ -74,5 +76,18 @@ describe("Setup independence (core/C162)", () => {
     assert.equal(other.acceptable, false, "accepting a package the manifest does not name changes nothing");
     const shared = j({ name: "kaal-sample", dependencies: { [HOSTING]: "0.0.1" } }, { accepted: [] });
     assert.equal(shared.declared, "independent", "Hosting stays in the shared set whatever the caller passes");
+  });
+
+  it("core/T133 [core/F121, core/A64]: the payload carries a Setup Independence Definition typed by KAAL Definition, it is admitted, and installationFormat() still names the carried Installation Contract by its exact bytes", () => {
+    const files = core.payload();
+    const bytes = files["core/Setup-Independence.md"];
+    if (!bytes) assert.fail("blocked before behavioural assertion: the payload carries no core/Setup-Independence.md");
+    const id = identify(bytes);
+    assert.equal(id.name, "Setup Independence");
+    assert.deepEqual(id.type, core.foundation().definition, "typed by KAAL Definition");
+    const engine = core.evaluate(files);
+    assert.deepEqual(engine.rejected, [], "nothing in the payload is rejected");
+    assert.ok(engine.nodes.some((n) => n.name === "Setup Independence" && n.id === id.id), "the Definition is admitted");
+    assert.equal(installation.installationFormat().id, identify(files["core/Installation-Contract.md"]).id, "the Installation Contract Definition is the one its format names");
   });
 });
