@@ -1,7 +1,7 @@
 // Case change/T1554 tests: change/G17
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { load } from './T1553.red.mjs';
+import { load } from './T1553.test.mjs';
 export const id = 'change/T1554';
 export const tests = ['change/G17'];
 export const closes = ['change/G17'];
