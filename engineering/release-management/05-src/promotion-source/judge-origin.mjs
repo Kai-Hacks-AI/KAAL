@@ -7,14 +7,15 @@ import { promotionOrigin } from '../../../github/lineage.ts';
 import { runControl } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs';
 import { checking, report } from '../lineage/lib/answer.mjs';
 import { run } from './lib/run.mjs';
+import { DETECTIVE } from '../lib/entry-flag.mjs';
 
 const ID = 'release/CTL40';
 
-export async function check(facts, { mode = 'detective', boundary } = {}) {
+export async function check(facts, { mode = DETECTIVE, boundary } = {}) {
   const seen = {};
   return report(await runControl({ id: ID, mode, check: checking(promotionOrigin, seen), input: facts, boundary }), seen);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  process.exit(await run({ label: 'Promotion Source: origin', check, read: ({ repo, defaultBranch, baseRef, headRepo, headRef }) => ({ repo, defaultBranch, baseRef, headRepo, headRef }) }));
+  process.exit(await run({ label: 'Promotion Source: origin', id: ID, check, read: ({ repo, defaultBranch, baseRef, headRepo, headRef }) => ({ repo, defaultBranch, baseRef, headRepo, headRef }) }));
 }
