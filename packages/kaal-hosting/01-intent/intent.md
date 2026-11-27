@@ -60,6 +60,10 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 
 - **hosting/I17.** KAAL code and its tests that start `npm`, `git` or `node`, and that need a disposable fixture for each Case, do so through Hosting alone: a process start that does not pay for a command shell where the host would add one, an environment that cannot touch the user's own configuration, and a fixture built once and copied, independently, for each Case. The saving is stated by what can be counted (starts, installs, builds), and a start that cannot be made cheaply is refused, never degraded in silence.
 
+## Acting as a GitHub App
+
+- **hosting/I22.** A KAAL capability that acts on GitHub as an App (the Dispatcher, the Inspector, the Approver) says in KAAL's own words what its App needs, and uses Hosting alone for the App's manifest, its token, its reads and its logo check. It never handles a key, never writes GitHub's permission words, never decides what a token may do by itself, and never sends a token anywhere but where it was minted. Which App may do what stays the owner's rule; what is true about an App's identity and grant is established by Hosting from the owner's record and from GitHub, never from the caller.
+
 ## Reading a revision's files
 
 - **hosting/I18.** KAAL code, an agent or a person that needs the files of a Git revision, such as the base a judge reads from, reads them through Hosting alone, from the library or from a command of the Skill, with one meaning on every supported host: the committed bytes, never the working tree, with "there is no such revision" kept apart from "this could not be read", and without checking out, fetching, writing or running anything of the revision. Only reading a revision is Hosting's here: GitHub (pull requests, checks, rulesets) and what a revision's files mean are not.
@@ -71,7 +75,3 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Scanning a checkout
 
 - **hosting/I20.** KAAL code that must scan a normal checkout, with its dependency links and its version-control folder, lists it through Hosting alone, saying which names and which directory links to leave out, with the same result on every supported host and no `node:fs` of its own.
-
-## Acting as a GitHub App
-
-- **hosting/I22.** A KAAL capability that acts on GitHub as an App (the Dispatcher, the Inspector, the Approver) says in KAAL's own words what its App needs, and uses Hosting alone for the App's manifest, its token, its reads and its logo check. It never handles a key, never writes GitHub's permission words, never decides what a token may do by itself, and never sends a token anywhere but where it was minted. Which App may do what stays the owner's rule; what is true about an App's identity and grant is established by Hosting from the owner's record and from GitHub, never from the caller.
