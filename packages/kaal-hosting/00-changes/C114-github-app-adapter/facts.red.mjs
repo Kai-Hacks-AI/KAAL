@@ -75,9 +75,9 @@ it("hosting/T337: readPullRequestFacts sends only the documented GET requests an
     main: SHA,
     author: { login: "claude-bot", type: "Bot" },
     checks: [
-      { name: "Change Isolation", revision: HEAD, status: "in_progress", conclusion: null, signer: "kaal-inspector" },
-      { name: "Change Isolation", revision: HEAD, status: "completed", conclusion: "failure", signer: "kaal-inspector" },
-      { name: "Change Isolation", revision: HEAD, status: "completed", conclusion: "success", signer: "kaal-inspector" },
+      { id: 13, name: "Change Isolation", revision: HEAD, status: "in_progress", conclusion: null, signer: "kaal-inspector" },
+      { id: 12, name: "Change Isolation", revision: HEAD, status: "completed", conclusion: "failure", signer: "kaal-inspector" },
+      { id: 11, name: "Change Isolation", revision: HEAD, status: "completed", conclusion: "success", signer: "kaal-inspector" },
     ],
   });
   const calls = api.requests.slice(mark);
@@ -122,9 +122,10 @@ it("hosting/T338: readPullRequestFacts needs read-contents, read-pull-requests a
 
 });
 
-it("hosting/T339: the check runs of a head are paged to a short page, none lost, none doubled, never a truncated list", async () => {
-  const run = (i) => ({ id: i, name: "Change Isolation", head_sha: HEAD, status: "completed", conclusion: "success", started_at: new Date(Date.UTC(2026, 10, 27, 5, 0, 0) - i * 1000).toISOString(), app: { slug: "kaal-inspector", id: 24680 } });
-  const world = (count) => async () => {
+it("hosting/T339: the check runs of a head are paged to a short page, listed complete, once each, newest first, never a truncated list", async () => {
+  // Run i started i seconds after run 1, so the newest run is the highest id; the stand-in lists runs by id, so the newest sits on the last page.
+  const run = (i) => ({ id: i, name: "Change Isolation", head_sha: HEAD, status: "completed", conclusion: "success", started_at: new Date(Date.UTC(2026, 10, 27, 5, 0, 0) + i * 1000).toISOString(), app: { slug: "kaal-inspector", id: 24680 } });
+  const read = async (count) => {
     const all = Array.from({ length: count }, (_, i) => run(i + 1));
     const asks = [];
     const { grant, api } = await granted(ABILITIES, (r) => {
@@ -134,16 +135,18 @@ it("hosting/T339: the check runs of a head are paged to a short page, none lost,
       return { status: 200, json: { total_count: count, check_runs: all.slice((page - 1) * 100, page * 100) } };
     }, APPROVER_WORLD, { app: "approver", appId: "67890" });
     const facts = await hosting.readPullRequestFacts(request, { grant, fetch: api.fetch, api: api.api });
-    return { facts, asks, all };
+    return { ids: facts.checks.map((c) => c.id), asks, checks: facts.checks };
   };
-  const two = await world(101)();
-  assert.equal(two.facts.checks.length, 101);
+  const newestFirst = (count) => Array.from({ length: count }, (_, i) => count - i);
+  const two = await read(101);
+  assert.deepEqual(two.ids, newestFirst(101), "all 101, each once, newest first across the page break");
   assert.deepEqual(two.asks, [1, 2], "page 1 and page 2, no page 3");
-  const exact = await world(100)();
-  assert.equal(exact.facts.checks.length, 100);
+  assert.deepEqual(two.checks[0], { id: 101, name: "Change Isolation", revision: HEAD, status: "completed", conclusion: "success", signer: "kaal-inspector" });
+  const exact = await read(100);
+  assert.deepEqual(exact.ids, newestFirst(100));
   assert.deepEqual(exact.asks, [1, 2], "a full page is followed by one more, which is empty");
-  const none = await world(0)();
-  assert.deepEqual(none.facts.checks, []);
+  const none = await read(0);
+  assert.deepEqual(none.ids, []);
   assert.deepEqual(none.asks, [1]);
   // More pages than the bound is a named failure and never a truncated list.
   const endless = await granted(ABILITIES, (r) => (r.path.endsWith("/check-runs") ? { status: 200, json: { check_runs: Array.from({ length: 100 }, (_, i) => run(i + 1)) } } : route(r)), APPROVER_WORLD, { app: "approver", appId: "67890" });
