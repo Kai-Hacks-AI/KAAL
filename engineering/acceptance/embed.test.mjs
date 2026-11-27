@@ -17,6 +17,78 @@ import { install } from "kaal-testing/acceptance";
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const work = mkdtempSync(join(tmpdir(), "kaal-acceptance-"));
 
+// DRIFT GUARD: the files the package publishes, as a snapshot. The criterion test below says every file is declared;
+// this list says the set has not changed without someone meaning it. When it fails because a file was added or
+// removed on purpose, update the list in the same Change and say in that Change's retro why the set moved.
+const EXPECTED_TARBALL = [
+  "package/LICENSE",
+  "package/README.md",
+  "package/dist/admitted.d.ts",
+  "package/dist/admitted.js",
+  "package/dist/agent.d.ts",
+  "package/dist/agent.js",
+  "package/dist/bootstrap.d.ts",
+  "package/dist/bootstrap.js",
+  "package/dist/cli.d.ts",
+  "package/dist/cli.js",
+  "package/dist/conformance.d.ts",
+  "package/dist/conformance.js",
+  "package/dist/engine.d.ts",
+  "package/dist/engine.js",
+  "package/dist/frontmatter.d.ts",
+  "package/dist/frontmatter.js",
+  "package/dist/index.d.ts",
+  "package/dist/index.js",
+  "package/dist/installation.d.ts",
+  "package/dist/installation.js",
+  "package/dist/lifecycle.d.ts",
+  "package/dist/lifecycle.js",
+  "package/dist/node.d.ts",
+  "package/dist/node.js",
+  "package/dist/node/form.d.ts",
+  "package/dist/node/form.mjs",
+  "package/dist/node/node.d.ts",
+  "package/dist/node/node.mjs",
+  "package/dist/node/provenance.json",
+  "package/dist/payload.d.ts",
+  "package/dist/payload.js",
+  "package/dist/realization.d.ts",
+  "package/dist/realization.js",
+  "package/dist/records.d.ts",
+  "package/dist/records.js",
+  "package/dist/register.d.ts",
+  "package/dist/register.js",
+  "package/dist/registration.d.ts",
+  "package/dist/registration.js",
+  "package/docs/architecture.md",
+  "package/docs/intent.md",
+  "package/docs/limitations.md",
+  "package/docs/operations.md",
+  "package/docs/requirements.md",
+  "package/docs/testing.md",
+  "package/installation.kaal.json",
+  "package/package.json",
+  "package/payload/AGENTS.md",
+  "package/payload/KAAL-KERNEL.md",
+  "package/payload/core/Agent-Realization.md",
+  "package/payload/core/CASE.md",
+  "package/payload/core/Installation-Contract.md",
+  "package/payload/core/KAAL-Agent.md",
+  "package/payload/core/KAAL-Capability.md",
+  "package/payload/core/KAAL-Definition.md",
+  "package/payload/core/KAAL-Extension.md",
+  "package/payload/core/KAAL-Skill.md",
+  "package/payload/core/LOVE.md",
+  "package/payload/core/Node.md",
+  "package/test/embed/architecture.test.mjs",
+  "package/test/embed/code.test.mjs",
+  "package/test/embed/intent.test.mjs",
+  "package/test/embed/requirements.test.mjs",
+  "package/test/run.mjs",
+  "package/test/verify.json",
+  "package/test/verify.mjs",
+];
+
 // The Nodes the package ships: each Definition file of Core's payload is admitted by `verify`, once.
 const shippedNodes = () => readdirSync(join(host, "node_modules", "kaal-core", "payload", "core")).filter((f) => f.endsWith(".md")).length;
 // What `verify` reports for the shipped Nodes plus the `added` ones a Case registered itself.
@@ -81,6 +153,13 @@ before(async () => {
 });
 
 describe("package", () => {
+  it("is a tarball of the same files as the snapshot, and says what moved", () => {
+    const listed = tarEntries(tarball).sort();
+    const added = listed.filter((f) => !EXPECTED_TARBALL.includes(f));
+    const removed = EXPECTED_TARBALL.filter((f) => !listed.includes(f));
+    assert.deepEqual({ added, removed }, { added: [], removed: [] }, "the published files drifted from the snapshot: if intended, update EXPECTED_TARBALL in this Case in the same Change");
+  });
+
   it("is a tarball of exactly the declared files and nothing outside them", () => {
     const pkg = JSON.parse(readFileSync(join(host, "node_modules", "kaal-core", "package.json"), "utf8"));
     const declared = pkg.files.filter((f) => !f.startsWith("!"));
