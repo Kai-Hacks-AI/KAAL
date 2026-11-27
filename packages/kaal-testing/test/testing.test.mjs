@@ -61,7 +61,6 @@ describe("kaal-testing", () => {
       "lib/coverage.mjs",
       "lib/duplicates.mjs",
       "lib/expectations.mjs",
-      "lib/identity.mjs",
       "lib/inventory.mjs",
       "lib/observation.mjs",
       "lib/observe.mjs",
