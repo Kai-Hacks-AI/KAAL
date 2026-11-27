@@ -325,7 +325,7 @@ describe("embedding into a fresh host", () => {
     const there = join(moved, "node_modules", ".bin", "kaal");
     assert.match(await run(there, ["verify"], moved), /ok: 12 Nodes admitted/);
     assert.equal(await run(there, ["list"], moved), await run(kaal, ["list"], host));
-    const api = await run(process.execPath, ["--input-type=module", "-e", "import { capabilities } from 'kaal-core'; console.log(JSON.stringify(await capabilities('.kaal')));"], moved);
+    const api = await run(process.execPath, ["--input-type=module", "-e", "import { catalog } from 'kaal-core'; console.log(JSON.stringify(await catalog('.kaal')));"], moved);
     assert.deepEqual(JSON.parse(api).skills.map((r) => r.name), ["Greeting"]);
   });
 
