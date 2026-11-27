@@ -1,18 +1,10 @@
 #!/usr/bin/env node
-// Applies a mode to the answer of a check. Pure: it knows no repository, path or tool.
+// DEPRECATED shim: the command line of judge-mode, kept at its old path for callers that have not moved to hosting yet (controls/C160).
+// It is not published (package.json files). The library is lib/judge-mode.mjs. Delete this file when its callers read through hosting.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { judgeRun } from './ratchet.mjs';
-export { applyBaseline } from './ratchet.mjs';
-const MODES = ['detective', 'preventive', 'ratchet'];
-export function judgeMode({ mode, findings, baseline, previous } = {}) {
-  if (!MODES.includes(mode)) return { mode, verdict: 'UNKNOWN', blocked: true, reason: 'no-mode' };
-  const blocking = mode === 'preventive' || mode === 'ratchet';
-  if (!Array.isArray(findings)) return { mode, verdict: 'UNKNOWN', blocked: blocking, reason: 'could-not-judge' };
-  if (mode === 'detective') return { mode, verdict: findings.length ? 'REPORT' : 'PASS', blocked: false, findings };
-  if (mode === 'preventive') return { mode, verdict: findings.length ? 'FAIL' : 'PASS', blocked: findings.length > 0, findings };
-  return judgeRun({ findings, baseline, previous });
-}
+import { judgeMode } from './lib/judge-mode.mjs';
+export * from './lib/judge-mode.mjs';
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const a = Object.fromEntries(process.argv.slice(2).reduce((r, x, i, v) => (x.startsWith('--') ? [...r, [x.slice(2), v[i + 1]]] : r), []));
   const read = (p) => {

@@ -6,8 +6,16 @@
   "license": "MIT",
   "type": "module",
   "files": [
-    "skills"
+    "skills",
+    "!skills/kaal-controls/scripts/judge-mode.mjs",
+    "!skills/kaal-controls/scripts/check-controls.mjs",
+    "!skills/kaal-controls/scripts/evidence.mjs",
+    "!skills/kaal-controls/scripts/find-controls.mjs",
+    "!skills/kaal-controls/scripts/registry.mjs"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=24"
   },

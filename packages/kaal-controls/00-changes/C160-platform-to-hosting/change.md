@@ -52,3 +52,11 @@ Nothing else about either Case changes.
 ### PLAN amendment 2, reconciled with C162
 
 F18 and T591 now state both contracts: `files` is `skills` plus the `!` shim entries (this Change), and `publishConfig` is `{access: public}` (C162, #2841). Neither amendment drops the other. T591 needs both package.json changes to be GREEN; the C160 DO carries the identical `publishConfig` line so the collector stays GREEN on its own, and git merges the identical line cleanly at promotion.
+
+## DO
+
+The five scripts that read files now have a pure library under `skills/kaal-controls/scripts/lib/` (`find-controls`, `check-controls`, `evidence`, `registry`, `judge-mode`): each takes the files as a map of path to bytes and imports no `fs`, `child_process`, `os` or platform path code. The files at the old paths are DEPRECATED shims that import the library and keep the command line, the directory walk, the git read and the line-ending normalisation; `package.json` `files` leaves them out with `!` entries. The references name the library functions; `--records` stays mentioned for the shims because the older Case T1090 asks for it. `publishConfig` `{access: public}` is carried identically to C162 (amendment 2).
+
+Result: T1710, T591 and T479 GREEN; the package suite 116 of 116 GREEN. Mutations, each alone turns T1710 RED: an `fs` import back in a library file; a shim dropped from `files`.
+
+Follow-up Change (later): delete the shims once engineering's hosting-based callers (C45, #2843) are on main. Promotion note: C161 also edits `find-controls.mjs`; expect a conflict to reconcile (the stations input and the library move).
