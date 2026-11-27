@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter-ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter-ratchet.mjs
+@@ -6,7 +6,7 @@
+ 
+ const text = (v) => typeof v === 'string' && v.length > 0;
+ const usable = (d, revision, scope) => d !== null && typeof d === 'object' && !Array.isArray(d)
+-  && d.complete === true && d.revision === revision && d.scope === scope;
++  && d.revision === revision && d.scope === scope;
+ 
+ export async function runAdapterRatchet({ controls, delivered, observed, revision, scope, baseline, previous, boundary } = {}) {
+   const check = () => {
