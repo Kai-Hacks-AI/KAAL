@@ -79,7 +79,8 @@ export async function run() {
     const tip = git(work, 'rev-parse', 'origin/kaal/x');
     git(work, 'fetch', '-q', 'origin');
     const r = go(ENTRIES[0], sync, tip, 'kaal/x');
-    assert.match(r.text, /verified synchronization/, `it is a verified synchronization: ${r.text}`);
+    const lineage = spawnSync(process.execPath, [join(work, 'engineering/github/lineage.ts'), 'synchronization', 'main', 'kaal/x', 'origin/main', tip, sync], { cwd: work, encoding: 'utf8' });
+    assert.match(r.text, /verified synchronization/, `it is a verified synchronization (lineage says ${lineage.status}: ${lineage.stdout}${lineage.stderr}): ${r.text}`);
     assert.match(r.text, /\.github travels alone: docs\/c\.md/, `the resolutions that mix .github with another path are reported: ${r.text}`);
     assert.doesNotMatch(r.text, /PASS/, 'a synchronization with violating resolutions does not pass');
   } finally { rmSync(dir2, { recursive: true, force: true }); }
