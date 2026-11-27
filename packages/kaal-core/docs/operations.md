@@ -53,10 +53,10 @@ Nothing on `PATH` can stand in for it: where the scoped package is not installed
 | --- | --- |
 | `kaal init` | Materializes the Engine from the payload into `./.kaal/`, a missing or empty directory, and records Core's files. An existing valid Engine is left unchanged. Anything else is refused. |
 | `kaal verify` | Verifies the Engine: the Kernel and foundational Nodes by identity, every Node's type, every typed artifact's state, and the assembled registrations. Exit 0 when it holds, 1 otherwise. |
-| `kaal list` | Lists the Capabilities, Agents, Skills and Extensions the Engine holds. |
+| `kaal list` | Lists the Capabilities, Agents, Skills and Exchanges the Engine holds. |
 | `kaal resolve <name> [<id>]` | Resolves an admitted Node by name, or by name and id. |
 | `kaal identify <file>...` | Prints the id, name and type of Node files. |
-| `kaal register <capability\|agent\|skill\|extension> <name> <dir>` | Registers a contribution, all or nothing. Registering the identical contribution again is a no-op. |
+| `kaal register <capability\|agent\|skill\|exchange> <name> <dir>` | Registers a contribution, all or nothing. Registering the identical contribution again is a no-op. |
 | `kaal export <out-dir>` | Writes the foundational payload into an empty directory. |
 | `kaal version` | Prints the kaal-core that runs and the version Core's record holds for the Engine. |
 | `kaal upgrade` | Brings `./.kaal` to this kaal-core's Installation Contract. Modified files are kept and reported. If the result would not verify, nothing changes. |
