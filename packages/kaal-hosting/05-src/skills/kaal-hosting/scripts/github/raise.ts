@@ -14,7 +14,7 @@ export const POLICY = {
   declaration: (owner: string): string => `packages/${owner}/13-source/pull-request-types/${owner}.json`,
 };
 
-const AUTHORITY = ["declarations", "typeList", "writeAreas", "changedPaths", "changed", "policy"];
+const AUTHORITY = ["declarations", "typeList", "writeAreas", "changedPaths", "changed", "policy", "visible"];
 const MERGE_CHOICE = ["autoMerge", "mergeMethod"];
 const DRAFT_CHOICE = ["draft"];
 const OPTION_KEYS = ["token", "fetch", "api"];
