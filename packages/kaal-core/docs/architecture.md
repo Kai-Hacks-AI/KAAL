@@ -29,6 +29,7 @@ The package's `exports` lists these entry points, and nothing else resolves (cor
 | `kaal-core/agent` | `agent.ts` | `declaration`, `realize` |
 | `kaal-core/realization` | `realization.ts` | `realizeIn`, `record` |
 | `kaal-core/conformance` | `conformance.ts` | `installationConformance` |
+| `kaal-core/skill` | `skill.ts` | `judgeSize`, `judgeLayout`, `judgeRepoFree`, `judgeSkill`, `readBaseline`, `standard` |
 | `kaal-core/registration` | `registration.ts` | `assemble`, `REGISTRATION_TYPE`, `REGISTRATION_SCHEMA` |
 
 The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no entry point exports `upgrade` or `remove`.
@@ -52,7 +53,7 @@ The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no en
 
 ## The payload
 
-`payload/` holds `KAAL-KERNEL.md`, `AGENTS.md` and, under `core/`, the foundational Nodes `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Installation Contract` and `Agent Realization`. `kaal init` materializes it into an Engine.
+`payload/` holds `KAAL-KERNEL.md`, `AGENTS.md` and, under `core/`, the foundational Nodes `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Skill Standard`, `Installation Contract` and `Agent Realization`. `kaal init` materializes it into an Engine.
 
 The Engine is found by content. Filenames and locations are not part of identity, so a Node keeps its id and type resolution wherever it is stored.
 
