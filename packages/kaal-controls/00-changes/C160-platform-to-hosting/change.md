@@ -39,3 +39,16 @@ The DO items 1 to 4 above are replaced by this. The workflows (`codeql.yml` twic
 6. Requirements amended: controls/N8 (one sentence: the shim rule), controls/F21 (the command line is a deprecated shim; the library is `lib/check-controls.mjs`) and controls/F25 (the registry of a station is a function over the files of a ref; reading the ref is a shim). The package no longer promises the commands. F15 needs no change: its Cases run the finder command at the old path, which the shim keeps.
 7. Follow-up Change, after Engineering's hosting-based callers are on main: delete the shims and retarget the Cases that run a command to the library functions.
 8. A mutation, as in C25 and C159: a file system import put back in a published script, and a shim left out of `files`, each alone turns T1710 RED.
+
+## PLAN amendment 2 (two Cases that expected the old shape)
+
+The DO, run on the collector, turns two older Cases RED that the first amendment did not name: controls/T591 (under F18: `files` is exactly `['skills']`) and controls/T479 (under A8: the finder file at `scripts/find-controls.mjs` imports only `fs`, `path` and `url`). Both expected the shape this Change replaces. They are amended here, before the DO, in their own PR:
+
+- F18 and T591: `files` holds `skills` and, as `!` entries, the deprecated shims it leaves out.
+- A8 and T479: the finder is the library `scripts/lib/find-controls.mjs` and imports nothing at all. The command line entry is the deprecated shim at the old path, which imports it.
+
+Nothing else about either Case changes.
+
+### PLAN amendment 2, reconciled with C162
+
+F18 and T591 now state both contracts: `files` is `skills` plus the `!` shim entries (this Change), and `publishConfig` is `{access: public}` (C162, #2841). Neither amendment drops the other. T591 needs both package.json changes to be GREEN; the C160 DO carries the identical `publishConfig` line so the collector stays GREEN on its own, and git merges the identical line cleanly at promotion.
