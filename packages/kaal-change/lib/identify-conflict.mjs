@@ -34,7 +34,10 @@ export function identifyConflict({ pinOf, changes, resolved } = {}) {
 
   let edges;
   try {
-    edges = readSuccession(changes.map(({ identity, text }) => ({ identity, text })), { pinOf }).edges;
+    const read = readSuccession(changes.map(({ identity, text }) => ({ identity, text })), { pinOf });
+    // An edge inside a cycle is invalid and orders nothing: a cycle does not say which Change lands first.
+    const cycles = read.findings.filter((f) => f.kind === "cycle").map((f) => f.changes);
+    edges = read.edges.filter((e) => !cycles.some((group) => group.includes(e.from) && group.includes(e.to)));
   } catch {
     return { kind: "unknown", findings: [{ kind: "unreadable", fact: "pinOf" }], note: "a fact cannot be read, so no conflict is judged absent" };
   }
