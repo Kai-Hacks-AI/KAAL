@@ -1,6 +1,6 @@
 # C44 change
 
-Finding from the Owner (27 Nov), relayed by the coordinator; the Owner and CPO ruled that a Test Case tests the criterion, never a snapshot count. All three snapshots in one Change, and the tarball list kept as a drift guard after the Owner's second ruling.
+Finding from the Owner (27 Nov), relayed by the coordinator: the Case pinned the size of the package in several places and broke with every new Definition. The Owner's second ruling: snapshots have value against drift, so what is guarded as drift stays guarded, and what is a criterion is stated as one. All three kinds of pinned value are in one Change.
 
 ## What changes in `engineering/acceptance/embed.test.mjs`
 
