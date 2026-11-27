@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs
+@@ -28,7 +28,7 @@ export function judgeStamp({ declared, runs } = {}) {
+   const blocked = last ? last.blocked : null;
+   const out = (o, reasons) => ({ declared: o.declared ?? null, observed: o.observed ?? null, stamp: o.stamp ?? null, blocking: o.blocking ?? null, blocked, reasons: [...new Set(reasons)].sort() });
+   if (declared === 'UNKNOWN') return out({}, ['config-error', ...(blocked === true ? ['blocked-without-flag'] : [])]);
+-  if (declared === 'STOPPED') return out({ declared, observed: 'N/A', stamp: 'STOPPED', blocking: false }, [...(last ? ['ran-while-stopped'] : []), ...(blocked === true ? ['blocked-while-stopped'] : [])]);
++  if (declared === 'STOPPED') return out({ declared, observed: 'N/A', stamp: 'STOPPED', blocking: false }, [, ...(blocked === true ? ['blocked-while-stopped'] : [])]);
+   const reasons = [];
+   let observed = 'OK';
+   if (!last) { observed = 'MUTE'; reasons.push('no-trace'); }
