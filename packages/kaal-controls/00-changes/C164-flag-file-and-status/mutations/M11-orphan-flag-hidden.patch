@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/flag-status.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/flag-status.mjs
+@@ -26,7 +26,7 @@ export function reportFlags({ controls, source, runs } = {}) {
+   rows.sort((a, b) => (`${a.control}@${a.place}` < `${b.control}@${b.place}` ? -1 : 1));
+   if (typeof source.controls === 'function') {
+     const known = new Set(rows.map((r) => `${r.control}@${r.place}`));
+-    for (const k of source.controls()) if (!known.has(k)) findings.add(`orphan-flag:${k}`);
++    for (const k of source.controls()) if (!known.has(k)) 0;
+   }
+   return { rows, findings: [...findings].sort() };
+ }

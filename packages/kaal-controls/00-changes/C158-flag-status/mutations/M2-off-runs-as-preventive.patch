@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
+@@ -19,7 +19,7 @@
+   const b = boundary ?? {};
+   const flag = readFlag(b.flag);
+   const off = flag.state === 'off' && MODES.includes(requested);
+-  const mode = off ? 'detective' : requested;
++  const mode = off ? 'preventive' : requested;
+   let findings = null;
+   let confirmed = null;
+   if (text(id) && MODES.includes(mode) && typeof check === 'function') {
