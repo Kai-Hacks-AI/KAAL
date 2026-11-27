@@ -79,3 +79,7 @@ Hosting's `update` only publishes a new directory, and `initialize` only fills a
 ## Visible text in a declared type
 
 - **hosting/I23.** A pull request type that must show its reader one fixed line, and not hide it in a comment, declares that line as visible text, and Hosting renders it the same in the template and in every body raised for the type. The line belongs to the owner's declaration; a caller never supplies it.
+
+## The content and provenance of a run
+
+- **hosting/I25.** KAAL code that records evidence of a run learns what the run holds and where it says it comes from through Hosting alone, not by reading `GITHUB_SHA` or a commit id and calling it what was examined. The saving is one meaning: the content a working copy holds is identified by its bytes and paths; the head the event names, the trigger and the Git commit are provenance, stated beside it as separate facts, and a commit relationship is never the identity of content. Hosting states facts and judges none: which content was examined is the consumer's to say, and whether evidence is about it is Testing's to check.
