@@ -2,7 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as hosting from '@kaihacksai/kaal-hosting';
-import { load } from './T1553.red.mjs';
+import { load } from './T1553.test.mjs';
 export const id = 'change/T1703';
 export const tests = ['change/G17'];
 export const closes = ['change/G17'];
