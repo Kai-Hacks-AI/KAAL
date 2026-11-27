@@ -1,4 +1,4 @@
-// Case controls/T1576 tests: controls/N8
+// Case controls/T1711 tests: controls/N8
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 // package-relative: the package root is the folder above this Case that holds package.json
 let pkg = dirname(fileURLToPath(import.meta.url));
 while (!existsSync(join(pkg, 'package.json'))) pkg = dirname(pkg);
-export const id = 'controls/T1576';
+export const id = 'controls/T1711';
 export const tests = ['controls/N8'];
 export const title = 'the Skill names no KAAL station and no KAAL flag: a station is a name the adopter gives, a flag is a name the adopter reads';
 const files = (dir) => readdirSync(dir).flatMap((f) => { const p = join(dir, f); return statSync(p).isDirectory() ? files(p) : [p]; });
