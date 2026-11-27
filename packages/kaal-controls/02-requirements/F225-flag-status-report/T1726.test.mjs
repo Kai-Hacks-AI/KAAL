@@ -17,7 +17,7 @@ export async function run() {
   const source = file([e('x/CTL1', 'pr', 'preventing'), e('x/CTL1', 'mg', 'advisory'), e('x/CTL2', 'pr', 'stopped'), e('x/CTL3', 'pr', 'advisory'), e('x/CTL4', 'pr', 'preventing'), e('x/CTL6', 'pr', 'maybe'), e('x/CTL9', 'pr', 'on')]);
   const controls = [
     { id: 'x/CTL1', type: 'preventive', places: ['mg', 'pr'] }, { id: 'x/CTL2', type: 'preventive', places: ['pr'] }, { id: 'x/CTL3', type: 'detective', places: ['pr'] },
-    { id: 'x/CTL4', type: 'preventive', places: ['pr'] }, { id: 'x/CTL5', type: 'preventive', places: ['pr'] }, { id: 'x/CTL6', type: 'preventive', places: ['pr'] }, { id: 'x/CTL7', type: 'directive', places: ['pr'] }];
+    { id: 'x/CTL4', type: 'preventive', places: ['pr'] }, { id: 'x/CTL5', type: 'preventive', places: ['pr'] }, { id: 'x/CTL6', type: 'detective', places: ['pr'] }, { id: 'x/CTL7', type: 'directive', places: ['pr'] }, { id: 'x/CTL8', type: 'detective', places: ['pr'] }];
   const run = (verdict, applied, blocked, id = 'r', sha) => ({ run: id, verdict, applied, blocked, ...(sha ? { sha } : {}) });
   const runs = {
     'x/CTL1': { pr: [run('PASS', false, false, 'r1'), run('FAIL', true, true, 'r2', 'tree:a')], mg: [run('REPORT', false, false, 'r3')] },
@@ -26,7 +26,7 @@ export async function run() {
     'x/CTL5': { pr: [run('FAIL', null, true, 'r6')] },
   };
   const rep = reportFlags({ controls, source, runs });
-  assert.deepEqual(rep.rows.map((x) => `${x.control}@${x.place}`), ['x/CTL1@mg', 'x/CTL1@pr', 'x/CTL2@pr', 'x/CTL3@pr', 'x/CTL4@pr', 'x/CTL5@pr', 'x/CTL6@pr']);
+  assert.deepEqual(rep.rows.map((x) => `${x.control}@${x.place}`), ['x/CTL1@mg', 'x/CTL1@pr', 'x/CTL2@pr', 'x/CTL3@pr', 'x/CTL4@pr', 'x/CTL5@pr', 'x/CTL6@pr', 'x/CTL8@pr']);
   const by = Object.fromEntries(rep.rows.map((x) => [`${x.control}@${x.place}`, x]));
   const f = (k) => { const x = by[k]; return [x.declared, x.observed, x.stamp, x.blocking, x.blocked, x.configError]; };
   assert.deepEqual(f('x/CTL1@pr'), ['PREVENTING', 'OK', 'PREVENTING', true, true, null]);
@@ -38,10 +38,11 @@ export async function run() {
   assert.deepEqual(f('x/CTL3@pr'), ['ADVISORY', 'TORN', 'TORN', false, false, null]);
   assert.deepEqual([by['x/CTL3@pr'].running, by['x/CTL3@pr'].last], [null, { run: 'r4' }]);
   assert.deepEqual(f('x/CTL4@pr'), ['PREVENTING', 'OK', 'PREVENTING', false, false, null]);
-  assert.deepEqual(f('x/CTL5@pr'), [null, null, null, null, true, 'no-flag'], 'no flag is a configuration error and not Mute, and the block is shown');
+  assert.deepEqual(f('x/CTL5@pr'), [null, null, null, null, true, 'preventive-without-flag'], 'no flag on a preventive control is a loud configuration error and not Mute, and the block is shown');
   assert.equal(by['x/CTL5@pr'].flag, null);
   assert.deepEqual(f('x/CTL6@pr'), [null, null, null, null, null, 'unrecognized-flag']);
-  assert.deepEqual(rep.findings, ['blocked-without-flag:x/CTL5@pr', 'no-flag:x/CTL5@pr', 'no-verdict:x/CTL3@pr', 'orphan-flag:x/CTL9@pr', 'unproven-preventing:x/CTL4@pr', 'unrecognized-flag:x/CTL6@pr']);
+  assert.deepEqual(f('x/CTL8@pr'), [null, null, null, null, null, 'no-flag'], 'a detective control without a flag stays no-flag');
+  assert.deepEqual(rep.findings, ['blocked-without-flag:x/CTL5@pr', 'no-flag:x/CTL8@pr', 'no-verdict:x/CTL3@pr', 'orphan-flag:x/CTL9@pr', 'preventive-without-flag:x/CTL5@pr', 'unproven-preventing:x/CTL4@pr', 'unrecognized-flag:x/CTL6@pr']);
   const only = (id, value) => file([e(id, 'pr', value)]);
   const stopped = reportFlags({ controls: [{ id: 'x/CTL2', type: 'preventive', places: ['pr'] }], source: only('x/CTL2', 'stopped'), runs: { 'x/CTL2': { pr: [run('FAIL', true, true, 'r8')] } } });
   assert.deepEqual([stopped.rows[0].stamp, stopped.rows[0].blocking, stopped.rows[0].blocked], ['STOPPED', false, true], 'the decision and the evidence are both shown');

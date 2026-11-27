@@ -27,7 +27,7 @@ export async function run() {
   const controls = [{ id: 'x/CTL1', type: 'preventive', places: ['p'] }, { id: 'x/CTL3', type: 'preventive', places: ['p'] }, { id: 'x/CTL6', type: 'detective', places: ['p'] },
     { id: 'x/CTL8', type: 'preventive', places: ['p', 'q'] }, { id: 'x/CTL7', type: 'directive', places: ['p'] }];
   const bad = validateFlags({ controls, source: src });
-  assert.deepEqual(bad, { ok: false, errors: ['no-flag:x/CTL3@p', 'no-flag:x/CTL8@q', 'unrecognized-flag:x/CTL6@p', 'unrecognized-flag:x/CTL8@p'] }, 'a missing flag, an unrecognized value and an unset one fail validation; orphans and directives do not');
+  assert.deepEqual(bad, { ok: false, errors: ['preventive-without-flag:x/CTL3@p', 'preventive-without-flag:x/CTL8@p', 'preventive-without-flag:x/CTL8@q', 'unrecognized-flag:x/CTL6@p'] }, 'a missing, unrecognized or unset flag fails validation, loudly as preventive-without-flag for a preventive control; orphans and directives do not');
   assert.deepEqual(validateFlags({ controls: [controls[0]], source: src }), { ok: true, errors: [] });
   assert.throws(() => validateFlags({ controls: [{ id: 'x/CTL1', type: 'preventive' }], source: src }));
   assert.throws(() => validateFlags({ controls, source: null }));
