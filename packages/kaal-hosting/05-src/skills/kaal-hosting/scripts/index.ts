@@ -1020,6 +1020,10 @@ export { readRevision, revision } from "./revision.js";
 export type { RevisionOptions } from "./revision.js";
 
 export { readPullRequests } from "./github/pull-requests.js";
+export { checkTemplates, PullRequestError, renderBody, renderTemplate } from "./github/templates.js";
+export type { Declaration, PullRequestErrorCode, TemplateProblem } from "./github/templates.js";
+export { raisePullRequest } from "./github/raise.js";
+export type { RaiseOptions, RaiseRequest, Raised } from "./github/raise.js";
 export type { Check, Gh, GhResult, PullRequest, PullRequestsOptions, Review, Unknown } from "./github/pull-requests.js";
 
 export { renderAppManifest } from "./github/app-manifest.js";

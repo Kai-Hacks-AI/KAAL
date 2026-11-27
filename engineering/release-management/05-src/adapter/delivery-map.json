@@ -1,0 +1,16 @@
+{
+  "inventory": [".github/workflows", ".githooks"],
+  "adapter": "packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs",
+  "rows": [
+    { "control": "release/CTL1", "delivered": ".github/workflows/engineering.yml", "entry": "engineering/release-management/05-src/stages/judge.mjs" },
+    { "control": "release/CTL2", "delivered": ".github/workflows/analyze-vulnerabilities.yml", "entry": "engineering/release-management/05-src/vulnerability-analysis/analyze.mjs" },
+    { "control": "release/CTL7", "delivered": ".github/workflows/sync-review.yml", "entry": "engineering/release-management/05-src/sync-review/cli.mjs" },
+    { "control": "release/CTL19", "delivered": ".github/workflows/verify-triggers.yml", "entry": "engineering/release-management/05-src/triggers/verify-triggers.mjs" },
+    { "control": "release/CTL34", "delivered": ".github/workflows/codeql.yml", "entry": "engineering/release-management/05-src/codeql-gate/judge-codeql-analysis.mjs" },
+    { "control": "release/CTL35", "delivered": ".github/workflows/codeql.yml", "entry": "engineering/release-management/05-src/codeql-gate/judge-codeql-findings.mjs" },
+    { "control": "release/CTL36", "delivered": ".github/workflows/verify-workflow-names.yml", "entry": "engineering/release-management/05-src/workflow-names/judge-workflow-names.mjs" }
+  ],
+  "notControls": [
+    { "path": ".github/workflows/dependency-review.yml", "reason": "runs the dependency review action only; invokes no script of the repository" }
+  ]
+}
