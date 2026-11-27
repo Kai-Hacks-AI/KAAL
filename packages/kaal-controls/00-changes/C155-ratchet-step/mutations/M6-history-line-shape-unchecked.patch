@@ -1,0 +1,10 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-ratchet.mjs
+@@ -18,7 +18,6 @@
+     const baseline = side.baseline === null ? null : JSON.parse(side.baseline);
+     if (baseline !== null && !names(baseline)) return null;
+     const history = side.history === null ? [] : side.history.split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l));
+-    if (!history.every((l) => l !== null && typeof l === 'object' && !Array.isArray(l))) return null;
+     return { baseline, history, raw: side };
+   } catch { return null; }
+ }
