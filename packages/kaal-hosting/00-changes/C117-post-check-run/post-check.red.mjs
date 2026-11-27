@@ -8,7 +8,7 @@ import * as hosting from "@kaihacksai/kaal-hosting";
 import { DISPATCHER, granted } from "../../04-test/package-check/app-fixtures.mjs";
 
 const HEAD = "1".repeat(40);
-const INSPECTOR = { ...DISPATCHER, app: "inspector", name: "KAAL Inspector", owner: "kaal-review", appId: "5953432", abilities: ["read-contents", "read-pull-requests", "post-checks"] };
+const INSPECTOR = { ...DISPATCHER, app: "inspector", name: "KAAL Inspector", owner: "kaal-review", appId: "5953432", abilities: ["read-contents", "read-pull-requests", "read-checks", "post-checks"] };
 const WORLD = {
   declarations: [{ path: "packages/kaal-review/13-source/github-apps/inspector.json", declaration: INSPECTOR }],
   appId: "5953432", slug: "kaal-inspector", installPermissions: { metadata: "read", contents: "read", pull_requests: "read", checks: "write" },
