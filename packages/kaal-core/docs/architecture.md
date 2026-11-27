@@ -23,7 +23,7 @@ The package's `exports` lists these entry points, and nothing else resolves (cor
 
 | Entry point | Module | Exports |
 | --- | --- | --- |
-| `kaal-core` | `index.ts` | `bootstrap`, `verify`, `loadEngine`, `evaluate`, `register`, `registerSkill`, `registerExtension`, `readContribution`, `catalog`, `capabilities` (deprecated), `payload`, `foundation`, `exportPayload`, `KaalError` |
+| `kaal-core` | `index.ts` | `bootstrap`, `verify`, `loadEngine`, `evaluate`, `register`, `registerSkill`, `registerExchange`, `readContribution`, `catalog`, `payload`, `foundation`, `exportPayload`, `KaalError` |
 | `kaal-core/frontmatter` | `frontmatter.ts` | `checkSchema`, `validate`, `isTypeName` |
 | `kaal-core/installation` | `installation.ts` | `installationFormat`, `checkContract`, `checkRecord`, `register` |
 | `kaal-core/agent` | `agent.ts` | `declaration`, `realize` |
@@ -40,7 +40,7 @@ The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no en
 - **`engine.ts`**: admission (core/A10, core/A11). `evaluate(files, { types })` returns `{ nodes, rejected, artifacts }`. A Node is admitted when its type resolves, by id with the name checked, to an admitted Node. A file whose `type` is a `<Capability>/<Type>` string is a typed artifact, given one of four states. `loadEngine` reads an Engine through Hosting.
 - **`admitted.ts`**: Core's own index of admitted Nodes by name and id. It is a lookup, not navigation (core/F77).
 - **`bootstrap.ts`**: `bootstrap`, `verify` and `exportPayload`. `verify` reports Nodes, typed artifacts and assembled registrations (core/A12, core/A28).
-- **`register.ts`**: registers a contribution of one kind (capability, agent, skill or extension) as a whole. All checks run before anything is written, and Hosting publishes the contribution all or nothing.
+- **`register.ts`**: registers a contribution of one kind (capability, agent, skill or exchange) as a whole. All checks run before anything is written, and Hosting publishes the contribution all or nothing.
 - **`frontmatter.ts`**: the schema format and validator (core/A1–core/A4, core/A29). It is pure, and reading YAML is the delivered Node support's.
 - **`installation.ts`**: the Installation Contract format, the record format and `register` into a record (core/A5, core/A14). Pure.
 - **`conformance.ts`**: core/T10–core/T13 as reusable cases over any contract instance (core/A31). It imports only `installation.ts`, no test harness, and no runtime entry point imports it.
@@ -52,7 +52,7 @@ The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no en
 
 ## The payload
 
-`payload/` holds `KAAL-KERNEL.md`, `AGENTS.md` and, under `core/`, the foundational Nodes `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Installation Contract` and `Agent Realization`. `kaal init` materializes it into an Engine.
+`payload/` holds `KAAL-KERNEL.md`, `AGENTS.md` and, under `core/`, the foundational Nodes `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Exchange`, and the Definitions `CASE`, `LOVE`, `Installation Contract` and `Agent Realization`. `kaal init` materializes it into an Engine.
 
 The Engine is found by content. Filenames and locations are not part of identity, so a Node keeps its id and type resolution wherever it is stored.
 
@@ -76,3 +76,10 @@ A registration is a typed artifact of Core's Type `Core/Registration` (core/A25)
 ## Release acceptance
 
 The publisher packs kaal-core and its runtime dependencies, installs the tarballs into a clean temporary directory, and runs the installed `npm test` there (core/A35). Each KAAL package it depends on is renamed and made publishable by its own owner (core/A36).
+
+## Exchange
+
+- **core/A45** [core/F89, core/F91]: The Definition is `payload/core/KAAL-Exchange.md`. `CASE.md` and the Kernel's Foundation name `KAAL Exchange`, so the Kernel id and the ids of the Definition, `CASE`, `KAAL Agent` and `AGENTS.md` changed. `foundation()` returns `exchange`.
+- **core/A46** [core/F90]: `Kind` is `capability | agent | skill | exchange`, one row each in `register.ts`. `catalog` returns `exchanges`. There is no Extension alias: kaal-core 0.0.1 is unreleased.
+- **core/A47** [core/N24]: One admission rule serves every kind: at least one Node typed by the kind's own Node, none by the other three. An Exchange adds no rule, so Core cannot read its content.
+- **core/A63** [core/F120]: `capabilities`, its `Capabilities` interface and its export are removed from `register.ts` and `index.ts`. The README and this document list `catalog` alone, and Core's own tests call `catalog(dir)`.

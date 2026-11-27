@@ -61,7 +61,7 @@ export function check(files: Files, options: EvaluateOptions = {}): Verification
   // Core's own Type, `Core/Registration`, is always validated against Core's schema (core/A25).
   const engine = evaluate(files, { ...options, types: { ...options.types, [REGISTRATION_TYPE]: REGISTRATION_SCHEMA } });
   const admitted = new Admitted(engine.nodes);
-  for (const ref of [f.node, f.definition, f.capability, f.agent, f.skill, f.extension]) {
+  for (const ref of [f.node, f.definition, f.capability, f.agent, f.skill, f.exchange]) {
     if (!admitted.resolve(ref)) problems.push(`foundational Node ${ref.name} (${ref.id}) is not admitted`);
   }
   for (const r of engine.rejected) problems.push(`${r.path}: ${r.reason}`);

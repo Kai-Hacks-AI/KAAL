@@ -16,7 +16,7 @@ describe("kaal-core Requirements loop", () => {
     const e = evaluate(payload());
     assert.deepEqual(e.rejected, []);
     const f = foundation();
-    for (const ref of [f.node, f.definition, f.capability, f.agent, f.skill, f.extension]) {
+    for (const ref of [f.node, f.definition, f.capability, f.agent, f.skill, f.exchange]) {
       assert.ok(e.nodes.some((n) => n.id === ref.id && n.name === ref.name), `${ref.name} is admitted by its id`);
     }
   });

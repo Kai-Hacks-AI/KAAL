@@ -31,7 +31,7 @@ export interface Foundation {
   capability: Ref;
   agent: Ref;
   skill: Ref;
-  extension: Ref;
+  exchange: Ref;
 }
 
 /** The genesis Node `Node`: the foundation's one root, which declares no type. */
@@ -58,7 +58,7 @@ export function foundation(): Foundation {
     capability: ref("KAAL Capability"),
     agent: ref("KAAL Agent"),
     skill: ref("KAAL Skill"),
-    extension: ref("KAAL Extension"),
+    exchange: ref("KAAL Exchange"),
   };
   return cached;
 }
