@@ -40,3 +40,7 @@ Not authorized by this PLAN. On the merged PLAN and with C114 on `main`: `script
 ## ACT
 
 The retrospective, in the ACT template's chapters, after the DO.
+
+## Amendment
+
+The Inspector fixture in the T345 to T348 drafts holds the four abilities approved for the Inspector in Review's declaration (`read-contents`, `read-pull-requests`, `read-checks`, `post-checks`), not three. No expectation of any Case changes: `postCheckRun` still needs only `post-checks` (and `read-contents`), and the installation permission `checks: write` already covers the added read. The DO delivers the drafts as amended.
