@@ -21,3 +21,7 @@ Builds the source of the check 2 replacement on the controls adapter. The instal
 ## Reads outside the check
 
 The check is pure over facts. The Git reads and the rules file stay outside it. Facts that cannot be read make the check throw, so the answer is UNKNOWN (exit 2), never a pass.
+
+## Repair: the record names the judged head
+
+The shared command line took the record's `sha` from `GITHUB_SHA`, the test merge commit of a pull_request run. It now takes it from `--head`, as release/D20 (release/C165) does for check 1. Case release/T1607.
