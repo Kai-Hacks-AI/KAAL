@@ -10,7 +10,7 @@ const ENTRY = join(repo, 'engineering/release-management/05-src/workflow-names/j
 const SOURCE = join(repo, 'engineering/release-management/05-src/wiring/workflows/change-isolation-plain.yml');
 export const id = 'release/T1575';
 export const tests = ['release/C155'];
-export const title = 'the source of the plain pull_request Change Isolation workflow is named, not KAAL and not another workflow\'s name, and its job name is unchanged';
+export const title = 'the source of the plain pull_request Change Isolation workflow is named, not KAAL and not another workflow\'s name, and its job names do not take the required context';
 export async function run() {
   const dir = mkdtempSync(join(tmpdir(), 'plain-name-'));
   try {
@@ -23,6 +23,8 @@ export async function run() {
     assert.equal(r.status, 0, r.stderr);
     const mine = JSON.parse(readFileSync(out, 'utf8')).filter((f) => f.startsWith('.github/workflows/change-isolation-plain.yml:'));
     assert.deepEqual(mine, [], `findings for the plain workflow: ${mine.join(', ')}`);
-    assert.match(readFileSync(SOURCE, 'utf8'), /^    name: Change Isolation \(plain pull_request\)$/m, 'the job name must stay');
+    const text = readFileSync(SOURCE, 'utf8');
+    assert.doesNotMatch(text, /^    name: Change Isolation$/m, 'a job must not take the required context');
+    assert.match(text, /^    name: "?Change Isolation[: ].*\(plain pull_request\)"?$/m, 'the job names stay of the plain pull_request');
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
