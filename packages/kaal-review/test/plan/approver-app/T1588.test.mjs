@@ -1,9 +1,9 @@
 // Case review/T1588 tests: review/F40. The Approver approves only from facts that Hosting produced for it, including a passing check signed by the Inspector at the same revision.
 import assert from 'node:assert/strict';
-import { evidence, facts, factOrigin, HEAD, kinds, loadApproval } from './lib.mjs';
+import { BASE, commit, RUN, evidence, facts, factOrigin, HEAD, kinds, loadApproval, MAIN } from './lib.mjs';
 export const id = 'review/T1588';
 export const tests = ['review/F40'];
-export const title = 'facts that Hosting produced for the Approver, showing a pure merge and a passing check signed by the Inspector at the same revision, are approve, and a moved head or base, a change that is not a pure merge, a check that is missing, not passing, of another revision or signed by another, a pull request of the Approver itself, a fact that Hosting did not produce, a copy of one, a fact another App read and malformed facts or evidence each abstain with their own finding, the kind of a pull request is read from the facts and not from its title, nothing that decides is taken from what the run claims, and nothing but approve or abstain is ever answered';
+export const title = 'facts that Hosting produced for the Approver, whose ancestry (the parents) shows the shape of a SYNC, read from those parents and not from a field, and a passing check signed by the Inspector at the same revision, are approve, and a moved head or base, a head whose ancestry is not the base and main (one parent, three parents, a parent that is neither, a repeated parent, a base that lags the parents of the head), a field that the facts offer about it, ancestry alone without a passing signed check, a passing signed check on the wrong ancestry, a check that is missing, not passing, of another revision or signed by another, a pull request of the Approver itself, a fact that Hosting did not produce, a copy of one, a fact another App read and malformed facts or evidence each abstain with their own finding, the kind of a pull request is read from the facts and not from its title, nothing that decides is taken from what the run claims, and nothing but approve or abstain is ever answered';
 export async function run() {
   const { makeJudgeApproval, judgeApproval: delivered } = await loadApproval();
   const judge = makeJudgeApproval({ factOrigin });
@@ -16,13 +16,44 @@ export async function run() {
   };
   abstains({ pr: { head: 'c'.repeat(40) } }, 'head-moved', 'the head moved after the evidence');
   abstains({ pr: { base: 'd'.repeat(40) } }, 'base-moved', 'the base moved after the evidence');
-  abstains({}, 'head-moved', 'a head that is not the one the facts name', facts({ head: 'e'.repeat(40) }));
-  abstains({}, 'not-pure-merge', 'a change that is not a pure merge', facts({ pureMerge: false }));
-  abstains({}, 'not-pure-merge', 'a pure-merge fact that is a word and not true', facts({ pureMerge: 'true' }));
-  abstains({}, 'not-pure-merge', 'a pure-merge fact that is absent', facts({ pureMerge: undefined }));
-  abstains({}, 'check-not-pass', 'a failed check', facts({ check: { conclusion: 'fail' } }));
-  abstains({}, 'check-not-pass', 'an unknown check', facts({ check: { conclusion: 'unknown' } }));
+  abstains({}, 'head-moved', 'a head that is not the one the facts name', facts({ head: commit('e'.repeat(40)) }));
+  const E = 'e'.repeat(40);
+  assert.equal(judge(evidence(), facts({ head: commit(HEAD, [MAIN, BASE]) })).decision, 'approve', 'the order of the two parents does not matter');
+  abstains({}, 'not-sync-ancestry', 'a head with one parent', facts({ head: commit(HEAD, [BASE]) }));
+  abstains({}, 'not-sync-ancestry', 'a head with three parents', facts({ head: commit(HEAD, [BASE, MAIN, E]) }));
+  abstains({}, 'not-sync-ancestry', 'a head with no parents', facts({ head: commit(HEAD, []) }));
+  abstains({}, 'not-sync-ancestry', 'a merge of something else than main', facts({ head: commit(HEAD, [BASE, E]) }));
+  abstains({}, 'not-sync-ancestry', 'a merge that does not have the base', facts({ head: commit(HEAD, [E, MAIN]) }));
+  abstains({}, 'not-sync-ancestry', 'a merge of the base twice', facts({ head: commit(HEAD, [BASE, BASE]) }));
+  abstains({}, 'not-sync-ancestry', 'a merge of main twice', facts({ head: commit(HEAD, [MAIN, MAIN]) }));
+  abstains({}, 'not-sync-ancestry', 'a base that lags behind the parents of the head', facts({ base: { sha: E, ref: 'kaal/review/x' } }));
+  abstains({}, 'not-sync-ancestry', 'a field that says pure merge while the parents say otherwise', facts({ pureMerge: true, head: commit(HEAD, [BASE]) }));
+  assert.equal(judge(evidence(), facts({ pureMerge: false })).decision, 'approve', 'a field of the facts that says it is not a pure merge is never read, the parents and the signed check decide');
+  // Ancestry proves the shape of a SYNC, not that nothing else was changed in the merge: only the check signed by the Inspector at the exact head says that, and neither is enough alone.
+  abstains({}, 'check-missing', 'the right ancestry without any check of its content', facts({ check: null }));
+  abstains({}, 'check-not-pass', 'the right ancestry with a failed check of its content', facts({ check: { conclusion: 'failure' } }));
+  abstains({}, 'not-sync-ancestry', 'a passing check signed by the Inspector on the wrong ancestry', facts({ head: commit(HEAD, [BASE, 'e'.repeat(40)]) }));
+  abstains({}, 'check-other-revision', 'a passing check of the content of another head', facts({ check: { revision: BASE } }));
+  abstains({}, 'check-other-signer', 'a passing check on the right ancestry signed by another than the Inspector', facts({ check: { signer: 'someone-else' } }));
+  abstains({ pr: { head: 'c'.repeat(40) } }, 'head-moved', 'a content check of a head that is no longer the head', facts({ check: { revision: 'c'.repeat(40) } }));
+  abstains({}, 'check-not-pass', 'a failed check', facts({ check: { conclusion: 'failure' } }));
+  abstains({}, 'check-not-pass', 'a check that is not complete', facts({ check: { status: 'in_progress', conclusion: null } }));
+  abstains({}, 'check-not-pass', 'a check that says success before it completed', facts({ check: { status: 'queued' } }));
   abstains({}, 'check-not-pass', 'a check with any other conclusion', facts({ check: { conclusion: 'skipped' } }));
+  abstains({}, 'check-not-pass', 'a conclusion in a word that GitHub does not use', facts({ check: { conclusion: 'pass' } }));
+  // Every run of the check at the head counts: a rerun never hides an earlier one, and the order of the list decides nothing.
+  const run = (more) => ({ ...RUN, ...more });
+  assert.equal(judge(evidence(), facts({ checks: [run({}), run({})] })).decision, 'approve', 'two runs that both passed are approve');
+  abstains({}, 'check-not-pass', 'a newer failure above an older success', facts({ checks: [run({ conclusion: 'failure' }), run({})] }));
+  abstains({}, 'check-not-pass', 'an older failure under a newer success', facts({ checks: [run({}), run({ conclusion: 'failure' })] }));
+  abstains({}, 'check-not-pass', 'a run still pending above a success', facts({ checks: [run({ status: 'in_progress', conclusion: null }), run({})] }));
+  abstains({}, 'check-other-signer', 'a second run signed by another', facts({ checks: [run({}), run({ signer: 'someone-else' })] }));
+  abstains({}, 'check-other-revision', 'a second run of another revision', facts({ checks: [run({}), run({ revision: 'c'.repeat(40) })] }));
+  abstains({}, 'check-missing', 'an empty list of runs', facts({ checks: [] }));
+  abstains({}, 'check-missing', 'runs of other checks only', facts({ checks: [run({ name: 'verify Delivery' })] }));
+  assert.equal(judge(evidence(), facts({ checks: [run({}), run({ name: 'verify Delivery', conclusion: 'failure' })] })).decision, 'approve', 'a run of another check is not a run of verify Sync');
+  abstains({}, 'check-missing', 'the former single check field is no longer read', facts({ checks: undefined, check: run({}) }));
+  abstains({}, 'check-missing', 'a pure list of runs that is not a list', facts({ checks: run({}) }));
   abstains({}, 'check-other-revision', 'a check of another revision', facts({ check: { revision: 'c'.repeat(40) } }));
   abstains({}, 'check-other-signer', 'a check signed by another', facts({ check: { signer: 'someone-else' } }));
   abstains({}, 'check-missing', 'another check than verify Sync', facts({ check: { name: 'verify Delivery' } }));
@@ -45,7 +76,7 @@ export async function run() {
   assert.ok(kinds(other).includes('facts-other-reader'), `expected facts-other-reader, got ${kinds(other)}`);
 
   // The delivered judgement asks Hosting's own registry, which no hand-built fact is in.
-  const handBuilt = delivered(evidence(), { head: HEAD, base: 'b'.repeat(40), main: 'f'.repeat(40), pureMerge: true, author: 'someone', check: { name: 'verify Sync', revision: HEAD, conclusion: 'pass', signer: 'inspector' }, source: 'hosting' });
+  const handBuilt = delivered(evidence(), { head: commit(), base: { sha: BASE, ref: 'r' }, main: MAIN, author: 'someone', check: { name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'inspector' }, source: 'hosting' });
   assert.equal(handBuilt.decision, 'abstain', 'the delivered judgement believes no hand-built fact');
   assert.ok(kinds(handBuilt).includes('facts-unattributed'));
 
@@ -62,15 +93,18 @@ export async function run() {
   raw(evidence(), null, 'malformed-evidence', 'null facts');
   raw(evidence(), 'hosting', 'malformed-evidence', 'facts that are text');
   raw(evidence(), facts({ base: undefined }), 'malformed-evidence', 'facts without a base');
+  raw(evidence(), facts({ head: HEAD }), 'malformed-evidence', 'a head that is a revision and not a commit with its parents');
+  raw(evidence(), facts({ head: { sha: HEAD } }), 'malformed-evidence', 'a head without parents');
+  raw(evidence(), facts({ head: { sha: HEAD, parents: BASE + MAIN } }), 'malformed-evidence', 'parents that are not a list');
 
   const claimed = evidence();
   claimed.content = { pureMerge: true };
-  claimed.check = { name: 'verify Sync', revision: HEAD, conclusion: 'pass', signer: 'inspector' };
-  assert.equal(judge(claimed, facts({ pureMerge: false })).decision, 'abstain', 'a pure merge that the run claims and the facts deny abstains');
-  assert.equal(judge(claimed, facts({ check: { conclusion: 'fail' } })).decision, 'abstain', 'a check that the run claims and the facts deny abstains');
+  claimed.checks = [{ name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'inspector' }];
+  assert.equal(judge(claimed, facts({ head: commit(HEAD, [BASE]) })).decision, 'abstain', 'a pure merge that the run claims and the parents deny abstains');
+  assert.equal(judge(claimed, facts({ check: { conclusion: 'failure' } })).decision, 'abstain', 'a check that the run claims and the facts deny abstains');
   assert.equal(judge(claimed, facts({ check: null })).decision, 'abstain', 'a check that only the run claims is not a check');
   const withTitle = { ...evidence(), pr: { ...evidence().pr, title: 'SYNC: kaal/review/x', ref: 'kaal/review/x' } };
-  assert.equal(judge(withTitle, facts({ pureMerge: false })).decision, 'abstain', 'a pull request that is titled and branched like a SYNC is not a SYNC by content');
+  assert.equal(judge(withTitle, facts({ head: commit(HEAD, [BASE]) })).decision, 'abstain', 'a pull request that is titled and branched like a SYNC is not a SYNC by content');
   const unlike = { ...evidence(), pr: { ...evidence().pr, title: 'a change of mine', ref: 'feature/x' } };
   assert.equal(judge(unlike, facts()).decision, 'approve', 'a pure merge with an unlike title and branch is a SYNC by content');
 

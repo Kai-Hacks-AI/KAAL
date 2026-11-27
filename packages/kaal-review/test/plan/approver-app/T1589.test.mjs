@@ -47,7 +47,7 @@ export async function run() {
     assert.equal(r.decision, 'abstain', 'missing or malformed execution must abstain');
     assert.deepEqual(kinds(r), ['execution-unproven'], 'and say that it is unproven, only');
   }
-  const both = judgeApproval(evidence({ execution: { checkedOutHead: true } }), facts({ check: { conclusion: 'fail' } }));
+  const both = judgeApproval(evidence({ execution: { checkedOutHead: true } }), facts({ check: { conclusion: 'failure' } }));
   assert.equal(both.decision, 'abstain');
   assert.deepEqual(kinds(both), ['check-not-pass', 'head-checked-out'], 'every reason is named, the facts of the pull request and the execution together');
 }
