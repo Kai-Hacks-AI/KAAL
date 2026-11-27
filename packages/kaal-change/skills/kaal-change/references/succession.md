@@ -10,6 +10,6 @@ In the Change's record, list each hard predecessor under `succeeds` with three p
 
 Keep three questions apart. Which Change is depended on is the identity. Which version it was written against is the pin. Whether it is delivered is neither: unchanged bytes can sit on work that never merged, and delivered work can differ from the bytes pinned.
 
-When a predecessor's record is edited, every Change that pins it must be read again and pinned anew; nothing does that for you. Do not state successors or overlapping files: both are derived from the other records.
+When a predecessor's record is edited, every Change that pins it must be read again and pinned anew; nothing does that for you. Say it either way: write `succeeds: []` when the Change has no hard predecessor. An empty list means none, while an absent `succeeds` says nothing and can be required to be answered. Do not state successors or overlapping files: both are derived from the other records.
 
 `readSuccession(records, { pinOf })` from `@kaihacksai/kaal-change/succession` returns the valid edges and the findings for the records it is given.

@@ -2,7 +2,7 @@ import type { SuccessionFinding, SuccessionRecord } from './succession.mjs';
 export type PredecessorFinding =
   | SuccessionFinding
   | { kind: 'elsewhere' | 'undelivered'; change: string; predecessor: string }
-  | { kind: 'unreadable'; fact: 'pinOf' | 'main' | 'carried' | 'elsewhere' | 'delivered' };
+  | { kind: 'unreadable'; fact: 'pinOf' | 'main' | 'carried' | 'elsewhere' | 'delivered' | 'require' };
 export interface PredecessorResult { kind: 'pass' | 'fail' | 'unknown'; findings: PredecessorFinding[]; note?: string }
 export function checkPredecessor(facts: {
   pinOf: (text: string) => string;
@@ -10,4 +10,5 @@ export function checkPredecessor(facts: {
   carried: readonly SuccessionRecord[];
   elsewhere: readonly SuccessionRecord[];
   delivered: readonly string[];
+  require?: readonly string[];
 }): PredecessorResult;
