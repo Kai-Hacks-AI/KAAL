@@ -1,6 +1,6 @@
 // The thin adapter between a pure check and the world. Pure: it reads no file and calls no service.
 // A concern joins it only when every control needs it: the mode, the ratchet filter, failing closed, one log line, one record.
-import { judgeMode } from './judge-mode.mjs';
+import { judgeMode } from './lib/judge-mode.mjs';
 const MODES = ['detective', 'preventive', 'ratchet'];
 const FACTS = ['defined', 'implemented', 'running', 'tested'];
 const VERDICTS = ['PASS', 'FAIL'];

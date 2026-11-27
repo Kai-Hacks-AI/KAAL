@@ -52,3 +52,17 @@ Nothing else about either Case changes.
 ### PLAN amendment 2, reconciled with C162
 
 F18 and T591 now state both contracts: `files` is `skills` plus the `!` shim entries (this Change), and `publishConfig` is `{access: public}` (C162, #2841). Neither amendment drops the other. T591 needs both package.json changes to be GREEN; the C160 DO carries the identical `publishConfig` line so the collector stays GREEN on its own, and git merges the identical line cleanly at promotion.
+
+## DO
+
+The five scripts that read files now have a pure library under `skills/kaal-controls/scripts/lib/` (`find-controls`, `check-controls`, `evidence`, `registry`, `judge-mode`): each takes the files as a map of path to bytes and imports no `fs`, `child_process`, `os` or platform path code. The files at the old paths are DEPRECATED shims that import the library and keep the command line, the directory walk, the git read and the line-ending normalisation; `package.json` `files` leaves them out with `!` entries. The references name the library functions; `--records` stays mentioned for the shims because the older Case T1090 asks for it. `publishConfig` `{access: public}` is carried identically to C162 (amendment 2).
+
+Result: T1710, T591 and T479 GREEN; the package suite 116 of 116 GREEN. Mutations, each alone turns T1710 RED: an `fs` import back in a library file; a shim dropped from `files`.
+
+Follow-up Change (later): delete the shims once engineering's hosting-based callers (C45, #2843) are on main. Promotion note: C161 also edits `find-controls.mjs`; expect a conflict to reconcile (the stations input and the library move).
+
+DO finding (Engineering check on the first push): release/T1431 runs the workflow's own steps with only `judge-mode.mjs` and `ratchet.mjs` fetched from another revision, so a `judge-mode.mjs` shim that imports `./lib/judge-mode.mjs` was UNKNOWN there. The `judge-mode.mjs` shim therefore keeps its own copy of `judgeMode` (nine lines, importing only `./ratchet.mjs`) and goes away with the shim; the other shims import the library. Release's Case is not changed. The engineering Cases that run on this tree are GREEN here apart from environment failures (`kaal-core` not built in this sandbox).
+
+## Promotion order (CTO)
+
+C160 promotes before C161 (controls/C161). C160 defines the library layout under `scripts/lib/`; C161 then merges main once in its collector and resolves four files (`scripts/find-controls.mjs`, `scripts/registry.mjs`, `references/enforcing-controls.md`, N8): the stations input goes into the library functions (`findControls(files, { stations })`, `registryAt(files, station, stations)`), the shims keep `--stations`, N8 keeps both paragraphs. The resolved tree is on branch `claude/project-thread-063rup-c160-c161-integration`: package suite 117 of 117 GREEN, release/T1431 GREEN. KAAL's callers pass KAAL's stations in engineering's Change that adopts the package (C45).

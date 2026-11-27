@@ -17,7 +17,7 @@ The rule is strict on purpose: a change that resolves a finding must also remove
 
 ## Keep it removable
 
-Build the ratchet as a filter in front of the verdict, not inside the check. The check stays pure and only emits findings. The ratchet step subtracts the allowance from those findings and keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline the filter removes nothing, so it is an identity. Ending the ratchet is then deleting the filter step and the baseline, and the check and its Cases are not touched. `applyBaseline` in `scripts/judge-mode.mjs` is that filter. Use it only with the verdict that also blocks on a grown baseline, a stale allowance and an unknown answer, not on what remains alone: a grown baseline leaves nothing remaining and would pass. `judgeMode` does this.
+Build the ratchet as a filter in front of the verdict, not inside the check. The check stays pure and only emits findings. The ratchet step subtracts the allowance from those findings and keeps the allowance honest; what remains is judged like any preventive check. With an empty baseline the filter removes nothing, so it is an identity. Ending the ratchet is then deleting the filter step and the baseline, and the check and its Cases are not touched. `applyBaseline` in `scripts/lib/judge-mode.mjs` is that filter. Use it only with the verdict that also blocks on a grown baseline, a stale allowance and an unknown answer, not on what remains alone: a grown baseline leaves nothing remaining and would pass. `judgeMode` does this.
 
 ## Across runs
 
@@ -33,6 +33,6 @@ A ratchet is temporary and says how it ends. When the target is achieved and the
 
 ## The script
 
-`scripts/judge-mode.mjs` does the comparison: `node judge-mode.mjs --mode <detective|preventive|ratchet> --findings <file> [--baseline <file> --previous <file>]`, JSON lists of names in (`previous` is the last accepted baseline), a verdict out (`PASS`, `REPORT`, `FAIL`, `UNKNOWN`), exit 0 when nothing is blocked, 1 when blocked, 2 when it could not judge. Treat 2 as a stop, and a missing or malformed input file as a stop. For a ratchet it also gives the baseline the next run must hold, and says when the baseline is empty and the control becomes preventive.
+`judgeMode({ mode, findings, baseline, previous })` in `scripts/lib/judge-mode.mjs` does the comparison: `mode` is detective, preventive or ratchet, `findings`, `baseline` and `previous` are lists of names (`previous` is the last accepted baseline), and a verdict comes out (`PASS`, `REPORT`, `FAIL`, `UNKNOWN`). A caller blocks on `FAIL` and `UNKNOWN`. Treat a missing or malformed input as a stop. For a ratchet it also gives the baseline the next run must hold, and says when the baseline is empty and the control becomes preventive.
 
 You supply the rest: where the last accepted baseline is read from, stable finding names, writing the next baseline, making the verdict stop the action, who may change the mode, and the evidence for each.
