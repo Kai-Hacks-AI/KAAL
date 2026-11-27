@@ -8,9 +8,9 @@ const S = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
 const load = async (rel) => { const f = join(S, rel); assert.ok(existsSync(f), `scripts/${rel} is absent`); return import(pathToFileURL(f).href); };
 export const id = 'controls/T1724';
 export const tests = ['controls/F224'];
-export const title = 'an unknown flag is a configuration error found before execution and never off or on: validateFlags fails it, toBoundary refuses it, the valid flags reach the adapter unchanged, and a legacy caller that blocks without a flag is shown, with the file code naming no adopter, platform or path';
+export const title = 'an unknown flag is a configuration error found before execution and never off or on: validateFlags fails it, toBoundary refuses it, decideOutcome pins the pipeline outcome (a preventive configuration failure is red with no verdict, a detective one is a finding with exit 0, enforcement follows an explicit flag only), the valid flags reach the adapter unchanged, and a legacy caller that blocks without a flag is shown, with the file code naming no adopter, platform or path';
 export async function run() {
-  const { parseFlags, flagSource, validateFlags } = await load('flags.mjs');
+  const { parseFlags, flagSource, validateFlags, decideOutcome } = await load('flags.mjs');
   const { toBoundary, judgeStamp } = await load('stamp.mjs');
   const { runControl } = await load('adapter.mjs');
   const e = (control, name, value) => ({ control, place: 'p', name, value });
@@ -41,6 +41,29 @@ export async function run() {
   const asRun = (r) => ({ run: r.record.run, verdict: r.verdict, applied: r.record.applied, blocked: r.blocked });
   const j = judgeStamp({ declared: 'UNKNOWN', runs: [asRun(legacy)] });
   assert.deepEqual([j.declared, j.stamp, j.blocked, j.reasons], [null, null, true, ['blocked-without-flag', 'config-error']], 'unknown is not Mute, and what blocked is shown');
+  // the pipeline outcome: a configuration failure is a CI failure and never control enforcement, and enforcement follows an explicit flag only
+  const one = (c) => validateFlags({ controls: [c], source: src });
+  const file = { id: 'x/CTL3', type: 'preventive', places: ['p'] };
+  const pv = decideOutcome({ validation: one(file), runs: [] });
+  assert.deepEqual(pv, { outcome: 'CONFIG_FAILED', enforcement: 'none', exit: 1, reasons: ['preventive-without-flag:x/CTL3@p'] }, 'a preventive control without a flag: red, merge stops, no verdict');
+  const pu = decideOutcome({ validation: one({ id: 'x/CTL6', type: 'preventive', places: ['p'] }), runs: [] });
+  assert.deepEqual([pu.outcome, pu.exit, pu.reasons], ['CONFIG_FAILED', 1, ['preventive-without-flag:x/CTL6@p']], 'an invalid value on a preventive control is the same');
+  const dm = decideOutcome({ validation: one({ id: 'x/CTL3', type: 'detective', places: ['p'] }), runs: [] });
+  assert.deepEqual(dm, { outcome: 'CONFIG_FAILED', enforcement: 'none', exit: 0, reasons: ['no-flag:x/CTL3@p'] }, 'a detective control without a flag: a finding, job green');
+  const du = decideOutcome({ validation: one({ id: 'x/CTL6', type: 'detective', places: ['p'] }), runs: [] });
+  assert.deepEqual([du.outcome, du.enforcement, du.exit, du.reasons], ['CONFIG_FAILED', 'none', 0, ['unrecognized-flag:x/CTL6@p']]);
+  const missingFile = validateFlags({ controls: [file, { id: 'x/CTL3', type: 'detective', places: ['q'] }], source: flagSource([]) });
+  assert.deepEqual(decideOutcome({ validation: missingFile, runs: [] }).reasons, ['no-flag:x/CTL3@q', 'preventive-without-flag:x/CTL3@p'], 'a missing file is every entry missing');
+  assert.equal(decideOutcome({ validation: missingFile, runs: [] }).exit, 1);
+  assert.throws(() => decideOutcome({ validation: bad, runs: [{ control: 'x/CTL1', place: 'p', applied: true, blocked: true }] }), undefined, 'nothing runs after a failed validation');
+  const ok = validateFlags({ controls: [controls[0]], source: src });
+  const lr = (r, c) => ({ control: c, place: 'p', applied: r.record.applied, blocked: r.blocked });
+  assert.deepEqual(decideOutcome({ validation: ok, runs: [lr(on, 'x/CTL1')] }), { outcome: 'BLOCKED', enforcement: 'authorized', exit: 1, reasons: ['blocked:x/CTL1@p'] }, 'an explicit preventing flag enforces by verdict');
+  assert.deepEqual(decideOutcome({ validation: ok, runs: [lr(off, 'x/CTL2')] }), { outcome: 'PASSED', enforcement: 'none', exit: 0, reasons: [] }, 'an advisory finding does not stop');
+  assert.deepEqual(decideOutcome({ runs: [lr(legacy, 'x/CTL7')] }), { outcome: 'BLOCKED', enforcement: 'legacy', exit: 1, reasons: ['blocked-without-flag:x/CTL7@p'] }, 'a legacy caller with no boundary.flag runs as asked and is shown');
+  assert.deepEqual(decideOutcome({ runs: [] }), { outcome: 'PASSED', enforcement: 'none', exit: 0, reasons: [] });
+  assert.throws(() => decideOutcome({ runs: 'x' }));
+  assert.throws(() => decideOutcome({ validation: { ok: 'yes' }, runs: [] }));
   const text = readFileSync(join(S, 'flags.mjs'), 'utf8') + readFileSync(join(S, 'stamp.mjs'), 'utf8');
   for (const bad2 of ['node:fs', 'node:child_process', 'process.env', 'github', 'GitHub', 'engineering/', 'KAAL_', 'fetch(']) assert.ok(!text.includes(bad2), `the flag code contains ${bad2}`);
 }
