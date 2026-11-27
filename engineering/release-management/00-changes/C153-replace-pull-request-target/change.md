@@ -37,6 +37,27 @@ The CPO's sequence, per check:
 
 Evidence is required before enforcement, never before the detective installation. Dropping a check is the fallback only: if a check has no evidence by 2 December, the Owner decides on dropping it, and a drop is an explicit Owner decision per check and its own listed step.
 
+## Amendment: the evidence before enforcement, per control
+
+Step 3 and 4 above leave open how much evidence a check needs and where it is kept. This chapter settles both. It adds no step and changes none.
+
+**What counts as evidence.** A real run (`x: real`) of the delivered job, written as a record through the controls adapter and collected by release/C162 into files, bound to its run and revision. A fixture run, a hand-written record, a record of a verdict that does not apply, and a pull request body are not evidence. The DIRT Running fact (controls/C158, `judgeRunning`) reads the same records, and a missing proof is UNKNOWN, never permission.
+
+**Agreement.** Each replacement must agree with the old check on the same revision of every comparable pull request: the old check green means PASS, red means FAIL. A pull request the old check did not run on is not a disagreement and not evidence. Any disagreement blocks enforcement until the Owner decides it, and the decision is recorded.
+
+**How many.** At least 5 comparable runs for each situation listed below, and no fewer than 15 comparable runs in all for a check. The situations matter more than the time they take: there is no minimum span.
+
+| Check | Controls | Situations to be observed |
+| --- | --- | --- |
+| 1 Change Isolation | release/CTL42, release/CTL23 | PASS on an ordinary change; PASS on a WIRE (`.github` alone); FAIL on `.github` mixed with another path (provoked); a verified synchronization judged by its own resolutions only; a head already on the default branch (not applicable) |
+| 2 Branching | release/CTL37, release/CTL38, release/CTL39 | CTL37: fresh PASS, stale FAIL (provoked). CTL38: valid synchronization PASS, ordinary Change not applicable, invalid synchronization FAIL (provoked). CTL39: right method PASS, wrong method FAIL (provoked), auto-merge off not applicable |
+| 3 admission | `release/C157` (a `notControls` row, no entry) | admitted PASS and refused FAIL on real pull requests |
+| 4 Promotion Source | release/CTL40, release/CTL41 | valid source PASS; invalid source FAIL (provoked); a pull request that is not a promotion not applicable |
+
+A provoked failure is a throwaway pull request made on purpose and closed after its run. An outcome that never occurs on real pull requests in the situations above is provoked, not waited for.
+
+**Where it is kept.** In files, never in pull request bodies: one file per check, `00-changes/C153-replace-pull-request-target/evidence/check-<n>.md`, with a table of the runs (run id, revision, pull request, verdict, the old check's verdict on the same revision) and the agreement result. The Owner's decisions (enforcement, the swap, the retirement of the old workflow, and a drop on 2 December) are recorded in this Change's record, one line each. The trusted-execution proof is kept apart and is required as before, not replaced by run evidence.
+
 ## Not in this Change
 
 No replacement is built here, no WIRE, flag, required check or ruleset change. The live rulesets are read, not assumed, before the first swap. Whether `approve Sync` and `review Sync` keep working is not decided here.
