@@ -180,6 +180,13 @@ Each Requirement names, in brackets, the [Intents](intent.md) it serves. Functio
 - **hosting/F89** [hosting/I19]: **One implementation, two ways in, discoverable.** The Skill ships `scripts/github/pull-requests-cli.mjs`, declared as the command `kaal-hosting-pulls --repository <owner/name>`; it calls `readPullRequests` through `pull-requests-command.ts` and prints one `kaal-hosting-pulls {…}` line of facts, exit 0 when read and 2 when not, never 1. The Skill, its operation guide, the shipped Agent instructions and the README name the function and the command and say when to use them instead of calling `gh`.
 - **hosting/N13** [hosting/I19]: Reading pull requests adds no runtime dependency, reads only, and sends no secret anywhere; the command inherits the credentials of the `gh` the environment is signed in to and prints none.
 
+## Waiting on GitHub
+
+- **hosting/F108** [hosting/I24]: **`pollSchedule(n)`** is the wait in seconds before read n + 1 of a poll: 20 s for the first three reads, then 10 s longer each time up to 120 s. `n` that is not a positive integer is `INVALID_WAIT`.
+- **hosting/F109** [hosting/I24]: **`refusalOf(failure, { now? })`** returns `{ refused, wait? }`. A failure is a status with headers, the text a command printed, or an error holding either. It is refused for 429 and 5xx, and for 403 together with a sign of the rate limit (`x-ratelimit-remaining: 0`, a `retry-after`, or the words "rate limit"); a 403 about a permission, any other status and anything that is not a failure are not refused. `wait` is what GitHub asked for, in seconds: `retry-after`, else the reset time less the clock (0 once passed); a hint that is not a number is no hint.
+- **hosting/F110** [hosting/I24]: **`retryWait(attempt, wait?)`** is the wait before the next attempt: 20 s doubling to 120 s by attempt, or the time GitHub asked for, never over 120 s and never under 1 s. An attempt that is not a positive integer, or a `wait` that is negative or not a number, is `INVALID_WAIT`.
+- **hosting/F111** [hosting/I24]: **`retryRead(read, { attempts?, sleep?, now? })`** calls `read(attempt)`; a refusal waits `retryWait` and reads again, up to `attempts` (an integer from 1 to 10, default 5; no wait after the last), and any other failure is rethrown at once and unchanged. Refusals to the end are `READ_REFUSED`, naming the attempts. It holds no grant and sends nothing of its own: what is read, and with which authority, is the caller's read. Only `attempts`, `sleep` and `now` are options; any other option, a `token` among them, a read that is not a function and attempts outside the range are `INVALID_WAIT` before any read.
+
 ## Listing without what the caller leaves out
 
 These extend hosting/F72. Where they differ, these win.
