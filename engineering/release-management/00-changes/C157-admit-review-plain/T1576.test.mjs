@@ -15,7 +15,7 @@ export async function run() {
   assert.doesNotMatch(text, /^\s+pull_request_target:/m, 'the source must not use pull_request_target as a trigger');
   const name = /^name:\s*(.+?)\s*$/m.exec(text)?.[1];
   assert.equal(name, "Change Isolation admission on pull_request", 'the workflow name');
-  const others = readdirSync(join(repo, '.github/workflows')).concat(readdirSync(join(repo, 'engineering/release-management/05-src/wiring/workflows')).filter((f) => f !== 'change-isolation-admission-plain.yml'));
+  const others = readdirSync(join(repo, '.github/workflows')).concat(readdirSync(join(repo, 'engineering/release-management/05-src/wiring/workflows'))).filter((f) => f !== 'change-isolation-admission-plain.yml');
   assert.ok(!others.some((f) => [join(repo, '.github/workflows', f), join(repo, 'engineering/release-management/05-src/wiring/workflows', f)].some((p) => existsSync(p) && new RegExp('^name:\\s*' + name.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&') + '\\s*$', 'm').test(readFileSync(p, 'utf8')))), 'the workflow name is not unique');
   assert.match(text, /^    name: Change Isolation \(review, plain pull_request\)$/m, 'the detective job name');
   assert.doesNotMatch(text, /^    name: Change Isolation$/m, 'it must not take the required context before the swap');
