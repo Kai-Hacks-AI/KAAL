@@ -18,23 +18,37 @@ const OVERLAP = Object.freeze(["overlaps", "conflicts", "files"]);
 const compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const unquote = (value) => value.trim().replace(/^(["'])(.*)\1$/, "$2");
 
-/** The frontmatter of a record as its top-level keys and the `succeeds` items, or nothing when there is none. */
+/**
+ * The frontmatter of a record: its top-level keys, the `succeeds` items, and the reasons the statement cannot be read.
+ * A statement that cannot be read is never taken for no statement: it is reported, so no consumer passes over it.
+ */
 function front(text) {
+  const empty = { keys: new Set(), items: [], problems: [] };
   const lines = String(text).replace(/\r\n/g, "\n").split("\n");
-  if (lines[0] !== "---") return { keys: new Set(), items: [] };
+  if (lines[0] !== "---") return empty;
   const end = lines.indexOf("---", 1);
-  if (end < 0) return { keys: new Set(), items: [] };
+  if (end < 0) return { ...empty, problems: ["the frontmatter is not closed, so the record states nothing readable"] };
   const keys = new Set();
   const items = [];
+  const problems = [];
   let inside = false;
+  let stated = 0;
+  let none = false;
   for (const line of lines.slice(1, end)) {
     const top = /^([A-Za-z][A-Za-z0-9_-]*):(.*)$/.exec(line);
     if (top) {
-      keys.add(top[1]);
       inside = top[1] === "succeeds";
+      if (inside) {
+        stated += 1;
+        const value = top[2].trim();
+        if (value !== "" && value !== "[]") problems.push("succeeds is not a list of entries { change, pin, because }");
+        else if (value === "[]") { inside = false; none = true; }
+      }
+      keys.add(top[1]);
       continue;
     }
     if (!inside) continue;
+    if (line.trim() === "" || /^\s*#/.test(line)) continue;
     const start = /^\s*-\s+([A-Za-z][A-Za-z0-9_-]*):(.*)$/.exec(line);
     if (start) {
       items.push({ [start[1]]: unquote(start[2]) });
@@ -42,8 +56,11 @@ function front(text) {
     }
     const more = /^\s+([A-Za-z][A-Za-z0-9_-]*):(.*)$/.exec(line);
     if (more && items.length) items[items.length - 1][more[1]] = unquote(more[2]);
+    else problems.push(`a line under succeeds is not part of an entry: ${line.trim()}`);
   }
-  return { keys, items };
+  if (stated > 1) problems.push("succeeds is stated more than once");
+  if (stated === 1 && !none && items.length === 0 && !problems.length) problems.push("succeeds states no entry");
+  return { keys, items, problems };
 }
 
 /** The Changes in a cycle, each group sorted, groups sorted by their first Change (change/F12). */
@@ -83,7 +100,8 @@ export function readSuccession(records, { pinOf }) {
 
   for (const record of given) {
     const change = record.identity;
-    const { keys, items } = front(record.text);
+    const { keys, items, problems } = front(record.text);
+    for (const reason of problems) findings.push({ kind: "malformed", change, predecessor: "", reason });
     for (const key of DERIVED) if (keys.has(key)) findings.push({ kind: "derived-stated", change, key });
     for (const key of OVERLAP) if (keys.has(key)) findings.push({ kind: "overlap-stated", change, key });
 

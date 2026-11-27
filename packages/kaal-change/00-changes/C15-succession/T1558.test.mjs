@@ -16,6 +16,11 @@ export async function run() {
   assert.deepEqual(kinds(at(succeeds(entry('release/C1', 'nothex')))), ['malformed']);
   assert.deepEqual(kinds(at(succeeds(entry('C1', p)))), ['malformed']);
   assert.deepEqual(kinds(at(succeeds(entry('release/C1', p), entry('release/C1', p)))), ['duplicate']);
+  // A statement that cannot be read is reported, never taken for no statement (CPO hold on #2726).
+  for (const bad of ['succeeds: invalid\n', 'succeeds:\n', 'succeeds:\n  - invalid\n', 'succeeds: [{ change: release/C1 }]\n', 'succeeds:\n  change: release/C1\n', 'succeeds: []\nsucceeds: []\n'])
+    assert.deepEqual(kinds(at(bad)), ['malformed'], JSON.stringify(bad));
+  assert.deepEqual(kinds(at('succeeds: []\n')), [], 'an explicit empty list states nothing');
+  assert.deepEqual(kinds(readSuccession([{ identity: 'change/C2', text: '---\nid: change/C2\nsucceeds: invalid\n' }], { pinOf })), ['malformed'], 'an unclosed frontmatter');
   const f = at(succeeds(entry('release/C1', p, ''))).findings[0];
   assert.equal(f.change, 'change/C2');
   assert.equal(f.predecessor, 'release/C1');
