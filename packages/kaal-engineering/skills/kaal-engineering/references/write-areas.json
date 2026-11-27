@@ -34,7 +34,7 @@
     {"type": "ACT", "may": ["ACT"]},
     {"type": "SYNC", "may": []},
     {"type": "PROMOTION", "may": ["PLAN", "DO", "ACT"]},
-    {"type": "HOTFIX", "may": ["PLAN", "DO"], "recognised": "branch hotfix/*"},
-    {"type": "WIRE", "may": [], "recognised": "branch wire/*", "elsewhere": "delivery-locations (release A67)"}
+    {"type": "HOTFIX", "may": ["PLAN", "DO"]},
+    {"type": "WIRE", "may": []}
   ]
 }
