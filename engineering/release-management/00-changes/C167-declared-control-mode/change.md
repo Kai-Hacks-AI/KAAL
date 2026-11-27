@@ -29,7 +29,10 @@ A file that cannot be parsed counts as every entry missing.
 | any | `stopped` | not run | none | 0, job green | none | none |
 | (no `boundary.flag` at all, legacy) | none | as C158 asked; a block gives BLOCKED | legacy | 1 when it blocks | the verdict | `blocked-without-flag:<id>@<place>` |
 
-Release's entries never take the legacy row: they always validate and pass the flag. Not applicable writes no record in any case.
+Release's entries never take the legacy row: they always validate and pass the flag.
+
+### Validation comes before applicability
+A broken flag is a fact about the repository, not about one pull request, so the configuration is validated for the control and place first (controls/F224 item 7), and only then does the entry decide whether the control applies to the pull request. An unknown decision therefore fails CI on every pull request, including one the control does not apply to: exit 1, nothing runs, no record. When the configuration is valid and the control does not apply, the entry answers zero and writes no record, whatever the flag (preventing, advisory or stopped). Not applicable writes no record in any case.
 
 ### Consequence for adopting it
 Because every unknown decision is red, adopting `validateFlags` with an absent or incomplete flag file turns every adopting job red, detective ones included. So an entry adopts the flag only in the same reviewed change as the file: `flags.json` carries an entry for each control the entry runs (value `advisory` while it is detective, `on` after the Owner's flip), and the adoption of an entry is a WIRE on the Owner's separate go, per check. This Change's DO writes the helper and its tests only; it neither writes the file nor adopts it in any workflow.
@@ -44,7 +47,7 @@ Because every unknown decision is red, adopting `validateFlags` with an absent o
 - T1630: the helper passes the control's declared mode for the station of the target and the flag of control and place from the base's `flags.json` into `runControl` after `validateFlags`, and requests `detective` when the declaration is missing. With the file missing, the entry missing or the value invalid, it still goes through `validateFlags` (never an absent flag) and the outcome is a CONFIG_FAILED row of the table, never a pass.
 - T1631: one fixture per check family (1, 2 and 4) passes mode and flag through unchanged and decides nothing about them. The table is asserted row by row: for every control type, the file missing, the entry missing or the value invalid exits 1, job red, writes no verdict record and shows `preventive-without-flag:<id>@<place>` (declared preventive) or `no-flag` or `unrecognized-flag` (declared detective or none); a file that cannot be parsed is every entry missing. Unknown decision and unknown result stay apart: with `on`, only PASS exits 0; FAIL blocks as authorized, REPORT blocks with `unexpected-verdict-while-preventing`, and a run with no verdict (Torn or Mute) blocks as an unknown result; with `advisory` none of these blocks; with `stopped` the control does not run. Written against controls' T1724, T1725 and T1726 and fails if they differ.
 - T1632: a head that carries an edited control record or `flags.json` gets the base's mode and flag.
-- T1633: not applicable answers zero and writes no record whatever the mode and flag.
+- T1633: validation comes before applicability. With an unknown decision (file, entry or value missing or invalid), an entry for which the control does not apply exits 1, runs nothing and writes no record, for a declared preventive and a declared detective control alike. With a valid flag (on, advisory or stopped), a control that does not apply answers zero and writes no record. The control record that cannot be read answers UNKNOWN before applicability too.
 - T1634: no entry names a mode literal and none maps a flag value to a mode or sets its own exit code (a ratchet against all three), so the record, the instance and the library are the only sources.
 All red until the DO, which waits for controls/C158 and C164 on main.
 
