@@ -20,7 +20,7 @@ A fact Hosting makes is a statement others rely on: it must not claim what was n
 2. Accept list: none.
 3. Feature Cases, RED today. Executable drafts in this folder (`post-check-contract.red.mjs`; red on `main` with C117, green on the implementation they describe). The DO turns them into delivered Cases **unchanged**.
    - hosting/T354: the external id is reported only as GitHub returned it; another, a missing, an empty and a non-text one are `CHECK_MISMATCH` with one request each; none asked, none reported, and an invented one is `CHECK_MISMATCH`.
-   - hosting/T355: every key outside the check, with each of five falsy values, and every option key with `undefined`, is refused before any call; `externalId: undefined` is allowed and means none.
+   - hosting/T355: every key outside the check, with each of five falsy values, and every option key with `undefined`, and a symbol key of the check or of the options, is refused before any call; `externalId: undefined` is allowed and means none.
 
 ## Not in this Change
 

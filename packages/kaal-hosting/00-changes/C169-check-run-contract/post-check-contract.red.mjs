@@ -55,6 +55,11 @@ it("hosting/T355: postCheckRun refuses any key outside the check, whatever its v
   for (const key of ["token", "abilities", "check", "declaration", "extra"]) {
     await assert.rejects(hosting.postCheckRun("o/r", check, { ...p.opts, [key]: undefined }), (e) => e.code === "INVALID_CHECK", `${key} as an option`);
   }
+  // A symbol key is a key too: it is refused for being there, as a key of the check and as a key of the options.
+  for (const value of [undefined, "x"]) {
+    await assert.rejects(hosting.postCheckRun("o/r", { ...check, [Symbol("extra")]: value }, p.opts), (e) => e.code === "INVALID_CHECK", `a symbol key of the check: ${String(value)}`);
+    await assert.rejects(hosting.postCheckRun("o/r", check, { ...p.opts, [Symbol("extra")]: value }), (e) => e.code === "INVALID_CHECK", `a symbol key of the options: ${String(value)}`);
+  }
   assert.equal(p.api.requests.length, p.mark, "every refusal came before any call");
   // The listed keys stay allowed with no value: an external id of undefined is none.
   const { externalId: _drop, ...bare } = check;
