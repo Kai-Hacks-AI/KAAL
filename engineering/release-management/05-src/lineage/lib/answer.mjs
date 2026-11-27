@@ -32,8 +32,9 @@ const at = (argv, k) => { const i = argv.indexOf(k); return i < 0 ? undefined : 
 // `applies(ctx)` says whether the verdict is of this pull request at all; `read(ctx)` reads its facts from Git, and may throw: facts that cannot be read are UNKNOWN.
 export async function cli({ label, check, applies, read, argv = process.argv.slice(2), env = process.env, cwd = process.cwd(), out = console.log }) {
   const ctx = { head: at(argv, '--head'), baseRef: at(argv, '--base-ref'), defaultBranch: env.KAAL_DEFAULT, headRef: env.KAAL_HEAD_REF, enabled: env.KAAL_AUTO_MERGE || null, rules: env.KAAL_RULES || undefined, cwd };
-  const known = env.GITHUB_RUN_ID && env.GITHUB_SHA;
-  const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(env.GITHUB_SHA) } : undefined;
+  // The record names the head judged (release/C165), never GITHUB_SHA, which on pull_request is the test merge commit of the run.
+  const known = env.GITHUB_RUN_ID && ctx.head;
+  const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(ctx.head) } : undefined;
   let facts;
   try {
     if (!ctx.head || !ctx.baseRef || !ctx.defaultBranch) throw new Error('the job supplied no head, target or default branch');
