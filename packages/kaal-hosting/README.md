@@ -18,6 +18,7 @@ It needs Node 24 or later.
 | `@kaihacksai/kaal-hosting/conformance` | `inspect`, `couplings`, `OS_BOUNDARY` and `osBoundary`: inspections of another capability's sources. Importing the main entry does not load it. |
 | `@kaihacksai/kaal-hosting/boundary` | `boundary`, `boundarySuite`, `portability` and `portabilitySuite`: the conformance suite, the only entry that loads `node:test` |
 | `@kaihacksai/kaal-hosting/fixtures` | `facts` and `specialEntries`: host facts established by trying them, and the fixture that needs one |
+| `@kaihacksai/kaal-hosting` (GitHub Apps) | `renderAppManifest`, `mintToken`, `grantAbilities`, `grantIdentity`, `listBranches`, `compareRevisions`, `listPullRequests`, `readRef`, `listReviews`, `readPullRequestFacts`, `factOrigin`, `checkLogo`, `AppAdapterError`: the adapter for the KAAL Apps. |
 | `kaal-hosting-boundary` | the suite as a command: `kaal-hosting-boundary --name <name> --root <dir> [--builtin <module>]… [--applicability <file>]` |
 | `kaal-hosting-boundary --target` | the Boundary Check scan: `kaal-hosting-boundary --target <path>… [--base <dir>] [--name <name>]` lists where a file or folder decides by platform, one finding per source line, as evidence and never as a verdict |
 | `dist/skills/kaal-hosting/references/` | `boundary-result.md`, the reading instructions for what the suite puts to judgment, and `hosts.md`, the per-host guide |

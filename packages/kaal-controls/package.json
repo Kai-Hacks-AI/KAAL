@@ -11,7 +11,8 @@
     "!skills/kaal-controls/scripts/check-controls.mjs",
     "!skills/kaal-controls/scripts/evidence.mjs",
     "!skills/kaal-controls/scripts/find-controls.mjs",
-    "!skills/kaal-controls/scripts/registry.mjs"
+    "!skills/kaal-controls/scripts/registry.mjs",
+    "!skills/kaal-controls/scripts/flag-status-command.mjs"
   ],
   "publishConfig": {
     "access": "public"

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DEPRECATED shim: the command line of the station registry, kept at its old path for callers that have not moved to hosting yet (controls/C160).
+// DEPRECATED shim: the command line of the station registry, kept at its old path for callers that have not moved to hosting yet.
 // It is not published (package.json files). The library is lib/registry.mjs. Delete this file when its callers read through hosting.
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// DEPRECATED shim: the command line of the finder, kept at its old path for callers that have not moved to hosting yet (controls/C160).
+// DEPRECATED shim: the command line of the finder, kept at its old path for callers that have not moved to hosting yet.
 // It is not published (package.json files). The library is lib/find-controls.mjs. Delete this file when its callers read through hosting.
 //
 //   node find-controls.mjs [directory]     prints { controls, refused } as JSON
