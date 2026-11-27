@@ -25,7 +25,7 @@ The package's `exports` lists these entry points, and nothing else resolves (cor
 | --- | --- | --- |
 | `kaal-core` | `index.ts` | `bootstrap`, `verify`, `loadEngine`, `evaluate`, `register`, `registerSkill`, `registerExtension`, `readContribution`, `catalog`, `capabilities` (deprecated), `payload`, `foundation`, `exportPayload`, `KaalError` |
 | `kaal-core/frontmatter` | `frontmatter.ts` | `checkSchema`, `validate`, `isTypeName` |
-| `kaal-core/installation` | `installation.ts` | `installationFormat`, `checkContract`, `checkRecord`, `register` |
+| `kaal-core/installation` | `installation.ts` | `installationFormat`, `checkContract`, `checkRecord`, `register`, `judgeSetupIndependence` |
 | `kaal-core/agent` | `agent.ts` | `declaration`, `realize` |
 | `kaal-core/realization` | `realization.ts` | `realizeIn`, `record` |
 | `kaal-core/conformance` | `conformance.ts` | `installationConformance` |
@@ -52,7 +52,7 @@ The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no en
 
 ## The payload
 
-`payload/` holds `KAAL-KERNEL.md`, `AGENTS.md` and, under `core/`, the foundational Nodes `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Installation Contract` and `Agent Realization`. `kaal init` materializes it into an Engine.
+`payload/` holds `KAAL-KERNEL.md`, `AGENTS.md` and, under `core/`, the foundational Nodes `Node`, `KAAL Definition`, `KAAL Capability`, `KAAL Agent`, `KAAL Skill` and `KAAL Extension`, and the Definitions `CASE`, `LOVE`, `Installation Contract`, `Setup Independence` and `Agent Realization`. `kaal init` materializes it into an Engine.
 
 The Engine is found by content. Filenames and locations are not part of identity, so a Node keeps its id and type resolution wherever it is stored.
 
@@ -72,6 +72,11 @@ A registration is a typed artifact of Core's Type `Core/Registration` (core/A25)
 - **The runner** (core/A34). `npm test` is `node test/run.mjs`. In an installation, which it recognizes when the package directory sits directly in a `node_modules` directory, it runs `test:consumer` alone. In the source workspace it runs every declared `test:<name>` suite. An ambiguous or damaged layout, or a missing suite, is `cannot verify` before any suite runs.
 - **The verifier** (core/A43). `test:consumer` is `node test/verify.mjs`. It checks every file against the manifest, then runs each delivered test file in a scratch directory, compares the cases that ran with the declared cases, and prints one execution record and one result line. Details are in [Testing](testing.md).
 - **The OS boundary** (core/A44). The runner and verifier reach the host only through @kaihacksai/kaal-hosting and hash only through Foundation. The one exception is the verifier's scratch directory, made with Node's portable temporary-directory call and removed afterwards, because Hosting offers no scratch directory today.
+
+## Setup independence
+
+- **core/A64** [core/F121]: A Definition of its own, `payload/core/Setup-Independence.md`, typed by `KAAL Definition`. The Installation Contract Definition is not touched, so its id, and every contract that names it as its `format`, stay valid. It states the property, the two shared packages, and the three judgements (declared, demonstrated, accepted) in those words.
+- **core/A65** [core/F122, core/F123, core/F124, core/N32]: `judgeSetupIndependence` in `src/installation.ts`, exported from `kaal-core/installation` with the contract's other checks. It takes the parsed `package.json`, never a path, so it reads no file and Core stays host-free. It returns `{ declared, demonstrated, acceptable, findings }`, where `demonstrated` is always `"unknown"`, and each finding is `{ field, name, accepted }` in a stable order by field then package. The two shared names are constants of the Definition, not a parameter.
 
 ## Release acceptance
 

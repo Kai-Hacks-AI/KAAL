@@ -77,6 +77,12 @@
       "source": "payload/core/Node.md",
       "target": ".kaal/core/Node.md",
       "kind": "file"
+    },
+    {
+      "name": "core/Setup-Independence.md",
+      "source": "payload/core/Setup-Independence.md",
+      "target": ".kaal/core/Setup-Independence.md",
+      "kind": "file"
     }
   ],
   "catalogue": {
@@ -115,6 +121,9 @@
     ],
     ".kaal/core/Node.md": [
       "c9097c4ff01faeb44847b89e21319f0dc4adfd4945437af071141995e31b4663"
+    ],
+    ".kaal/core/Setup-Independence.md": [
+      "32f6824b90322a233f7f6f5bc980e16200eaf06b1269575d90a804d388b95787"
     ]
   },
   "record": ".kaal/state/core/installation.json",

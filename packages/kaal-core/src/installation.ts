@@ -171,3 +171,63 @@ export function register({ contract, record, written }: Registration): Installat
   }
   return record === undefined ? { assets } : { ...record, assets };
 }
+
+// Setup independence (core/C162): what a capability package declares it needs at run time. Pure:
+// the caller passes the parsed `package.json`, so Core reads no file (core/N4).
+
+/** The two KAAL packages a setup-independent package may need: the Definition's, and no caller's to change (core/F121). */
+const SHARED = Object.freeze(["@kaihacksai/kaal-foundation", "@kaihacksai/kaal-hosting"]);
+const KAAL_PACKAGE = /^(@kaihacksai\/)?kaal-[a-z][a-z0-9-]*$/;
+
+export interface SetupFinding {
+  /** The manifest field that names the package. */
+  readonly field: "dependencies" | "optionalDependencies" | "bundleDependencies" | "peerDependencies";
+  readonly name: string;
+  /** Whether the adopter accepted this package for its setup (core/F124). */
+  readonly accepted: boolean;
+}
+
+export interface SetupIndependence {
+  /** What the manifest declares (core/F122). */
+  readonly declared: "independent" | "dependent" | "unknown";
+  /** Always `unknown` from Core, which runs nothing: an isolated installation is another's evidence (core/F123). */
+  readonly demonstrated: "unknown";
+  /** True only when `declared` is known and every finding is accepted. It judges the setup, never the package (core/F124). */
+  readonly acceptable: boolean;
+  readonly findings: readonly SetupFinding[];
+}
+
+const NAMED_FIELDS = ["dependencies", "optionalDependencies", "peerDependencies"] as const;
+
+/**
+ * The runtime needs a package declares, judged against setup independence (core/F121–core/F124).
+ * `accepted` is the adopter's list of KAAL packages it accepts in a setup; it never changes
+ * `declared`. A manifest or dependency field that is not the shape it should be is `unknown`,
+ * never independent (core/N32).
+ */
+export function judgeSetupIndependence(manifest: unknown, options: { accepted?: readonly string[] } = {}): SetupIndependence {
+  const unknown: SetupIndependence = { declared: "unknown", demonstrated: "unknown", acceptable: false, findings: [] };
+  if (!isObject(manifest)) return unknown;
+  const accepted = new Set(options.accepted ?? []);
+  const needs: { field: SetupFinding["field"]; name: string }[] = [];
+  for (const field of NAMED_FIELDS) {
+    if (!has(manifest, field)) continue;
+    const value = manifest[field];
+    if (!isObject(value)) return unknown;
+    const optional = field === "peerDependencies" && isObject(manifest.peerDependenciesMeta) ? manifest.peerDependenciesMeta : undefined;
+    for (const name of Object.keys(value)) {
+      if (field === "peerDependencies" && optional && isObject(optional[name]) && optional[name].optional === true) continue;
+      needs.push({ field, name });
+    }
+  }
+  if (has(manifest, "bundleDependencies")) {
+    const bundled = manifest.bundleDependencies;
+    if (!Array.isArray(bundled) || !bundled.every((n) => typeof n === "string")) return unknown;
+    for (const name of bundled) needs.push({ field: "bundleDependencies", name });
+  }
+  const findings = needs
+    .filter(({ name }) => KAAL_PACKAGE.test(name) && !SHARED.includes(name))
+    .map(({ field, name }) => ({ field, name, accepted: accepted.has(name) }))
+    .sort((a, b) => (a.field < b.field ? -1 : a.field > b.field ? 1 : a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  return { declared: findings.length === 0 ? "independent" : "dependent", demonstrated: "unknown", acceptable: findings.every((f) => f.accepted), findings };
+}
