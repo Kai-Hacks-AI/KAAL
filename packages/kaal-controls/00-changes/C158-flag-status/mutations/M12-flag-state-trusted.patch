@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/judge-running.mjs
+@@ -11,7 +11,7 @@
+   if (f === null || typeof f !== 'object' || Array.isArray(f)) return null;
+   if (f.state === 'UNKNOWN') return f.name === null && f.value === null ? 'UNKNOWN' : null;
+   if (typeof f.name !== 'string' || f.name === '' || !(f.value === null || typeof f.value === 'string')) return null;
+-  return f.state === (f.value === 'on' ? 'on' : 'off') ? f.state : null;
++  return f.state;
+ };
+ 
+ // Whether one counted record shows the control applied: true (flag on, a mode that ran), false (switched off, mode off), or null when it is not told or contradicts itself.

@@ -38,6 +38,21 @@ export async function run() {
   r = await go({ records: [rec({ mode: 'preventive', flag: off })] }); assert.equal(r.applied, null);
   r = await go({ records: [rec({ flag: undefined })] }); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: null, modes: ['preventive'], runs: 1 });
   r = await go({ records: [rec({ mode: undefined })] }); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: null, modes: [], runs: 1 });
+  // a flag that is not consistent with itself is malformed, so applied is unknown: the state must follow the value, and the name must be text
+  for (const [why, record] of [
+    ['value off but state on', rec({ flag: { name: 'KAAL_X_Y', value: 'off', state: 'on' } })],
+    ['value null but state on', rec({ flag: { name: 'KAAL_X_Y', value: null, state: 'on' } })],
+    ['value on but state off', rec({ mode: 'off', applied: false, flag: { name: 'KAAL_X_Y', value: 'on', state: 'off' } })],
+    ['name missing', rec({ flag: { value: 'on', state: 'on' } })],
+    ['name empty', rec({ flag: { name: '', value: 'on', state: 'on' } })],
+    ['value not text or null', rec({ flag: { name: 'KAAL_X_Y', value: 1, state: 'on' } })],
+    ['state not one of on, off, UNKNOWN', rec({ flag: { name: 'KAAL_X_Y', value: 'on', state: 'maybe' } })],
+    ['unknown state with a name or value', rec({ flag: { name: 'KAAL_X_Y', value: 'on', state: 'UNKNOWN' } })],
+    ['flag not an object', rec({ flag: 'on' })],
+  ]) { r = await go({ records: [record] }); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: null, modes: [record.mode], runs: 1 }, why); }
+  r = await go({ records: [rec({ flag: { name: 'KAAL_X_Y', value: 'off', state: 'on' } }), rec({ run: 'r0' })], established: [est(), est('r0')] }); assert.equal(r.applied, true, 'one consistent applied run among others still applies');
+  // an unknown flag as the adapter writes it is consistent: nothing is told
+  r = await go({ records: [rec({ flag: { name: null, value: null, state: 'UNKNOWN' }, applied: null })] }); assert.deepEqual(r, { id: 'x/CTL1', running: true, applied: null, modes: ['preventive'], runs: 1 });
   // what does not count is ignored and never counted against the control
   for (const [why, record, established] of [
     ['not established', rec(), []],
