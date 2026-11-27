@@ -28,8 +28,8 @@ export async function run() {
   assert.deepEqual(rr({ lines: line({ verdict: 'FAIL' }), old: { conclusion: 'failure', identity: A } }), ['A', 'agrees']);
   assert.deepEqual(rr({ old: { conclusion: 'failure', identity: A } }), [null, 'disagrees']);
   assert.deepEqual(rr({ lines: line({ verdict: 'REPORT' }) }), [null, 'disagrees']);
-  assert.deepEqual(rr({ old: null }), ['V', 'old-not-run-on-revision']);
-  assert.deepEqual(rr({ old: { conclusion: 'success', identity: B } }), ['V', 'old-not-run-on-revision']);
+  assert.deepEqual(rr({ old: null }), ['V', 'old-not-run-on-identity']);
+  assert.deepEqual(rr({ old: { conclusion: 'success', identity: B } }), ['V', 'old-not-run-on-identity']);
   assert.deepEqual(rr({ situation: 'break', provoked: true, expect: 'FAIL', lines: line({ verdict: 'FAIL' }), old: null }), ['P', 'provoked-as-expected']);
   assert.deepEqual(rr({ situation: 'break', provoked: true, expect: 'FAIL', lines: line({ verdict: 'PASS' }), old: null }), [null, 'provoked-not-expected']);
   // UNKNOWN is never counted: not an A, not a P, not an agreement of two unknowns

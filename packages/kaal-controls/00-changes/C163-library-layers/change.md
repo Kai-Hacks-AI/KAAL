@@ -33,7 +33,7 @@ A retro entry in the collector.
 3. **Shim lifetime.** The old paths stay until Engineering C45 and Release's T1431 no longer fetch them. `ratchet.mjs` and `judge-mode.mjs` stay a self-contained pair, because T1431 fetches only those two.
 4. **Mode `ratchet`.** Accepted at the public entry only, read as preventive with strategy `ratchet`. In the library it is UNKNOWN, blocked, `no-mode`.
 5. **CTL6 baseline.** The ratchets that compute their own allowance today are adopted by Release in its own Change. Wiring and blocking are the Owner's go.
-6. **Strict revision in execution.** Making `executed`, `findEvidenceDue` and `runAdapterRatchet` demand an identity is a later Change, after hosting/C118 is on main, because existing Cases pass labels as identities.
+6. **Strict identity in execution.** Stated in F218 items 5 to 7: the end state is that every ratchet comparison and evidence record is bound to the identity of the examined content; the transition is named; the strict adoption is a separate Change gated on hosting/C118, and this restructure is not npm-ready until it is on main.
 7. **Evidence collector.** Release declares per-check counts and swap criteria; Controls owns the reading and the format.
 
 ## Not here
@@ -43,3 +43,7 @@ No DO, WIRE, flag, workflow, baseline adoption, required check, ruleset, npm pub
 ## PLAN record
 
 On this tree the ten Cases T1713 to T1722 are RED, each because the file it loads is absent (T1718 because the shim marker is absent), and the 116 Cases that exist stay GREEN. They were run GREEN against a throwaway implementation in a scratch copy that is not committed (the throwaway suite had one expected difference: T591, which pins `files` to `["skills"]`, must take the `!` entries in the DO, as C160 does on its collector). The DO moves the old paths to deprecated shims and keeps the pair `ratchet.mjs` and `judge-mode.mjs` self-contained for release/T1431.
+
+## End state and acceptance (CPO hold)
+
+The intended contract is in F218 items 5 to 7: every ratchet comparison and evidence record is bound to the identity of the content actually examined, not a Git revision or a label. What this Change delivers is the rule, the collector and the CTL6 ratchet, all in identity terms. What stays transitional is named: `executed`, `findEvidenceDue` and `runAdapterRatchet` keep `revision`. Acceptance of the strict adoption (a separate Change, gated on hosting/C118 on main): no evidence function accepts an unnamed or non-matching identity, one Case each, and the `revision` parameters are gone or deprecated shims. The npm publish waits for it and remains a separate Owner go. No DO, WIRE or publish is authorized here.
