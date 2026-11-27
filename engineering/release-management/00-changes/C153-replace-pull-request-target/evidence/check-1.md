@@ -80,4 +80,4 @@ Runs created after 17:09 UTC and the runs of #2787 and #2811 (before the HOTFIX,
 
 ## Open
 
-A PASS on a WIRE needs 5 and has {cnt['PASS on a WIRE (`.github` alone)']}: any further WIRE revision counts. The count is the CPO's to accept: the HOTFIX establishes eligibility, not automatic credit.
+A PASS on a WIRE needs 5 and has 4 (of 5): any further WIRE revision counts. The count is the CPO's to accept: the HOTFIX establishes eligibility, not automatic credit.

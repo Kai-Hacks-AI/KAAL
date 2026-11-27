@@ -2,7 +2,7 @@
 
 Admission is not verification and has no PASS or FAIL record, so no refused pull request is asked for. Counts follow release/C153, chapter "Amendment: the evidence before enforcement, per control". Read by script from every run of `change-isolation-admission-plain.yml` created from 12:05 UTC (its WIRE) until 17:09 UTC, and every `merge_group` run of `merge-group-review.yml` in the same time.
 
-## Count at the head of this file
+## Count at the head of this file (numerical thresholds only; the trusted-execution proof is separate, see Open)
 
 | Situation | Required | Counting |
 | --- | --- | --- |
@@ -133,4 +133,4 @@ The cause of any failed merge-group run (46037928392, first group of #2884) is n
 
 ## Open
 
-The trusted-execution proof is still required before any enforcement. The count is the CPO's to accept.
+The thresholds above (5 admitted revisions, 5 merge-group runs) are numerical only. The trusted-execution proof is a separate requirement that is NOT yet in this ledger: it is required before the enforcement go, and counts alone do not authorize enforcement. The counts are the CPO's to accept.

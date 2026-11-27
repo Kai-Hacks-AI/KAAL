@@ -14,7 +14,7 @@ Counts follow release/C153, chapter "Amendment: the evidence before enforcement,
 | CTL39 auto-merge | FAIL | P | 3 | 0 |
 | All entries | A | 15 | 36 |
 
-## Counting A (record names the head, old check agrees)
+## Counting A (PASS only, record names the head, old check agrees)
 
 | Branch | Revision (head) | Run | Entry | Verdict | Old check `Branching` |
 | --- | --- | --- | --- | --- | --- |
@@ -54,6 +54,13 @@ Counts follow release/C153, chapter "Amendment: the evidence before enforcement,
 | #2891 (probe, a merge of main) | 530e63fd3dd0e3e68b3bcf185bc84733a8e3b5c0 | probe | CTL37 freshness | PASS | success |
 | #2892 (probe, a merge of main) | acdee033fb2b1991d48ca2fe85a1b2ba01e2569c | probe | CTL37 freshness | PASS | success |
 | #2893 (probe, a merge of main) | 2e5dac54b7cf5506bd8f556a416e356cbf1d6c8f | probe | CTL37 freshness | PASS | success |
+
+## Verified verdict, not counted as A (a REPORT with the old check failing)
+
+A natural failure on which the old check and the new entry agree. It is a verdict observation, not a PASS agreement, and it is not in the A total above (which counts PASS rows only). It is also not provoked, so it is not counted as P.
+
+| Branch | Revision (head) | Run | Entry | Verdict | Old check `Branching` |
+| --- | --- | --- | --- | --- | --- |
 | kaal/release/promotion-source-plain | dd4d97a1671877920933220b1f3edba12c4d435a | 46032357568 | CTL37 freshness | REPORT | failure |
 
 ## Counting P (provoked, REPORT with old failure, same revision)
