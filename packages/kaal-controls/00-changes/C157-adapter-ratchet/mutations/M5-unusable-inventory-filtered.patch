@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter-ratchet.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter-ratchet.mjs
+@@ -11,7 +11,7 @@
+ export async function runAdapterRatchet({ controls, delivered, observed, revision, scope, baseline, previous, boundary } = {}) {
+   const check = () => {
+     if (!text(revision) || !text(scope)) throw new Error('runAdapterRatchet: revision and scope must be non-empty strings');
+-    if (!usable(delivered, revision, scope)) throw new Error('runAdapterRatchet: the delivered inventory is not usable');
++    if (!usable(delivered, revision, scope)) return [];
+     return findUnadapted({ controls, delivered: delivered.entries, observed, revision });
+   };
+   return runControl({ id: 'controls/CTL1', mode: 'ratchet', check, baseline, previous, boundary });
