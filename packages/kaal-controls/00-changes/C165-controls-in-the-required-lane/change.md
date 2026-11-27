@@ -1,5 +1,9 @@
 # C165 change
 
+## Stopgap (Kai)
+
+This Change is a stopgap for controls only, until the suites are registered with Guard (every suite registers once and Guard's required fold runs it on a pull request and in the merge group, so none can fall outside). Controls goes to npm first, so it gets the fix now. The other packages outside the workspaces get no per-package patch and wait for Guard. When Guard's registration covers the controls suite, this Change's workspace entry is retired or kept only if Guard asks for it.
+
 ## PLAN
 
 1. Record the intent I33, the Requirement F227 and the Case T1729 (plain `.test.mjs`, never renamed). The Case reads the root `package.json` and `package-lock.json` and the package's own `package.json`. It is RED on `main` (`packages/kaal-controls` is not in the root `workspaces`) and was run GREEN against a throwaway copy of the two root files with the entry added, which is not committed. The package's other Cases stay GREEN and unchanged.
@@ -25,7 +29,7 @@ A retro entry in the collector.
 
 1. **How the package joins.** As a workspace, so no new lane and no new required check exists (Release's finding). The alternative, a line in the Workspaces lane or a new job, would add a mechanism and a required name for no gain.
 2. **What the lane now runs.** The package's `npm test` (`node --test test/*.test.mjs`) on one host (Linux), as for every workspace but Hosting. Its Cases that read the repository (they locate the root by `/packages/`) run in the full tree, where they have their siblings. The duration is measured in the DO and recorded; if the lane's time grows by more than the Owner wants, that is a decision for the Owner, not a reason to leave the suite out.
-3. **Other packages outside the workspaces.** `kaal-architecture`, `kaal-backlog`, `kaal-defect`, `kaal-engineering`, `kaal-guard`, `kaal-research` and `kaal-retro` are also not workspaces. They are other capabilities' and out of this Change. The same gap may apply to them, and I say so to Engineering and Release rather than decide it here.
+3. **Other packages outside the workspaces.** `kaal-architecture`, `kaal-backlog`, `kaal-defect`, `kaal-engineering`, `kaal-guard`, `kaal-research` and `kaal-retro` are also not workspaces. They are other capabilities' and out of this Change. The same gap applies to them, and by Kai's decision they wait for Guard's registration and get no per-package patch.
 4. **Merge group.** The Workspaces lane runs on `merge_group` (`ci.yml`), so being a workspace is enough. A check that a required lane covers every package that has a suite would be a general Case for Engineering to own; none is added here.
 5. **Collector.** `kaal/controls/workspace-lane`, branched from the tip of `main`. It never holds anything else back.
 
