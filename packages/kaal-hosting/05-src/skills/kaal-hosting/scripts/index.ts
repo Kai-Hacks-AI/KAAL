@@ -1039,3 +1039,5 @@ export { compareRevisions, listBranches, listPullRequests, listReviews, readPull
 export type { CheckRunFact, Compared, PullRequestFact, PullRequestFacts, ReadOptions, ReviewFact } from "./github/app-reads.js";
 export { factOrigin } from "./github/facts.js";
 export type { FactOrigin } from "./github/facts.js";
+export { postCheckRun } from "./github/app-checks.js";
+export type { CheckOptions, CheckRequest, PostedCheckFact } from "./github/app-checks.js";
