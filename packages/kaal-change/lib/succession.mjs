@@ -1,6 +1,6 @@
 // What a Change Record states about the Changes it succeeds (change/C15).
 //
-// readSuccession(records, { pinOf }) reads the records it is given, each as
+// readSuccession(records, { pinOf, require }) reads the records it is given, each as
 // { identity, text }, and returns the valid Edges and the findings. It is
 // pure: it reads no file, no process and no network, and it names no host.
 // Which records to read, and from where, is the caller's. The pin is the
@@ -92,9 +92,10 @@ function cycles(edges) {
 }
 
 /** Reads the succession the records state: the valid Edges, the findings and the derived successors. */
-export function readSuccession(records, { pinOf }) {
+export function readSuccession(records, { pinOf, require = [] }) {
   const given = [...records].sort((a, b) => compare(a.identity, b.identity));
   const byIdentity = new Map(given.map((record) => [record.identity, record]));
+  const required = new Set(Array.isArray(require) ? require : []);
   const findings = [];
   const edges = [];
 
@@ -102,6 +103,8 @@ export function readSuccession(records, { pinOf }) {
     const change = record.identity;
     const { keys, items, problems } = front(record.text);
     for (const reason of problems) findings.push({ kind: "malformed", change, predecessor: "", reason });
+    // A required record has answered when it holds the key: entries, or an explicit empty list for none.
+    if (required.has(change) && !keys.has("succeeds") && !problems.length) findings.push({ kind: "undeclared", change });
     for (const key of DERIVED) if (keys.has(key)) findings.push({ kind: "derived-stated", change, key });
     for (const key of OVERLAP) if (keys.has(key)) findings.push({ kind: "overlap-stated", change, key });
 
