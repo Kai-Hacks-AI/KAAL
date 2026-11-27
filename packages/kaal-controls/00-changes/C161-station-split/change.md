@@ -34,3 +34,7 @@ The Case controls/T928 (under controls/A12) requires the word `Integrating` in `
 Source: `findControls(files, { stations })` takes the adopter's station names as input and throws on anything but a list of non-empty names; the built-in KAAL list is gone. The CLIs take `--stations a,b,c`. The references use the neutral example `Merging`. The Cases that need stations (T920, T921, T1110, T1118) pass them as input. T1711 GREEN, package suite 116 of 116 GREEN. Mutations: a KAAL station back in the finder, and in a reference, each alone turns T1711 RED.
 
 Handoff: engineering's callers pass KAAL's stations in the Change that adopts the package. Conflict note: C160 and C161 both touch `find-controls.mjs`; expect a conflict at promotion.
+
+## Promotion order (CTO)
+
+C161 promotes after C160 (controls/C160), which moves the finder and the registry into `scripts/lib/` and leaves shims at the old paths. When the C161 collector merges main after C160, it resolves four files (`scripts/find-controls.mjs`, `scripts/registry.mjs`, `references/enforcing-controls.md`, N8): `findControls(files, { stations })` and `registryAt(files, station, stations)` live in `scripts/lib/`, the shims keep `--stations`, N8 keeps both paragraphs. The resolved tree is on branch `claude/project-thread-063rup-c160-c161-integration` (package suite 117 of 117 GREEN). No Case changes.
