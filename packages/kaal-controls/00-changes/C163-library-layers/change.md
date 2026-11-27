@@ -7,12 +7,12 @@
 
 ## The shape (Kai's model)
 
-1. `scripts/lib/contract.mjs`: the verdicts and the revision rule, importing nothing (F218).
+1. `scripts/lib/contract.mjs`: the verdicts and the content-identity rule (opaque, as testing/C84), importing nothing (F218).
 2. `scripts/lib/judge-mode.mjs`, `scripts/lib/run-control.mjs`: the fixed steps evaluate, evidence, verdict, with a named strategy handed in by the caller (F219).
 3. `scripts/lib/ratchet/`: the ratchet library, a sibling, the first strategy. The controls library never imports it (F220, A214).
 4. `scripts/adapter.mjs` is the composition root: it hands `{ ratchet }` to the library and still accepts mode `ratchet`. Old paths stay as deprecated shims (F221).
 5. `controls/CTL6` verify Ratchet use: a ratchet that does not use the library is a finding (F222).
-6. `scripts/lib/collect-evidence.mjs`: one pure reader of `kaal-control` lines and one ledger format, the judged-revision check inside (F223). Release declares its counts; running it on each completed check run as an event is a Release WIRE on the Owner's go.
+6. `scripts/lib/collect-evidence.mjs`: one pure reader of `kaal-control` lines and one ledger format, the examined-identity check inside (F223). Release declares its counts; running it on each completed check run as an event is a Release WIRE on the Owner's go.
 
 ## DO
 
@@ -20,7 +20,7 @@ Not authorized by this PLAN. On its merge into the collector, and with C158 to C
 
 1. The files above, the shims, the `files` entries and one paragraph in the references that own the contracts.
 2. Cases T1713 to T1722 GREEN; the package suite GREEN, with the new Cases counted.
-3. Mutation patches with a runner for each weakening: the library imports the ratchet, an invalid strategy answer accepted, mode ratchet accepted in the library, the shim pair not self-contained, a ratchet with unknown observation allowed, the merge sha counted as the judged revision, a duplicate revision counted twice.
+3. Mutation patches with a runner for each weakening: the library imports the ratchet, an invalid strategy answer accepted, mode ratchet accepted in the library, the shim pair not self-contained, a ratchet with unknown observation allowed, a record of another identity than the examined one counted, a duplicate identity counted twice.
 
 ## ACT
 
@@ -28,12 +28,12 @@ A retro entry in the collector.
 
 ## Design questions, with the recommendation taken unless the Owner says otherwise
 
-1. **Where the revision rule lives.** `lib/contract.mjs` holds it until Testing C84 and Hosting C118 are on main, then Foundation holds it for both. N8 forbids depending on Testing, so the rule is stated here and checked by a drift Case later.
+1. **Where the identity rule lives.** The approved testing/C84 is source-agnostic: an opaque non-blank string, compared exactly, no format. `lib/contract.mjs` holds the same rule; Hosting C118 provides the identity (contentIdentity, Git only as provenance). N8 forbids depending on Testing, so the rule is stated here and a drift Case can pin it later.
 2. **Strategy slot.** The caller passes `strategies` (name to `{ judge }`); the library never looks one up by itself. The composition root is `scripts/adapter.mjs` and the command at `scripts/judge-mode.mjs`.
 3. **Shim lifetime.** The old paths stay until Engineering C45 and Release's T1431 no longer fetch them. `ratchet.mjs` and `judge-mode.mjs` stay a self-contained pair, because T1431 fetches only those two.
 4. **Mode `ratchet`.** Accepted at the public entry only, read as preventive with strategy `ratchet`. In the library it is UNKNOWN, blocked, `no-mode`.
 5. **CTL6 baseline.** The ratchets that compute their own allowance today are adopted by Release in its own Change. Wiring and blocking are the Owner's go.
-6. **Strict revision in execution.** Making `executed`, `findEvidenceDue` and `runAdapterRatchet` demand a full commit id is a later Change, after testing/C84 and hosting/C118 are on main, because existing Cases pass labels as revisions.
+6. **Strict revision in execution.** Making `executed`, `findEvidenceDue` and `runAdapterRatchet` demand an identity is a later Change, after hosting/C118 is on main, because existing Cases pass labels as identities.
 7. **Evidence collector.** Release declares per-check counts and swap criteria; Controls owns the reading and the format.
 
 ## Not here
