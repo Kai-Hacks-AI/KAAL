@@ -60,5 +60,5 @@ jobs:
           name: verdicts
       - name: Post one check per control
         env:
-          INSPECTOR_PRIVATE_KEY: ${{ secrets.INSPECTOR_PRIVATE_KEY }}
+          KAAL_APP_INSPECTOR_KEY: ${{ secrets.KAAL_APP_INSPECTOR_KEY }}
         run: node packages/kaal-controls/skills/kaal-controls/scripts/sign.mjs --verdicts verdicts.json --revision "$HEAD_SHA" --run "$GITHUB_RUN_ID"
