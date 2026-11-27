@@ -1,0 +1,42 @@
+// Case controls/T1728 tests: controls/F225
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
+const S = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts');
+const load = async (rel) => { const f = join(S, rel); assert.ok(existsSync(f), `scripts/${rel} is absent`); return import(pathToFileURL(f).href); };
+export const id = 'controls/T1728';
+export const tests = ['controls/F225'];
+export const title = 'the flag status command prints the report and exits 0 for a valid configuration, 1 for a configuration failure of either control type and 2 for an unreadable input, reading only the paths it is given';
+export async function run() {
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const cmd = join(S, 'flag-status-command.mjs');
+  assert.ok(existsSync(cmd), 'scripts/flag-status-command.mjs is absent');
+  const dir = mkdtempSync(join(tmpdir(), 'flagcmd-'));
+  const w = (n, v) => { const p = join(dir, n); writeFileSync(p, typeof v === 'string' ? v : JSON.stringify(v)); return p; };
+  const flags = w('flags.json', { schema: 'kaal-controls/flags@1', flags: [{ control: 'x/CTL1', place: 'pr', name: 'F1', value: 'preventing' }] });
+  const ok = w('ok.json', [{ id: 'x/CTL1', type: 'preventive', places: ['pr'] }]);
+  const runs = w('runs.json', { 'x/CTL1': { pr: [{ run: 'r1', verdict: 'PASS', applied: false, blocked: false }] } });
+  const go = (...a) => spawnSync(process.execPath, [cmd, ...a], { encoding: 'utf8' });
+  const good = go('--flags', flags, '--controls', ok, '--runs', runs, '--title', 'Status');
+  assert.equal(good.status, 0);
+  for (const t of ['# Status', 'x/CTL1', 'PREVENTING', 'None.']) assert.ok(good.stdout.includes(t), `the report lacks ${t}`);
+  const mk = (type) => w(`c-${type}.json`, [{ id: 'x/CTL1', type: 'preventive', places: ['pr'] }, { id: 'x/CTL2', type, places: ['pr'] }]);
+  const prev = go('--flags', flags, '--controls', mk('preventive'), '--runs', runs);
+  assert.equal(prev.status, 1, 'a preventive control without a flag fails the configuration');
+  assert.ok(prev.stderr.includes('preventive-without-flag:x/CTL2@pr') && prev.stdout.includes('preventive-without-flag:x/CTL2@pr'));
+  const det = go('--flags', flags, '--controls', mk('detective'), '--runs', runs);
+  assert.equal(det.status, 1, 'a detective control without a flag fails the configuration too');
+  assert.ok(det.stderr.includes('no-flag:x/CTL2@pr'));
+  const gone = go('--flags', join(dir, 'absent.json'), '--controls', ok);
+  assert.equal(gone.status, 2, 'an unreadable input is exit 2');
+  assert.equal(go('--flags', w('bad.json', 'not json'), '--controls', ok).status, 2, 'a flag file that is not read whole is exit 2');
+  assert.equal(go('--controls', join(dir, 'absent.json')).status, 2);
+  const missing = go('--controls', ok);
+  assert.equal(missing.status, 1, 'no flag file is every entry missing');
+  const text = readFileSync(cmd, 'utf8');
+  for (const bad of ['github', 'GitHub', 'engineering/', 'KAAL_', 'fetch(', 'process.env']) assert.ok(!text.includes(bad), `the command contains ${bad}`);
+}

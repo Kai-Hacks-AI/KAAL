@@ -1,0 +1,71 @@
+adapter.mjs c4d105abf1eb8bb89f82700af3e63dad8c9d0ed3 judge-running.mjs 0a7301112ba8706970de5298bcb7da2775aa03bb on parent e846131
+baseline (no mutation)
+  controls/T1572 GREEN
+  controls/T1573 GREEN
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M1-flag-on-case-insensitive
+  controls/T1572 RED: "ON"
+  controls/T1573 GREEN
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M10-unknown-applied-hidden
+  controls/T1572 GREEN
+  controls/T1573 RED: Expected values to be strictly equal:
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M11-unreal-x-counted
+  controls/T1572 GREEN
+  controls/T1573 RED: not a real X
+  controls/T1511 RED: a record that counts for nothing counted: {"control":"c/CTL1","x":"fixture","run":"r1","sh
+  controls/T1510 GREEN
+M12-flag-state-trusted
+  controls/T1572 GREEN
+  controls/T1573 RED: value off but state on
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M13-flag-name-unchecked
+  controls/T1572 GREEN
+  controls/T1573 RED: name missing
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M2-off-runs-as-preventive
+  controls/T1572 RED: a switched-off control blocked
+  controls/T1573 GREEN
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M3-unknown-flag-read-as-off
+  controls/T1572 RED: missing
+  controls/T1573 GREEN
+  controls/T1511 GREEN
+  controls/T1510 RED: Expected values to be strictly deep-equal:
+M4-unset-flag-unknown
+  controls/T1572 RED: null
+  controls/T1573 GREEN
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M5-record-without-flag
+  controls/T1572 RED: Expected values to be strictly deep-equal:
+  controls/T1573 GREEN
+  controls/T1511 GREEN
+  controls/T1510 RED: Expected values to be strictly deep-equal:
+M6-report-not-execution
+  controls/T1572 GREEN
+  controls/T1573 RED: off, REPORT
+  controls/T1511 RED: a run that reported findings was not execution evidence
+  controls/T1510 GREEN
+M7-no-record-is-false
+  controls/T1572 GREEN
+  controls/T1573 RED: Expected values to be strictly deep-equal:
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M8-off-read-as-applied
+  controls/T1572 RED: Expected values to be strictly equal:
+  controls/T1573 GREEN
+  controls/T1511 GREEN
+  controls/T1510 GREEN
+M9-mode-contradiction-ignored
+  controls/T1572 GREEN
+  controls/T1573 RED: Expected values to be strictly deep-equal:
+  controls/T1511 GREEN
+  controls/T1510 GREEN
