@@ -72,6 +72,12 @@ The Approver judges a pull request only on facts that Hosting made, and only on 
 
 Errors and options are those of the other reads. The requirements F106 (facts carry Hosting's attribution, held privately, `factOrigin`) and F107 (`readPullRequestFacts`) and the architecture element A47 (`facts.ts` holds the table and `app-reads.ts` registers each fact it returns) state the three. The second DO also delivers T326 and amends T310 to T317 and T335 only in how they obtain authority (the grant), with no change to what they expect.
 
+## Amendment (the CTO's observation on #2735: exercise the paging explicitly)
+
+One more Case, `T339`, in `facts.red.mjs`; nothing else in this PLAN changes. `readPullRequestFacts` pages the check runs of the head until a short page (`per_page=100`, up to the same bound as the other reads),.
+
+- hosting/T339: a head with 101 runs of the named check, spread over two pages (100, then 1), lists all 101, in GitHub's newest first order across the page break, asks for page 1 and page 2 and no page 3. A head whose runs fill exactly 100 asks for page 2, finds it empty and stops. More pages than the bound is a named `READ_FAILED`, never a truncated list. The request count is pinned.
+
 ## The interface the Cases fix
 
 All from `@kaihacksai/kaal-hosting`; the modules are `scripts/github/app-manifest`, `app-token`, `app-reads` and `app-logo`.
