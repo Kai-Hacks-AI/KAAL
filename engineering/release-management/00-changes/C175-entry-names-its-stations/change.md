@@ -5,7 +5,7 @@ Controls C161 makes the stations the adopter's input: the library no longer know
 
 ## The contract
 1. **The adopter names its stations.** The entry helper passes the stations of this repository to the finder as `findControls(files, { stations })`. The old finder ignores the second argument, so the change is safe before C161 lands and required after it.
-2. **One list.** The list is one exported constant of the helper, `STATIONS`: Developing, Collecting, Integrating, Hotfixing, Wiring, Promoting, Publishing. Every stage the repository declares (the stage declaration `05-src/stages/stages.json` and the `verify Stages (<Stage>)` names of the ruleset sources) is in it, so a stage added without the list is seen by a Case, not by an incident. Engineering is asked to own the single list later; until then it lives here and is derived by no one.
+2. **One list.** The list is one exported constant, `STATIONS`, in a module of its own (`05-src/lib/stations.mjs`, no import, so Engineering and any other caller import it cleanly without the controls library) and re-exported by the helper: Developing, Collecting, Integrating, Hotfixing, Wiring, Promoting, Publishing. Every stage the repository declares (the stage declaration `05-src/stages/stages.json` and the `verify Stages (<Stage>)` names of the ruleset sources) is in it, so a stage added without the list is seen by a Case, not by an incident. Engineering is asked to own the single list later; until then it lives here and is derived by no one.
 3. **Nothing else changes.** No mode, flag or exit logic changes, and the declared mode is still read from the record.
 
 ## Cases (parked red, ids by hand; on a clash the newer change renumbers)
