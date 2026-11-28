@@ -28,3 +28,5 @@ Not shown: the rate limit itself, which only the live API shows. The answer for 
 | Identity | Role | File |
 | --- | --- | --- |
 | release/T1740 | RED on main: the thrown message carries the exit status and the first error line; GREEN with the correction | T1740.test.mjs |
+
+**Confirming Run (28 Nov, Node 22, Linux, b37d70b):** T1740 fails with `the exit status is named`. **Answered (28 Nov, Node 22, Linux):** T1740 passes unmodified with the correction.
