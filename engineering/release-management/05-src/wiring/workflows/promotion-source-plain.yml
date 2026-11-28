@@ -2,7 +2,7 @@
 # The rules and their verdicts live only in the checker, engineering/github/lineage.ts. Each of its two verdicts runs as its own job through its delivered entry and the controls adapter (release/C159): origin (release/CTL40) and head evidence (release/CTL41).
 # Only the trigger differs from the old workflow: plain pull_request, no secret, no pull_request_target. Origin judges the event's refs alone and takes no permission beyond contents: read; head evidence also reads the rules and the check runs of the head, so it alone takes checks: read.
 # The default branch is checked out as the trusted judge. Nothing of the candidate is fetched, checked out, built, installed or run.
-# Detective: its own job names, so it replaces no required context. At the swap the old workflow is retired.
+# Required context (release/C168): the aggregator job `Promotion Source` takes the name the rulesets require and needs every entry below; the entries keep their own names. The old workflow keeps running unrequired, its job carrying the marker `(legacy`.
 name: Promotion Source on pull_request
 
 on:
@@ -72,3 +72,20 @@ jobs:
           KAAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GH_TOKEN: ${{ github.token }}
         run: node engineering/release-management/05-src/promotion-source/judge-head-evidence.mjs --base-ref "$BASE_REF"
+
+  promotion-source:
+    # The required context (release/C168): it passes only when every needed entry succeeded, with nothing else in it.
+    name: Promotion Source
+    needs: [origin, head-evidence]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Pass only when every needed job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for r in $RESULTS; do
+            [ "$r" = success ] || { echo "::error title=Promotion Source::a needed job did not succeed ($r)"; exit 1; }
+          done
