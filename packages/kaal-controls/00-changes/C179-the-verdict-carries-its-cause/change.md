@@ -38,3 +38,9 @@ A third-party check such as Dependency Review can say "not supported on this rep
 ## Not here
 
 No WIRE, flag, station, required check, ruleset, npm publish or change of `private`. No change to what a check or a record means.
+
+## DO (done)
+
+- `scripts/lib/guide-cause.mjs` (`isFailure`, `safeCause`, `guideCause`) and the `runControl` edit in `scripts/adapter.mjs`, as the PLAN says. The shape is the one Hosting stated for `PlatformFailure` and is kept behind the allowlist, so a change on Hosting's side shows as an unknown field that is dropped and not as a leaked one. Hosting's PLAN is not up yet; if it differs, the allowlist and T1737 to T1739 follow it.
+- Evidence: on the base (the PLAN alone) T1737, T1738 and T1739 RED, the rest 130 GREEN. With the DO the package lane is 133 GREEN, 0 RED, held 0, findings 0; the three register entries are removed in this change.
+- Mutations, each caught: redaction removed (all three Cases RED); `ambiguous` allowed on any kind (T1739); text no longer cleaned (T1739); any value accepted as a failure (T1737); the check-error guide removed (T1738).
