@@ -3,9 +3,12 @@
 // (engineering/14-operations/controls/flags.json); the controls library decides what the combination means (controls/C164). This file reads both, validates, and returns the library's answer:
 // it maps no flag value to a mode, defaults no missing value, carries no mode literal of a control and sets no exit code of its own.
 import { readFileSync } from 'node:fs';
+import { STATIONS } from './stations.mjs';
 import { findControls } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs';
 import { parseFlags, flagSource, validateFlags, decideOutcome } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/flags.mjs';
 import { toBoundary } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs';
+
+export { STATIONS };
 
 export const DETECTIVE = 'detective';
 export const PREVENTIVE = 'preventive';
@@ -23,7 +26,7 @@ export const engaged = (env) => env.KAAL_FLAGS !== undefined;
 //   a record that cannot be read answers UNKNOWN (exit 2); a flag file missing, unparsable, with no entry or with an unrecognized value is the library's CONFIG_FAILED (exit 1, nothing runs, no record);
 //   a stopped flag does not run the control (exit 0).
 export function resolveEntry({ id, station, recordText, flagsText }) {
-  const control = recordText === undefined ? undefined : findControls([{ path: `${id}.md`, text: recordText }]).controls.find((c) => c.id === id && c.valid);
+  const control = recordText === undefined ? undefined : findControls([{ path: `${id}.md`, text: recordText }], { stations: STATIONS }).controls.find((c) => c.id === id && c.valid);
   if (!control) return { stop: true, exit: 2, lines: [`${id}@${station}: UNKNOWN (the control record cannot be read)`] };
   const mode = declaredMode(control, station);
   let entries = [];
