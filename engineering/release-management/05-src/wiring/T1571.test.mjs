@@ -93,7 +93,7 @@ export function run() {
   assert.doesNotMatch(w, /github\.head_ref/);
   assert.match(w, /persist-credentials: false/);
   assert.match(w, /name: "Change Isolation: \.github alone \(plain pull_request\)"/, 'detective: its own job name');
-  assert.doesNotMatch(w, /^\s+name: Change Isolation$/m, 'it must not take the required context before the swap');
+  assert.equal((w.match(/^\s+name: Change Isolation$/gm) ?? []).length, 1, 'the one aggregator job takes the required context, the entry jobs keep their own names');
 
   // the head is the one the event was raised for: a match is judged, a mismatch and an unreadable ref are refused, not passed
   const a = world([['docs/a.md', 'x\n']]);

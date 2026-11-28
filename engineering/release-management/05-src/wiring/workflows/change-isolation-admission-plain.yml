@@ -6,7 +6,7 @@
 # unchanged. It holds no permission at all (`{}` here and on the job), no checkout, no secret and no step that reads or runs anything of the
 # pull request. It is not a control (it judges nothing), so it is a notControls row of the delivery map.
 #
-# Detective for now: its job name is its own, so no ruleset requires it until the Owner swaps it for the old context.
+# Required context (release/C168): its job takes the name `Change Isolation (review)` the rulesets require on pull_request; the merge group is reported by merge-group-review.yml. The old admission keeps running unrequired, carrying the marker `(legacy`.
 name: Change Isolation admission on pull_request
 
 on:
@@ -17,7 +17,7 @@ permissions: {}
 
 jobs:
   admission:
-    name: Change Isolation (review, plain pull_request)
+    name: Change Isolation (review)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
