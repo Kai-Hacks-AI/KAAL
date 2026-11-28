@@ -1,1 +1,13 @@
-{ "schema": "kaal-testing/expected-failures@1", "expected": [] }
+{
+  "schema": "kaal-testing/expected-failures@1",
+  "expected": [
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F237-a-check-reports-measures/T1740.test.mjs",
+      "reference": "controls/C180"
+    },
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F238-measures-are-compared-over-time/T1741.test.mjs",
+      "reference": "controls/C180"
+    }
+  ]
+}
