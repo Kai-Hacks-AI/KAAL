@@ -24,7 +24,7 @@ export async function run() {
     const mine = JSON.parse(readFileSync(out, 'utf8')).filter((f) => f.startsWith('.github/workflows/change-isolation-plain.yml:'));
     assert.deepEqual(mine, [], `findings for the plain workflow: ${mine.join(', ')}`);
     const text = readFileSync(SOURCE, 'utf8');
-    assert.doesNotMatch(text, /^    name: Change Isolation$/m, 'a job must not take the required context');
+    assert.equal((text.match(/^    name: Change Isolation$/gm) ?? []).length, 1, 'the one aggregator job takes the required context, the entry jobs keep their own names');
     assert.match(text, /^    name: "?Change Isolation[: ].*\(plain pull_request\)"?$/m, 'the job names stay of the plain pull_request');
   } finally { rmSync(dir, { recursive: true, force: true }); }
 }
