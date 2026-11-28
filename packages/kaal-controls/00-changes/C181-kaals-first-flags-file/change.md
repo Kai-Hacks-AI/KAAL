@@ -2,10 +2,11 @@
 
 ## PLAN
 
-1. Record the intent I39, the Requirement F239 and the Cases T1742 and T1743 (plain `.test.mjs`).
-   - T1742 reads `engineering/14-operations/controls/flags.json` with the library's own `parseFlags` and `flagSource` and requires exactly eight entries: `release/CTL40` and `release/CTL41`, each at `Promoting`, `Collecting`, `Hotfixing` and `Wiring`, each with the name of its flag and the value `advisory`; no other control, no other value. It also requires that both controls exist in release's records and are declared preventive, so the file names no control that is not there. RED on `main`: the file is absent.
-   - T1743 requires the file to be inert and valid: `validateFlags` over the two controls at the four stations is ok, no workflow or hook names `flags.json` or supplies `KAAL_FLAGS`, which release's entry needs to engage a flag (nothing is wired), and no entry is `preventing`, `on`, `stopped` or anything but `advisory` (no flip). RED on `main`: the file is absent.
-   - Both were run GREEN against the file itself, which is the whole DO (about 40 lines of JSON, not committed). Without it the suite is the existing Cases GREEN and these two RED.
+1. Record the intent I39, the Requirement F239 and the Cases T1742 and T1743 (plain `.test.mjs`). The Cases are enduring: they hold for the first file and for every later entry, flip or WIRE. What the first file holds is this Change's acceptance evidence (below), not a permanent rule.
+   - T1742 reads `engineering/14-operations/controls/flags.json` with the library's `parseFlags` and requires that every entry names a control that has a record, and that each control has one flag name in the convention `KAAL_<CAPABILITY>_<CONTROL>`. RED on `main`: the file is absent.
+   - T1743 requires every entry to carry a state the library recognizes (`stopped`, `advisory`, `preventing`) and `validateFlags` to be ok for each control at each place the file names. RED on `main`: the file is absent.
+   - Both were run GREEN against the file itself (the whole DO, about 40 lines of JSON, not committed). Without it the suite is the existing Cases GREEN and these two RED.
+   - Acceptance evidence of this Change, checked once at its DO and recorded in its ACT, outside the permanent suite: exactly eight entries, `release/CTL40` and `release/CTL41` at `Promoting`, `Collecting`, `Hotfixing` and `Wiring`, named `KAAL_RELEASE_VERIFY_PROMOTION_ORIGIN` and `KAAL_RELEASE_VERIFY_PROMOTION_HEAD_EVIDENCE`, all `advisory`; both controls declared preventive; no workflow or hook names the file or supplies `KAAL_FLAGS`. Later entries, flips and WIREs are their own Changes with their own acceptance evidence and do not break T1742 or T1743.
 2. No script, workflow or ruleset change in the PLAN.
 
 ## DO
@@ -13,7 +14,7 @@
 Not authorized by this PLAN. On its merge into the collector `kaal/controls/kaal-flags`:
 
 1. `engineering/14-operations/controls/flags.json`, `{ "schema": "kaal-controls/flags@1", "flags": [ ... ] }` with the eight entries of T1742, sorted by control and station, each named in the convention `KAAL_<CAPABILITY>_<CONTROL>` (Owner, 20 Nov 2026): `KAAL_RELEASE_VERIFY_PROMOTION_ORIGIN` for CTL40 and `KAAL_RELEASE_VERIFY_PROMOTION_HEAD_EVIDENCE` for CTL41, the same name at each of the four stations, value `advisory`.
-2. T1742 and T1743 GREEN; the whole package suite GREEN under the lane. Mutations, each caught: a ninth entry; a value of `preventing`, `on` or `stopped`; a station missing; a control not in release's records; a duplicate entry; a workflow that names the file or supplies `KAAL_FLAGS`.
+2. T1742 and T1743 GREEN; the whole package suite GREEN under the lane. Mutations the Cases catch: a control with no record; a flag name outside the convention or two names for one control; an unrecognized value; a place that fails `validateFlags`; a duplicate entry. The acceptance evidence is checked by hand at the DO: a ninth entry, a value other than `advisory`, a missing station, or a workflow naming the file or supplying `KAAL_FLAGS` each fail it.
 3. ACT: a retro entry in the collector. Then the Promoting thread promotes the collector, with CPO review. Release is told when it is on `main`.
 
 ## Why advisory and why these entries
