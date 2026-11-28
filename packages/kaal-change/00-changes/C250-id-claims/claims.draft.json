@@ -1,0 +1,24 @@
+{
+  "claims": [
+    { "capability": "change", "kind": "change", "from": 1000, "to": 1099 },
+    { "capability": "release", "kind": "change", "from": 1100, "to": 1199 },
+    { "capability": "controls", "kind": "change", "from": 1200, "to": 1299 },
+    { "capability": "engineering", "kind": "change", "from": 1300, "to": 1399 },
+    { "capability": "hosting", "kind": "change", "from": 1400, "to": 1499 },
+    { "capability": "testing", "kind": "change", "from": 1500, "to": 1599 },
+    { "capability": "review", "kind": "change", "from": 1600, "to": 1699 },
+    { "capability": "core", "kind": "change", "from": 1700, "to": 1799 },
+    { "capability": "backlog", "kind": "change", "from": 1800, "to": 1899 },
+    { "capability": "hotfix", "kind": "change", "from": 1900, "to": 1999 },
+    { "capability": "change", "kind": "case", "from": 5000, "to": 5199 },
+    { "capability": "release", "kind": "case", "from": 5200, "to": 5399 },
+    { "capability": "controls", "kind": "case", "from": 5400, "to": 5599 },
+    { "capability": "engineering", "kind": "case", "from": 5600, "to": 5799 },
+    { "capability": "hosting", "kind": "case", "from": 5800, "to": 5999 },
+    { "capability": "testing", "kind": "case", "from": 6000, "to": 6199 },
+    { "capability": "review", "kind": "case", "from": 6200, "to": 6399 },
+    { "capability": "core", "kind": "case", "from": 6400, "to": 6599 },
+    { "capability": "backlog", "kind": "case", "from": 6600, "to": 6799 },
+    { "capability": "hotfix", "kind": "case", "from": 6800, "to": 6999 }
+  ]
+}
