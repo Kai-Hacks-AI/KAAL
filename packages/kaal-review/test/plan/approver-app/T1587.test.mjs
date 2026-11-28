@@ -32,13 +32,13 @@ export async function run() {
   assert.ok(found(declarationText('inspector'), 'approver').includes('wrong-app'), 'the Inspector read as the Approver is not refused');
   assert.deepEqual(readDeclaration(declarationText('inspector')).findings, [], 'the Inspector is read as before, with the Inspector as the default');
 
-  assert.deepEqual(readDeclaration(mutate((x) => { x.appId = 12345; }), 'approver').findings, [], 'an appId recorded by the Owner is read');
-  for (const bad of [0, -1, 1.5, '123', null, NaN]) assert.ok(found(mutate((x) => { x.appId = bad; })).includes('bad-app-id'), `appId ${bad} is not refused`);
+  assert.deepEqual(readDeclaration(mutate((x) => { x.appId = '12345'; }), 'approver').findings, [], 'an appId recorded by the Owner is read, as the text of digits Hosting\'s adapter requires');
+  for (const bad of [0, -1, 1.5, 12345, '0', '', '-1', '1.5', '12 3', 'abc', null, NaN]) assert.ok(found(mutate((x) => { x.appId = bad; })).includes('bad-app-id'), `appId ${bad} is not refused`);
 
   const inspector = readDeclaration(declarationText('inspector')).declaration;
   assert.deepEqual(judgeApps([inspector, d]), { verdict: 'in', findings: [] }, 'the two declarations together keep F33');
-  assert.deepEqual(judgeApps([{ ...inspector, appId: 1 }, { ...d, appId: 2 }]), { verdict: 'in', findings: [] }, 'two ids that differ are in');
-  const shared = judgeApps([{ ...inspector, appId: 7 }, { ...d, appId: 7 }]);
+  assert.deepEqual(judgeApps([{ ...inspector, appId: '1' }, { ...d, appId: '2' }]), { verdict: 'in', findings: [] }, 'two ids that differ are in');
+  const shared = judgeApps([{ ...inspector, appId: '7' }, { ...d, appId: '7' }]);
   assert.equal(shared.verdict, 'out', 'two Apps with one appId are out');
   assert.ok(shared.findings.some((f) => f.kind === 'shared-app-id'), 'and the finding is named');
   assert.equal(judgeApps([inspector, d]).verdict, 'in', 'declarations without an appId yet share none');
