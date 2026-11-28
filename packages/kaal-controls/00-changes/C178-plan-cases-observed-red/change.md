@@ -40,3 +40,12 @@ Not authorized by this PLAN. On its merge into the collector `kaal/controls/obse
 The bootstrap of this PLAN itself (its Cases are RED before any register can exist) is not handled here: it is a separate Owner decision.
 
 No WIRE, flag, station, required check, ruleset, npm publish or change of `private`. C176 and C177 stay red until this DO is synced into their collectors.
+
+## DO (done in this pull request, as the approved PLAN authorizes)
+
+The Owner asked for a safe route instead of a bypass. A PLAN with its Cases RED cannot be green in the required lane before the lane that reads a register exists, so the DO is in the same pull request as the PLAN, and the red-to-green evidence is taken against the base:
+
+- On the base (`main`): the suite is 127 GREEN and T1734, T1735, T1736 RED (the files they require are absent).
+- On this head: `npm test` of the package is the lane: observed 130 GREEN, 0 RED, 0 UNKNOWN, held 0, findings 0. T1729 is amended as DO step 6 says.
+- Mutations, each caught by a Case: registered GREEN accepted; registered UNKNOWN (error before the assertion) accepted; an entry for another Change's Case accepted; an entry of a closed Change accepted; an unregistered UNKNOWN accepted; the lane's exit code ignored.
+- The register is empty, so nothing is held and nothing is weakened. ACT (the retro) follows as its own pull request.
