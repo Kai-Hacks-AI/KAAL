@@ -1,12 +1,13 @@
 // review/C8: the judgement of the Approver, over data. It answers `approve` or `abstain`, never a third, and fails closed. It reads nothing, fetches nothing,
 // posts nothing and never throws: Hosting reads the facts with the Approver's own grant and acts on the answer, and the workflow that runs this is not in
 // this file. What decides is produced by Hosting and recognised by its registry, or is fixed here in the code of main, and is never chosen by the caller.
-import { factOrigin as hostingFactOrigin } from '@kaihacksai/kaal-hosting';
+import { factOrigin as hostingFactOrigin, grantIdentity as hostingGrantIdentity } from '@kaihacksai/kaal-hosting';
 
 const f = (kind) => ({ kind, detail: '' });
 const HEX = /^[0-9a-f]{40}$/;
 const APPROVER = 'approver';
-const INSPECTOR = 'inspector';
+/** The signer Hosting reports for a check the Inspector posted: the slug of its App, as GitHub names it. */
+const INSPECTOR = 'kaal-inspector';
 const CHECK = 'verify Sync';
 /** The triggers under which the Approver's workflow may run. A constant of the code of main, changed only by a reviewed change; never read from facts, evidence or a parameter. */
 const TRUSTED_TRIGGERS = ['workflow_run'];
@@ -14,12 +15,13 @@ const abstain = (...kinds) => ({ decision: 'abstain', findings: kinds.map(f) });
 const record = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 
 /**
- * Builds the judgement over a lookup of the origin of a fact. The delivered `judgeApproval` is built with Hosting's own lookup; a Case builds it with a registry of its own.
- * A judgement without a lookup is refused when it is built, never believed.
+ * Builds the judgement over a lookup of the origin of a fact and a lookup of the identity of a grant. The delivered `judgeApproval` is built with Hosting's own two; a Case builds it with stand-ins of its own.
+ * A judgement without either lookup is refused when it is built, never believed. The third argument of the judgement is the grant that read the facts: the identity of the Approver comes from it, never from the facts or the evidence.
  */
-export function makeJudgeApproval({ factOrigin } = {}) {
+export function makeJudgeApproval({ factOrigin, grantIdentity } = {}) {
   if (typeof factOrigin !== 'function') throw new TypeError('a lookup of the origin of a fact is required');
-  return function judgeApproval(evidence, facts) {
+  if (typeof grantIdentity !== 'function') throw new TypeError('a lookup of the identity of a grant is required');
+  return function judgeApproval(evidence, facts, grant) {
     try {
       if (!record(facts) || !record(facts.head) || !HEX.test(facts.head.sha ?? '') || !Array.isArray(facts.head.parents) || !record(facts.base) || !HEX.test(facts.base.sha ?? '')) return abstain('malformed-evidence');
       if (!record(evidence) || !record(evidence.pr)) return abstain('malformed-evidence');
@@ -42,7 +44,12 @@ export function makeJudgeApproval({ factOrigin } = {}) {
         if (runs.some((r) => r.revision !== facts.head.sha)) out.push('check-other-revision');
         if (runs.some((r) => r.signer !== INSPECTOR)) out.push('check-other-signer');
       }
-      if (facts.author === APPROVER) out.push('own-pull-request');
+      // The author is Hosting's `{ login, type }` in GitHub's words; the Approver is the bot login of the grant that read the facts, compared as exact text.
+      if (!record(facts.author) || typeof facts.author.login !== 'string' || !facts.author.login) return abstain('malformed-evidence');
+      let own = null;
+      try { own = grantIdentity(grant)?.login; } catch { own = null; }
+      if (typeof own !== 'string' || !own) out.push('grant-untrusted');
+      else if (facts.author.login === own) out.push('own-pull-request');
 
       // Trusted execution is evidence: the code of main, on a trigger from the constant list, with the head not checked out.
       const run = evidence.execution;
@@ -59,5 +66,5 @@ export function makeJudgeApproval({ factOrigin } = {}) {
   };
 }
 
-/** The judgement of the Approver, built with Hosting's own lookup of origin, which no caller of this function can replace. */
-export const judgeApproval = makeJudgeApproval({ factOrigin: hostingFactOrigin });
+/** The judgement of the Approver, built with Hosting's own lookups of origin and of identity, which no caller of this function can replace. */
+export const judgeApproval = makeJudgeApproval({ factOrigin: hostingFactOrigin, grantIdentity: hostingGrantIdentity });

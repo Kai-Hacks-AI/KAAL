@@ -1,8 +1,8 @@
 {
   "app": "inspector",
   "name": "KAAL Inspector",
-  "owner": "review",
+  "owner": "kaal-review",
   "purpose": "Signs the one check per registered control that a pull request is judged by, from verdicts that its judge job produced.",
-  "appId": 5953432,
+  "appId": "5953432",
   "abilities": ["post-checks", "read-checks", "read-contents", "read-pull-requests"]
 }

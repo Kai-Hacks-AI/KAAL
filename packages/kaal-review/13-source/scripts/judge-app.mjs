@@ -7,15 +7,15 @@ const AUTH = {
   inspector: ['post-checks', 'read-checks', 'read-contents', 'read-pull-requests'],
   approver: ['approve-pull-requests', 'read-checks', 'read-contents', 'read-pull-requests'],
 };
-/** Reads the declaration of an App as data and finds what it holds beyond or short of its authority, and an `appId` that is not a positive whole number. The Owner records the `appId` after creating the App by hand. */
+/** Reads the declaration of an App as data and finds what it holds beyond or short of its authority, and an `appId` that is not the text of the digits of a positive whole number (the form Hosting reads). The Owner records the `appId` after creating the App by hand. */
 export function readDeclaration(text, app = 'inspector') {
   const INSPECTOR = AUTH[app] ?? [];
   let d; try { d = JSON.parse(text); } catch { return { declaration: null, findings: [f('unreadable', 'not JSON')] }; }
   const findings = [];
   if (d?.app !== app) findings.push(f('wrong-app', String(d?.app)));
-  if (d?.owner !== 'review') findings.push(f('wrong-owner', String(d?.owner)));
+  if (d?.owner !== 'kaal-review') findings.push(f('wrong-owner', String(d?.owner)));
   if (typeof d?.purpose !== 'string' || !d.purpose) findings.push(f('no-purpose', ''));
-  if (d && typeof d === 'object' && 'appId' in d && !(Number.isInteger(d.appId) && d.appId > 0)) findings.push(f('bad-app-id', String(d.appId)));
+  if (d && typeof d === 'object' && 'appId' in d && !(typeof d.appId === 'string' && /^[0-9]+$/.test(d.appId) && Number(d.appId) > 0)) findings.push(f('bad-app-id', String(d.appId)));
   if (!Array.isArray(d?.abilities)) findings.push(f('abilities-not-a-list', ''));
   else {
     for (const a of d.abilities) if (!INSPECTOR.includes(a)) findings.push(f('ability-beyond-authority', a));
