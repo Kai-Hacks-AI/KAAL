@@ -2,7 +2,7 @@
 # The rule and its verdict live only in the checker, engineering/change-isolation/check.mjs. Each of its two verdicts runs as its own job through its delivered entry and the controls adapter (release/C160): `.github` alone (release/CTL42) and delivery (release/CTL23)..
 # Only the trigger and how the proposed head arrives differ from the old workflow: plain pull_request, no token beyond contents: read, no secret, no pull_request_target.
 # The default branch is checked out as the trusted judge. The candidate is fetched as Git data from refs/pull/<n>/head (release/C90) and is never checked out, built, installed or run.
-# Detective: its own job names, so it replaces no required context. At the swap it takes the name `Change Isolation`, and the old workflow is retired.
+# Required context (release/C168): the aggregator job `Change Isolation` takes the name the rulesets require and needs every entry below; the entries keep their own names. The old workflow keeps running unrequired, its job carrying the marker `(legacy`.
 name: Change Isolation on pull_request
 
 on:
@@ -94,3 +94,29 @@ jobs:
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_ATTESTATION: deferred
         run: node engineering/release-management/05-src/change-isolation/judge-delivery.mjs --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
+
+  change-isolation:
+    # The required context (release/C168, corrected by release/C170): it passes only when the entries that reported are exactly the expected ones and each succeeded, with nothing else in it.
+    name: Change Isolation
+    needs: [github-alone, delivery]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Pass only on evidence of success for every expected entry
+        env:
+          # The entries this check expects (release/C170): the same ones as `needs`, named apart from what is reported.
+          EXPECTED: "github-alone delivery"
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          node -e '
+            const needs = JSON.parse(process.env.NEEDS || "{}");
+            const expected = process.env.EXPECTED.split(" ").filter(Boolean);
+            const reported = Object.keys(needs);
+            const bad = [];
+            if (expected.length === 0 || reported.length === 0) bad.push("no result at all");
+            for (const e of expected) if (needs[e]?.result !== "success") bad.push(e + ": " + (needs[e]?.result ?? "absent"));
+            for (const r of reported) if (!expected.includes(r)) bad.push(r + ": unexpected");
+            if (bad.length > 0) { console.error("::error title=Change Isolation::" + bad.join("; ")); process.exit(1); }
+          '

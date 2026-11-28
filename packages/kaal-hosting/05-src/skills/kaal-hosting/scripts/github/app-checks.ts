@@ -25,14 +25,15 @@ const text = (value: unknown, what: string, most: number, line = false): string 
 
 export async function postCheckRun(repo: string, check: CheckRequest, options: CheckOptions): Promise<PostedCheckFact> {
   if (typeof options !== "object" || options === null) return invalid("the options are not an object");
-  const strayOption = Object.keys(options).find((k) => !OPTION_KEYS.includes(k));
-  if (strayOption) return invalid(`${strayOption} is not an option: the authority of a call is its grant`);
+  const strayOption = Reflect.ownKeys(options).find((k) => typeof k !== "string" || !OPTION_KEYS.includes(k));
+  if (strayOption !== undefined) return invalid(`${String(strayOption)} is not an option: the authority of a call is its grant`);
   if (typeof repo !== "string" || !/^[\w.-]+\/[\w.-]+$/.test(repo)) return invalid("the repository is not owner/name");
   // The grant first: a forged one, another repository or a grant without post-checks sends nothing and says so by name.
   const token = useGrant(options.grant, "post-checks", { repo, api: options.api, fetch: options.fetch, now: options.now });
   if (typeof check !== "object" || check === null || Array.isArray(check)) return invalid("the check is not an object");
-  const stray = Object.keys(check).find((k) => !REQUEST_KEYS.includes(k) && (check as unknown as Record<string, unknown>)[k] !== undefined);
-  if (stray) return invalid(`${stray} is not part of a check: Hosting makes the status, the App and the rest`);
+  // A key is refused for being there, whatever it holds: undefined is a value too.
+  const stray = Reflect.ownKeys(check).find((k) => typeof k !== "string" || !REQUEST_KEYS.includes(k));
+  if (stray !== undefined) return invalid(`${String(stray)} is not part of a check: Hosting makes the status, the App and the rest`);
   const name = text(check.name, "the name", SHORT, true);
   if (typeof check.revision !== "string" || !/^[0-9a-f]{40}$/.test(check.revision)) return invalid("the revision is not a full lower-case commit id");
   if (typeof check.conclusion !== "string" || !CONCLUSIONS.includes(check.conclusion)) return invalid(`the conclusion is not one of ${CONCLUSIONS.join(", ")}`);
@@ -58,7 +59,10 @@ export async function postCheckRun(repo: string, check: CheckRequest, options: C
     throw new AppAdapterError(`posting the check run failed (HTTP ${response.status})`, "CHECK_FAILED", { status: response.status, headers });
   }
   const who = grantIdentity(options.grant);
-  const same = typeof run?.id === "number" && run.name === name && run.head_sha === check.revision && run.status === "completed" && run.conclusion === check.conclusion
+  // The external id is reported only as GitHub returned it: the one asked for, or none (GitHub says none as empty, null or nothing).
+  const returned: unknown = run?.external_id;
+  const sameExternal = externalId === undefined ? returned === undefined || returned === null || returned === "" : returned === externalId;
+  const same = sameExternal && typeof run?.id === "number" && run.name === name && run.head_sha === check.revision && run.status === "completed" && run.conclusion === check.conclusion
     && String(run.app?.id) === who.appId && typeof run.app?.slug === "string" && `${run.app.slug}[bot]` === who.login;
   if (!same) throw new AppAdapterError("GitHub made a check run that is not the one asked for, or not this App's", "CHECK_MISMATCH");
   return attribute({ id: run.id as number, name, revision: check.revision, conclusion: check.conclusion, signer: run.app.slug as string, ...(externalId === undefined ? {} : { externalId }) }, options.grant);
