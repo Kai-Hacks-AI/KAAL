@@ -23,6 +23,11 @@ export async function run() {
   for (const part of ['forbidden', '403', base.asked, base.place]) assert.ok(forbidden.includes(part), `the forbidden line names ${part}`);
   const missing = guideCause({ kind: 'not-found', asked: base.asked, place: base.place });
   for (const part of ['not-found', base.asked, base.place]) assert.ok(missing.includes(part), `the not-found line names ${part}`);
+  const setting = guideCause({ ...base, kind: 'setting', basis: 'text', platformMessage: 'Dependency graph is not enabled' });
+  for (const part of ['setting', base.asked, base.place, 'Dependency graph is not enabled']) assert.ok(setting.includes(part), `the setting line names ${part}`);
+  const ambiguous = guideCause({ ...base, kind: 'other', basis: 'text', ambiguous: true, platformMessage: 'Dependency review is not supported on this repository' });
+  assert.match(ambiguous, /may be a rate limit/i); assert.match(ambiguous, /re-run once/i); assert.doesNotMatch(ambiguous, /setting/i, 'an ambiguous claim is never called a setting problem');
+  assert.ok(guideCause({ ...base, kind: 'rate-limited', basis: 'budget', limit: { bucket: 'core' } }).includes('budget'), 'the basis is named');
   assert.ok(guideCause({ kind: 'network', asked: base.asked, place: base.place }).includes(base.place));
   assert.ok(guideCause({ ...base, kind: 'other' }).includes(`"${base.platformMessage}"`) || guideCause({ ...base, kind: 'other' }).includes(base.platformMessage), 'the platform message is shown verbatim');
   assert.ok(guideCause({ kind: 'check-error', message: 'boom' }).includes('boom'));

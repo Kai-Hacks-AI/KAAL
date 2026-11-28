@@ -22,6 +22,11 @@ export async function run() {
   const viaVerdict = await go(failing(extra));
   assert.ok(!JSON.stringify({ cause: viaVerdict.cause, guidance: viaVerdict.guidance, log: viaVerdict.log }).includes('zzz-secret'), 'no unexpected property reaches the verdict, its guidance or its log line');
   assert.deepEqual(viaVerdict.cause, clean);
+  // basis and ambiguous follow the contract
+  assert.deepEqual(safeCause({ kind: 'other', basis: 'text', ambiguous: true, asked: 'a', place: 'p' }), { kind: 'other', basis: 'text', ambiguous: true, asked: 'a', place: 'p' });
+  assert.equal(safeCause({ kind: 'other', basis: 'guess', ambiguous: 'yes', asked: 'a', place: 'p' }).basis, undefined, 'a basis outside the three is dropped');
+  assert.equal('ambiguous' in safeCause({ kind: 'other', ambiguous: 'yes', asked: 'a', place: 'p' }), false, 'ambiguous is only ever true');
+  assert.equal('ambiguous' in safeCause({ kind: 'forbidden', ambiguous: true, asked: 'a', place: 'p' }), false, 'ambiguous belongs to other only');
   // wrongly typed fields are dropped, never coerced
   assert.deepEqual(safeCause({ ...clean, status: '403', limit: { bucket: 'core', remaining: '0', resetAt: 5, retryAfterSeconds: 'soon' } }), { kind: 'rate-limited', asked: clean.asked, place: clean.place, platformMessage: clean.platformMessage, limit: { bucket: 'core' } });
   assert.equal(safeCause({ kind: 'forbidden', asked: 'a', place: 'p', limit: { bucket: 'core' } }).limit, undefined, 'a limit belongs to a rate limit only');

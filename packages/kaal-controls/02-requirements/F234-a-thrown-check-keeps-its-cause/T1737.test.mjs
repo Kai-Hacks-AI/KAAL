@@ -13,8 +13,8 @@ const boundary = { x: 'real', run: 'r1', sha: 'abc' };
 export async function run() {
   const { runControl } = await import(pathToFileURL(ADAPTER).href);
   const go = (check, mode = 'preventive') => runControl({ id: 'c/CTL1', mode, check, input: {}, boundary });
-  for (const kind of ['rate-limited', 'forbidden', 'not-found', 'network', 'other']) {
-    const f = failure(kind, kind === 'rate-limited' ? { limit: { bucket: 'core', remaining: 0, resetAt: '2026-11-28T09:00:00Z', retryAfterSeconds: 3600 } } : {});
+  for (const kind of ['rate-limited', 'forbidden', 'not-found', 'network', 'setting', 'other']) {
+    const f = failure(kind, { basis: 'text', ...(kind === 'other' ? { ambiguous: true } : {}), ...(kind === 'rate-limited' ? { limit: { bucket: 'core', remaining: 0, resetAt: '2026-11-28T09:00:00Z', retryAfterSeconds: 3600 } } : {}) });
     const r = await go(throwing(Object.assign(new Error('Hosting text'), { failure: f })));
     assert.equal(r.verdict, 'UNKNOWN', `${kind} is not a pass or a fail`);
     assert.deepEqual(r.cause, f, `${kind}: the typed failure is carried unchanged`);
@@ -32,6 +32,8 @@ export async function run() {
   }
   const kept = await go(throwing(Object.assign(new Error('x'), { failure: failure('forbidden'), confirmed: ['a'] })));
   assert.deepEqual(kept.confirmed, ['a'], 'what a check confirmed is kept next to the cause');
+  const finding = await go(() => ['dependency:high-severity']);
+  assert.equal(finding.verdict, 'FAIL'); assert.equal('cause' in finding, false, 'a real finding is a verdict, never a platform failure');
   const ok = await go(() => []);
   assert.equal(ok.verdict, 'PASS'); assert.equal('cause' in ok, false); assert.equal('guidance' in ok, false);
 }
