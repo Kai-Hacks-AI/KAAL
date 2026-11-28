@@ -1,0 +1,8 @@
+{
+  "app": "approver",
+  "name": "KAAL Approver",
+  "owner": "kaal-review",
+  "purpose": "Approves a SYNC pull request that the facts show to be a merge of the base and main whose verify Sync check the Inspector signed at the same revision, and abstains in every other case.",
+  "appId": "5964054",
+  "abilities": ["approve-pull-requests", "read-checks", "read-contents", "read-pull-requests"]
+}
