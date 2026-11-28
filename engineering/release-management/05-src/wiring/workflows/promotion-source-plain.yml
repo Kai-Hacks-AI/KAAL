@@ -74,7 +74,7 @@ jobs:
         run: node engineering/release-management/05-src/promotion-source/judge-head-evidence.mjs --base-ref "$BASE_REF"
 
   promotion-source:
-    # The required context (release/C168): it passes only when every needed entry succeeded, with nothing else in it.
+    # The required context (release/C168, corrected by release/C170): it passes only when the entries that reported are exactly the expected ones and each succeeded, with nothing else in it.
     name: Promotion Source
     needs: [origin, head-evidence]
     if: ${{ always() }}
@@ -82,10 +82,19 @@ jobs:
     timeout-minutes: 5
     permissions: {}
     steps:
-      - name: Pass only when every needed job succeeded
+      - name: Pass only on evidence of success for every expected entry
         env:
-          RESULTS: ${{ join(needs.*.result, ' ') }}
+          # The entries this check expects (release/C170): the same ones as `needs`, named apart from what is reported.
+          EXPECTED: "origin head-evidence"
+          NEEDS: ${{ toJSON(needs) }}
         run: |
-          for r in $RESULTS; do
-            [ "$r" = success ] || { echo "::error title=Promotion Source::a needed job did not succeed ($r)"; exit 1; }
-          done
+          node -e '
+            const needs = JSON.parse(process.env.NEEDS || "{}");
+            const expected = process.env.EXPECTED.split(" ").filter(Boolean);
+            const reported = Object.keys(needs);
+            const bad = [];
+            if (expected.length === 0 || reported.length === 0) bad.push("no result at all");
+            for (const e of expected) if (needs[e]?.result !== "success") bad.push(e + ": " + (needs[e]?.result ?? "absent"));
+            for (const r of reported) if (!expected.includes(r)) bad.push(r + ": unexpected");
+            if (bad.length > 0) { console.error("::error title=Promotion Source::" + bad.join("; ")); process.exit(1); }
+          '
