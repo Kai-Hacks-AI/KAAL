@@ -1,0 +1,182 @@
+# approve Sync and review Sync (release/C58, release/C60, release/C65), moved off pull_request_target by release/C173. They run on
+# `workflow_run` when the workflow `sync verify` completes, from the default branch, and run nothing of the candidate: they download
+# the verdict as data from that one run, check where it came from and that it is about the pull request as GitHub says it is now
+# (open, from this repository, into a kaal/, hotfix/ or wire/ base, the same head sha, base ref and base sha), and only then act.
+# A pull request runs the workflow files of its own head and workflow_run matches by name, so the run must also be of the trusted file
+# and that file at the run head must be the very blob of the default branch. A verdict that is missing, of another run, of a run that did not succeed (for approval), or that does not match, approves nothing
+# and says what was wrong; review Sync still puts the SYNC in front of a person. The write token comes from the KAAL Approver App
+# (secret KAAL_APP_APPROVER_KEY, variable KAAL_APP_APPROVER_ID); GITHUB_TOKEN only reads. Without the App credential approve Sync
+# is a dry run and review Sync says that it cannot write. Approval happens only when KAAL_SYNC_APPROVE is exactly `on`.
+# `sign Sync` posts the check run `verify Sync` as the KAAL Inspector from the bound verdict (release/C173); approve Sync needs it.
+# This is a source; a WIRE installs it under .github/workflows/.
+name: sync act
+
+on:
+  workflow_run:
+    workflows: ['sync verify']
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  sign:
+    name: sign Sync
+    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0].number != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      signed: ${{ steps.sign.outputs.signed }}
+    env:
+      KAAL_REPO: ${{ github.repository }}
+      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+      KAAL_PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+      KAAL_BASE: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
+      KAAL_RUN_ID: ${{ github.event.workflow_run.id }}
+      KAAL_RUN_NAME: ${{ github.event.workflow_run.name }}
+      KAAL_RUN_PATH: ${{ github.event.workflow_run.path }}
+      KAAL_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      KAAL_RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
+      KAAL_RUN_EVENT: ${{ github.event.workflow_run.event }}
+      KAAL_VERDICT_FILE: ${{ runner.temp }}/sync-verdict/verdict.json
+    steps:
+      # The default branch builds Hosting; the code that posts the verdict is never the candidate's.
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Build Hosting from the default branch
+        working-directory: packages/kaal-hosting
+        run: npm ci --ignore-scripts && npm run build
+
+      - name: Download the verdict of the verify run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: sync-verdict
+          path: ${{ runner.temp }}/sync-verdict
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Sign verify Sync as the Inspector
+        id: sign
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KAAL_APP_INSPECTOR_ID: ${{ vars.KAAL_APP_INSPECTOR_ID }}
+          KAAL_APP_INSPECTOR_KEY: ${{ secrets.KAAL_APP_INSPECTOR_KEY }}
+          KAAL_HOSTING_ENTRY: ${{ github.workspace }}/packages/kaal-hosting/dist/skills/kaal-hosting/scripts/index.js
+        run: node engineering/release-management/05-src/sync-review/cli.mjs sign
+
+  approve:
+    name: approve Sync
+    needs: sign
+    if: ${{ always() && needs.sign.outputs.signed == 'success' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0].number != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      approval: ${{ steps.approve.outputs.approval }}
+    env:
+      KAAL_REPO: ${{ github.repository }}
+      KAAL_PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+      KAAL_EVENT_NAME: ${{ github.event_name }}
+    steps:
+      # The default branch is the code that judges and posts; the candidate is never checked out.
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Build Hosting from the default branch
+        working-directory: packages/kaal-hosting
+        run: npm ci --ignore-scripts && npm run build
+
+      # Review C8 judges; this step carries the answer out. Exactly `on` approves, and only with the Approver credential and the
+      # judgment installed; anything else is a dry run that says what it would ask.
+      - name: Ask Review C8 and carry its answer out
+        id: approve
+        env:
+          KAAL_APP_APPROVER_ID: ${{ vars.KAAL_APP_APPROVER_ID }}
+          KAAL_APP_APPROVER_KEY: ${{ secrets.KAAL_APP_APPROVER_KEY }}
+          KAAL_SYNC_APPROVE: ${{ vars.KAAL_SYNC_APPROVE }}
+          KAAL_HOSTING_ENTRY: ${{ github.workspace }}/packages/kaal-hosting/dist/skills/kaal-hosting/scripts/index.js
+          KAAL_JUDGE_APPROVAL_ENTRY: ${{ github.workspace }}/packages/kaal-review/13-source/scripts/judge-approval.mjs
+        run: node engineering/release-management/05-src/sync-review/cli.mjs approve-judged
+
+  review:
+    name: review Sync
+    needs: [sign, approve]
+    if: ${{ always() && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0].number != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    env:
+      KAAL_REPO: ${{ github.repository }}
+      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+      KAAL_RUN_ID: ${{ github.event.workflow_run.id }}
+      KAAL_RUN_NAME: ${{ github.event.workflow_run.name }}
+      KAAL_RUN_PATH: ${{ github.event.workflow_run.path }}
+      KAAL_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      KAAL_RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
+      KAAL_RUN_EVENT: ${{ github.event.workflow_run.event }}
+      KAAL_PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+      KAAL_BASE: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
+      KAAL_VERDICT_FILE: ${{ runner.temp }}/sync-verdict/verdict.json
+      KAAL_APPROVAL: ${{ needs.approve.outputs.approval }}
+      # The person to ask when CODEOWNERS names nobody but the author. Without one, a SYNC that needs a person fails this job.
+      KAAL_SYNC_REVIEWER: ${{ vars.KAAL_SYNC_REVIEWER }}
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Mint the Approver App token
+        id: app
+        if: ${{ vars.KAAL_APP_APPROVER_ID != '' }}
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          app-id: ${{ vars.KAAL_APP_APPROVER_ID }}
+          private-key: ${{ secrets.KAAL_APP_APPROVER_KEY }}
+          permission-pull-requests: write
+
+      - name: Download the verdict of the verify run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: sync-verdict
+          path: ${{ runner.temp }}/sync-verdict
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Say that review Sync cannot write without the App
+        if: ${{ steps.app.outputs.token == '' }}
+        run: |
+          echo "::error title=review Sync: no Approver App credential::the KAAL Approver App variable KAAL_APP_APPROVER_ID is not set, so this job cannot label, ask for a review or comment; a person must look at this SYNC by hand"
+          exit 1
+
+      - name: Put a SYNC that needs a person in front of one
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          node engineering/release-management/05-src/sync-review/cli.mjs review
