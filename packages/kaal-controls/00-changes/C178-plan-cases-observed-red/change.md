@@ -13,7 +13,7 @@
 
 Not authorized by this PLAN. On its merge into the collector `kaal/controls/observed-red`:
 
-1. `test/lib/judge-lane.mjs`: `judgeLane({ report, register, closed })`, pure, over `compareExpectations` of `kaal-testing/expectations`, as F231 says.
+1. `test/lib/judge-lane.mjs`: `judgeLane({ report, register, changes })`, pure, over `compareExpectations` of `kaal-testing/expectations`, as F231 says.
 2. `test/lib/changes-of.mjs`: `changesOf(files)` as F233 says, pure.
 3. `test/lane.mjs`: runs the package's `test/*.test.mjs` with `runCases` of `kaal-testing/run`, reads `test/plan-register.json` and derives the Changes with `changesOf`, prints the held, the findings and the counts, and exits 0, 1 (findings) or 2 (invalid input).
 4. `test/plan-register.json`: `{ "schema": "kaal-testing/expected-failures@1", "expected": [] }`. A PLAN adds its Case ids with `reference` the Change id (`controls/C<n>`) and `id` naming the Case as the lane reports it; the DO removes them.
