@@ -1041,3 +1041,5 @@ export { factOrigin } from "./github/facts.js";
 export type { FactOrigin } from "./github/facts.js";
 export { postCheckRun } from "./github/app-checks.js";
 export type { CheckOptions, CheckRequest, PostedCheckFact } from "./github/app-checks.js";
+export { postReview } from "./github/app-reviews.js";
+export type { PostedReviewFact, ReviewOptions, ReviewRequest } from "./github/app-reviews.js";
