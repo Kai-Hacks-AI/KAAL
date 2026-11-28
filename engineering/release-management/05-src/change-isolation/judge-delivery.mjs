@@ -7,6 +7,7 @@ import { runControl } from '../../../../packages/kaal-controls/skills/kaal-contr
 import { deliveryMixed } from '../../../change-isolation/check.mjs';
 import { readLocations } from '../delivery/locations.mjs';
 import { cli, report } from './lib/report.mjs';
+import { DETECTIVE } from '../lib/entry-flag.mjs';
 
 const ID = 'release/CTL23';
 
@@ -16,8 +17,8 @@ const delivery = ({ paths, declaration }) => {
   return deliveryMixed([...new Set(paths)], declaration ? { read: () => readLocations(declaration) } : {});
 };
 
-export async function check({ paths, declaration, mode = 'detective', boundary } = {}) {
+export async function check({ paths, declaration, mode = DETECTIVE, boundary } = {}) {
   return report(await runControl({ id: ID, mode, check: delivery, input: { paths, declaration }, boundary }));
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) process.exit(await cli({ check, label: 'verify Delivery' }));
+if (process.argv[1] === fileURLToPath(import.meta.url)) process.exit(await cli({ check, id: ID, label: 'verify Delivery' }));
