@@ -33,6 +33,7 @@ export async function run() {
   const ex = (records, established = est, revision = 'abc') => executed({ id: 'c/CTL1', records, revision, established });
   assert.equal(ex([rec()]), true, 'an established, valid run of this control at this revision was not found');
   assert.equal(ex([rec({ verdict: 'FAIL' })]), true, 'an allowed FAIL verdict was refused');
+  assert.equal(ex([rec({ verdict: 'REPORT' })]), true, 'a run that reported findings was not execution evidence');
   assert.equal(ex([]), null, 'no record was taken as proof of absence');
   assert.equal(ex([rec()], []), null, 'a committed record counted as proof of its own authenticity');
   assert.equal(ex([rec({ run: 'fabricated' })]), null, 'a fabricated record that is not established counted');

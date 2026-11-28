@@ -38,8 +38,8 @@ const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const sorted = (x) => [...x].sort();
 const fail = (reason) => ({ verdict: 'FAIL', reason });
 
-// The verdict of one pull request on the history. Pure: the caller passes the base's and the head's baseline and history
-// (as Git data, the base's never from the change under review), the Change the pull request carries, and the time window
+// The verdict of one change under review on the history. Pure: the caller passes the base's and the head's baseline and history
+// (as Git data, the base's never from the change under review), the Change it carries, and the time window
 // the request ran in. A missing or malformed input is UNKNOWN, never a pass.
 export function judgeProgress({ base, head, change, window } = {}) {
   const unknown = () => ({ verdict: 'UNKNOWN', reason: 'could-not-judge' });
@@ -72,7 +72,7 @@ export function judgeProgress({ base, head, change, window } = {}) {
 // The verdict on the first line of a ratchet, its adoption. Pure, with the inputs of `judgeProgress`, except that the base's baseline is one of
 // three things that are never confused: `null` when the base authoritatively has no baseline (absent), a list when it has one (an empty list is
 // present, at zero), and anything else, which is unknown. Only an absent baseline permits an initial allowance of any size; one that exists can
-// only be adopted as a subset of itself. The adopter establishes absence from the base revision's own data, never from what the pull request claims.
+// only be adopted as a subset of itself. The adopter establishes absence from the base revision's own data, never from what the change under review claims.
 export function judgeAdoption({ base, head, change, window } = {}) {
   const unknown = () => ({ verdict: 'UNKNOWN', reason: 'could-not-judge' });
   if (!base || !head || !change || !window) return unknown();

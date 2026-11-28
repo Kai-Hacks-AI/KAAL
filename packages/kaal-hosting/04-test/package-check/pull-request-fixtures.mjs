@@ -4,6 +4,8 @@
 // is read by Hosting from the base revision through the stand-in, as in production. The DO moves what the delivered
 // Cases need beside them and removes this file.
 import { createServer } from "node:http";
+import * as hosting from "@kaihacksai/kaal-hosting";
+import { NOW, appWorld, keys } from "./app-fixtures.mjs";
 
 export const DO = {
   type: "DO",
@@ -78,23 +80,43 @@ export function world({ refs = { "claude/work": HEAD, "kaal/hosting/gen": BASE, 
     if (p.endsWith("/graphql")) return { status: 200, json: { data: { enablePullRequestAutoMerge: { pullRequest: { number: 7 } } } } };
     return { status: 404, json: { message: "unexpected" } };
   };
+  const w = { fetch: undefined, requests, api: "https://stand-in.invalid", divert: undefined };
   const fetch = async (url, init = {}) => {
+    if (w.divert) return w.divert(url, init); // the App side of GitHub answers while a grant is minted; the raise's own log does not hold it
     const u = new URL(url);
     const req = { method: init.method ?? "GET", path: u.pathname, query: Object.fromEntries(u.searchParams), headers: Object.fromEntries(Object.entries(init.headers ?? {}).map(([k, v]) => [k.toLowerCase(), v])), body: init.body ? JSON.parse(init.body) : undefined };
     requests.push(req);
     const { status, json } = answer(req, requests.length);
     return new Response(JSON.stringify(json), { status, headers: { "content-type": "application/json" } });
   };
-  return { fetch, requests, api: "https://stand-in.invalid" };
+  w.fetch = fetch;
+  return w;
 }
-export const options = (w, extra = {}) => ({ token: "ghp_SECRET_TOKEN_VALUE", fetch: w.fetch, api: w.api, ...extra });
+/** The grant a raise needs, minted through the public door against this world's own transport (a grant is bound to it). */
+export async function grantFor(w, abilities = ["read-contents", "raise-pull-requests"]) {
+  const { privateKey, verify } = keys();
+  w.divert = appWorld({ verify }).fetch;
+  try { return await hosting.mintToken({ app: "dispatcher", appId: "12345", privateKey, repo: "o/r", abilities }, { fetch: w.fetch, api: w.api, now: () => NOW }); } finally { w.divert = undefined; }
+}
+export const GRANT_TOKEN = "ghs_GRANT";
+export const options = async (w, extra = {}) => ({ grant: await grantFor(w), fetch: w.fetch, api: w.api, now: () => NOW, ...extra });
 export const posts = (requests) => requests.filter((r) => r.method !== "GET").map((r) => `${r.method} ${decodeURIComponent(r.path)}`);
 export const reads = (requests) => requests.filter((r) => r.method === "GET").map((r) => decodeURIComponent(r.path) + (r.query.ref ? `@${r.query.ref}` : ""));
 
 /** The same stand-in as a real local HTTP server, for the command line. */
 export async function worldServer(config) {
   const inner = world(config);
+  // The App side answers, unrecorded, until the command has its grant (the second token request); then the world does.
+  const { verify } = keys();
+  const gate = appWorld({ verify, expiresAt: new Date(Date.now() + 3_000_000).toISOString().replace(/\.\d+Z$/, "Z") });
+  let tokens = 0;
+  const answering = async (url, init) => {
+    const answer = await gate.fetch(url, init);
+    if ((init.method ?? "GET") === "POST" && new URL(url).pathname.endsWith("/access_tokens") && ++tokens === 2) inner.divert = undefined;
+    return answer;
+  };
   const server = createServer((rq, rs) => {
+    if (rq.url === "/repos/o/r/installation") { tokens = 0; inner.divert = answering; } // each command starts by finding its installation
     let text = "";
     rq.on("data", (c) => (text += c));
     rq.on("end", async () => {
