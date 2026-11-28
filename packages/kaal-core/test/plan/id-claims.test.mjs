@@ -20,7 +20,7 @@ async function claims() {
 
 const FROM = { change: 251, case: 1800 };
 const claim = (capability, kind, id, name = `${kind}-${id}.json`) => ({ name, content: { capability, kind, id } });
-const use = (capability, kind, id, path = `p/${kind}${id}`) => ({ capability, kind, id, path });
+const use = (capability, kind, id, path = `p/${kind}${id}`, added = false) => ({ capability, kind, id, path, added });
 const rules = (r) => r.findings.map((f) => f.rule).sort();
 
 describe("Id claims (core/C251)", () => {
@@ -78,9 +78,10 @@ describe("Id claims (core/C251)", () => {
     assert.equal(stolen.verdict, "fail");
     assert.deepEqual(rules(stolen), ["foreign"]);
     assert.ok(JSON.stringify(stolen.findings).includes("release"), "the finding names who claimed it");
-    const kind = judgeIdClaims({ claims: have, used: [use("core", "case", 251)], from: FROM });
+    const kind = judgeIdClaims({ claims: [claim("core", "change", 300)], used: [use("core", "case", 300)], from: { change: 251, case: 251 } });
     assert.equal(kind.verdict, "fail", "a change claim admitted a case id");
-    assert.equal(judgeIdClaims({ claims: have, used: [use("hotfix", "case", 12)], from: FROM }).verdict, "pass", "a legacy id passes whoever uses it");
+    assert.deepEqual(rules(kind), ["unclaimed"]);
+    assert.equal(judgeIdClaims({ claims: have, used: [use("hotfix", "case", 12)], from: FROM }).verdict, "pass", "an existing legacy record passes whoever holds it");
   });
 
   it("core/T145 [core/F138, core/N34, core/A70]: a claims, used or from that is not the shape it should be is unknown with the fact named, never a pass", async () => {
@@ -91,7 +92,7 @@ describe("Id claims (core/C251)", () => {
       assert.equal(r.verdict, "unknown", `claims ${JSON.stringify(bad)} was judged`);
       assert.equal(r.fact, "claims");
     }
-    for (const bad of [undefined, null, 7, {}, "x", [{ capability: "core", kind: "change", id: "1", path: "p" }], [{ kind: "change", id: 1, path: "p" }]]) {
+    for (const bad of [undefined, null, 7, {}, "x", [{ capability: "core", kind: "change", id: "1", path: "p", added: false }], [{ kind: "change", id: 1, path: "p", added: false }], [{ capability: "core", kind: "change", id: 1, path: "p", added: "yes" }]]) {
       const r = judgeIdClaims({ ...good, used: bad });
       assert.equal(r.verdict, "unknown", `used ${JSON.stringify(bad)} was judged`);
       assert.equal(r.fact, "used");
@@ -128,5 +129,23 @@ describe("Id claims (core/C251)", () => {
     assert.equal(two.verdict, one.verdict);
     const text = (r) => r.findings.map((f) => JSON.stringify(f)).sort();
     assert.deepEqual(text(two), text(one));
+  });
+  it("core/T148 [core/F135, core/F140, core/A70]: a record added below its kind's first claimable number is below-start, an existing one is grandfathered, a record added that takes an id already held by another record of the same capability and kind is reused, and two existing records that share one are not judged", async () => {
+    const { judgeIdClaims } = await claims();
+    const below = judgeIdClaims({ claims: [], used: [use("core", "change", 175, "p/new", true)], from: FROM });
+    assert.equal(below.verdict, "fail");
+    assert.deepEqual(rules(below), ["below-start"]);
+    assert.equal(judgeIdClaims({ claims: [], used: [use("core", "change", 175, "p/old")], from: FROM }).verdict, "pass", "an existing legacy record was judged");
+    const dupLegacy = judgeIdClaims({ claims: [], used: [use("core", "change", 175, "p/a"), use("core", "change", 175, "p/b")], from: FROM });
+    assert.equal(dupLegacy.verdict, "pass", "two existing records sharing an id were judged");
+    const newOnOld = judgeIdClaims({ claims: [], used: [use("core", "change", 175, "p/old"), use("core", "change", 175, "p/new", true)], from: FROM });
+    assert.equal(newOnOld.verdict, "fail");
+    assert.ok(rules(newOnOld).includes("reused"), "a new record on an existing legacy id is reused");
+    const claimed = [claim("core", "change", 300)];
+    const twice = judgeIdClaims({ claims: claimed, used: [use("core", "change", 300, "p/a", true), use("core", "change", 300, "p/b", true)], from: FROM });
+    assert.equal(twice.verdict, "fail");
+    assert.ok(rules(twice).includes("reused"), "two added records on one id are reused");
+    assert.equal(judgeIdClaims({ claims: claimed, used: [use("core", "change", 300, "p/a", true), use("core", "case", 300, "p/b", true)], from: { change: 251, case: 251 } }).verdict, "fail", "the other kind is unclaimed, not reused");
+    assert.equal(judgeIdClaims({ claims: claimed, used: [use("core", "change", 300, "p/a", true)], from: FROM }).verdict, "pass", "one record on a claimed id passes");
   });
 });
