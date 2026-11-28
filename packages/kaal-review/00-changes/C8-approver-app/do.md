@@ -14,5 +14,9 @@ Authorized by the CPO's approval of the PLAN (#2702) and of its amendments (#273
 ## Not done
 
 - No workflow, `.github` file, key, installation, WIRE or ruleset. The workflow that runs the judgement on a trusted trigger, and its proof of trusted execution at WIRE, are the CTO's and need the Owner's go. The Owner creates and installs the App.
-- The `appId` of the Approver is recorded by the Owner in a later reviewed change.
+- The `appId` of the Approver is recorded by the Owner in a later reviewed change (recorded: see below).
 - T1587 to T1589 stay provisional until release confirms the ids. No promotion and no publication.
+
+## appId recorded
+
+The Owner created the App "KAAL Approver" by hand and gave its App ID, `5964054`. It is recorded in `13-source/github-apps/approver.json` as the text of digits, the same way the Inspector's `5953432` was, and no two Apps share an id. No installation, key, secret, workflow or WIRE is part of this change.
