@@ -1,10 +1,23 @@
-// core/C251 DO: the claim's row for the fast lane's table (core/A69). The lane judge is Release's; this holds the row's own shape.
+// core/C251 planned outer test: the claim's row for the fast lane's table (core/A69). Immutable to DO and CHECK.
+// The lane judge is Release's; this holds the row's own shape.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { ID_CLAIM_LANE as lane } from "kaal-core/id-claims";
+
+/** The row, or the reason the test is blocked before any behavioural assertion. */
+async function row() {
+  let mod;
+  try {
+    mod = await import("kaal-core/id-claims");
+  } catch (e) {
+    assert.fail(`blocked before behavioural assertion: kaal-core exports no ./id-claims (${e.code ?? e.message})`);
+  }
+  assert.ok(mod.ID_CLAIM_LANE, "blocked before behavioural assertion: kaal-core/id-claims exports no ID_CLAIM_LANE");
+  return mod.ID_CLAIM_LANE;
+}
 
 describe("Id claim lane row (core/C251)", () => {
-  it("core/T149 [core/A69, core/F133]: the row is add-only, its one root is Core's claim folder, and its name pattern admits exactly <kind>-<id>.json with the whole name as the uniqueness key", () => {
+  it("core/T149 [core/A69, core/F133]: the row is add-only, its one root is Core's claim folder, and its name pattern admits exactly <kind>-<id>.json with the whole name as the uniqueness key", async () => {
+    const lane = await row();
     assert.equal(lane.kind, "id-claim");
     assert.deepEqual([...lane.status], ["A"]);
     assert.deepEqual([...lane.roots], ["packages/kaal-core/00-claims/"]);
