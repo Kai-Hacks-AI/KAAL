@@ -1,6 +1,7 @@
 // The thin adapter between a pure check and the world. Pure: it reads no file and calls no service.
 // A concern joins it only when every control needs it: the mode, the flag, the ratchet filter, failing closed, one log line, one record.
 import { judgeMode } from './lib/judge-mode.mjs';
+import { guideCause, isFailure, safeCause } from './lib/guide-cause.mjs';
 const MODES = ['detective', 'preventive', 'ratchet'];
 const FACTS = ['defined', 'implemented', 'running', 'tested'];
 const VERDICTS = ['PASS', 'FAIL', 'REPORT'];
@@ -22,18 +23,19 @@ export async function runControl({ id, mode: requested, check, input, baseline, 
   const mode = off ? 'detective' : requested;
   let findings = null;
   let confirmed = null;
+  let cause = null;
   if (text(id) && MODES.includes(mode) && typeof check === 'function') {
     // A check that cannot judge everything may keep what it confirmed on the error it throws; the answer stays UNKNOWN.
-    try { findings = await check(input); } catch (e) { findings = null; if (names(e?.confirmed)) confirmed = e.confirmed; }
+    try { findings = await check(input); } catch (e) { findings = null; if (names(e?.confirmed)) confirmed = e.confirmed; cause = safeCause(isFailure(e?.failure) ? e.failure : { kind: 'check-error', message: String(e?.message ?? e), ...(e?.failure === undefined ? {} : { malformed: true }) }); }
   }
   const judged = judgeMode({ mode, findings: names(findings) ? findings : null, baseline, previous });
   const verdict = text(id) ? judged.verdict : 'UNKNOWN';
   const blocked = !text(id) ? mode !== 'detective' : judged.blocked;
   const ran = off ? 'off' : requested;
   const applied = flag.state === 'on' ? true : off ? false : null;
-  const log = { control: id, mode: ran, verdict, findings: names(findings) ? findings.length : null, run: b.run ?? null, sha: b.sha ?? null, flag, ...(confirmed ? { confirmed: confirmed.length } : {}) };
+  const log = { control: id, mode: ran, verdict, findings: names(findings) ? findings.length : null, run: b.run ?? null, sha: b.sha ?? null, flag, ...(confirmed ? { confirmed: confirmed.length } : {}), ...(cause ? { cause: { kind: cause.kind, asked: cause.asked ?? null, place: cause.place ?? null } } : {}) };
   const record = text(b.x) && text(b.run) && text(b.sha) && text(id) ? { control: id, x: b.x, run: b.run, sha: b.sha, verdict, by: 'adapter', mode: ran, applied, flag } : null;
-  return { ...judged, id, mode: ran, ...(off ? { requested } : {}), applied, verdict, blocked, log, record, ...(confirmed ? { confirmed } : {}) };
+  return { ...judged, id, mode: ran, ...(off ? { requested } : {}), applied, verdict, blocked, log, record, ...(confirmed ? { confirmed } : {}), ...(cause ? { cause, guidance: guideCause(cause) } : {}) };
 }
 
 // Compares each declared claim with its own fact. The four facts are independent: none implies another.
