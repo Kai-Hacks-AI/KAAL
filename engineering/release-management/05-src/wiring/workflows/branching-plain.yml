@@ -2,7 +2,7 @@
 # The rules and their verdicts live only in the checker, engineering/github/lineage.ts. Each of its three verdicts runs as its own job through its delivered entry and the controls adapter (release/C158): freshness (release/CTL37), synchronization (release/CTL38) and auto-merge (release/CTL39).
 # Only the trigger and how the facts arrive differ from the old workflow: plain pull_request, no token beyond contents: read, no secret, no pull_request_target.
 # The default branch is checked out as the trusted judge. The candidate is fetched as Git data from refs/pull/<n>/head and is never checked out, built, installed or run.
-# Detective: its own job names, so it replaces no required context. At the swap the old workflow is retired.
+# Required context (release/C168): the aggregator job `Branching` takes the name the rulesets require and needs every entry below; the entries keep their own names. The old workflow keeps running unrequired, its job carrying the marker `(legacy`.
 name: Branching on pull_request
 
 on:
@@ -143,3 +143,20 @@ jobs:
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_AUTO_MERGE: ${{ github.event.pull_request.auto_merge.merge_method }}
         run: node engineering/release-management/05-src/lineage/judge-auto-merge.mjs --head "$HEAD" --base-ref "$BASE_REF"
+
+  branching:
+    # The required context (release/C168): it passes only when every needed entry succeeded, with nothing else in it.
+    name: Branching
+    needs: [freshness, synchronization, auto-merge]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Pass only when every needed job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for r in $RESULTS; do
+            [ "$r" = success ] || { echo "::error title=Branching::a needed job did not succeed ($r)"; exit 1; }
+          done
