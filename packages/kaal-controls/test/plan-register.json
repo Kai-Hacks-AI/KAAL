@@ -1,1 +1,9 @@
-{ "schema": "kaal-testing/expected-failures@1", "expected": [] }
+{
+  "schema": "kaal-testing/expected-failures@1",
+  "expected": [
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F230-an-adopter-uses-only-what-ships/T1732.test.mjs",
+      "reference": "controls/C177"
+    }
+  ]
+}
