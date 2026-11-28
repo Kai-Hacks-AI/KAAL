@@ -7,7 +7,9 @@ export const id = 'release/T851';
 export const tests = ['release/C65'];
 export const title = 'the workflow source gives verify Sync no token and no API, lets only it fetch the candidate, and keeps approve Sync and review Sync from naming the candidate\'s ref';
 export async function run() {
-  const yml = readFileSync(join(repo, 'engineering/release-management/05-src/wiring/workflows/sync-review.yml'), 'utf8');
+  // release/C173: verify Sync is its own workflow on pull_request, approve Sync and review Sync are the workflow_run workflow.
+  const dir = join(repo, 'engineering/release-management/05-src/wiring/workflows');
+  const yml = readFileSync(join(dir, 'sync-verify-plain.yml'), 'utf8') + '\n' + readFileSync(join(dir, 'sync-act.yml'), 'utf8');
   const code = yml.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
   const job = (name) => code.split(/^  (?=[a-z]+:\n    name: )/m).find((j) => j.includes(`name: ${name}`));
   const verify = job('verify Sync'), approve = job('approve Sync'), review = job('review Sync');
@@ -20,7 +22,7 @@ export async function run() {
   assert.ok(verify.includes('refs/pull/${KAAL_PR}/head'), 'verify Sync fetches the candidate');
   for (const [name, j] of [['approve Sync', approve], ['review Sync', review]]) {
     assert.ok(!/git fetch|refs\/pull|KAAL_HEAD/.test(j), `${name} fetches or names the candidate`);
-    assert.ok(j.includes('KAAL_VERDICT: ${{ needs.verify.outputs.verdict }}'), `${name} is not handed the verdict`);
+    assert.ok(j.includes('KAAL_VERDICT_FILE') && j.includes('run-id: ${{ github.event.workflow_run.id }}'), `${name} is not handed the verdict of the verify run as data`);
     assert.ok(j.includes('ref: ${{ github.event.repository.default_branch }}'), `${name} does not check out the default branch`);
     assert.ok(!/ref: \$\{\{ github\.event\.pull_request/.test(j), `${name} checks out the candidate`);
   }

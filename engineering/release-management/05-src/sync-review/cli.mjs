@@ -8,12 +8,13 @@
 // KAAL_SYNC_APPROVE (approve); KAAL_SYNC_REVIEWER (review, a fallback reviewer).
 // The commands take their effects as `deps` so a Case can run them without GitHub.
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, readFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { verifySync } from './verify.mjs';
 import { decideApproveNow, classifyRefusal } from './approve.mjs';
 import { decideReview, chooseReviewer, ownersOf, cleanVerdict, LABEL } from './review.mjs';
 import { gatherFacts } from './facts.mjs';
+import { checkProvenance } from './provenance.mjs';
 
 const run = (cmd, args) => {
   const r = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -28,6 +29,8 @@ export const realDeps = () => ({
     if (r.status !== 0) throw new Error(`gh api ${args.filter((a) => !a.startsWith('-')).join(' ')} failed: ${r.stderr.trim().split('\n')[0]}`);
     return r.stdout;
   },
+  readFile: (path) => { try { return readFileSync(path, 'utf8'); } catch { return null; } },
+  writeFile: (path, text) => writeFileSync(path, text),
   codeowners: () => { try { return readFileSync('.github/CODEOWNERS', 'utf8'); } catch { return null; } },
   out: (name, value) => { if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`); },
   summary: (lines) => { if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`); },
@@ -44,7 +47,7 @@ const parseVerdict = (text) => { try { const v = JSON.parse(text); return v && t
 
 function readPull(env, deps) {
   const pr = JSON.parse(deps.api([`repos/${env.KAAL_REPO}/pulls/${env.KAAL_PR}`]));
-  return { head: pr.head.sha, base: pr.base.ref, title: pr.title ?? '', body: pr.body ?? '', requested: (pr.requested_reviewers ?? []).map((u) => u.login), author: pr.user?.login ?? null };
+  return { number: pr.number, state: pr.state, headRepo: pr.head.repo?.full_name ?? null, head: pr.head.sha, base: pr.base.ref, title: pr.title ?? '', body: pr.body ?? '', requested: (pr.requested_reviewers ?? []).map((u) => u.login), author: pr.user?.login ?? null };
 }
 const isSync = (pull, base) => pull.title.startsWith('SYNC:') && pull.base === base;
 
@@ -65,16 +68,31 @@ export function verify(env, deps = realDeps()) {
   const text = [`${verdict.control}: ${verdict.outcome}`, ...verdict.reasons.map((r) => `- ${r.code}: ${r.detail}`)];
   deps.log(text.join('\n'));
   deps.out('verdict', JSON.stringify(verdict));
+  // release/C173: the verdict leaves the token-free job as data in a file that names its run, pull request, head and base ref.
+  if (env.KAAL_VERDICT_FILE) deps.writeFile(env.KAAL_VERDICT_FILE, JSON.stringify({ runId: env.KAAL_RUN_ID ?? null, pr: Number(env.KAAL_PR), head: env.KAAL_HEAD, baseRef: env.KAAL_BASE, verdict }));
   deps.summary(text);
   return STATUS[verdict.outcome] ?? STATUS.UNKNOWN;
 }
 
+// release/C173: with KAAL_VERDICT_FILE the verdict is read from the verify run's artifact and trusted only when its provenance holds
+// (provenance.mjs). Without it, the verdict is the text of KAAL_VERDICT (the release/C65 shape). A refused verdict is null and says why.
+function loadVerdict(env, deps, pull, baseTip, { requireSuccess }) {
+  if (!env.KAAL_VERDICT_FILE) return { verdict: parseVerdict(env.KAAL_VERDICT ?? ''), refusals: [] };
+  const text = deps.readFile(env.KAAL_VERDICT_FILE);
+  const envelope = text == null ? null : parseVerdict(text);
+  const run = { id: env.KAAL_RUN_ID, name: env.KAAL_RUN_NAME, conclusion: env.KAAL_RUN_CONCLUSION, head: env.KAAL_RUN_HEAD, event: env.KAAL_RUN_EVENT };
+  const r = checkProvenance({ envelope, run, pull: pull && { ...pull, baseRef: pull.base, baseSha: baseTip }, repo: env.KAAL_REPO, requireSuccess });
+  for (const x of r.refusals) deps.log(`verdict refused: ${x.code}: ${x.detail}`);
+  return { verdict: r.verdict, refusals: r.refusals };
+}
+
 export function approve(env, deps = realDeps()) {
   needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE']);
-  const verdict = parseVerdict(env.KAAL_VERDICT ?? '');
   let pull, baseTip;
   try { pull = readPull(env, deps); baseTip = readBaseTip(env, deps); } catch (e) { deps.log(String(e.message)); }
   if (!pull) { deps.error('approve Sync: cannot judge', 'the pull request cannot be read'); return 2; }
+  const { verdict, refusals } = loadVerdict(env, deps, pull, baseTip, { requireSuccess: true });
+  if (refusals.length) { const line = `approve Sync: skip: the verdict is refused (${refusals.map((x) => x.code).join(', ')})`; deps.log(line); deps.summary([line]); deps.out('approval', 'skipped'); return 0; }
   const reviews = lines(deps.api([`repos/${env.KAAL_REPO}/pulls/${env.KAAL_PR}/reviews`, '--paginate', '--jq', '.[] | tojson']) || '').map((l) => JSON.parse(l));
   const approvedAtHead = reviews.some((r) => r.state === 'APPROVED' && r.commit_id === pull.head);
   const decision = isSync(pull, env.KAAL_BASE)
@@ -108,7 +126,10 @@ export function review(env, deps = realDeps()) {
   if (!isSync(pull, env.KAAL_BASE)) { deps.log('review Sync: skip: the pull request is no longer a SYNC into the base that was judged'); return 0; }
   // release/C65: the verdict is data from verify Sync, read strictly and kept to what it may say; one of another head is not acted on,
   // a run for the newer head does that.
-  let verdict = cleanVerdict(parseVerdict(env.KAAL_VERDICT ?? ''));
+  // A refused verdict (release/C173) is no verdict: the SYNC is put in front of a person, never passed quietly.
+  let baseNow = null;
+  try { baseNow = readBaseTip(env, deps); } catch (e) { deps.log(String(e.message)); }
+  let verdict = cleanVerdict(loadVerdict(env, deps, pull, baseNow, { requireSuccess: false }).verdict);
   if (verdict?.analyzed?.head && verdict.analyzed.head !== pull.head) { deps.log('review Sync: skip: the verdict is of another head than the current one'); return 0; }
   // A pass that judged a base which has since moved is no pass for this head: the SYNC is behind and needs a person.
   if (verdict?.passes) {

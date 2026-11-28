@@ -10,11 +10,13 @@ export const title = 'no job of the workflow source that can write holds a fetch
 // flagged, also when it fetched by commit name; the same job with `permissions: {}` and a write job that never fetched were not. This Case
 // states that shape. Only CodeQL on the installed copy (the WIRE's check run) shows the scanner agrees.
 export async function run() {
-  const yml = readFileSync(join(repo, 'engineering/release-management/05-src/wiring/workflows/sync-review.yml'), 'utf8');
-  const code = yml.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
+  // release/C173: three jobs across the two sources of the sync review.
+  const dir = join(repo, 'engineering/release-management/05-src/wiring/workflows');
+  const sources = ['sync-verify-plain.yml', 'sync-act.yml'].map((f) => readFileSync(join(dir, f), 'utf8').split('\n').filter((l) => !l.trim().startsWith('#')).join('\n'));
+  for (const c of sources) assert.match(c, /^permissions: \{\}$/m);
+  const code = sources.join('\n');
   const jobs = code.split(/^  (?=[a-z]+:\n    name: )/m).slice(1);
   assert.equal(jobs.length, 3, 'three jobs');
-  assert.match(code, /^permissions: \{\}$/m);
   for (const j of jobs) {
     const writes = /^      [a-z-]+: write$/m.test(j) || /GH_TOKEN|github\.token|secrets\./.test(j);
     const reads = /git fetch|git checkout|git switch|git merge|git worktree|refs\/pull|pull_request\.head\.(ref|sha)(?!\n)/.test(j.replace(/KAAL_HEAD: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/g, ''));

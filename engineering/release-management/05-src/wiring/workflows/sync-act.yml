@@ -1,0 +1,144 @@
+# approve Sync and review Sync (release/C58, release/C60, release/C65), moved off pull_request_target by release/C173. They run on
+# `workflow_run` when the workflow `sync verify` completes, from the default branch, and run nothing of the candidate: they download
+# the verdict as data from that one run, check where it came from and that it is about the pull request as GitHub says it is now
+# (open, from this repository, into a kaal/, hotfix/ or wire/ base, the same head sha, base ref and base sha), and only then act.
+# A verdict that is missing, of another run, of a run that did not succeed (for approval), or that does not match, approves nothing
+# and says what was wrong; review Sync still puts the SYNC in front of a person. The write token comes from the KAAL Approver App
+# (secret KAAL_APP_APPROVER_KEY, variable KAAL_APP_APPROVER_ID); GITHUB_TOKEN only reads. Without the App credential approve Sync
+# is a dry run and review Sync says that it cannot write. Approval happens only when KAAL_SYNC_APPROVE is exactly `on`.
+# This is a source; a WIRE installs it under .github/workflows/.
+name: sync act
+
+on:
+  workflow_run:
+    workflows: ['sync verify']
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  approve:
+    name: approve Sync
+    if: ${{ github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0].number != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      approval: ${{ steps.approve.outputs.approval }}
+    env:
+      KAAL_REPO: ${{ github.repository }}
+      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+      KAAL_RUN_ID: ${{ github.event.workflow_run.id }}
+      KAAL_RUN_NAME: ${{ github.event.workflow_run.name }}
+      KAAL_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      KAAL_RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
+      KAAL_RUN_EVENT: ${{ github.event.workflow_run.event }}
+      KAAL_PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+      KAAL_BASE: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
+      KAAL_VERDICT_FILE: ${{ runner.temp }}/sync-verdict/verdict.json
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Mint the Approver App token
+        id: app
+        if: ${{ vars.KAAL_APP_APPROVER_ID != '' }}
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          app-id: ${{ vars.KAAL_APP_APPROVER_ID }}
+          private-key: ${{ secrets.KAAL_APP_APPROVER_KEY }}
+          permission-pull-requests: write
+
+      # The verdict of that one run and no other.
+      - name: Download the verdict of the verify run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: sync-verdict
+          path: ${{ runner.temp }}/sync-verdict
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      # The event names the pull request of the verify run (empty for a fork, which is never acted on); the entry reads every fact of it again from GitHub.
+      - name: Approve what verify Sync passed, or say what would be approved
+        id: approve
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token || github.token }}
+          # Exactly `on` approves, and only with the App credential; anything else is a dry run that says what it would do.
+          KAAL_SYNC_APPROVE: ${{ steps.app.outputs.token != '' && vars.KAAL_SYNC_APPROVE || '' }}
+        run: |
+          node engineering/release-management/05-src/sync-review/cli.mjs approve
+
+  review:
+    name: review Sync
+    needs: approve
+    if: ${{ always() && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0].number != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    env:
+      KAAL_REPO: ${{ github.repository }}
+      KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+      KAAL_RUN_ID: ${{ github.event.workflow_run.id }}
+      KAAL_RUN_NAME: ${{ github.event.workflow_run.name }}
+      KAAL_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      KAAL_RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
+      KAAL_RUN_EVENT: ${{ github.event.workflow_run.event }}
+      KAAL_PR: ${{ github.event.workflow_run.pull_requests[0].number }}
+      KAAL_BASE: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
+      KAAL_VERDICT_FILE: ${{ runner.temp }}/sync-verdict/verdict.json
+      KAAL_APPROVAL: ${{ needs.approve.outputs.approval }}
+      # The person to ask when CODEOWNERS names nobody but the author. Without one, a SYNC that needs a person fails this job.
+      KAAL_SYNC_REVIEWER: ${{ vars.KAAL_SYNC_REVIEWER }}
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Mint the Approver App token
+        id: app
+        if: ${{ vars.KAAL_APP_APPROVER_ID != '' }}
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          app-id: ${{ vars.KAAL_APP_APPROVER_ID }}
+          private-key: ${{ secrets.KAAL_APP_APPROVER_KEY }}
+          permission-pull-requests: write
+          permission-issues: write
+
+      - name: Download the verdict of the verify run
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: sync-verdict
+          path: ${{ runner.temp }}/sync-verdict
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Say that review Sync cannot write without the App
+        if: ${{ steps.app.outputs.token == '' }}
+        run: |
+          echo "::error title=review Sync: no Approver App credential::the KAAL Approver App variable KAAL_APP_APPROVER_ID is not set, so this job cannot label, ask for a review or comment; a person must look at this SYNC by hand"
+          exit 1
+
+      - name: Put a SYNC that needs a person in front of one
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+        run: |
+          node engineering/release-management/05-src/sync-review/cli.mjs review
