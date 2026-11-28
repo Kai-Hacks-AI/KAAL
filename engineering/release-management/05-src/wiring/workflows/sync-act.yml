@@ -159,7 +159,6 @@ jobs:
           app-id: ${{ vars.KAAL_APP_APPROVER_ID }}
           private-key: ${{ secrets.KAAL_APP_APPROVER_KEY }}
           permission-pull-requests: write
-          permission-issues: write
 
       - name: Download the verdict of the verify run
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
