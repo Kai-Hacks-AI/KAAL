@@ -57,7 +57,7 @@ export function findControls(files, { stations: known = [] } = {}) {
   const candidates = [];
   const cases = [];
   for (const file of files) {
-    const text = file.text.replace(/\r\n/g, '\n');
+    const text = file.text;
     const header = /^\/\/ Case (\S+) tests: (.*)$/.exec(text.split('\n')[0]);
     if (header) cases.push({ id: header[1], path: file.path, tests: header[2].split(',').map((s) => s.trim()) });
     const fields = frontmatter(text);
