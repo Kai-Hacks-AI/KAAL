@@ -57,6 +57,12 @@ Every statement in these documents carries a stable identifier. `core/I…` is a
 - **core/I18.** Registration is additive and opt-in. An Engine with no registrations behaves as it would without the feature.
 - **core/I21.** A term that several owners define is discoverable and never resolved silently. Assembly reports it as unaligned and merges nothing.
 
+### Id claims
+
+- **core/I49.** A number of a numbered kind, such as a Change or a Case, is claimed before any content uses it. A claim is one file for one id, which lands on main ahead of the content and which every capability reads before it takes a number.
+- **core/I50.** A claim is exact. It names one id, never a range or a block, and a number that is claimed and never used stays a gap and is never reused.
+- **core/I51.** Core judges what it is given and holds no list of branches. A second claim of a number cannot land, because the file name is the number. Core says whether the content used what was claimed, by whom, and whether the claims are well formed.
+
 ### Release
 
 - **core/I22.** kaal-core 0.0.1 releases Core with registration, and a consumer receives documents that explain the package and tests that verify the installed copy.
