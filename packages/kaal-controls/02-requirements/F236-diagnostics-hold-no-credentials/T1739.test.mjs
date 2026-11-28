@@ -1,5 +1,6 @@
 // Case controls/T1739 tests: controls/F236
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
@@ -10,6 +11,7 @@ export const title = 'what a verdict emits of a failure is an explicit safe shap
 const SECRETS = [['ghp_0123456789abcdefghijABCDEFGHIJ012345'], ['ghs_0123456789abcdefghijABCDEFGHIJ012345'], ['github_pat_11ABCDEFG0123456789_abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJ'], ['Bearer abcdef0123456789.token-value', 'abcdef0123456789.token-value'], ['Authorization: token s3cr3t-value-123', 's3cr3t-value-123'], ['x-access-token:s3cr3tpass@github.com', 's3cr3tpass']];
 const clean = { kind: 'rate-limited', asked: 'read rules of branch main in a/b', place: 'GET /repos/a/b/rules/branches/main', status: 403, platformMessage: 'API rate limit exceeded', limit: { bucket: 'core', remaining: 0, resetAt: '2026-11-28T09:00:00Z', retryAfterSeconds: 3600 } };
 export async function run() {
+  assert.ok(existsSync(join(scripts, 'lib/guide-cause.mjs')), 'scripts/lib/guide-cause.mjs is absent');
   const { safeCause, guideCause } = await import(pathToFileURL(join(scripts, 'lib/guide-cause.mjs')).href);
   const { runControl } = await import(pathToFileURL(join(scripts, 'adapter.mjs')).href);
   const go = (error) => runControl({ id: 'c/CTL1', mode: 'preventive', check: () => { throw error; }, input: {}, boundary: {} });

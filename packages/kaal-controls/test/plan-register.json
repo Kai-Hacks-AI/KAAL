@@ -8,6 +8,10 @@
     {
       "id": "test/cases.test.mjs > Cases > 02-requirements/F235-one-line-guides-to-the-cause/T1738.test.mjs",
       "reference": "controls/C179"
+    },
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F236-diagnostics-hold-no-credentials/T1739.test.mjs",
+      "reference": "controls/C179"
     }
   ]
 }
