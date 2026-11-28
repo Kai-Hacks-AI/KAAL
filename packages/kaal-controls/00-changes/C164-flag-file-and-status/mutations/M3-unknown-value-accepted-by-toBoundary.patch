@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs
+@@ -14,7 +14,7 @@ export function flagState(value) {
+ export function toBoundary(name, value) {
+   if (typeof name !== 'string' || name === '') throw new Error('toBoundary: the flag needs a name');
+   const s = flagState(value);
+-  if (s === 'UNKNOWN') throw new Error(`toBoundary: ${name} has no recognized value`);
++  if (false) throw new Error(`toBoundary: ${name} has no recognized value`);
+   return s === 'PREVENTING' ? { name, value: 'on' } : s === 'ADVISORY' ? { name, value: 'off' } : null;
+ }
+ 

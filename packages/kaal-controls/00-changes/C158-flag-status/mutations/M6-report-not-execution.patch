@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs
+@@ -3,7 +3,7 @@
+ import { judgeMode } from './judge-mode.mjs';
+ const MODES = ['detective', 'preventive', 'ratchet'];
+ const FACTS = ['defined', 'implemented', 'running', 'tested'];
+-const VERDICTS = ['PASS', 'FAIL', 'REPORT'];
++const VERDICTS = ['PASS', 'FAIL'];
+ const text = (v) => typeof v === 'string' && v.length > 0;
+ const isObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+ const names = (v) => Array.isArray(v) && v.every((x) => typeof x === 'string') && new Set(v).size === v.length;
