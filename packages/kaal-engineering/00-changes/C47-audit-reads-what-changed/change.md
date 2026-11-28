@@ -41,7 +41,7 @@ The change is in `engineering/github/branching-audit.sh`, which the audit reads 
 
 The Cases run the script against a local repository with a recording stand-in for `gh`, so no network is used.
 
-- T1750: a push that lands (to a collector and to the default branch) makes at most three GitHub calls, reads no list to its last page, reads no pull request list, and asks which pull requests its commit belongs to. RED.
+- T1757: a push that lands (to a collector and to the default branch) makes at most three GitHub calls, reads no list to its last page, reads no pull request list, and asks which pull requests its commit belongs to. RED.
 - T1751: the deletion of a branch makes no GitHub call. RED.
 - T1752: the daily run still reads every activity record and every pull request to the last page. GREEN guard.
 - T1753: the creation of a collector reads the default branch's activity only and no pull request list. RED.
@@ -52,3 +52,10 @@ The Cases run the script against a local repository with a recording stand-in fo
 ## Not in this Change
 
 A workflow change, a WIRE, a ruleset change, a change to `lineage.ts` or its verdicts, and any other spender of the token (merge-group poll, CodeQL gate poll, Change Isolation). Those have their own Changes.
+
+## Amendment: the numbers and one assertion
+
+Two corrections, in this PR before the DO is reviewed, and nothing else:
+
+- **The id of the first Case.** release/T1750 (hotfix C200) is already on a collector, so the Case that was T1750 is **T1757**, after a scan of every remote branch (T1757 is free). The text above says T1757 where it said T1750.
+- **T1753, its last assertion.** It looked for `per_page=100` with no `ref=` after it, so it held only when `per_page` came before `ref` in the URL: it meant "no activity read without a ref" and could fail a correct read. It now says that: no activity URL without `ref=`. The other two assertions are unchanged. Expectation unchanged: the creation of a collector reads the default branch's activity only.
