@@ -3,8 +3,11 @@
 const f = (kind, detail) => ({ kind, detail });
 const verdict = (findings) => ({ verdict: findings.length ? 'out' : 'in', findings });
 /** The abilities each App declares, exactly. An ability is a neutral word of Hosting's closed list. */
-const AUTH = { inspector: ['post-checks', 'read-checks', 'read-contents', 'read-pull-requests'] };
-/** Reads the declaration of an App as data and finds what it holds beyond or short of its authority. */
+const AUTH = {
+  inspector: ['post-checks', 'read-checks', 'read-contents', 'read-pull-requests'],
+  approver: ['approve-pull-requests', 'read-checks', 'read-contents', 'read-pull-requests'],
+};
+/** Reads the declaration of an App as data and finds what it holds beyond or short of its authority, and an `appId` that is not a positive whole number. The Owner records the `appId` after creating the App by hand. */
 export function readDeclaration(text, app = 'inspector') {
   const INSPECTOR = AUTH[app] ?? [];
   let d; try { d = JSON.parse(text); } catch { return { declaration: null, findings: [f('unreadable', 'not JSON')] }; }
@@ -12,6 +15,7 @@ export function readDeclaration(text, app = 'inspector') {
   if (d?.app !== app) findings.push(f('wrong-app', String(d?.app)));
   if (d?.owner !== 'review') findings.push(f('wrong-owner', String(d?.owner)));
   if (typeof d?.purpose !== 'string' || !d.purpose) findings.push(f('no-purpose', ''));
+  if (d && typeof d === 'object' && 'appId' in d && !(Number.isInteger(d.appId) && d.appId > 0)) findings.push(f('bad-app-id', String(d.appId)));
   if (!Array.isArray(d?.abilities)) findings.push(f('abilities-not-a-list', ''));
   else {
     for (const a of d.abilities) if (!INSPECTOR.includes(a)) findings.push(f('ability-beyond-authority', a));
@@ -20,7 +24,7 @@ export function readDeclaration(text, app = 'inspector') {
   }
   return { declaration: findings.length ? null : d, findings };
 }
-/** Judges a set of declarations for the rule that no App decides on what it raised. */
+/** Judges a set of declarations for the rule that no App decides on what it raised, and that no two Apps share an `appId`. */
 export function judgeApps(apps) {
   if (!Array.isArray(apps)) return verdict([f('unreadable', 'not a list')]);
   const out = [];
@@ -30,6 +34,8 @@ export function judgeApps(apps) {
     if (approves && raises) out.push(f('raises-and-approves', a.app));
     if (approves && a.app !== 'approver') out.push(f('approves-beyond-approver', a.app));
   }
+  const ids = apps.map((a) => a?.appId).filter((x) => x !== undefined);
+  if (new Set(ids).size !== ids.length) out.push(f('shared-app-id', ''));
   return verdict(out);
 }
 const KEY = 'KAAL_APP_INSPECTOR_KEY';
