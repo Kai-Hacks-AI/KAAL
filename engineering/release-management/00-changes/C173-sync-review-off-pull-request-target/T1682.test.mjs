@@ -7,8 +7,10 @@ export const title = 'approve Sync and review Sync run from the default branch o
 export async function run() {
   const act = source('sync-act.yml');
   assert.match(act, /^on:\n {2}workflow_run:\n {4}workflows: \['sync verify'\]\n {4}types: \[completed\]\n/m);
-  assert.ok(!/git fetch|refs\/pull|npm |pnpm |yarn /.test(act), 'the acting workflow reads or builds the candidate');
-  for (const name of ['approve Sync', 'review Sync']) assert.ok(jobOf(act, name).includes('ref: ${{ github.event.repository.default_branch }}'), `${name} does not check out the default branch`);
+  assert.ok(!/git fetch|refs\/pull/.test(act), 'the acting workflow reads the candidate');
+  assert.equal([...act.matchAll(/uses: actions\/checkout@/g)].length, [...act.matchAll(/ref: \$\{\{ github\.event\.repository\.default_branch \}\}/g)].length, 'a checkout is not of the default branch');
+  assert.ok(!/pnpm |yarn /.test(act) && [...act.matchAll(/npm ci/g)].every(() => /working-directory: packages\/kaal-hosting/.test(act)), 'something other than Hosting is built');
+  for (const name of ['sign Sync', 'approve Sync', 'review Sync']) assert.ok(jobOf(act, name).includes('ref: ${{ github.event.repository.default_branch }}'), `${name} does not check out the default branch`);
   const x = await world();
   try {
     const ok = x.run(x.approve, x.actEnv());

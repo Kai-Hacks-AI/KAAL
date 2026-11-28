@@ -12,7 +12,7 @@ export async function run() {
   const yml = readFileSync(join(dir, 'sync-verify-plain.yml'), 'utf8') + '\n' + readFileSync(join(dir, 'sync-act.yml'), 'utf8');
   const code = yml.split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
   const job = (name) => code.split(/^  (?=[a-z]+:\n    name: )/m).find((j) => j.includes(`name: ${name}`));
-  const verify = job('verify Sync'), approve = job('approve Sync'), review = job('review Sync');
+  const verify = job('judge Sync'), approve = job('approve Sync'), review = job('review Sync');
   assert.ok(verify && approve && review, 'a job is absent');
   assert.match(verify, /^    permissions: \{\}$/m, 'verify Sync does not hold an empty set of permissions');
   assert.ok(!/GH_TOKEN|github\.token|secrets\./.test(verify), 'verify Sync is handed a token');
@@ -22,7 +22,9 @@ export async function run() {
   assert.ok(verify.includes('refs/pull/${KAAL_PR}/head'), 'verify Sync fetches the candidate');
   for (const [name, j] of [['approve Sync', approve], ['review Sync', review]]) {
     assert.ok(!/git fetch|refs\/pull|KAAL_HEAD/.test(j), `${name} fetches or names the candidate`);
-    assert.ok(j.includes('KAAL_VERDICT_FILE') && j.includes('run-id: ${{ github.event.workflow_run.id }}'), `${name} is not handed the verdict of the verify run as data`);
+    // release/C173: approve Sync takes no verdict of its own: Review C8 judges the facts Hosting reads (signed check), so only review Sync is handed the verdict file.
+    if (name === 'review Sync') assert.ok(j.includes('KAAL_VERDICT_FILE') && j.includes('run-id: ${{ github.event.workflow_run.id }}'), `${name} is not handed the verdict of the verify run as data`);
+    else assert.ok(j.includes('judge-approval.mjs') && !j.includes('KAAL_VERDICT'), `${name} judges on its own verdict`);
     assert.ok(j.includes('ref: ${{ github.event.repository.default_branch }}'), `${name} does not check out the default branch`);
     assert.ok(!/ref: \$\{\{ github\.event\.pull_request/.test(j), `${name} checks out the candidate`);
   }

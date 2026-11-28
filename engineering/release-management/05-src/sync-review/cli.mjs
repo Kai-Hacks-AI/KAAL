@@ -15,6 +15,7 @@ import { decideApproveNow, classifyRefusal } from './approve.mjs';
 import { decideReview, chooseReviewer, ownersOf, cleanVerdict, LABEL } from './review.mjs';
 import { gatherFacts } from './facts.mjs';
 import { checkProvenance, VERIFY_PATH } from './provenance.mjs';
+import { sign as signCheck } from './sign.mjs';
 
 const run = (cmd, args) => {
   const r = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -123,6 +124,45 @@ export function approve(env, deps = realDeps()) {
   return 0;
 }
 
+// release/C173: the Inspector signs verify Sync from the bound verdict. Hosting is the package built from the default branch.
+export async function sign(env, deps = realDeps()) {
+  needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE']);
+  let pull, baseTip;
+  try { pull = readPull(env, deps); baseTip = readBaseTip(env, deps); } catch (e) { deps.log(String(e.message)); }
+  if (!pull) { deps.error('sign Sync: cannot judge', 'the pull request cannot be read'); return 2; }
+  const { verdict } = loadVerdict(env, deps, pull, baseTip, { requireSuccess: false });
+  const hosting = deps.hosting ?? await import(pathToFileURL(env.KAAL_HOSTING_ENTRY).href);
+  return signCheck({ verdict, head: pull.head, repo: env.KAAL_REPO, runId: env.KAAL_RUN_ID, env, hosting, out: deps.out, log: deps.log, error: deps.error });
+}
+
+// release/C173: approve Sync does not judge. Review C8 judges (`judgeApproval(evidence, facts, grant)` of kaal-review), on the facts
+// Hosting reads with the Approver's own grant, and this entry only carries the answer out: Hosting's postReview at the head C8 judged,
+// and only when KAAL_SYNC_APPROVE is exactly `on`. Without C8 or the Approver credential it is a dry run that says what it would ask.
+// `sign Sync` has posted the check before the facts are read, or C8 abstains with check-missing.
+export async function approveJudged(env, deps = realDeps()) {
+  needed(env, ['KAAL_REPO', 'KAAL_PR']);
+  const dry = (why) => { deps.log(`approve Sync: would ask Review C8: ${why}`); deps.summary([`approve Sync: dry run: ${why}`]); deps.out('approval', 'would-approve'); return 0; };
+  if (!env.KAAL_APP_APPROVER_ID || !env.KAAL_APP_APPROVER_KEY) return dry('the Approver App credential is not set');
+  const judge = deps.judge ?? (env.KAAL_JUDGE_APPROVAL_ENTRY ? (await import(pathToFileURL(env.KAAL_JUDGE_APPROVAL_ENTRY).href)).judgeApproval : null);
+  if (typeof judge !== 'function') return dry('the judgment of Review C8 is not installed in this repository yet');
+  const hosting = deps.hosting ?? await import(pathToFileURL(env.KAAL_HOSTING_ENTRY).href);
+  let grant, facts;
+  try {
+    grant = await hosting.mintToken({ app: 'approver', appId: env.KAAL_APP_APPROVER_ID, privateKey: env.KAAL_APP_APPROVER_KEY, repo: env.KAAL_REPO, abilities: ['approve-pull-requests'] });
+    facts = await hosting.readPullRequestFacts({ repo: env.KAAL_REPO, number: Number(env.KAAL_PR), check: 'verify Sync' }, { grant });
+  } catch (e) { deps.error('approve Sync: cannot read the facts', String(e?.message ?? e).slice(0, 200)); deps.out('approval', 'skipped'); return 2; }
+  const evidence = { pr: { head: facts?.head?.sha, base: facts?.base?.sha }, execution: { trigger: env.KAAL_EVENT_NAME, codeRevision: deps.git(['rev-parse', 'HEAD']).stdout.trim(), checkedOutHead: false } };
+  const answer = judge(evidence, facts, grant);
+  deps.log(`approve Sync: Review C8 says ${answer.decision}${answer.findings?.length ? `: ${answer.findings.map((f) => f.kind).join(', ')}` : ''}`);
+  if (answer.decision !== 'approve') { deps.out('approval', 'skipped'); return 0; }
+  if (env.KAAL_SYNC_APPROVE !== 'on') { deps.out('approval', 'would-approve'); return 0; }
+  try {
+    await hosting.postReview({ revision: facts.head.sha, event: 'APPROVE' }, { grant });
+    deps.out('approval', 'approved');
+    return 0;
+  } catch (e) { deps.out('approval', 'refused'); deps.error('approve Sync: the approval was refused', String(e?.message ?? e).slice(0, 200)); return 1; }
+}
+
 export function review(env, deps = realDeps()) {
   needed(env, ['KAAL_REPO', 'KAAL_PR', 'KAAL_BASE']);
   let pull;
@@ -168,7 +208,7 @@ export function review(env, deps = realDeps()) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const command = { verify, approve, review }[process.argv[2]];
-  if (!command) { console.error('usage: cli.mjs verify | approve | review'); process.exit(2); }
-  try { process.exit(command(process.env)); } catch (e) { console.error(String(e.message)); process.exit(2); }
+  const command = { verify, approve, 'approve-judged': approveJudged, review, sign }[process.argv[2]];
+  if (!command) { console.error('usage: cli.mjs verify | sign | approve | review'); process.exit(2); }
+  try { process.exit(await command(process.env)); } catch (e) { console.error(String(e.message)); process.exit(2); }
 }

@@ -21,10 +21,10 @@ export async function run() {
   assert.ok(!/^ {2}(push|pull_request|pull_request_target|schedule|workflow_dispatch|merge_group):/m.test(act), 'another trigger is present in the acting workflow');
   assert.match(verify, /^permissions: \{\}$/m, 'permissions are not empty at the top');
   assert.match(act, /^permissions: \{\}$/m, 'permissions are not empty at the top');
-  for (const name of ['verify Sync', 'approve Sync', 'review Sync']) assert.ok(code.includes(`name: ${name}`), `the job ${name} is absent`);
+  for (const name of ['judge Sync', 'sign Sync', 'approve Sync', 'review Sync']) assert.ok(code.includes(`name: ${name}`), `the job ${name} is absent`);
   assert.equal([...verify.matchAll(/startsWith\(github\.event\.pull_request\.title, 'SYNC:'\)/g)].length, 1, 'verify does not run only for a SYNC');
   for (const lane of ['kaal/', 'hotfix/', 'wire/']) assert.ok(verify.includes(`startsWith(github.event.pull_request.base.ref, '${lane}')`), `the ${lane} base is not named`);
-  assert.ok(act.includes('needs: approve'), 'review does not need approve');
+  assert.ok(act.includes('needs: [sign, approve]'), 'review does not need sign and approve');
   assert.ok(act.includes('ref: ${{ github.event.repository.default_branch }}') && verify.includes('ref: ${{ github.event.repository.default_branch }}'), 'the default branch is not checked out');
   assert.ok(code.includes('persist-credentials: false'), 'credentials persist');
   assert.ok(!/ref: \$\{\{ github\.(event\.pull_request|head_ref|event\.workflow_run)/.test(code), 'the candidate is checked out');

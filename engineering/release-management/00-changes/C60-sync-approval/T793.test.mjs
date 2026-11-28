@@ -20,7 +20,7 @@ export async function run() {
   const job = (name) => yml.split(/^  (?=[a-z]+:\n    name: )/m).find((j) => j.includes(`name: ${name}`));
   const approve = job('approve Sync'), reviewJob = job('review Sync');
   assert.ok(/outputs:\n\s+approval: \$\{\{ steps\.[a-z-]+\.outputs\.approval \}\}/.test(approve), 'approve Sync hands its outcome on as the output approval');
-  assert.ok(/needs: approve/.test(reviewJob), 'review Sync waits for approve Sync');
+  assert.ok(/needs: \[sign, approve\]/.test(reviewJob), 'review Sync waits for approve Sync');
   assert.ok(/always\(\)/.test(reviewJob), 'review Sync still runs when approve Sync failed');
   assert.ok(reviewJob.includes('KAAL_APPROVAL: ${{ needs.approve.outputs.approval }}'), 'review Sync reads the outcome');
   assert.ok(!/KAAL_APPROVAL/.test(approve), 'approve Sync does not read its own outcome');

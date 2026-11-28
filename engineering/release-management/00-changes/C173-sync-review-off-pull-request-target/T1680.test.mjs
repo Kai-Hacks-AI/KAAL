@@ -9,8 +9,8 @@ export async function run() {
   assert.match(verify, /^on:\n {2}pull_request:\n/m);
   assert.ok(!/^ {2}(push|pull_request_target|schedule|workflow_dispatch|merge_group|workflow_run):/m.test(verify), 'another trigger');
   assert.match(verify, /^permissions: \{\}$/m);
-  const job = jobOf(verify, 'verify Sync');
-  assert.match(job, /^    permissions: \{\}$/m, 'verify Sync holds permissions');
+  const job = jobOf(verify, 'judge Sync');
+  assert.match(job, /^    permissions: \{\}$/m, 'judge Sync holds permissions');
   assert.ok(!/GH_TOKEN|github\.token|secrets\.|vars\.|: write/.test(verify), 'verify holds a token, a secret or a write');
   assert.ok(!/gh api|gh pr/.test(verify), 'verify calls an API');
   assert.ok(!/pull_request_target/.test(verify + act), 'a sync workflow names pull_request_target');

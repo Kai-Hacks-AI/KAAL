@@ -6,7 +6,7 @@ export const tests = ['release/C173'];
 export const title = 'the candidate is fetched as Git data and never checked out, built, installed or run, and a head the job cannot read is refused with no verdict of PASS';
 export async function run() {
   const verify = source('sync-verify-plain.yml');
-  const job = jobOf(verify, 'verify Sync');
+  const job = jobOf(verify, 'judge Sync');
   assert.equal([...job.matchAll(/git fetch/g)].length, 1);
   assert.ok(job.includes('refs/pull/${KAAL_PR}/head'), 'the candidate is not fetched from its pull ref');
   assert.ok(!/ref: \$\{\{ github\.(event\.pull_request|head_ref)/.test(job), 'the candidate is checked out');

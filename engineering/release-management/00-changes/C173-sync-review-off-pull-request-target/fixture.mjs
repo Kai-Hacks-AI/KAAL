@@ -13,7 +13,7 @@ export const BLOBS = { head: 'b1'.repeat(20), main: 'b1'.repeat(20) };
 
 // A world: the verify job has run (its file is `file`), and the acting jobs see the pull request through `pr` (changeable).
 export async function world() {
-  const { verify, approve, review } = await load('cli.mjs');
+  const { verify, approve, review, sign } = await load('cli.mjs');
   const w = pureSync();
   let file = null;
   const pr = { number: 7, state: 'open', headRepo: 'o/r', baseRef: 'kaal/release/x' };
@@ -32,7 +32,7 @@ export async function world() {
   const sent = file;
   const actEnv = (extra = {}) => w.env({ KAAL_VERDICT_FILE: '/v.json', ...RUN, KAAL_RUN_HEAD: w.head, KAAL_SYNC_APPROVE: 'on', ...extra });
   return {
-    w, pr, verifyCode: code, sent, deps, actEnv, approve, review,
+    w, pr, verifyCode: code, sent, deps, actEnv, approve, review, sign,
     setFile: (text) => { file = text; },
     envelope: () => JSON.parse(sent),
     run: (fn, env, over) => { w.reset(); return fn(env, deps({ git: w.noGit, ...over })); },

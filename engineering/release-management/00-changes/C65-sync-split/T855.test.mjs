@@ -16,7 +16,7 @@ export async function run() {
   for (const c of sources) assert.match(c, /^permissions: \{\}$/m);
   const code = sources.join('\n');
   const jobs = code.split(/^  (?=[a-z]+:\n    name: )/m).slice(1);
-  assert.equal(jobs.length, 3, 'three jobs');
+  assert.equal(jobs.length, 4, 'four jobs: judge, sign, approve, review');
   for (const j of jobs) {
     const writes = /^      [a-z-]+: write$/m.test(j) || /GH_TOKEN|github\.token|secrets\./.test(j);
     const reads = /git fetch|git checkout|git switch|git merge|git worktree|refs\/pull|pull_request\.head\.(ref|sha)(?!\n)/.test(j.replace(/KAAL_HEAD: \$\{\{ github\.event\.pull_request\.head\.sha \}\}/g, ''));
