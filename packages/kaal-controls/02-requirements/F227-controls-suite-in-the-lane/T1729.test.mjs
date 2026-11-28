@@ -22,6 +22,6 @@ export async function run() {
   assert.equal(typeof pkg.scripts?.test, 'string', 'the package has no test entrypoint, so the lane would not count it as verified');
   assert.equal(pkg.private, true, 'private stays as the lock against a publish');
   assert.equal(pkg.dependencies, undefined, 'joining the workspaces adds no dependency to the package');
-  assert.equal(pkg.devDependencies, undefined);
-  assert.deepEqual(Object.keys(pkg.scripts), ['test'], 'joining the workspaces adds no script to the package');
+  assert.deepEqual(pkg.devDependencies, { 'kaal-testing': '0.0.1' }, 'the only dev dependency is the testing package, which the lane judge reads');
+  assert.deepEqual(Object.keys(pkg.scripts), ['test'], 'the package has the one test script');
 }
