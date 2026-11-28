@@ -2,7 +2,7 @@
 # The rules and their verdicts live only in the checker, engineering/github/lineage.ts. Each of its two verdicts runs as its own job through its delivered entry and the controls adapter (release/C159): origin (release/CTL40) and head evidence (release/CTL41).
 # Only the trigger differs from the old workflow: plain pull_request, no secret, no pull_request_target. Origin judges the event's refs alone and takes no permission beyond contents: read; head evidence also reads the rules and the check runs of the head, so it alone takes checks: read.
 # The default branch is checked out as the trusted judge. Nothing of the candidate is fetched, checked out, built, installed or run.
-# Detective: its own job names, so it replaces no required context. At the swap the old workflow is retired.
+# Required context (release/C168): the aggregator job `Promotion Source` takes the name the rulesets require and needs every entry below; the entries keep their own names. The old workflow keeps running unrequired, its job carrying the marker `(legacy`.
 name: Promotion Source on pull_request
 
 on:
@@ -72,3 +72,29 @@ jobs:
           KAAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GH_TOKEN: ${{ github.token }}
         run: node engineering/release-management/05-src/promotion-source/judge-head-evidence.mjs --base-ref "$BASE_REF"
+
+  promotion-source:
+    # The required context (release/C168, corrected by release/C170): it passes only when the entries that reported are exactly the expected ones and each succeeded, with nothing else in it.
+    name: Promotion Source
+    needs: [origin, head-evidence]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Pass only on evidence of success for every expected entry
+        env:
+          # The entries this check expects (release/C170): the same ones as `needs`, named apart from what is reported.
+          EXPECTED: "origin head-evidence"
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          node -e '
+            const needs = JSON.parse(process.env.NEEDS || "{}");
+            const expected = process.env.EXPECTED.split(" ").filter(Boolean);
+            const reported = Object.keys(needs);
+            const bad = [];
+            if (expected.length === 0 || reported.length === 0) bad.push("no result at all");
+            for (const e of expected) if (needs[e]?.result !== "success") bad.push(e + ": " + (needs[e]?.result ?? "absent"));
+            for (const r of reported) if (!expected.includes(r)) bad.push(r + ": unexpected");
+            if (bad.length > 0) { console.error("::error title=Promotion Source::" + bad.join("; ")); process.exit(1); }
+          '
