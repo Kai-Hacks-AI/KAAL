@@ -1,0 +1,3 @@
+# C1800 baseline
+
+`main` holds backlog/C1 and C2: `lib/check.mjs`, `lib/qualify.mjs` and the Cases T490 to T499 as `.test.mjs`, and the retro RT1. `qualify(diff, { roots, existing })` permits only explicit `A` and `M` item files in roots of the shape `packages/<capability>/00-backlog/`. It is not wired: no branch kind, ruleset or workflow exists and the Owner has not given the go for any of them. change/C250 (PR #3020, a PLAN) proposes identity claims as files `packages/kaal-change/13-source/ids/claims/<kind>-<from>-<capability>.json`, add and modify only, and names Backlog's lane as the route.
