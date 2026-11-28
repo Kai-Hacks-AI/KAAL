@@ -40,6 +40,8 @@ jobs:
           KAAL_HEAD_REF: ${{ github.event.pull_request.head.ref }}
           # Judged from the event's refs alone; the head is only what the record names.
           KAAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          KAAL_FLAGS: engineering/14-operations/controls/flags.json
+          KAAL_CONTROL_RECORD: engineering/release-management/04-controls/CTL40-verify-promotion-origin/CTL40.md
         run: node engineering/release-management/05-src/promotion-source/judge-origin.mjs --base-ref "$BASE_REF"
 
   head-evidence:
@@ -71,6 +73,8 @@ jobs:
           # A kaal/<capability>/*, hotfix/* or wire/* head is admitted only when the checks its rulesets require are green on this exact commit.
           KAAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           GH_TOKEN: ${{ github.token }}
+          KAAL_FLAGS: engineering/14-operations/controls/flags.json
+          KAAL_CONTROL_RECORD: engineering/release-management/04-controls/CTL41-verify-promotion-head-evidence/CTL41.md
         run: node engineering/release-management/05-src/promotion-source/judge-head-evidence.mjs --base-ref "$BASE_REF"
 
   promotion-source:

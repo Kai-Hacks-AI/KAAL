@@ -55,12 +55,12 @@ export async function cli({ check, label, id, argv = process.argv.slice(2), env 
   // The record names the head judged (release/C165), never GITHUB_SHA, which on pull_request is the test merge commit of the run.
   const known = env.GITHUB_RUN_ID && head;
   const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(head) } : undefined;
-  const entry = id ? fromEnv({ id, env }) : undefined;
+  const entry = id ? fromEnv({ id, env, baseRef: at(argv, '--base-ref') }) : undefined;
   if (entry?.stop) { for (const l of entry.lines) out(l); return entry.exit; }
   const answer = await check({ paths: found?.paths, ...(entry ? { mode: entry.mode, boundary: withFlag(boundary, entry.flag) } : { boundary }) });
   out(`${label}: ${answer.verdict}${!found ? ' (the changed paths cannot be read)' : found.synchronization ? ` (a verified synchronization: ${found.paths.length} paths of its own)` : ` (${found.paths.length} changed paths)`}`);
   for (const f of answer.findings) out(`  ${f}`);
   if (answer.record) out(`kaal-control ${JSON.stringify(answer.record)}`);
-  if (entry) return exitOf({ id, station: env.KAAL_STATION, answer });
+  if (entry) return exitOf({ id, station: entry.station, answer });
   return answer.blocked ? 1 : answer.verdict === 'UNKNOWN' ? 2 : 0;
 }

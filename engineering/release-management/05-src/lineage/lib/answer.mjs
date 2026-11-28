@@ -38,7 +38,7 @@ export async function cli({ label, id, check, applies, read, argv = process.argv
   const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(ctx.head) } : undefined;
   // A job that has adopted the flag (release/C167): the declared mode and the flag go to the adapter, and the exit is the library's; one that has not runs as it did.
   // The flag is validated before applicability (T1633): a broken flag is a fact about the repository and fails every pull request, including one the control does not apply to.
-  const entry = id ? fromEnv({ id, env }) : undefined;
+  const entry = id ? fromEnv({ id, env, baseRef: ctx.baseRef }) : undefined;
   if (entry?.stop) { for (const l of entry.lines) out(l); return entry.exit; }
   let facts;
   try {
@@ -51,7 +51,7 @@ export async function cli({ label, id, check, applies, read, argv = process.argv
   out(`${label}: ${a.verdict}${a.kind === 'not-applicable' ? ` (not applicable: ${a.message})` : ''}`);
   for (const f of a.findings) out(`  ${f}`);
   if (a.record) out(`kaal-control ${JSON.stringify(a.record)}`);
-  if (entry) return exitOf({ id, station: env.KAAL_STATION, answer: a });
+  if (entry) return exitOf({ id, station: entry.station, answer: a });
   return a.blocked ? 1 : a.verdict === 'UNKNOWN' ? 2 : 0;
 }
 

@@ -3,7 +3,7 @@
 // (engineering/14-operations/controls/flags.json); the controls library decides what the combination means (controls/C164). This file reads both, validates, and returns the library's answer:
 // it maps no flag value to a mode, defaults no missing value, carries no mode literal of a control and sets no exit code of its own.
 import { readFileSync } from 'node:fs';
-import { STATIONS } from './stations.mjs';
+import { STATIONS, stationOf } from './stations.mjs';
 import { findControls } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/find-controls.mjs';
 import { parseFlags, flagSource, validateFlags, decideOutcome } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/flags.mjs';
 import { toBoundary } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/stamp.mjs';
@@ -44,9 +44,13 @@ export function resolveEntry({ id, station, recordText, flagsText }) {
 }
 
 // The environment form of resolveEntry, for an entry's command line. Returns undefined when the job has not adopted the flag.
-export function fromEnv({ id, env }) {
+// The station is the one the job supplies (KAAL_STATION), else the station of the target (release/C201). A target at no station is never a pass: the answer is UNKNOWN (exit 2) and no flag is read.
+// The answer carries the station it was resolved at, so the exit of the run is the library's for that place.
+export function fromEnv({ id, env, baseRef }) {
   if (!engaged(env)) return undefined;
-  return resolveEntry({ id, station: env.KAAL_STATION ?? '', recordText: env.KAAL_CONTROL_RECORD ? readText(env.KAAL_CONTROL_RECORD) : undefined, flagsText: env.KAAL_FLAGS ? readText(env.KAAL_FLAGS) : undefined });
+  const station = env.KAAL_STATION ?? stationOf({ baseRef, defaultBranch: env.KAAL_DEFAULT });
+  if (station === undefined) return { stop: true, exit: 2, lines: [`${id}: UNKNOWN (the target ${baseRef ?? '(none)'} is at no station)`] };
+  return { ...resolveEntry({ id, station, recordText: env.KAAL_CONTROL_RECORD ? readText(env.KAAL_CONTROL_RECORD) : undefined, flagsText: env.KAAL_FLAGS ? readText(env.KAAL_FLAGS) : undefined }), station };
 }
 
 // The boundary with the flag the library hands over; a run that is not known has the flag alone.

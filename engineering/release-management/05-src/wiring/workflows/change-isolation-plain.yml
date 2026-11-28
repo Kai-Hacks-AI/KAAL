@@ -52,6 +52,8 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_ATTESTATION: deferred
+          KAAL_FLAGS: engineering/14-operations/controls/flags.json
+          KAAL_CONTROL_RECORD: engineering/release-management/04-controls/CTL42-verify-github-alone/CTL42.md
         run: node engineering/release-management/05-src/change-isolation/judge-github-alone.mjs --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
 
   delivery:
@@ -93,6 +95,8 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_ATTESTATION: deferred
+          KAAL_FLAGS: engineering/14-operations/controls/flags.json
+          KAAL_CONTROL_RECORD: engineering/release-management/04-controls/CTL23-verify-delivery/CTL23.md
         run: node engineering/release-management/05-src/change-isolation/judge-delivery.mjs --head "$HEAD" --base "$BASE" --base-ref "$BASE_REF"
 
   change-isolation:
