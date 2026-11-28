@@ -15,13 +15,14 @@ export async function run() {
   const s = JSON.parse(readFileSync(file, 'utf8'));
   assert.equal(s.control, 'release/CTL8');
   assert.deepEqual(s.settings.map((x) => x.id), ['actions-may-approve', 'KAAL_SYNC_APPROVE']);
-  const yml = readFileSync(join(RM, '05-src/wiring/workflows/sync-review.yml'), 'utf8');
+  // release/C173: approve Sync and review Sync are in the workflow_run source.
+  const yml = readFileSync(join(RM, '05-src/wiring/workflows/sync-act.yml'), 'utf8');
   const job = (name) => yml.split(/^  (?=[a-z]+:\n    name: )/m).find((j) => j.includes(`name: ${name}`));
   const approve = job('approve Sync'), reviewJob = job('review Sync');
   assert.ok(/outputs:\n\s+approval: \$\{\{ steps\.[a-z-]+\.outputs\.approval \}\}/.test(approve), 'approve Sync hands its outcome on as the output approval');
-  assert.ok(/needs: \[verify, approve\]/.test(reviewJob), 'review Sync waits for approve Sync');
+  assert.ok(/needs: \[sign, approve\]/.test(reviewJob), 'review Sync waits for approve Sync');
   assert.ok(/always\(\)/.test(reviewJob), 'review Sync still runs when approve Sync failed');
   assert.ok(reviewJob.includes('KAAL_APPROVAL: ${{ needs.approve.outputs.approval }}'), 'review Sync reads the outcome');
   assert.ok(!/KAAL_APPROVAL/.test(approve), 'approve Sync does not read its own outcome');
-  assert.ok(/pull-requests: write/.test(reviewJob) && /^permissions: \{\}/m.test(yml), 'permissions are unchanged');
+  assert.ok(/permission-pull-requests: write/.test(reviewJob) && !/^      [a-z-]+: write$/m.test(reviewJob) && /^permissions: \{\}/m.test(yml), 'review Sync writes only through the App token');
 }
