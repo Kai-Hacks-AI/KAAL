@@ -1,1 +1,13 @@
-{ "schema": "kaal-testing/expected-failures@1", "expected": [] }
+{
+  "schema": "kaal-testing/expected-failures@1",
+  "expected": [
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F228-own-records-agree-with-proof/T1730.test.mjs",
+      "reference": "controls/C176"
+    },
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F229-judge-self-is-one-pure-function/T1731.test.mjs",
+      "reference": "controls/C176"
+    }
+  ]
+}
