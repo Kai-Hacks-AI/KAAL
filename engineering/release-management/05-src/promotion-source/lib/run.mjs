@@ -17,9 +17,25 @@ export function gh(args, { env = process.env } = {}) {
   return r.stdout.split('\n').filter((l) => l.trim() !== '').map((l) => JSON.parse(l));
 }
 
+// The waits between two reads, in seconds. Without an override the interval stretches (20, 20, 30, 30, 45, 45, then 60) and the total stays at least the ten minutes of 30 reads at 20 seconds (release/C190);
+// KAAL_ATTEMPTS and KAAL_INTERVAL, either of them, give the old constant interval for that many reads.
+export const SERIES = [20, 20, 30, 30, 45, 45];
+export const WAIT_TOTAL = 600;
+export const FAILED_READS = 3;
+export function waitsFor(env) {
+  if (env.KAAL_ATTEMPTS !== undefined || env.KAAL_INTERVAL !== undefined) {
+    const reads = Number(env.KAAL_ATTEMPTS ?? 30);
+    return Array.from({ length: Math.max(0, reads - 1) }, () => Number(env.KAAL_INTERVAL ?? 20));
+  }
+  const waits = [...SERIES];
+  while (waits.reduce((a, b) => a + b, 0) < WAIT_TOTAL) waits.push(60);
+  return waits;
+}
+
 // Runs an entry: reads its facts (which may throw: UNKNOWN), answers, prints the verdict, the findings and the record of a run that is known, and returns the exit status.
-// `again(answer)` says whether the answer is one to wait for (a required check still running), as the old script waited for it.
-export async function run({ label, id, check, read, again = () => false, argv = process.argv.slice(2), env = process.env, out = console.log, wait = (s) => sleep(s * 1000) }) {
+// `again(answer)` says whether the answer is one to wait for (a required check still running), as the old script waited for it. An entry that waits also retries a read that fails: the next tick reads again, and the verdict is UNKNOWN
+// only when the third failure in a row happens or the wait ends; every failure is said in the output.
+export async function run({ label, id, check, read, again, argv = process.argv.slice(2), env = process.env, out = console.log, wait = (s) => sleep(s * 1000) }) {
   // The record names the head judged (KAAL_HEAD_SHA), never GITHUB_SHA, which on pull_request is the test merge commit of the run.
   const head = jobFacts(argv, env).head;
   const known = env.GITHUB_RUN_ID && head;
@@ -27,18 +43,23 @@ export async function run({ label, id, check, read, again = () => false, argv = 
   // A job that has adopted the flag (release/C167): the declared mode and the flag go to the adapter, and the exit is the library's; one that has not runs as it did.
   const entry = id ? fromEnv({ id, env }) : undefined;
   if (entry?.stop) { for (const l of entry.lines) out(l); return entry.exit; }
-  let attempts = Number(env.KAAL_ATTEMPTS ?? 30);
-  const interval = Number(env.KAAL_INTERVAL ?? 20);
+  const retry = again !== undefined;
+  const waiting = again ?? (() => false);
+  const waits = waitsFor(env);
+  let tick = 0;
+  let failures = 0;
   for (;;) {
     let facts;
-    try {
-      const f = jobFacts(argv, env);
-      if (!f.repo || !f.defaultBranch || !f.baseRef || !f.headRepo || !f.headRef) throw new Error('the job supplied no repository, target, default branch or source');
-      facts = read(f);
-    } catch (e) { out(`${label}: the facts cannot be read (${e.message})`); facts = undefined; }
+    let failed = false;
+    const f = jobFacts(argv, env);
+    if (!f.repo || !f.defaultBranch || !f.baseRef || !f.headRepo || !f.headRef) {
+      out(`${label}: the facts cannot be read (the job supplied no repository, target, default branch or source)`);
+    } else {
+      try { facts = read(f); failures = 0; } catch (e) { failed = true; failures += 1; out(`${label}: the facts cannot be read (${e.message}); failed read ${failures} in a row`); }
+    }
+    if (failed && retry && failures < FAILED_READS && tick < waits.length) { await wait(waits[tick]); tick += 1; continue; }
     const a = await check(facts, entry ? { mode: entry.mode, boundary: withFlag(boundary, entry.flag) } : { boundary });
-    attempts -= 1;
-    if (attempts > 0 && again(a)) { await wait(interval); continue; }
+    if (tick < waits.length && waiting(a)) { await wait(waits[tick]); tick += 1; continue; }
     out(`${label}: ${a.verdict}${a.kind === 'not-applicable' ? ` (not applicable: ${a.message})` : ''}`);
     for (const f of a.findings) out(`  ${f}`);
     if (a.record) out(`kaal-control ${JSON.stringify(a.record)}`);
