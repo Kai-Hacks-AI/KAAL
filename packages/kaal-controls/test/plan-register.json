@@ -1,1 +1,13 @@
-{ "schema": "kaal-testing/expected-failures@1", "expected": [] }
+{
+  "schema": "kaal-testing/expected-failures@1",
+  "expected": [
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F239-the-first-flags-file-is-inert-and-advisory/T1742.test.mjs",
+      "reference": "controls/C181"
+    },
+    {
+      "id": "test/cases.test.mjs > Cases > 02-requirements/F239-the-first-flags-file-is-inert-and-advisory/T1743.test.mjs",
+      "reference": "controls/C181"
+    }
+  ]
+}
