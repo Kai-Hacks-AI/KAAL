@@ -50,9 +50,18 @@ const needs = (cmd, r) => {
     assert.fail(`blocked before behavioural assertion: kaal-guard has no ${cmd}`);
   }
 };
-const plan = (r, ...extra) => { const x = guard(r.root, "plan", "--aggregate", "solution", "--config", CONFIG, ...extra); needs("plan", x); return x; };
+const head = (r) => git(r.root, "rev-parse", "HEAD");
+const plan = (r, ...extra) => {
+  const given = (flag) => extra.includes(flag);
+  const x = guard(r.root, "plan", "--aggregate", "solution", "--config", CONFIG, ...(given("--run") ? [] : ["--run", "run-1"]), ...(given("--head") ? [] : ["--head", head(r)]), ...extra);
+  needs("plan", x);
+  return x;
+};
 const json = (s) => JSON.parse(s.out.slice(s.out.indexOf("{")));
 
+const SCRIPT = "node --test";
+const PLAN = { aggregate: "solution", run: "run-1", head: "a".repeat(40), expected: ["packages/a/test", "packages/c/test"], scripts: { "packages/a/test": SCRIPT, "packages/c/test": SCRIPT }, registrations: { "packages/a/test": "packages/a/guard.json", "packages/c/test": "packages/c/guard.json" } };
+const report = (dir, id, over) => { mkdirSync(dir, { recursive: true }); writeFileSync(join(dir, `${id.replaceAll("/", "__")}.json`), JSON.stringify({ check: id, aggregates: ["solution"], run: PLAN.run, head: PLAN.head, script: SCRIPT, ...over })); };
 const AGG = { solution: { always: [], exempt: { "package.json": "the root's tests run in the lanes" } } };
 const REG = (name = "test", extra = {}) => ({ checks: [{ name, command: "npm test", aggregates: ["solution"], ...extra }] });
 const PKG = { name: "x", scripts: { test: "node --test" } };
@@ -78,6 +87,10 @@ describe("Solution protection (guard/C171)", () => {
     git(r.root, "add", "-A"); git(r.root, "commit", "-q", "-m", "exempt");
     const y = plan(r);
     assert.equal(y.status, 0, y.out);
+    const swapped = repo(base({ "packages/a/guard.json": REG("test", { command: "node -e 0" }) }));
+    const w = plan(swapped);
+    assert.notEqual(w.status, 0, "a check that is not the package's own npm test does not cover it");
+    assert.match(w.out, /packages\/a\/test/, "the check that does not run the suite is named");
   });
 
   it("guard/T1672 [guard/F42, guard/I11, guard/A20]: a candidate that adds a registration is planned including it; one that removes a baseline registration, or changes its command or aggregates, is cannot judge naming the file and the check; the same removal alone in a diff of registration files only is planned", () => {
@@ -97,6 +110,15 @@ describe("Solution protection (guard/C171)", () => {
       assert.equal(x.status, 2, `${label}: ${x.out}`);
       assert.match(x.out, /packages\/a\/guard\.json/);
       assert.match(x.out, /packages\/a\/test/);
+    }
+    for (const [label, change] of [
+      ["guard.json deleted, package stays", { "packages/a/guard.json": null }],
+      ["test script removed, package stays", { "packages/a/guard.json": null, "packages/a/package.json": { name: "x", scripts: {} } }],
+    ]) {
+      const r4 = repo(base());
+      const h = r4.commit(change);
+      const x = plan(r4, "--base", r4.base, "--head", h);
+      assert.notEqual(x.status, 0, `${label} is a removal of protection and is never planned: ${x.out}`);
     }
     const r3 = repo(base());
     const alone = r3.commit({ "packages/a/guard.json": null, "packages/a/package.json": null });
@@ -124,19 +146,18 @@ describe("Solution protection (guard/C171)", () => {
   it("guard/T1674 [guard/F46, guard/N14, guard/A22]: fold fails with no reports, with a missing report naming the check, with a report that is not success and with an unexpected extra report, and passes only when the reported set equals the expected set and each is success", () => {
     const r = repo(base());
     const planFile = join(r.root, "plan.json");
-    writeFileSync(planFile, JSON.stringify({ aggregate: "solution", expected: ["packages/a/test", "packages/c/test"] }));
+    writeFileSync(planFile, JSON.stringify(PLAN));
     const dir = join(r.root, "reports");
-    const report = (id, result) => { mkdirSync(dir, { recursive: true }); writeFileSync(join(dir, `${id.replaceAll("/", "__")}.json`), JSON.stringify({ check: id, result })); };
     const fold = () => { const x = guard(r.root, "fold", "--aggregate", "solution", "--plan", planFile, "--reports", dir); needs("fold", x); return x; };
     assert.notEqual(fold().status, 0, "no reports at all fails");
-    report("packages/a/test", "pass");
+    report(dir, "packages/a/test", { result: "pass" });
     const missing = fold();
     assert.notEqual(missing.status, 0);
     assert.match(missing.out, /packages\/c\/test/, "the missing check is named");
-    report("packages/c/test", "fail");
+    report(dir, "packages/c/test", { result: "fail" });
     assert.notEqual(fold().status, 0, "a report that is not success fails");
-    report("packages/c/test", "pass");
-    report("packages/z/test", "pass");
+    report(dir, "packages/c/test", { result: "pass" });
+    report(dir, "packages/z/test", { result: "pass" });
     const extra = fold();
     assert.notEqual(extra.status, 0, "an unexpected extra report fails even when every expected check passed");
     assert.match(extra.out, /packages\/z\/test/);
@@ -144,19 +165,42 @@ describe("Solution protection (guard/C171)", () => {
     assert.equal(fold().status, 0, "the reported set equals the expected set and each passed");
   });
 
+  it("guard/T1678 [guard/F46, guard/F48, guard/A22]: a report whose run id differs from the plan's, one whose head is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail fold, naming the check and the differing member; reports of the plan's run and revision pass", () => {
+    const r = repo(base());
+    const planFile = join(r.root, "plan.json");
+    writeFileSync(planFile, JSON.stringify(PLAN));
+    for (const [member, bad] of [["run", { run: "run-0" }], ["head", { head: "b".repeat(40) }], ["script", { script: "true" }]]) {
+      const dir = join(r.root, `reports-${member}`);
+      report(dir, "packages/a/test", { result: "pass" });
+      report(dir, "packages/c/test", { result: "pass", ...bad });
+      const x = guard(r.root, "fold", "--aggregate", "solution", "--plan", planFile, "--reports", dir);
+      needs("fold", x);
+      assert.notEqual(x.status, 0, `${member} differs`);
+      assert.match(x.out, /packages\/c\/test/);
+      assert.match(x.out, new RegExp(member), `the differing member ${member} is named`);
+    }
+    const ok = join(r.root, "reports-ok");
+    report(ok, "packages/a/test", { result: "pass" });
+    report(ok, "packages/c/test", { result: "pass" });
+    assert.equal(guard(r.root, "fold", "--aggregate", "solution", "--plan", planFile, "--reports", ok).status, 0);
+  });
+
   it("guard/T1675 [guard/F48, guard/N14, guard/A23]: run --check <id> --report writes a report with the id, aggregates, result, finding, fix hint and registration file; a command that cannot start is recorded as cannot judge and exits non-zero", () => {
-    const ok = repo(base({ "packages/a/guard.json": REG("test", { command: "node -e 0" }) }));
+    const ok = repo(base({ "packages/a/package.json": { name: "x", scripts: { test: "node -e 0" } } }));
     const out = join(ok.root, "out.json");
-    const x = guard(ok.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--report", out);
+    const x = guard(ok.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", head(ok), "--report", out);
     needs("run --report", x);
     assert.equal(x.status, 0, x.out);
     const rep = JSON.parse(readFileSync(out, "utf8"));
-    for (const k of ["check", "aggregates", "result", "finding", "fix", "registration"]) assert.ok(k in rep, `report has ${k}`);
+    for (const k of ["check", "aggregates", "run", "head", "script", "result", "finding", "fix", "registration"]) assert.ok(k in rep, `report has ${k}`);
     assert.equal(rep.check, "packages/a/test");
     assert.equal(rep.registration, "packages/a/guard.json");
+    assert.equal(rep.run, "run-1");
+    assert.equal(rep.head, head(ok));
+    assert.equal(rep.script, "node -e 0", "the script it executed");
     const bad = repo(base({ "packages/a/guard.json": REG("test", { command: "no-such-program-guard-c171" }) }));
     const out2 = join(bad.root, "out.json");
-    const y = guard(bad.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--report", out2);
+    const y = guard(bad.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", head(bad), "--report", out2);
     assert.notEqual(y.status, 0);
     assert.equal(existsSync(out2), true, "the non-run is recorded");
     assert.match(JSON.parse(readFileSync(out2, "utf8")).result, /cannot.?judge/i);
@@ -165,7 +209,7 @@ describe("Solution protection (guard/C171)", () => {
   it("guard/T1676 [guard/F48, guard/I12, guard/A23]: a failing fold writes guard-report.json naming the check, the aggregate, the registration file and the next step, and prints the report's path", () => {
     const r = repo(base());
     const planFile = join(r.root, "plan.json");
-    writeFileSync(planFile, JSON.stringify({ aggregate: "solution", expected: ["packages/a/test"], registrations: { "packages/a/test": "packages/a/guard.json" } }));
+    writeFileSync(planFile, JSON.stringify({ ...PLAN, expected: ["packages/a/test"], scripts: { "packages/a/test": SCRIPT }, registrations: { "packages/a/test": "packages/a/guard.json" } }));
     const dir = join(r.root, "reports");
     mkdirSync(dir);
     const x = guard(r.root, "fold", "--aggregate", "solution", "--plan", planFile, "--reports", dir);
@@ -177,6 +221,19 @@ describe("Solution protection (guard/C171)", () => {
     const text = readFileSync(file, "utf8");
     for (const part of ["packages/a/test", "solution", "packages/a/guard.json"]) assert.ok(text.includes(part), `the report names ${part}`);
     assert.match(text, /"(fix|next)/, "and says what to do next");
+  });
+
+  it("guard/T1679 [guard/F44, guard/F48, guard/A23]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script", () => {
+    const r = repo(base({ "packages/a/guard.json": REG("test", { command: "node -e 0" }) }));
+    const out = join(r.root, "out.json");
+    const x = guard(r.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", head(r), "--report", out);
+    needs("run --report", x);
+    assert.notEqual(x.status, 0, "a command that is not the package's own test script does not count as running its suite");
+    const rep = JSON.parse(readFileSync(out, "utf8"));
+    assert.match(rep.result, /cannot.?judge/i);
+    assert.equal(rep.run, "run-1");
+    assert.equal(rep.head, head(r));
+    assert.match(rep.fix, /npm test/, "it says to run the package's own test script");
   });
 
   it("guard/T1677 [guard/F47, guard/N15, guard/A24]: the solution template names a fold job Solution protection and per-check jobs by id, runs on pull_request and merge_group, and no per-check job name equals a fold name; plan, run and fold import nothing of Controls, Testing or Core", () => {
