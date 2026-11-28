@@ -7,7 +7,7 @@ const repo = fileURLToPath(import.meta.url).split('/packages/')[0];
 const FILE = join(repo, 'packages/kaal-controls/skills/kaal-controls/scripts/lib/measures.mjs');
 export const id = 'controls/T1741';
 export const tests = ['controls/F237', 'controls/F238'];
-export const title = 'checkMeasures names the invalid ones and compareMeasures says new, gone, incomparable, same, better, worse or changed per name, by the declared direction only, and throws on invalid input';
+export const title = 'checkMeasures names the invalid ones and compareMeasures says unknown (never zero, better or worse) for a name missing on either side, incomparable, same, better, worse or changed per name, by the declared direction only, and throws on invalid input';
 const m = (name, value, unit = 'calls', better) => ({ name, value, unit, ...(better ? { better } : {}) });
 export async function run() {
   assert.ok(existsSync(FILE), 'scripts/lib/measures.mjs is absent');
@@ -26,8 +26,13 @@ export async function run() {
   assert.deepEqual([by.down.change, by.down.delta], ['better', -6]);
   assert.deepEqual([by.up.change, by.up.delta], ['worse', 2]);
   assert.equal(by.eq.change, 'same');
-  assert.deepEqual([by.new.change, by.new.before], ['new', undefined]);
-  assert.deepEqual([by.gone.change, by.gone.after], ['gone', undefined]);
+  assert.deepEqual([by.new.change, by.new.missing, by.new.before, by.new.delta], ['unknown', 'before', undefined, undefined], 'a measure missing before is unknown');
+  assert.deepEqual([by.gone.change, by.gone.missing, by.gone.after, by.gone.delta], ['unknown', 'after', undefined, undefined], 'a measure missing after is unknown');
+  const vanished = compareMeasures([m('calls', 10, 'calls', 'lower')], []);
+  assert.deepEqual([vanished[0].change, vanished[0].delta], ['unknown', undefined], 'a lower-is-better measure that vanished is never read as zero or as better');
+  const appeared = compareMeasures([], [m('calls', 10, 'calls', 'lower')]);
+  assert.deepEqual([appeared[0].change, appeared[0].delta], ['unknown', undefined], 'a measure that appeared is never read as a regression from zero');
+  assert.deepEqual(compareMeasures([], []), []);
   assert.deepEqual([by.unit.change, by.unit.delta], ['incomparable', undefined]);
   assert.equal(by.free.change, 'changed', 'no declared direction, no better or worse');
   assert.equal(by.hi.change, 'better'); assert.equal(by.hi2.change, 'worse');

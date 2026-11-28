@@ -31,6 +31,12 @@ export async function run() {
   assert.equal(none.verdict, 'PASS'); assert.ok(none.measureProblems.length > 0);
   const thrown = await runControl({ id: 'c/CTL1', mode: 'preventive', check: () => { throw new Error('x'); }, input: {}, boundary });
   assert.equal(thrown.verdict, 'UNKNOWN'); assert.equal('measures' in thrown, false, 'a check that threw reports no measures');
+  const listed = await go([]);
+  assert.equal('measures' in listed.record, false, 'a check that reports no measure leaves no entry in the record, never an empty or zero one');
+  assert.equal('measures' in listed.log, false);
+  const allBad = await go({ findings: [], measures: [{ name: 'n', value: Number.NaN, unit: 'x' }] });
+  assert.equal('measures' in allBad, false, 'a measure that was dropped leaves no zero behind');
+  assert.equal('measures' in allBad.record, false);
   const notFindings = await go({ measures: [api] });
   assert.equal(notFindings.verdict, 'UNKNOWN', 'an object without findings is not an answer');
 }
