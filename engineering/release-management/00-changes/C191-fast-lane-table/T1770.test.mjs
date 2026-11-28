@@ -1,7 +1,7 @@
-// Case release/T1716 tests: release/C191. Missing or malformed evidence of the existing files is never an empty inventory: a change that adds or modifies a file of a kind whose complete list of existing files is not given is UNKNOWN, and a refusal still stands.
+// Case release/T1770 tests: release/C191. Missing or malformed evidence of the existing files is never an empty inventory: a change that adds or modifies a file of a kind whose complete list of existing files is not given is UNKNOWN, and a refusal still stands.
 import assert from 'node:assert/strict';
 import { lanes, EMPTY, ITEM_ROOT, CLAIM_ROOT, add, mod, codes, load } from './fixture.mjs';
-export const id = 'release/T1716';
+export const id = 'release/T1770';
 export const tests = ['release/C191'];
 export const title = 'a missing or malformed list of existing files for a kind the change lands in is UNKNOWN, never qualified, and each kind is judged on its own list';
 export async function run() {

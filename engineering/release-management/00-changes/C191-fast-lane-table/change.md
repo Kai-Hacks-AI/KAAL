@@ -18,7 +18,7 @@ Kai (28 Nov): backlog items and identity claims reach main by the same fast-lane
 - T1715: a file that fits two entries (one add-only, one editable, or two of the same status list) refuses the whole change with `ambiguous-lane`, naming both kinds; the same file against either entry alone qualifies.
 - T1712: collisions are judged per kind: the same key in another kind is fine, a second file with a key of its own kind is refused, editing the same file is not a collision, and a finding carries the kind of its file.
 - T1713: no entry, no roots, a root outside its `allow` pattern, a root covering rule paths or the repository root is refused whole with `roots-cover-rules`.
-- T1716: a missing or malformed list of existing files for a kind the change lands in is UNKNOWN, never qualified; a kind the change does not land in needs no list; a refusal stands without evidence.
+- T1770: a missing or malformed list of existing files for a kind the change lands in is UNKNOWN, never qualified; a kind the change does not land in needs no list; a refusal stands without evidence.
 - T1714: the old call and the same one-entry table give the same verdict and findings on the inputs of backlog T495 to T499, and the module stays pure.
 All red until the DO.
 
