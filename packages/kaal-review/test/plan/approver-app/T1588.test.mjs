@@ -1,16 +1,18 @@
 // Case review/T1588 tests: review/F40. The Approver approves only from facts that Hosting produced for it, including a passing check signed by the Inspector at the same revision.
 import assert from 'node:assert/strict';
-import { BASE, commit, RUN, evidence, facts, factOrigin, HEAD, kinds, loadApproval, MAIN } from './lib.mjs';
+import { BASE, commit, RUN, evidence, facts, factOrigin, grantIdentity, mintGrant, OWN, HEAD, kinds, loadApproval, MAIN } from './lib.mjs';
 export const id = 'review/T1588';
 export const tests = ['review/F40'];
 export const title = 'facts that Hosting produced for the Approver, whose ancestry (the parents) shows the shape of a SYNC, read from those parents and not from a field, and a passing check signed by the Inspector at the same revision, are approve, and a moved head or base, a head whose ancestry is not the base and main (one parent, three parents, a parent that is neither, a repeated parent, a base that lags the parents of the head), a field that the facts offer about it, ancestry alone without a passing signed check, a passing signed check on the wrong ancestry, a check that is missing, not passing, of another revision or signed by another, a pull request of the Approver itself, a fact that Hosting did not produce, a copy of one, a fact another App read and malformed facts or evidence each abstain with their own finding, the kind of a pull request is read from the facts and not from its title, nothing that decides is taken from what the run claims, and nothing but approve or abstain is ever answered';
 export async function run() {
   const { makeJudgeApproval, judgeApproval: delivered } = await loadApproval();
-  const judge = makeJudgeApproval({ factOrigin });
+  const judge0 = makeJudgeApproval({ factOrigin, grantIdentity });
+  const grant = mintGrant();
+  const judge = (e, f, g = grant) => judge0(e, f, g);
   assert.deepEqual(judge(evidence(), facts()), { decision: 'approve', findings: [] });
 
-  const abstains = (more, kind, why, f = facts()) => {
-    const a = judge(evidence(more), f);
+  const abstains = (more, kind, why, f = facts(), g = grant) => {
+    const a = judge(evidence(more), f, g);
     assert.equal(a.decision, 'abstain', `${why}: must abstain`);
     assert.ok(kinds(a).includes(kind), `${why}: expected ${kind}, got ${kinds(a)}`);
   };
@@ -58,7 +60,28 @@ export async function run() {
   abstains({}, 'check-other-signer', 'a check signed by another', facts({ check: { signer: 'someone-else' } }));
   abstains({}, 'check-missing', 'another check than verify Sync', facts({ check: { name: 'verify Delivery' } }));
   abstains({}, 'check-missing', 'no check', facts({ check: null }));
-  abstains({}, 'own-pull-request', 'a pull request of the Approver itself', facts({ author: 'approver' }));
+
+  // The refusal follows Hosting's author fact, `{ login, type }` in GitHub's words, against the identity of the grant that read it (`grantIdentity(grant).login`, the bot login of the Approver), as exact text.
+  abstains({}, 'own-pull-request', 'a pull request of the Approver itself', facts({ author: { login: OWN, type: 'Bot' } }));
+  abstains({}, 'own-pull-request', 'a pull request of the Approver itself whatever type is given', facts({ author: { login: OWN, type: 'User' } }));
+  assert.equal(judge(evidence(), facts({ author: { login: 'kaal-inspector[bot]', type: 'Bot' } })).decision, 'approve', 'a pull request of another App is not refused');
+  assert.equal(judge(evidence(), facts({ author: { login: 'kaal-approver', type: 'User' } })).decision, 'approve', 'a person whose login lacks the bot suffix is another author: the comparison is exact text');
+  abstains({}, 'own-pull-request', 'the identity of the grant is the Approver of that grant', facts({ author: { login: 'other[bot]', type: 'Bot' } }), mintGrant({ appId: '2', login: 'other[bot]' }));
+  abstains({}, 'malformed-evidence', 'an author that is a name and not Hosting\'s { login, type }', facts({ author: 'someone' }));
+  abstains({}, 'malformed-evidence', 'no author', facts({ author: undefined }));
+  abstains({}, 'malformed-evidence', 'an author without a login', facts({ author: { type: 'Bot' } }));
+  abstains({}, 'malformed-evidence', 'an author whose login is not text', facts({ author: { login: 7, type: 'Bot' } }));
+  abstains({}, 'check-other-signer', 'the signer is the slug of the Inspector App, `kaal-inspector`; a bare `inspector` is not it', facts({ check: { signer: 'inspector' } }));
+  abstains({}, 'check-other-signer', 'the signer is not the bot login of the Inspector', facts({ check: { signer: 'kaal-inspector[bot]' } }));
+
+  // The identity is never a field of the facts or the evidence: it comes from the grant, which only Hosting mints. Without one, or with one Hosting did not mint, the judgement abstains.
+  const noGrant = (g, why) => { const a = judge0(evidence(), facts(), g); assert.equal(a.decision, 'abstain', `${why}: must abstain`); assert.ok(kinds(a).includes('grant-untrusted'), `${why}: expected grant-untrusted, got ${kinds(a)}`); };
+  noGrant(undefined, 'no grant');
+  noGrant(null, 'a null grant');
+  noGrant({ app: 'approver', login: 'someone[bot]' }, 'a copy of a grant that claims an identity');
+  noGrant({ ...grant }, 'a copy of a grant');
+  const claimsOwn = judge(evidence(), facts({ author: { login: OWN, type: 'Bot' }, identity: { login: 'someone' } }));
+  assert.ok(kinds(claimsOwn).includes('own-pull-request'), 'an identity written into the facts changes nothing');
 
   // Attribution is never a field of the data: only what the registry knows is a fact.
   const unattributed = (f, why) => {
@@ -76,7 +99,7 @@ export async function run() {
   assert.ok(kinds(other).includes('facts-other-reader'), `expected facts-other-reader, got ${kinds(other)}`);
 
   // The delivered judgement asks Hosting's own registry, which no hand-built fact is in.
-  const handBuilt = delivered(evidence(), { head: commit(), base: { sha: BASE, ref: 'r' }, main: MAIN, author: 'someone', check: { name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'inspector' }, source: 'hosting' });
+  const handBuilt = delivered(evidence(), { head: commit(), base: { sha: BASE, ref: 'r' }, main: MAIN, author: { login: 'someone', type: 'User' }, check: { name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'kaal-inspector' }, source: 'hosting' }, mintGrant());
   assert.equal(handBuilt.decision, 'abstain', 'the delivered judgement believes no hand-built fact');
   assert.ok(kinds(handBuilt).includes('facts-unattributed'));
 
@@ -99,7 +122,7 @@ export async function run() {
 
   const claimed = evidence();
   claimed.content = { pureMerge: true };
-  claimed.checks = [{ name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'inspector' }];
+  claimed.checks = [{ name: 'verify Sync', revision: HEAD, conclusion: 'success', signer: 'kaal-inspector' }];
   assert.equal(judge(claimed, facts({ head: commit(HEAD, [BASE]) })).decision, 'abstain', 'a pure merge that the run claims and the parents deny abstains');
   assert.equal(judge(claimed, facts({ check: { conclusion: 'failure' } })).decision, 'abstain', 'a check that the run claims and the facts deny abstains');
   assert.equal(judge(claimed, facts({ check: null })).decision, 'abstain', 'a check that only the run claims is not a check');
