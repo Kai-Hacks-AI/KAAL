@@ -34,6 +34,6 @@ export function declarationText() {
 export const WORKFLOW = readFileSync(join(HERE, 'inspector.fixture.yml'), 'utf8');
 
 /** A declaration of an App, with what a Case changes. */
-export const declaration = (app, abilities, more = {}) => ({ app, name: `KAAL ${app}`, owner: 'review', purpose: 'a fixture', abilities, ...more });
+export const declaration = (app, abilities, more = {}) => ({ app, name: `KAAL ${app}`, owner: 'kaal-review', purpose: 'a fixture', abilities, ...more });
 
 export const kinds = (verdict) => verdict.findings.map((f) => f.kind).sort();

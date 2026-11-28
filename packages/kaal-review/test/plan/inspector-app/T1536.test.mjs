@@ -17,7 +17,7 @@ export async function run() {
   out([inspector, declaration('dispatcher', [...dispatcher.abilities, 'approve-pull-requests']), approver], 'approves-beyond-approver', 'a Dispatcher that approves');
   out([inspector, dispatcher, declaration('approver', ['approve-pull-requests', 'raise-pull-requests'])], 'raises-and-approves', 'an App that raises and approves');
   out([inspector, declaration('someone', ['raise-pull-requests', 'approve-pull-requests'])], 'raises-and-approves', 'an unnamed App that raises and approves');
-  out([inspector, { app: 'x', name: 'x', owner: 'review', purpose: 'p' }], 'no-abilities', 'a declaration without abilities');
+  out([inspector, { app: 'x', name: 'x', owner: 'kaal-review', purpose: 'p' }], 'no-abilities', 'a declaration without abilities');
   assert.equal(judgeApps('not a list').verdict, 'out', 'a malformed set must be out, not an exception');
   assert.equal(judgeApps(undefined).verdict, 'out', 'a missing set must be out, not an exception');
 }
