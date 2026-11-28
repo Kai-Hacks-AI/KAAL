@@ -1,12 +1,14 @@
 // Case review/T1589 tests: review/F41. The Approver approves only from execution that is shown to be trusted, and what that is compared with is not chosen by the caller.
 import assert from 'node:assert/strict';
-import { evidence, facts, factOrigin, kinds, loadApproval } from './lib.mjs';
+import { evidence, facts, factOrigin, grantIdentity, kinds, loadApproval, mintGrant } from './lib.mjs';
 export const id = 'review/T1589';
 export const tests = ['review/F41'];
 export const title = 'evidence of execution of the code of main on a trusted trigger without a checkout of the head is approve, an untrusted trigger, code that is not main\'s, a head that was checked out and missing or malformed evidence of execution each abstain with their own finding, a list of triggers or a revision of main offered by the caller or the run is ignored, and an approval needs trusted execution as well as the facts of the pull request';
 export async function run() {
   const { makeJudgeApproval } = await loadApproval();
-  const judgeApproval = makeJudgeApproval({ factOrigin });
+  const judge0 = makeJudgeApproval({ factOrigin, grantIdentity });
+  const grant = mintGrant();
+  const judgeApproval = (e, f) => judge0(e, f, grant);
   assert.deepEqual(judgeApproval(evidence(), facts()), { decision: 'approve', findings: [] });
 
   const abstains = (more, kind, why, f = facts()) => {
