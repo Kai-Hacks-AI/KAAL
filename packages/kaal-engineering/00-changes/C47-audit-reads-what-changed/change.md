@@ -59,3 +59,14 @@ Two corrections, in this PR before the DO is reviewed, and nothing else:
 
 - **The id of the first Case.** release/T1750 (hotfix C200) is already on a collector, so the Case that was T1750 is **T1757**, after a scan of every remote branch (T1757 is free). The text above says T1757 where it said T1750.
 - **T1753, its last assertion.** It looked for `per_page=100` with no `ref=` after it, so it held only when `per_page` came before `ref` in the URL: it meant "no activity read without a ref" and could fail a correct read. It now says that: no activity URL without `ref=`. The other two assertions are unchanged. Expectation unchanged: the creation of a collector reads the default branch's activity only.
+
+## Amendment: the Cases of multiple landings and incomplete results
+
+The CPO held the DO (#3023): the behaviour that keeps the audit from weakening must be pinned by Cases, and a full page of merge records must widen unless it covers every commit of the push. This amendment adds the Cases, and the DO follows them. It changes no expectation of T1751 to T1757.
+
+- T1758: a push that lands three commits judges all three, each on the commit before it, and the one without a pull request fails. RED until the DO.
+- T1759: a list that may be incomplete is not trusted: a commit with a full page (100) of pull requests, a push of 21 commits, and a `before` outside the history each make the audit read everything, and it never passes on the thin read. GREEN guard today (the audit reads everything today).
+- T1760: a full page of merge records widens unless it holds the record of every commit of the push; a full page that holds them all keeps the narrow read (at most three calls and no list to its last page). RED until the DO.
+- T1761: an error from GitHub says the audit cannot judge (exit 2) and no pass is printed, for a landing, a push to the default branch and a collector creation. GREEN guard today.
+
+The fixture lets a Case build a push of several commits, a `before`, and a `gh` that fails.
