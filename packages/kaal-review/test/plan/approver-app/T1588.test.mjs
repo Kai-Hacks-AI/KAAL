@@ -136,7 +136,10 @@ export async function run() {
     assert.ok(['approve', 'abstain'].includes(a.decision), 'only approve or abstain is ever answered');
     assert.ok(a.decision === 'abstain' ? a.findings.length > 0 : a.findings.length === 0, 'an abstention names a reason and an approval names none');
   }
-  const throwing = makeJudgeApproval({ factOrigin: () => { throw new Error('the registry failed'); } })(evidence(), facts());
+  const throwing = makeJudgeApproval({ factOrigin: () => { throw new Error('the registry failed'); }, grantIdentity })(evidence(), facts(), grant);
   assert.equal(throwing.decision, 'abstain', 'a lookup that fails is an abstention and never an exception or an approval');
   assert.throws(() => makeJudgeApproval(), undefined, 'a judgement without a lookup of origin is refused when built, never believed');
+  assert.throws(() => makeJudgeApproval({ factOrigin }), undefined, 'a judgement without a lookup of the identity of a grant is refused when built, never believed');
+  const brokenIdentity = makeJudgeApproval({ factOrigin, grantIdentity: () => { throw new Error('the registry failed'); } })(evidence(), facts(), grant);
+  assert.equal(brokenIdentity.decision, 'abstain', 'an identity lookup that fails is an abstention and never an approval');
 }
