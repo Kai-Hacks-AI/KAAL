@@ -16,9 +16,9 @@ export async function run() {
   const job = (n) => y.split(/^  (?=[a-z]+:\n    name: )/m).find((j) => j.includes(`name: ${n}`));
   const decide = job('decide Dispatch'), raise = job('raise Dispatch');
   assert.ok(decide && raise, 'a job is absent');
-  assert.ok(!/create-github-app-token|KAAL_DISPATCHER_KEY|DISPATCHER_APP_ID/.test(decide), 'the job that reads holds the App');
+  assert.ok(!/create-github-app-token|KAAL_APP_DISPATCHER_KEY|APP_DISPATCHER_ID/.test(decide), 'the job that reads holds the App');
   assert.ok(/contents: read/.test(decide) && /pull-requests: read/.test(decide) && !/write/.test(decide), 'the job that reads can write');
-  assert.ok(/create-github-app-token/.test(raise) && raise.includes('KAAL_DISPATCHER_KEY') && raise.includes('vars.KAAL_DISPATCHER_APP_ID'), 'the job that raises does not mint the App token from the key and the App ID');
+  assert.ok(/create-github-app-token/.test(raise) && raise.includes('KAAL_APP_DISPATCHER_KEY') && raise.includes('vars.KAAL_APP_DISPATCHER_ID'), 'the job that raises does not mint the App token from the key and the App ID');
   assert.match(raise, /^    permissions: \{\}$/m, 'the job that raises holds a workflow token');
   assert.ok(!/matching-refs|compare\/|gatherFacts|git fetch|git checkout|refs\/pull|refs\/heads/.test(raise), 'the job that raises reads a collector');
   assert.ok(raise.includes('KAAL_DISPATCH_RAISE') && raise.includes('vars.KAAL_DISPATCH_RAISE'), 'the raise is not switched by the variable');
