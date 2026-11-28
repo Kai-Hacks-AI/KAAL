@@ -38,14 +38,22 @@ export const MAIN = 'f'.repeat(40);
  */
 const registered = new WeakMap();
 export const factOrigin = (fact) => (fact !== null && typeof fact === 'object' ? registered.get(fact) ?? null : null);
+/**
+ * A stand-in for Hosting's `grantIdentity`: it knows only the grants this file mints and, like Hosting's, throws for anything else, so a copy or a value built by hand is not a grant.
+ * The identity is GitHub's own words for the App, its bot login (`<slug>[bot]`), which is also how GitHub names the author of a pull request that App raised.
+ */
+export const OWN = 'kaal-approver[bot]';
+const grants = new WeakMap();
+export const mintGrant = (identity = { appId: '1', login: OWN }) => { const g = Object.freeze({ app: 'approver' }); grants.set(g, Object.freeze(identity)); return g; };
+export const grantIdentity = (grant) => { const h = grant !== null && typeof grant === 'object' ? grants.get(grant) : undefined; if (!h) throw Object.assign(new Error('the grant was not minted by Hosting'), { code: 'GRANT_UNTRUSTED' }); return h; };
 /** A commit as Hosting answers it: its revision and its parents. A pure merge is not an answer of Hosting's; the judgement reads it from the parents. */
 export const commit = (sha = HEAD, parents = [BASE, MAIN]) => Object.freeze({ sha, parents: Object.freeze([...parents]) });
 /** One run of the check at the head, as Hosting answers it, with GitHub's own words. */
-export const RUN = { name: 'verify Sync', revision: HEAD, status: 'completed', conclusion: 'success', signer: 'inspector' };
+export const RUN = { name: 'verify Sync', revision: HEAD, status: 'completed', conclusion: 'success', signer: 'kaal-inspector' };
 /** The facts Hosting produced for the Approver, in the shape of its `readPullRequestFacts`: the head with its parents, the base branch tip, main, the author and `checks`, every run of the named check at the head, newest first, with GitHub's own status and conclusion (`success`), with what a Case changes. */
 export function facts(more = {}, origin = { repository: 'r', read: 'readPullRequestFacts', app: 'approver' }) {
   const f = Object.freeze({
-    head: commit(), base: Object.freeze({ sha: BASE, ref: 'kaal/review/x' }), main: MAIN, author: 'someone',
+    head: commit(), base: Object.freeze({ sha: BASE, ref: 'kaal/review/x' }), main: MAIN, author: Object.freeze({ login: 'someone', type: 'User' }),
     checks: Object.freeze((more.check === null ? [] : [{ ...RUN, ...(more.check ?? {}) }]).map((r) => Object.freeze(r))),
     ...Object.fromEntries(Object.entries(more).filter(([k]) => k !== 'check')),
   });
