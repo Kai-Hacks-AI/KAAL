@@ -10,7 +10,7 @@ The DO of the merged PLAN (#3018), approved by the CPO. The one file changed is 
 
 ## What the CPO asked the DO to show: multiple landings and incomplete results cannot escape judgment
 
-Run by hand against a local repository and a stand-in for `gh` (the Cases T1750 to T1756 do not pin these, see the ACT):
+Run by hand against a local repository and a stand-in for `gh` (the Cases T1751 to T1757 do not pin these, see the ACT):
 
 | Situation | What the audit did |
 | --- | --- |
@@ -24,4 +24,4 @@ A widened push is judged exactly as the audit judged every push before this Chan
 
 ## Cases
 
-T1750 to T1756 are GREEN: T1750, T1751, T1753 and T1754 were RED, and T1752, T1755 and T1756 stayed GREEN. **T1753 passes by the order of the parameters**: its last assertion looks for `per_page=100` with no `ref=` after it, so every activity URL here puts `per_page` before `ref`. The assertion means "no unfiltered activity read" and a URL with `ref=` before `per_page` would trip it by mistake. That is a defect of the Case, to be corrected by a PLAN amendment, and no Case expectation is changed here.
+T1751 to T1757 are GREEN: T1757, T1751, T1753 and T1754 were RED, and T1752, T1755 and T1756 stayed GREEN. T1757 is the Case that was numbered T1750, and T1753's last assertion is corrected, both in the PLAN amendment that precedes this DO. No Case expectation is changed here.
