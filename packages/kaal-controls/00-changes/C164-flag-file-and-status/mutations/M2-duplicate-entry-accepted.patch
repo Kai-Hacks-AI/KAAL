@@ -1,0 +1,11 @@
+--- a/packages/kaal-controls/skills/kaal-controls/scripts/flags.mjs
++++ b/packages/kaal-controls/skills/kaal-controls/scripts/flags.mjs
+@@ -13,7 +13,7 @@ export function parseFlags(source) {
+   const seen = new Set();
+   for (const e of doc.flags) {
+     if (e === null || typeof e !== 'object' || Array.isArray(e) || !text(e.control) || !text(e.place) || !text(e.name) || !(e.value === null || typeof e.value === 'string')) throw new Error('parseFlags: an entry is not whole');
+-    if (seen.has(key(e.control, e.place))) throw new Error(`parseFlags: ${key(e.control, e.place)} has two entries`);
++    if (false) throw new Error(`parseFlags: ${key(e.control, e.place)} has two entries`);
+     seen.add(key(e.control, e.place));
+   }
+   return doc.flags.map(({ control, place, name, value }) => ({ control, place, name, value })).sort((a, b) => (key(a.control, a.place) < key(b.control, b.place) ? -1 : 1));
