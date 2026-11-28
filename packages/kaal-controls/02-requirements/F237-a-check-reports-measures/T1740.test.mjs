@@ -26,6 +26,7 @@ export async function run() {
   const bad = await go({ findings: [], measures: [api, { ...api }, { name: '', value: 1, unit: 'x' }, { name: 'n', value: Number.NaN, unit: 'x' }, { name: 'i', value: Infinity, unit: 'x' }, { name: 'u', value: 1, unit: '' }, { name: 'b', value: 1, unit: 'x', better: 'bigger' }, 'text', null] });
   assert.deepEqual(bad.measures, [api], 'only the valid measure is carried, duplicates dropped after the first');
   assert.equal(bad.measureProblems.length, 8, 'each dropped measure is named');
+  assert.deepEqual(bad.record.measureProblems, bad.measureProblems, 'the record keeps the problems, so history tells an invalid observation from an absent one');
   assert.equal(bad.verdict, 'PASS', 'invalid measures never turn a PASS into anything else');
   const none = await go({ findings: [], measures: 'not a list' });
   assert.equal(none.verdict, 'PASS'); assert.ok(none.measureProblems.length > 0);
@@ -37,6 +38,11 @@ export async function run() {
   const allBad = await go({ findings: [], measures: [{ name: 'n', value: Number.NaN, unit: 'x' }] });
   assert.equal('measures' in allBad, false, 'a measure that was dropped leaves no zero behind');
   assert.equal('measures' in allBad.record, false);
+  assert.deepEqual(allBad.record.measureProblems, ['n:value'], 'invalid is distinguishable from absent: the record names the problem');
+  assert.equal('measureProblems' in listed.record, false, 'absent leaves neither key');
+  const zero = await go({ findings: [], measures: [{ name: 'z', value: 0, unit: 'calls' }] });
+  assert.deepEqual(zero.record.measures, [{ name: 'z', value: 0, unit: 'calls' }], 'a real zero is a measure, not an absence');
+  assert.equal('measureProblems' in zero.record, false);
   const notFindings = await go({ measures: [api] });
   assert.equal(notFindings.verdict, 'UNKNOWN', 'an object without findings is not an answer');
 }

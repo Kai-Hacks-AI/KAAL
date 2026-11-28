@@ -36,6 +36,12 @@ export async function run() {
   assert.deepEqual([by.unit.change, by.unit.delta], ['incomparable', undefined]);
   assert.equal(by.free.change, 'changed', 'no declared direction, no better or worse');
   assert.equal(by.hi.change, 'better'); assert.equal(by.hi2.change, 'worse');
+  for (const [from, to] of [['lower', 'higher'], ['higher', 'lower'], ['lower', undefined], [undefined, 'lower']]) {
+    const r = compareMeasures([m('d', 10, 'calls', from)], [m('d', 4, 'calls', to)])[0];
+    assert.deepEqual([r.change, r.why, r.delta], ['incomparable', 'direction', undefined], `a direction changed from ${from} to ${to} is never judged by the newer direction`);
+  }
+  const unit = compareMeasures([m('u', 1, 'ms')], [m('u', 1, 'calls')])[0];
+  assert.deepEqual([unit.change, unit.why], ['incomparable', 'unit']);
   assert.throws(() => compareMeasures([{ name: 'a' }], []), /measure/, 'invalid input is never compared');
   assert.throws(() => compareMeasures([], 'x'), /measure/);
 }
