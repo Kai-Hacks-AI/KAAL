@@ -1,0 +1,50 @@
+// Case release/T1798 tests: release/C201. The readiness of a swap judges the real files before the Owner's go.
+import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { load, SRC, repo, record, flags, IDS, JUDGED } from './fixture.mjs';
+export const id = 'release/T1798';
+export const tests = ['release/C201'];
+export const title = 'adoption-ready exits 0 only when every adopting control has the flag on and preventive declared at every station, names the gap otherwise, and changes no file';
+export async function run() {
+  const { readiness, adopting } = await load('lib/adoption-ready.mjs');
+  const WF = join(SRC, 'wiring/workflows');
+  const sources = ['change-isolation-plain.yml', 'branching-plain.yml', 'promotion-source-plain.yml'].map((f) => readFileSync(join(WF, f), 'utf8'));
+  const paths = adopting(sources);
+  assert.equal(paths.length, 7, 'the seven adopting records');
+  const texts = (declare) => Object.fromEntries(paths.map((p) => { const id = /^id: (.+)$/m.exec(readFileSync(join(repo, p), 'utf8'))[1]; return [p, record(id, declare ? JUDGED.map((s) => `${s}:preventive`).join(', ') : '')]; }));
+  const ready = readiness({ recordPaths: paths, recordTexts: texts(true), flagsText: flags(IDS, JUDGED, 'on') });
+  assert.deepEqual(ready.gaps, [], 'complete files are ready'); assert.equal(ready.ok, true);
+  const gapOf = (r, needle) => r.gaps.some((g) => g.includes(needle));
+  let r = readiness({ recordPaths: paths, recordTexts: texts(true), flagsText: flags(IDS, JUDGED, (c, p) => (c === 'release/CTL40' && p === 'Promoting' ? 'advisory' : 'on')) });
+  assert.equal(r.ok, false); assert.ok(gapOf(r, 'release/CTL40@Promoting') && /advisory/.test(r.gaps.join('\n')), 'an advisory flag is a named gap'); assert.equal(r.gaps.length, 1, 'only that gap');
+  r = readiness({ recordPaths: paths, recordTexts: texts(false), flagsText: flags(IDS, JUDGED, 'on') });
+  assert.equal(r.ok, false); assert.ok(gapOf(r, 'release/CTL37@Collecting') && /no preventive/.test(r.gaps.join('\n')), 'an undeclared record is a gap');
+  r = readiness({ recordPaths: paths, recordTexts: texts(true), flagsText: flags(IDS, JUDGED, 'on', ['release/CTL41', 'Wiring']) });
+  assert.equal(r.ok, false); assert.ok(gapOf(r, 'release/CTL41@Wiring'), 'a missing entry is a gap');
+  r = readiness({ recordPaths: paths, recordTexts: texts(true), flagsText: undefined });
+  assert.equal(r.ok, false); assert.ok(r.gaps.length >= IDS.length * JUDGED.length, 'a missing file is every pair');
+  r = readiness({ recordPaths: paths, recordTexts: { ...texts(true), [paths[0]]: undefined }, flagsText: flags(IDS, JUDGED, 'on') });
+  assert.ok(gapOf(r, paths[0]), 'a record that cannot be read is a gap');
+  assert.equal(readiness({ recordPaths: [], recordTexts: {}, flagsText: flags(IDS, JUDGED, 'on') }).ok, false, 'no adopting entry is never ready');
+  // the command line, on a root it reads and does not touch
+  const root = mkdtempSync(join(tmpdir(), 'c201-root-'));
+  const put = (rel, text) => { const f = join(root, rel); mkdirSync(join(f, '..'), { recursive: true }); writeFileSync(f, text); };
+  ['change-isolation-plain.yml', 'branching-plain.yml', 'promotion-source-plain.yml'].forEach((f, i) => put(`engineering/release-management/05-src/wiring/workflows/${f}`, sources[i]));
+  const t = texts(true); for (const p of paths) put(p, t[p]);
+  const cli = join(SRC, 'lib/adoption-ready.mjs');
+  const snapshot = () => { const out = []; const walk = (d) => readdirSync(d).forEach((n) => { const p = join(d, n); statSync(p).isDirectory() ? walk(p) : out.push(`${p}:${readFileSync(p, 'utf8')}`); }); walk(root); return out.sort().join('\n'); };
+  const before = snapshot();
+  let c = spawnSync(process.execPath, [cli, '--root', root], { encoding: 'utf8' });
+  assert.equal(c.status, 1, 'no flags.json: not ready'); assert.match(c.stdout, /release\/CTL4[01]@Promoting/);
+  put('engineering/14-operations/controls/flags.json', flags(IDS, JUDGED, 'on'));
+  const mid = snapshot();
+  c = spawnSync(process.execPath, [cli, '--root', root], { encoding: 'utf8' });
+  assert.equal(c.status, 0, c.stdout); assert.match(c.stdout, /^ready: 7 adopting entries/m);
+  assert.equal(snapshot(), mid, 'it changes no file');
+  c = spawnSync(process.execPath, [cli, '--root', root, '--workflows', 'promotion-source-plain.yml'], { encoding: 'utf8' });
+  assert.equal(c.status, 0); assert.match(c.stdout, /ready: 2 adopting entries/, 'one check at a time');
+  assert.notEqual(before, mid);
+}

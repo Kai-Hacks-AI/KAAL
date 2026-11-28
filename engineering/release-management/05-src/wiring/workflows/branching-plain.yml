@@ -51,6 +51,8 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          KAAL_FLAGS: engineering/14-operations/controls/flags.json
+          KAAL_CONTROL_RECORD: engineering/release-management/04-controls/CTL37-verify-freshness/CTL37.md
         run: node engineering/release-management/05-src/lineage/judge-freshness.mjs --head "$HEAD" --base-ref "$BASE_REF"
 
   synchronization:
@@ -90,6 +92,8 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_FLAGS: engineering/14-operations/controls/flags.json
+          KAAL_CONTROL_RECORD: engineering/release-management/04-controls/CTL38-verify-synchronization/CTL38.md
         run: node engineering/release-management/05-src/lineage/judge-synchronization.mjs --head "$HEAD" --base-ref "$BASE_REF"
 
   auto-merge:
@@ -142,6 +146,8 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
           KAAL_AUTO_MERGE: ${{ github.event.pull_request.auto_merge.merge_method }}
+          KAAL_FLAGS: engineering/14-operations/controls/flags.json
+          KAAL_CONTROL_RECORD: engineering/release-management/04-controls/CTL39-verify-auto-merge-method/CTL39.md
         run: node engineering/release-management/05-src/lineage/judge-auto-merge.mjs --head "$HEAD" --base-ref "$BASE_REF"
 
   branching:

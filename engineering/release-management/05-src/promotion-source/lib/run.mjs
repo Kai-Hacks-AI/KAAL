@@ -30,7 +30,7 @@ export async function run({ label, id, check, read, again = () => false, argv = 
   const known = env.GITHUB_RUN_ID && head;
   const boundary = known ? { x: 'real', run: String(env.GITHUB_RUN_ID), sha: String(head) } : undefined;
   // A job that has adopted the flag (release/C167): the declared mode and the flag go to the adapter, and the exit is the library's; one that has not runs as it did.
-  const entry = id ? fromEnv({ id, env }) : undefined;
+  const entry = id ? fromEnv({ id, env, baseRef: jobFacts(argv, env).baseRef }) : undefined;
   if (entry?.stop) { for (const l of entry.lines) out(l); return entry.exit; }
   let attempts = Number(env.KAAL_ATTEMPTS ?? 30);
   const interval = Number(env.KAAL_INTERVAL ?? 20);
@@ -47,7 +47,7 @@ export async function run({ label, id, check, read, again = () => false, argv = 
     out(`${label}: ${a.verdict}${a.kind === 'not-applicable' ? ` (not applicable: ${a.message})` : ''}`);
     for (const f of a.findings) out(`  ${f}`);
     if (a.record) out(`kaal-control ${JSON.stringify(a.record)}`);
-    if (entry) return exitOf({ id, station: env.KAAL_STATION, answer: a });
+    if (entry) return exitOf({ id, station: entry.station, answer: a });
     return a.blocked ? 1 : a.verdict === 'UNKNOWN' ? 2 : 0;
   }
 }
