@@ -36,3 +36,16 @@ export function parse(file, text) {
   return { file, text, onText, pullRequest: /pull_request(?!_target)/.test(onText), target: /pull_request_target/.test(onText), mergeGroup: /merge_group/.test(onText), jobs };
 }
 export const reporters = (ws, name, pick) => ws.filter(pick).flatMap((w) => w.jobs.filter((j) => j.name === name).map((j) => ({ file: w.file, job: j.id })));
+
+// Runs the script of an aggregator job as the runner would, with the results of the jobs it needs as `{ id: result }` (a result of null or undefined is a job that reported nothing).
+import { spawnSync } from 'node:child_process';
+export function runAggregator(job, results) {
+  const body = job.lines.join('\n');
+  const script = /run: \|\n((?:\s{10}.*\n?)+)/.exec(body)[1];
+  const expected = /EXPECTED: "([^"]*)"/.exec(body)?.[1] ?? '';
+  const needs = {};
+  for (const [k, v] of Object.entries(results)) if (v !== undefined) needs[k] = { result: v, outputs: {} };
+  const r = spawnSync('bash', ['-c', script], { env: { PATH: process.env.PATH, NEEDS: JSON.stringify(needs), EXPECTED: expected }, encoding: 'utf8' });
+  return { status: r.status, stderr: r.stderr };
+}
+export const AGGREGATORS = [['change-isolation-plain.yml', 'Change Isolation', ['github-alone', 'delivery']], ['branching-plain.yml', 'Branching', ['freshness', 'synchronization', 'auto-merge']], ['promotion-source-plain.yml', 'Promotion Source', ['origin', 'head-evidence']]];
