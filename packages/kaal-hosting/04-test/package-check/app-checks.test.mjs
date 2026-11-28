@@ -1,7 +1,6 @@
-// hosting/C117 executable drafts (T345 to T348): posting a check run under an App's grant. RED on `main`: `postCheckRun` does not
-// exist. They need the App fixtures of hosting/C114 (`04-test/package-check/app-fixtures.mjs`), so they run once C114 is on `main`.
-// The DO turns them into delivered Cases unchanged (`04-test/package-check/app-checks.test.mjs`); the one fixture change they need is
-// that the stand-in's answer may carry `headers`. Nothing reaches GitHub.
+// Posting a check run under an App's grant: hosting/C117 (T345 to T348) and hosting/C169 (T354 and T355). They use the App fixtures of
+// hosting/C114 (`app-fixtures.mjs`); the stand-in's answer may carry `headers`. Nothing reaches GitHub. The Cases are the drafts of the
+// Changes' PLANs (`00-changes/C117-post-check-run`, `00-changes/C169-check-run-contract`), delivered unchanged.
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import * as hosting from "@kaihacksai/kaal-hosting";
@@ -113,4 +112,47 @@ it("hosting/T348: postCheckRun fails by name and never retries: a refused or fai
     const p = await post(check, { world: route(extra) });
     await assert.rejects(p.run(), (e) => e.code === "CHECK_MISMATCH", why);
   }
+});
+
+it("hosting/T354: postCheckRun reports an external id only as GitHub confirmed it, and a run carrying another one is not the run asked for", async () => {
+  // The external id is how a reader tells two posts of one verdict apart: the fact never claims a correlation GitHub did not return.
+  const same = await post(check);
+  assert.equal((await same.run()).externalId, "run-77", "GitHub returned the id asked for");
+  for (const [why, extra] of [["another external id", { external_id: "run-78" }], ["no external id returned", { external_id: undefined }], ["an empty external id returned", { external_id: "" }], ["a number", { external_id: 77 }]]) {
+    const p = await post(check, { world: route(extra) });
+    await assert.rejects(p.run(), (e) => e.code === "CHECK_MISMATCH", why);
+    assert.equal(p.api.requests.length - p.mark, 1, `${why}: one request, never repeated`);
+  }
+  // No external id asked: none is reported, and GitHub's empty or absent one is what it says when none was sent.
+  const { externalId: _drop, ...bare } = check;
+  for (const extra of [{ external_id: undefined }, { external_id: "" }, { external_id: null }]) {
+    const p = await post(bare, { world: route(extra) });
+    const run = await p.run();
+    assert.equal("externalId" in run, false, "none asked, none reported");
+  }
+  const invented = await post(bare, { world: route({ external_id: "invented" }) });
+  await assert.rejects(invented.run(), (e) => e.code === "CHECK_MISMATCH", "an id nobody sent is not the run asked for");
+});
+
+it("hosting/T355: postCheckRun refuses any key outside the check, whatever its value, before any call", async () => {
+  // A key is refused for being there, not for what it holds: undefined, null, false, 0 and an empty string are values too.
+  const p = await post(check);
+  for (const key of ["status", "app", "appId", "id", "head_sha", "output", "token", "permissions", "abilities", "headSha", "extra"]) {
+    for (const value of [undefined, null, false, 0, ""]) {
+      await assert.rejects(hosting.postCheckRun("o/r", { ...check, [key]: value }, p.opts), (e) => e.code === "INVALID_CHECK", `${key}: ${String(value)}`);
+    }
+  }
+  for (const key of ["token", "abilities", "check", "declaration", "extra"]) {
+    await assert.rejects(hosting.postCheckRun("o/r", check, { ...p.opts, [key]: undefined }), (e) => e.code === "INVALID_CHECK", `${key} as an option`);
+  }
+  // A symbol key is a key too: it is refused for being there, as a key of the check and as a key of the options.
+  for (const value of [undefined, "x"]) {
+    await assert.rejects(hosting.postCheckRun("o/r", { ...check, [Symbol("extra")]: value }, p.opts), (e) => e.code === "INVALID_CHECK", `a symbol key of the check: ${String(value)}`);
+    await assert.rejects(hosting.postCheckRun("o/r", check, { ...p.opts, [Symbol("extra")]: value }), (e) => e.code === "INVALID_CHECK", `a symbol key of the options: ${String(value)}`);
+  }
+  assert.equal(p.api.requests.length, p.mark, "every refusal came before any call");
+  // The listed keys stay allowed with no value: an external id of undefined is none.
+  const { externalId: _drop, ...bare } = check;
+  const run = await (await post({ ...bare, externalId: undefined })).run();
+  assert.equal("externalId" in run, false);
 });

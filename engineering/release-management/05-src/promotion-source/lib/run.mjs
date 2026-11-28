@@ -10,10 +10,15 @@ export const jobFacts = (argv, env) => {
   return { repo: env.KAAL_REPO, defaultBranch: env.KAAL_DEFAULT, baseRef: i < 0 ? undefined : argv[i + 1], headRepo: env.KAAL_HEAD_REPO, headRef: env.KAAL_HEAD_REF, head: env.KAAL_HEAD_SHA };
 };
 
-// `gh api --paginate`, one JSON value per line when a `--jq` is given. A response that cannot be read throws: the answer is UNKNOWN.
+// `gh api --paginate`, one JSON value per line when a `--jq` is given. A response that cannot be read throws, naming why (release/D22): the answer is UNKNOWN.
 export function gh(args, { env = process.env } = {}) {
   const r = spawnSync(env.KAAL_GH || 'gh', ['api', '--paginate', ...args], { encoding: 'utf8' });
-  if (r.error || r.status !== 0) throw new Error(`${args[0]} cannot be read`);
+  if (r.error || r.status !== 0) {
+    // Say why: the exit status and the first line of what gh printed, so a rate limit is not taken for a problem of the rules.
+    const first = String(r.stderr ?? '').split('\n').map((l) => l.trim()).find((l) => l !== '');
+    const why = r.error ? r.error.message : `exit ${r.status}`;
+    throw new Error(`${args[0]} cannot be read (${why}${first ? `: ${first}` : ''})`);
+  }
   return r.stdout.split('\n').filter((l) => l.trim() !== '').map((l) => JSON.parse(l));
 }
 
