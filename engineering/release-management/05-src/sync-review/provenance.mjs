@@ -3,6 +3,7 @@
 // names that run) and names the same run, head sha, base ref and base sha as that run and as the pull request now. Every refusal
 // says what was missing, and a refused verdict approves nothing.
 export const VERIFY_WORKFLOW = 'sync verify';
+export const VERIFY_PATH = '.github/workflows/sync-verify-plain.yml';
 const LANES = ['kaal/', 'hotfix/', 'wire/'];
 
 // envelope: the file the verify run uploaded, or null. run: the event's own facts about the verify run. pull: the pull request now.
@@ -10,6 +11,11 @@ export function checkProvenance({ envelope, run, pull, repo, requireSuccess = tr
   const refusals = [];
   const no = (code, detail) => refusals.push({ code, detail });
   if (!run || run.name !== VERIFY_WORKFLOW) no('wrong-workflow', `the run is of ${run?.name ?? 'no workflow'}, not of ${VERIFY_WORKFLOW}`);
+  // A pull request runs the workflow files of its own head, and `workflow_run` matches by name: a candidate could define a workflow of
+  // this name that uploads what it likes. So the run must be of the trusted path, and that file at the run's head must be the very
+  // file of the default branch (the same blob).
+  if (run && run.path !== VERIFY_PATH) no('wrong-path', `the run is of ${run.path ?? 'no file'}, not of ${VERIFY_PATH}`);
+  if (run && (!run.blobAtHead || run.blobAtHead !== run.blobOnDefault)) no('workflow-differs', 'the verify workflow at the run head is not the file of the default branch');
   if (run && run.event !== 'pull_request') no('wrong-event', `the verify run was started by ${run.event ?? 'no event'}, not by pull_request`);
   if (requireSuccess && run && run.conclusion !== 'success') no('run-not-success', `the verify run concluded ${run.conclusion ?? 'nothing'}, not success`);
   if (!envelope || typeof envelope !== 'object') no('no-artifact', 'the verify run uploaded no readable verdict');

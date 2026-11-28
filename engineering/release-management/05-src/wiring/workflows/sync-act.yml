@@ -2,7 +2,8 @@
 # `workflow_run` when the workflow `sync verify` completes, from the default branch, and run nothing of the candidate: they download
 # the verdict as data from that one run, check where it came from and that it is about the pull request as GitHub says it is now
 # (open, from this repository, into a kaal/, hotfix/ or wire/ base, the same head sha, base ref and base sha), and only then act.
-# A verdict that is missing, of another run, of a run that did not succeed (for approval), or that does not match, approves nothing
+# A pull request runs the workflow files of its own head and workflow_run matches by name, so the run must also be of the trusted file
+# and that file at the run head must be the very blob of the default branch. A verdict that is missing, of another run, of a run that did not succeed (for approval), or that does not match, approves nothing
 # and says what was wrong; review Sync still puts the SYNC in front of a person. The write token comes from the KAAL Approver App
 # (secret KAAL_APP_APPROVER_KEY, variable KAAL_APP_APPROVER_ID); GITHUB_TOKEN only reads. Without the App credential approve Sync
 # is a dry run and review Sync says that it cannot write. Approval happens only when KAAL_SYNC_APPROVE is exactly `on`.
@@ -32,6 +33,7 @@ jobs:
       KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
       KAAL_RUN_ID: ${{ github.event.workflow_run.id }}
       KAAL_RUN_NAME: ${{ github.event.workflow_run.name }}
+      KAAL_RUN_PATH: ${{ github.event.workflow_run.path }}
       KAAL_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
       KAAL_RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
       KAAL_RUN_EVENT: ${{ github.event.workflow_run.event }}
@@ -92,6 +94,7 @@ jobs:
       KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
       KAAL_RUN_ID: ${{ github.event.workflow_run.id }}
       KAAL_RUN_NAME: ${{ github.event.workflow_run.name }}
+      KAAL_RUN_PATH: ${{ github.event.workflow_run.path }}
       KAAL_RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
       KAAL_RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
       KAAL_RUN_EVENT: ${{ github.event.workflow_run.event }}

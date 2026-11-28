@@ -1,6 +1,6 @@
 // Case release/T1686 tests: release/C173
 import assert from 'node:assert/strict';
-import { world } from './fixture.mjs';
+import { world, BLOBS } from './fixture.mjs';
 export const id = 'release/T1686';
 export const tests = ['release/C173'];
 export const title = 'a verdict is trusted only from the verify workflow\'s own completed successful run and naming that run, head, base ref and base sha; every other file approves nothing, names what was wrong, and still sends review to a person';
@@ -16,10 +16,13 @@ export async function run() {
       'verdict of another pull request': { file: JSON.stringify({ ...good, pr: 8 }), code: 'other-pull-request' },
       'no verdict inside': { file: JSON.stringify({ ...good, verdict: null }), code: 'no-verdict' },
       'run of another workflow': { env: { KAAL_RUN_NAME: 'ci' }, code: 'wrong-workflow' },
+      'run of another file (a candidate workflow of the same name)': { env: { KAAL_RUN_PATH: '.github/workflows/evil.yml' }, code: 'wrong-path' },
+      'verify workflow changed by the candidate': { blob: 'c2'.repeat(20), code: 'workflow-differs' },
       'run of another event': { env: { KAAL_RUN_EVENT: 'push' }, code: 'wrong-event' },
       'run that did not succeed': { env: { KAAL_RUN_CONCLUSION: 'failure' }, code: 'run-not-success', reviewTrusts: true },
     };
     for (const [name, c] of Object.entries(cases)) {
+      BLOBS.head = c.blob ?? BLOBS.main;
       x.setFile(c.file === undefined ? x.sent : c.file);
       const env = x.actEnv(c.env ?? {});
       assert.equal(x.run(x.approve, env), 0, name);
@@ -30,6 +33,7 @@ export async function run() {
       x.run(x.review, x.actEnv({ ...(c.env ?? {}), KAAL_APPROVAL: 'skipped' }));
       assert.ok(x.w.posted(/labels/).length > 0 || c.reviewTrusts, `${name}: review Sync did not put it in front of a person`);
     }
+    BLOBS.head = BLOBS.main;
     x.setFile(x.sent);
   } finally { x.w.done(); }
 }

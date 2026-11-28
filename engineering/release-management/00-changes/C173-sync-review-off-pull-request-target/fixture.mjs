@@ -8,7 +8,8 @@ export const WF = join(repo, 'engineering/release-management/05-src/wiring/workf
 export const source = (f) => readFileSync(join(WF, f), 'utf8').split('\n').filter((l) => !l.trim().startsWith('#')).join('\n');
 export const sourceExists = (f) => existsSync(join(WF, f));
 export const jobOf = (code, name) => code.split(/^  (?=[a-z]+:\n    name: )/m).find((j) => j.includes(`name: ${name}`));
-export const RUN = { KAAL_RUN_ID: '4242', KAAL_RUN_NAME: 'sync verify', KAAL_RUN_CONCLUSION: 'success', KAAL_RUN_EVENT: 'pull_request' };
+export const RUN = { KAAL_RUN_ID: '4242', KAAL_RUN_NAME: 'sync verify', KAAL_RUN_CONCLUSION: 'success', KAAL_RUN_EVENT: 'pull_request', KAAL_RUN_PATH: '.github/workflows/sync-verify-plain.yml' };
+export const BLOBS = { head: 'b1'.repeat(20), main: 'b1'.repeat(20) };
 
 // A world: the verify job has run (its file is `file`), and the acting jobs see the pull request through `pr` (changeable).
 export async function world() {
@@ -22,6 +23,7 @@ export async function world() {
       const base = JSON.parse(api(args));
       return JSON.stringify({ ...base, number: pr.number, state: pr.state, head: { sha: w.state.head, repo: { full_name: pr.headRepo } }, base: { ref: pr.baseRef } });
     }
+    if (/contents\/\.github\/workflows\/sync-verify-plain\.yml\?ref=/.test(a)) return JSON.stringify({ sha: /ref=main$/.test(a) ? BLOBS.main : BLOBS.head });
     return api(args);
   };
   const deps = (over = {}) => w.deps({ writeFile: (_p, text) => { file = text; }, readFile: () => file, api: patch(w.deps().api), ...over });

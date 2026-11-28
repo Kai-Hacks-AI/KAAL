@@ -14,7 +14,7 @@ import { verifySync } from './verify.mjs';
 import { decideApproveNow, classifyRefusal } from './approve.mjs';
 import { decideReview, chooseReviewer, ownersOf, cleanVerdict, LABEL } from './review.mjs';
 import { gatherFacts } from './facts.mjs';
-import { checkProvenance } from './provenance.mjs';
+import { checkProvenance, VERIFY_PATH } from './provenance.mjs';
 
 const run = (cmd, args) => {
   const r = spawnSync(cmd, args, { encoding: 'utf8', maxBuffer: 1 << 28 });
@@ -76,11 +76,16 @@ export function verify(env, deps = realDeps()) {
 
 // release/C173: with KAAL_VERDICT_FILE the verdict is read from the verify run's artifact and trusted only when its provenance holds
 // (provenance.mjs). Without it, the verdict is the text of KAAL_VERDICT (the release/C65 shape). A refused verdict is null and says why.
+// The blob of the verify workflow at the run's head and on the default branch, as GitHub says (read only, no checkout).
+function workflowBlobs(env, deps) {
+  const blob = (ref) => { try { return JSON.parse(deps.api([`repos/${env.KAAL_REPO}/contents/${VERIFY_PATH}?ref=${encodeURIComponent(ref)}`])).sha ?? null; } catch { return null; } };
+  return { blobAtHead: env.KAAL_RUN_HEAD ? blob(env.KAAL_RUN_HEAD) : null, blobOnDefault: env.KAAL_DEFAULT ? blob(env.KAAL_DEFAULT) : null };
+}
 function loadVerdict(env, deps, pull, baseTip, { requireSuccess }) {
   if (!env.KAAL_VERDICT_FILE) return { verdict: parseVerdict(env.KAAL_VERDICT ?? ''), refusals: [] };
   const text = deps.readFile(env.KAAL_VERDICT_FILE);
   const envelope = text == null ? null : parseVerdict(text);
-  const run = { id: env.KAAL_RUN_ID, name: env.KAAL_RUN_NAME, conclusion: env.KAAL_RUN_CONCLUSION, head: env.KAAL_RUN_HEAD, event: env.KAAL_RUN_EVENT };
+  const run = { id: env.KAAL_RUN_ID, name: env.KAAL_RUN_NAME, conclusion: env.KAAL_RUN_CONCLUSION, head: env.KAAL_RUN_HEAD, event: env.KAAL_RUN_EVENT, path: env.KAAL_RUN_PATH, ...workflowBlobs(env, deps) };
   const r = checkProvenance({ envelope, run, pull: pull && { ...pull, baseRef: pull.base, baseSha: baseTip }, repo: env.KAAL_REPO, requireSuccess });
   for (const x of r.refusals) deps.log(`verdict refused: ${x.code}: ${x.detail}`);
   return { verdict: r.verdict, refusals: r.refusals };
