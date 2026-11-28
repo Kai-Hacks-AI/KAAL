@@ -1,0 +1,74 @@
+# Promotion Source (engineering/github/lineage.ts) on plain pull_request, the detective replacement of the pull_request_target workflow promotion-source.yml (release/C153, check 4).
+# The rules and their verdicts live only in the checker, engineering/github/lineage.ts. Each of its two verdicts runs as its own job through its delivered entry and the controls adapter (release/C159): origin (release/CTL40) and head evidence (release/CTL41).
+# Only the trigger differs from the old workflow: plain pull_request, no secret, no pull_request_target. Origin judges the event's refs alone and takes no permission beyond contents: read; head evidence also reads the rules and the check runs of the head, so it alone takes checks: read.
+# The default branch is checked out as the trusted judge. Nothing of the candidate is fetched, checked out, built, installed or run.
+# Detective: its own job names, so it replaces no required context. At the swap the old workflow is retired.
+name: Promotion Source on pull_request
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  origin:
+    name: "Promotion Source: origin (plain pull_request)"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the default branch, the trusted judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Judge with the default branch's checker
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          KAAL_REPO: ${{ github.repository }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          KAAL_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          # Judged from the event's refs alone; the head is only what the record names.
+          KAAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node engineering/release-management/05-src/promotion-source/judge-origin.mjs --base-ref "$BASE_REF"
+
+  head-evidence:
+    name: "Promotion Source: head evidence (plain pull_request)"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Check out the default branch, the trusted judge
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm ci --ignore-scripts
+
+      - name: Judge with the default branch's checker
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          KAAL_REPO: ${{ github.repository }}
+          KAAL_DEFAULT: ${{ github.event.repository.default_branch }}
+          KAAL_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          KAAL_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          # A kaal/<capability>/*, hotfix/* or wire/* head is admitted only when the checks its rulesets require are green on this exact commit.
+          KAAL_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: node engineering/release-management/05-src/promotion-source/judge-head-evidence.mjs --base-ref "$BASE_REF"
