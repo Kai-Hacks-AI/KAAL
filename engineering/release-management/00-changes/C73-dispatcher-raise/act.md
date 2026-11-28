@@ -20,4 +20,4 @@ The first dry run after the WIRE, read next to what a person would have raised, 
 
 ## Left for the Owner
 
-Create and install the KAAL Dispatcher App from `05-src/promotion-raise/app-manifest.json`, store the secret `KAAL_DISPATCHER_KEY` and the variable `KAAL_DISPATCHER_APP_ID`, then the go for the WIRE of `dispatcher.yml`, alone; the first run is a dry run, and `KAAL_DISPATCH_RAISE=on` is a second, separate step after the dry run has been read.
+Create and install the KAAL Dispatcher App from `05-src/promotion-raise/app-manifest.json`, store the secret `KAAL_APP_DISPATCHER_KEY` and the variable `KAAL_APP_DISPATCHER_ID`, then the go for the WIRE of `dispatcher.yml`, alone; the first run is a dry run, and `KAAL_DISPATCH_RAISE=on` is a second, separate step after the dry run has been read.

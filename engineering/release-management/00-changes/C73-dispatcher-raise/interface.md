@@ -40,4 +40,4 @@ The name is a neutral template; the instance's display name (KAAL Dispatcher) li
 
 ## Shape of `dispatcher.yml`
 
-Triggers: `schedule` (every 10 minutes) and `workflow_dispatch`. Top-level `permissions: {}`. Job `decide Dispatch` (`contents: read`, `pull-requests: read`, no App key) runs `dispatch.mjs decide` and outputs the decisions. Job `raise Dispatch` (`needs: decide`, `permissions: {}`) mints the App token with a pinned token action from `vars.KAAL_DISPATCHER_APP_ID` and `secrets.KAAL_DISPATCHER_KEY` and runs `dispatch.mjs raise` with `vars.KAAL_DISPATCH_RAISE`. Every action is pinned to a commit.
+Triggers: `schedule` (every 10 minutes) and `workflow_dispatch`. Top-level `permissions: {}`. Job `decide Dispatch` (`contents: read`, `pull-requests: read`, no App key) runs `dispatch.mjs decide` and outputs the decisions. Job `raise Dispatch` (`needs: decide`, `permissions: {}`) mints the App token with a pinned token action from `vars.KAAL_APP_DISPATCHER_ID` and `secrets.KAAL_APP_DISPATCHER_KEY` and runs `dispatch.mjs raise` with `vars.KAAL_DISPATCH_RAISE`. Every action is pinned to a commit.
