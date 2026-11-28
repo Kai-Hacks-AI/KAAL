@@ -68,7 +68,7 @@ const PKG = { name: "x", scripts: { test: "node --test" } };
 const base = (extra = {}) => ({ [`${CONFIG}/aggregates.json`]: AGG, "package.json": { name: "root", scripts: { test: "true" } }, "packages/a/package.json": PKG, "packages/a/guard.json": REG(), ...extra });
 
 describe("Solution protection (guard/C171)", () => {
-  it("guard/T1670 [guard/F41, guard/F45, guard/A20, guard/A22]: plan finds a guard.json beside a package, lists its solution check by id, and builds a matrix with one entry for it", () => {
+  it("guard/T1670 [guard/I10, guard/F41, guard/F45, guard/A21, guard/A23]: plan finds a guard.json beside a package, lists its solution check by id, and builds a matrix with one entry for it", () => {
     const r = repo(base());
     const x = plan(r);
     assert.equal(x.status, 0, x.out);
@@ -77,7 +77,7 @@ describe("Solution protection (guard/C171)", () => {
     assert.deepEqual(p.matrix.include.map((e) => e.check), ["packages/a/test"]);
   });
 
-  it("guard/T1671 [guard/F43, guard/F44, guard/A21]: a package.json with a test script and no registration or exempt entry fails plan, naming the folder and the line to add; an exempt entry with a reason passes", () => {
+  it("guard/T1671 [guard/F43, guard/F44, guard/A22]: a package.json with a test script and no registration or exempt entry fails plan, naming the folder and the line to add; an exempt entry with a reason passes", () => {
     const r = repo(base({ "packages/b/package.json": PKG }));
     const x = plan(r);
     assert.notEqual(x.status, 0);
@@ -93,15 +93,15 @@ describe("Solution protection (guard/C171)", () => {
     assert.match(w.out, /packages\/a\/test/, "the check that does not run the suite is named");
   });
 
-  it("guard/T1672 [guard/F42, guard/I11, guard/A20]: a candidate that adds a registration is planned including it; one that removes a baseline registration, or changes its command or aggregates, is cannot judge naming the file and the check; the same removal alone in a diff of registration files only is planned", () => {
+  it("guard/T1672 [guard/F42, guard/I11, guard/A21]: a candidate that adds a registration is planned including it; one that removes a baseline registration, or changes its command or aggregates, is cannot judge naming the file and the check; the same removal alone in a diff of registration files only is planned", () => {
     const r = repo(base());
     const added = r.commit({ "packages/c/package.json": PKG, "packages/c/guard.json": REG() });
     const a = plan(r, "--base", r.base, "--head", added);
     assert.equal(a.status, 0, a.out);
     assert.deepEqual(json(a).expected.sort(), ["packages/a/test", "packages/c/test"], "the pull request's own addition runs in it");
     for (const [label, change] of [
-      ["command", { "packages/a/guard.json": REG("test", { command: "true" }) }],
-      ["aggregates", { "packages/a/guard.json": REG("test", { aggregates: [] }) }],
+      ["command", { "packages/a/guard.json": REG("test", { command: "true" }), "packages/a/lib.mjs": "export {}\n" }],
+      ["aggregates", { "packages/a/guard.json": REG("test", { aggregates: [] }), "packages/a/lib.mjs": "export {}\n" }],
       ["removal with other changes", { "packages/a/guard.json": null, "packages/a/lib.mjs": "export {}\n" }],
     ]) {
       const r2 = repo(base());
@@ -120,13 +120,13 @@ describe("Solution protection (guard/C171)", () => {
       const x = plan(r4, "--base", r4.base, "--head", h);
       assert.notEqual(x.status, 0, `${label} is a removal of protection and is never planned: ${x.out}`);
     }
-    const r3 = repo(base());
+    const r3 = repo(base({ "packages/b/package.json": PKG, "packages/b/guard.json": REG() }));
     const alone = r3.commit({ "packages/a/guard.json": null, "packages/a/package.json": null });
     const z = plan(r3, "--base", r3.base, "--head", alone);
     assert.equal(z.status, 0, `a registration landing alone is allowed: ${z.out}`);
   });
 
-  it("guard/T1673 [guard/F43, guard/N16, guard/A20]: a missing or unparseable aggregates.json on the base is cannot judge, never an empty list; aggregates delivery and a .md declaration with aggregates are refused", () => {
+  it("guard/T1673 [guard/F43, guard/N17, guard/A21]: a missing or unparseable aggregates.json on the base is cannot judge, never an empty list; aggregates delivery and a .md declaration with aggregates are refused", () => {
     const missing = repo(base({ [`${CONFIG}/aggregates.json`]: null }));
     const a = plan(missing);
     assert.equal(a.status, 2, a.out);
@@ -143,7 +143,7 @@ describe("Solution protection (guard/C171)", () => {
     assert.match(l.out, /Legacy/);
   });
 
-  it("guard/T1674 [guard/F46, guard/N14, guard/A22]: fold fails with no reports, with a missing report naming the check, with a report that is not success and with an unexpected extra report, and passes only when the reported set equals the expected set and each is success", () => {
+  it("guard/T1674 [guard/F46, guard/N15, guard/A23]: fold fails with no reports, with a missing report naming the check, with a report that is not success and with an unexpected extra report, and passes only when the reported set equals the expected set and each is success", () => {
     const r = repo(base());
     const planFile = join(r.root, "plan.json");
     writeFileSync(planFile, JSON.stringify(PLAN));
@@ -165,7 +165,7 @@ describe("Solution protection (guard/C171)", () => {
     assert.equal(fold().status, 0, "the reported set equals the expected set and each passed");
   });
 
-  it("guard/T1678 [guard/F46, guard/F48, guard/A22]: a report whose run id differs from the plan's, one whose head is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail fold, naming the check and the differing member; reports of the plan's run and revision pass", () => {
+  it("guard/T1678 [guard/F46, guard/F48, guard/A23]: a report whose run id differs from the plan's, one whose head is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail fold, naming the check and the differing member; reports of the plan's run and revision pass", () => {
     const r = repo(base());
     const planFile = join(r.root, "plan.json");
     writeFileSync(planFile, JSON.stringify(PLAN));
@@ -185,7 +185,7 @@ describe("Solution protection (guard/C171)", () => {
     assert.equal(guard(r.root, "fold", "--aggregate", "solution", "--plan", planFile, "--reports", ok).status, 0);
   });
 
-  it("guard/T1675 [guard/F48, guard/N14, guard/A23]: run --check <id> --report writes a report with the id, aggregates, result, finding, fix hint and registration file; a command that cannot start is recorded as cannot judge and exits non-zero", () => {
+  it("guard/T1675 [guard/F48, guard/N15, guard/A24]: run --check <id> --report writes a report with the id, aggregates, result, finding, fix hint and registration file; a command that cannot start is recorded as cannot judge and exits non-zero", () => {
     const ok = repo(base({ "packages/a/package.json": { name: "x", scripts: { test: "node -e 0" } } }));
     const out = join(ok.root, "out.json");
     const x = guard(ok.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", head(ok), "--report", out);
@@ -206,7 +206,7 @@ describe("Solution protection (guard/C171)", () => {
     assert.match(JSON.parse(readFileSync(out2, "utf8")).result, /cannot.?judge/i);
   });
 
-  it("guard/T1676 [guard/F48, guard/I12, guard/A23]: a failing fold writes guard-report.json naming the check, the aggregate, the registration file and the next step, and prints the report's path", () => {
+  it("guard/T1676 [guard/F48, guard/I12, guard/A24]: a failing fold writes guard-report.json naming the check, the aggregate, the registration file and the next step, and prints the report's path", () => {
     const r = repo(base());
     const planFile = join(r.root, "plan.json");
     writeFileSync(planFile, JSON.stringify({ ...PLAN, expected: ["packages/a/test"], scripts: { "packages/a/test": SCRIPT }, registrations: { "packages/a/test": "packages/a/guard.json" } }));
@@ -223,7 +223,7 @@ describe("Solution protection (guard/C171)", () => {
     assert.match(text, /"(fix|next)/, "and says what to do next");
   });
 
-  it("guard/T1679 [guard/F44, guard/F48, guard/A23]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script", () => {
+  it("guard/T1679 [guard/F44, guard/F48, guard/A24]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script", () => {
     const r = repo(base({ "packages/a/guard.json": REG("test", { command: "node -e 0" }) }));
     const out = join(r.root, "out.json");
     const x = guard(r.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", head(r), "--report", out);
@@ -236,7 +236,7 @@ describe("Solution protection (guard/C171)", () => {
     assert.match(rep.fix, /npm test/, "it says to run the package's own test script");
   });
 
-  it("guard/T1677 [guard/F47, guard/N15, guard/A24]: the solution template names a fold job Solution protection and per-check jobs by id, runs on pull_request and merge_group, and no per-check job name equals a fold name; plan, run and fold import nothing of Controls, Testing or Core", () => {
+  it("guard/T1677 [guard/F47, guard/N16, guard/A25]: the solution template names a fold job Solution protection and per-check jobs by id, runs on pull_request and merge_group, and no per-check job name equals a fold name; plan, run and fold import nothing of Controls, Testing or Core", () => {
     const tpl = join(dirname(BIN), "../templates/solution.yml");
     if (!existsSync(tpl)) assert.fail("blocked before behavioural assertion: the package has no templates/solution.yml");
     const yml = readFileSync(tpl, "utf8");

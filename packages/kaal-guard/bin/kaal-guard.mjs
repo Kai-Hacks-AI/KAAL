@@ -14,7 +14,10 @@ const USAGE = `usage: kaal-guard run (--hook | --ci | --check <name>) [--config 
                        [--head <commit>] [--base <commit>] [--base-ref <name>] [--changed <file>]
        kaal-guard verify [--config <dir>] [--github]
        kaal-guard (init | remove) [--hook] [--ci] [--config <dir>]
-       kaal-guard upgrade [--config <dir>]`;
+       kaal-guard upgrade [--config <dir>]
+       kaal-guard plan --aggregate solution --run <id> --head <commit> [--base <commit>] [--config <dir>]
+       kaal-guard run --check <id> --run <id> --head <commit> --report <file> [--config <dir>]
+       kaal-guard fold --aggregate solution --plan <file> --reports <dir>`;
 
 /** Prints a cannot-judge verdict about kaal-guard itself and exits 2. */
 function cannotJudge(evidence, todo) {
@@ -81,6 +84,10 @@ function report(results, github, remind) {
 }
 
 const [command, ...args] = process.argv.slice(2);
+if (command === "plan" || command === "fold" || (command === "run" && args.includes("--report"))) {
+  const { foldCommand, planCommand, runCheckCommand } = await import("../lib/solution.mjs");
+  ({ plan: planCommand, fold: foldCommand, run: runCheckCommand })[command](args);
+}
 const LIFECYCLE = { init, upgrade, remove };
 if (command in LIFECYCLE) {
   const options = parse(args, command === "upgrade" ? [] : ["--hook", "--ci"], ["--config"]);

@@ -15,6 +15,6 @@ Each obligation names, in brackets, the Intent outcomes it serves. Numbers conti
 
 ## Nonfunctional
 
-- **guard/N14 Honest exits.** [guard/I10] A check that did not run is never a pass: a command that cannot start, a crash of `plan`, `run` or `fold`, and a missing report each exit non-zero and are recorded.
-- **guard/N15 Dumb and independent.** [guard/I10] `plan`, `run` and `fold` read exit statuses and reports only. They import nothing of Controls, Testing or Core, and take no mode.
-- **guard/N16 Legacy stays out.** [guard/I11] A `.kaal/config/guard/<name>.md` declaration is never a member of an aggregate, and `aggregates` in one is refused.
+- **guard/N15 Honest exits.** [guard/I10] A check that did not run is never a pass: a command that cannot start, a crash of `plan`, `run` or `fold`, and a missing report each exit non-zero and are recorded.
+- **guard/N16 Dumb and independent.** [guard/I10] `plan`, `run` and `fold` read exit statuses and reports only. They import nothing of Controls, Testing or Core, and take no mode.
+- **guard/N17 Legacy stays out.** [guard/I11] A `.kaal/config/guard/<name>.md` declaration is never a member of an aggregate, and `aggregates` in one is refused.

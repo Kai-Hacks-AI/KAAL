@@ -52,6 +52,13 @@ Architecture places Guard's functions, gives each one positive ownership, and fi
   - **The manifest.** The generator (guard/A18) reads all of this and writes `loops`, `coverage`, `allocated`, `unverified` and `applicability` into `test/verify.json`. The entry judges them.
   - **What the entry imports.** Still nothing from `lib/`.
 
+- **guard/A21 Registration reader** [guard/F41, guard/F42, guard/F43, guard/N17]: `lib/registration.mjs` finds `guard.json` files and `aggregates.json` through Git objects at the base and at the candidate, validates them as a strict closed schema (like `lib/config.mjs`), and returns the baseline, the additions and the refusals. It runs nothing.
+- **guard/A22 Completeness check** [guard/F44]: `lib/completeness.mjs` lists the `package.json` files with a `test` script and compares them to the registrations and `exempt`, and requires the covering check's command to be the package's own `npm test`. Pure.
+- **guard/A23 Plan and fold** [guard/F45, guard/F46, guard/N15]: `lib/aggregate.mjs` holds two pure functions, `plan(registrations, always)` and `fold(expected, reports)`. `fold` is the only place the pass rule lives, and it compares each report's run id, `head` and script with the plan's.
+- **guard/A24 Report** [guard/F48]: `lib/report.mjs` writes `guard-report.json` and the step summary text. The runner (guard/A3) gains `--report` and nothing else.
+- **guard/A25 Workflow template** [guard/F47]: `templates/solution.yml` is an installed asset like `templates/guard.yml`: plan job, matrix job with one upload of the per-check report, fold job that downloads them. `init --solution` offers it and never overwrites. Installing it is a WIRE.
+- **Dependency direction.** The command depends on A21 to A24, A23 depends on nothing, A21 depends on the Git adapter's object reads only. Nothing depends on the template, and the runner (guard/A3) learns no aggregate.
+
 ## Relationships
 
 ```mermaid
