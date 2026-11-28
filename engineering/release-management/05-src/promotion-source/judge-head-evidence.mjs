@@ -7,6 +7,7 @@ import { promotionOrigin, promotionSource, readRequired, readRuns } from '../../
 import { runControl } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs';
 import { checking, report } from '../lineage/lib/answer.mjs';
 import { gh, run } from './lib/run.mjs';
+import { DETECTIVE } from '../lib/entry-flag.mjs';
 
 const ID = 'release/CTL41';
 
@@ -18,7 +19,7 @@ const headEvidence = (f) => {
   return promotionSource(f);
 };
 
-export async function check(facts, { mode = 'detective', boundary } = {}) {
+export async function check(facts, { mode = DETECTIVE, boundary } = {}) {
   const seen = {};
   return report(await runControl({ id: ID, mode, check: checking(headEvidence, seen), input: facts, boundary }), seen);
 }
@@ -31,5 +32,5 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const runs = gh([`repos/${f.repo}/commits/${f.head}/check-runs`, '--jq', '.check_runs[] | {id, name, status, conclusion, appId: .app.id, headSha: .head_sha}']);
     return { ...f, checks: { required: readRequired(rules), runs: readRuns(runs) } };
   };
-  process.exit(await run({ label: 'Promotion Source: head evidence', check, read, again: (a) => a.kind === 'fail' && a.findings.some((x) => x.includes('(pending)')) }));
+  process.exit(await run({ label: 'Promotion Source: head evidence', id: ID, check, read, again: (a) => a.kind === 'fail' && a.findings.some((x) => x.includes('(pending)')) }));
 }

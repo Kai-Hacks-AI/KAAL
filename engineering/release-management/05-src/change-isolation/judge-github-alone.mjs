@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { runControl } from '../../../../packages/kaal-controls/skills/kaal-controls/scripts/adapter.mjs';
 import { check as isolation } from '../../../change-isolation/check.mjs';
 import { cli, report } from './lib/report.mjs';
+import { DETECTIVE } from '../lib/entry-flag.mjs';
 
 const ID = 'release/CTL42';
 
@@ -16,8 +17,8 @@ const githubAlone = ({ paths }) => {
   return isolation([...new Set(paths)]);
 };
 
-export async function check({ paths, mode = 'detective', boundary } = {}) {
+export async function check({ paths, mode = DETECTIVE, boundary } = {}) {
   return report(await runControl({ id: ID, mode, check: githubAlone, input: { paths }, boundary }));
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) process.exit(await cli({ check, label: 'Change Isolation: .github alone' }));
+if (process.argv[1] === fileURLToPath(import.meta.url)) process.exit(await cli({ check, id: ID, label: 'Change Isolation: .github alone' }));
