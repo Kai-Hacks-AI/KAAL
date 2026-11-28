@@ -1,7 +1,7 @@
-// Case engineering/T1750 tests: engineering/F104
+// Case engineering/T1757 tests: engineering/F104
 import assert from 'node:assert/strict';
 import { audit } from './fixture.mjs';
-export const id = 'engineering/T1750';
+export const id = 'engineering/T1757';
 export const tests = ['engineering/F104'];
 export const title = 'a push that lands reads what the push changed, at most three calls, and no list to its last page';
 export async function run() {

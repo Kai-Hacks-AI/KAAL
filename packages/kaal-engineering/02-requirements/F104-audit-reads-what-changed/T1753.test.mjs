@@ -8,5 +8,5 @@ export async function run() {
   const { calls } = audit({ event: 'push', ref: 'kaal/x', created: 'true' });
   assert.ok(calls.some((c) => /repos\/o\/r\/activity/.test(c) && /[?&]ref=(refs(%2F|\/)heads(%2F|\/))?main\b/.test(c)), `no read of the default branch's activity: ${calls.join(' | ')}`);
   assert.ok(!calls.some((c) => /pulls\?state=all/.test(c)), 'the creation of a collector read every pull request');
-  assert.ok(!calls.some((c) => /repos\/o\/r\/activity[^ ]*per_page=100(?![^ ]*ref=)/.test(c)), 'the creation read the activity of every branch');
+  assert.ok(!calls.some((c) => /repos\/o\/r\/activity\?(?![^ ]*\bref=)/.test(c)), 'the creation read the activity of every branch');
 }
