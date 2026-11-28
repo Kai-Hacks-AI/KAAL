@@ -17,8 +17,8 @@ export function standIn(route) {
     const u = new URL(url);
     const req = { method: init.method ?? "GET", path: decodeURIComponent(u.pathname), query: Object.fromEntries(u.searchParams), headers: Object.fromEntries(Object.entries(init.headers ?? {}).map(([k, v]) => [k.toLowerCase(), v])), body: init.body ? JSON.parse(init.body) : undefined };
     requests.push(req);
-    const { status, json } = route(req);
-    return new Response(JSON.stringify(json), { status, headers: { "content-type": "application/json" } });
+    const { status, json, headers } = route(req);
+    return new Response(JSON.stringify(json), { status, headers: { "content-type": "application/json", ...headers } });
   };
   return { fetch, requests, api: "https://stand-in.invalid" };
 }
