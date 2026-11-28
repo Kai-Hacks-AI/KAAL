@@ -63,9 +63,13 @@ narrow_landing() {
   jq -s . "$F/pulls.ndjson" > "$F/pulls.json"
   ghc api "repos/$REPO/activity?per_page=100&ref=refs/heads/$REF&activity_type=pr_merge" --jq "$ACT" | jq -s . > "$F/activity.json" || {
     echo "the activity of $REF cannot be read"; exit 2; }
-  # a full page that holds none of this push's commits cannot show that none was recorded
-  if [ "$(jq length "$F/activity.json")" -ge 100 ] && [ "$(jq --arg c "$commits" '[.[] | select(.after as $x | ($c | split("\n") | index($x)))] | length' "$F/activity.json")" = 0 ]; then
-    echo "widened: the latest 100 merges of $REF do not reach this push"; return 1
+  # a full page may have more behind it, so on a full page every commit of this push must have its record on it:
+  # a record missing from a full page could be one the page does not reach
+  if [ "$(jq length "$F/activity.json")" -ge 100 ]; then
+    for c in $commits; do
+      [ "$(jq --arg c "$c" '[.[] | select(.after == $c)] | length' "$F/activity.json")" -ge 1 ] || {
+        echo "widened: the latest 100 merges of $REF hold no record of ${c:0:7}"; return 1; }
+    done
   fi
   SET=$(echo $commits)
 }
