@@ -1,10 +1,12 @@
 // Raising a pull request from the rules its type's owners declared (hosting/F97, hosting/A42). The caller supplies the
-// request and a token and nothing else: the revisions, the owners' policy (at the base revision, never the head being
-// raised) and the changed paths are established here, and anything unknown refuses before the first write.
+// request and a grant and nothing else: the revisions, the owners' policy (at the base revision, never the head being
+// raised) and the changed paths are established here, and anything unknown refuses before the first write. The authority
+// to write is a grant Hosting minted (hosting/F99) that holds raise-pull-requests and read-contents; a bare token is not one.
+import { useGrant } from "./grant.js";
 import { PullRequestError, renderBody, validateDeclaration, type Declaration } from "./templates.js";
 
 export interface RaiseRequest { repo: string; type: string; chapters: Record<string, string>; head: string; base: string; title: string }
-export interface RaiseOptions { token: string; fetch?: typeof fetch; api?: string }
+export interface RaiseOptions { grant: unknown; fetch?: typeof fetch; api?: string; now?: () => number }
 export interface Raised { number: number; url: string; steps: string[] }
 
 /** Where the policy files live in the repository, read at the base revision. */
@@ -17,7 +19,8 @@ export const POLICY = {
 const AUTHORITY = ["declarations", "typeList", "writeAreas", "changedPaths", "changed", "policy", "visible"];
 const MERGE_CHOICE = ["autoMerge", "mergeMethod"];
 const DRAFT_CHOICE = ["draft"];
-const OPTION_KEYS = ["token", "fetch", "api"];
+const OPTION_KEYS = ["grant", "fetch", "api", "now"];
+const NEEDS = ["read-contents", "raise-pull-requests"];
 const CUT = 300;
 
 const refused = (rule: string, message: string, owner?: string): never => { throw new PullRequestError(message, "RAISE_REFUSED", { rule, owner }); };
@@ -42,7 +45,7 @@ const prefixMatches = (pattern: string, path: string): boolean => {
 type Json = any; // GitHub's and the owners' JSON; each field is checked where it is read
 
 export async function raisePullRequest(request: RaiseRequest, options: RaiseOptions): Promise<Raised> {
-  // 1. What the caller may not supply, and the token: refused before any call, not even a read.
+  // 1. What the caller may not supply, and any token: refused before any call, not even a read.
   for (const [where, o] of [["request", request], ["options", options]] as const) {
     if (typeof o !== "object" || o === null) return refused("request", `the ${where} is not an object`);
     const authority = has(o, AUTHORITY);
@@ -52,17 +55,20 @@ export async function raisePullRequest(request: RaiseRequest, options: RaiseOpti
     const draft = has(o, DRAFT_CHOICE);
     if (draft) return refused("caller-draft-choice", "draft is the owner's declaration to make, not the caller's");
   }
+  if (Object.prototype.hasOwnProperty.call(options, "token")) return refused("token", "a token is not authority: raise through a grant Hosting minted");
   const unknownOption = Object.keys(options).find((k) => !OPTION_KEYS.includes(k));
   if (unknownOption) return refused("caller-authority", `the option ${unknownOption} is not a transport option`);
-  if (typeof options.token !== "string" || options.token === "") return refused("token", "a token is needed to raise a pull request");
   const { repo, type, chapters, head, base, title } = request;
   if (typeof repo !== "string" || !/^[\w.-]+\/[\w.-]+$/.test(repo) || [type, head, base, title].some((s) => typeof s !== "string" || s === "") || typeof chapters !== "object" || chapters === null) {
     return refused("request", "the request needs repo (owner/name), type, chapters, head, base and title");
   }
+  // The grant is the only authority: Hosting's own, unexpired, for this repository and transport, holding both abilities. Refused before any call.
+  let token = "";
+  for (const need of NEEDS) token = useGrant(options.grant, need, { repo, api: options.api, fetch: options.fetch, now: options.now });
 
   const api = (options.api ?? "https://api.github.com").replace(/\/$/, "");
   const doFetch = options.fetch ?? globalThis.fetch;
-  const headers = { authorization: `Bearer ${options.token}`, accept: "application/vnd.github+json", "user-agent": "KAAL Hosting", "x-github-api-version": "2022-11-28" };
+  const headers = { authorization: `Bearer ${token}`, accept: "application/vnd.github+json", "user-agent": "KAAL Hosting", "x-github-api-version": "2022-11-28" };
   const call = async (method: "GET" | "POST", path: string, body?: unknown): Promise<{ status: number; json: Json }> => {
     const response = await doFetch(`${api}${path}`, { method, headers: body === undefined ? headers : { ...headers, "content-type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
     let json: Json = null;
