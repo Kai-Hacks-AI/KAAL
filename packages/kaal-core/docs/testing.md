@@ -44,7 +44,7 @@ In the source workspace, `npm test` runs these with the consumer verification. T
 
 For each `core/…` Requirement (see [Requirements](requirements.md)), this table says whether a delivered test checks it, a publisher test does, both do, or no test does. "Delivered" means a delivered test's title names the Requirement. "Publisher" lists the planned outer tests whose titles name it. The build-time Code tests and the bench are not counted. A test naming a Requirement is a claim that it checks it. Whether it checks it fully is a review judgment.
 
-Of 105 Requirements, 18 are checked by a delivered test, 97 by a publisher test, and 6 by no test. 16 are checked by both.
+Of 114 Requirements, 18 are checked by a delivered test, 106 by a publisher test, and 6 by no test. 16 are checked by both.
 
 The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill format and of Types, statements of responsibility), core/N1 and core/N3 (where frontmatter validation applies), core/N5 (a contract adds no runtime dependency) and core/N7 (the Node.js 24 prerequisite, which `package.json` declares and core/T92 checks under core/F86).
 
@@ -134,6 +134,14 @@ The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill 
 | core/F86 | publisher only | core/T92 |
 | core/F87 | publisher only | core/T91 |
 | core/F88 | publisher only | core/T93 |
+| core/F133 | publisher only | core/T142, core/T149 |
+| core/F134 | publisher only | core/T142 |
+| core/F135 | publisher only | core/T143, core/T148 |
+| core/F136 | publisher only | core/T143 |
+| core/F137 | publisher only | core/T144 |
+| core/F138 | publisher only | core/T145 |
+| core/F139 | publisher only | core/T146 |
+| core/F140 | publisher only | core/T148 |
 | core/N1 | no test | none |
 | core/N2 | publisher only | core/T8 |
 | core/N3 | no test | none |
@@ -155,3 +163,4 @@ The six Requirements no test checks are core/F7 and core/F8 (ownership of Skill 
 | core/N19 | publisher only | core/T74 |
 | core/N20 | publisher only | core/T86 |
 | core/N23 | publisher only | core/T91 |
+| core/N34 | publisher only | core/T145, core/T146, core/T147 |
