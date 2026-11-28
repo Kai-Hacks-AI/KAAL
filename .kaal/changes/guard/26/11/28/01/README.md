@@ -9,7 +9,7 @@ Kai asked that Guard prepare to become solution protection with the `guard.json`
 
 ## Change
 
-PLAN of guard/C171 under `packages/kaal-guard/plan/solution-protection/`: I10 to I12, F41 to F48, N15 to N17, A21 to A25 and the Cases T1670 to T1679 as one RED file. No code.
+PLAN of guard/C171 under `packages/kaal-guard/plan/solution-protection/`: I10 to I12, F41 to F48, N15 to N17, A21 to A25 and the Cases T1670 to T1679 and T1742 to T1743 as one RED file. No code.
 
 ## Verification
 

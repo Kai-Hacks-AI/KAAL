@@ -54,6 +54,8 @@
     "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1677 [guard/F47, guard/N16, guard/A25]: the solution template names a fold job Solution protection and per-check jobs by id, runs on pull_request and merge_group, and no per-check job name equals a fold name; plan, run and fold import nothing of Controls, Testing or Core",
     "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1678 [guard/F46, guard/F48, guard/A23]: a report whose run id differs from the plan's, one whose head is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail fold, naming the check and the differing member; reports of the plan's run and revision pass",
     "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1679 [guard/F44, guard/F48, guard/A24]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script",
+    "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1742 [guard/F44, guard/F48, guard/A23]: run refuses to judge when the working tree is not the judged revision: another commit checked out, or a tracked file changed, gives cannot judge, writes a report that names the judged and the actual revision, and runs no suite",
+    "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1743 [guard/F44, guard/N15, guard/A21]: an unreadable package.json is refused, never read as having no suite: plan is cannot judge naming the file, and run records cannot judge",
     "test/acceptance/requirements.test.mjs > guard/F1 [guard/I1] check list > guard/T6 [guard/F1]: runs the hook checks for the hook and only the named check for CI",
     "test/acceptance/requirements.test.mjs > guard/F10 [guard/I2] no silent gate > guard/T21 [guard/F10]: a command that cannot start is cannot judge, and it blocks",
     "test/acceptance/requirements.test.mjs > guard/F10 [guard/I2] no silent gate > guard/T22 [guard/F10]: a declared fact that is not supplied is cannot judge",
@@ -685,14 +687,16 @@
       "Requirements": [
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1670 [guard/I10, guard/F41, guard/F45, guard/A21, guard/A23]: plan finds a guard.json beside a package, lists its solution check by id, and builds a matrix with one entry for it",
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1672 [guard/F42, guard/I11, guard/A21]: a candidate that adds a registration is planned including it; one that removes a baseline registration, or changes its command or aggregates, is cannot judge naming the file and the check; the same removal alone in a diff of registration files only is planned",
-        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1673 [guard/F43, guard/N17, guard/A21]: a missing or unparseable aggregates.json on the base is cannot judge, never an empty list; aggregates delivery and a .md declaration with aggregates are refused"
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1673 [guard/F43, guard/N17, guard/A21]: a missing or unparseable aggregates.json on the base is cannot judge, never an empty list; aggregates delivery and a .md declaration with aggregates are refused",
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1743 [guard/F44, guard/N15, guard/A21]: an unreadable package.json is refused, never read as having no suite: plan is cannot judge naming the file, and run records cannot judge"
       ]
     },
     "guard/A23": {
       "Requirements": [
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1670 [guard/I10, guard/F41, guard/F45, guard/A21, guard/A23]: plan finds a guard.json beside a package, lists its solution check by id, and builds a matrix with one entry for it",
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1674 [guard/F46, guard/N15, guard/A23]: fold fails with no reports, with a missing report naming the check, with a report that is not success and with an unexpected extra report, and passes only when the reported set equals the expected set and each is success",
-        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1678 [guard/F46, guard/F48, guard/A23]: a report whose run id differs from the plan's, one whose head is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail fold, naming the check and the differing member; reports of the plan's run and revision pass"
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1678 [guard/F46, guard/F48, guard/A23]: a report whose run id differs from the plan's, one whose head is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail fold, naming the check and the differing member; reports of the plan's run and revision pass",
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1742 [guard/F44, guard/F48, guard/A23]: run refuses to judge when the working tree is not the judged revision: another commit checked out, or a tracked file changed, gives cannot judge, writes a report that names the judged and the actual revision, and runs no suite"
       ]
     },
     "guard/F43": {
@@ -704,7 +708,9 @@
     "guard/F44": {
       "Requirements": [
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1671 [guard/F43, guard/F44, guard/A22]: a package.json with a test script and no registration or exempt entry fails plan, naming the folder and the line to add; an exempt entry with a reason passes",
-        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1679 [guard/F44, guard/F48, guard/A24]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script"
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1679 [guard/F44, guard/F48, guard/A24]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script",
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1742 [guard/F44, guard/F48, guard/A23]: run refuses to judge when the working tree is not the judged revision: another commit checked out, or a tracked file changed, gives cannot judge, writes a report that names the judged and the actual revision, and runs no suite",
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1743 [guard/F44, guard/N15, guard/A21]: an unreadable package.json is refused, never read as having no suite: plan is cannot judge naming the file, and run records cannot judge"
       ]
     },
     "guard/A22": {
@@ -736,7 +742,8 @@
     "guard/N15": {
       "Requirements": [
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1674 [guard/F46, guard/N15, guard/A23]: fold fails with no reports, with a missing report naming the check, with a report that is not success and with an unexpected extra report, and passes only when the reported set equals the expected set and each is success",
-        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1675 [guard/F48, guard/N15, guard/A24]: run --check <id> --report writes a report with the id, aggregates, result, finding, fix hint and registration file; a command that cannot start is recorded as cannot judge and exits non-zero"
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1675 [guard/F48, guard/N15, guard/A24]: run --check <id> --report writes a report with the id, aggregates, result, finding, fix hint and registration file; a command that cannot start is recorded as cannot judge and exits non-zero",
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1743 [guard/F44, guard/N15, guard/A21]: an unreadable package.json is refused, never read as having no suite: plan is cannot judge naming the file, and run records cannot judge"
       ]
     },
     "guard/F48": {
@@ -744,7 +751,8 @@
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1675 [guard/F48, guard/N15, guard/A24]: run --check <id> --report writes a report with the id, aggregates, result, finding, fix hint and registration file; a command that cannot start is recorded as cannot judge and exits non-zero",
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1676 [guard/F48, guard/I12, guard/A24]: a failing fold writes guard-report.json naming the check, the aggregate, the registration file and the next step, and prints the report's path",
         "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1678 [guard/F46, guard/F48, guard/A23]: a report whose run id differs from the plan's, one whose head is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail fold, naming the check and the differing member; reports of the plan's run and revision pass",
-        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1679 [guard/F44, guard/F48, guard/A24]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script"
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1679 [guard/F44, guard/F48, guard/A24]: run records the run id, the judged head and the script it executed, taken from its own arguments and the package's package.json, and records cannot judge when the command it was given is not the package's test script",
+        "test/acceptance/requirements-solution.test.mjs > Solution protection (guard/C171) > guard/T1742 [guard/F44, guard/F48, guard/A23]: run refuses to judge when the working tree is not the judged revision: another commit checked out, or a tracked file changed, gives cannot judge, writes a report that names the judged and the actual revision, and runs no suite"
       ]
     },
     "guard/A24": {
@@ -878,8 +886,8 @@
     "docs/architecture.md": "1a51d94deef13b3492ae7ae96332a132ed8aaeafbd2c0e09a20f6b4c85a5031c",
     "docs/intent.md": "adcd6e435cf7c96a4f4680c8e32bc9d7f2c01097b31c571272b4b2e51ab1ac06",
     "docs/limitations.md": "00628e677b04d1f9d9b0b54ea8dbe4acb36f9d8034a3442e3d87021181339bef",
-    "docs/requirements.md": "6e24dc8e76f5949ad60e6ac90419924c22b6b1b9c5e11fb078bb757c6b2a1f6e",
-    "docs/testing.md": "72ff38d4d98c332e522aa33a88ee87b261281927194e73ca3ef8b931bd46d31b",
+    "docs/requirements.md": "f8b8305226f52fe5fa511be482225b3a95bfc08a88d6613762365e033e1ed740",
+    "docs/testing.md": "d3fead62eb38510217c69425792a7fc687f56d569ee999494972c10853b3cdcb",
     "lib/aggregate.mjs": "1b8d1c9780c3d06f0edaa61c9a7eb7128ff69406791105f5a7807be8df0a0f90",
     "lib/command.mjs": "912c63e1bcde316b7a43f461f5739e94e4e2cad70a39a898687811f4276842f3",
     "lib/completeness.mjs": "395763746db9a19c0488c394b366d5ed62dac1c2209019dc16c8964193bb2459",
@@ -888,11 +896,11 @@
     "lib/github.mjs": "6d5198ac24a8e444294683213860bf79644b08185d0ff25ba391923996aa1b98",
     "lib/lifecycle.mjs": "e0afd58bc4a80aaace991255fd39ce024ac83832aca844dd0f17d6f80a8a5b4d",
     "lib/node.mjs": "722efb5b27ccfeedf48e36d1f82246a38d75c78969b156f508498079c210bc4b",
-    "lib/registration.mjs": "35926fbc004fd637b3297fb9ea3c94e37da879df778db65de15a1bc7cf1b5f90",
+    "lib/registration.mjs": "9fe96b856ace0d8fa882d9900aea4a1df1aba6b129e8393821ad67f820fa3a9e",
     "lib/reminder.mjs": "e51ea0a40c499ee373c8a14a470e73e2998095bb973da5df999e0c8fb343cd05",
     "lib/report.mjs": "a92592732350309b18fe0d7441ee88ea7228847c74f8aaabad8ed3ef8f8c3f06",
     "lib/runner.mjs": "46057c71dec99b55c2ccaa3b3f0d1dcbebff6290fdf541f77b29f46dafe60727",
-    "lib/solution.mjs": "bcaa5b3ecb39a3c5a55dbb61d65b6ff7063eef1f5f0d4d456722d94c23c12c00",
+    "lib/solution.mjs": "bafc3f87178d119c64eebfd61c92442edac13a798c7723c3f1579129785e40ac",
     "lib/state.mjs": "0c785c2bc4ad892cfdf47a865088f0373cb93ce11fcf299f7d2196d708545836",
     "lib/trusted.mjs": "d216f081085ce1a3b202ddb8bec09ecd3993d1acfc5bbe5f62e6947c9d9ccdb7",
     "package.json": "e4218a790a7904c7821c7d602e1b0dc48072e7a0ab957f69718ed01f683c8af5",
@@ -908,7 +916,7 @@
     "test/acceptance/intent.test.mjs": "05be728b9532616e1e111bfc436576c77bfd4b8b9bae76f570efbaf0a29c4ac7",
     "test/acceptance/requirements-configuration.test.mjs": "59a320936e510e0639bed9c3370fa122243760f687a85fc748982609a75a991b",
     "test/acceptance/requirements-installation.test.mjs": "36995ed5baa961e43f291585d29c1d6795fad0fe1edc8b5470b1301fc23f7842",
-    "test/acceptance/requirements-solution.test.mjs": "02a30a5b1bed97f673ee9c7c1e2fab5ae68af065acc75e520fb633fdab172ba6",
+    "test/acceptance/requirements-solution.test.mjs": "1ef75790a70571ffccfd66f3207e82686a8e99878d077f735b489ff990dbaf31",
     "test/acceptance/requirements-support.mjs": "22528d3c0bd1451217c76a6b845ed4ed0ef62078b5318fe3699c088c3ffc2044",
     "test/acceptance/requirements.test.mjs": "69a545ba178e7b6d3609b6d0d4040a47a11f35c3f2b8d57b8b5ad583468c1cf8",
     "test/unit/config.test.mjs": "b98eb5eecc9fa4d13dfa489cc0631ba933da9f2c1b054f17be031eff8ef4f3e3",

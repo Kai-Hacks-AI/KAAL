@@ -13,6 +13,8 @@ The planned outer Cases are in `packages/kaal-guard/test/plan/solution-protectio
 | guard/T1676: a failing `fold` writes `guard-report.json` naming the check, the aggregate, the registration file and the next step, and prints the report's path | guard/F48, guard/I12, guard/A24 | Requirements |
 | guard/T1678: a report whose run id differs from the plan's, one whose `head` is another revision, one whose executed script differs from the plan's, and one left in the reports directory from an earlier run each fail `fold`, naming the check and the differing member; reports of the plan's run and revision pass | guard/F46, guard/F48, guard/A23 | Requirements |
 | guard/T1679: `run` records the run id, the judged `head` and the script it executed, taken from its own arguments and the package's `package.json`, and records `cannot judge` when the command it was given is not the package's `test` script | guard/F44, guard/F48, guard/A24 | Requirements |
+| guard/T1742: `run` refuses to judge when the working tree is not the judged revision (another commit, or a changed tracked file), writes a report naming both revisions and runs no suite | guard/F44, guard/F48, guard/A23 | Requirements |
+| guard/T1743: an unreadable `package.json` is refused: `plan` is cannot judge naming the file and `run` records cannot judge | guard/F44, guard/N15, guard/A21 | Requirements |
 | guard/T1677: the solution template names a fold job `Solution protection` and per-check jobs by id, runs on `pull_request` and `merge_group`, and no per-check job name equals a fold name; `plan`, `run` and `fold` import nothing of Controls, Testing or Core | guard/F47, guard/N16, guard/A25 | Architecture |
 
 ## RED evidence

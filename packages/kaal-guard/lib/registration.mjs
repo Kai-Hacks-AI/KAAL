@@ -70,7 +70,7 @@ export function readPackages(cwd, rev, paths) {
   for (const p of paths.filter((x) => x === "package.json" || x.endsWith("/package.json"))) {
     if (p.split("/").includes("node_modules")) continue;
     let scripts = {};
-    try { scripts = JSON.parse(show(cwd, rev, p)).scripts ?? {}; } catch { /* an unreadable package.json has no suite to cover */ }
+    try { scripts = JSON.parse(show(cwd, rev, p)).scripts ?? {}; } catch (e) { throw new Refused(`${p} is not readable JSON: ${e.message}`, `fix ${p}: an unreadable package.json is never read as having no suite`); }
     out[dirname(p) === "." ? "" : dirname(p)] = scripts;
   }
   return out;

@@ -236,6 +236,40 @@ describe("Solution protection (guard/C171)", () => {
     assert.match(rep.fix, /npm test/, "it says to run the package's own test script");
   });
 
+  it("guard/T1742 [guard/F44, guard/F48, guard/A23]: run refuses to judge when the working tree is not the judged revision: another commit checked out, or a tracked file changed, gives cannot judge, writes a report that names the judged and the actual revision, and runs no suite", () => {
+    const r = repo(base({ "packages/a/package.json": { name: "x", scripts: { test: "node -e 0" } } }));
+    const judged = head(r);
+    const later = r.commit({ "packages/a/lib.mjs": "export {}\n" });
+    const out = join(r.root, "out.json");
+    const x = guard(r.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", judged, "--report", out);
+    needs("run --report", x);
+    assert.notEqual(x.status, 0, "the tree is at another commit than the one judged");
+    const rep = JSON.parse(readFileSync(out, "utf8"));
+    assert.match(rep.result, /cannot.?judge/i);
+    assert.ok(JSON.stringify(rep).includes(judged) && JSON.stringify(rep).includes(later), "the report names both revisions");
+    git(r.root, "checkout", "-q", judged);
+    put(r.root, { "packages/a/package.json": { name: "x", scripts: { test: "true" } } });
+    const dirty = guard(r.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", judged, "--report", out);
+    assert.notEqual(dirty.status, 0, "a changed tracked file is not the judged revision");
+    assert.match(JSON.parse(readFileSync(out, "utf8")).result, /cannot.?judge/i);
+    git(r.root, "checkout", "-q", "--", ".");
+    const clean = guard(r.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", judged, "--report", out);
+    assert.equal(clean.status, 0, `the judged revision itself runs: ${clean.out}`);
+  });
+
+  it("guard/T1743 [guard/F44, guard/N15, guard/A21]: an unreadable package.json is refused, never read as having no suite: plan is cannot judge naming the file, and run records cannot judge", () => {
+    const r = repo(base({ "packages/b/package.json": "{ not json" }));
+    const x = plan(r);
+    assert.equal(x.status, 2, x.out);
+    assert.match(x.out, /packages\/b\/package\.json/);
+    const own = repo(base({ "packages/a/package.json": "{ not json" }));
+    const out = join(own.root, "out.json");
+    const y = guard(own.root, "run", "--ci", "--check", "packages/a/test", "--config", CONFIG, "--run", "run-1", "--head", head(own), "--report", out);
+    needs("run --report", y);
+    assert.notEqual(y.status, 0);
+    assert.match(JSON.parse(readFileSync(out, "utf8")).result, /cannot.?judge/i);
+  });
+
   it("guard/T1677 [guard/F47, guard/N16, guard/A25]: the solution template names a fold job Solution protection and per-check jobs by id, runs on pull_request and merge_group, and no per-check job name equals a fold name; plan, run and fold import nothing of Controls, Testing or Core", () => {
     const tpl = join(dirname(BIN), "../templates/solution.yml");
     if (!existsSync(tpl)) assert.fail("blocked before behavioural assertion: the package has no templates/solution.yml");

@@ -75,13 +75,19 @@ export function runCheckCommand(args) {
   const root = top();
   const report = { check: o["--check"], aggregates: [], run: o["--run"], head: o["--head"], script: null, result: "cannot judge", finding: "", fix: "", registration: null };
   const finish = (code) => { writeReport(resolve(o["--report"]), report); for (const l of describe(o["--report"], { ...report, findings: report.finding ? [{ check: report.check, file: report.registration, finding: report.finding, fix: report.fix }] : [] })) console.log(l); process.exit(code); };
+  const out = (...args) => { try { return execFileSync("git", args, { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim(); } catch { return undefined; } };
+  const judged = out("rev-parse", "--verify", `${o["--head"]}^{commit}`);
+  const actual = out("rev-parse", "HEAD");
+  if (judged === undefined || actual !== judged) { report.finding = `the working tree is at ${actual ?? "no commit"}, not at the judged revision ${o["--head"]}: its result would not be a result of the judged revision`; report.fix = `check out ${o["--head"]}, then run the check again`; finish(2); }
+  if (out("status", "--porcelain", "--untracked-files=no") !== "") { report.finding = "the working tree differs from the judged revision in tracked files"; report.fix = `restore the tracked files to ${o["--head"]}, then run the check again`; finish(2); }
+  report.head = judged;
   let reg;
   try { reg = readRegistrations(root, o["--head"]).find((r) => r.id === o["--check"]); } catch (e) { if (!(e instanceof Refused)) throw e; report.finding = e.message; report.fix = e.todo; finish(2); }
   if (!reg) { report.finding = `no guard.json registers ${o["--check"]}`; report.fix = "register the check in a guard.json beside the package"; finish(2); }
   report.aggregates = reg.aggregates;
   report.registration = reg.file;
   const dir = join(root, reg.folder);
-  try { report.script = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")).scripts?.test ?? null; } catch { /* no package.json: no script */ }
+  try { report.script = JSON.parse(readFileSync(join(dir, "package.json"), "utf8")).scripts?.test ?? null; } catch (e) { report.finding = `${reg.folder ? `${reg.folder}/` : ""}package.json is not readable: ${e.message}`; report.fix = "fix package.json: an unreadable package.json is never read as having no suite"; finish(2); }
   if (!OWN_SUITE.has(reg.command) || report.script === null) {
     report.finding = !OWN_SUITE.has(reg.command) ? `the command ${JSON.stringify(reg.command)} is not the package's own test script` : `${reg.folder || "the root"}/package.json has no test script`;
     report.fix = `run the package's own suite: set the command to "npm test" in ${reg.file}`;
