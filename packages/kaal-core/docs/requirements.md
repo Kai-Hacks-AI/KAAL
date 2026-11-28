@@ -111,6 +111,18 @@ Each Requirement is summarized in one line, with the Intents it serves in bracke
 - **core/F66** [core/I21]: A term defined in two or more scopes is reported as a shared term, unaligned, with nothing merged.
 - **core/F67** [core/I21]: A bare kind name resolves only in its own scope. Otherwise the finding lists the candidates, and Core chooses none.
 
+## Id claims
+
+- **core/N34** [core/I49, core/I51]: A judgment of claims is pure, deterministic and independent of the order of what it is given. It reads no file and names no host. Input it cannot read is `unknown` with the fact named, never a pass.
+- **core/F133** [core/I49]: A claim is one JSON object with exactly `capability`, `kind` and `id`, in a file named `<kind>-<id>.json`. A name that disagrees, or a member that is missing, extra or of another type, is a `mismatch`.
+- **core/F134** [core/I50]: A claim is exact. A range, a list or a count of ids is an extra member and a `mismatch`. Core knows no block.
+- **core/F135** [core/I49]: Each kind has a first claimable number, which the adopter gives. An existing record below it is legacy and not judged. A record added below it, and a claim of one, is `below-start`.
+- **core/F136** [core/I49, core/I51]: Two claims of one kind and id are a `duplicate` naming both capabilities.
+- **core/F137** [core/I49]: An id used at or above its kind's first claimable number must be claimed by the capability that owns the content: `unclaimed` with no claim, `foreign` when another capability claimed it.
+- **core/F138** [core/I51]: `judgeIdClaims({ claims, used, from })` returns `{ verdict, findings }`, or `unknown` with the fact `claims`, `used` or `from`.
+- **core/F139** [core/I50]: `nextClaim(claims, from, kind)` returns one above the highest claim of the kind, or the first claimable number when there is none. It never fills a gap and reserves nothing.
+- **core/F140** [core/I49]: One capability never gives one id of a kind to two distinct records. A record added that takes an id another record of the same capability and kind already holds is `reused`. Two existing records that already share an id are grandfathered.
+
 ## Release
 
 - **core/N19** [core/I22]: No delivered document refers a consumer to a file that does not ship.

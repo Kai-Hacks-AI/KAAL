@@ -29,6 +29,7 @@ The package's `exports` lists these entry points, and nothing else resolves (cor
 | `kaal-core/agent` | `agent.ts` | `declaration`, `realize` |
 | `kaal-core/realization` | `realization.ts` | `realizeIn`, `record` |
 | `kaal-core/conformance` | `conformance.ts` | `installationConformance` |
+| `kaal-core/id-claims` | `id-claims.ts` | `judgeIdClaims`, `nextClaim`, `ID_CLAIM_LANE` |
 | `kaal-core/registration` | `registration.ts` | `assemble`, `REGISTRATION_TYPE`, `REGISTRATION_SCHEMA` |
 
 The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no entry point exports `upgrade` or `remove`.
@@ -48,6 +49,7 @@ The `kaal` command is `cli.ts`. It is the only way to reach the lifecycle: no en
 - **`realization.ts`**: applies a realization plan through Hosting in one guarded reconciliation (core/A7).
 - **`records.ts`**: reads installation records through Hosting. Internal.
 - **`lifecycle.ts`**: `init`, `version`, `upgrade` and `remove` of `./.kaal`, planned by Core and applied by Hosting (core/A20–core/A23).
+- **`id-claims.ts`**: `judgeIdClaims`, `nextClaim` and `ID_CLAIM_LANE`, the claim's row for the fast lane's table (core/A69, core/A70). Pure. The folder, the first claimable numbers and the owner of each use are the adopter's.
 - **`registration.ts`**: `assemble(registrations)`, pure (core/A25, core/A26, core/A39). It returns scopes, kinds, instances, findings, untraced instances, shared terms, and `outgoing(scope, id)`. `cycles` is `null`, and `incoming` and `reach` return `null`: unavailable without Graph, never empty.
 
 ## The payload
@@ -72,6 +74,12 @@ A registration is a typed artifact of Core's Type `Core/Registration` (core/A25)
 - **The runner** (core/A34). `npm test` is `node test/run.mjs`. In an installation, which it recognizes when the package directory sits directly in a `node_modules` directory, it runs `test:consumer` alone. In the source workspace it runs every declared `test:<name>` suite. An ambiguous or damaged layout, or a missing suite, is `cannot verify` before any suite runs.
 - **The verifier** (core/A43). `test:consumer` is `node test/verify.mjs`. It checks every file against the manifest, then runs each delivered test file in a scratch directory, compares the cases that ran with the declared cases, and prints one execution record and one result line. Details are in [Testing](testing.md).
 - **The OS boundary** (core/A44). The runner and verifier reach the host only through @kaihacksai/kaal-hosting and hash only through Foundation. The one exception is the verifier's scratch directory, made with Node's portable temporary-directory call and removed afterwards, because Hosting offers no scratch directory today.
+
+## Id claims
+
+- **core/A69** [core/F133, core/F134, core/F135]: The claim file is the shape of F133 and nothing else. `ID_CLAIM_LANE` is the row for the lane's table (release/C191): root `packages/kaal-core/00-claims/`, name pattern `^([a-z]+-[1-9][0-9]*)\.json$` whose capture is the uniqueness key, add only. Two capabilities claiming one number write one path, and the second is refused.
+- **core/A70** [core/F136, core/F137, core/F138, core/F139, core/F140, core/N34]: `judgeIdClaims` and `nextClaim` are pure functions in `src/id-claims.ts`.
+- **core/A71** [core/F137, core/F138]: The control that runs the judge on a Change is Change's, with the owner of each path from Engineering's ownership data. Activating the lane is the Owner's decision.
 
 ## Release acceptance
 
