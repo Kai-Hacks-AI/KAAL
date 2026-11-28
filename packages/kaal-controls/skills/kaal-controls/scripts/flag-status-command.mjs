@@ -1,19 +1,11 @@
 #!/usr/bin/env node
+// DEPRECATED shim: the command line of the flag status report, kept at this path for callers that read files themselves until they read through hosting.
+// It is not published (package.json files). The library is lib/flag-status-command.mjs. Delete this file when its callers read through hosting.
 // Prints the flag status report from the paths it is given: --flags (the flag file), --controls ([{id, type, places}]), --runs ({ id: { place: [runs] } }) and --title.
-// The adopter reads the flag file at the right revision and hands the path over. This command names no platform and writes nothing.
-// Exit: 0 report printed and configuration valid, 1 configuration failed (the unknown decision of controls/F224 item 7), 2 an input could not be read.
+// Exit: 0 report printed and configuration valid, 1 configuration failed (an unknown decision), 2 an input could not be read.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { parseFlags, flagSource, validateFlags, decideOutcome } from './flags.mjs';
-import { reportFlags, renderFlagStatus } from './flag-status.mjs';
-
-export function flagStatusCommand({ flagsText, controls, runs, title }) {
-  const source = flagSource(flagsText === undefined ? [] : parseFlags(flagsText));
-  const validation = validateFlags({ controls, source });
-  const outcome = decideOutcome({ validation, runs: [] });
-  const report = reportFlags({ controls, source, runs });
-  return { markdown: renderFlagStatus({ title: title ?? 'Flag status', rows: report.rows, findings: report.findings }), outcome };
-}
+import { flagStatusCommand } from './lib/flag-status-command.mjs';
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const a = Object.fromEntries(process.argv.slice(2).reduce((r, x, i, v) => (x.startsWith('--') ? [...r, [x.slice(2), v[i + 1]]] : r), []));
