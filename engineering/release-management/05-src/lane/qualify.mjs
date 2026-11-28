@@ -35,7 +35,7 @@ function compile(lanes) {
 }
 const keyOf = (entry, file) => { const m = entry.name.exec(file); return m === null ? undefined : (m[1] !== undefined ? m[1] : file); };
 
-export function qualify(diff, { lanes, existing = {} } = {}) {
+export function qualify(diff, { lanes, existing } = {}) {
   const table = compile(lanes);
   if (table === null) return { verdict: 'refused', findings: [{ code: 'roots-cover-rules' }] };
   if (!Array.isArray(diff)) return { verdict: 'unknown', findings: [] };
@@ -52,16 +52,18 @@ export function qualify(diff, { lanes, existing = {} } = {}) {
     if (fits.length > 1) { add('ambiguous-lane', path, undefined, fits.map((f) => f.lane.kind).sort()); return undefined; }
     return { lane: fits[0].lane, file: path.slice(fits[0].root.length) };
   };
+  // The inventory of a kind is complete evidence or none: a missing or malformed list is never an empty inventory. It is needed for each kind an added file lands in (below).
+  const listed = (kind) => existing !== null && typeof existing === 'object' && Array.isArray(existing[kind]) && existing[kind].every((p) => typeof p === 'string');
   const held = new Map(table.map((lane) => [lane.kind, new Map()]));
   for (const lane of table) {
-    const list = existing !== null && typeof existing === 'object' && Array.isArray(existing[lane.kind]) ? existing[lane.kind] : [];
+    const list = listed(lane.kind) ? existing[lane.kind] : [];
     for (const p of list) {
-      if (typeof p !== 'string') continue;
       const root = lane.roots.find((r) => p.startsWith(r));
       const key = root === undefined ? undefined : keyOf(lane, p.slice(root.length));
       if (key !== undefined) held.get(lane.kind).set(key, p);
     }
   }
+  const needed = new Set();
   const taken = new Map(table.map((lane) => [lane.kind, new Map()]));
   const entries = diff.map((e) => (e !== null && typeof e === 'object' ? e : {}));
   entries.sort((a, b) => String(a.path).localeCompare(String(b.path)) || String(a.status).localeCompare(String(b.status)));
@@ -78,11 +80,16 @@ export function qualify(diff, { lanes, existing = {} } = {}) {
     const { lane, file } = hit;
     if (e.status === 'T' || (lane.status.includes(e.status) && e.mode !== REGULAR)) { add('mode', e.path, lane.kind); continue; }
     if (!lane.status.includes(e.status)) { add('status', e.path, lane.kind); continue; }
+    needed.add(lane.kind);
     const key = keyOf(lane, file);
     const other = held.get(lane.kind).get(key);
     const seen = taken.get(lane.kind);
     if ((e.status === 'A' && other !== undefined && other !== e.path) || (seen.has(key) && seen.get(key) !== e.path)) add('duplicate-number', e.path, lane.kind);
     seen.set(key, e.path);
   }
-  return { verdict: findings.length === 0 ? 'qualified' : 'refused', findings };
+  if (findings.length > 0) return { verdict: 'refused', findings };
+  // No refusal: the verdict stands on the inventories. A kind with an added or modified file and no complete list of its existing files cannot be judged: UNKNOWN, never qualified.
+  const unknown = [...needed].filter((kind) => !listed(kind));
+  if (unknown.length > 0) return { verdict: 'unknown', findings: unknown.map((kind) => ({ code: 'existing-unknown', kind })) };
+  return { verdict: 'qualified', findings: [] };
 }

@@ -1,6 +1,6 @@
 // Case release/T1712 tests: release/C191. Collisions are judged per kind on the full resulting tree.
 import assert from 'node:assert/strict';
-import { lanes, item, claim, ITEM_ROOT, CLAIM_ROOT, add, mod, codes, load } from './fixture.mjs';
+import { lanes, EMPTY, item, claim, ITEM_ROOT, CLAIM_ROOT, add, mod, codes, load } from './fixture.mjs';
 export const id = 'release/T1712';
 export const tests = ['release/C191'];
 export const title = 'the same key in another kind is fine, a second file with a key of its own kind is refused, editing the same file is not a collision';

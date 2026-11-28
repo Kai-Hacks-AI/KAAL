@@ -1,6 +1,6 @@
 // Case release/T1713 tests: release/C191. The roots never cover the lane's own rules.
 import assert from 'node:assert/strict';
-import { lanes, item, claim, ITEM_ROOT, CLAIM_ROOT, add, mod, codes, load } from './fixture.mjs';
+import { lanes, EMPTY, item, claim, ITEM_ROOT, CLAIM_ROOT, add, mod, codes, load } from './fixture.mjs';
 export const id = 'release/T1713';
 export const tests = ['release/C191'];
 export const title = 'no entry, no roots, a root outside its allow pattern, or a root covering rule paths is refused whole with roots-cover-rules';
@@ -15,5 +15,5 @@ export async function run() {
     const r = qualify(one, { lanes: lanesBad });
     assert.equal(r.verdict, 'refused', JSON.stringify(lanesBad) + ' was accepted'); assert.ok(codes(r).includes('roots-cover-rules'));
   }
-  assert.equal(qualify(one, { lanes }).verdict, 'qualified');
+  assert.equal(qualify(one, { lanes, existing: EMPTY }).verdict, 'qualified');
 }

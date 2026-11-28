@@ -4,6 +4,7 @@ export const CLAIM_ROOT = 'packages/kaal-core/00-claims/';
 export const item = { kind: 'item', roots: [ITEM_ROOT], name: '^B([1-9][0-9]*)(?:-[a-z0-9]+(?:-[a-z0-9]+)*)?\\.md$', allow: '^packages/[a-z0-9]+(?:-[a-z0-9]+)*/00-backlog/$' };
 export const claim = { kind: 'claim', roots: [CLAIM_ROOT], name: '^K([1-9][0-9]*)\\.json$', allow: '^packages/[a-z0-9]+(?:-[a-z0-9]+)*/00-claims/$', status: ['A'] };
 export const lanes = [item, claim];
+export const EMPTY = { item: [], claim: [] };
 export const add = (path) => ({ path, status: 'A', mode: '100644' });
 export const mod = (path) => ({ path, status: 'M', mode: '100644' });
 export const codes = (r) => r.findings.map((f) => f.code);
