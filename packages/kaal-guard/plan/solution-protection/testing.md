@@ -1,6 +1,6 @@
 # Solution protection: Testing
 
-The planned outer Cases are in `packages/kaal-guard/test/plan/solution-protection.test.mjs`. Each title names the identifiers it checks. They are immutable to DO and CHECK. The DO turns them GREEN, moves them into `test/acceptance/` and adds them to Guard's manifest. They run the `kaal-guard` command in throwaway Git repositories and use no other KAAL code.
+The planned outer Cases are in `packages/kaal-guard/test/plan/solution-protection.red.mjs`. Each title names the identifiers it checks. They are immutable to DO and CHECK. The file is `.red.mjs` so that no loop of the shipped manifest picks it up. The DO turns them GREEN, renames it to `.test.mjs`, moves it into `test/acceptance/` and adds them to Guard's manifest. They run the `kaal-guard` command in throwaway Git repositories and use no other KAAL code.
 
 | Case | Checks | Loop |
 | --- | --- | --- |
@@ -15,7 +15,7 @@ The planned outer Cases are in `packages/kaal-guard/test/plan/solution-protectio
 
 ## RED evidence
 
-Run with `node --test packages/kaal-guard/test/plan/solution-protection.test.mjs` on Node 24. At `guard/C171` all eight are RED, blocked before behavioural assertion, because the command has no `plan` or `fold` and `run` has no `--report`. The run is outside Guard's own `npm test` until the DO.
+Run with `node --test packages/kaal-guard/test/plan/solution-protection.red.mjs` on Node 24. At `guard/C171` all eight are RED, blocked before behavioural assertion, because the command has no `plan` or `fold` and `run` has no `--report`. The run is outside Guard's own `npm test` until the DO.
 
 ## Follow-ups (not this Change)
 
