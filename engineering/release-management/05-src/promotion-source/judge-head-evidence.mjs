@@ -24,13 +24,18 @@ export async function check(facts, { mode = DETECTIVE, boundary } = {}) {
   return report(await runControl({ id: ID, mode, check: checking(headEvidence, seen), input: facts, boundary }), seen);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const read = (f) => {
+// The reads of the job. The rules of the head ref cannot change inside the wait, so they are read once and kept (release/C190); only the check runs are read again. A failed rules read is not kept.
+export function makeRead(ghRead) {
+  let rules;
+  return (f) => {
     if (promotionOrigin(f).kind !== 'pass') return f;
     if (!f.head) throw new Error('the job supplied no head commit to read the checks at');
-    const rules = gh([`repos/${f.repo}/rules/branches/${f.headRef}`, '--jq', '.[]']);
-    const runs = gh([`repos/${f.repo}/commits/${f.head}/check-runs`, '--jq', '.check_runs[] | {id, name, status, conclusion, appId: .app.id, headSha: .head_sha}']);
+    rules ??= ghRead([`repos/${f.repo}/rules/branches/${f.headRef}`, '--jq', '.[]']);
+    const runs = ghRead([`repos/${f.repo}/commits/${f.head}/check-runs`, '--jq', '.check_runs[] | {id, name, status, conclusion, appId: .app.id, headSha: .head_sha}']);
     return { ...f, checks: { required: readRequired(rules), runs: readRuns(runs) } };
   };
-  process.exit(await run({ label: 'Promotion Source: head evidence', id: ID, check, read, again: (a) => a.kind === 'fail' && a.findings.some((x) => x.includes('(pending)')) }));
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  process.exit(await run({ label: 'Promotion Source: head evidence', id: ID, check, read: makeRead(gh), again: (a) => a.kind === 'fail' && a.findings.some((x) => x.includes('(pending)')) }));
 }
