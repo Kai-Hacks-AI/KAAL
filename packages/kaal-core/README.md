@@ -198,10 +198,10 @@ installationConformance(contract);
 - the untraced instances, and the terms several owners define, reported unaligned;
 - `outgoing(scope, id)`.
 
-`kaal-core/id-claims` judges id claims. A claim is one file, `<kind>-<id>.json`, holding `{ capability, kind, id }`, which lands before the content that uses the number. `judgeIdClaims({ claims, used, from })` reports a mismatch, a duplicate, an id below the first claimable number, an unclaimed or foreign id and a reused one, and answers `unknown` for input it cannot read. `nextClaim(claims, from, kind)` proposes the next number and reserves nothing. `ID_CLAIM_LANE` is the claim's row for the fast lane's table. Core holds no list of branches; the folder, the first claimable numbers and the owner of each use are the adopter's.
+`kaal-core/id-claims` judges id claims. A claim is one file, `<kind>-<id>.json`, holding `{ capability, kind, id }`, which lands before the content that uses the number. `judgeIdClaims({ claims, used, from })` reports a mismatch, a duplicate, an id below the first claimable number, an unclaimed or foreign id and a reused one, and answers `unknown` for input it cannot read. `nextClaim(claims, from, kind)` proposes the next number and reserves nothing. `idClaimLane(folder?)` builds the claim's row for the fast lane's table, for the folder the adopter chose, or Core's proposed default `00-claims/`. Core holds no list of branches; the folder, the first claimable numbers and the owner of each use are the adopter's.
 
 ```js
-import { judgeIdClaims, nextClaim, ID_CLAIM_LANE } from "kaal-core/id-claims";
+import { judgeIdClaims, nextClaim, idClaimLane, DEFAULT_CLAIM_ROOT } from "kaal-core/id-claims";
 ```
 
 Graph's analysis (`reach`, `incoming` and observed `cycles`) is an optional complement. kaal-core does not use it yet, so those views are `null`, meaning unavailable, never empty. `verify` and `kaal verify` assemble the registrations an Engine holds and fail on a finding, never on a cycle, an untraced instance, a shared term or Graph's absence. Core's Type Definition for registrations, `Core/Registration`, sits beside the Core Capability Node in the KAAL repository; it does not ship in this package.

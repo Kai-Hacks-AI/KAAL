@@ -1,7 +1,7 @@
 {
   "files": {
     "LICENSE": "2301f51f2129a54f556e2cdf8ee32401e22b375b3eb58772f37740c02b8e99af",
-    "README.md": "ad69f99611e16ae7f9c3a719849ea7dce636885b1efe8a6c1c4e2fffb9b368d1",
+    "README.md": "a144691089461f4f610dbd876f8e1383f9c3bc34ad5144d420ae49e6cd261462",
     "dist/admitted.d.ts": "52ea0be2c29db7fa0cba81d22ab754621d8aa6d6e6350851493dc11ffe6752e3",
     "dist/admitted.js": "7c08d1fd903b40e4945083975f2fd2210573778068c6467eb23ee4f5eb4a5697",
     "dist/agent.d.ts": "edce5bc81865c424780e2f91b38c478771efbc6b4140a93b997c37401a6de6bc",
@@ -16,8 +16,8 @@
     "dist/engine.js": "3d12a13752c64abf7edca4d958eec29cb2a7c4dc763dfc3aecda999d85d82b08",
     "dist/frontmatter.d.ts": "2fe59ef5d76e44a5406a4cd80c6a3013e3f2984aec1e55b820bb5f4192873b49",
     "dist/frontmatter.js": "4b3edba7291bd04e422941a1b1b44ee9898372d9bc4b163e7dc251cea8664002",
-    "dist/id-claims.d.ts": "904ccf7d66203e1560e042935779573ccc27658dc835f79f0520687c7f515899",
-    "dist/id-claims.js": "2189106753262070f7a9b62b72c5b15f5589b351cb868da03c446290ce91e382",
+    "dist/id-claims.d.ts": "be92165a96ce422d55265ba549f05c6aeb9bbcf37281876178dc0349256c9e01",
+    "dist/id-claims.js": "dfd04b9aa20e6e8e874ba1abc0af4ff5fb1ee331c6682a49345dd6b2d51e7c5d",
     "dist/index.d.ts": "4f25007b488e64f3e1ed87ed957e1c916e7360c2e3ffb09d47b5f04a20f7eab2",
     "dist/index.js": "6573b28c03431bab1c7828351a5d513598af63ac1667cd6e063504f5d73a3856",
     "dist/installation.d.ts": "9e453f3666610dafa8f8fc3e83deb2275fde13771827ccdd8124c95030e872b8",
@@ -41,7 +41,7 @@
     "dist/register.js": "6fb44144bf212725071e0a46be9994a35842107e6dae69d0257ac483adb6ad22",
     "dist/registration.d.ts": "de8b0e2be5578306a7a3980b3761323a73b796c18d6990a5ff278843a62d0ad0",
     "dist/registration.js": "cb922c8bccec92255d94719e8067fdcbc69f82048537af071881d0f882e273d8",
-    "docs/architecture.md": "f6066bf15563450e0946852161ea20c7a8d36e2bb5e49654bdbd76651971388f",
+    "docs/architecture.md": "3cb92199545760536315d3b2998985cfeb39620e63df2aa80247d04229416d32",
     "docs/intent.md": "031c524909ddae4f1053795d41c18cabf06d755baa7ed6b6b88c7efda41c925c",
     "docs/limitations.md": "72935cde7ba6dd54e4253b05132c172460612bc08b04ea32d4ac549be389aa90",
     "docs/operations.md": "64c33bd40007fb3c84faefec85d89017aa808c98c10680fa76abad2e46d73560",

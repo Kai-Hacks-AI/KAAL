@@ -2,17 +2,24 @@
 // file, `<kind>-<id>.json`, holding `{ capability, kind, id }`. Core judges the claims and the uses
 // it is given and nothing else (core/N34): it reads no file, takes no branch and names no host. The
 // folder the claims live in, the first claimable number of each kind and the owner of each use are
-// the adopter's data. `ID_CLAIM_LANE` is the one row of the fast lane's table that this payload
-// needs (core/A69); the lane itself belongs to Release.
+// the adopter's data. `idClaimLane` builds the one row of the fast lane's table that this payload
+// needs for the folder the consumer chose (core/A69); the lane itself belongs to Release.
 
-/** The row for the lane's table (release/C191): the root, the name pattern whose capture is the uniqueness key, and add-only. */
-export const ID_CLAIM_LANE = Object.freeze({
-  kind: "id-claim",
-  roots: Object.freeze(["packages/kaal-core/00-claims/"]),
-  name: "^([a-z]+-[1-9][0-9]*)\\.json$",
-  allow: "^packages/kaal-core/00-claims/$",
-  status: Object.freeze(["A"]),
-});
+/** Core's proposed folder for the claim files, relative to the consumer's repository root. The consumer may choose any other. */
+export const DEFAULT_CLAIM_ROOT = "00-claims/";
+
+/**
+ * The row for the lane's table (release/C191) for the claim folder the consumer chose, Core's default
+ * when none is given: add only, the folder as its one root, and a name pattern whose capture, the whole
+ * file name, is the uniqueness key (core/A69). Null for a folder that is not a plain path ending in `/`.
+ * Core enforces no package path: placement is the consumer's, and whether the lane accepts the folder
+ * is the lane's judgment of the row.
+ */
+export function idClaimLane(root: unknown = DEFAULT_CLAIM_ROOT): { kind: string; roots: string[]; name: string; allow: string; status: string[] } | null {
+  if (typeof root !== "string" || !root.endsWith("/") || /[\\:]/.test(root)) return null;
+  if (root.slice(0, -1).split("/").some((s) => s === "" || s === "." || s === "..")) return null;
+  return { kind: "id-claim", roots: [root], name: "^([a-z]+-[1-9][0-9]*)\\.json$", allow: `^${root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, status: ["A"] };
+}
 
 export interface Claim {
   readonly name: string;
