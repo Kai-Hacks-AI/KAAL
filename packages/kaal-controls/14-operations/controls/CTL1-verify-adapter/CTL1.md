@@ -3,7 +3,7 @@ id: controls/CTL1
 title: verify Adapter
 description: It reveals a control that is declared with a station, or delivered, and does not run through the adapter.
 type: detective
-status: designed
+status: implemented
 has: [controls/I20]
 evidence: [fixture:2, real:1, provoked:1:fail]
 ---

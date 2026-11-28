@@ -3,7 +3,7 @@ id: controls/CTL2
 title: verify Delivery
 description: It reveals something that is delivered and that no control declares.
 type: detective
-status: designed
+status: implemented
 has: [controls/I21]
 evidence: [fixture:2, real:1, provoked:1:fail]
 ---
