@@ -3,7 +3,7 @@ id: controls/CTL3
 title: verify Record
 description: It reveals a control whose record of a fact is lower than its proof shows, or higher; an unknown fact is never clean.
 type: detective
-status: designed
+status: implemented
 has: [controls/I22]
 evidence: [fixture:2, real:1, provoked:1:fail]
 ---

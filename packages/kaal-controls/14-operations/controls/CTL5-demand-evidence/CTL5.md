@@ -3,7 +3,7 @@ id: controls/CTL5
 title: demand Evidence
 description: It reveals a proposed activation or enforcement transition of a control without the evidence it needs.
 type: detective
-status: designed
+status: implemented
 has: [controls/I24]
 evidence: [fixture:2, real:1, provoked:1:fail]
 ---

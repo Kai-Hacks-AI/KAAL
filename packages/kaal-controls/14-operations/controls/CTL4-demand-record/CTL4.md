@@ -3,7 +3,7 @@ id: controls/CTL4
 title: demand Record
 description: It reveals a post-installation discrepancy of an installed control whose correction is due.
 type: detective
-status: designed
+status: implemented
 has: [controls/I23]
 evidence: [fixture:2, real:1, provoked:1:fail]
 ---

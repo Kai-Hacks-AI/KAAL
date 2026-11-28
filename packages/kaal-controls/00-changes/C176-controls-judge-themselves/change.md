@@ -31,3 +31,10 @@ Not authorized by this PLAN. On its merge into the collector `kaal/controls/own-
 ## Not here
 
 No WIRE, flag, station, required check, ruleset, npm publish or change of `private`. `running` and `tested` claims for the five controls are later Changes.
+
+## DO (done)
+
+- `scripts/lib/judge-self.mjs` (`judgeSelf`) as F229 says, importing `./find-controls.mjs` and `../verify-record.mjs` only; `status` of CTL1 to CTL5 raised from `designed` to `implemented`; the register is empty again.
+- Evidence: on the base (the PLAN alone) T1730 and T1731 are RED, 130 GREEN. With the DO the package lane is 132 GREEN, 0 RED, held 0, findings 0.
+- Mutations, each caught by a Case: judgeSelf importing a platform module (T1731); the `implemented` fact taken from the claim, so a lag is accepted (T1731); `running` derived as true (T1731); `tested` derived as true (T1731). A missing revision is refused by `assessRecord` as well, so removing judgeSelf's own revision check changes nothing: the refusal is kept in both places and is covered by T1731.
+- `running` and `tested` are not claimed. Running `judgeSelf` as a control at a station is a WIRE and stays the Owner's decision.
