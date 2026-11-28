@@ -12,7 +12,7 @@ export async function run() {
   const d = read.declaration;
   assert.equal(d.app, 'inspector');
   assert.equal(d.name, 'KAAL Inspector');
-  assert.equal(d.owner, 'review');
+  assert.equal(d.owner, 'kaal-review');
   assert.ok(typeof d.purpose === 'string' && d.purpose.length > 0, 'no purpose');
   assert.deepEqual([...d.abilities].sort(), ['post-checks', 'read-checks', 'read-contents', 'read-pull-requests']);
 
@@ -25,6 +25,7 @@ export async function run() {
   assert.ok(found(mutate((x) => { x.abilities.push('post-checks'); })).includes('ability-repeated'), 'a repeated ability is not refused');
   assert.ok(found(mutate((x) => { x.app = 'approver'; })).includes('wrong-app'), 'another App is not refused');
   assert.ok(found(mutate((x) => { x.owner = 'release'; })).includes('wrong-owner'), 'another owner is not refused');
+  assert.ok(found(mutate((x) => { x.owner = 'review'; })).includes('wrong-owner'), 'the owner is the name of the package Hosting reads, not a short name');
   assert.ok(found(mutate((x) => { delete x.purpose; })).includes('no-purpose'), 'no purpose is not refused');
   assert.ok(found(mutate((x) => { x.abilities = 'post-checks'; })).includes('abilities-not-a-list'), 'abilities that are not a list are not refused');
   assert.ok(found('{ not json').includes('unreadable'), 'unreadable text is not a finding');
